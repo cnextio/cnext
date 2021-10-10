@@ -19,6 +19,14 @@ import maTheme from "../theme";
 
 const theme =  createTheme();
 
+import { createGlobalStyle } from 'styled-components'
+
+const GlobalStyle = createGlobalStyle`
+  body {
+    height: 100vh;
+    margin:0;
+  }`
+
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
       // Remove the server-side injected CSS.
@@ -30,6 +38,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
       <React.Fragment>
+          <GlobalStyle />
           <Helmet
               titleTemplate="%s | CycAI"
               defaultTitle="CycAI"

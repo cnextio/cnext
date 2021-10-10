@@ -78,29 +78,41 @@ import React from "react";
 // import { connect } from "react-redux";
 import Helmet from 'react-helmet';
 
-import maTheme from "../theme";
 import Routes from "./routes/Routes";
 
 const theme =  createTheme();
-// import { Provider } from 'react-redux';
-// import store from '../redux/store/index';
+
+// redux
+import { Provider } from 'react-redux';
+import store from '../redux/store/index';
+
+// global style
+import { createGlobalStyle } from 'styled-components'
+const GlobalStyle = createGlobalStyle`
+  body {
+    height: 100vh;
+    margin:0;
+  }`
 
 const Home: NextPage = () => {
-  return (    
-        <React.Fragment>
-          <Helmet
-            titleTemplate="%s | Material App"
-            defaultTitle="Material App - React Admin & Dashboard Template"
-          />
-          <StyledEngineProvider injectFirst>
-              <ThemeProvider theme={theme}>
+    return (
+        <Provider store={store}>    
+            <React.Fragment>
+            <GlobalStyle />
+            <Helmet
+                titleTemplate="%s | CycAI"
+                defaultTitle="CycAI"
+            />
+            <StyledEngineProvider injectFirst>
                 <ThemeProvider theme={theme}>
-                  <Routes />
+                    <ThemeProvider theme={theme}>                        
+                    <Routes store={store}/>
+                    </ThemeProvider>
                 </ThemeProvider>
-              </ThemeProvider>
-          </StyledEngineProvider>
-        </React.Fragment>
-  );
+            </StyledEngineProvider>
+            </React.Fragment>
+        </Provider>
+    );
 }
 
 // export default App

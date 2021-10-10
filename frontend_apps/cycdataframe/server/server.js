@@ -1,20 +1,24 @@
 const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
-const port = process.env.PORT || 4001;
+import {DataTableContent} from "../lib/components/Interfaces";
+// for testing
+import tableData from "../lib/components/tests";
+
+const port = process.env.PORT || 4000;
 const index = require("./routes/index");
 const app = express();
 app.use(index);
 const server = http.createServer();
 options = {
     cors: {
-        origin: ["http://localhost:3001"],
+        origin: ["http://localhost:3000"],
         methods: ["GET", "POST"]
     },
 };
 const io = new socketIo.Server(server, options);
-
 let ready = false;
+
 io.on("connection", (socket) => {
     socket.on("ping", msgTo => {
         const minutes = new Date().getMinutes();
@@ -22,23 +26,42 @@ io.on("connection", (socket) => {
         io.emit("pong", minutes);
     });
 
-    socket.on("run", msgTo => {        
-        console.log("Run: ", msgTo);
-        sendResult();
+    socket.on("run", msgRecv => {        
+        console.log("server run: ", msgRecv);       
+        // pyshell.send(msgRecv);
+        //for testing
+        pyshell.send(testData);
     });
 
     socket.once("disconnect", () => {
     });
 });
 
-const sendResult = () => {
-    io.emit('result', JSON.stringify({
-        result: 'result',
-        error: 'error'
+const sendOutput = (type, content) => {
+    io.emit(type, JSON.stringify({
+        type: type,
+        content: content
     }));
 }
 
 server.listen(port, () => console.log(`Waiting on port ${port}`));
+
+/*
+* Communicate with python server
+*/
+let {PythonShell} = require('python-shell');
+console.log("Starting python shell...");
+let pyshell = new PythonShell('server.py', { mode: 'text'});
+
+pyshell.on('message', function (message) {
+    sendOutput('output', message);
+    console.log('stdout:', message);
+});
+
+pyshell.on('stderr', function (stderr) {
+    sendOutput('output', stderr);
+    console.log('stderr:', stderr);
+});
 
 // // getting data from pen
 // const zmq = require("zeromq"),

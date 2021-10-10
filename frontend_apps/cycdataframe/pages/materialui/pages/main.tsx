@@ -1,8 +1,8 @@
 import React, { FC, useState } from "react";
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
 // import Component from "react"
-import MiniSidebar, { DrawerHeader } from "../../../lib/materialui/layouts/Sidebar";
-import Header from "../../../lib/materialui/layouts/Header";
+import MiniSidebar, { DrawerHeader } from "../../../lib/components/Sidebar";
+import Header from "../../../lib/components/Header";
 
 import {
   CssBaseline,
@@ -16,15 +16,15 @@ import {DRAWING, FOLDERS, INBOX, TASKS} from "../../routes";
 // import FolderContainer from "./folders";
 import DrawingPageContainer from "./drawing-page";
 import { Box, Divider, Typography } from "@mui/material";
-import SidebarDividerComponent from "../../../lib/materialui/layouts/SidebarDivider";
-import LogoComponent from "../../../lib/materialui/layouts/Logo";
-import MainPanelComponent from "../../../lib/materialui/layouts/MainPanel";
-import { CodeArea, CodePanel, CodeToolbar, MainPanel, TopPanel, WorkingPanel } from "../../../lib/materialui/layouts/StyledComponents";
-import AppBarComponent from "../../../lib/materialui/layouts/AppBar";
-import WorkingPanelDividerComponent from "../../../lib/materialui/layouts/WorkingPanelDivider";
-import CodePanelComponent from "../../../lib/materialui/layouts/CodePanelComponent";
-import TablePanelComponent from "../../../lib/materialui/layouts/TablePanelComponent";
-import WorkingPanelComponent from "../../../lib/materialui/layouts/WorkingPanelComponent";
+import SidebarDividerComponent from "../../../lib/components/SidebarDivider";
+import LogoComponent from "../../../lib/components/Logo";
+import MainPanelComponent from "../../../lib/components/MainPanel";
+import { CodeEditor, CodePanel, CodeToolbar, MainPanel, TopPanel, WorkingPanel } from "../../../lib/components/StyledComponents";
+import AppBarComponent from "../../../lib/components/AppBar";
+import WorkingPanelDividerComponent from "../../../lib/components/WorkingPanelDivider";
+import CodePanelComponent from "../../../lib/components/CodePanelComponent";
+import TablePanelComponent from "../../../lib/components/TablePanelComponent";
+import WorkingPanelComponent from "../../../lib/components/WorkingPanelComponent";
 
 // const drawerWidth = 200;
 
@@ -81,25 +81,27 @@ import WorkingPanelComponent from "../../../lib/materialui/layouts/WorkingPanelC
 //   }
 // `;
   
-const MainLayout: FC = () => {
-  const [page, setPage] = useState({name: DRAWING});
+const MainLayout: FC = (props: any) => {
+    const [page, setPage] = useState({name: DRAWING});
 
-  const handleSideBarSelection = (name: string, params: object) => {
-      console.log(name, params);
-      setPage({name: name});
-  }
+    const handleSideBarSelection = (name: string, params: object) => {
+        console.log(name, params);
+        setPage({name: name});
+    }
 
-  // const PageSelection = ({ page }) => {
-  //     switch(page.name) {
-  //           case DRAWING:
-  //               return <DrawingPageContainer />
-  //               break;
-  //     }
-  // }
+    // const PageSelection = ({ page }) => {
+    //     switch(page.name) {
+    //           case DRAWING:
+    //               return <DrawingPageContainer />
+    //               break;
+    //     }
+    // }
     // console.log(theme)
-  return (
-    <Box sx={{ flexDirection: 'column' }}>
-        <CssBaseline />
+    return (
+    // macbook pro 13 height
+    // move this to style files
+    <Box display="flex" sx={{ flexDirection: 'column' }} style={{height: "100vh"}}> 
+        {/* <CssBaseline /> */}
         <TopPanel>
             <LogoComponent />
             <AppBarComponent />
@@ -107,10 +109,10 @@ const MainLayout: FC = () => {
         <MainPanel>
             <MiniSidebar />
             <SidebarDividerComponent />
-            <WorkingPanelComponent />            
+            <WorkingPanelComponent {... props}/>            
         </MainPanel>
     </Box>
-  )
+    )
 }
 
 export default MainLayout;

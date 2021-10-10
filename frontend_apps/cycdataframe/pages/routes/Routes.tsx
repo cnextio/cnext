@@ -5,14 +5,15 @@ import MainLayout from "../materialui/pages/main";
 
 // This will be useful when we have to move between login, main and error page
 // only have main page for now
-function childRoutes(Layout: FC) {
+function childRoutes(Layout: FC, props: any) {
     return (
-        <Layout/>            
+        <Layout {... props}/>            
     );
 }
 
 function Routes(props: any) {
-    return childRoutes(MainLayout)
+    // console.log(props);
+    return childRoutes(MainLayout, props);
 };
 
 export default Routes;
