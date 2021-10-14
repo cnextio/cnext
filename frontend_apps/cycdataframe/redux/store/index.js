@@ -7,9 +7,11 @@
 
 import { configureStore } from '@reduxjs/toolkit'
 import tableDataReducer from '../reducers/tableDataSlice'
+import counterReducer from '../reducers/counterSlice'
 
 export default configureStore({
   reducer: {
     tableData: tableDataReducer,
+    counter: counterReducer
   },
 })

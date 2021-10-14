@@ -1,0 +1,24 @@
+06:11:03,836 __main__ INFO {'command': 'print("Hello")'}
+06:11:03,836 __main__ INFO {'command': 'failed command'}
+06:11:03,837 __main__ ERROR Traceback (most recent call last):
+  File "/Users/bachbui/works/auto_task/frontend_apps/cycdataframe/server/tests/test_servers/server.py", line 13, in <module>
+    exec(req['command'])
+  File "<string>", line 1
+    failed command
+           ^
+SyntaxError: invalid syntax
+
+06:11:03,837 __main__ INFO {'command': 'print("Hello")'}
+06:14:04,132 __main__ INFO {'command': "print('Hello')"}
+06:14:04,132 __main__ INFO {'command': 'failed command'}
+06:14:04,132 __main__ ERROR Traceback (most recent call last):
+  File "/Users/bachbui/works/auto_task/frontend_apps/cycdataframe/server/tests/test_servers/server.py", line 13, in <module>
+    exec(req['command'])
+  File "<string>", line 1
+    failed command
+           ^
+SyntaxError: invalid syntax
+
+06:14:04,132 __main__ INFO {'command': "print('Hello')"}
+06:14:22,884 __main__ INFO {'command': "print('Hello')"}
+06:15:52,110 __main__ INFO {'command': "print('Hello')"}

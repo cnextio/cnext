@@ -1,16 +1,20 @@
 const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
-import {DataTableContent} from "../lib/components/Interfaces";
+
+
+//TODO: should use a shared interface file with the web client but have not found the way to do that yet
+// enum CommandType { exec = 'exec', eval = 'eval' }
+
 // for testing
-import tableData from "../lib/components/tests";
+// import tableData from "../lib/components/tests";
 
 const port = process.env.PORT || 4000;
 const index = require("./routes/index");
 const app = express();
 app.use(index);
 const server = http.createServer();
-options = {
+const options = {
     cors: {
         origin: ["http://localhost:3000"],
         methods: ["GET", "POST"]
@@ -19,6 +23,9 @@ options = {
 const io = new socketIo.Server(server, options);
 let ready = false;
 
+/*
+* Communicate with nodejs web server
+*/
 io.on("connection", (socket) => {
     socket.on("ping", msgTo => {
         const minutes = new Date().getMinutes();
@@ -26,71 +33,79 @@ io.on("connection", (socket) => {
         io.emit("pong", minutes);
     });
 
-    socket.on("run", msgRecv => {        
-        console.log("server run: ", msgRecv);       
-        // pyshell.send(msgRecv);
-        //for testing
-        pyshell.send(testData);
+    socket.on("exec", command => {        
+        console.log("server will exec: ", command);       
+        pyshell.send({command_type: 'exec', command: command});
+        // for testing
+        // pyshell.send(testData);
+    });
+
+    socket.on("eval", command => {        
+        console.log("server will eval: ", command);       
+        pyshell.send({command_type: 'eval', command: command});
+        // for text interface
+        // pyshell.send(command)
     });
 
     socket.once("disconnect", () => {
     });
 });
 
-const sendOutput = (type, content) => {
-    io.emit(type, JSON.stringify({
-        type: type,
-        content: content
-    }));
+const sendOutput = (message) => {
+    // message['error'] = error
+    io.emit('output', JSON.stringify(message));
 }
 
 server.listen(port, () => console.log(`Waiting on port ${port}`));
+/*********************************************************************/
 
 /*
 * Communicate with python server
 */
-let {PythonShell} = require('python-shell');
-console.log("Starting python shell...");
-let pyshell = new PythonShell('server.py', { mode: 'text'});
+const { PythonShell, NewlineTransformer } = require('python-shell');
+const pyshell_opts = {
+    'stdio':
+        ['pipe', 'pipe', 'pipe', 'pipe'], // stdin, stdout, stderr, custom
+    'mode': 'json'
+}
 
+console.log("Starting python shell...");
+let pyshell = new PythonShell('server.py', pyshell_opts);
+// const stderr = pyshell.childProcess.stdio[2]
+// stderr.pipe(new NewlineTransformer()).on('data', (stderrResult) => {
+//     // console.log(stderrResult.toString())
+// })
+
+// processing outputs from python server
 pyshell.on('message', function (message) {
-    sendOutput('output', message);
+    sendOutput(message);
     console.log('stdout:', message);
 });
 
-pyshell.on('stderr', function (stderr) {
-    sendOutput('output', stderr);
-    console.log('stderr:', stderr);
+pyshell.on('stderr', function (message) {
+    sendOutput({"commandType": "eval", "contentType": "str", "content": message}, true); 
+    console.log('stderr:', message);
 });
 
-// // getting data from pen
-// const zmq = require("zeromq"),
-//     pen_socket = zmq.socket("pull");
+pyshell.on('error', function (message) {
+    console.log('error ', message);
+})
 
-// pen_socket.bind("tcp://127.0.0.1:5001");
-// console.log("Receiving pen data on port 5001");
+pyshell.on('close', function (message) {
+    console.log('close ', "python-shell closed: " + message);
+})
 
-// pen_socket.on("message", function (msg) {
-//     let strMsg = msg.toString();
-//     console.log("Get pen pos: %s", strMsg);
-//     let data = strMsg.split(',')
-//     let x = convert(data[0]);
-//     let y = convert(data[1]);
-//     let z = convert(data[2]);
-//     if (ready){
-//         if(!isNaN(x) && !isNaN(y) && !isNaN(z)) {
-//             console.log("\tFinal pen pos: %d %d %d", x, y, z);
-//             sendPenData(true, x, y, z);
-//         } else {
-//             sendPenData(false);
-//         }
-//     }
-// });
+/*********************************************************************/
 
-// function convert(x) {
-//     return -parseFloat(x);
-// }
-
-//function convert_z(x) {
-//    return Math.round(parseFloat(x)*1000*1.5);
-//}
+// for testing
+// pyshell.send("import os, sys; os.chdir('/Volumes/GoogleDrive/.shortcut-targets-by-id/1FrvaCWSo3NV1g0sR9ib6frv_lzRww_8K/CycAI/works/CAT/machine_simulation'); sys.path.append(os.getcwd()); from libs.multidataframes import CycDataFrame; training_data = CycDataFrame('data/exp_data/997/21549286_out.csv')");
+// pyshell.send("df = training_data.df");
+// pyshell.send({command_type: 'exec', command: 'print("Hello")'});
+pyshell.send({command_type: 'exec', command: "import os, sys; os.chdir('/Volumes/GoogleDrive/.shortcut-targets-by-id/1FrvaCWSo3NV1g0sR9ib6frv_lzRww_8K/CycAI/works/CAT/machine_simulation'); sys.path.append(os.getcwd()); from libs.multidataframes import CycDataFrame; training_data = CycDataFrame('data/exp_data/997/21549286_out.csv')"});
+pyshell.send({command_type: 'exec', command: 'df = training_data.df'});
+// pyshell.send({command_type: 'eval', command: 'print("Hello")'});
+// pyshell.send({command_type: 'eval', command: 'failed command'});
+// pyshell.send({command_type: 'eval', command: 'print("Hello")'});
+// pyshell.send({command_type: 'eval', command: 'print("Hello")'});
+// pyshell.send({command_type: 'eval', command: 'print("Hello")'});
+// pyshell.send({command_type: 'eval', command: 'df'});

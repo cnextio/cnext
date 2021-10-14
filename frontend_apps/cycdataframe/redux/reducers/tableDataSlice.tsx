@@ -4,11 +4,6 @@ import { DataTableContent } from '../../lib/components/Interfaces';
 // for testing
 import {tableData as testTableData} from "../../lib/components/tests/TestTableData"  
 
-// let emptytableData: DataTableContent = {
-//     header: [],
-//     rows: []
-// };
-
 export const tableDataSlice = createSlice({
     name: 'tableData',
     initialState: {

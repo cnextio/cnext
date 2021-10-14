@@ -1,9 +1,8 @@
-import { combineReducers } from 'redux';
+// import { combineReducers } from 'redux';
 
-// import themeReducer from './themeReducers';
-import tableData from './tableDataReducer';
+// import tableData from './tableDataReducer';
 
-export default combineReducers({
-	// themeReducer
-	tableData
-});
+// export default combineReducers({
+// 	// themeReducer
+// 	tableData
+// });
