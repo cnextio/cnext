@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useRef, useState } from "react";
-import { CodePanel, CodeToolbar, CodeArea, CodeOutputArea, TextCodeOutputArea} from "./StyledComponents";
+import { CodePanel, CodeToolbar, CodeContainer, CodeOutputContainer, TextCodeOutputContainer} from "./StyledComponents";
 import SplitPane, {Pane} from 'react-split-pane';
 import CodeEditorComponent from "./CodeAreaComponent";
 import WorkingPanelDividerComponent from "./WorkingPanelDivider";
@@ -10,7 +10,7 @@ import {CodeOutput} from "./Interfaces";
 const OutputLine = (content: string) => {
     return (
         <Typography variant="body2">
-            {decodeURIComponent(content)}
+            {content}
         </Typography>
     )
 }
@@ -22,12 +22,12 @@ const CodeOutputAreaComponent = (props: {codeOutput: CodeOutput}) => {
 
     useEffect(() => {
         try {
-            let newOutputContent = OutputLine(props.codeOutput.content);
+            let newOutputContent = OutputLine(props.codeOutput.content);            
             setOutputContent(outputContent => [...outputContent, newOutputContent]);
-            // console.log(outputContent);
-        } catch {
+            console.log(props.codeOutput);
+        } catch(error) {
             // TODO: process json error 
-            // console.log(props.codeOutput);
+            console.error(error);
         }
     }, [props.codeOutput])
 
@@ -40,23 +40,23 @@ const CodeOutputAreaComponent = (props: {codeOutput: CodeOutput}) => {
     useEffect(scrollToBottom, [outputContent]);
 
     return (
-        <CodeOutputArea>
+        <CodeOutputContainer>
             {console.log('CodeOutputAreaComponent rerender')}   
-            <TextCodeOutputArea>
+            <TextCodeOutputContainer>
                 {outputContent}
                 <div ref={endRef}/>
-            </TextCodeOutputArea>              
-        </CodeOutputArea>
+            </TextCodeOutputContainer>              
+        </CodeOutputContainer>
     )
 }
 
 const CodePanelComponent = React.memo((props: any) => {
-    const [codeOutput, setCodeOutput] = useState<CodeOutput>({type: "", content: ""});
+    const [codeOutput, setCodeOutput] = useState<CodeOutput>({commandType: "", contentType: "", content: "", error: false});
 
     // user useCallback to avoid rerender CodeEditorComponent when this is rerendered
     // see this https://felixgerschau.com/react-performance-react-memo/
     const recvCodeOutput = React.useCallback(
-        (output: CodeOutput) => {
+        (output: CodeOutput) => {            
         setCodeOutput(output);
     }, []);
 
@@ -65,13 +65,13 @@ const CodePanelComponent = React.memo((props: any) => {
             {console.log('CodePanelComponent rerender')}            
             <CodeToolbar />                
             <WorkingPanelDividerComponent />
-            <CodeArea>
-                <SplitPane split="horizontal" defaultSize="70%" pane2Style={{height: "30%"}}>  
+            <CodeContainer>
+                <SplitPane split="horizontal" defaultSize="70%" pane2Style={{height: "0%"}}>  
                             {/* panel2 height is the must for the scrolling to work */}
                     <CodeEditorComponent {... props} recvCodeOutput={recvCodeOutput} />
                     <CodeOutputAreaComponent codeOutput={codeOutput} />
                 </SplitPane>            
-            </CodeArea>
+            </CodeContainer>
         </CodePanel>
     );
   });

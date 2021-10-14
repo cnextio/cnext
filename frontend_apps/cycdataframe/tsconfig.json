@@ -14,6 +14,6 @@
     "isolatedModules": true,
     "jsx": "preserve"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "server/test_pyshell.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "lib/components/CodeAreaComponent.js", "server/server.js", "server/test_pyshell.js"],
   "exclude": ["node_modules"]
 }

@@ -1,6 +1,6 @@
 import { TableBody, TableHead, TableRow, TableCell} from "@mui/material";
 import React, { useEffect } from "react";
-import { DataTable, DataTableHead, DataTableHeadCell, TableContainer } from "./StyledComponents";
+import { DataTable, DataTableCell, DataTableHead, DataTableHeadCell, DataTableRow, TableContainer } from "./StyledComponents";
 import {DataTableContent} from "./Interfaces";
 
 // redux
@@ -16,22 +16,24 @@ export function TableComponent(props: any) {
     return (
         <TableContainer >
         {tableData?
-            <DataTable sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+            <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
                 {/* {console.log(tableData)} */}
                 <DataTableHead>
                     <TableRow >
+                    <DataTableHeadCell>{tableData.index.name}</DataTableHeadCell>
                     {tableData.header.map((headerItem) => (    
-                        <DataTableHeadCell>{headerItem}</DataTableHeadCell>
+                        <DataTableHeadCell align='right'>{headerItem}</DataTableHeadCell>
                     ))}
                     </TableRow>
-                </DataTableHead>
-                <TableBody>
+                </DataTableHead>                
+                <TableBody>                
                 {tableData.rows.map((row, index) => (
-                    <TableRow key={index}>
+                    <DataTableRow hover key={index}>
+                    <DataTableIndexCell>{tableData.index.data[index]}</DataTableIndexCell>
                     {row.map((rowItem) => (                            
-                        <TableCell align="center">{rowItem}</TableCell>
+                        <DataTableCell align="right">{rowItem}</DataTableCell>
                     ))}
-                    </TableRow>
+                    </DataTableRow>
                 ))}
                 </TableBody>
             </DataTable>
