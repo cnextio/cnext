@@ -206,7 +206,7 @@ export const TablePanel = styled.div`
 
         export const TableContainer = styled(MuiTableContainer)`
             background-color: ${props => props.theme.palette.background.paper};
-            padding: 0px 10px 10px 10px; //use padding here will make scrolling failed, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
+            padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
             // flex-grow: 1;
             // display: flex;
             // align-self: center;      
@@ -216,14 +216,17 @@ export const TablePanel = styled.div`
 
         export const DataTable = styled(Table)`
             border: 1px solid ${props => props.theme.palette.divider};      
-            margin-top: 10px; //see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
-            display: inline-block;                        
+            margin-top: 10px; //see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par                                   
         `
 
         export const DataTableHead = styled(TableHead)`
             background-color: ${props => props.theme.palette.grey.A400} !important;
         `
-
+        export const DataTableHeadRow = styled(TableRow)`
+            // display: flex;
+            // flex-wrap: nowrap;
+            // flex-direction: row;
+        `
         export const DataTableRow = styled(TableRow)`
             &:nth-of-type(odd) {
                 background-color: ${props => props.theme.palette.action.hover};
@@ -232,18 +235,32 @@ export const TablePanel = styled.div`
             //     background-color: ${props => props.theme.palette.grey.A400};
             // }
         `
-
+        
         export const DataTableHeadCell = styled(TableCell)`
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
+            vertical-align: bottom;
+            // display: flex;
+            // align-items: flex-end;
+            // flex-direction: column;            
         `
+        
+        export const DataTableHeadText = styled.div`
+        `
+        
         export const DataTableIndexCell = styled(TableCell)`
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
         `
         export const DataTableCell = styled(TableCell)`
-            font-size: 14px;
+            font-size: 13px;
         `
+
+        export const VizContainer = styled(MuiTableContainer)`
+            background-color: ${props => props.theme.palette.background.paper};
+            padding: 10px; 
+            overflow: hidden;               
+        `;
 
 // export const CodeAreaSplitPanel = styled(SplitPane)`
 //     padding-left: inherit;

@@ -1,4 +1,4 @@
-import {DataTableContent} from "../../lib/components/Interfaces"
+import {DataTableContent} from "../../lib/components/interfaces"
 
 // for testing
 import {tableData as testTableData} from "../../lib/components/tests/TestTableData"  

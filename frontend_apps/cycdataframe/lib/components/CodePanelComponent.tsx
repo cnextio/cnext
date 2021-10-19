@@ -4,7 +4,7 @@ import SplitPane, {Pane} from 'react-split-pane';
 import CodeEditorComponent from "./CodeAreaComponent";
 import WorkingPanelDividerComponent from "./WorkingPanelDivider";
 import { Typography } from "@mui/material";  
-import {CodeOutput} from "./Interfaces";
+import {Message} from "./interfaces";
 // import { pure } from 'recompose';
 
 const OutputLine = (content: string) => {
@@ -15,7 +15,7 @@ const OutputLine = (content: string) => {
     )
 }
 
-const CodeOutputAreaComponent = (props: {codeOutput: CodeOutput}) => {
+const CodeOutputAreaComponent = (props: {codeOutput: Message}) => {
     let [outputContent, setOutputContent] = useState<JSX.Element[]>([]);
     let [outputType, setOutputType] = useState('');
     const endRef = useRef(null);
@@ -51,12 +51,12 @@ const CodeOutputAreaComponent = (props: {codeOutput: CodeOutput}) => {
 }
 
 const CodePanelComponent = React.memo((props: any) => {
-    const [codeOutput, setCodeOutput] = useState<CodeOutput>({commandType: "", contentType: "", content: "", error: false});
+    const [codeOutput, setCodeOutput] = useState<Message>({commandType: "", contentType: "", content: "", error: false});
 
-    // user useCallback to avoid rerender CodeEditorComponent when this is rerendered
+    // use useCallback to avoid rerender CodeEditorComponent when this is rerendered
     // see this https://felixgerschau.com/react-performance-react-memo/
     const recvCodeOutput = React.useCallback(
-        (output: CodeOutput) => {            
+        (output: Message) => {            
         setCodeOutput(output);
     }, []);
 

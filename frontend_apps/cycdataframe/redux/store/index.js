@@ -6,12 +6,12 @@
 // export default store;
 
 import { configureStore } from '@reduxjs/toolkit'
-import tableDataReducer from '../reducers/tableDataSlice'
-import counterReducer from '../reducers/counterSlice'
+import vizDataReducer from '../reducers/vizDataSlice'
+import dataFrameReducer from '../reducers/dataFrameSlice'
 
 export default configureStore({
   reducer: {
-    tableData: tableDataReducer,
-    counter: counterReducer
+    dataFrames: dataFrameReducer,
+    vizData: vizDataReducer
   },
 })

@@ -4,6 +4,7 @@ import { MainPanel, WorkingPanel, WorkingPanelSplitPanel } from "./StyledCompone
 import SplitPane, { Pane } from "react-split-pane";
 import CodePanelComponent from "./CodePanelComponent";
 import TablePanelComponent from "./TablePanelComponent";
+import DataFrameManager from "./DataFrameManager";
 
 const WorkingPanelComponent = (props: any) => {  
   return (
@@ -12,10 +13,11 @@ const WorkingPanelComponent = (props: any) => {
         https://newbedev.com/absolute-positioning-ignoring-padding-of-parent */}
         {/* minus 12px to variable which is WorkingPannel's padding */}
         {/* pane2Style width is the must for the scrolling to work when resize, this is like the min width of pane 2 */}
-        <WorkingPanelSplitPanel split="vertical" defaultSize="30%" pane2Style={{width: "0%"}}> 
-                <CodePanelComponent {... props}/>
-                <TablePanelComponent {... props}/>       
+        <WorkingPanelSplitPanel split="vertical" defaultSize="30%" pane2Style={{width: "0%"}}>             
+            <CodePanelComponent {... props}/>
+            <TablePanelComponent {... props}/>                     
         </WorkingPanelSplitPanel>
+        <DataFrameManager/> 
         {/* {props.children} */}        
         {/* <CodePanelComponent />
         <TablePanelComponent /> */}
