@@ -1,4 +1,4 @@
-## Manually installed lib
+### Manually installed lib
 clone [codemirror-languageserver](https://github.com/FurqanSoftware/codemirror-languageserver)
 then fix depencies as follows:
 ```
@@ -14,10 +14,12 @@ then fix depencies as follows:
 +    "@codemirror/view": "^0.19.9",
 ```
 
-## Run web app
+### Run web app
 `npm run dev`
 
-## Run server
-`cd server`
-`npm start`
+### Run server
+```
+cd server
+npm start
+```
 
