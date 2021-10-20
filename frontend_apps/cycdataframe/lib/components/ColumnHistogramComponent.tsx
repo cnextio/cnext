@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { VizContainer } from "./StyledComponents";
+import { SmallVizContainer, VizContainer } from "./StyledComponents";
 import Plot from "react-plotly.js";
 
 // redux
@@ -50,26 +50,31 @@ export function ColumnHistogramComponent({df_id, col_name, smallLayout}) {
     // }, [columnHistogram]);
     
     const setSmallLayout = () => {
-        /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
-        // let smallLayoutPlotData = JSON.parse(JSON.stringify(columnHistogram[df_id][col_name]));
-        let smallLayoutPlotData = JSON.parse(JSON.stringify(columnHistogram));
-        smallLayoutPlotData['data'][0]['hoverinfo'] = "none";
-        smallLayoutPlotData['data'][0]['hovertemplate'] = "";
-        smallLayoutPlotData['layout'] = {width: 80, height: 50, 
-                                        margin: {b: 0, l: 0, r: 0, t: 0},
-                                        xaxis: {showticklabels: false}, yaxis: {showticklabels: false}};
-        smallLayoutPlotData['config'] = {displayModeBar: false};
-        // setPlotData(smallLayoutPlotData);
-        return smallLayoutPlotData;
+        try {
+            /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
+            // let smallLayoutPlotData = JSON.parse(JSON.stringify(columnHistogram[df_id][col_name]));
+            let smallLayoutPlotData = JSON.parse(JSON.stringify(columnHistogram));
+            console.log(columnHistogram);
+            smallLayoutPlotData['data'][0]['hoverinfo'] = "none";
+            smallLayoutPlotData['data'][0]['hovertemplate'] = "";
+            smallLayoutPlotData['layout'] = {width: 80, height: 50, 
+                                            margin: {b: 0, l: 0, r: 0, t: 0},
+                                            xaxis: {showticklabels: false}, yaxis: {showticklabels: false}};
+            smallLayoutPlotData['config'] = {displayModeBar: false};
+            // setPlotData(smallLayoutPlotData);
+            return smallLayoutPlotData;
+        } catch {
+            return null;
+        }
     }
 
     return (
-    (
-        <VizContainer>
+        (columnHistogram?
+        <SmallVizContainer>
             {console.log("Render column histogram for column: ", col_name)}              
-            {React.createElement(Plot, setSmallLayout())}
-        </VizContainer>
-    )
+            {React.createElement(Plot, setSmallLayout(smallLayout))}
+        </SmallVizContainer>
+        : null)
     );
 };
 

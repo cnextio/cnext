@@ -172,7 +172,7 @@ export const CodePanel = styled.div`
             // flex-grow: 1;   
             height: 100%; 
             max-width: 100%;
-            max-height: 100%;
+            max-height: 100%;            
         `;
 
             // need this compoent to make the text output respect tab character
@@ -259,6 +259,12 @@ export const TablePanel = styled.div`
         export const VizContainer = styled(MuiTableContainer)`
             background-color: ${props => props.theme.palette.background.paper};
             padding: 10px; 
+            overflow: hidden;               
+        `;
+        
+        export const SmallVizContainer = styled(MuiTableContainer)`
+            background-color: ${props => props.theme.palette.background.paper};
+            padding: 0px; 
             overflow: hidden;               
         `;
 

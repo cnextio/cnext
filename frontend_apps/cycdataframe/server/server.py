@@ -1,4 +1,4 @@
-import sys, logging, json, io, os
+import sys, logging, simplejson as json, io, os
 import pandas 
 import plotly
 
@@ -27,7 +27,7 @@ class Message:
             "content": self.content, 
             "error": self.error,
             "metadata": self.metadata
-        })
+        }, ignore_nan=True)
     
     # def __str__(self):
     #     return self.__repr__()
@@ -42,7 +42,7 @@ def get_global_df_list():
     log.info('Current global df list: %s' % df_list)
     return df_list
 
-def create_output_table_data(df_id, df):
+def _create_output_table_data(df_id, df):
     tableData = {}
     tableData['df_id'] = df_id
     tableData['column_names'] = list(df.columns)
@@ -95,6 +95,12 @@ def _result_is_dataframe(result):
 def _result_is_plotly_fig(result):
     return type(result) == plotly.graph_objs._figure.Figure
 
+def _create_output_plot_data(result):
+    result = result.replace("'", '"')
+    result = result.replace("True", 'true')
+    result = result.replace("False", 'false')
+    return result
+
 def execute_request(req):    
     if req['command_type']=='exec':
         log.info('exec...')
@@ -108,23 +114,20 @@ def execute_request(req):
             log.info("eval result: \n%s" % (result))
             if _result_is_dataframe(result):
                 dataframe_id = _get_eval_dataframe_id(req['command'])
-                tableData = create_output_table_data(dataframe_id, result)       
+                output = _create_output_table_data(dataframe_id, result)       
                 content_type = str(pandas.core.frame.DataFrame)
-                output = tableData
             else:
                 content_type = "str"
                 output = str(result)                
         else:
             result = sys.stdout.getvalue()
-            log.info("eval stdout: \n"+ result)                     
+            # log.info("eval stdout: \n"+ result)                     
+            log.info("got eval result on stdout ...")
             if result is not None:             
-                if _plotly_show_match(req['command']): #this is super hacky. for now just assume only plotly will return a dict type
-                    # dataframe_id = _get_eval_dataframe_id(req['command'])
+                #this is super hacky. for now just assume only plotly will return a dict type
+                if _plotly_show_match(req['command']):                                         
+                    output = _create_output_plot_data(result) 
                     content_type = str(plotly.graph_objs._figure.Figure)
-                    result = result.replace("'", '"')
-                    result = result.replace("True", 'true')
-                    result = result.replace("False", 'false')
-                    output = result 
                 else:
                     content_type = "str"
                     output = str(result)
@@ -140,6 +143,7 @@ def execute_request(req):
 def send_result_to_node_server(message):
     # the current way of communicate with node server is through stdout with a json string
     # log.info("Send to node server: %s" % message)
+    log.info("Send output to node server...")
     print(message)
     
 import traceback
@@ -147,7 +151,6 @@ while True:
     for line in sys.stdin:
         req = json.loads(line)        
         log.info(req)
-
         try:
             # have to make the stdout swapping outside because 
             # execute_request might got interrupted because of the exceptions
@@ -157,21 +160,28 @@ while True:
             result = execute_request(req)
             sys.stdout = normal_stdout    
             send_result_to_node_server(result)
-            
-            # for name, value in list(globals().items()):
-            #     server_log.info("%s: %s" % (name, value))
-            
+                        
             if DataFrameStatusHook.update_df_status(get_global_df_list()):
                 df_list_message = Message('DataFrameManager', 'dataframe_updated', "dict", DataFrameStatusHook.dataframe_updated, False)
                 send_result_to_node_server(df_list_message)
+        except OSError as error: #TODO check if this has to do with buffer error
+            #since this error might be related to the pipe, we do not send this error to nodejs
+            sys.stdout = normal_stdout
+            log.error("OSError: %s" % (error))  
         except:            
             sys.stdout = normal_stdout    
-            log.error(traceback.format_exc())  
-            error_message = Message(req['request_originator'], 'eval', 
-                                    "str", traceback.format_exc(), True)    
+            log.error("%s - %s" % (error, traceback.format_exc()))  
+            error_message = Message(req['request_originator'], 'eval', "str", traceback.format_exc(), True)    
             send_result_to_node_server(error_message)                         
             # traceback.print_exc()        
-        finally:
+            
+        try:
             sys.stdout = normal_stdout
             sys.stdout.flush()                 
+        except error:
+            log.error("%s - %s" % (error, traceback.format_exc()))  
+            # error_message = Message(req['request_originator'], 'eval', "str", "Got some unexpected errors", True)    
+            # send_result_to_node_server(error_message) 
+
+
 

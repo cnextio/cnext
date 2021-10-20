@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, ReactElement, useEffect, useRef, useState } from "react";
 import { CodePanel, CodeToolbar, CodeContainer, CodeOutputContainer, TextCodeOutputContainer} from "./StyledComponents";
 import SplitPane, {Pane} from 'react-split-pane';
 import CodeEditorComponent from "./CodeAreaComponent";
@@ -7,9 +7,9 @@ import { Typography } from "@mui/material";
 import {Message} from "./interfaces";
 // import { pure } from 'recompose';
 
-const OutputLine = (content: string) => {
+const OutputLine = (content: string|ReactElement) => {
     return (
-        <Typography variant="body2">
+        <Typography variant="body2" fontSize="14px">
             {content}
         </Typography>
     )
@@ -22,8 +22,9 @@ const CodeOutputAreaComponent = (props: {codeOutput: Message}) => {
 
     useEffect(() => {
         try {
-            let newOutputContent = OutputLine(props.codeOutput.content);            
-            setOutputContent(outputContent => [...outputContent, newOutputContent]);
+            const newOutputContent = OutputLine(props.codeOutput.content);            
+            const emptyLine = OutputLine(<br/>);            
+            setOutputContent(outputContent => [...outputContent, emptyLine, newOutputContent]);
             console.log(props.codeOutput);
         } catch(error) {
             // TODO: process json error 
@@ -40,12 +41,12 @@ const CodeOutputAreaComponent = (props: {codeOutput: Message}) => {
     useEffect(scrollToBottom, [outputContent]);
 
     return (
-        <CodeOutputContainer>
+        <CodeOutputContainer >
             {console.log('CodeOutputAreaComponent rerender')}   
             <TextCodeOutputContainer>
                 {outputContent}
-                <div ref={endRef}/>
-            </TextCodeOutputContainer>              
+                <div ref={endRef}></div>
+            </TextCodeOutputContainer>  
         </CodeOutputContainer>
     )
 }
