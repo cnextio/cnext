@@ -1,0 +1,39 @@
+17:32:31,342 h5py._conv <module> DEBUG Creating converter from 7 to 5
+17:32:31,342 h5py._conv <module> DEBUG Creating converter from 5 to 7
+17:32:31,342 h5py._conv <module> DEBUG Creating converter from 7 to 5
+17:32:31,342 h5py._conv <module> DEBUG Creating converter from 5 to 7
+17:32:31,446 __main__ <module> INFO {'request_originator': 'code_panel', 'command': 'import plotly.express as px'}
+17:32:31,446 __main__ assign_exec_mode ERROR invalid syntax (<stdin>, line 1)
+17:32:31,446 __main__ assign_exec_mode INFO assigned command type: exec
+17:32:31,446 __main__ execute_request INFO exec...
+17:32:31,661 __main__ send_result_to_node_server INFO Send output to node server...
+17:32:31,661 __main__ get_global_df_list INFO Current global df list: []
+17:32:31,661 __main__ <module> INFO {'request_originator': 'code_panel', 'command': 'import plotly.io as pio'}
+17:32:31,661 __main__ assign_exec_mode ERROR invalid syntax (<stdin>, line 1)
+17:32:31,661 __main__ assign_exec_mode INFO assigned command type: exec
+17:32:31,661 __main__ execute_request INFO exec...
+17:32:31,661 __main__ send_result_to_node_server INFO Send output to node server...
+17:32:31,661 __main__ get_global_df_list INFO Current global df list: []
+17:32:31,661 __main__ <module> INFO {'request_originator': 'code_panel', 'command': 'pio.renderers.default = "json"'}
+17:32:31,661 __main__ assign_exec_mode ERROR invalid syntax (<stdin>, line 1)
+17:32:31,661 __main__ assign_exec_mode INFO assigned command type: exec
+17:32:31,661 __main__ execute_request INFO exec...
+17:32:31,870 __main__ send_result_to_node_server INFO Send output to node server...
+17:32:31,870 __main__ get_global_df_list INFO Current global df list: []
+17:32:31,870 __main__ <module> INFO {'request_originator': 'code_panel', 'command': "import os, sys; os.chdir('/Volumes/GoogleDrive/.shortcut-targets-by-id/1FrvaCWSo3NV1g0sR9ib6frv_lzRww_8K/CycAI/works/CAT/machine_simulation'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame"}
+17:32:31,870 __main__ assign_exec_mode ERROR invalid syntax (<stdin>, line 1)
+17:32:31,870 __main__ assign_exec_mode INFO assigned command type: exec
+17:32:31,870 __main__ execute_request INFO exec...
+17:32:31,870 __main__ send_result_to_node_server INFO Send output to node server...
+17:32:31,870 __main__ get_global_df_list INFO Current global df list: []
+17:32:31,870 __main__ <module> INFO {'request_originator': 'code_panel', 'command': 'df = CycDataFrame("data/housing_data/train.csv")'}
+17:32:31,870 __main__ assign_exec_mode ERROR invalid syntax (<stdin>, line 1)
+17:32:31,870 __main__ assign_exec_mode INFO assigned command type: exec
+17:32:31,870 __main__ execute_request INFO exec...
+17:32:31,871 cycdataframe.cycdataframe __init__ INFO Create a dataframe from a file
+17:32:31,891 cycdataframe.df_status_hook status_updated INFO Got status changed <class 'cycdataframe.cycdataframe.CycDataFrame'>
+17:32:31,891 __main__ send_result_to_node_server INFO Send output to node server...
+17:32:31,891 __main__ get_global_df_list INFO Current global df list: [('df', 5671274912)]
+17:32:31,891 cycdataframe.df_status_hook update_df_status ERROR Dataframe df is not in the dataframe_updated list. Something went wrong.
+17:32:31,891 cycdataframe.df_status_hook update_df_status INFO dataframe df is updated
+17:32:31,891 __main__ send_result_to_node_server INFO Send output to node server...
