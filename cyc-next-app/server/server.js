@@ -1,6 +1,8 @@
 const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
+const fs = require('fs');
+const YAML = require('yaml');
 
 // workaround because of the `module not found` problem
 // const {CodeExecutionMessageType} = require("../lib/components/Interfaces");
@@ -37,6 +39,9 @@ const DataFrameManager = 'DataFrameManager';
 * Communicate with web client
 */
 try {
+    const file = fs.readFileSync('config.yaml', 'utf8');
+    config = YAML.parse(file);
+
     io.on("connection", (socket) => {
         socket.on("ping", message => {
             const minutes = new Date().getMinutes();
@@ -66,19 +71,6 @@ try {
             // for testing
             // pyshell.send(testData);
         });
-        // socket.on("exec", command => {        
-        //     console.log("server will exec: ", command);       
-        //     pyshell.send({command_type: 'exec', command: command});
-        //     // for testing
-        //     // pyshell.send(testData);
-        // });
-
-        // socket.on("eval", command => {        
-        //     console.log("server will eval: ", command);       
-        //     pyshell.send({command_type: 'eval', command: command});
-        //     // for text interface
-        //     // pyshell.send(command)
-        // });
 
         socket.once("disconnect", () => {
         });
@@ -86,6 +78,7 @@ try {
 
     const sendOutput = (message) => {
         // message['error'] = error
+        // console.log(message);
         io.emit(message['request_originator'], JSON.stringify(message));
     }
 
@@ -109,8 +102,8 @@ try {
     // processing outputs from python server
     pyshell.on('message', function (message) {
         try {
-            sendOutput(message);
-            console.log('stdout: processing output');
+            console.log('stdout: forward output to client');
+            sendOutput(message);            
             // console.log('stdout:', message);
         } catch (error) {
             console.log(error.stack);
@@ -130,7 +123,27 @@ try {
         console.log('close ', "python-shell closed: " + message);
     })
 
-/*********************************************************************/
+    /*********************************************************************/
+    
+
+    /*********************************************************************
+     * Use zmq to transfer message from python to node
+    /*********************************************************************/
+    const zmq = require("zeromq"),
+        python_server_zmq = zmq.socket("pull");;    
+
+    const p2n_host = config.node_py_zmq.host; //"tcp://127.0.0.1";
+    const p2n_port = config.node_py_zmq.p2n_port;
+
+    res = python_server_zmq.bind(`${p2n_host}:${p2n_port}`);    
+    console.log(`Waiting for python server message on ${p2n_port}`);
+
+    python_server_zmq.on("message", function (message) {
+        console.log('python_server_zmq: forward output to client: ');
+        sendOutput(JSON.parse(message.toString()));            
+    });
+    /*********************************************************************/
+
 
     const initialize = () => {
         // seting up plotly
@@ -141,19 +154,21 @@ try {
 
         //for testing
         pyshell.send({request_originator: CodeAreaComponent, 
-                        command: "import os, sys; os.chdir('/Volumes/GoogleDrive/.shortcut-targets-by-id/1FrvaCWSo3NV1g0sR9ib6frv_lzRww_8K/CycAI/works/CAT/machine_simulation'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame"});
-        // pyshell.send({request_originator: CodeAreaComponent, command: "training_df = CycDataFrame('data/exp_data/997/21549286_out.csv')"}); 
+                        //os.chdir('../../../cycdataframe/'); sys.path.append(os.getcwd());
+                        command: `import os, sys, pandas as pd; os.chdir('${config.path_to_cycdataframe_lib}cycdataframe/'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame`});
+        pyshell.send({request_originator: CodeAreaComponent, command: "df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')"}); 
         // pyshell.send({request_originator: CodeAreaComponent, command_type: '', command: 'df = training_df'});
         // pyshell.send({request_originator: CodePanelOriginator, command_type: 'exec', command: 'fig = px.line(df, x=df.index, y="Fuel Rail Pressure", title="Machine")'});
         // pyshell.send({request_originator: CodePanelOriginator, command_type: 'exec', command: 'fig.show()'});
 
         //for testing    
-        pyshell.send({request_originator: CodeAreaComponent, command: 'df = CycDataFrame("data/housing_data/train.csv")'});
+        // pyshell.send({request_originator: CodeAreaComponent, command: 'df = CycDataFrame("data/housing_data/train.csv")'});
         // pyshell.send({request_originator: CodeAreaComponent, command: 'df.head()'});
     }
 
 
     initialize();
+
 } catch (error) {
     console.log(error.stack);
 }

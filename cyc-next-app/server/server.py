@@ -1,14 +1,24 @@
 import sys, logging, simplejson as json, io, os
 import pandas 
 import plotly
+import traceback
+import yaml
+import logs
 
-sys.path.append('/Volumes/GoogleDrive/.shortcut-targets-by-id/1FrvaCWSo3NV1g0sR9ib6frv_lzRww_8K/CycAI/works/CAT/machine_simulation/'); 
+log = logs.get_logger(__name__)
+
+from config import read_config
+try:
+    config = read_config('config.yaml')
+except Exception as error:
+    log.error("%s - %s" % (error, traceback.format_exc()))          
+    exit(1)
+
+#TODO: Point this to the cycdataframe repos folder
+sys.path.append(config.path_to_cycdataframe_lib); 
 from cycdataframe.df_status_hook import DataFrameStatusHook
 from cycdataframe.cycdataframe import CycDataFrame
-
-logging.basicConfig(filename='./log.txt', filemode='a', format='%(asctime)s,%(msecs)d %(name)s %(funcName)s %(levelname)s %(message)s', 
-                        datefmt='%H:%M:%S', level=logging.DEBUG)
-log = logging.getLogger(__name__)
+from messages import MessageQueue
 
 class Message:
     def __init__(self, request_originator, command_type, content_type, content, error, metadata={}):
@@ -140,48 +150,56 @@ def execute_request(req):
         metadata = {}
     return Message(req['request_originator'], req['command_type'], content_type, output, False, metadata)
     
-def send_result_to_node_server(message):
+def send_result_to_node_server(message: Message):
     # the current way of communicate with node server is through stdout with a json string
     # log.info("Send to node server: %s" % message)
     log.info("Send output to node server...")
-    print(message)
-    
-import traceback
-while True:
-    for line in sys.stdin:
-        req = json.loads(line)        
-        log.info(req)
-        try:
-            # have to make the stdout swapping outside because 
-            # execute_request might got interrupted because of the exceptions
-            normal_stdout = sys.stdout            
-            sys.stdout = io.StringIO()
-            assign_exec_mode(req)
-            result = execute_request(req)
-            sys.stdout = normal_stdout    
-            send_result_to_node_server(result)
-                        
-            if DataFrameStatusHook.update_df_status(get_global_df_list()):
-                df_list_message = Message('DataFrameManager', 'dataframe_updated', "dict", DataFrameStatusHook.dataframe_updated, False)
-                send_result_to_node_server(df_list_message)
-        except OSError as error: #TODO check if this has to do with buffer error
-            #since this error might be related to the pipe, we do not send this error to nodejs
-            sys.stdout = normal_stdout
-            log.error("OSError: %s" % (error))  
-        except:            
-            sys.stdout = normal_stdout    
-            log.error("%s - %s" % (error, traceback.format_exc()))  
-            error_message = Message(req['request_originator'], 'eval', "str", traceback.format_exc(), True)    
-            send_result_to_node_server(error_message)                         
-            # traceback.print_exc()        
-            
-        try:
-            sys.stdout = normal_stdout
-            sys.stdout.flush()                 
-        except error:
-            log.error("%s - %s" % (error, traceback.format_exc()))  
-            # error_message = Message(req['request_originator'], 'eval', "str", "Got some unexpected errors", True)    
-            # send_result_to_node_server(error_message) 
+    # print(message)
+    p2n_queue.push(message.__repr__())
+
+if __name__ == "__main__":
+    try:
+        p2n_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['p2n_port'])
+        # n2p_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['n2p_port'])
+    except Exception as error:
+        log.error("%s - %s" % (error, traceback.format_exc()))          
+        exit(1)
+
+    while True:    
+        for line in sys.stdin:
+            req = json.loads(line)        
+            log.info(req)
+            try:
+                # have to make the stdout swapping outside because 
+                # execute_request might got interrupted because of the exceptions
+                normal_stdout = sys.stdout            
+                sys.stdout = io.StringIO()
+                assign_exec_mode(req)
+                result = execute_request(req)
+                sys.stdout = normal_stdout    
+                send_result_to_node_server(result)
+                            
+                if DataFrameStatusHook.update_df_status(get_global_df_list()):
+                    df_list_message = Message('DataFrameManager', 'dataframe_updated', "dict", DataFrameStatusHook.dataframe_updated, False)
+                    send_result_to_node_server(df_list_message)
+            except OSError as error: #TODO check if this has to do with buffer error
+                #since this error might be related to the pipe, we do not send this error to nodejs
+                sys.stdout = normal_stdout
+                log.error("OSError: %s" % (error))  
+            except Exception as error:            
+                sys.stdout = normal_stdout    
+                log.error("%s - %s" % (error, traceback.format_exc()))  
+                error_message = Message(req['request_originator'], 'eval', "str", traceback.format_exc(), True)    
+                send_result_to_node_server(error_message)                         
+                # traceback.print_exc()        
+                
+            try:
+                sys.stdout = normal_stdout
+                sys.stdout.flush()                 
+            except Exception as error:
+                log.error("%s - %s" % (error, traceback.format_exc()))  
+                # error_message = Message(req['request_originator'], 'eval', "str", "Got some unexpected errors", True)    
+                # send_result_to_node_server(error_message) 
 
 
 
