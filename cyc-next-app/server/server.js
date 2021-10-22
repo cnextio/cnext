@@ -31,8 +31,9 @@ const options = {
 const io = new socketIo.Server(server, options);
 let ready = false;
 
-const CodeAreaComponent = 'code_panel';
-const TableAreaComponent = 'table_panel';
+// TODO: move to Interfaces.tsx
+const CodeEditorComponent = 'CodeEditorComponent';
+// const TableAreaComponent = 'table_panel';
 const DataFrameManager = 'DataFrameManager';
 
 /*
@@ -49,25 +50,35 @@ try {
             io.emit("pong", minutes);
         });
 
-        socket.on(CodeAreaComponent, command => {  //TODO: use enum       
-            console.log("server will run: ", command);       
-            pyshell.send({request_originator: CodeAreaComponent, command_type: '', command: command});
+        // socket.on(CodeEditorComponent, command => {  //TODO: use enum       
+        //     console.log("server will run: ", command);       
+        //     pyshell.send({request_originator: CodeEditorComponent, command_type: '', command: command});
+        //     // for testing
+        //     // pyshell.send(testData);
+        // });
+
+        //TODO: catch json parse error here
+        socket.on(CodeEditorComponent, str_message => {  //TODO: use enum    
+            message = JSON.parse(str_message);
+            console.log("server will run: ", message);         
+            pyshell.send(message);
             // for testing
             // pyshell.send(testData);
         });
 
-        socket.on(TableAreaComponent, command => {  //TODO: use enum       
-            console.log("server will run: ", command);       
-            pyshell.send({request_originator: TableAreaComponent, command_type: '', command: command});
-            // for testing
-            // pyshell.send(testData);
-        });
+        // socket.on(TableAreaComponent, command => {  //TODO: use enum       
+        //     console.log("server will run: ", command);       
+        //     pyshell.send({request_originator: TableAreaComponent, command_type: '', command: command});
+        //     // for testing
+        //     // pyshell.send(testData);
+        // });
 
-        socket.on(DataFrameManager, json_request => {  //TODO: use enum                  
-            request = JSON.parse(json_request);
-            console.log("server will run: ", request);    
-            pyshell.send({request_originator: DataFrameManager, command_type: '', 
-                            command: request['command'], metadata: request['metadata']});
+        socket.on(DataFrameManager, str_message => {  //TODO: use enum                  
+            message = JSON.parse(str_message);
+            console.log("server will run: ", message);    
+            pyshell.send(message);
+            // pyshell.send({request_originator: DataFrameManager, command_type: '', 
+            //                 command: message['command'], metadata: message['metadata']});
             // for testing
             // pyshell.send(testData);
         });
@@ -79,7 +90,7 @@ try {
     const sendOutput = (message) => {
         // message['error'] = error
         // console.log(message);
-        io.emit(message['request_originator'], JSON.stringify(message));
+        io.emit(message['webapp_endpoint'], JSON.stringify(message));
     }
 
     server.listen(port, () => console.log(`Waiting on port ${port}`));
@@ -139,31 +150,39 @@ try {
     console.log(`Waiting for python server message on ${p2n_port}`);
 
     python_server_zmq.on("message", function (message) {
-        console.log('python_server_zmq: forward output to client: ');
+        console.log('python_server_zmq: forward output to client: command_name: ', JSON.parse(message.toString())['command_name']);
         sendOutput(JSON.parse(message.toString()));            
     });
     /*********************************************************************/
 
 
     const initialize = () => {
+        // pyshell.send({webapp_endpoint: CodeEditorComponent, content: 'print("hello world!")'});
         // seting up plotly
-        pyshell.send({request_originator: CodeAreaComponent, command: 'import plotly.express as px'});
-        pyshell.send({request_originator: CodeAreaComponent, command: 'import plotly.io as pio'});
-        pyshell.send({request_originator: CodeAreaComponent, command: 'pio.renderers.default = "json"'});
+        pyshell.send({webapp_endpoint: CodeEditorComponent, content: 'import plotly.express as px'});
+        pyshell.send({webapp_endpoint: CodeEditorComponent, content: 'import plotly.io as pio'});
+        pyshell.send({webapp_endpoint: CodeEditorComponent, content: 'pio.renderers.default = "json"'});
         
 
         //for testing
-        pyshell.send({request_originator: CodeAreaComponent, 
-                        //os.chdir('../../../cycdataframe/'); sys.path.append(os.getcwd());
-                        command: `import os, sys, pandas as pd; os.chdir('${config.path_to_cycdataframe_lib}cycdataframe/'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame`});
-        pyshell.send({request_originator: CodeAreaComponent, command: "df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')"}); 
-        // pyshell.send({request_originator: CodeAreaComponent, command_type: '', command: 'df = training_df'});
+        pyshell.send({webapp_endpoint: CodeEditorComponent, 
+                        content: `import os, sys, pandas as pd; os.chdir('${config.path_to_cycdataframe_lib}cycdataframe/'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame`});
+        pyshell.send({webapp_endpoint: CodeEditorComponent, 
+                        content: "df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')"}); 
+        // pyshell.send({webapp_endpoint: CodeEditorComponent, 
+        //                 content: "df[:10]"}); 
+        // pyshell.send({request_originator: CodeEditorComponent, command_type: '', command: 'df = training_df'});
         // pyshell.send({request_originator: CodePanelOriginator, command_type: 'exec', command: 'fig = px.line(df, x=df.index, y="Fuel Rail Pressure", title="Machine")'});
         // pyshell.send({request_originator: CodePanelOriginator, command_type: 'exec', command: 'fig.show()'});
 
         //for testing    
-        // pyshell.send({request_originator: CodeAreaComponent, command: 'df = CycDataFrame("data/housing_data/train.csv")'});
-        // pyshell.send({request_originator: CodeAreaComponent, command: 'df.head()'});
+        // pyshell.send({request_originator: CodeEditorComponent, command: 'df = CycDataFrame("data/housing_data/train.csv")'});
+        // pyshell.send({request_originator: CodeEditorComponent, command: 'df.head()'});
+
+        //test plot_count_na
+        pyshell.send({webapp_endpoint: DataFrameManager,
+            command_name: "get_count_na",
+            seq_number: 1}); 
     }
 
 
