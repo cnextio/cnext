@@ -17,6 +17,7 @@ except Exception as error:
 from zmq_message import MessageQueue
 from message import Message, WebappEndpoint, CommandName, ContentType
 
+
 #TODO: Point this to the cycdataframe repos folder
 sys.path.append(config.path_to_cycdataframe_lib); 
 from cycdataframe.df_status_hook import DataFrameStatusHook
@@ -73,7 +74,7 @@ def _create_table_data(df_id, df):
 def _create_countna_data(df_id, len, countna_series):
     countna = {}
     for k, v in countna_series.to_dict().items():
-        countna[k] = {'na': v, 'no_na': len-v}
+        countna[k] = {'na': v, 'len': len}
     return {'df_id': df_id, 'countna': countna}
     
 #TODO: need to heavily test this
@@ -212,13 +213,7 @@ def handle_DataFrameManager_message(message):
                 content_type = ContentType.pandas_dataframe
                 send_reply = True
                                        
-        elif message.command_name == CommandName.get_countna:
-            # result = eval(message.content, globals())
-            # if result is not None:                
-            #     log.info("get countna data")
-            #     output = _create_countna_data(message.metadata['df_id'], result)       
-            #     content_type = ContentType.dict
-            #     send_reply = True  
+        elif message.command_name == CommandName.get_countna: 
             df_id = message.metadata['df_id']
             countna = eval("%s.isna().sum()"%df_id, globals())
             len = eval("%s.shape[0]"%df_id, globals())      
@@ -238,15 +233,47 @@ def handle_DataFrameManager_message(message):
         log.error("%s" % (trace))
         error_message = create_error_message(message.webapp_endpoint, trace)          
         send_result_to_node_server(error_message)
-        
 
-if __name__ == "__main__":
+##
+# For socket monitoring
+##
+import zmq
+from zmq.utils.monitor import recv_monitor_message
+import threading
+EVENT_MAP = {}
+log.info("Event names:")
+for name in dir(zmq):
+    if name.startswith('EVENT_'):
+        value = getattr(zmq, name)
+        log.info("%21s : %4i" % (name, value))
+        EVENT_MAP[value] = name
+
+def event_monitor(monitor):
+    while monitor.poll():
+        evt = recv_monitor_message(monitor)
+        evt.update({'description': EVENT_MAP[evt['event']]})
+        log.info("Event: {}".format(evt))
+        # if evt['event'] == zmq.EVENT_DISCONNECTED:
+        #     notification_queue.push("{}")
+        if evt['event'] == zmq.EVENT_MONITOR_STOPPED:
+            break
+    monitor.close()
+    log.info()
+    log.info("event monitor thread done!")
+
+if __name__ == "__main__":    
     try:
         p2n_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['p2n_port'])
+        # notification_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['p2n_notif_port']) 
         # n2p_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['n2p_port'])
     except Exception as error:
         log.error("%s - %s" % (error, traceback.format_exc()))          
         exit(1)
+
+    # socket = p2n_queue.get_socket()
+    # monitor = socket.get_monitor_socket()
+    # t = threading.Thread(target=event_monitor, args=(monitor,))
+    # t.start()
 
     while True:    
         for line in sys.stdin:            
@@ -274,7 +301,7 @@ if __name__ == "__main__":
                                                             "error": False})
                         send_result_to_node_server(updated_df_list_message)
                 
-                if message.webapp_endpoint == WebappEndpoint.DataFrameManager: 
+                elif message.webapp_endpoint == WebappEndpoint.DataFrameManager: 
                     handle_DataFrameManager_message(message)
 
             except OSError as error: #TODO check if this has to do with buffer error
@@ -282,9 +309,9 @@ if __name__ == "__main__":
                 sys.stdout = normal_stdout
                 log.error("OSError: %s" % (error))  
 
-            except Exception as error:            
+            except:            
                 sys.stdout = normal_stdout    
-                log.error("%s - %s" % (error, traceback.format_exc()))  
+                log.error(traceback.format_exc())
                 message.error = True
                 send_result_to_node_server(message)
                 # error_message = Message(message['request_originator'], 'eval', "str", traceback.format_exc(), True)    

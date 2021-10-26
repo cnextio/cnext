@@ -1,7 +1,10 @@
 import zmq
+import logs
+
+# log = logs.get_logger(__name__)
 
 class MessageQueue:
-    def __init__(self, host: str, port: int, is_producer=True):
+    def __init__(self, host: str, port: int, hwm=1000, is_producer=True):
         context = zmq.Context()
         self.host = host
         self.port = port
@@ -9,10 +12,16 @@ class MessageQueue:
         self.is_producer = is_producer
         if is_producer:
             self.push_queue: zmq.Socket = context.socket(zmq.PUSH)
-            self.push_queue.connect(self.addr)
+            # self.push_queue.setsockopt(zmq.SNDHWM, 5)
+            # log.info("ZMQ option: %s" % self.push_queue.hwm)             
+            self.push_queue.bind(self.addr)
         else:
             self.pull_queue: zmq.Socket = context.socket(zmq.PULL)
-            self.pull_queue.bind(self.addr)
+            self.pull_queue.connect(self.addr)
+
+
+    def get_socket(self):    
+        return self.push_queue
 
     def push(self, message):
         if self.is_producer:

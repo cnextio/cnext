@@ -60,7 +60,7 @@ try {
         //TODO: catch json parse error here
         socket.on(CodeEditorComponent, str_message => {  //TODO: use enum    
             message = JSON.parse(str_message);
-            console.log("server will run: ", message);         
+            console.log("Receive msg from CodeEditorComponent, server will run: ", message);         
             pyshell.send(message);
             // for testing
             // pyshell.send(testData);
@@ -75,7 +75,7 @@ try {
 
         socket.on(DataFrameManager, str_message => {  //TODO: use enum                  
             message = JSON.parse(str_message);
-            console.log("server will run: ", message);    
+            console.log("Receive msg from DataFrameManager, server will run: ", message);  
             pyshell.send(message);
             // pyshell.send({request_originator: DataFrameManager, command_type: '', 
             //                 command: message['command'], metadata: message['metadata']});
@@ -140,19 +140,36 @@ try {
     /*********************************************************************
      * Use zmq to transfer message from python to node
     /*********************************************************************/
-    const zmq = require("zeromq"),
-        python_server_zmq = zmq.socket("pull");;    
+    const zmq = require("zeromq");
+    async function zmq_receive() {
+        const command_output_zmq = new zmq.Pull; 
 
-    const p2n_host = config.node_py_zmq.host; //"tcp://127.0.0.1";
-    const p2n_port = config.node_py_zmq.p2n_port;
-
-    res = python_server_zmq.bind(`${p2n_host}:${p2n_port}`);    
-    console.log(`Waiting for python server message on ${p2n_port}`);
-
-    python_server_zmq.on("message", function (message) {
-        console.log('python_server_zmq: forward output to client: command_name: ', JSON.parse(message.toString())['command_name']);
-        sendOutput(JSON.parse(message.toString()));            
-    });
+        const p2n_host = config.node_py_zmq.host; 
+        const p2n_port = config.node_py_zmq.p2n_port;
+        command_output_zmq.connect(`${p2n_host}:${p2n_port}`);
+        
+        // notification_zmq.bind(`${p2n_host}:${p2n_notif_port}`);    
+        console.log(`Waiting for python server message on ${p2n_port}`);
+    
+        for await (const [message] of command_output_zmq) {
+        // command_output_zmq.on("message", function (message) {
+            const json_message = JSON.parse(message.toString());
+            console.log(`command_output_zmq: forward output of command_name ${json_message['command_name']}`);
+            // if (json_message['metadata'] !== null){
+            //     console.log(`   ${json_message['metadata']['col_name']}`)
+            // }
+            sendOutput(json_message);         
+        }
+    };
+    zmq_receive().catch(e => console.error("ZMQ_error: ", e.stack));
+    // zmq_receive().catch(e => console.error(e.stack));
+    // console.log(command_output_zmq)
+    // console.log(zmq.Socket)
+    // console.log(zmq)
+    // notification_zmq.on("message", function (message) {
+    //     console.log(`Socket got disconnected, reconnect now ...`);
+    //     // command_output_zmq.bind(`${p2n_host}:${p2n_port}`);            
+    // });
     /*********************************************************************/
 
 
