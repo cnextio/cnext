@@ -20,7 +20,7 @@ class WebappEndpoint(str, Enum):
         return str(self.value)    
 
 class CommandName(str, Enum):
-    updated_dataframe_list = 'updated_dataframe_list'
+    active_df_status = 'active_df_status'
     plot_column_histogram = 'plot_column_histogram'
     get_countna = 'get_countna'
     plot_countna = 'plot_countna'  

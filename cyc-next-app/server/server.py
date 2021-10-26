@@ -292,14 +292,14 @@ if __name__ == "__main__":
                     # sys.stdout = normal_stdout    
                     send_result_to_node_server(result)
                                 
-                    if DataFrameStatusHook.update_df_status(get_global_df_list()):
-                        updated_df_list_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, 
-                                                            "command_name": 'updated_dataframe_list', 
+                    if DataFrameStatusHook.update_active_df_status(get_global_df_list()):
+                        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, 
+                                                            "command_name": CommandName.active_df_status, 
                                                             "seq_number": 1, 
                                                             "content_type": "dict", 
-                                                            "content": DataFrameStatusHook.dataframe_updated, 
+                                                            "content": DataFrameStatusHook.get_active_df(), 
                                                             "error": False})
-                        send_result_to_node_server(updated_df_list_message)
+                        send_result_to_node_server(active_df_status_message)
                 
                 elif message.webapp_endpoint == WebappEndpoint.DataFrameManager: 
                     handle_DataFrameManager_message(message)
@@ -312,7 +312,7 @@ if __name__ == "__main__":
             except:            
                 sys.stdout = normal_stdout    
                 log.error(traceback.format_exc())
-                message.error = True
+                message = create_error_message(message.webapp_endpoint, traceback.format_exc())                
                 send_result_to_node_server(message)
                 # error_message = Message(message['request_originator'], 'eval', "str", traceback.format_exc(), True)    
                 # send_result_to_node_server(error_message)
