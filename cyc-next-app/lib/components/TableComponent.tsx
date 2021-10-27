@@ -2,7 +2,7 @@ import { TableBody, TableHead, TableRow, TableCell} from "@mui/material";
 import React, { useEffect, Box } from "react";
 import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHeadCell, 
     DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText } from "./StyledComponents";
-import {Message, CodeRequestOriginator, DataTableContent} from "./interfaces";
+import {Message, WebAppEndpoint, DataTableContent} from "./interfaces";
 import socket from "./Socket";
 
 import dynamic from 'next/dynamic'
@@ -13,22 +13,12 @@ const ColumnHistogramComponentWithNoSSR = dynamic(
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
+import CountNAComponent from "./CountNAComponent";
 
 const TableComponent = (props: any) => {    
-    const tableData = useSelector((state) => state.dataFrames.tableData)
-    const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame)    
+    const tableData = useSelector((state) => state.dataFrames.tableData);
+    const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     
-    const _send_column_histogram_request = (df_name, col_name) => {
-        // const fig_name = `fig_${Math.floor(Math.random()*10000)}`;
-        // let command = `${fig_name} = px.histogram(${df_name}, x="${col_name}")`;
-        // console.log(`send ${CodeRequestOriginator.table_panel} request: `, command);
-        // socket.emit(CodeRequestOriginator.table_panel, command);
-        // //TODO: might be dangerous to send the 2nd command back to back without knowing the output of previous one
-        // command = `${fig_name}.show()`;
-        // console.log(`send ${CodeRequestOriginator.table_panel} request: `, command);
-        // socket.emit(CodeRequestOriginator.table_panel, command);
-    }
-
     useEffect(()=>{
         // socket.emit("ping", "TableComponent");
         // socket.on(CodeRequestOriginator.table_panel, (result: string) => {
@@ -57,7 +47,6 @@ const TableComponent = (props: any) => {
     useEffect(()=>{
         try {
             if (tableData != null){
-                // _send_column_histogram_request(tableData.name, `Fuel Rail Pressure`);
             }
         } catch {
 
@@ -75,12 +64,13 @@ const TableComponent = (props: any) => {
                     <DataTableHeadRow>
                         <DataTableHeadCell>
                             <DataTableHeadText>{tableData[activeDataFrame].index.name}</DataTableHeadText>
-                            <ColumnHistogramComponentWithNoSSR df_id='test_df' col_name='Engine Speed' smallLayout={true}/>
+                            <ColumnHistogramComponentWithNoSSR df_id={activeDataFrame} col_name='Engine Speed' smallLayout={true}/>
                         </DataTableHeadCell>
                         {tableData[activeDataFrame].column_names.map((colName) => (    
                         <DataTableHeadCell>
                             <div>{colName}</div>
-                            <ColumnHistogramComponentWithNoSSR  df_id='test_df' col_name={colName} smallLayout={true}/>
+                            <ColumnHistogramComponentWithNoSSR  df_id={activeDataFrame} col_name={colName} smallLayout={true}/>
+                            <CountNAComponent df_id={activeDataFrame} col_name={colName}/>
                         </DataTableHeadCell>
                         ))}
                     </DataTableHeadRow>

@@ -1,7 +1,7 @@
 import React, { FC, ReactElement, useEffect, useRef, useState } from "react";
 import { CodePanel, CodeToolbar, CodeContainer, CodeOutputContainer, TextCodeOutputContainer} from "./StyledComponents";
 import SplitPane, {Pane} from 'react-split-pane';
-import CodeEditorComponent from "./CodeAreaComponent";
+import CodeEditorComponent from "./CodeEditorComponent";
 import WorkingPanelDividerComponent from "./WorkingPanelDivider";
 import { Typography } from "@mui/material";  
 import {Message} from "./interfaces";
@@ -15,22 +15,24 @@ const OutputLine = (content: string|ReactElement) => {
     )
 }
 
-const CodeOutputAreaComponent = (props: {codeOutput: Message}) => {
+const CodeOutputAreaComponent = ({codeOutput}) => {
     let [outputContent, setOutputContent] = useState<JSX.Element[]>([]);
     let [outputType, setOutputType] = useState('');
     const endRef = useRef(null);
 
     useEffect(() => {
         try {
-            const newOutputContent = OutputLine(props.codeOutput.content);            
-            const emptyLine = OutputLine(<br/>);            
-            setOutputContent(outputContent => [...outputContent, emptyLine, newOutputContent]);
-            console.log(props.codeOutput);
+            if(codeOutput.content != '' && codeOutput.content != null){
+                const newOutputContent = OutputLine(codeOutput.content);            
+                const emptyLine = OutputLine(<br/>);            
+                setOutputContent(outputContent => [...outputContent, emptyLine, newOutputContent]);
+                // console.log(codeOutput);
+            }
         } catch(error) {
             // TODO: process json error 
             console.error(error);
         }
-    }, [props.codeOutput])
+    }, [codeOutput])
 
     const scrollToBottom = () => {
         // need block and inline property because of this 

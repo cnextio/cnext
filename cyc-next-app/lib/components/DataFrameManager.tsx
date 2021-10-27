@@ -8,10 +8,10 @@
  * */ 
 
 import React, { useEffect } from "react";
-import {Message, CodeRequestOriginator, MessageType} from "./interfaces";
+import {Message, WebAppEndpoint, CommandName} from "./Interfaces";
 import socket from "./Socket";
 import { TableContainer } from "./StyledComponents";
-import { updateTableData, updateColumnHistogram } from "../../redux/reducers/dataFrameSlice";
+import { updateTableData, updateColumnHistogramPlot, updateColumnMetaData, updateCountNA } from "../../redux/reducers/dataFrameSlice";
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
@@ -19,72 +19,109 @@ import { useSelector, useDispatch } from 'react-redux'
 const DataFrameManager = () => {
     const dispatch = useDispatch();
 
-    const _send_request = (command: string, metadata: object) => {
-        let request = {};
-        request['command'] = command;
-        request['metadata'] = metadata;        
-        console.log(`send ${CodeRequestOriginator.DataFrameManager} request: `, JSON.stringify(request));
-        socket.emit(CodeRequestOriginator.DataFrameManager, JSON.stringify(request));
+    const _send_message = (message: {}) => {
+        console.log(`send ${WebAppEndpoint.DataFrameManager} request: `, JSON.stringify(message));
+        socket.emit(WebAppEndpoint.DataFrameManager, JSON.stringify(message));
     }
 
-    const _send_column_histogram_request = (df_id: string, col_name: string) => {
+    const _create_message = (command_name: string, content: string, seq_number: number, metadata: {}) => {
+        let message = {};
+        message['webapp_endpoint'] = WebAppEndpoint.DataFrameManager;
+        message['command_name'] = command_name;
+        message['seq_number'] = seq_number;     
+        message['content'] = content;
+        message['metadata'] = metadata;
+        return message;
+    }
+
+    const _send_plot_column_histogram = (df_id: string, col_name: string) => {
         const fig_name = `fig_${Math.floor(Math.random()*10000)}`;
-        let command: string = `${fig_name} = px.histogram(${df_id}, x="${col_name}")`;
-        _send_request(command, {'df_id': df_id});
+        let content: string = `${fig_name} = px.histogram(${df_id}, x="${col_name}")`;
+        let message = _create_message(CommandName.plot_column_histogram, content, 1, {'df_id': df_id})
+        _send_message(message);
 
         //TODO: might be dangerous to send the 2nd command back to back without knowing the output of previous one
-        command = `${fig_name}.show()`;
-        _send_request(command, {'df_id': df_id, 'col_name': col_name});        
+        content = `${fig_name}.show()`;
+        message = _create_message(CommandName.plot_column_histogram, content, 2, {'df_id': df_id, 'col_name': col_name})        
+        _send_message(message);
     }
 
-    const _send_table_data_request = (df_id: string) => {
-        let command = `${df_id}.head()`;
-        _send_request(command, {'df_id': df_id});
+    const _send_get_countna = (df_id: string) => {
+        // TODO: the content is actually not important because python server will generate the python command itself based on CommandName
+        let content: string = `${df_id}.isna().sum()`;
+        let message = _create_message(CommandName.get_countna, content, 1, {'df_id': df_id})
+        _send_message(message);
+    }
+
+    const _send_get_table_data = (df_id: string) => {
+        let content: string = `${df_id}.head()`;
+        let message = _create_message(CommandName.get_table_data, content, 1, {'df_id': df_id})
+        _send_message(message);
+    }
+
+    const _handle_get_countna = (message: {}) => {
+        const content = message.content;        
+        // content['df_id'] = message.metadata['df_id'];
+        console.log("Dispatch ", message.content);               
+        dispatch(updateCountNA(content));
+    }
+
+    const _handle_active_df_status = (message: {}) => {
+        console.log("DataFrameManager got df status changes: ", message.content);               
+        const updatedDataFrame = message.content;
+        Object.keys(updatedDataFrame).forEach(function(df_id) {
+            if (updatedDataFrame[df_id]['status_changed'] == true) {
+                // console.log(df_id + " " + message.content[df_id]);
+                _send_get_table_data(df_id);
+            }
+        });        
+    }
+
+    const _handle_get_table_data = (message: {}) => {
+        // content['df_id'] = message.metadata['df_id'];
+        console.log("Dispatch to tableData (DataFrame)");               
+        dispatch(updateTableData(message.content));
+        
+        console.log("send request for column histograms");     
+        const tableData = message.content;
+        const df_id = message.metadata['df_id'];
+        for(var i=0; i<tableData['column_names'].length; i++){
+            const col_name = tableData['column_names'][i];
+            _send_plot_column_histogram(df_id, col_name);
+        }           
+        _send_get_countna(df_id);
+    }
+
+    const _handle_plot_column_histogram = (message: {}) => {
+        if(message.seq_number == 2){
+            console.log(`${WebAppEndpoint.DataFrameManager} get viz data for "${message.metadata['df_id']}" "${message.metadata['col_name']}"`,);
+            let content = message.content;
+            content['plot'] = JSON.parse(content['plot'])["application/json"];
+            // content['df_id'] = message.metadata['df_id'];
+            // content['col_name'] = message.metadata['col_name'];
+            // console.log(content);
+            dispatch(updateColumnHistogramPlot(content));  
+        } else {
+            console.error(`Expect seq_number=2, got ${message.seq_number}`)
+        }
     }
 
     useEffect(() => {
         socket.emit("ping", "DataFrameManager");
-        socket.on(CodeRequestOriginator.DataFrameManager, (result: string) => {
-            console.log("got results...");
+        socket.on(WebAppEndpoint.DataFrameManager, (result: string) => {
+            console.log("DataFrameManager got results...");
             try {
-                let message: Message = JSON.parse(result);                            
+                let message: Message = JSON.parse(result);                  
                 if(message.error==true){
                     // props.recvCodeOutput(message); //TODO move this to redux
-                } else if (message.command_type == MessageType.dataframe_updated){
-                    // console.log("dispatch ", MessageType.dataframe_updated);               
-                    // dispatch(createTableData(message.content));
-                    const updatedDataFrame = message.content;
-                    Object.keys(updatedDataFrame).forEach(function(df_id) {
-                        if (updatedDataFrame[df_id] == true) {
-                            // console.log(key + " " + message.content[key]);
-                            _send_table_data_request(df_id);
-                            // console.log(updatedDataFrame['column_names'].length);
-                            // for(var i=0; i<updatedDataFrame['column_names'].length; i++){
-                            //     const col_name = updatedDataFrame['column_names'][i];
-                            //     _send_column_histogram_request(df_id, col_name);
-                            // }
-                        }
-                    });                                            
-                } else if (message.content_type=="<class 'pandas.core.frame.DataFrame'>"){
-                    const tableData = message.content;
-                    const df_id = tableData['df_id'];
-                    console.log("dispatch to tableData (DataFrame)");               
-                    dispatch(updateTableData(message.content));
-                    console.log("send request for column histograms");               
-                    for(var i=0; i<tableData['column_names'].length; i++){
-                        const col_name = tableData['column_names'][i];
-                        _send_column_histogram_request(df_id, col_name);
-                    }                    
-                } else if (message.content_type=="<class 'pandas.core.frame.CycDataFrame'>"){
-                    console.log("dispatch tableData (CycDataFrame)");               
-                    dispatch(updateTableData(message.content));
-                } else if (message.content_type=="<class 'plotly.graph_objs._figure.Figure'>"){
-                    console.log(`${CodeRequestOriginator.DataFrameManager} get viz data for "${message.metadata['df_id']}" "${message.metadata['col_name']}"`,);
-                    let content = {};
-                    content['viz'] = JSON.parse(message.content)["application/json"];
-                    content['df_id'] = message.metadata['df_id'];
-                    content['col_name'] = message.metadata['col_name'];
-                    dispatch(updateColumnHistogram(content));               
+                } else if (message.command_name == CommandName.active_df_status){
+                    _handle_active_df_status(message);                                            
+                } else if (message.command_name==CommandName.get_table_data){
+                    _handle_get_table_data(message);                   
+                } else if (message.command_name==CommandName.plot_column_histogram){
+                    _handle_plot_column_histogram(message);              
+                } else if (message.command_name==CommandName.get_countna){
+                    _handle_get_countna(message);
                 } else {  
                     console.log("dispatch text output");                        
                     // props.recvCodeOutput(codeOutput);
@@ -97,8 +134,7 @@ const DataFrameManager = () => {
     }, []); //run this only once - not on rerender
 
     return (
-        <div>
-            test
+        <div>            
         </div>
     );
 }

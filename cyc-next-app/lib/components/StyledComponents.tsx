@@ -240,12 +240,10 @@ export const TablePanel = styled.div`
             font-weight: bold;
             font-size: 13px;
             vertical-align: bottom;
-            // display: flex;
-            // align-items: flex-end;
-            // flex-direction: column;            
         `
         
         export const DataTableHeadText = styled.div`
+        text-overflow: ellipsis;
         `
         
         export const DataTableIndexCell = styled(TableCell)`
@@ -265,9 +263,18 @@ export const TablePanel = styled.div`
         export const SmallVizContainer = styled(MuiTableContainer)`
             background-color: ${props => props.theme.palette.background.paper};
             padding: 0px; 
-            overflow: hidden;               
+            overflow: hidden;    
+            font-weight: normal;           
         `;
 
+export const CountNAContainer = styled.div`
+    background-color: ${props => props.theme.palette.action.hover};
+    color: ${props => props.theme.palette.text.secondary};
+    padding: 0px 4px 0px 4px;
+    font-weight: normal;
+    font-size: 12px;
+    width: 70px;
+`        
 // export const CodeAreaSplitPanel = styled(SplitPane)`
 //     padding-left: inherit;
 //     padding-right: inherit;

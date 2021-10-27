@@ -23,6 +23,10 @@ export const dataFrameSlice = createSlice({
             const df_id = action.payload['df_id'];
             state.tableData[df_id] = action.payload;
             state.activeDataFrame = df_id;
+            //for now let refresh columnHistogram and columnDataSummary whenever there is new data. 
+            //TODO: fix me because this is not efficient
+            state.columnHistogram = {};
+            state.columnDataSummary[df_id] = {};
         },
         updateColumnMetaData: (state, action) => {  
             // for testing          
@@ -30,7 +34,7 @@ export const dataFrameSlice = createSlice({
             const df_id = action.payload['df_id'];
             state.columnMetaData[df_id] = action.payload;
         },
-        updateColumnHistogram: (state, action) => {  
+        updateColumnHistogramPlot: (state, action) => {  
             // for testing          
             // state.data = testTableData
             const df_id = action.payload['df_id'];
@@ -38,12 +42,21 @@ export const dataFrameSlice = createSlice({
             if (!(df_id in state.columnHistogram)){
                 state.columnHistogram[df_id] = {};
             }
-            state.columnHistogram[df_id][col_name] = action.payload['viz'];
+            state.columnHistogram[df_id][col_name] = action.payload['plot'];
+        },
+        updateCountNA: (state, action) => {  
+            // for testing          
+            // state.data = testTableData
+            const df_id = action.payload['df_id'];
+            if (!(df_id in state.columnDataSummary)){
+                state.columnDataSummary[df_id] = {};
+            }
+            state.columnDataSummary[df_id]['countna'] = action.payload['countna']
         }
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { updateTableData, updateColumnMetaData, updateColumnHistogram } = dataFrameSlice.actions
+export const { updateTableData, updateColumnMetaData, updateColumnHistogramPlot, updateCountNA } = dataFrameSlice.actions
 
 export default dataFrameSlice.reducer
