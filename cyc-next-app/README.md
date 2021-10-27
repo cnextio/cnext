@@ -14,10 +14,10 @@ then fix depencies as follows:
 +    "@codemirror/view": "^0.19.9",
 ```
 
-### Fix Codemirror keymap
-- command out line 956 in `node_modules/@codemirror/commands/dist/index.js`
+### Install zmq
+
 ```
-// { key: "Mod-Enter", run: insertBlankLine },
+conda install -c conda-forge pyzmq
 ```
 
 ### Run web app
