@@ -14,10 +14,10 @@ then fix depencies as follows:
 +    "@codemirror/view": "^0.19.9",
 ```
 
-### Install zmq
+### Install dependencies
 
 ```
-conda install -c conda-forge pyzmq
+conda install -c conda-forge pyzmq pyyaml
 ```
 
 ### Run web app

@@ -40,7 +40,12 @@ const DataFrameManager = 'DataFrameManager';
 * Communicate with web client
 */
 try {
-    const file = fs.readFileSync('config.yaml', 'utf8');
+    let file;
+    if (process.platform=='win32'){
+        file = fs.readFileSync('config-win.yaml', 'utf8');
+    } else {
+        file = fs.readFileSync('config.yaml', 'utf8');
+    }
     config = YAML.parse(file);
 
     io.on("connection", (socket) => {

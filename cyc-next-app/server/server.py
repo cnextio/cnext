@@ -1,4 +1,4 @@
-import sys, logging, simplejson as json, io, os
+import platform, sys, logging, simplejson as json, io, os
 import pandas 
 import plotly
 import traceback
@@ -9,7 +9,10 @@ log = logs.get_logger(__name__)
 
 from config import read_config
 try:
-    config = read_config('config.yaml')
+    if platform.system() == 'Windows':
+        config = read_config('config-win.yaml')
+    else:
+        config = read_config('config.yaml')
 except Exception as error:
     log.error("%s - %s" % (error, traceback.format_exc()))          
     exit(1)
@@ -22,29 +25,6 @@ from message import Message, WebappEndpoint, CommandName, ContentType
 sys.path.append(config.path_to_cycdataframe_lib); 
 from cycdataframe.df_status_hook import DataFrameStatusHook
 from cycdataframe.cycdataframe import CycDataFrame
-
-
-# class Message:
-#     def __init__(self, request_originator, command_type, content_type, content, error, metadata={}):
-#         self.request_originator = request_originator
-#         self.command_type = command_type
-#         self.content_type = content_type
-#         self.content = content
-#         self.error = error
-#         self.metadata = metadata
-
-#     def __repr__(self):        
-#         return json.dumps({
-#             "request_originator": self.request_originator,
-#             "command_type": self.command_type, 
-#             "content_type": self.content_type, 
-#             "content": self.content, 
-#             "error": self.error,
-#             "metadata": self.metadata
-#         }, ignore_nan=True)
-    
-#     # def __str__(self):
-#     #     return self.__repr__()
 
 # have to do this here. do it in df_status_hook does not work
 def get_global_df_list():
@@ -234,33 +214,6 @@ def handle_DataFrameManager_message(message):
         error_message = create_error_message(message.webapp_endpoint, trace)          
         send_result_to_node_server(error_message)
 
-##
-# For socket monitoring
-##
-import zmq
-from zmq.utils.monitor import recv_monitor_message
-import threading
-EVENT_MAP = {}
-log.info("Event names:")
-for name in dir(zmq):
-    if name.startswith('EVENT_'):
-        value = getattr(zmq, name)
-        log.info("%21s : %4i" % (name, value))
-        EVENT_MAP[value] = name
-
-def event_monitor(monitor):
-    while monitor.poll():
-        evt = recv_monitor_message(monitor)
-        evt.update({'description': EVENT_MAP[evt['event']]})
-        log.info("Event: {}".format(evt))
-        # if evt['event'] == zmq.EVENT_DISCONNECTED:
-        #     notification_queue.push("{}")
-        if evt['event'] == zmq.EVENT_MONITOR_STOPPED:
-            break
-    monitor.close()
-    log.info()
-    log.info("event monitor thread done!")
-
 if __name__ == "__main__":    
     try:
         p2n_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['p2n_port'])
@@ -269,11 +222,6 @@ if __name__ == "__main__":
     except Exception as error:
         log.error("%s - %s" % (error, traceback.format_exc()))          
         exit(1)
-
-    # socket = p2n_queue.get_socket()
-    # monitor = socket.get_monitor_socket()
-    # t = threading.Thread(target=event_monitor, args=(monitor,))
-    # t.start()
 
     while True:    
         for line in sys.stdin:            
