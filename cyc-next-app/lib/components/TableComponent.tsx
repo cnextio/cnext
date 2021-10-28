@@ -6,7 +6,7 @@ import React, { useEffect, Box, useRef, useState, useCallback } from "react";
 import { Transition } from "react-transition-group";
 
 import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHeadCell, 
-    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, NewColTransition, DataTableHeadCellOfNewCol } from "./StyledComponents";
+    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, NewColTransition, DataTableHeadCellOfNewCol, DataTablCellOfNewCol } from "./StyledComponents";
 import {Message, WebAppEndpoint, DataTableContent, UpdateType} from "./interfaces";
 import socket from "./Socket";
 
@@ -78,7 +78,29 @@ const TableComponent = (props: any) => {
                            
             );
         }
-        
+        return elem;
+    }
+
+    const _create_col_element = (colName: string, index: number, rowItem: any) => {
+        const state = store.getState();
+        const dataFrameUpdates = ifElseDict(state.dataFrames.dataFrameUpdates, activeDataFrame);
+        let elem;
+        if (dataFrameUpdates.hasOwnProperty('update_type') && 
+            (dataFrameUpdates['update_type'] == UpdateType.add_cols) &&
+            (dataFrameUpdates['updates'].includes(colName))) {                
+            elem = (                               
+                    <DataTablCellOfNewCol key={index} align="right">
+                        {rowItem}     
+                    </DataTablCellOfNewCol>                          
+            );
+        } else {
+            elem = (                
+                <DataTableCell key={index} align="right">                    
+                    {rowItem}        
+                </DataTableCell> 
+                           
+            );
+        }
         return elem;
     }
 
@@ -120,7 +142,7 @@ const TableComponent = (props: any) => {
                     <DataTableRow hover key={index}>
                     <DataTableIndexCell>{tableData[activeDataFrame].index.data[index]}</DataTableIndexCell>
                     {row.map((rowItem: any, index: number) => (                            
-                        <DataTableCell key={index} align="right">{rowItem}</DataTableCell>
+                        _create_col_element(tableData[activeDataFrame].column_names[index], index, rowItem)
                     ))}
                     </DataTableRow>
                 ))}

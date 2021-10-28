@@ -242,8 +242,9 @@ export const TablePanel = styled.div`
             font-size: 13px;
             vertical-align: bottom;
         `
+
         export const DataTableHeadCellOfNewCol = styled(DataTableHeadCell)`
-            animation: ${props => blinkingEffect(props)} 1.5s linear 0.2s;
+            animation: ${props => newColTransition(props)} 1.5s linear 0.2s;
         `
         
         export const DataTableHeadText = styled.div`
@@ -256,6 +257,10 @@ export const TablePanel = styled.div`
         `
         export const DataTableCell = styled(TableCell)`
             font-size: 13px;
+        `
+
+        export const DataTablCellOfNewCol = styled(DataTableCell)`
+            animation: ${props => newColTransition(props)} 1.5s linear 0.2s;
         `
 
         export const VizContainer = styled(MuiTableContainer)`
@@ -285,7 +290,7 @@ export const CountNAContainer = styled.div`
 //     height: 300px;
 // `;
 
-function blinkingEffect(props) {
+function newColTransition(props) {
     return keyframes`
       50% {
         background-color: ${props.theme.palette.primary.light};
@@ -294,7 +299,7 @@ function blinkingEffect(props) {
   }
   
 export const NewColTransition = styled(TableCell)`
-    animation: ${props => blinkingEffect(props)} 1s linear 0s;
+    animation: ${props => newColTransition(props)} 1s linear 0s;
     // max-width: 100%;
     // max-height: 100%
     font-weight: bold;
