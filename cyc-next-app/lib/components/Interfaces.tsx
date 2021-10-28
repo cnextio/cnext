@@ -31,6 +31,15 @@ export interface Message {
                              // related to this command
 };
 
+export enum UpdateType {
+    add_cols = 'add_cols',
+    del_cols = 'del_cols',
+    add_rows = 'add_rows',
+    del_rows = 'del_rows',
+    update_cells = 'update_cell',
+    new_index = 'update_index'
+}
+
 // export interface DataTableContent {
 //     name: string;
 //     column_names: string[];

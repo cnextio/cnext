@@ -1,6 +1,7 @@
 import { Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow } from '@mui/material';
 import SplitPane, { Pane } from 'react-split-pane';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
+import { CSSTransition } from 'react-transition-group';
 
 export const TopPanel = styled.div`
     display: flex;
@@ -241,6 +242,9 @@ export const TablePanel = styled.div`
             font-size: 13px;
             vertical-align: bottom;
         `
+        export const DataTableHeadCellOfNewCol = styled(DataTableHeadCell)`
+            animation: ${props => blinkingEffect(props)} 1.5s linear 0.2s;
+        `
         
         export const DataTableHeadText = styled.div`
         text-overflow: ellipsis;
@@ -280,3 +284,21 @@ export const CountNAContainer = styled.div`
 //     padding-right: inherit;
 //     height: 300px;
 // `;
+
+function blinkingEffect(props) {
+    return keyframes`
+      50% {
+        background-color: ${props.theme.palette.primary.light};
+      }
+    `;
+  }
+  
+export const NewColTransition = styled(TableCell)`
+    animation: ${props => blinkingEffect(props)} 1s linear 0s;
+    // max-width: 100%;
+    // max-height: 100%
+    font-weight: bold;
+    font-size: 13px;
+    vertical-align: bottom;
+`
+

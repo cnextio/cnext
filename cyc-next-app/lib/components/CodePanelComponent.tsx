@@ -18,7 +18,7 @@ const OutputLine = (content: string|ReactElement) => {
 const CodeOutputAreaComponent = ({codeOutput}) => {
     let [outputContent, setOutputContent] = useState<JSX.Element[]>([]);
     let [outputType, setOutputType] = useState('');
-    const endRef = useRef(null);
+    const endPointRef = useRef(null);
 
     useEffect(() => {
         try {
@@ -37,7 +37,7 @@ const CodeOutputAreaComponent = ({codeOutput}) => {
     const scrollToBottom = () => {
         // need block and inline property because of this 
         // https://stackoverflow.com/questions/11039885/scrollintoview-causing-the-whole-page-to-move/11041376
-        endRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' })
+        endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' })
     }
 
     useEffect(scrollToBottom, [outputContent]);
@@ -47,7 +47,7 @@ const CodeOutputAreaComponent = ({codeOutput}) => {
             {console.log('CodeOutputAreaComponent rerender')}   
             <TextCodeOutputContainer>
                 {outputContent}
-                <div ref={endRef}></div>
+                <div ref={endPointRef}></div>
             </TextCodeOutputContainer>  
         </CodeOutputContainer>
     )

@@ -1,9 +1,15 @@
-import { TableBody, TableHead, TableRow, TableCell} from "@mui/material";
-import React, { useEffect, Box } from "react";
+import { TableBody, TableHead, TableRow, TableCell, Grow, Fade } from "@mui/material";
+import React, { useEffect, Box, useRef, useState, useCallback } from "react";
+// const ReactCSSTransitionGroup = require('react-addons-css-transition-group');
+// import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup';
+// import { CSSTransition } from 'react-transition-group';
+import { Transition } from "react-transition-group";
+
 import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHeadCell, 
-    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText } from "./StyledComponents";
-import {Message, WebAppEndpoint, DataTableContent} from "./interfaces";
+    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, NewColTransition, DataTableHeadCellOfNewCol } from "./StyledComponents";
+import {Message, WebAppEndpoint, DataTableContent, UpdateType} from "./interfaces";
 import socket from "./Socket";
+
 
 import dynamic from 'next/dynamic'
 const ColumnHistogramComponentWithNoSSR = dynamic(
@@ -14,46 +20,85 @@ const ColumnHistogramComponentWithNoSSR = dynamic(
 // redux
 import { useSelector, useDispatch } from 'react-redux'
 import CountNAComponent from "./CountNAComponent";
+import store from '../../redux/store';
+import { ifElseDict } from "./libs";
+import { updateDataFrameUpdates } from "../../redux/reducers/dataFrameSlice";
 
 const TableComponent = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
+    // const dataFrameUpdates = useSelector((state) => state.dataFrames.dataFrameUpdates);
+    const endPointRef = useRef(null);
+    const dispatch = useDispatch();
     
-    useEffect(()=>{
-        // socket.emit("ping", "TableComponent");
-        // socket.on(CodeRequestOriginator.table_panel, (result: string) => {
-        //     console.log(`${CodeRequestOriginator.table_panel} got results: `, result, '\n');
-        //     try {
-        //         let codeOutput: Message = JSON.parse(result);                
-        //         if(codeOutput.error==false){                    
-        //             if (codeOutput.content_type=="<class 'plotly.graph_objs._figure.Figure'>"){
-        //                 console.log(`${CodeRequestOriginator.table_panel} dispatch viz output`);               
-        //                 // dispatch(vizDataUpdate(JSON.parse(codeOutput.content)["application/json"]));
-        //             }
-        //             else {
-        //                 //TODO: send this to the text output using redux                        
-        //             }
-        //         }
-        //         else {                          
-        //             console.log(`${CodeRequestOriginator.table_panel} dispatch text output: `, codeOutput);                        
-        //             //TODO: send this to the text output using redux                        
-        //         }
-        //     } catch {
-        //         //TODO: add logging
-        //     }
-        // });
-    },[])
-
-    useEffect(()=>{
-        try {
-            if (tableData != null){
-            }
-        } catch {
-
+    /**
+     * This function will check if there is add_cols event, 
+     * if so it will create a special effect with the new cols.
+     * For now, We only add the add_cols special effect to the header, 
+     * because adding it to data row requires more backend work.
+     */
+    const _create_header_col_element = (colName: string, index: number) => {
+        const state = store.getState();
+        const dataFrameUpdates = ifElseDict(state.dataFrames.dataFrameUpdates, activeDataFrame);
+        let elem;
+        if (dataFrameUpdates.hasOwnProperty('update_type') && 
+            (dataFrameUpdates['update_type'] == UpdateType.add_cols) &&
+            (dataFrameUpdates['updates'].includes(colName))) {                
+            elem = (                               
+                    <DataTableHeadCellOfNewCol>
+                        <div>{colName}</div>
+                        <ColumnHistogramComponentWithNoSSR  
+                            key={index} 
+                            df_id={activeDataFrame} 
+                            col_name={colName} 
+                            smallLayout={true}
+                        />
+                        <CountNAComponent  
+                            df_id={activeDataFrame} 
+                            col_name={colName}
+                        />
+                        <div ref={endPointRef}></div>     
+                    </DataTableHeadCellOfNewCol>   
+                       
+            );
+        } else {
+            elem = (                
+                <DataTableHeadCell>                    
+                    <div>{colName}</div>
+                    <ColumnHistogramComponentWithNoSSR  
+                        df_id={activeDataFrame} 
+                        col_name={colName} 
+                        smallLayout={true}
+                    />
+                    <CountNAComponent 
+                        df_id={activeDataFrame} 
+                        col_name={colName}
+                    />        
+                </DataTableHeadCell> 
+                           
+            );
         }
         
-    },[tableData])
+        return elem;
+    }
+
+    const _clear_dataFrameUpdateState = (df_id: string) => {
+        dispatch(updateDataFrameUpdates({df_id: df_id}));
+    }
+
+    const _scrollToNewCol = () => {
+        // need block and inline property because of this 
+        // https://stackoverflow.com/questions/11039885/scrollintoview-causing-the-whole-page-to-move/11041376
+        if (endPointRef.current!=null) {
+            endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' })
+        }
+    }
     
+    useEffect(() => {
+        _scrollToNewCol();
+        _clear_dataFrameUpdateState(activeDataFrame);
+    }, [tableData]);
+
     return (
         <TableContainer >
         {console.log("Render TableContainer")}
@@ -66,21 +111,16 @@ const TableComponent = (props: any) => {
                             <DataTableHeadText>{tableData[activeDataFrame].index.name}</DataTableHeadText>
                             <ColumnHistogramComponentWithNoSSR df_id={activeDataFrame} col_name='Engine Speed' smallLayout={true}/>
                         </DataTableHeadCell>
-                        {tableData[activeDataFrame].column_names.map((colName) => (    
-                        <DataTableHeadCell>
-                            <div>{colName}</div>
-                            <ColumnHistogramComponentWithNoSSR  df_id={activeDataFrame} col_name={colName} smallLayout={true}/>
-                            <CountNAComponent df_id={activeDataFrame} col_name={colName}/>
-                        </DataTableHeadCell>
-                        ))}
+                        {tableData[activeDataFrame].column_names.map(
+                            (colName: string, index: number) => (_create_header_col_element(colName, index)))}
                     </DataTableHeadRow>
                 </DataTableHead>                
                 <TableBody>                
-                {tableData[activeDataFrame].rows.map((row, index) => (
+                {tableData[activeDataFrame].rows.map((row: any[], index: number) => (
                     <DataTableRow hover key={index}>
                     <DataTableIndexCell>{tableData[activeDataFrame].index.data[index]}</DataTableIndexCell>
-                    {row.map((rowItem) => (                            
-                        <DataTableCell align="right">{rowItem}</DataTableCell>
+                    {row.map((rowItem: any, index: number) => (                            
+                        <DataTableCell key={index} align="right">{rowItem}</DataTableCell>
                     ))}
                     </DataTableRow>
                 ))}

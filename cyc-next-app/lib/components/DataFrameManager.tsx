@@ -7,17 +7,21 @@
  * if `isUpdated == True` and `isDisplayed == True` then DF metadata and 10 rows of table data will be updated.
  * */ 
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {Message, WebAppEndpoint, CommandName} from "./Interfaces";
 import socket from "./Socket";
 import { TableContainer } from "./StyledComponents";
-import { updateTableData, updateColumnHistogramPlot, updateColumnMetaData, updateCountNA } from "../../redux/reducers/dataFrameSlice";
+import { updateTableData, updateColumnHistogramPlot, updateColumnMetaData, 
+    updateCountNA, updateDataFrameUpdates } from "../../redux/reducers/dataFrameSlice";
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
+import { ifElseDict } from "./libs";
 
 const DataFrameManager = () => {
     const dispatch = useDispatch();
+    // keeping this as local variable 
+    let dataFrameUpdates = {};
 
     const _send_message = (message: {}) => {
         console.log(`send ${WebAppEndpoint.DataFrameManager} request: `, JSON.stringify(message));
@@ -53,7 +57,7 @@ const DataFrameManager = () => {
         _send_message(message);
     }
 
-    const _send_get_table_data = (df_id: string) => {
+    const _send_get_table_data = (df_id: string) => {        
         let content: string = `${df_id}.head()`;
         let message = _create_message(CommandName.get_table_data, content, 1, {'df_id': df_id})
         _send_message(message);
@@ -67,29 +71,34 @@ const DataFrameManager = () => {
     }
 
     const _handle_active_df_status = (message: {}) => {
-        console.log("DataFrameManager got df status changes: ", message.content);               
+        console.log("DataFrameManager got df status message: ", message.content);               
         const updatedDataFrame = message.content;
+        //we only support one dataframe update now
         Object.keys(updatedDataFrame).forEach(function(df_id) {
-            if (updatedDataFrame[df_id]['status_changed'] == true) {
-                // console.log(df_id + " " + message.content[df_id]);
+            if (updatedDataFrame[df_id]['df_updated'] == true) {                
+                // setDataFrameUpdates(updatedDataFrame[df_id]['updates']);
+                dataFrameUpdates[df_id] = ifElseDict(updatedDataFrame[df_id], 'updates');
                 _send_get_table_data(df_id);
+                // make redux object conform to our standard
+                let dataFrameUpdateMessage = {df_id: df_id, ...updatedDataFrame[df_id]};
+                dispatch(updateDataFrameUpdates(dataFrameUpdateMessage));
             }
         });        
     }
 
     const _handle_get_table_data = (message: {}) => {
-        // content['df_id'] = message.metadata['df_id'];
-        console.log("Dispatch to tableData (DataFrame)");               
+        const df_id = message.metadata['df_id'];
+        console.log("Dispatch to tableData (DataFrame)");        
         dispatch(updateTableData(message.content));
         
         console.log("send request for column histograms");     
         const tableData = message.content;
-        const df_id = message.metadata['df_id'];
+        
         for(var i=0; i<tableData['column_names'].length; i++){
             const col_name = tableData['column_names'][i];
-            _send_plot_column_histogram(df_id, col_name);
+            // _send_plot_column_histogram(df_id, col_name);
         }           
-        _send_get_countna(df_id);
+        // _send_get_countna(df_id);
     }
 
     const _handle_plot_column_histogram = (message: {}) => {
