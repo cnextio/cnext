@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { ifElseDict } from '../../lib/components/libs';
 
 // for testing
 import {vizData as testVizData} from "../../lib/components/tests/TestVizData"  
@@ -14,7 +15,8 @@ export const vizDataSlice = createSlice({
         update: (state, action) => {  
             // for testing          
             // state.data = testVizData;
-            state.data = action.payload;
+            // state.data = action.payload;
+            state.data = ifElseDict(action.payload, 'plot');
         }
     },
 })

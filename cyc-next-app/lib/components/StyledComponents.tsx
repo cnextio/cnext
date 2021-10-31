@@ -1,7 +1,8 @@
 import { Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow } from '@mui/material';
 import SplitPane, { Pane } from 'react-split-pane';
 import styled, { keyframes } from 'styled-components';
-import { CSSTransition } from 'react-transition-group';
+// import { CSSTransition } from 'react-transition-group';
+import { ToastContainer } from 'react-toastify';
 
 export const TopPanel = styled.div`
     display: flex;
@@ -244,7 +245,7 @@ export const TablePanel = styled.div`
         `
 
         export const DataTableHeadCellOfNewCol = styled(DataTableHeadCell)`
-            animation: ${props => newColTransition(props)} 1.5s linear 0.2s;
+            animation: ${props => newColTransition(props)} 2s linear 0.2s;
         `
         
         export const DataTableHeadText = styled.div`
@@ -260,7 +261,7 @@ export const TablePanel = styled.div`
         `
 
         export const DataTablCellOfNewCol = styled(DataTableCell)`
-            animation: ${props => newColTransition(props)} 1.5s linear 0.2s;
+            animation: ${props => newColTransition(props)} 2s linear 0.2s;
         `
 
         export const VizContainer = styled(MuiTableContainer)`
@@ -277,8 +278,12 @@ export const TablePanel = styled.div`
         `;
 
 export const CountNAContainer = styled.div`
-    background-color: ${props => props.theme.palette.action.hover};
-    color: ${props => props.theme.palette.text.secondary};
+    background-color: ${props => props.nonZeroNA 
+                        ? props.theme.palette.error.light
+                        : props.theme.palette.action.hover};
+    color: ${props => props.nonZeroNA 
+            ? props.theme.palette.error.contrastText
+            : props.theme.palette.text.secondary};
     padding: 0px 4px 0px 4px;
     font-weight: normal;
     font-size: 12px;
@@ -290,6 +295,14 @@ export const CountNAContainer = styled.div`
 //     height: 300px;
 // `;
 
+export const StyledDFStatusNotification = styled(ToastContainer)`
+    font-size: 13px;
+    & .notif-text {
+    }
+    & .notif-container {
+    }
+`
+
 function newColTransition(props) {
     return keyframes`
       50% {
@@ -298,12 +311,5 @@ function newColTransition(props) {
     `;
   }
   
-export const NewColTransition = styled(TableCell)`
-    animation: ${props => newColTransition(props)} 1s linear 0s;
-    // max-width: 100%;
-    // max-height: 100%
-    font-weight: bold;
-    font-size: 13px;
-    vertical-align: bottom;
-`
+  
 

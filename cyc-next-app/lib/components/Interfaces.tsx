@@ -37,7 +37,8 @@ export enum UpdateType {
     add_rows = 'add_rows',
     del_rows = 'del_rows',
     update_cells = 'update_cell',
-    new_index = 'update_index'
+    new_index = 'update_index',
+    new_df = 'new_df'
 }
 
 // export interface DataTableContent {

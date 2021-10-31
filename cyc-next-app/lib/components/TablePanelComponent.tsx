@@ -3,15 +3,17 @@ import { DataTable, TablePanel, TableToolbar } from "./StyledComponents";
 import TableComponent from "./TableComponent";
 
 import dynamic from 'next/dynamic'
-const ColumnHistogramComponentWithNoSSR = dynamic(
-    () => import("./ColumnHistogramComponent"),
+const VizComponentWithNoSSR = dynamic(
+    () => import("./VizComponent"),
     { ssr: false }
   )
-// import VizComponent from "./VizComponent";
+
 import WorkingPanelDividerComponent from "./WorkingPanelDivider";
+import DFStatusNotification from "./DFStatusNotification";
 
 //for testing
 import {tableData as testTableData} from "./tests/TestTableData";
+
 
 const TablePanelComponent = (props: any) => {
     return (
@@ -21,7 +23,8 @@ const TablePanelComponent = (props: any) => {
             </TableToolbar>
             <WorkingPanelDividerComponent />
             <TableComponent {... props}/>
-            {/* <ColumnHistogramComponentWithNoSSR df_id='test_df' col_name='Engine Speed'/> */}
+            <VizComponentWithNoSSR />
+            <DFStatusNotification/>
         </TablePanel>
     );
   };

@@ -8,7 +8,7 @@
  * */ 
 
 import React, { useEffect, useState } from "react";
-import {Message, WebAppEndpoint, CommandName} from "./Interfaces";
+import {Message, WebAppEndpoint, CommandName, UpdateType} from "./Interfaces";
 import socket from "./Socket";
 import { TableContainer } from "./StyledComponents";
 import { updateTableData, updateColumnHistogramPlot, updateColumnMetaData, 
@@ -16,9 +16,11 @@ import { updateTableData, updateColumnHistogramPlot, updateColumnMetaData,
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
+import store from '../../redux/store';
+
 import { ifElseDict } from "./libs";
 
-const DataFrameManager = () => {
+const DFManager = () => {
     const dispatch = useDispatch();
     // keeping this as local variable 
     let dataFrameUpdates = {};
@@ -39,14 +41,8 @@ const DataFrameManager = () => {
     }
 
     const _send_plot_column_histogram = (df_id: string, col_name: string) => {
-        const fig_name = `fig_${Math.floor(Math.random()*10000)}`;
-        let content: string = `${fig_name} = px.histogram(${df_id}, x="${col_name}")`;
-        let message = _create_message(CommandName.plot_column_histogram, content, 1, {'df_id': df_id})
-        _send_message(message);
-
-        //TODO: might be dangerous to send the 2nd command back to back without knowing the output of previous one
-        content = `${fig_name}.show()`;
-        message = _create_message(CommandName.plot_column_histogram, content, 2, {'df_id': df_id, 'col_name': col_name})        
+        let content: string = `px.histogram(${df_id}, x="${col_name}")`;
+        let message = _create_message(CommandName.plot_column_histogram, content, 1, {'df_id': df_id, 'col_name': col_name})
         _send_message(message);
     }
 
@@ -94,25 +90,31 @@ const DataFrameManager = () => {
         console.log("send request for column histograms");     
         const tableData = message.content;
         
-        for(var i=0; i<tableData['column_names'].length; i++){
-            const col_name = tableData['column_names'][i];
-            // _send_plot_column_histogram(df_id, col_name);
-        }           
-        // _send_get_countna(df_id);
+        const state = store.getState();
+        const dataFrameUpdates = ifElseDict(state.dataFrames.dataFrameUpdates, df_id);
+        
+        if (dataFrameUpdates['update_type'] == UpdateType.add_cols){
+            //only update histogram of columns that has been updated
+            let col_list = dataFrameUpdates['updates'];
+            for(var i=0; i<col_list.length; i++){
+                const col_name = col_list[i];
+                _send_plot_column_histogram(df_id, col_name);
+            } 
+        } else { //TODO: implement other cases
+            //if (dataFrameUpdates['update_type'] == UpdateType.new_df){
+            for(var i=0; i<tableData['column_names'].length; i++){
+                const col_name = tableData['column_names'][i];
+                _send_plot_column_histogram(df_id, col_name);
+            }           
+        }         
+        _send_get_countna(df_id);
     }
 
     const _handle_plot_column_histogram = (message: {}) => {
-        if(message.seq_number == 2){
-            console.log(`${WebAppEndpoint.DataFrameManager} get viz data for "${message.metadata['df_id']}" "${message.metadata['col_name']}"`,);
-            let content = message.content;
-            content['plot'] = JSON.parse(content['plot'])["application/json"];
-            // content['df_id'] = message.metadata['df_id'];
-            // content['col_name'] = message.metadata['col_name'];
-            // console.log(content);
-            dispatch(updateColumnHistogramPlot(content));  
-        } else {
-            console.error(`Expect seq_number=2, got ${message.seq_number}`)
-        }
+        console.log(`${WebAppEndpoint.DataFrameManager} get plot data for "${message.metadata['df_id']}" "${message.metadata['col_name']}"`,);
+        let content = message.content;
+        content['plot'] = JSON.parse(content['plot']); 
+        dispatch(updateColumnHistogramPlot(content));             
     }
 
     useEffect(() => {
@@ -148,5 +150,5 @@ const DataFrameManager = () => {
     );
 }
 
-export default DataFrameManager;
+export default DFManager;
 

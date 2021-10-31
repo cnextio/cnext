@@ -1,28 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SmallVizContainer, VizContainer } from "./StyledComponents";
+// const Plot = require("react-plotly.js");
 import Plot from "react-plotly.js";
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
-import { update as vizDataUpdate } from "../../redux/reducers/vizDataSlice";
+
 // for testing
 import {vizData as testVizData} from "./tests/TestVizData"  
-
-// function useTraceUpdate(props) {
-//     const prev = useRef(props);
-//     useEffect(() => {
-//       const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
-//         if (prev.current[k] !== v) {
-//           ps[k] = [prev.current[k], v];
-//         }
-//         return ps;
-//       }, {});
-//       if (Object.keys(changedProps).length > 0) {
-//         console.log('Changed props:', changedProps);
-//       }
-//       prev.current = props;
-//     });
-//   }
 
 export function ColumnHistogramComponent({df_id, col_name, smallLayout}) {    
     const columnHistogram = useSelector((state) => checkColumnHistograms(state));

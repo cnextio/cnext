@@ -99,16 +99,16 @@ def _create_plot_data(result):
     result = result.replace("'", '"')
     result = result.replace("True", 'true')
     result = result.replace("False", 'false')
-    return result
+    return {'plot': result}
 
 #TODO: unify this with _create_plot_data
-def _create_dataframemanager_plot_data(df_id, col_name, result):
-    result = result.replace("'", '"')
-    result = result.replace("True", 'true')
-    result = result.replace("False", 'false')
-    return {'df_id': df_id, 'col_name': col_name, 'plot': result}
+def _create_dataframemanager_plot_data(df_id, col_name, result):    
+    return {'df_id': df_id, 'col_name': col_name, 'plot': result.to_json()}
 
-def execute_request(message):    
+def _create_CodeArea_plot_data(result):
+    return {'plot': result.to_json()}       
+
+def execute_CodeArea_request(message):    
     if message.execution_mode == 'exec':
         log.info('exec...')
         exec(message.content, globals())
@@ -119,11 +119,14 @@ def execute_request(message):
         result = eval(message.content, globals())
         if result is not None:            
             # log.info("eval result: \n%s" % (result))
-            log.info("eval result: \n")
+            log.info("got eval results")
             if _result_is_dataframe(result):
-                dataframe_id = _get_dataframe_id(message.content)
-                output = _create_table_data(dataframe_id, result)       
+                df_id = _get_dataframe_id(message.content)
+                output = _create_table_data(df_id, result)       
                 content_type = ContentType.pandas_dataframe
+            if _result_is_plotly_fig(result):
+                output = _create_CodeArea_plot_data(result)
+                content_type = ContentType.plotly_fig
             else:
                 content_type = ContentType.str
                 output = str(result)                
@@ -171,19 +174,12 @@ def handle_DataFrameManager_message(message):
     log.info('eval...')
     try:        
         if message.command_name == CommandName.plot_column_histogram:
-            if message.seq_number == 1:
-                result = exec(message.content, globals())
-                # nothing to be done here
-                # pass
-            elif message.seq_number == 2:
-                # plotly show will be output to stdout
-                eval(message.content, globals())
-                result = sys.stdout.getvalue()
-                if result is not None:                
-                    log.info("get plot data")                                        
-                    output = _create_dataframemanager_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
-                    content_type = ContentType.plotly_fig
-                    send_reply = True
+            result = eval(message.content, globals())
+            if result is not None:                
+                log.info("get plot data")                                        
+                output = _create_dataframemanager_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
+                content_type = ContentType.plotly_fig
+                send_reply = True
 
         elif message.command_name == CommandName.get_table_data:    
             result = eval(message.content, globals())        
@@ -236,7 +232,7 @@ if __name__ == "__main__":
                     # have to make the stdout swapping outside because 
                     # execute_request might got interrupted because of the exceptions                    
                     assign_exec_mode(message)
-                    result = execute_request(message)
+                    result = execute_CodeArea_request(message)
                     # sys.stdout = normal_stdout    
                     send_result_to_node_server(result)
                                 

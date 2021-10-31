@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { DataTableContent } from '../../lib/components/interfaces';
+import { DataTableContent, UpdateType } from '../../lib/components/interfaces';
 import { ifElseDict } from '../../lib/components/libs';
 
 // for testing
@@ -29,23 +29,21 @@ export const dataFrameSlice = createSlice({
             
             state.activeDataFrame = df_id;
             
-            // if (!(df_id in state.dataFrameUpdates)){
-            //     state.dataFrameUpdates[df_id] = {};
-            // }  
+            //TODO do the same for columnHistogram
+            if (!(df_id in state.columnDataSummary)){
+                state.columnDataSummary[df_id] = {};
+            }  
             // state.dataFrameUpdates[df_id] = ifElseDict(action.payload, 'updates');
-            // action.payload['updates']?action.payload['updates']:{}
-            
-            //for now let refresh columnHistogram and columnDataSummary whenever there is new data. 
-            //TODO: fix me because this is not efficient
-            state.columnHistogram = {};
-            state.columnDataSummary[df_id] = {};
+            // action.payload['updates']?action.payload['updates']:{}                        
         },
+        
         updateColumnMetaData: (state, action) => {  
             // for testing          
             // state.data = testTableData
             const df_id = action.payload['df_id'];
             state.columnMetaData[df_id] = action.payload;
         },
+        
         updateColumnHistogramPlot: (state, action) => {  
             // for testing          
             // state.data = testTableData
@@ -59,6 +57,7 @@ export const dataFrameSlice = createSlice({
             // }
             state.columnHistogram[df_id][col_name] = ifElseDict(action.payload, 'plot');
         },
+        
         updateCountNA: (state, action) => {  
             // for testing          
             // state.data = testTableData
@@ -71,6 +70,7 @@ export const dataFrameSlice = createSlice({
             // }
             state.columnDataSummary[df_id]['countna'] = ifElseDict(action.payload, 'countna');
         },
+        
         updateDataFrameUpdates: (state, action) => {  
             // for testing          
             // state.data = testTableData
@@ -79,7 +79,13 @@ export const dataFrameSlice = createSlice({
                 state.dataFrameUpdates[df_id] = {};
             }                        
             state.dataFrameUpdates[df_id] = ifElseDict(action.payload, 'updates');
+            if ('update_type' in state.dataFrameUpdates[df_id] && 
+                state.dataFrameUpdates[df_id]['update_type'] == UpdateType.new_df){
+                state.columnHistogram = {};
+                state.columnDataSummary[df_id] = {};
+            }
         },
+        
         setTableDataReady: (state, action) => {
             state.tableDataReady = action.payload;
         }

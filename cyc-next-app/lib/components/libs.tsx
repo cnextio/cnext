@@ -3,5 +3,11 @@ export const process_plotly_figure_result = (fig_data) => {
 }
 
 export const ifElseDict = (object: {}, key: string) => {
-    return ((key in object) ? object[key] : {});
+    return ifElse(object, key, {});
 }
+
+export const ifElse = (object: {}, key: string, empty: any) => {
+    return ((key in object) ? object[key] : empty);
+}
+
+export const emptyString = "";

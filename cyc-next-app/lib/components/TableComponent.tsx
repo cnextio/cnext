@@ -6,7 +6,7 @@ import React, { useEffect, Box, useRef, useState, useCallback } from "react";
 import { Transition } from "react-transition-group";
 
 import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHeadCell, 
-    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, NewColTransition, DataTableHeadCellOfNewCol, DataTablCellOfNewCol } from "./StyledComponents";
+    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, DataTableHeadCellOfNewCol, DataTablCellOfNewCol } from "./StyledComponents";
 import {Message, WebAppEndpoint, DataTableContent, UpdateType} from "./interfaces";
 import socket from "./Socket";
 
@@ -117,8 +117,10 @@ const TableComponent = (props: any) => {
     }
     
     useEffect(() => {
-        _scrollToNewCol();
-        _clear_dataFrameUpdateState(activeDataFrame);
+        if(activeDataFrame != null){
+            _scrollToNewCol();
+            _clear_dataFrameUpdateState(activeDataFrame);
+        }
     }, [tableData]);
 
     return (

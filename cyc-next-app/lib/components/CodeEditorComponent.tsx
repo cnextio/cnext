@@ -62,6 +62,13 @@ const CodeEditorComponent = React.memo((props: any) => {
     const [mounted, setMounted] = useState(false);
     const dispatch = useDispatch();
 
+    const _handle_plot_data = (message: {}) => {
+        console.log(`${WebAppEndpoint.CodeEditorComponent} got plot data`);
+        let content = message.content;
+        content['plot'] = JSON.parse(content['plot']);      
+        console.log("dispatch plot data");                  
+        dispatch(vizDataUpdate(content));     
+    }
 
     useEffect(() => {
         setMounted(true);
@@ -79,8 +86,7 @@ const CodeEditorComponent = React.memo((props: any) => {
                         console.log("dispatch tableData");               
                         dispatch(updateTableData(codeOutput.content));
                     } else if (codeOutput.content_type==ContentType.plotly_fig){
-                        console.log("dispatch vizData");               
-                        dispatch(vizDataUpdate(process_plotly_figure_result(codeOutput.content)));
+                        _handle_plot_data(codeOutput);                        
                     }
                     else {  
                         console.log("dispatch text output:", codeOutput);                        
