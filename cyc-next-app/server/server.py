@@ -4,6 +4,7 @@ import plotly
 import traceback
 import yaml
 import logs
+import re
 
 log = logs.get_logger(__name__)
 
@@ -67,7 +68,6 @@ def assign_exec_mode(message):
         message.execution_mode = 'exec'
     log.info("assigned command type: %s" % message.execution_mode)
 
-import re
 def _plotly_show_match(command):
     res = re.search(r'^\w+(?=\.show\(\))',command)
     if res is not None:
@@ -93,7 +93,7 @@ def _result_is_dataframe(result):
     return type(result) == pandas.core.frame.DataFrame
 
 def _result_is_plotly_fig(result):
-    return type(result) == plotly.graph_objs._figure.Figure
+    return hasattr(plotly.graph_objs, '_figure') and (type(result) == plotly.graph_objs._figure.Figure)
 
 def _create_plot_data(result):
     result = result.replace("'", '"')
@@ -107,51 +107,6 @@ def _create_dataframemanager_plot_data(df_id, col_name, result):
 
 def _create_CodeArea_plot_data(result):
     return {'plot': result.to_json()}       
-
-def execute_CodeArea_request(message):    
-    if message.execution_mode == 'exec':
-        log.info('exec...')
-        exec(message.content, globals())
-        content_type = ContentType.str
-        output = sys.stdout.getvalue()
-    elif message.execution_mode == 'eval':
-        log.info('eval...')
-        result = eval(message.content, globals())
-        if result is not None:            
-            # log.info("eval result: \n%s" % (result))
-            log.info("got eval results")
-            if _result_is_dataframe(result):
-                df_id = _get_dataframe_id(message.content)
-                output = _create_table_data(df_id, result)       
-                content_type = ContentType.pandas_dataframe
-            if _result_is_plotly_fig(result):
-                output = _create_CodeArea_plot_data(result)
-                content_type = ContentType.plotly_fig
-            else:
-                content_type = ContentType.str
-                output = str(result)                
-        else:
-            result = sys.stdout.getvalue()
-            # log.info("eval stdout: \n"+ result)                     
-            log.info("got eval result on stdout ...")
-            if result is not None:             
-                #this is super hacky. for now just assume only plotly will return a dict type
-                if _plotly_show_match(message.content): 
-                    print("get plot data")                                        
-                    output = _create_plot_data(result) 
-                    content_type = ContentType.plotly_fig
-                else:
-                    content_type = ContentType.str
-                    output = str(result)
-            else:
-                content_type = ContentType.none
-                output = ''
-
-    message.content_type = content_type
-    message.content = output
-    message.error = False
-    # print(message)                                        
-    return message #Message(message['request_originator'], message['command_type'], content_type, output, False, metadata)
     
 def send_result_to_node_server(message: Message):
     # the current way of communicate with node server is through stdout with a json string
@@ -210,6 +165,64 @@ def handle_DataFrameManager_message(message):
         error_message = create_error_message(message.webapp_endpoint, trace)          
         send_result_to_node_server(error_message)
 
+def handle_CodeArea_message(message):
+    assign_exec_mode(message)
+    # sys.stdout = normal_stdout                        
+    if message.execution_mode == 'exec':
+        log.info('exec...')
+        exec(message.content, globals())
+        content_type = ContentType.str
+        output = sys.stdout.getvalue()
+    elif message.execution_mode == 'eval':
+        log.info('eval...')
+        result = eval(message.content, globals())
+        if result is not None:            
+            # log.info("eval result: \n%s" % (result))
+            log.info("got eval results")
+            if _result_is_dataframe(result):
+                df_id = _get_dataframe_id(message.content)
+                output = _create_table_data(df_id, result)       
+                content_type = ContentType.pandas_dataframe
+            elif _result_is_plotly_fig(result):
+                output = _create_CodeArea_plot_data(result)
+                content_type = ContentType.plotly_fig
+            else:
+                content_type = ContentType.str
+                output = str(result)                
+        else:
+            result = sys.stdout.getvalue()
+            # log.info("eval stdout: \n"+ result)                     
+            log.info("got eval result on stdout ...")
+            if result is not None:             
+                #this is super hacky. for now just assume only plotly will return a dict type
+                if _plotly_show_match(message.content): 
+                    print("get plot data")                                        
+                    output = _create_plot_data(result) 
+                    content_type = ContentType.plotly_fig
+                else:
+                    content_type = ContentType.str
+                    output = str(result)
+            else:
+                content_type = ContentType.none
+                output = ''
+
+    message.content_type = content_type
+    message.content = output
+    message.error = False
+    # print(message)           
+    send_result_to_node_server(message)                                 
+    # return message
+
+def process_active_df_status():
+    if DataFrameStatusHook.update_active_df_status(get_global_df_list()):
+        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, 
+                                            "command_name": CommandName.active_df_status, 
+                                            "seq_number": 1, 
+                                            "content_type": "dict", 
+                                            "content": DataFrameStatusHook.get_active_df(), 
+                                            "error": False})
+        send_result_to_node_server(active_df_status_message)
+
 if __name__ == "__main__":    
     try:
         p2n_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['p2n_port'])
@@ -227,23 +240,9 @@ if __name__ == "__main__":
             sys.stdout = io.StringIO()
             try:                
                 # log.info('Got message from %s' % (message.webapp_endpoint))
-                if message.webapp_endpoint == WebappEndpoint.CodeEditorComponent: 
-                    # log.info('Got message from %s' % WebappEndpoint.CodeEditorComponent)                   
-                    # have to make the stdout swapping outside because 
-                    # execute_request might got interrupted because of the exceptions                    
-                    assign_exec_mode(message)
-                    result = execute_CodeArea_request(message)
-                    # sys.stdout = normal_stdout    
-                    send_result_to_node_server(result)
-                                
-                    if DataFrameStatusHook.update_active_df_status(get_global_df_list()):
-                        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, 
-                                                            "command_name": CommandName.active_df_status, 
-                                                            "seq_number": 1, 
-                                                            "content_type": "dict", 
-                                                            "content": DataFrameStatusHook.get_active_df(), 
-                                                            "error": False})
-                        send_result_to_node_server(active_df_status_message)
+                if message.webapp_endpoint == WebappEndpoint.CodeEditorComponent:                     
+                    handle_CodeArea_message(message)
+                    process_active_df_status()
                 
                 elif message.webapp_endpoint == WebappEndpoint.DataFrameManager: 
                     handle_DataFrameManager_message(message)
@@ -269,6 +268,3 @@ if __name__ == "__main__":
                 log.error("%s - %s" % (error, traceback.format_exc()))  
                 # error_message = Message(req['request_originator'], 'eval', "str", "Got some unexpected errors", True)    
                 # send_result_to_node_server(error_message) 
-
-
-

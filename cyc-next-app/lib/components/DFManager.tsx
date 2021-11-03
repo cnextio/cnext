@@ -18,12 +18,12 @@ import { updateTableData, updateColumnHistogramPlot, updateColumnMetaData,
 import { useSelector, useDispatch } from 'react-redux'
 import store from '../../redux/store';
 
-import { ifElseDict } from "./libs";
+import { ifElse, ifElseDict } from "./libs";
 
 const DFManager = () => {
     const dispatch = useDispatch();
     // keeping this as local variable 
-    let dataFrameUpdates = {};
+    let dfUpdates = {};
 
     const _send_message = (message: {}) => {
         console.log(`send ${WebAppEndpoint.DataFrameManager} request: `, JSON.stringify(message));
@@ -53,9 +53,20 @@ const DFManager = () => {
         _send_message(message);
     }
 
-    const _send_get_table_data = (df_id: string) => {        
-        let content: string = `${df_id}.head()`;
-        let message = _create_message(CommandName.get_table_data, content, 1, {'df_id': df_id})
+    const DF_DISPLAY_HALF_LENGTH = 5;
+    const _send_get_table_data_around_index = (df_id: string, around_index: number=0 ) => {               
+        let content: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
+                                if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
+                                :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]` ;
+        let message = _create_message(CommandName.get_table_data, content, 1, {'df_id': df_id})   
+        console.log(message);     
+        _send_message(message);
+    }
+
+    const _send_get_table_data = (df_id: string) => {               
+        let content: string = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH*2})` ;
+        let message = _create_message(CommandName.get_table_data, content, 1, {'df_id': df_id})   
+        console.log(message);     
         _send_message(message);
     }
 
@@ -66,17 +77,32 @@ const DFManager = () => {
         dispatch(updateCountNA(content));
     }
 
+    const _get_plot_histogram = (df_id: string, col_list: []) => {
+        for(var i=0; i<col_list.length; i++){
+            const col_name = col_list[i];
+            _send_plot_column_histogram(df_id, col_name);
+        }
+    }
+
     const _handle_active_df_status = (message: {}) => {
         console.log("DataFrameManager got df status message: ", message.content);               
-        const updatedDataFrame = message.content;
+        const dfStatusContent = message.content;
         //we only support one dataframe update now
-        Object.keys(updatedDataFrame).forEach(function(df_id) {
-            if (updatedDataFrame[df_id]['df_updated'] == true) {                
-                // setDataFrameUpdates(updatedDataFrame[df_id]['updates']);
-                dataFrameUpdates[df_id] = ifElseDict(updatedDataFrame[df_id], 'updates');
-                _send_get_table_data(df_id);
-                // make redux object conform to our standard
-                let dataFrameUpdateMessage = {df_id: df_id, ...updatedDataFrame[df_id]};
+        Object.keys(dfStatusContent).forEach(function(df_id) {
+            // console.log(df_id, dfStatusContent[df_id]['df_updated']);
+            if (dfStatusContent[df_id]['df_updated'] == true) {                                
+                dfUpdates[df_id] = ifElseDict(dfStatusContent[df_id], 'updates');
+                let updateType = ifElse(dfUpdates[df_id], 'update_type', null);
+                let updateContent = ifElse(dfUpdates[df_id], 'update_content', null);
+                // console.log(updateType, updateContent);
+                if (updateType == UpdateType.add_rows) {
+                    // show data around added rows
+                    _send_get_table_data_around_index(df_id, updateContent[0]);
+                } else {                    
+                    _send_get_table_data(df_id);                                       
+                }
+                // make redux object conform to our standard 
+                let dataFrameUpdateMessage = {df_id: df_id, ...dfStatusContent[df_id]};
                 dispatch(updateDataFrameUpdates(dataFrameUpdateMessage));
             }
         });        
@@ -95,17 +121,11 @@ const DFManager = () => {
         
         if (dataFrameUpdates['update_type'] == UpdateType.add_cols){
             //only update histogram of columns that has been updated
-            let col_list = dataFrameUpdates['updates'];
-            for(var i=0; i<col_list.length; i++){
-                const col_name = col_list[i];
-                _send_plot_column_histogram(df_id, col_name);
-            } 
+            _get_plot_histogram(df_id, dataFrameUpdates['update_content']); 
+        } else if (dataFrameUpdates['update_type'] == UpdateType.add_rows){
+            _get_plot_histogram(df_id, tableData['column_names']);             
         } else { //TODO: implement other cases
-            //if (dataFrameUpdates['update_type'] == UpdateType.new_df){
-            for(var i=0; i<tableData['column_names'].length; i++){
-                const col_name = tableData['column_names'][i];
-                _send_plot_column_histogram(df_id, col_name);
-            }           
+            _get_plot_histogram(df_id, tableData['column_names']);                       
         }         
         _send_get_countna(df_id);
     }

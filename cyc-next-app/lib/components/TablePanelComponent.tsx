@@ -24,7 +24,7 @@ const TablePanelComponent = (props: any) => {
             <WorkingPanelDividerComponent />
             <TableComponent {... props}/>
             <VizComponentWithNoSSR />
-            <DFStatusNotification/>
+            {/* <DFStatusNotification/> */}
         </TablePanel>
     );
   };

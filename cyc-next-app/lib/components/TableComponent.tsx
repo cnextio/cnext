@@ -41,9 +41,9 @@ const TableComponent = (props: any) => {
         const state = store.getState();
         const dataFrameUpdates = ifElseDict(state.dataFrames.dataFrameUpdates, activeDataFrame);
         let elem;
-        if (dataFrameUpdates.hasOwnProperty('update_type') && 
+        if (('update_type' in dataFrameUpdates) && 
             (dataFrameUpdates['update_type'] == UpdateType.add_cols) &&
-            (dataFrameUpdates['updates'].includes(colName))) {                
+            (dataFrameUpdates['update_content'].includes(colName))) {                
             elem = (                               
                     <DataTableHeadCellOfNewCol>
                         <div>{colName}</div>
@@ -85,9 +85,9 @@ const TableComponent = (props: any) => {
         const state = store.getState();
         const dataFrameUpdates = ifElseDict(state.dataFrames.dataFrameUpdates, activeDataFrame);
         let elem;
-        if (dataFrameUpdates.hasOwnProperty('update_type') && 
+        if (('update_type' in dataFrameUpdates) && 
             (dataFrameUpdates['update_type'] == UpdateType.add_cols) &&
-            (dataFrameUpdates['updates'].includes(colName))) {                
+            (dataFrameUpdates['update_content'].includes(colName))) {                
             elem = (                               
                     <DataTablCellOfNewCol key={index} align="right">
                         {rowItem}     

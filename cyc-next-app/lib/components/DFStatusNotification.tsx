@@ -12,11 +12,11 @@ import { StyledDFStatusNotification as DFStatusNotificationContainer } from './S
 import { emptyString, ifElse } from './libs';
 import { Typography } from '@mui/material';
 
-const MAX_ELEM_COUNT_TO_SHOW = 5;
+
 
 export default function DFStatusNotification() {
     const dataFrameUpdates = useSelector((state) => state.dataFrames.dataFrameUpdates);
-
+    const MAX_ELEM_COUNT_TO_SHOW = 5;
     const _getElementComponent = (updateElements: Array<any>) => {
         return (
             <Fragment>
@@ -36,28 +36,18 @@ export default function DFStatusNotification() {
     const _getMessageComponent = (updateType: UpdateType, updateElements: Array<any>) => {
         let message = null;
         let showElement = (updateElements.length<=MAX_ELEM_COUNT_TO_SHOW);
-        if (updateElements.length>0){              
-            switch(updateType){
-                case UpdateType.add_cols:                    
-                    message = (                            
-                        <Fragment>
-                            {showElement
-                            ? <Fragment> Column {_getElementComponent(updateElements)} added </Fragment> 
-                            : <Fragment> {updateElements.length} columns added </Fragment>}
-                        </Fragment>                            
-                    );
-                    break
-                case UpdateType.del_cols:
-                    message = (
-                        <Fragment>
-                            {showElement
-                            ? <Fragment> Column {_getElementComponent(updateElements)} removed </Fragment> 
-                            : <Fragment> {updateElements.length} columns removed </Fragment>}
-                        </Fragment> 
-                    );
-                    break
-            }
-            // console.log("Message: ", message, updateElements.length, updateElements);
+        const activityText = {
+            'add_cols': 'added',
+            'del_cols': 'removed'            
+        };        
+        if (updateElements.length>0){  
+            message = (                            
+                <Fragment>
+                    {showElement
+                    ? <Fragment> Column {_getElementComponent(updateElements)} {activityText[updateType]} </Fragment> 
+                    : <Fragment> {updateElements.length} columns {activityText[updateType]} </Fragment>}
+                </Fragment>                            
+            );            
         }        
         return message;
     }
@@ -68,9 +58,9 @@ export default function DFStatusNotification() {
         const activeDataFrameUpdates = dataFrameUpdates[activeDataFrame]
         if (activeDataFrame != null){            
             const updateType = ifElse(activeDataFrameUpdates, 'update_type', null);
-            const updates = ifElse(activeDataFrameUpdates, 'updates', []);
+            const update_content = ifElse(activeDataFrameUpdates, 'update_content', []);
 
-            let message = _getMessageComponent(updateType, updates);
+            let message = _getMessageComponent(updateType, update_content);
             if (message != null) {                
                 toast(message);
             }            

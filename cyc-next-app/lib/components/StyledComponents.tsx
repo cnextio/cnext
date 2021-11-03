@@ -1,4 +1,4 @@
-import { Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow } from '@mui/material';
+import { Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import SplitPane, { Pane } from 'react-split-pane';
 import styled, { keyframes } from 'styled-components';
 // import { CSSTransition } from 'react-transition-group';
@@ -149,7 +149,7 @@ export const CodePanel = styled.div`
 
     export const CodeContainer = styled.div`
         // display: flex;
-        padding: 10px 0px 0px 0px; 
+        padding: 0px; 
         flex-grow: 1;   
         position: relative; //must have for the spliter to work
         height: 88%;    //TODO: can't make this 100% because the scroll to the top will mess the frame up
@@ -170,18 +170,43 @@ export const CodePanel = styled.div`
 
         export const CodeOutputContainer = styled.div`
             // display: flex;
-            padding: 10px; 
+            padding: 0px 10px; 
+            color: ${props => props.theme.palette.text.secondary};
             // flex-grow: 1;   
             height: 100%; 
             max-width: 100%;
             max-height: 100%;            
         `;
-
+            export const CodeOutputHeader = styled(Typography)`
+                // height: 10px; 
+                // text-decoration: underline;
+                font-size: 12px;
+                border-bottom-style: solid;
+                border-width: 1px;
+            `;
             // need this compoent to make the text output respect tab character
-            export const TextCodeOutputContainer = styled.pre`
+            export const CodeOutputContent = styled.div`
                 overflow: auto;
                 max-height: 100%;   
-                // margin: 0px; 
+            `;
+            // export const IndividualCodeOutputContent = styled.pre`
+            //     margin: 0px;
+            //     padding: 5px 0px 5px 0px;
+            //     overflow: auto;
+            //     max-height: 100%;   
+            //     &:hover {
+            //         background-color: ${props => props.theme.palette.action.hover};
+            //     }
+            // `;
+            export const IndividualCodeOutputContent = styled(Typography)`
+                margin: 0px;
+                padding: 5px 0px 5px 0px;
+                overflow: auto;
+                max-height: 100%;   
+                font-size: 14px;
+                &:hover {
+                    background-color: ${props => props.theme.palette.action.hover};
+                }
             `;
 
 export const WorkingPanelDivider = styled.div`
