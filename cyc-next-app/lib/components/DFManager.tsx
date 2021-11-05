@@ -8,7 +8,7 @@
  * */ 
 
 import React, { useEffect, useState } from "react";
-import {Message, WebAppEndpoint, CommandName, UpdateType} from "./Interfaces";
+import {Message, WebAppEndpoint, CommandName, UpdateType} from "./AppInterfaces";
 import socket from "./Socket";
 import { TableContainer } from "./StyledComponents";
 import { updateTableData, updateColumnHistogramPlot, updateColumnMetaData, 
@@ -108,6 +108,7 @@ const DFManager = () => {
         });        
     }
 
+    const showHistogram = true;
     const _handle_get_table_data = (message: {}) => {
         const df_id = message.metadata['df_id'];
         console.log("Dispatch to tableData (DataFrame)");        
@@ -121,13 +122,15 @@ const DFManager = () => {
         
         if (dataFrameUpdates['update_type'] == UpdateType.add_cols){
             //only update histogram of columns that has been updated
-            _get_plot_histogram(df_id, dataFrameUpdates['update_content']); 
+            if (showHistogram) _get_plot_histogram(df_id, dataFrameUpdates['update_content']); 
         } else if (dataFrameUpdates['update_type'] == UpdateType.add_rows){
-            _get_plot_histogram(df_id, tableData['column_names']);             
-        } else { //TODO: implement other cases
-            _get_plot_histogram(df_id, tableData['column_names']);                       
+            if (showHistogram) _get_plot_histogram(df_id, tableData['column_names']);             
+        } else if (dataFrameUpdates['update_type'] == UpdateType.del_cols){
+        
+        }else { //TODO: implement other cases
+            if (showHistogram) _get_plot_histogram(df_id, tableData['column_names']);                       
         }         
-        _send_get_countna(df_id);
+        if(showHistogram) _send_get_countna(df_id);
     }
 
     const _handle_plot_column_histogram = (message: {}) => {

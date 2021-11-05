@@ -1,15 +1,12 @@
 import { TableBody, TableHead, TableRow, TableCell, Grow, Fade } from "@mui/material";
 import React, { useEffect, Box, useRef, useState, useCallback } from "react";
-// const ReactCSSTransitionGroup = require('react-addons-css-transition-group');
-// import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup';
-// import { CSSTransition } from 'react-transition-group';
 import { Transition } from "react-transition-group";
 
 import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHeadCell, 
     DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, DataTableHeadCellOfNewCol, DataTablCellOfNewCol } from "./StyledComponents";
-import {Message, WebAppEndpoint, DataTableContent, UpdateType} from "./interfaces";
+import {Message, WebAppEndpoint, DataTableContent, UpdateType} from "./AppInterfaces";
 import socket from "./Socket";
-
+import { scrollLock, scrollUnlock } from "../../redux/reducers/scrollLockSlice";
 
 import dynamic from 'next/dynamic'
 const ColumnHistogramComponentWithNoSSR = dynamic(
@@ -29,7 +26,13 @@ const TableComponent = (props: any) => {
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     // const dataFrameUpdates = useSelector((state) => state.dataFrames.dataFrameUpdates);
     const endPointRef = useRef(null);
-    const dispatch = useDispatch();
+    const dispatch = useDispatch();    
+    /* 
+    * We use this scrollLocked to make sure this and CodeOutputComponent can scroll to view
+    * at the same time. This is very ugly solution for this problem 
+    * https://stackoverflow.com/questions/49318497/google-chrome-simultaneously-smooth-scrollintoview-with-more-elements-doesn
+    */
+    const scrollLocked = useSelector((state) => state.scrollLock.locked);    
     
     /**
      * This function will check if there is add_cols event, 
@@ -111,17 +114,17 @@ const TableComponent = (props: any) => {
     const _scrollToNewCol = () => {
         // need block and inline property because of this 
         // https://stackoverflow.com/questions/11039885/scrollintoview-causing-the-whole-page-to-move/11041376
-        if (endPointRef.current!=null) {
-            endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' })
+        if (endPointRef.current!=null && !scrollLocked) {
+            endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' });
         }
     }
     
     useEffect(() => {
-        if(activeDataFrame != null){
-            _scrollToNewCol();
+        if(activeDataFrame != null && !scrollLocked){            
+            _scrollToNewCol();            
             _clear_dataFrameUpdateState(activeDataFrame);
         }
-    }, [tableData]);
+    }, [tableData, scrollLocked]);
 
     return (
         <TableContainer >

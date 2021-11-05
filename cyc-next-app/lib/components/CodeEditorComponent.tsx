@@ -1,6 +1,6 @@
 import React, { forwardRef, RefObject, SyntheticEvent, useEffect, useRef, useState } from "react";
-import { CodeEditor } from "./StyledComponents";
-import {RecvCodeOutput, Message, DataTableContent, WebAppEndpoint, ContentType, CommandName} from "./Interfaces";
+import { CodeEditor, StyledCodeMirror } from "./StyledComponents";
+import {RecvCodeOutput, Message, DataTableContent, WebAppEndpoint, ContentType, CommandName} from "./AppInterfaces";
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
@@ -14,31 +14,18 @@ import { inc as incCounter } from "../../redux/reducers/counterSlice";
 import socket from "./Socket";
 // const SOCKET_ENDPOINT = "http://localhost:4000";
 
-// const Editor = React.forwardRef((props: any, ref) => {
-//     if (typeof window !== 'undefined') {
-//         const AceEditor = require('react-ace').default;
-//         require('ace-builds/src-noconflict/mode-python');
-//         require('ace-builds/src-noconflict/theme-xcode');
-//         require('ace-builds/src-noconflict/ext-language_tools');
-//         require('ace-builds/src-noconflict/snippets/python');        
-//         return <AceEditor {...props} ref={ref}/>
-//     }
-  
-//     return null;
-//   });
-
 import CodeMirror from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
-// import { languageServer } from 'codemirror-languageserver';
+import { languageServer } from 'codemirror-languageserver';
 import {keymap, EditorView} from "@codemirror/view"
 import { process_plotly_figure_result } from "./libs";
 
-// const ls = languageServer({
-//     serverUri: "ws://localhost:3001/python",
-//     rootUri: 'file:///',
-//     documentUri: `file:///`,
-//     languageId: 'python'
-// });
+const ls = languageServer({
+    serverUri: "ws://localhost:3001/python",
+    rootUri: 'file:///',
+    documentUri: `file:///`,
+    languageId: 'python'
+});
 
 // const Editor = React.forwardRef((props: any, ref) => {  
 //     return (
@@ -161,24 +148,46 @@ const CodeEditorComponent = React.memo((props: any) => {
         // });
     }
 
+    let myTheme = EditorView.theme({
+        
+      })
+
     return (
         <CodeEditor>
             {console.log('CodeEditorComponent rerender')}
             {/* { mounted ? */}
-            <CodeMirror
+            <StyledCodeMirror
                 ref = {editorRef}
-                value = "df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')"
+                value = {
+`df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')
+df.drop(index=0, inplace=True)
+
+df['copy'] = df['Engine Speed']
+df.drop('copy', 1, inplace=True)
+df.iloc[10]
+
+df[:30]
+df.iloc[4]
+
+
+df = CycDataFrame('tests/data/housing_data/data.csv')
+df.drop('Alley', 1, inplace=True)
+df['CopyStreet'] = df['Street']
+df[['LotFrontage']] = df[['LotFrontage']].fillna(method="ffill")
+df[:30]
+px.scatter(df, x="LotConfig", y="LandSlope")
+`}
                 // value = "df = CycDataFrame('tests/data/housing_data/train.csv')"
-                height = "100%"
+                height = "700px"
                 style = {{fontSize: "14px"}}
-                //extensions = {[python(), ls, keymap.of([{key: 'Mod-Enter', run: runLine}])]}                    
-                extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
+                extensions = {[python(), ls, keymap.of([{key: 'Mod-l', run: runLine}])]}                    
+                // extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
                 theme = 'light'
                 onChange = {(value, viewUpdate) => {
                     // console.log('value:', value);
                 }}                    
             >
-            </CodeMirror> 
+            </StyledCodeMirror> 
             {/* : null } */}
         </CodeEditor>
     )

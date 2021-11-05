@@ -4,7 +4,7 @@ import SplitPane, {Pane} from 'react-split-pane';
 import CodeEditorComponent from "./CodeEditorComponent";
 import WorkingPanelDividerComponent from "./WorkingPanelDivider";
 import { Typography } from "@mui/material";  
-import {Message} from "./interfaces";
+import {Message} from "./AppInterfaces";
 import CodeOutputComponent from "./CodeOutputComponent";
 // import { pure } from 'recompose';
 

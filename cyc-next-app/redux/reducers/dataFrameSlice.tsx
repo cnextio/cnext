@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { DataTableContent, UpdateType } from '../../lib/components/interfaces';
+import { DataTableContent, UpdateType } from '../../lib/components/AppInterfaces';
 import { ifElseDict } from '../../lib/components/libs';
 
 // for testing

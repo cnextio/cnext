@@ -3,6 +3,7 @@ import SplitPane, { Pane } from 'react-split-pane';
 import styled, { keyframes } from 'styled-components';
 // import { CSSTransition } from 'react-transition-group';
 import { ToastContainer } from 'react-toastify';
+import CodeMirror from '@uiw/react-codemirror';
 
 export const TopPanel = styled.div`
     display: flex;
@@ -168,6 +169,27 @@ export const CodePanel = styled.div`
             max-height: 100%;
         `;
 
+        export const StyledCodeMirror = styled(CodeMirror)`
+            &.cm-tooltip.documentation {
+                display: block;
+                margin-left: 0;
+                padding: 3px 6px 3px 8px;
+                border-left: 5px solid #999;
+                white-space: pre;
+            }
+            
+            .cm-tooltip.lint {
+              white-space: pre;
+            }
+            
+            .cm-tooltip.cm-completionInfo {
+              position: absolute;
+              padding: 10px 10px 10px 10px;
+              width: max-content;
+              max-width: 1000px;
+              white-space: pre;
+            }
+        `
         export const CodeOutputContainer = styled.div`
             // display: flex;
             padding: 0px 10px; 
@@ -208,6 +230,10 @@ export const CodePanel = styled.div`
                     background-color: ${props => props.theme.palette.action.hover};
                 }
             `;
+
+            // export const ReviewButton = styled.a`
+                
+            // `
 
 export const WorkingPanelDivider = styled.div`
     // adding display flex here does not work because the divider width becomes 0, no sure why        
