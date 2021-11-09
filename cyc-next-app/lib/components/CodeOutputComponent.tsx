@@ -1,14 +1,12 @@
 import React, { Fragment, ReactElement, useEffect, useRef, useState } from "react";
 import { CodeOutputContainer, CodeOutputHeader, CodeOutputContent, IndividualCodeOutputContent} from "./StyledComponents";
 import { Box, Icon, IconButton, Typography } from "@mui/material";  
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { UpdateType } from "./AppInterfaces";
 import { useDispatch, useSelector } from "react-redux";
 import store from '../../redux/store';
 import { ifElse } from "./libs";
 import { scrollLock, scrollUnlock } from "../../redux/reducers/scrollLockSlice";
+import ReviewComponent from "./ReviewComponent";
 
 // const OutputLine = (content: string|ReactElement) => {
 //     return (
@@ -18,95 +16,81 @@ import { scrollLock, scrollUnlock } from "../../redux/reducers/scrollLockSlice";
 //     )
 // }
 
-export enum ReviewType {
-    back = 'back',
-    current = 'current',
-    next = 'next'
-}
-
-const ReviewButton = ({type}) => {
-    return (
-        <IconButton aria-label="Back" size="small" color='primary'>
-            {type==ReviewType.back && <ArrowBackIosIcon fontSize="small" style={{width: '14px', height: '14px'}}/>}
-            {type==ReviewType.current && <FiberManualRecordIcon fontSize="small" style={{width: '14px', height: '14px'}}/>}
-            {type==ReviewType.next && <ArrowForwardIosIcon fontSize="small" style={{width: '14px', height: '14px'}}/>}
-        </IconButton>
-    )
-}
-
-const ReviewComponent = ({content}) => {
-    let [reviewing, setReviewing] = useState<boolean>(false);
-
-    return (
-        <Fragment>
-            <ReviewButton type={ReviewType.back} />
-            <ReviewButton type={ReviewType.current} />
-            <ReviewButton type={ReviewType.next} />
-        </Fragment>
-    )
-}
-
 const CodeOutputComponent = ({codeOutput}) => {
-    const dataFrameUpdates = useSelector((state) => state.dataFrames.dataFrameUpdates);
-    let [outputContent, setOutputContent] = useState<JSX.Element[]>([]);
+    const dfUpdates = useSelector((state) => _checkDFUpdates(state));
+    let [outputContent, setOutputContent] = useState<{}[]>([]);
     let [outputType, setOutputType] = useState('');
     const endPointRef = useRef(null);
     const codeOutputRef = useRef(null);
     const dispatch = useDispatch();
 
+    function _checkDFUpdates(state) {
+        const activeDataFrame = state.dataFrames.activeDataFrame;
+        if (activeDataFrame 
+            && state.dataFrames.dfUpdates != {}
+            && (activeDataFrame in state.dataFrames.dfUpdates)){  
+            // console.log('Check update: ', state.dataFrames.dataFrameUpdates[activeDataFrame]);          
+            const activeDataFrameUpdates = state.dataFrames.dfUpdates[activeDataFrame];
+            if ('update_type' in activeDataFrameUpdates) {                
+                return activeDataFrameUpdates;
+            }            
+        }
+        return null;
+    };
+
     const activityText = {
         'add_cols': 'added',
         'del_cols': 'removed',
         'add_rows': 'added',
-        'del_rowss': 'removed'            
-    };  
+        'del_rows': 'removed'            
+    };
+    
+    const updateTypeToReview = ['add_cols', 'add_rows'];
 
-    const _getElementComponent = (updateElements: Array<any>) => {
-        console.log(updateElements[0]);
+    const _buildUpdatedItemsComponent = (updatedItems: Array<any>) => {
         return (
             <Fragment>
-                {updateElements.map((elem, index) => (                    
+                {updatedItems.map((elem, index) => (                    
                     <Fragment>
                         <Typography key={index} variant='caption' component='span' style={{fontWeight: 'bold'}}>                                            
                             {elem}
                         </Typography>
-                        {index < updateElements.length-1 ? ", " : " "}
+                        {index < updatedItems.length-1 ? ", " : " "}
                     </Fragment>
                 ))}
             </Fragment>           
         );
     }
     
-    const _getDFUpdatesOutputComponent = (updateType: UpdateType, updateElements: Array<any>) => {
-        let message = null;
-        if (updateElements.length>0){  
-            message = (  
-                <Box sx={{ display: 'flex'}}>
+    const _buildDFUpdatesOutputComponent = (key: number, updateType: UpdateType, updatedItems: Array<any>, activeReview: boolean) => {
+        return (
+            <Fragment>
+                {updatedItems.length ? 
+                <Box key={key} sx={{ display: 'flex'}}>
                     <Box>                        
                         {(updateType==UpdateType.add_cols || updateType==UpdateType.del_cols) && 
                             <Fragment>
-                                Column{updateElements.length>1 ? 's' : ''} {_getElementComponent(updateElements)} {activityText[updateType]} 
+                                Column{updatedItems.length>1 ? 's' : ''} {_buildUpdatedItemsComponent(updatedItems)} {activityText[updateType]} 
                             </Fragment>
                         }
                         {(updateType==UpdateType.add_rows || updateType==UpdateType.del_rows) && 
                             <Fragment>
-                                Row{updateElements.length>1 ? 's' : ''} {_getElementComponent(updateElements)} {activityText[updateType]} 
+                                Row{updatedItems.length>1 ? 's' : ''} {_buildUpdatedItemsComponent(updatedItems)} {activityText[updateType]} 
                             </Fragment>
                         }
                     </Box>
                     <Box sx={{ flexGrow: 1, textAlign: 'right'}}>
-                        <ReviewComponent content/>      
+                        <ReviewComponent key={key} content={updatedItems} activeReview={activeReview}/>      
                     </Box>
-                </Box>                          
-            );                        
-        }        
-        return message;
+                </Box> : null}                          
+            </Fragment>  
+        );                                        
     }
     
     const handleNormalCodeOutput = () => {
         try {
-            if(codeOutput.content != '' && codeOutput.content != null){
-                const newOutputContent = codeOutput.content; //OutputLine(codeOutput.content);               
+            if(codeOutput.content != null && codeOutput.content != ''){
+                const newOutputContent = {type: 'text', content: codeOutput.content}; //OutputLine(codeOutput.content);               
                 setOutputContent(outputContent => [...outputContent, newOutputContent]);
                 // console.log(codeOutput);
             }
@@ -119,20 +103,22 @@ const CodeOutputComponent = ({codeOutput}) => {
 
     const handleDFUpdates = () => {
         //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
-        const state = store.getState();
-        const activeDataFrame = state.dataFrames.activeDataFrame;
-        const activeDataFrameUpdates = dataFrameUpdates[activeDataFrame]
-        if (activeDataFrame != null){            
+        // const state = store.getState();
+        // const activeDataFrame = state.dataFrames.activeDataFrame;        
+        if (dfUpdates != null){            
+            const activeDataFrameUpdates = dfUpdates;//[activeDataFrame];
             const updateType = ifElse(activeDataFrameUpdates, 'update_type', null);
-            const update_content = ifElse(activeDataFrameUpdates, 'update_content', []);
+            const updateContent = ifElse(activeDataFrameUpdates, 'update_content', []);
 
-            let newOutputContent = _getDFUpdatesOutputComponent(updateType, update_content);
+            let newOutputContent = {type: "df_updates", 
+                                    content: {updateType: updateType, updateContent: updateContent}}; 
+                                    //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
             if (newOutputContent != null) {                          
                 setOutputContent(outputContent => [...outputContent, newOutputContent]);
             }            
         }
     }
-    useEffect(handleDFUpdates, [dataFrameUpdates]);
+    useEffect(handleDFUpdates, [dfUpdates]);
     
     const _setTimeoutToUnlockScroll = () => {
         /* 
@@ -179,7 +165,14 @@ const CodeOutputComponent = ({codeOutput}) => {
             <CodeOutputContent ref={codeOutputRef}>
                 {outputContent.map((item, index) => (
                     <IndividualCodeOutputContent key={index} component='pre' variant='body2'>
-                        {item}
+                        {item['type']=='text' && item['content']}
+                        {item['type']=='df_updates'                            
+                            && _buildDFUpdatesOutputComponent(outputContent.length, 
+                                item['content']['updateType'], 
+                                item['content']['updateContent'], 
+                                // only the last item and in the review list can be in active review mode
+                                (index==outputContent.length-1)
+                                    && updateTypeToReview.includes(item['content']['updateType']))}
                     </IndividualCodeOutputContent>
                 ))}
                 <div ref={endPointRef}></div>

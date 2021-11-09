@@ -38,7 +38,8 @@ export enum UpdateType {
     del_rows = 'del_rows',
     update_cells = 'update_cell',
     new_index = 'update_index',
-    new_df = 'new_df'
+    new_df = 'new_df',
+    no_update = 'no_update',
 }
 
 // export interface DataTableContent {
@@ -72,6 +73,65 @@ export enum WebAppEndpoint {
     CodeEditorComponent = 'CodeEditorComponent'
 };
 
-// export enum MessageType {
-//     dataframe_updated = 'dataframe_updated'    
+export enum ReviewType {
+    col = 'col',
+    row = 'row',
+    cell = 'cell'
+};
+
+export enum ReviewRequestType {
+    repeat = 'repeat',
+    next = 'next',
+    prev = 'prev',
+    index = 'index'
+};
+
+export interface IDFUpdates {
+    update_type: UpdateType,
+    update_content: (string)[] | (number)[]
+}
+
+export interface IReviewRequest {
+    type: ReviewRequestType,
+    index: number
+}
+export const UndefReviewIndex = -1;
+// export class DFUpdatesReview {
+//     enable: boolean = false;
+//     index: number = -1;
+//     count: number = -1;
+// };
+
+export interface IDFUpdatesReview {
+    enable: boolean;
+    index: number; // 'index' represents the position of the review in the review list
+    name: string | number; // 'name' represents the row index or column name
+    count: number; // 'count' is used to support 'repeat' review. when 'repeat', no other variable changed except for 'cout'
+    type: ReviewType;
+    length: number; // length of the review list
+};
+
+// export class DFUpdates {
+//     update_type: UpdateType = UpdateType.no_update;
+//     update_content: string[] | number[] | [number, number][] = [];
+// }
+//     constructor(update_type: UpdateType, update_content: string[] | number[] | [number, number][]) {
+//         this.update_type = update_type;
+//         this.update_content = update_content;
+//     }
+// }
+
+// export class ReduxDFUpdates extends DFUpdates {
+//     review: DFUpdatesReview = new DFUpdatesReview();
+// }
+
+// export interface IReduxDF {
+//     activeDataFrame: number | null;
+//     tableData: {};
+//     columnMetaData: {};
+//     columnHistogram: {};
+//     columnDataSummary: {};
+//     dfUpdates: {};
+//     dfUpdatesReview: {[df_id: string]: IDFUpdatesReview};
+//     tableDataReady: boolean;
 // }

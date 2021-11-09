@@ -15,7 +15,6 @@ then fix depencies as follows:
 ```
 
 ### Install dependencies
-
 ```
 conda install -c conda-forge pyzmq pyyaml
 ```

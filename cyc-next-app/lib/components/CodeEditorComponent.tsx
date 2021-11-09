@@ -4,7 +4,7 @@ import {RecvCodeOutput, Message, DataTableContent, WebAppEndpoint, ContentType, 
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
-import { updateTableData } from "../../redux/reducers/dataFrameSlice";
+import { setTableData } from "../../redux/reducers/dataFrameSlice";
 import { update as vizDataUpdate } from "../../redux/reducers/vizDataSlice";
 import { inc as incCounter } from "../../redux/reducers/counterSlice";
 
@@ -71,7 +71,7 @@ const CodeEditorComponent = React.memo((props: any) => {
                         props.recvCodeOutput(codeOutput);
                     } else if (codeOutput.content_type==ContentType.pandas_dataframe){
                         console.log("dispatch tableData");               
-                        dispatch(updateTableData(codeOutput.content));
+                        dispatch(setTableData(codeOutput.content));
                     } else if (codeOutput.content_type==ContentType.plotly_fig){
                         _handle_plot_data(codeOutput);                        
                     }
@@ -180,8 +180,8 @@ px.scatter(df, x="LotConfig", y="LandSlope")
                 // value = "df = CycDataFrame('tests/data/housing_data/train.csv')"
                 height = "700px"
                 style = {{fontSize: "14px"}}
-                extensions = {[python(), ls, keymap.of([{key: 'Mod-l', run: runLine}])]}                    
-                // extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
+                // extensions = {[python(), ls, keymap.of([{key: 'Mod-l', run: runLine}])]}                    
+                extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
                 theme = 'light'
                 onChange = {(value, viewUpdate) => {
                     // console.log('value:', value);

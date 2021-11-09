@@ -11,8 +11,8 @@ import React, { useEffect, useState } from "react";
 import {Message, WebAppEndpoint, CommandName, UpdateType} from "./AppInterfaces";
 import socket from "./Socket";
 import { TableContainer } from "./StyledComponents";
-import { updateTableData, updateColumnHistogramPlot, updateColumnMetaData, 
-    updateCountNA, updateDataFrameUpdates } from "../../redux/reducers/dataFrameSlice";
+import { setTableData, setColumnHistogramPlot, setColumnMetaData, 
+    setCountNA, setDFUpdates } from "../../redux/reducers/dataFrameSlice";
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
@@ -22,8 +22,7 @@ import { ifElse, ifElseDict } from "./libs";
 
 const DFManager = () => {
     const dispatch = useDispatch();
-    // keeping this as local variable 
-    let dfUpdates = {};
+    const requestReview = useSelector((state) => state.requestReview);
 
     const _send_message = (message: {}) => {
         console.log(`send ${WebAppEndpoint.DataFrameManager} request: `, JSON.stringify(message));
@@ -54,7 +53,7 @@ const DFManager = () => {
     }
 
     const DF_DISPLAY_HALF_LENGTH = 5;
-    const _send_get_table_data_around_index = (df_id: string, around_index: number=0 ) => {               
+    const _send_get_table_data_around_row_index = (df_id: string, around_index: number=0 ) => {               
         let content: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
                                 if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
                                 :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]` ;
@@ -66,7 +65,7 @@ const DFManager = () => {
     const _send_get_table_data = (df_id: string) => {               
         let content: string = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH*2})` ;
         let message = _create_message(CommandName.get_table_data, content, 1, {'df_id': df_id})   
-        console.log(message);     
+        // console.log("_send_get_table_data message: ", message);     
         _send_message(message);
     }
 
@@ -74,7 +73,7 @@ const DFManager = () => {
         const content = message.content;        
         // content['df_id'] = message.metadata['df_id'];
         console.log("Dispatch ", message.content);               
-        dispatch(updateCountNA(content));
+        dispatch(setCountNA(content));
     }
 
     const _get_plot_histogram = (df_id: string, col_list: []) => {
@@ -88,44 +87,44 @@ const DFManager = () => {
         console.log("DataFrameManager got df status message: ", message.content);               
         const dfStatusContent = message.content;
         //we only support one dataframe update now
-        Object.keys(dfStatusContent).forEach(function(df_id) {
-            // console.log(df_id, dfStatusContent[df_id]['df_updated']);
+        Object.keys(dfStatusContent).forEach(function(df_id) {            
             if (dfStatusContent[df_id]['df_updated'] == true) {                                
-                dfUpdates[df_id] = ifElseDict(dfStatusContent[df_id], 'updates');
-                let updateType = ifElse(dfUpdates[df_id], 'update_type', null);
-                let updateContent = ifElse(dfUpdates[df_id], 'update_content', null);
-                // console.log(updateType, updateContent);
+                // console.log(df_id, dfStatusContent[df_id]);
+                let dfUpdates = ifElseDict(dfStatusContent[df_id], 'updates');
+                let updateType = ifElse(dfUpdates, 'update_type', null);
+                let updateContent = ifElse(dfUpdates, 'update_content', null);
+                // console.log("Update active df: ", dfUpdates);
                 if (updateType == UpdateType.add_rows) {
                     // show data around added rows
-                    _send_get_table_data_around_index(df_id, updateContent[0]);
+                    _send_get_table_data_around_row_index(df_id, updateContent[0]);
                 } else {                    
                     _send_get_table_data(df_id);                                       
                 }
                 // make redux object conform to our standard 
                 let dataFrameUpdateMessage = {df_id: df_id, ...dfStatusContent[df_id]};
-                dispatch(updateDataFrameUpdates(dataFrameUpdateMessage));
+                dispatch(setDFUpdates(dataFrameUpdateMessage));
             }
         });        
     }
 
-    const showHistogram = true;
+    const showHistogram = false;
     const _handle_get_table_data = (message: {}) => {
         const df_id = message.metadata['df_id'];
         console.log("Dispatch to tableData (DataFrame)");        
-        dispatch(updateTableData(message.content));
+        dispatch(setTableData(message.content));
         
         console.log("send request for column histograms");     
         const tableData = message.content;
         
         const state = store.getState();
-        const dataFrameUpdates = ifElseDict(state.dataFrames.dataFrameUpdates, df_id);
+        const dfUpdates = ifElseDict(state.dataFrames.dfUpdates, df_id);
         
-        if (dataFrameUpdates['update_type'] == UpdateType.add_cols){
+        if (dfUpdates['update_type'] == UpdateType.add_cols){
             //only update histogram of columns that has been updated
-            if (showHistogram) _get_plot_histogram(df_id, dataFrameUpdates['update_content']); 
-        } else if (dataFrameUpdates['update_type'] == UpdateType.add_rows){
+            if (showHistogram) _get_plot_histogram(df_id, dfUpdates['update_content']); 
+        } else if (dfUpdates['update_type'] == UpdateType.add_rows){
             if (showHistogram) _get_plot_histogram(df_id, tableData['column_names']);             
-        } else if (dataFrameUpdates['update_type'] == UpdateType.del_cols){
+        } else if (dfUpdates['update_type'] == UpdateType.del_cols){
         
         }else { //TODO: implement other cases
             if (showHistogram) _get_plot_histogram(df_id, tableData['column_names']);                       
@@ -137,7 +136,7 @@ const DFManager = () => {
         console.log(`${WebAppEndpoint.DataFrameManager} get plot data for "${message.metadata['df_id']}" "${message.metadata['col_name']}"`,);
         let content = message.content;
         content['plot'] = JSON.parse(content['plot']); 
-        dispatch(updateColumnHistogramPlot(content));             
+        dispatch(setColumnHistogramPlot(content));             
     }
 
     useEffect(() => {
@@ -165,12 +164,9 @@ const DFManager = () => {
             }
         });
         // editorRef;
-    }, []); //run this only once - not on rerender
+    }, []); //TODO: run this only once - not on rerender
 
-    return (
-        <div>            
-        </div>
-    );
+    return null;
 }
 
 export default DFManager;

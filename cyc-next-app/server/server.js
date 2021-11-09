@@ -189,10 +189,10 @@ try {
         //for testing
         pyshell.send({webapp_endpoint: CodeEditorComponent, 
                         content: `import os, sys, pandas as pd; os.chdir('${config.path_to_cycdataframe_lib}cycdataframe/'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame`});
-        pyshell.send({webapp_endpoint: CodeEditorComponent, 
-                        content: "df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')"}); 
-        pyshell.send({webapp_endpoint: CodeEditorComponent, 
-            content: "df.loc[-1] = df.loc[0]"}); 
+        // pyshell.send({webapp_endpoint: CodeEditorComponent, 
+        //                 content: "df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')"}); 
+        // pyshell.send({webapp_endpoint: CodeEditorComponent, 
+        //     content: "df.loc[-1] = df.loc[0]"}); 
                         
         // pyshell.send({webapp_endpoint: CodeEditorComponent, 
         //                 content: "df[:10]"}); 

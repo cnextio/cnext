@@ -293,10 +293,9 @@ export const TablePanel = styled.div`
             font-weight: bold;
             font-size: 13px;
             vertical-align: bottom;
-        `
-
-        export const DataTableHeadCellOfNewCol = styled(DataTableHeadCell)`
-            animation: ${props => newColTransition(props)} 2s linear 0.2s;
+            ${props => (props.review 
+                ? newColTransition(props)
+                : null)} 1s linear 0s;
         `
         
         export const DataTableHeadText = styled.div`
@@ -306,13 +305,18 @@ export const TablePanel = styled.div`
         export const DataTableIndexCell = styled(TableCell)`
             font-weight: bold;
             font-size: 13px;
+            animation:  ${props => (props.review 
+                ? newColTransition(props)
+                : null)} 1s linear 0s;
         `
         export const DataTableCell = styled(TableCell)`
+            font-weight: ${props => (props.head ? 'bold' : 'normal')};
+            vertical-align: ${props => (props.head ? 'bottom' : 'center')};
+            text-align: ${props => (props.head ? 'left' : 'right')};
             font-size: 13px;
-        `
-
-        export const DataTablCellOfNewCol = styled(DataTableCell)`
-            animation: ${props => newColTransition(props)} 2s linear 0.2s;
+            animation:  ${props => (props.review 
+                ? newColTransition(props)
+                : null)} 1s linear 0s;
         `
 
         export const VizContainer = styled(MuiTableContainer)`
