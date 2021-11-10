@@ -174,6 +174,7 @@ df = CycDataFrame('tests/data/housing_data/data.csv')
 df.drop('Alley', 1, inplace=True)
 df['CopyStreet'] = df['Street']
 df[['LotFrontage']] = df[['LotFrontage']].fillna(method="ffill")
+df.loc[-1] = df.loc[0]
 df[:30]
 px.scatter(df, x="LotConfig", y="LandSlope")
 `}

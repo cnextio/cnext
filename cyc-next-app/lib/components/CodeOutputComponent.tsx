@@ -29,7 +29,7 @@ const CodeOutputComponent = ({codeOutput}) => {
         if (activeDataFrame 
             && state.dataFrames.dfUpdates != {}
             && (activeDataFrame in state.dataFrames.dfUpdates)){  
-            // console.log('Check update: ', state.dataFrames.dataFrameUpdates[activeDataFrame]);          
+            // console.log('Check update: ', state.dataFrames.dfUpdates[activeDataFrame]);          
             const activeDataFrameUpdates = state.dataFrames.dfUpdates[activeDataFrame];
             if ('update_type' in activeDataFrameUpdates) {                
                 return activeDataFrameUpdates;
@@ -42,10 +42,11 @@ const CodeOutputComponent = ({codeOutput}) => {
         'add_cols': 'added',
         'del_cols': 'removed',
         'add_rows': 'added',
-        'del_rows': 'removed'            
+        'del_rows': 'removed',
+        'update_cells': 'updated'            
     };
     
-    const updateTypeToReview = ['add_cols', 'add_rows'];
+    const updateTypeToReview = ['add_cols', 'add_rows', 'update_cells'];
 
     const _buildUpdatedItemsComponent = (updatedItems: Array<any>) => {
         return (
@@ -65,9 +66,10 @@ const CodeOutputComponent = ({codeOutput}) => {
     const _buildDFUpdatesOutputComponent = (key: number, updateType: UpdateType, updatedItems: Array<any>, activeReview: boolean) => {
         return (
             <Fragment>
-                {updatedItems.length ? 
+                {updatedItems.length || Object.keys(updatedItems).length ? 
                 <Box key={key} sx={{ display: 'flex'}}>
                     <Box>                        
+                        {console.log(updateType, updatedItems, activeReview)}
                         {(updateType==UpdateType.add_cols || updateType==UpdateType.del_cols) && 
                             <Fragment>
                                 Column{updatedItems.length>1 ? 's' : ''} {_buildUpdatedItemsComponent(updatedItems)} {activityText[updateType]} 
@@ -76,6 +78,12 @@ const CodeOutputComponent = ({codeOutput}) => {
                         {(updateType==UpdateType.add_rows || updateType==UpdateType.del_rows) && 
                             <Fragment>
                                 Row{updatedItems.length>1 ? 's' : ''} {_buildUpdatedItemsComponent(updatedItems)} {activityText[updateType]} 
+                            </Fragment>
+                        }
+                        {(updateType==UpdateType.update_cells) && 
+                            <Fragment>
+                                {/* {updatedItems.length} cell{updatedItems.length>1 ? 's' : ''} {activityText[updateType]}  */}
+                                Cell(s) {activityText[updateType]} 
                             </Fragment>
                         }
                     </Box>
@@ -165,6 +173,7 @@ const CodeOutputComponent = ({codeOutput}) => {
             <CodeOutputContent ref={codeOutputRef}>
                 {outputContent.map((item, index) => (
                     <IndividualCodeOutputContent key={index} component='pre' variant='body2'>
+                        {console.log('Item:', item)}
                         {item['type']=='text' && item['content']}
                         {item['type']=='df_updates'                            
                             && _buildDFUpdatesOutputComponent(outputContent.length, 

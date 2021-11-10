@@ -1,7 +1,7 @@
 import { TableBody, TableHead, TableRow, TableCell, Grow, Fade } from "@mui/material";
 import React, { useEffect, Box, useRef, useState, useCallback, Fragment } from "react";
 import shortid from "shortid";
-import { Transition } from "react-transition-group";
+import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 
 import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHeadCell, 
     DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, DataTableHeadCellOfNewCol as DataTableReviewHeadCell, DataTablCellOfNewCol as DataTablReviewCell } from "./StyledComponents";
@@ -133,10 +133,24 @@ const TableComponent = (props: any) => {
     // }
 
     const _create_cell = (dfColName: string, dfRowIndex: number, item: any, head: boolean = false) => {
-        let review: boolean = dfReview && ((dfReview.type==ReviewType.col && dfReview.name===dfColName) ||
-                                (dfReview.type==ReviewType.row && dfReview.name===dfRowIndex));
-        return (    
+        let review: boolean = false;
+        if (dfReview){
+            if (dfReview.type==ReviewType.col){
+                review = (dfReview.name==dfColName);
+            } else if (dfReview.type==ReviewType.row) {
+                review = (dfReview.name==dfRowIndex);
+            } else if (dfReview.type==ReviewType.cell) {
+                // console.log(dfReview.name);
+                let name = dfReview.name as [string, number];
+                review = (name[0]==dfColName && name[1]==dfRowIndex);
+            }
+        }
+        // dfReview && ((dfReview.type==ReviewType.col && dfReview.name===dfColName) ||
+        //                         (dfReview.type==ReviewType.row && dfReview.name===dfRowIndex));
+        return (
+            
             <DataTableCell key={shortid.generate()} align="right" review={review} head={head}>                    
+            <ScrollIntoViewIfNeeded active={review}>
                 <div>{item}</div>
                 {head ? 
                     <ColumnHistogramComponentWithNoSSR  
@@ -151,8 +165,10 @@ const TableComponent = (props: any) => {
                         col_name={dfColName}
                     /> : null
                 }                        
-                {review ? <div ref={endPointRef}></div> : null}    
+                {/* {review ? <div ref={endPointRef}></div> : null}     */}
+                </ScrollIntoViewIfNeeded>
             </DataTableCell>             
+            
         );
     }
 
@@ -170,25 +186,25 @@ const TableComponent = (props: any) => {
         dispatch(setDFUpdates({df_id: df_id}));
     }
 
-    const _scrollToReview = () => {
-        // need block and inline property because of this 
-        // https://stackoverflow.com/questions/11039885/scrollintoview-causing-the-whole-page-to-move/11041376
-        if (endPointRef.current!=null) {            
-            endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' });
-        }
-    }
+    // const _scrollToReview = () => {
+    //     // need block and inline property because of this 
+    //     // https://stackoverflow.com/questions/11039885/scrollintoview-causing-the-whole-page-to-move/11041376
+    //     if (endPointRef.current!=null) {            
+    //         endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' });
+    //     }
+    // }
     
-    useEffect(() => {
-        if(activeDataFrame != null){                        
-            _scrollToReview();            
-        }
-    }, [dfReview]);
+    // useEffect(() => {
+    //     if(activeDataFrame != null){                        
+    //         _scrollToReview();            
+    //     }
+    // }, [dfReview]);
 
-    useEffect(() => {
-        if(activeDataFrame != null && !scrollLocked){                        
-            _scrollToReview();            
-        }
-    }, [tableData, scrollLocked]);
+    // useEffect(() => {
+    //     if(activeDataFrame != null && !scrollLocked){                        
+    //         _scrollToReview();            
+    //     }
+    // }, [tableData, scrollLocked]);
 
     return (
         <TableContainer >

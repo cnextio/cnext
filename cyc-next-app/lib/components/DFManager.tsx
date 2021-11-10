@@ -22,7 +22,7 @@ import { ifElse, ifElseDict } from "./libs";
 
 const DFManager = () => {
     const dispatch = useDispatch();
-    const requestReview = useSelector((state) => state.requestReview);
+    const loadDataRequest = useSelector((state) => state.dataFrames.loadDataRequest);
 
     const _send_message = (message: {}) => {
         console.log(`send ${WebAppEndpoint.DataFrameManager} request: `, JSON.stringify(message));
@@ -58,7 +58,7 @@ const DFManager = () => {
                                 if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
                                 :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]` ;
         let message = _create_message(CommandName.get_table_data, content, 1, {'df_id': df_id})   
-        console.log(message);     
+        // console.log("Send get table: ", message);     
         _send_message(message);
     }
 
@@ -140,6 +140,7 @@ const DFManager = () => {
     }
 
     useEffect(() => {
+        // console.log('DFManager useEffect');
         socket.emit("ping", "DataFrameManager");
         socket.on(WebAppEndpoint.DataFrameManager, (result: string) => {
             console.log("DataFrameManager got results...");
@@ -165,6 +166,10 @@ const DFManager = () => {
         });
         // editorRef;
     }, []); //TODO: run this only once - not on rerender
+
+    useEffect(() => {
+        _send_get_table_data_around_row_index(loadDataRequest.df_id, loadDataRequest.row_index);
+    }, [loadDataRequest]);
 
     return null;
 }

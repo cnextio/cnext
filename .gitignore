@@ -50,3 +50,5 @@ Thumbs.db
 *.wmv
 
 .next/
+package-lock.json
+cyc-next-app/server/package-lock.json

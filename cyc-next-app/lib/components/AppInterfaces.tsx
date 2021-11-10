@@ -36,7 +36,7 @@ export enum UpdateType {
     del_cols = 'del_cols',
     add_rows = 'add_rows',
     del_rows = 'del_rows',
-    update_cells = 'update_cell',
+    update_cells = 'update_cells',
     new_index = 'update_index',
     new_df = 'new_df',
     no_update = 'no_update',
@@ -73,6 +73,13 @@ export enum WebAppEndpoint {
     CodeEditorComponent = 'CodeEditorComponent'
 };
 
+export interface ITableData {
+    df_id: string,
+    index: {name: string, data: any[]}
+    column_names: string[],
+    rows: [][]
+}
+
 export enum ReviewType {
     col = 'col',
     row = 'row',
@@ -88,7 +95,7 @@ export enum ReviewRequestType {
 
 export interface IDFUpdates {
     update_type: UpdateType,
-    update_content: (string)[] | (number)[]
+    update_content: (string)[] | (number)[] | {}
 }
 
 export interface IReviewRequest {
@@ -104,11 +111,27 @@ export const UndefReviewIndex = -1;
 
 export interface IDFUpdatesReview {
     enable: boolean;
-    index: number; // 'index' represents the position of the review in the review list
-    name: string | number; // 'name' represents the row index or column name
-    count: number; // 'count' is used to support 'repeat' review. when 'repeat', no other variable changed except for 'cout'
+    // 'index' represents the position of the review in the review list.
+    index: number; 
+    // 'name' represents the row index or column name or [column name, row index] tuple.
+    name: string | number | [string, number]; 
+    // 'count' is used to support 'repeat' review. when 'repeat', no other variable changed except for 'count'.
+    count: number; 
     type: ReviewType;
-    length: number; // length of the review list
+    // length of the review list in case of row and column updates.
+    length: number; 
+    /**
+     * the following fields are used to make navigation of cell updates easier. 
+     * this will be used together with the 'index' above. 
+     * */ 
+    // col_index, row_index are the position currently reviewed column in the col_names list.
+    updates_col_index: number;
+    updates_row_index: number;
+    // col_names is the the name of list of columns with updated cell.
+    col_names: string[]; 
+    // col_end_index is the running end index corresponding to a column.
+    // it is the sum of the length of the this and previous columns.
+    col_end_index: number[];
 };
 
 // export class DFUpdates {

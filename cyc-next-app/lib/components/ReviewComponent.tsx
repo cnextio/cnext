@@ -9,18 +9,12 @@ import { IDFUpdatesReview, IReviewRequest, ReviewRequestType, UndefReviewIndex }
 import store from "../../redux/store";
 import { ifElse } from "./libs";
 
-export enum ReviewType {
-    back = 'back',
-    current = 'current',
-    next = 'next'
-}
-
 const ReviewButton = ({type, onClick, disabled}) => {
     return (
         <IconButton onClick={onClick} aria-label="Back" size="small" color='primary' disabled={disabled}>
-            {type==ReviewType.back && <ArrowBackIosIcon fontSize="small" style={{width: '14px', height: '14px'}}/>}
-            {type==ReviewType.current && <FiberManualRecordIcon fontSize="small" style={{width: '14px', height: '14px'}}/>}
-            {type==ReviewType.next && <ArrowForwardIosIcon fontSize="small" style={{width: '14px', height: '14px'}}/>}
+            {type==ReviewRequestType.prev && <ArrowBackIosIcon fontSize="small" style={{width: '14px', height: '14px'}}/>}
+            {type==ReviewRequestType.repeat && <FiberManualRecordIcon fontSize="small" style={{width: '14px', height: '14px'}}/>}
+            {type==ReviewRequestType.next && <ArrowForwardIosIcon fontSize="small" style={{width: '14px', height: '14px'}}/>}
         </IconButton>
     )
 }
@@ -35,11 +29,9 @@ const ReviewComponent = ({key, content, activeReview}) => {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
     }
 
-    function onClick(type: ReviewType){        
-        if (type == ReviewType.current){            
-            let review: IReviewRequest = {type: ReviewRequestType.repeat, index: UndefReviewIndex}
-            dispatch(setReview(review));
-        }
+    function onClick(type: ReviewRequestType){        
+        let review: IReviewRequest = {type: type, index: UndefReviewIndex};
+        dispatch(setReview(review));
     }
 
     return (        
@@ -47,9 +39,9 @@ const ReviewComponent = ({key, content, activeReview}) => {
             {console.log('Render ReviewComponent')}
             {activeReview && dfReview ?
             <Fragment>
-                <ReviewButton onClick={() => onClick(ReviewType.back)} type={ReviewType.back} disabled={dfReview.index==0}/>
-                <ReviewButton onClick={() => onClick(ReviewType.current)} type={ReviewType.current} disabled={false}/>
-                <ReviewButton onClick={() => onClick(ReviewType.next)} type={ReviewType.next} disabled={dfReview.index==dfReview.length-1}/>            
+                <ReviewButton onClick={() => onClick(ReviewRequestType.prev)} type={ReviewRequestType.prev} disabled={dfReview.index==0}/>
+                <ReviewButton onClick={() => onClick(ReviewRequestType.repeat)} type={ReviewRequestType.repeat} disabled={false}/>
+                <ReviewButton onClick={() => onClick(ReviewRequestType.next)} type={ReviewRequestType.next} disabled={dfReview.index==dfReview.length-1}/>            
             </Fragment> : null}
         </Fragment> 
         
