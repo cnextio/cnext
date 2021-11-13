@@ -200,29 +200,8 @@ export const dataFrameSlice = createSlice({
             }
             // }
         }
+
         
-        // setDFUpdates: (state, action) => {  
-        //     // for testing          
-        //     // state.data = testTableData
-        //     const df_id = ifElse(action.payload, 'df_id', null);
-        //     if (df_id) {
-        //         if(!(df_id in state.dfUpdates)){
-        //             state.dfUpdates[df_id] = new ReduxDFUpdates();                    
-        //         }                        
-        //         let updates = ifElseDict(action.payload, 'updates');
-        //         state.dfUpdates[df_id].update_type = ifElse(updates, 'update_type', UpdateType.no_update);
-        //         state.dfUpdates[df_id].update_content = ifElse(updates, 'update_content', []);
-        //         state.dfUpdates[df_id].review = new DFUpdatesReview();
-        //         if (state.dfUpdates[df_id].update_type == UpdateType.new_df){
-        //             state.columnHistogram = {};
-        //             state.columnDataSummary[df_id] = {};
-        //         }
-        //     }
-        // },
-                
-        // setTableDataReady: (state, action) => {
-        //     state.tableDataReady = action.payload;
-        // }
     },
 })
 
@@ -232,7 +211,6 @@ export const { setTableData,
                 setColumnHistogramPlot, 
                 setDFUpdates, 
                 setCountNA, 
-                // setTableDataReady 
                 setReview,
             } = dataFrameSlice.actions
 

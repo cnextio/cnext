@@ -1,24 +1,25 @@
 import React, { forwardRef, RefObject, SyntheticEvent, useEffect, useRef, useState } from "react";
-import { CodeEditor, StyledCodeMirror } from "./StyledComponents";
 import {RecvCodeOutput, Message, DataTableContent, WebAppEndpoint, ContentType, CommandName} from "./AppInterfaces";
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
 import { setTableData } from "../../redux/reducers/dataFrameSlice";
 import { update as vizDataUpdate } from "../../redux/reducers/vizDataSlice";
-import { inc as incCounter } from "../../redux/reducers/counterSlice";
 
-// import {tableData as testTableData} from "./tests/TestTableData";
-
-// import socketIOClient from "socket.io-client";
 import socket from "./Socket";
-// const SOCKET_ENDPOINT = "http://localhost:4000";
 
-import CodeMirror from '@uiw/react-codemirror';
+// import CodeMirror from '@uiw/react-codemirror';
+import { basicSetup } from "@codemirror/basic-setup";
+import { bracketMatching } from "@codemirror/matchbrackets";
+import { defaultHighlightStyle } from "@codemirror/highlight";
+import { oneDark } from "@codemirror/theme-one-dark";
 import { python } from '@codemirror/lang-python';
-import { languageServer } from 'codemirror-languageserver';
 import {keymap, EditorView} from "@codemirror/view"
-import { process_plotly_figure_result } from "./libs";
+import { indentUnit } from "@codemirror/language";
+import { lineNumbers } from "@codemirror/gutter";
+import { CodeEditor, StyledCodeMirror } from "./StyledComponents";
+import { languageServer } from "codemirror-languageserver";
+// import { extensions } from './codemirror-extentions/extensions';
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -26,7 +27,7 @@ const ls = languageServer({
     documentUri: `file:///`,
     languageId: 'python'
 });
-
+  
 // const Editor = React.forwardRef((props: any, ref) => {  
 //     return (
 //         <CodeMirror
@@ -140,17 +141,66 @@ const CodeEditorComponent = React.memo((props: any) => {
         // socket.emit("run", content);
     }
 
-    const onChange = (value: string) => {
-        // console.log("Run", value);
-        // socket.emit("run", value);
-        // socket.on("result", (result: object) => {
-        //     console.log("Result: " + result);
-        // });
+    function _matchColumnNameExpression(text, cursor, matchList){
+        let matchState = 0;
+        let matched = false;
+        let dfName;
+        let strContent;
+        while(true){
+            // console.log(cursor.name);
+            if (matchState>=matchList.length) break;
+            let name = matchList[matchState].name;
+            let nextMatch = matchList[matchState].nextMatch;            
+            if (name==cursor.name){
+                if(matchState==0){
+                    // console.log(text);
+                    strContent = text.substring(cursor.from, cursor.to);
+                }
+                // console.log(cursor.name, strContent);
+                if (nextMatch==null){
+                    // console.log('Got a match');
+                    matched = true;
+                    dfName = text.substring(cursor.from, cursor.to);
+                    // console.log(text.substring(cursor.from, cursor.to))
+                } else {
+                    cursor[nextMatch]();                
+                }                
+            } else break;
+            matchState += 1;            
+        }
+        if(matched) console.log(dfName, strContent);
+        return {matched: matched, df_name: dfName, str_content: strContent};
+    }
+    const funcCallMatch = [{name: 'String', nextMatch: 'parent'},
+                            {name: 'ArgList', nextMatch: 'prevSibling'},
+                            {name: 'MemberExpression', nextMatch: 'firstChild'},
+                            {name: 'VariableName', nextMatch: null}]; 
+    
+                            
+    const onChange = (text: any, viewUpdate) => {
+        let editor = editorRef.current.view;
+        let state = editor.state;
+        let tree = state.tree;
+        let curPos = editor.state.selection.ranges[0].anchor;
+        let cursor = tree.cursor(curPos, 0);
+        // console.log(cursor.toString());
+        _matchColumnNameExpression(text, cursor, funcCallMatch);        
     }
 
-    let myTheme = EditorView.theme({
-        
-      })
+    // let myTheme = EditorView.theme({})
+    
+    const extensions = [
+        basicSetup,
+        // oneDark,
+        // EditorView.lineWrapping,
+        lineNumbers(),
+        bracketMatching(),
+        defaultHighlightStyle.fallback,
+        python(),
+        ls,
+        keymap.of([{key: 'Mod-l', run: runLine}]),
+        indentUnit.of('    '),
+    ];
 
     return (
         <CodeEditor>
@@ -177,16 +227,17 @@ df[['LotFrontage']] = df[['LotFrontage']].fillna(method="ffill")
 df.loc[-1] = df.loc[0]
 df[:30]
 px.scatter(df, x="LotConfig", y="LandSlope")
+
+import pandas as pd
+df = pd.DataFrame()
 `}
-                // value = "df = CycDataFrame('tests/data/housing_data/train.csv')"
                 height = "700px"
                 style = {{fontSize: "14px"}}
                 // extensions = {[python(), ls, keymap.of([{key: 'Mod-l', run: runLine}])]}                    
-                extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
+                // extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
+                extensions = {extensions}
                 theme = 'light'
-                onChange = {(value, viewUpdate) => {
-                    // console.log('value:', value);
-                }}                    
+                // onChange = {(text, viewUpdate) => onChange(text, viewUpdate)}                 
             >
             </StyledCodeMirror> 
             {/* : null } */}
@@ -195,3 +246,4 @@ px.scatter(df, x="LotConfig", y="LandSlope")
 });
 
 export default CodeEditorComponent;
+

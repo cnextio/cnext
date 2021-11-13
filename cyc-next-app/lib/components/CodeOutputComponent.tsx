@@ -1,4 +1,5 @@
 import React, { Fragment, ReactElement, useEffect, useRef, useState } from "react";
+import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 import { CodeOutputContainer, CodeOutputHeader, CodeOutputContent, IndividualCodeOutputContent} from "./StyledComponents";
 import { Box, Icon, IconButton, Typography } from "@mui/material";  
 import { UpdateType } from "./AppInterfaces";
@@ -7,6 +8,7 @@ import store from '../../redux/store';
 import { ifElse } from "./libs";
 import { scrollLock, scrollUnlock } from "../../redux/reducers/scrollLockSlice";
 import ReviewComponent from "./ReviewComponent";
+
 
 // const OutputLine = (content: string|ReactElement) => {
 //     return (
@@ -170,21 +172,22 @@ const CodeOutputComponent = ({codeOutput}) => {
             <CodeOutputHeader variant="overline" component="span">
                 Output
             </CodeOutputHeader>
-            <CodeOutputContent ref={codeOutputRef}>
+            <CodeOutputContent ref={codeOutputRef} id='CodeOutput'>
                 {outputContent.map((item, index) => (
-                    <IndividualCodeOutputContent key={index} component='pre' variant='body2'>
-                        {console.log('Item:', item)}
-                        {item['type']=='text' && item['content']}
-                        {item['type']=='df_updates'                            
-                            && _buildDFUpdatesOutputComponent(outputContent.length, 
-                                item['content']['updateType'], 
-                                item['content']['updateContent'], 
-                                // only the last item and in the review list can be in active review mode
-                                (index==outputContent.length-1)
-                                    && updateTypeToReview.includes(item['content']['updateType']))}
-                    </IndividualCodeOutputContent>
+                <IndividualCodeOutputContent key={index} component='pre' variant='body2'>
+                    {/* {console.log('Item:', item)} */}
+                    {item['type']=='text' && item['content']}
+                    {item['type']=='df_updates'                            
+                        && _buildDFUpdatesOutputComponent(outputContent.length, 
+                            item['content']['updateType'], 
+                            item['content']['updateContent'], 
+                            // only the last item and in the review list can be in active review mode
+                            (index==outputContent.length-1)
+                                && updateTypeToReview.includes(item['content']['updateType']))}
+                    <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', behavior: 'smooth'}}/>
+                </IndividualCodeOutputContent>
                 ))}
-                <div ref={endPointRef}></div>
+                {/* <div ref={endPointRef}></div> */}
             </CodeOutputContent>  
         </CodeOutputContainer>
     )

@@ -24,7 +24,7 @@ const CodePanelComponent = React.memo((props: any) => {
             <CodeToolbar />                
             <WorkingPanelDividerComponent />
             <CodeContainer>
-                <SplitPane split="horizontal" defaultSize="70%" pane2Style={{height: "0%"}}>  
+                <SplitPane split="horizontal" defaultSize="70%" pane2Style={{height: "30%"}}>  
                             {/* panel2 height is the must for the scrolling to work */}
                     <CodeEditorComponent {... props} recvCodeOutput={recvCodeOutput} />
                     <CodeOutputComponent codeOutput={codeOutput} />

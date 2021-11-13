@@ -153,7 +153,7 @@ export const CodePanel = styled.div`
         padding: 0px; 
         flex-grow: 1;   
         position: relative; //must have for the spliter to work
-        height: 88%;    //TODO: can't make this 100% because the scroll to the top will mess the frame up
+        height: 100%;    //TODO: can't make this 100% because the scroll to the top will mess the frame up
     `;
 
         export const CodeEditor = styled.div`    
@@ -176,6 +176,7 @@ export const CodePanel = styled.div`
                 padding: 3px 6px 3px 8px;
                 border-left: 5px solid #999;
                 white-space: pre;
+                overflow: scroll;
             }
             
             .cm-tooltip.lint {
@@ -184,20 +185,23 @@ export const CodePanel = styled.div`
             
             .cm-tooltip.cm-completionInfo {
               position: absolute;
+              margin: 1px -4px;
               padding: 10px 10px 10px 10px;
               width: max-content;
               max-width: 1000px;
+              max-height: 700px;
               white-space: pre;
+              overflow: scroll;
             }
         `
         export const CodeOutputContainer = styled.div`
             // display: flex;
-            padding: 0px 10px; 
+            padding: 0px 10px 10px; 
             color: ${props => props.theme.palette.text.secondary};
             // flex-grow: 1;   
             height: 100%; 
             max-width: 100%;
-            max-height: 100%;            
+            max-height: 80%; //have to keep this 80% otherwise scroll to view will mess the frame up           
         `;
             export const CodeOutputHeader = styled(Typography)`
                 // height: 10px; 
@@ -243,6 +247,7 @@ export const WorkingPanelDivider = styled.div`
 export const TablePanel = styled.div`
     background-color: ${props => props.theme.palette.background.paper};
     // border-radius: 4px;
+    // padding: 0px 10px 0px 10px;
     display: flex;
     flex-grow: 1;   
     flex-direction: column;
@@ -264,7 +269,8 @@ export const TablePanel = styled.div`
             // display: flex;
             // align-self: center;      
             max-height: 90%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
-            overflow: auto;                          
+            overflow: auto;
+            // max-width: 100%;                          
         `;
 
         export const DataTable = styled(Table)`
@@ -299,7 +305,7 @@ export const TablePanel = styled.div`
         `
         
         export const DataTableHeadText = styled.div`
-        text-overflow: ellipsis;
+            text-overflow: ellipsis;
         `
         
         export const DataTableIndexCell = styled(TableCell)`
@@ -307,7 +313,7 @@ export const TablePanel = styled.div`
             font-size: 13px;
             animation:  ${props => (props.review 
                 ? newColTransition(props)
-                : null)} 1s linear 0s;
+                : null)} 1s linear 0s; 
         `
         export const DataTableCell = styled(TableCell)`
             font-weight: ${props => (props.head ? 'bold' : 'normal')};
@@ -316,7 +322,7 @@ export const TablePanel = styled.div`
             font-size: 13px;
             animation:  ${props => (props.review 
                 ? newColTransition(props)
-                : null)} 1s linear 0s;
+                : null)} 1s linear 0s; 
         `
 
         export const VizContainer = styled(MuiTableContainer)`

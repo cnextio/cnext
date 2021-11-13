@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { DataTable, TablePanel, TableToolbar } from "./StyledComponents";
 import TableComponent from "./TableComponent";
 

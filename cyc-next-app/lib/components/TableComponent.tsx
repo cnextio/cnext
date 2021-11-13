@@ -28,13 +28,14 @@ const TableComponent = (props: any) => {
     const dfReview: IDFUpdatesReview = useSelector((state) => _get_review_request(state));
     // const dataFrameUpdates = useSelector((state) => state.dataFrames.dataFrameUpdates);
     const endPointRef = useRef(null);
-    const dispatch = useDispatch();    
+    const dispatch = useDispatch();  
+
     /* 
     * We use this scrollLocked to make sure this and CodeOutputComponent can scroll to view
     * at the same time. This is very ugly solution for this problem 
     * https://stackoverflow.com/questions/49318497/google-chrome-simultaneously-smooth-scrollintoview-with-more-elements-doesn
     */
-    const scrollLocked = useSelector((state) => state.scrollLock.locked);    
+    // const scrollLocked = useSelector((state) => state.scrollLock.locked);    
     
     function _get_review_request(state): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
@@ -132,7 +133,7 @@ const TableComponent = (props: any) => {
     //     return elem;
     // }
 
-    const _create_cell = (dfColName: string, dfRowIndex: number, item: any, head: boolean = false) => {
+    const _create_cell = (dfColName: string, dfRowIndex: number, item: any, head: boolean = false, indexCell: boolean=false) => {
         let review: boolean = false;
         if (dfReview){
             if (dfReview.type==ReviewType.col){
@@ -145,37 +146,40 @@ const TableComponent = (props: any) => {
                 review = (name[0]==dfColName && name[1]==dfRowIndex);
             }
         }
-        // dfReview && ((dfReview.type==ReviewType.col && dfReview.name===dfColName) ||
-        //                         (dfReview.type==ReviewType.row && dfReview.name===dfRowIndex));
         return (
-            
-            <DataTableCell key={shortid.generate()} align="right" review={review} head={head}>                    
-            <ScrollIntoViewIfNeeded active={review}>
+            <Fragment>
+            {indexCell ? 
+            <DataTableIndexCell review={review}>
+                {dfRowIndex}
+                {dfReview && dfReview.type==ReviewType.row && review && <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline: 'center'}}/>}  
+            </DataTableIndexCell> :
+            <DataTableCell key={shortid.generate()} align="right" review={review} head={head}>   
                 <div>{item}</div>
                 {head ? 
-                    <ColumnHistogramComponentWithNoSSR  
-                        df_id={activeDataFrame} 
-                        col_name={dfColName} 
-                        smallLayout={true}
-                    /> : null
+                <ColumnHistogramComponentWithNoSSR  
+                    df_id={activeDataFrame} 
+                    col_name={dfColName} 
+                    smallLayout={true}
+                /> : null
                 }
                 {head ? 
-                    <CountNAComponent 
-                        df_id={activeDataFrame} 
-                        col_name={dfColName}
-                    /> : null
-                }                        
-                {/* {review ? <div ref={endPointRef}></div> : null}     */}
-                </ScrollIntoViewIfNeeded>
+                <CountNAComponent 
+                    df_id={activeDataFrame} 
+                    col_name={dfColName}
+                /> : null
+                }     
+                {dfReview && dfReview.type==ReviewType.col && head && review && <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline: 'center'}}/>}
+                {dfReview && dfReview.type==ReviewType.cell && review && <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline: 'center'}}/>}
             </DataTableCell>             
-            
+            } 
+            </Fragment>
         );
     }
 
     const _create_row = (colNames: [], rowIndex: any, rowData: any[]) => {
         return (
-            <DataTableRow hover key={shortid.generate()}>
-                <DataTableIndexCell>{rowIndex}</DataTableIndexCell>
+            <DataTableRow hover key={shortid.generate()}>                
+                {_create_cell(null, rowIndex, null, false, true)}
                 {rowData.map((item: any, index: number) => (                            
                     _create_cell(colNames[index], rowIndex, item)
                 ))}
@@ -186,28 +190,8 @@ const TableComponent = (props: any) => {
         dispatch(setDFUpdates({df_id: df_id}));
     }
 
-    // const _scrollToReview = () => {
-    //     // need block and inline property because of this 
-    //     // https://stackoverflow.com/questions/11039885/scrollintoview-causing-the-whole-page-to-move/11041376
-    //     if (endPointRef.current!=null) {            
-    //         endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' });
-    //     }
-    // }
-    
-    // useEffect(() => {
-    //     if(activeDataFrame != null){                        
-    //         _scrollToReview();            
-    //     }
-    // }, [dfReview]);
-
-    // useEffect(() => {
-    //     if(activeDataFrame != null && !scrollLocked){                        
-    //         _scrollToReview();            
-    //     }
-    // }, [tableData, scrollLocked]);
-
     return (
-        <TableContainer >
+        <TableContainer>
         {/* {console.log("Render TableContainer: ", tableData)} */}
         {console.log("Render TableContainer")}
         {ifElse(tableData, activeDataFrame, null)?
@@ -217,7 +201,6 @@ const TableComponent = (props: any) => {
                     <DataTableHeadRow>
                         <DataTableHeadCell>
                             <DataTableHeadText>{tableData[activeDataFrame].index.name}</DataTableHeadText>
-                            {/* <ColumnHistogramComponentWithNoSSR df_id={activeDataFrame} col_name='Engine Speed' smallLayout={true}/> */}
                         </DataTableHeadCell>
                         {tableData[activeDataFrame].column_names.map(
                             (dfCol: string, index: number) => 

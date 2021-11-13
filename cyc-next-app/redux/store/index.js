@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import vizDataReducer from '../reducers/vizDataSlice'
 import dataFrameReducer from '../reducers/dataFrameSlice'
 import scrollLockReducer from '../reducers/scrollLockSlice'
+import codeDocReducer from '../reducers/codeDocSlice'
 // import dfUpdatesReducer from '../reducers/dfUpdates'
 
 export default configureStore({
@@ -9,6 +10,6 @@ export default configureStore({
     dataFrames: dataFrameReducer,
     vizData: vizDataReducer,
     scrollLock: scrollLockReducer,
-    // dfUpdates: dfUpdatesReducer,
+    codeDoc: codeDocReducer,
   },
 })
