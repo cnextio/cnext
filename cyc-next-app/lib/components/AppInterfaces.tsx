@@ -109,6 +109,13 @@ export const UndefReviewIndex = -1;
 //     count: number = -1;
 // };
 
+//can't use class because redux will throw nonserializable
+// export class LoadDataRequest {
+//     df_id: string | null = null;
+//     count: number = 0;
+//     row_index: number = 0;
+// };
+
 export interface IDFUpdatesReview {
     enable: boolean;
     // 'index' represents the position of the review in the review list.

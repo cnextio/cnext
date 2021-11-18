@@ -65,13 +65,18 @@ const CodeOutputComponent = ({codeOutput}) => {
         );
     }
     
-    const _buildDFUpdatesOutputComponent = (key: number, updateType: UpdateType, updatedItems: Array<any>, activeReview: boolean) => {
+    const _buildDFReviewsOutputComponent = (key: number, updateType: UpdateType, updatedItems: Array<any>, activeReview: boolean) => {
         return (
             <Fragment>
-                {updatedItems.length || Object.keys(updatedItems).length ? 
+                {(updateType===UpdateType.new_df) && 
+                <Fragment>
+                    New dataframe created 
+                </Fragment>
+                }
+                {(updateType!==UpdateType.new_df) && (updatedItems.length || Object.keys(updatedItems).length) ? 
                 <Box key={key} sx={{ display: 'flex'}}>
                     <Box>                        
-                        {console.log(updateType, updatedItems, activeReview)}
+                        {/* {console.log('Show ouput:', updateType, updatedItems, activeReview)} */}                        
                         {(updateType==UpdateType.add_cols || updateType==UpdateType.del_cols) && 
                             <Fragment>
                                 Column{updatedItems.length>1 ? 's' : ''} {_buildUpdatedItemsComponent(updatedItems)} {activityText[updateType]} 
@@ -174,20 +179,25 @@ const CodeOutputComponent = ({codeOutput}) => {
             </CodeOutputHeader>
             <CodeOutputContent ref={codeOutputRef} id='CodeOutput'>
                 {outputContent.map((item, index) => (
-                <IndividualCodeOutputContent key={index} component='pre' variant='body2'>
+                <Fragment>
                     {/* {console.log('Item:', item)} */}
-                    {item['type']=='text' && item['content']}
-                    {item['type']=='df_updates'                            
-                        && _buildDFUpdatesOutputComponent(outputContent.length, 
+                    {item['type']==='text' && item['content'] !=='' && 
+                    <IndividualCodeOutputContent key={index} component='pre' variant='body2'>
+                        {item['content']}
+                    </IndividualCodeOutputContent>
+                    }
+                    {item['type']==='df_updates' && 
+                    <IndividualCodeOutputContent key={index} component='pre' variant='body2'>                        
+                        {_buildDFReviewsOutputComponent(outputContent.length, 
                             item['content']['updateType'], 
                             item['content']['updateContent'], 
                             // only the last item and in the review list can be in active review mode
-                            (index==outputContent.length-1)
+                            (index===outputContent.length-1)
                                 && updateTypeToReview.includes(item['content']['updateType']))}
-                    <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', behavior: 'smooth'}}/>
-                </IndividualCodeOutputContent>
-                ))}
-                {/* <div ref={endPointRef}></div> */}
+                    </IndividualCodeOutputContent>}                    
+                    {index===outputContent.length-1 && <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline:'center', behavior: 'smooth'}}/>}
+                </Fragment>
+                ))}                
             </CodeOutputContent>  
         </CodeOutputContainer>
     )

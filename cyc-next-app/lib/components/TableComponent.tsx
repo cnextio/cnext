@@ -41,98 +41,6 @@ const TableComponent = (props: any) => {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
     }
 
-    /**
-     * This function will check if there is add_cols event, 
-     * if so it will create a special effect with the new cols.
-     * For now, We only add the add_cols special effect to the header, 
-     * because adding it to data row requires more backend work.
-     */
-    // const _create_header_col_element = (colName: string, index: number) => {
-    //     const state = store.getState();
-    //     console.log("TableComponent: ", state.dataFrames.dfUpdates);
-    //     const dfUpdates = ifElseDict(state.dataFrames.dfUpdates, activeDataFrame);
-    //     let elem;
-    //     if (('update_type' in dfUpdates) && 
-    //         (dfUpdates['update_type'] == UpdateType.add_cols) &&
-    //         (dfUpdates['update_content'].includes(colName))) {                
-    //         elem = (                               
-    //                 <DataTableHeadCellOfNewCol>
-    //                     <div>{colName}</div>
-    //                     <ColumnHistogramComponentWithNoSSR  
-    //                         key={index} 
-    //                         df_id={activeDataFrame} 
-    //                         col_name={colName} 
-    //                         smallLayout={true}
-    //                     />
-    //                     <CountNAComponent  
-    //                         df_id={activeDataFrame} 
-    //                         col_name={colName}
-    //                     />
-    //                     <div ref={endPointRef}></div>     
-    //                 </DataTableHeadCellOfNewCol>                          
-    //         );
-    //     } else {
-    //         elem = (                
-    //             <DataTableHeadCell>                    
-    //                 <div>{colName}</div>
-    //                 <ColumnHistogramComponentWithNoSSR  
-    //                     df_id={activeDataFrame} 
-    //                     col_name={colName} 
-    //                     smallLayout={true}
-    //                 />
-    //                 <CountNAComponent 
-    //                     df_id={activeDataFrame} 
-    //                     col_name={colName}
-    //                 />        
-    //             </DataTableHeadCell> 
-                           
-    //         );
-    //     }
-    //     return elem;
-    // }
-    // const _create_header_col_element = (colName: string, index: number) => {
-    //     let review: boolean = (dfReview && dfReview.type==ReviewType.col && dfReview.name===colName);
-    //     return (                
-    //         <DataTableHeadCell key={shortid.generate()} review={review} head={false}>                    
-    //             <div>{colName}</div>
-    //             <ColumnHistogramComponentWithNoSSR  
-    //                 df_id={activeDataFrame} 
-    //                 col_name={colName} 
-    //                 smallLayout={true}
-    //             />
-    //             <CountNAComponent 
-    //                 df_id={activeDataFrame} 
-    //                 col_name={colName}
-    //             />
-    //             {review ? <div ref={endPointRef}></div> : null}                            
-    //         </DataTableHeadCell> 
-                        
-    //     );
-    // }
-
-    // const _create_col_element = (colName: string, index: number, rowItem: any) => {
-    //     const state = store.getState();
-    //     const dfUpdates = ifElseDict(state.dataFrames.dfUpdates, activeDataFrame);
-    //     let elem;
-    //     if (('update_type' in dfUpdates) && 
-    //         (dfUpdates['update_type'] == UpdateType.add_cols) &&
-    //         (dfUpdates['update_content'].includes(colName))) {                
-    //         elem = (                               
-    //                 <DataTablCellOfNewCol key={index} align="right">
-    //                     {rowItem}     
-    //                 </DataTablCellOfNewCol>                          
-    //         );
-    //     } else {
-    //         elem = (                
-    //             <DataTableCell key={index} align="right">                    
-    //                 {rowItem}        
-    //             </DataTableCell> 
-                           
-    //         );
-    //     }
-    //     return elem;
-    // }
-
     const _create_cell = (dfColName: string, dfRowIndex: number, item: any, head: boolean = false, indexCell: boolean=false) => {
         let review: boolean = false;
         if (dfReview){
@@ -146,32 +54,37 @@ const TableComponent = (props: any) => {
                 review = (name[0]==dfColName && name[1]==dfRowIndex);
             }
         }
+        // if (review){
+        //     console.log('dfReview: ', dfReview, dfColName, dfRowIndex, head);
+        // }
         return (
             <Fragment>
-            {indexCell ? 
-            <DataTableIndexCell review={review}>
-                {dfRowIndex}
-                {dfReview && dfReview.type==ReviewType.row && review && <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline: 'center'}}/>}  
-            </DataTableIndexCell> :
-            <DataTableCell key={shortid.generate()} align="right" review={review} head={head}>   
-                <div>{item}</div>
-                {head ? 
-                <ColumnHistogramComponentWithNoSSR  
-                    df_id={activeDataFrame} 
-                    col_name={dfColName} 
-                    smallLayout={true}
-                /> : null
-                }
-                {head ? 
-                <CountNAComponent 
-                    df_id={activeDataFrame} 
-                    col_name={dfColName}
-                /> : null
-                }     
-                {dfReview && dfReview.type==ReviewType.col && head && review && <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline: 'center'}}/>}
-                {dfReview && dfReview.type==ReviewType.cell && review && <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline: 'center'}}/>}
-            </DataTableCell>             
-            } 
+                {indexCell ? 
+                <DataTableIndexCell key={shortid.generate()} review={review}>
+                    {dfRowIndex}
+                    {dfReview && dfReview.type==ReviewType.row && review && <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline: 'center'}}/>}  
+                </DataTableIndexCell> :
+                <DataTableCell key={shortid.generate()} align="right" review={review} head={head}>   
+                    <div>{item}</div>
+                    {head ? 
+                    <ColumnHistogramComponentWithNoSSR  
+                        df_id={activeDataFrame} 
+                        col_name={dfColName} 
+                        smallLayout={true}
+                    /> : null
+                    }
+                    {head ? 
+                    <CountNAComponent 
+                        df_id={activeDataFrame} 
+                        col_name={dfColName}
+                    /> : null
+                    }     
+                    {dfReview && dfReview.type==ReviewType.col && head && review && 
+                        <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline: 'center', behavior: 'smooth'}}/>}
+                    {dfReview && dfReview.type==ReviewType.cell && review && 
+                        <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline: 'center', behavior: 'smooth'}}/>}
+                </DataTableCell>             
+                } 
             </Fragment>
         );
     }

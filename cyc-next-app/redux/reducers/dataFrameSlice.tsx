@@ -9,7 +9,8 @@ import { DataTableContent,
         IReviewRequest,
         ReviewRequestType,
         IDFUpdatesReview,
-        IDFUpdates} from '../../lib/components/AppInterfaces';
+        IDFUpdates,
+        LoadDataRequest} from '../../lib/components/AppInterfaces';
 import { ifElse, ifElseDict } from '../../lib/components/libs';
 
 // for testing
@@ -46,6 +47,7 @@ export const dataFrameSlice = createSlice({
         // this is used to ask DFManager to load new data
         // currently only support loading by row index. 'count' is used to indicate new request
         loadDataRequest: {df_id: null, count: 0, row_index: 0},
+        loadColumnHistogram: false,
     },
     reducers: {
         // this function will add the initial data of the dataframe including: df name, column names, row data
@@ -55,7 +57,8 @@ export const dataFrameSlice = createSlice({
             const df_id = action.payload['df_id'];
             state.tableData[df_id] = action.payload;
             
-            state.activeDataFrame = df_id;
+            // comment out because this create side effect. explicitly set this outside when table is set.
+            // state.activeDataFrame = df_id; 
             
             //TODO do the same for columnHistogram
             if (!(df_id in state.columnDataSummary)){
@@ -84,6 +87,7 @@ export const dataFrameSlice = createSlice({
                 // state.columnHistogram[df_id][col_name] = action.payload['plot'];                
             // }
             state.columnHistogram[df_id][col_name] = ifElseDict(action.payload, 'plot');
+            state.loadColumnHistogram = false;
         },
         
         setCountNA: (state, action) => {  
@@ -97,9 +101,13 @@ export const dataFrameSlice = createSlice({
             //     state.columnDataSummary[df_id]['countna'] = action.payload['countna'];                
             // }
             state.columnDataSummary[df_id]['countna'] = ifElseDict(action.payload, 'countna');
+            //TODO: might need to set state.loadColumnHistogram = false here too
         },
         
-        /* Update and reviews */
+        /** 
+         * Process the df updage message. 
+         * Setup the review context as needed.
+        */
         setDFUpdates: (state, action) => {  
             // for testing          
             // state.data = testTableData
@@ -117,9 +125,11 @@ export const dataFrameSlice = createSlice({
                 if (updates.update_type==UpdateType.add_cols){
                     state.dfUpdatesReview[df_id] = {enable: false, index: 0, name: updates.update_content[0], count: 0, 
                                                     type: ReviewType.col, length: updates.update_content.length};
+                    state.loadColumnHistogram = true;
                 } else if (updates.update_type==UpdateType.add_rows){
                     state.dfUpdatesReview[df_id] = {enable: false, index: 0, name: updates.update_content[0], count: 0, 
                                                     type: ReviewType.row, length: updates.update_content.length};
+                    state.loadColumnHistogram = true;                                
                 } else if (updates.update_type==UpdateType.update_cells){
                     // console.log('Update content: ', Object.keys(updates.update_content));
                     let colNames = Object.keys(updates.update_content);
@@ -132,9 +142,11 @@ export const dataFrameSlice = createSlice({
                     state.dfUpdatesReview[df_id] = {enable: false, index: 0, name: [colNames[0], updates.update_content[colNames[0]][0]],
                                                     count: 0, type: ReviewType.cell, length: endIndex,
                                                     updates_col_index: 0, updates_row_index: 0, col_names: colNames, col_end_index: colEndIndex};
+                    state.loadColumnHistogram = true;
                 } else if (updates.update_type == UpdateType.new_df){
                     state.columnHistogram = {};
                     state.columnDataSummary[df_id] = {};
+                    state.loadColumnHistogram = true;
                 }
                 state.dfUpdates[df_id] = updates; //ifElseDict(action.payload, 'updates');          
             }
@@ -199,8 +211,11 @@ export const dataFrameSlice = createSlice({
                 }             
             }
             // }
-        }
+        },
 
+        setActiveDF: (state, action) => {
+            state.activeDataFrame = action.payload;
+        }
         
     },
 })
@@ -212,6 +227,7 @@ export const { setTableData,
                 setDFUpdates, 
                 setCountNA, 
                 setReview,
+                setActiveDF,
             } = dataFrameSlice.actions
 
 export default dataFrameSlice.reducer

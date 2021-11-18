@@ -141,70 +141,22 @@ const CodeEditorComponent = React.memo((props: any) => {
         // socket.emit("run", content);
     }
 
-    function _matchColumnNameExpression(text, cursor, matchList){
-        let matchState = 0;
-        let matched = false;
-        let dfName;
-        let strContent;
-        while(true){
-            // console.log(cursor.name);
-            if (matchState>=matchList.length) break;
-            let name = matchList[matchState].name;
-            let nextMatch = matchList[matchState].nextMatch;            
-            if (name==cursor.name){
-                if(matchState==0){
-                    // console.log(text);
-                    strContent = text.substring(cursor.from, cursor.to);
-                }
-                // console.log(cursor.name, strContent);
-                if (nextMatch==null){
-                    // console.log('Got a match');
-                    matched = true;
-                    dfName = text.substring(cursor.from, cursor.to);
-                    // console.log(text.substring(cursor.from, cursor.to))
-                } else {
-                    cursor[nextMatch]();                
-                }                
-            } else break;
-            matchState += 1;            
-        }
-        if(matched) console.log(dfName, strContent);
-        return {matched: matched, df_name: dfName, str_content: strContent};
-    }
-    const funcCallMatch = [{name: 'String', nextMatch: 'parent'},
-                            {name: 'ArgList', nextMatch: 'prevSibling'},
-                            {name: 'MemberExpression', nextMatch: 'firstChild'},
-                            {name: 'VariableName', nextMatch: null}]; 
-    
-                            
-    const onChange = (text: any, viewUpdate) => {
-        let editor = editorRef.current.view;
-        let state = editor.state;
-        let tree = state.tree;
-        let curPos = editor.state.selection.ranges[0].anchor;
-        let cursor = tree.cursor(curPos, 0);
-        // console.log(cursor.toString());
-        _matchColumnNameExpression(text, cursor, funcCallMatch);        
-    }
-
-    // let myTheme = EditorView.theme({})
-    
     const extensions = [
         basicSetup,
         // oneDark,
-        // EditorView.lineWrapping,
+        EditorView.lineWrapping,
         lineNumbers(),
         bracketMatching(),
         defaultHighlightStyle.fallback,
         python(),
-        ls,
+        // ls,
         keymap.of([{key: 'Mod-l', run: runLine}]),
         indentUnit.of('    '),
     ];
 
     return (
         <CodeEditor>
-            {console.log('CodeEditorComponent rerender')}
+            {console.log('Render CodeEditorComponent')}
             {/* { mounted ? */}
             <StyledCodeMirror
                 ref = {editorRef}
@@ -237,7 +189,10 @@ df = pd.DataFrame()
                 // extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
                 extensions = {extensions}
                 theme = 'light'
-                // onChange = {(text, viewUpdate) => onChange(text, viewUpdate)}                 
+                
+                // onChange = {(text, viewUpdate) => onChange(text, viewUpdate)}    
+                // onChange = {(text, viewUpdate) => onCMChange(text, viewUpdate)}                 
+                // onUpdate = {(viewUpdate) => onCMUpdate(viewUpdate)}             
             >
             </StyledCodeMirror> 
             {/* : null } */}

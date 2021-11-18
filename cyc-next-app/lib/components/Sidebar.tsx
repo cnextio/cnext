@@ -20,6 +20,7 @@ import DraftsIcon from '@mui/icons-material/Drafts';
 import SendIcon from '@mui/icons-material/Send';
 // import { Sidebar } from 'react-feather';
 import { Sidebar, SidebarList, SidebarListItem, SidebarButton, SidebarIcon, SideBarDivider } from './StyledComponents'
+import LogoComponent from './Logo';
 
 const drawerWidth = 240;
 
@@ -121,26 +122,7 @@ export default function MiniSidebar() {
 
   return (
     <Box>
-      {/* <CssBaseline /> */}
-      {/* <AppBar position="fixed" open={open}>
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            sx={{
-              marginRight: '36px',
-              ...(open && { display: 'none' }),
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Mini variant drawer
-          </Typography>
-        </Toolbar>
-      </AppBar> */}
+      <LogoComponent />
       <Sidebar variant="permanent" open={open}>        
         <SidebarList>
           {iconList.map((icon, index) => (

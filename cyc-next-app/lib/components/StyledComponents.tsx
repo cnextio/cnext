@@ -1,4 +1,6 @@
-import { Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { FormControl, Input, MenuItem, OutlinedInput, Select, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
+// import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import SplitPane, { Pane } from 'react-split-pane';
 import styled, { keyframes } from 'styled-components';
 // import { CSSTransition } from 'react-transition-group';
@@ -18,8 +20,8 @@ export const Logo = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 47px;
-    width: 47px
+    height: 45px;
+    width: 45px
 `;
 
 export const LogoIcon = styled.img`
@@ -143,7 +145,7 @@ export const CodePanel = styled.div`
 
     export const CodeToolbar = styled.div`
         display: flex;
-        height: 40px;
+        height: 45px;
         padding: 10px;
         align-self: stretch;
     `;
@@ -170,14 +172,14 @@ export const CodePanel = styled.div`
         `;
 
         export const StyledCodeMirror = styled(CodeMirror)`
-            &.cm-tooltip.documentation {
-                display: block;
-                margin-left: 0;
-                padding: 3px 6px 3px 8px;
-                border-left: 5px solid #999;
-                white-space: pre;
-                overflow: scroll;
-            }
+            // &.cm-tooltip.documentation {
+            //     display: block;
+            //     margin-left: 0;
+            //     padding: 3px 6px 3px 8px;
+            //     border-left: 5px solid #999;
+            //     white-space: pre;
+            //     overflow: scroll;
+            // }
             
             .cm-tooltip.lint {
               white-space: pre;
@@ -193,7 +195,12 @@ export const CodePanel = styled.div`
               white-space: pre;
               overflow: scroll;
             }
+
+            .cm-editor.cm-focused { 
+                outline: none
+            }
         `
+        
         export const CodeOutputContainer = styled.div`
             // display: flex;
             padding: 0px 10px 10px; 
@@ -257,21 +264,85 @@ export const TablePanel = styled.div`
 
         export const TableToolbar = styled.div`
             display: flex;
-            height: 40px;
-            padding: 10px;
+            height: 45px;
+            padding: 5px;
             align-self: stretch;
         `;
-
-        export const TableContainer = styled(MuiTableContainer)`
-            background-color: ${props => props.theme.palette.background.paper};
-            padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
-            // flex-grow: 1;
-            // display: flex;
-            // align-self: center;      
-            max-height: 90%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
-            overflow: auto;
-            // max-width: 100%;                          
+        export const DFSelectorForm = styled(FormControl)`
+            height: 100%;
+            width: 120px; 
+            font-size: 13px;                        
         `;
+            export const DFSelector = styled(Select)`            
+                font-size: 13px;        
+            `;
+            
+            export const DFSelectorIcon = styled(ArrowDropDownIcon)`
+                font-size: 20px;
+            ` ;   
+
+            export const DFSelectorMenuItem = styled(MenuItem)`
+                font-size: 13px; 
+                padding: 5px 10px;
+            `;
+
+            export const TableContainer = styled(MuiTableContainer)`
+                background-color: ${props => props.theme.palette.background.paper};
+                padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
+                // flex-grow: 1;
+                // display: flex;
+                // align-self: center;      
+                max-height: 90%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
+                overflow: auto;
+                // max-width: 100%;                          
+            `;
+        
+        export const DFFilterForm = styled(FormControl)`
+            height: 100%;
+            width: 100%; 
+            padding: 0px 0px 0px 5px;
+            font-size: 13px;              
+        `;
+            export const DFFilterInput = styled(OutlinedInput)`            
+                font-size: 13px;  
+                padding: 0px;      
+            `;
+        
+            export const StyledFilterCodeMirror = styled(CodeMirror)`       
+            height = "100%"                 
+            
+            .cm-tooltip.cm-completionInfo {
+              position: absolute;
+              margin: 1px -4px;
+              padding: 10px 10px 10px 10px;
+              width: max-content;
+              max-width: 1000px;
+              max-height: 700px;
+              white-space: pre;
+              overflow: scroll;
+            }
+
+            .cm-line {
+                display: flex;
+                align-items: center;
+                // height: 100%;
+                line-height: 25px;
+                font-size: 14px;
+                padding: 5px
+            }
+
+            .cm-content {
+                padding: 0px 10px;
+            }
+
+            .cm-editor.cm-focused { 
+                outline: none;                
+            }
+
+            .cm-matchingBracket { 
+                background: none;                
+            }
+        `
 
         export const DataTable = styled(Table)`
             border: 1px solid ${props => props.theme.palette.divider};      
@@ -371,6 +442,5 @@ function newColTransition(props) {
       }
     `;
   }
-  
   
 
