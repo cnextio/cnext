@@ -3,7 +3,7 @@ import React, { Fragment, useEffect } from "react";
 
 // redux
 import { useDispatch, useSelector } from 'react-redux'
-import { setActiveDF } from "../../redux/reducers/dataFrameSlice";
+import { setActiveDF } from "../../redux/reducers/dataFrame";
 import store from "../../redux/store";
 import { DFSelector, DFSelectorForm, DFSelectorIcon, DFSelectorInput, DFSelectorMenuItem } from "./StyledComponents";
 // import { CountNAContainer } from "./StyledComponents";
@@ -33,11 +33,11 @@ const DFExplorer = () => {
             {console.log(dfList)}
             <DFSelector                
                 onChange={handleChange}
-                value={dfList ? dfList.activeDF : null}
+                value={dfList ? dfList.activeDF : ''}
                 // label={dfList.activeDF}
                 IconComponent={DFSelectorIcon}
                 SelectDisplayProps={{style: {padding: '0px 10px', lineHeight: '35px'}}}
-                displayEmpty = {true}
+                // displayEmpty = {true}
                 renderValue = {()=>{
                     return (
                         <Fragment>
@@ -53,9 +53,9 @@ const DFExplorer = () => {
                     )    
                 }}                
             >
-                {dfList && dfList.list.map((item, index)=>(
-                <DFSelectorMenuItem value={item}>{item}</DFSelectorMenuItem>
-                ))}                
+            {dfList && dfList.list.map((item, index)=>(
+            <DFSelectorMenuItem value={item}>{item}</DFSelectorMenuItem>
+            ))}                
             </DFSelector>
         </DFSelectorForm>
     )

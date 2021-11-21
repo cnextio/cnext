@@ -48,6 +48,7 @@ export const dataFrameSlice = createSlice({
         // currently only support loading by row index. 'count' is used to indicate new request
         loadDataRequest: {df_id: null, count: 0, row_index: 0},
         loadColumnHistogram: false,
+        dfFilter: null,
     },
     reducers: {
         // this function will add the initial data of the dataframe including: df name, column names, row data
@@ -215,8 +216,11 @@ export const dataFrameSlice = createSlice({
 
         setActiveDF: (state, action) => {
             state.activeDataFrame = action.payload;
-        }
+        },
         
+        setDFFilter: (state, action) => {
+            state.dfFilter = action.payload;
+        }
     },
 })
 
@@ -228,6 +232,7 @@ export const { setTableData,
                 setCountNA, 
                 setReview,
                 setActiveDF,
+                setDFFilter,
             } = dataFrameSlice.actions
 
 export default dataFrameSlice.reducer

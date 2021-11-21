@@ -4,7 +4,7 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { useDispatch, useSelector } from "react-redux";
-import { setReview } from "../../redux/reducers/dataFrameSlice";
+import { setReview } from "../../redux/reducers/dataFrame";
 import { IDFUpdatesReview, IReviewRequest, ReviewRequestType, UndefReviewIndex } from "./AppInterfaces";
 import store from "../../redux/store";
 import { ifElse } from "./libs";

@@ -93,6 +93,18 @@ export enum ReviewRequestType {
     index = 'index'
 };
 
+export enum FilterType {
+    loc = 'loc',
+    iloc = 'iloc',
+    col = 'col'
+};
+
+export interface DFFilter {
+    type: FilterType,
+    index: string,
+    cols: string[]
+}
+
 export interface IDFUpdates {
     update_type: UpdateType,
     update_content: (string)[] | (number)[] | {}

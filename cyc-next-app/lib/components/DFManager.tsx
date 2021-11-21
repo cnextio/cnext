@@ -12,7 +12,7 @@ import {Message, WebAppEndpoint, CommandName, UpdateType} from "./AppInterfaces"
 import socket from "./Socket";
 import { TableContainer } from "./StyledComponents";
 import { setTableData, setColumnHistogramPlot, setColumnMetaData, 
-    setCountNA, setDFUpdates, setActiveDF } from "../../redux/reducers/dataFrameSlice";
+    setCountNA, setDFUpdates, setActiveDF } from "../../redux/reducers/dataFrame";
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
@@ -23,6 +23,7 @@ import { ifElse, ifElseDict } from "./libs";
 const DFManager = () => {
     const dispatch = useDispatch();
     const loadDataRequest = useSelector((state) => state.dataFrames.loadDataRequest);
+    const dfFilter = useSelector((state) => state.dataFrames.dfFilter);
 
     const _sendMessage = (message: {}) => {
         console.log(`Send ${WebAppEndpoint.DataFrameManager} request: `, JSON.stringify(message));
@@ -52,7 +53,7 @@ const DFManager = () => {
         _sendMessage(message);
     }
 
-    const DF_DISPLAY_HALF_LENGTH = 5;
+    const DF_DISPLAY_HALF_LENGTH = 15;
     const _sendGetTableDataAroundRowIndex = (df_id: string, around_index: number=0 ) => {               
         let content: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
                                 if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
@@ -62,8 +63,13 @@ const DFManager = () => {
         _sendMessage(message);
     }
 
-    const _sendGetTableData = (df_id: string) => {               
-        let content: string = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH*2})` ;
+    const _sendGetTableData = (df_id: string, filter: string|null = null) => {
+        let content: string;
+        if(filter){
+            content = `${df_id}${filter}.head(${DF_DISPLAY_HALF_LENGTH*2})`;
+        } else {
+            content = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH*2})`;
+        }
         let message = _createMessage(CommandName.get_table_data, content, 1, {'df_id': df_id})   
         // console.log("_send_get_table_data message: ", message);     
         _sendMessage(message);
@@ -181,6 +187,11 @@ const DFManager = () => {
         }
     }, [loadDataRequest]);
 
+    useEffect(() => {
+        if(dfFilter){
+            _sendGetTableData(dfFilter.df_id, dfFilter.query);
+        }        
+    }, [dfFilter]);
     return null;
 }
 

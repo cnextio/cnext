@@ -20,7 +20,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import CountNAComponent from "./CountNAComponent";
 import store from '../../redux/store';
 import { ifElse, ifElseDict } from "./libs";
-import { setDFUpdates } from "../../redux/reducers/dataFrameSlice";
+import { setDFUpdates } from "../../redux/reducers/dataFrame";
 
 const TableComponent = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);

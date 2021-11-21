@@ -273,8 +273,11 @@ export const TablePanel = styled.div`
             width: 120px; 
             font-size: 13px;                        
         `;
-            export const DFSelector = styled(Select)`            
-                font-size: 13px;        
+            export const DFSelector = styled(Select)` 
+                // &:hover {
+                //     border: 0px;
+                // }           
+                font-size: 13px;       
             `;
             
             export const DFSelectorIcon = styled(ArrowDropDownIcon)`
@@ -301,15 +304,18 @@ export const TablePanel = styled.div`
             height: 100%;
             width: 100%; 
             padding: 0px 0px 0px 5px;
-            font-size: 13px;              
+            font-size: 13px;             
         `;
             export const DFFilterInput = styled(OutlinedInput)`            
                 font-size: 13px;  
                 padding: 0px;      
+                :hover {
+                    border-color: "red"
+                }  
             `;
         
             export const StyledFilterCodeMirror = styled(CodeMirror)`       
-            height = "100%"                 
+            // height = "100%"                 
             
             .cm-tooltip.cm-completionInfo {
               position: absolute;
@@ -323,9 +329,6 @@ export const TablePanel = styled.div`
             }
 
             .cm-line {
-                display: flex;
-                align-items: center;
-                // height: 100%;
                 line-height: 25px;
                 font-size: 14px;
                 padding: 5px

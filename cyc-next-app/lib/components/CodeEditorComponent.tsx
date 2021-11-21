@@ -3,7 +3,7 @@ import {RecvCodeOutput, Message, DataTableContent, WebAppEndpoint, ContentType, 
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
-import { setTableData } from "../../redux/reducers/dataFrameSlice";
+import { setTableData } from "../../redux/reducers/dataFrame";
 import { update as vizDataUpdate } from "../../redux/reducers/vizDataSlice";
 
 import socket from "./Socket";
@@ -188,8 +188,7 @@ df = pd.DataFrame()
                 // extensions = {[python(), ls, keymap.of([{key: 'Mod-l', run: runLine}])]}                    
                 // extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
                 extensions = {extensions}
-                theme = 'light'
-                
+                theme = 'light'                
                 // onChange = {(text, viewUpdate) => onChange(text, viewUpdate)}    
                 // onChange = {(text, viewUpdate) => onCMChange(text, viewUpdate)}                 
                 // onUpdate = {(viewUpdate) => onCMUpdate(viewUpdate)}             
