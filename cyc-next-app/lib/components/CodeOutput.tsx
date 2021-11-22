@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import store from '../../redux/store';
 import { ifElse } from "./libs";
 import { scrollLock, scrollUnlock } from "../../redux/reducers/scrollLockSlice";
-import ReviewComponent from "./ReviewComponent";
+import ReviewComponent from "./DFReview";
 
 
 // const OutputLine = (content: string|ReactElement) => {

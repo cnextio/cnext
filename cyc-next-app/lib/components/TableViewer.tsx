@@ -11,16 +11,16 @@ import { scrollLock, scrollUnlock } from "../../redux/reducers/scrollLockSlice";
 
 import dynamic from 'next/dynamic'
 const ColumnHistogramComponentWithNoSSR = dynamic(
-    () => import("./ColumnHistogramComponent"),
+    () => import("./ColumnHistogram"),
     { ssr: false }
   )
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
-import CountNAComponent from "./CountNAComponent";
+import CountNAComponent from "./CountNA";
 import store from '../../redux/store';
 import { ifElse, ifElseDict } from "./libs";
-import { setDFUpdates } from "../../redux/reducers/dataFrame";
+import { setDFUpdates } from "../../redux/reducers/dataFrames";
 
 const TableComponent = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);

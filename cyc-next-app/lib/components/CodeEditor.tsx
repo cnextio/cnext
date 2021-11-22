@@ -3,7 +3,7 @@ import {RecvCodeOutput, Message, DataTableContent, WebAppEndpoint, ContentType, 
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
-import { setTableData } from "../../redux/reducers/dataFrame";
+import { setTableData } from "../../redux/reducers/dataFrames";
 import { update as vizDataUpdate } from "../../redux/reducers/vizDataSlice";
 
 import socket from "./Socket";
@@ -149,7 +149,7 @@ const CodeEditorComponent = React.memo((props: any) => {
         bracketMatching(),
         defaultHighlightStyle.fallback,
         python(),
-        // ls,
+        ls,
         keymap.of([{key: 'Mod-l', run: runLine}]),
         indentUnit.of('    '),
     ];

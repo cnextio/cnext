@@ -54,7 +54,8 @@ export enum CommandName {
     plot_column_histogram = 'plot_column_histogram',
     get_countna = 'get_countna',
     plot_countna = 'plot_countna',
-    get_table_data = 'get_table_data'
+    get_table_data = 'get_table_data',
+    get_df_metadata = 'get_df_metadata'
 };
 
 export enum ContentType {  

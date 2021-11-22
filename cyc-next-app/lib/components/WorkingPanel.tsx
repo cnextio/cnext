@@ -2,8 +2,8 @@ import { Box } from "@mui/system";
 import React, {FC} from "react";
 import { MainPanel, WorkingPanel, WorkingPanelSplitPanel } from "./StyledComponents";
 import SplitPane, { Pane } from "react-split-pane";
-import CodePanelComponent from "./CodePanelComponent";
-import TablePanelComponent from "./TablePanelComponent";
+import CodePanelComponent from "./CodePanel";
+import TablePanelComponent from "./TablePanel";
 import DFManager from "./DFManager";
 import DFStatusNotification from "./DFStatusNotification";
 

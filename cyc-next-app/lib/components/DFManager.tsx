@@ -11,8 +11,8 @@ import React, { useEffect, useState } from "react";
 import {Message, WebAppEndpoint, CommandName, UpdateType} from "./AppInterfaces";
 import socket from "./Socket";
 import { TableContainer } from "./StyledComponents";
-import { setTableData, setColumnHistogramPlot, setColumnMetaData, 
-    setCountNA, setDFUpdates, setActiveDF } from "../../redux/reducers/dataFrame";
+import { setTableData, setColumnHistogramPlot, setMetaData, 
+    setCountNA, setDFUpdates, setActiveDF } from "../../redux/reducers/dataFrames";
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
@@ -75,6 +75,12 @@ const DFManager = () => {
         _sendMessage(message);
     }
 
+    const _sendGetDFMetadata = (df_id: string, filter: string|null = null) => {
+        let message = _createMessage(CommandName.get_df_metadata, '', 1, {'df_id': df_id});   
+        // console.log("_send_get_table_data message: ", message);     
+        _sendMessage(message);
+    }
+
     const _handleGetCountna = (message: {}) => {
         const content = message.content;        
         // content['df_id'] = message.metadata['df_id'];
@@ -101,12 +107,13 @@ const DFManager = () => {
                 let updateType = ifElse(dfUpdates, 'update_type', null);
                 let updateContent = ifElse(dfUpdates, 'update_content', null);
                 // console.log("Update active df: ", dfUpdates);
+                _sendGetDFMetadata(df_id);
                 if (updateType == UpdateType.add_rows) {
                     // show data around added rows
                     _sendGetTableDataAroundRowIndex(df_id, updateContent[0]);
                 } else {                    
                     _sendGetTableData(df_id);                                       
-                }
+                }                
                 // make redux object conform to our standard 
                 let dataFrameUpdateMessage = {df_id: df_id, ...dfStatusContent[df_id]};
                 dispatch(setDFUpdates(dataFrameUpdateMessage));
@@ -153,6 +160,12 @@ const DFManager = () => {
         dispatch(setColumnHistogramPlot(content));             
     }
 
+    const _handleGetDFMetadata = (message: {}) => {
+        console.log(`${WebAppEndpoint.DataFrameManager} get metadata for "${message.metadata['df_id']}"`,);
+        let content = message.content;
+        dispatch(setMetaData(content));             
+    }
+
     useEffect(() => {
         // console.log('DFManager useEffect');
         socket.emit("ping", "DataFrameManager");
@@ -170,6 +183,8 @@ const DFManager = () => {
                     _handlePlotColumnHistogram(message);              
                 } else if (message.command_name==CommandName.get_countna){
                     _handleGetCountna(message);
+                } else if (message.command_name==CommandName.get_df_metadata){
+                    _handleGetDFMetadata(message);
                 } else {  
                     console.log("dispatch text output");                        
                     // props.recvCodeOutput(codeOutput);

@@ -154,6 +154,23 @@ def handle_DataFrameManager_message(message):
                 content_type = ContentType.dict
                 send_reply = True                            
         
+        elif message.command_name == CommandName.get_df_metadata: 
+            df_id = message.metadata['df_id']
+            shape = eval("%s.df.shape"%df_id, globals())
+            dtypes = eval("%s.df.dtypes"%df_id, globals())
+            countna = eval("%s.df.isna().sum()"%df_id, globals())
+            describe = eval("%s.df.describe(include='all')"%df_id, globals())
+            columns = {}
+            for col_name, ctype in dtypes.items():
+                # print(col_name, ctype)
+                unique = None #eval("%s['%s'].unique().tolist()"%(df_id, col_name), globals())
+                columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique, 
+                                        'describe': describe[col_name].to_json(), 'countna': countna[col_name].item()}                
+            output = {'df_id': df_id, 'shape': shape, 'columns': columns}    
+            log.info(output)
+            content_type = ContentType.dict
+            send_reply = True    
+
         if send_reply:
             message.content_type = content_type
             message.content = output

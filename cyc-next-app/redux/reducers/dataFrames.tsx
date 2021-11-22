@@ -34,6 +34,7 @@ export const dataFrameSlice = createSlice({
     initialState: {
         // for testing
         // data: testTableData,
+        metadata: {},
         activeDataFrame: '',
         tableData: {},
         columnMetaData: {},
@@ -69,11 +70,11 @@ export const dataFrameSlice = createSlice({
             // action.payload['updates']?action.payload['updates']:{}                        
         },
         
-        setColumnMetaData: (state, action) => {  
+        setMetaData: (state, action) => {  
             // for testing          
             // state.data = testTableData
             const df_id = action.payload['df_id'];
-            state.columnMetaData[df_id] = action.payload;
+            state.metadata[df_id] = action.payload;
         },
         
         setColumnHistogramPlot: (state, action) => {  
@@ -226,7 +227,7 @@ export const dataFrameSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const { setTableData, 
-                setColumnMetaData, 
+                setMetaData, 
                 setColumnHistogramPlot, 
                 setDFUpdates, 
                 setCountNA, 

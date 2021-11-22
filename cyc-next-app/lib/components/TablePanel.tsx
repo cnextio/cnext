@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { DataTable, TablePanel, TableToolbar } from "./StyledComponents";
-import TableComponent from "./TableComponent";
+import TableComponent from "./TableViewer";
 import DFExplorer from "./DFExplorer";
 
 import dynamic from 'next/dynamic'

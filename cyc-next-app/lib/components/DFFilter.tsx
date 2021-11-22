@@ -15,7 +15,7 @@ import { basicSetup } from "@codemirror/basic-setup";
 import { keymap } from "@codemirror/view";
 import { WHILE_TYPES } from "@babel/types";
 import { CommandName, WebAppEndpoint } from "./AppInterfaces";
-import { setDFFilter } from "../../redux/reducers/dataFrame";
+import { setDFFilter } from "../../redux/reducers/dataFrames";
 import store from "../../redux/store";
 
 const ls = dfFilterLanguageServer({
@@ -60,10 +60,11 @@ const DFExplorer = () => {
                         let indexEnd;
                         let columnEnd;
                         while(cursor.next()){
+                            console.log(cursor.name);
                             if (cursor.name == 'IndexExpression') {
                                 curComponent='index';
                                 indexEnd = cursor.to;
-                            } else if (cursor.name == 'ColumnSelectionExpression') {
+                            } else if (cursor.name == 'ColumnFilterExpression') {
                                 curComponent='column';
                                 columnEnd = cursor.to;
                             } else if (cursor.name == 'SimpleQueryExpression') {
@@ -82,6 +83,14 @@ const DFExplorer = () => {
                                     indexStr = indexStr.concat(activeDF,'[',text.substring(cursor.from, cursor.to),']');
                                 } else if (cursor.name == 'isna' || cursor.name == 'notna'){ 
                                     indexStr = indexStr.concat(`.${cursor.name}()`);
+                                } else if (cursor.name == 'isin'){                                     
+                                    cursor.nextSibling(); 
+                                    indexStr = indexStr.concat(`.isin(${text.substring(cursor.from, cursor.to)})`);
+                                    // cursor is here now: IndexSelectorExpression("[",(Number),"]"))
+                                    // need to move cursor to the node ending at cursor.to, so the next step
+                                    // can skip through IndexSelectorExpression's children
+                                    cursor.moveTo(cursor.to, -1);
+                                    
                                 } else {
                                     indexStr = indexStr.concat(text.substring(cursor.from, cursor.to));
                                 }
@@ -111,21 +120,6 @@ const DFExplorer = () => {
         }
         dispatch(setDFFilter({df_id: activeDF, query: queryStr}));
     }
-
-    // const _create_message = (content: string) => {
-    //     let message = {};
-    //     message['webapp_endpoint'] = WebAppEndpoint.CodeEditorComponent;
-    //     message['command_name'] = CommandName.code_area_command;
-    //     message['seq_number'] = 1;     
-    //     message['content'] = content;
-    //     return message;
-    // }
-
-    // const _send_message = (content: string) => {
-    //     let message = _create_message(content);
-    //     console.log(`send ${WebAppEndpoint.CodeEditorComponent} message: `, message);
-    //     socket.emit(message.webapp_endpoint, JSON.stringify(message));
-    // }
     
     const extensions = [
         // basicSetup,

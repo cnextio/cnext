@@ -8,7 +8,7 @@ const cnextQueryLanguage = LRLanguage.define({
             styleTags({
                 "async '*' '**' FormatConversion": tags.modifier,
                 "for while if elif else try except finally return raise break continue with pass assert await yield": tags.controlKeyword,
-                "in not and or is del index": tags.operatorKeyword,
+                "not index isna notna isin": tags.operatorKeyword,
                 "import from def class global nonlocal lambda": tags.definitionKeyword,
                 "with as print": tags.keyword,
                 self: tags.self,

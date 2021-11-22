@@ -26,20 +26,19 @@ simpleStatement {
 
 commaSep<expr> { expr ("," expr)* ","? }
 
-SimpleQueryExpression {"[" ((IndexExpression) |  ColumnSelectionExpression 
-                        | (IndexExpression "," ColumnSelectionExpression)) "]" }
+SimpleQueryExpression {"[" ((IndexExpression) |  ColumnFilterExpression 
+                        | (IndexExpression "," ColumnFilterExpression)) "]" }
 IndexExpression {(IndexSlicingExpression | BooleanIndexExpression)}
 IndexSlicingExpression {(Number (":" Number)?)}
 BooleanIndexExpression {indexTest}
-ColumnSelectionExpression {"[" commaSep<ColumnNameExpression>? "]"}
+ColumnFilterExpression {"[" commaSep<ColumnNameExpression>? "]"}
 ColumnNameExpression {shortString}
 
 IndexSelectorExpression {
     String |
     Number |
     identifier |
-    ("[" commaSep<String>? "]")
-    kw<"None"> |
+    ("[" commaSep<String>? "]") |
     @specialize[@name=Boolean]<identifier, "True" | "False">
 }
 
@@ -57,7 +56,8 @@ binaryTest {
 unaryTest { kw<"not"> indexTest }
 
 booleanIndexTest {
-  (ColumnNameExpression | kw<"index">) !compare (CompareOp | kw<"in"> | kw<"not"> kw<"in"> | kw<"is"> kw<"not">? | kw<"isna"> | kw<"notna"> ) IndexSelectorExpression 
+  (ColumnNameExpression | kw<"index">) !compare (CompareOp | kw<"isin"> ) IndexSelectorExpression |
+  (ColumnNameExpression | kw<"index">) (kw<"isna"> | kw<"notna">)
 }
 
 @skip {} {
