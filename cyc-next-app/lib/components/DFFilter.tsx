@@ -60,7 +60,6 @@ const DFExplorer = () => {
                         let indexEnd;
                         let columnEnd;
                         while(cursor.next()){
-                            console.log(cursor.name);
                             if (cursor.name == 'IndexExpression') {
                                 curComponent='index';
                                 indexEnd = cursor.to;

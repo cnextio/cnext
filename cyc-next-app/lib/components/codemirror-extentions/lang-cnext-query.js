@@ -16,6 +16,7 @@ const cnextQueryLanguage = LRLanguage.define({
                 None: tags.null,
                 VariableName: tags.variableName,
                 ColumnNameExpression: tags.string,
+                ColumnValueExpression: tags.string,
                 "CallExpression/VariableName": tags.function(tags.variableName),
                 "FunctionDefinition/VariableName": tags.function(tags.definition(tags.variableName)),
                 "ClassDefinition/VariableName": tags.definition(tags.className),

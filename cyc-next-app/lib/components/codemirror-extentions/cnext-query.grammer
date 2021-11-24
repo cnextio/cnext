@@ -33,12 +33,12 @@ IndexSlicingExpression {(Number (":" Number)?)}
 BooleanIndexExpression {indexTest}
 ColumnFilterExpression {"[" commaSep<ColumnNameExpression>? "]"}
 ColumnNameExpression {shortString}
+ColumnValueExpression {shortString | Number}
 
 IndexSelectorExpression {
-    String |
-    Number |
+    ColumnValueExpression |
     identifier |
-    ("[" commaSep<String>? "]") |
+    ("[" commaSep<ColumnValueExpression>? "]") |
     @specialize[@name=Boolean]<identifier, "True" | "False">
 }
 
