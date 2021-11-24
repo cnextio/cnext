@@ -51,7 +51,7 @@ const CodeEditorComponent = React.memo((props: any) => {
     const dispatch = useDispatch();
 
     const _handle_plot_data = (message: {}) => {
-        console.log(`${WebAppEndpoint.CodeEditorComponent} got plot data`);
+        console.log(`${WebAppEndpoint.CodeEditor} got plot data`);
         let content = message.content;
         content['plot'] = JSON.parse(content['plot']);      
         console.log("dispatch plot data");                  
@@ -61,7 +61,7 @@ const CodeEditorComponent = React.memo((props: any) => {
     useEffect(() => {
         setMounted(true);
         socket.emit("ping", "CodeEditorComponent");
-        socket.on(WebAppEndpoint.CodeEditorComponent, (result: string) => {
+        socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
             console.log("Got results: ", result, '\n');
             try {
                 let codeOutput: Message = JSON.parse(result);                
@@ -116,7 +116,7 @@ const CodeEditorComponent = React.memo((props: any) => {
 
     const _create_message = (content: string) => {
         let message = {};
-        message['webapp_endpoint'] = WebAppEndpoint.CodeEditorComponent;
+        message['webapp_endpoint'] = WebAppEndpoint.CodeEditor;
         message['command_name'] = CommandName.code_area_command;
         message['seq_number'] = 1;     
         message['content'] = content;
@@ -125,7 +125,7 @@ const CodeEditorComponent = React.memo((props: any) => {
 
     const _send_message = (content: string) => {
         let message = _create_message(content);
-        console.log(`send ${WebAppEndpoint.CodeEditorComponent} message: `, message);
+        console.log(`send ${WebAppEndpoint.CodeEditor} message: `, message);
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     }
 

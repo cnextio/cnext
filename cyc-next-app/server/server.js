@@ -32,9 +32,9 @@ const io = new socketIo.Server(server, options);
 let ready = false;
 
 // TODO: move to Interfaces.tsx
-const CodeEditorComponent = 'CodeEditorComponent';
+const CodeEditor = 'CodeEditor';
 // const TableAreaComponent = 'table_panel';
-const DataFrameManager = 'DataFrameManager';
+const DFManager = 'DFManager';
 
 /*
 * Communicate with web client
@@ -63,7 +63,7 @@ try {
         // });
 
         //TODO: catch json parse error here
-        socket.on(CodeEditorComponent, str_message => {  //TODO: use enum    
+        socket.on(CodeEditor, str_message => {  //TODO: use enum    
             message = JSON.parse(str_message);
             console.log("Receive msg from CodeEditorComponent, server will run: ", message);         
             pyshell.send(message);
@@ -78,7 +78,7 @@ try {
         //     // pyshell.send(testData);
         // });
 
-        socket.on(DataFrameManager, str_message => {  //TODO: use enum                  
+        socket.on(DFManager, str_message => {  //TODO: use enum                  
             message = JSON.parse(str_message);
             console.log("Receive msg from DataFrameManager, server will run: ", message);  
             pyshell.send(message);
@@ -181,13 +181,13 @@ try {
     const initialize = () => {
         // pyshell.send({webapp_endpoint: CodeEditorComponent, content: 'print("hello world!")'});
         // seting up plotly
-        pyshell.send({webapp_endpoint: CodeEditorComponent, content: 'import plotly.express as px'});
-        pyshell.send({webapp_endpoint: CodeEditorComponent, content: 'import plotly.io as pio'});
-        pyshell.send({webapp_endpoint: CodeEditorComponent, content: 'pio.renderers.default = "json"'});
+        pyshell.send({webapp_endpoint: CodeEditor, content: 'import plotly.express as px'});
+        pyshell.send({webapp_endpoint: CodeEditor, content: 'import plotly.io as pio'});
+        pyshell.send({webapp_endpoint: CodeEditor, content: 'pio.renderers.default = "json"'});
         
 
         //for testing
-        pyshell.send({webapp_endpoint: CodeEditorComponent, 
+        pyshell.send({webapp_endpoint: CodeEditor, 
                         content: `import os, sys, pandas as pd; os.chdir('${config.path_to_cycdataframe_lib}cycdataframe/'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame`});
         // pyshell.send({webapp_endpoint: CodeEditorComponent, 
         //                 content: "df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')"}); 
@@ -205,7 +205,7 @@ try {
         // pyshell.send({request_originator: CodeEditorComponent, command: 'df.head()'});
 
         //test plot_count_na
-        pyshell.send({webapp_endpoint: DataFrameManager,
+        pyshell.send({webapp_endpoint: DFManager,
             command_name: "get_count_na",
             seq_number: 1}); 
     }

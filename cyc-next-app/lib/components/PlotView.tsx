@@ -6,7 +6,7 @@ import Plot from "react-plotly.js";
 import { useSelector, useDispatch } from 'react-redux'
 import { update as vizDataUpdate } from "../../redux/reducers/vizDataSlice";
 // for testing
-import {vizData as testVizData} from "../../lib/components/tests/TestVizData"  
+import {vizData as testVizData} from "./tests/TestVizData"  
 
 export function VizComponent(props: any) {    
     const vizData = useSelector((state) => state.vizData.data)

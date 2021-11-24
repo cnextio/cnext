@@ -1,4 +1,4 @@
-import { FormControl, Input, MenuItem, OutlinedInput, Select, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Box, Button, FormControl, Input, MenuItem, OutlinedInput, Popover, Select, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
 // import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import SplitPane, { Pane } from 'react-split-pane';
@@ -268,6 +268,7 @@ export const TablePanel = styled.div`
             padding: 5px;
             align-self: stretch;
         `;
+
         export const DFSelectorForm = styled(FormControl)`
             height: 100%;
             width: 120px; 
@@ -288,17 +289,6 @@ export const TablePanel = styled.div`
                 font-size: 13px; 
                 padding: 5px 10px;
             `;
-
-            export const TableContainer = styled(MuiTableContainer)`
-                background-color: ${props => props.theme.palette.background.paper};
-                padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
-                // flex-grow: 1;
-                // display: flex;
-                // align-self: center;      
-                max-height: 90%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
-                overflow: auto;
-                // max-width: 100%;                          
-            `;
         
         export const DFFilterForm = styled(FormControl)`
             height: 100%;
@@ -315,89 +305,119 @@ export const TablePanel = styled.div`
             `;
         
             export const StyledFilterCodeMirror = styled(CodeMirror)`       
-            // height = "100%"                 
-            
-            .cm-tooltip.cm-completionInfo {
-              position: absolute;
-              margin: 1px -4px;
-              padding: 10px 10px 10px 10px;
-              width: max-content;
-              max-width: 1000px;
-              max-height: 700px;
-              white-space: pre;
-              overflow: scroll;
-            }
+                // height = "100%"                 
+                
+                .cm-tooltip.cm-completionInfo {
+                position: absolute;
+                margin: 1px -4px;
+                padding: 10px 10px 10px 10px;
+                width: max-content;
+                max-width: 1000px;
+                max-height: 700px;
+                white-space: pre;
+                overflow: scroll;
+                }
 
-            .cm-line {
-                line-height: 25px;
+                .cm-line {
+                    line-height: 25px;
+                    font-size: 14px;
+                    padding: 5px
+                }
+
+                .cm-content {
+                    padding: 0px 10px;
+                }
+
+                .cm-editor.cm-focused { 
+                    outline: none;                
+                }
+
+                .cm-matchingBracket { 
+                    background: none;                
+                }
+            `
+        
+        export const StyledTableViewHeader = styled.div`
+            display: flex;
+            flex-direction: row;
+            padding: 5px 10px 0px 10px;
+            height: 30px;
+            width: 100%;
+            color: ${props => props.theme.palette.text.secondary};
+        `;
+
+            export const TableViewHeaderButton = styled(Typography)`
+                margin: 0px 10px 0px 0px;
+                font-size: 12px;
+                border-bottom-style: ${props => props.selected ? "solid" : "none"};
+                border-width: 1px;
+                &:hover {
+                    cursor: pointer;
+                }
+            `;
+
+            export const TableShape = styled(Typography)`
                 font-size: 14px;
-                padding: 5px
-            }
+                color: ${props => props.theme.palette.text.secondary};
+                padding-top: 5px;
+                // justify-self: stretch;
+                margin-left: auto;
+            `;
 
-            .cm-content {
-                padding: 0px 10px;
-            }
+        export const TableContainer = styled(MuiTableContainer)`
+            background-color: ${props => props.theme.palette.background.paper};
+            padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
+            max-height: 90%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
+            overflow: auto;
+        `;
 
-            .cm-editor.cm-focused { 
-                outline: none;                
-            }
+            export const DataTable = styled(Table)`
+                border: 1px solid ${props => props.theme.palette.divider};      
+                margin-top: 10px; //see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par                                   
+            `;
+                
+                export const DataTableHead = styled(TableHead)`
+                    background-color: ${props => props.theme.palette.grey.A400} !important;
+                `;
+                
+                export const DataTableHeadRow = styled(TableRow)`
+                `;
 
-            .cm-matchingBracket { 
-                background: none;                
-            }
-        `
-
-        export const DataTable = styled(Table)`
-            border: 1px solid ${props => props.theme.palette.divider};      
-            margin-top: 10px; //see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par                                   
-        `
-
-        export const DataTableHead = styled(TableHead)`
-            background-color: ${props => props.theme.palette.grey.A400} !important;
-        `
-        export const DataTableHeadRow = styled(TableRow)`
-            // display: flex;
-            // flex-wrap: nowrap;
-            // flex-direction: row;
-        `
-        export const DataTableRow = styled(TableRow)`
-            &:nth-of-type(odd) {
-                background-color: ${props => props.theme.palette.action.hover};
-            };
-            // &:hover {
-            //     background-color: ${props => props.theme.palette.grey.A400};
-            // }
-        `
-        
-        export const DataTableHeadCell = styled(TableCell)`
-            font-weight: bold;
-            font-size: 13px;
-            vertical-align: bottom;
-            ${props => (props.review 
-                ? newColTransition(props)
-                : null)} 1s linear 0s;
-        `
-        
-        export const DataTableHeadText = styled.div`
-            text-overflow: ellipsis;
-        `
-        
-        export const DataTableIndexCell = styled(TableCell)`
-            font-weight: bold;
-            font-size: 13px;
-            animation:  ${props => (props.review 
-                ? newColTransition(props)
-                : null)} 1s linear 0s; 
-        `
-        export const DataTableCell = styled(TableCell)`
-            font-weight: ${props => (props.head ? 'bold' : 'normal')};
-            vertical-align: ${props => (props.head ? 'bottom' : 'center')};
-            text-align: ${props => (props.head ? 'left' : 'right')};
-            font-size: 13px;
-            animation:  ${props => (props.review 
-                ? newColTransition(props)
-                : null)} 1s linear 0s; 
-        `
+                export const DataTableRow = styled(TableRow)`
+                    &:nth-of-type(odd) {
+                        background-color: ${props => props.theme.palette.action.hover};
+                    };
+                `;
+                
+                export const DataTableHeadCell = styled(TableCell)`
+                    font-weight: bold;
+                    font-size: 13px;
+                    vertical-align: bottom;
+                    ${props => (props.review 
+                        ? newColTransition(props)
+                        : null)} 1s linear 0s;
+                `;
+                
+                export const DataTableHeadText = styled.div`
+                    text-overflow: ellipsis;
+                `
+                
+                export const DataTableIndexCell = styled(TableCell)`
+                    font-weight: bold;
+                    font-size: 13px;
+                    animation:  ${props => (props.review 
+                        ? newColTransition(props)
+                        : null)} 1s linear 0s; 
+                `
+                export const DataTableCell = styled(TableCell)`
+                    font-weight: ${props => (props.head ? 'bold' : 'normal')};
+                    vertical-align: ${props => (props.head ? 'bottom' : 'center')};
+                    text-align: ${props => (props.head ? 'left' : 'right')};
+                    font-size: 13px;
+                    animation:  ${props => (props.review 
+                        ? newColTransition(props)
+                        : null)} 1s linear 0s; 
+                `
 
         export const VizContainer = styled(MuiTableContainer)`
             background-color: ${props => props.theme.palette.background.paper};

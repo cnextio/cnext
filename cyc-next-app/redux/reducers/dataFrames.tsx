@@ -77,21 +77,37 @@ export const dataFrameSlice = createSlice({
             state.metadata[df_id] = action.payload;
         },
         
+        // setColumnHistogramPlot: (state, action) => {  
+        //     // for testing          
+        //     // state.data = testTableData
+        //     const df_id = action.payload['df_id'];
+        //     const col_name = action.payload['col_name'];
+        //     if (!(df_id in state.columnHistogram)){
+        //         state.columnHistogram[df_id] = {};
+        //     }
+        //     // if ('plot' in action.payload){
+        //         // state.columnHistogram[df_id][col_name] = action.payload['plot'];                
+        //     // }
+        //     state.columnHistogram[df_id][col_name] = ifElseDict(action.payload, 'plot');
+        //     state.loadColumnHistogram = false;
+        // },
+        
         setColumnHistogramPlot: (state, action) => {  
             // for testing          
             // state.data = testTableData
             const df_id = action.payload['df_id'];
             const col_name = action.payload['col_name'];
-            if (!(df_id in state.columnHistogram)){
-                state.columnHistogram[df_id] = {};
-            }
-            // if ('plot' in action.payload){
-                // state.columnHistogram[df_id][col_name] = action.payload['plot'];                
-            // }
-            state.columnHistogram[df_id][col_name] = ifElseDict(action.payload, 'plot');
-            state.loadColumnHistogram = false;
+            state.metadata[df_id].columns[col_name].histogram_plot = ifElseDict(action.payload, 'plot');
         },
-        
+
+        setColumnQuantilePlot: (state, action) => {  
+            // for testing          
+            // state.data = testTableData
+            const df_id = action.payload['df_id'];
+            const col_name = action.payload['col_name'];
+            state.metadata[df_id].columns[col_name].quantile_plot = ifElseDict(action.payload, 'plot');
+        },
+
         setCountNA: (state, action) => {  
             // for testing          
             // state.data = testTableData
@@ -234,6 +250,7 @@ export const { setTableData,
                 setReview,
                 setActiveDF,
                 setDFFilter,
+                setColumnQuantilePlot,
             } = dataFrameSlice.actions
 
 export default dataFrameSlice.reducer

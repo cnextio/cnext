@@ -1,5 +1,5 @@
-import { TableBody, TableHead, TableRow, TableCell, Grow, Fade } from "@mui/material";
-import React, { useEffect, Box, useRef, useState, useCallback, Fragment } from "react";
+import { TableBody, TableHead, TableRow, TableCell, Grow, Fade, Paper, Divider } from "@mui/material";
+import React, { useEffect, useRef, useState, useCallback, Fragment } from "react";
 import shortid from "shortid";
 import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 
@@ -8,12 +8,13 @@ import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHea
 import {Message, WebAppEndpoint, DataTableContent, UpdateType, IReviewRequest, IDFUpdatesReview, ReviewType} from "./AppInterfaces";
 import socket from "./Socket";
 import { scrollLock, scrollUnlock } from "../../redux/reducers/scrollLockSlice";
+import ColumnHistogram from "./ColumnHistogram"
 
-import dynamic from 'next/dynamic'
-const ColumnHistogramComponentWithNoSSR = dynamic(
-    () => import("./ColumnHistogram"),
-    { ssr: false }
-  )
+// import dynamic from 'next/dynamic'
+// const ColumnHistogramComponentWithNoSSR = dynamic(
+//     () => import("./ColumnHistogram"),
+//     { ssr: false }
+//   )
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
@@ -21,26 +22,20 @@ import CountNAComponent from "./CountNA";
 import store from '../../redux/store';
 import { ifElse, ifElseDict } from "./libs";
 import { setDFUpdates } from "../../redux/reducers/dataFrames";
+import TableViewHeader from "./TableViewHeader";
+import TableSummary from "./table_summary/TableSummary";
 
-const TableComponent = (props: any) => {    
+const TableView = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     const dfReview: IDFUpdatesReview = useSelector((state) => _get_review_request(state));
-    // const dataFrameUpdates = useSelector((state) => state.dataFrames.dataFrameUpdates);
-    const endPointRef = useRef(null);
     const dispatch = useDispatch();  
+    const [show, setShow] = useState('Tables');
 
-    /* 
-    * We use this scrollLocked to make sure this and CodeOutputComponent can scroll to view
-    * at the same time. This is very ugly solution for this problem 
-    * https://stackoverflow.com/questions/49318497/google-chrome-simultaneously-smooth-scrollintoview-with-more-elements-doesn
-    */
-    // const scrollLocked = useSelector((state) => state.scrollLock.locked);    
-    
     function _get_review_request(state): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
     }
-
+    
     const _create_cell = (dfColName: string, dfRowIndex: number, item: any, head: boolean = false, indexCell: boolean=false) => {
         let review: boolean = false;
         if (dfReview){
@@ -67,7 +62,7 @@ const TableComponent = (props: any) => {
                 <DataTableCell key={shortid.generate()} align="right" review={review} head={head}>   
                     <div>{item}</div>
                     {head ? 
-                    <ColumnHistogramComponentWithNoSSR  
+                    <ColumnHistogram  
                         df_id={activeDataFrame} 
                         col_name={dfColName} 
                         smallLayout={true}
@@ -99,38 +94,46 @@ const TableComponent = (props: any) => {
             </DataTableRow>
         )
     }
+
     const _clear_dataFrameUpdateState = (df_id: string) => {
         dispatch(setDFUpdates({df_id: df_id}));
     }
 
     return (
-        <TableContainer>
-        {/* {console.log("Render TableContainer: ", tableData)} */}
-        {console.log("Render TableContainer")}
-        {ifElse(tableData, activeDataFrame, null)?
-            <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
-                {/* {console.log(tableData)} */}
-                <DataTableHead>
-                    <DataTableHeadRow>
-                        <DataTableHeadCell>
-                            <DataTableHeadText>{tableData[activeDataFrame].index.name}</DataTableHeadText>
-                        </DataTableHeadCell>
-                        {tableData[activeDataFrame].column_names.map(
-                            (dfCol: string, index: number) => 
-                            (_create_cell(dfCol, 0, dfCol, true)))}
-                    </DataTableHeadRow>
-                </DataTableHead>                
-                <TableBody>                
-                {tableData[activeDataFrame].rows.map((rowData: any[], index: number) => (
-                    _create_row(tableData[activeDataFrame].column_names, tableData[activeDataFrame].index.data[index], rowData)
-                ))}
-                </TableBody>
-            </DataTable>
-        : null}
-        </TableContainer>
+        <Fragment>
+            <TableViewHeader show={show} setShow={setShow}/>
+            <Divider/>
+            {show=='Tables' && ifElse(tableData, activeDataFrame, null)?
+            <TableContainer>
+            {/* {console.log("Render TableContainer: ", tableData)} */}
+            {console.log("Render TableContainer")}                    
+                <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
+                    {/* {console.log(tableData)} */}
+                    <DataTableHead>
+                        <DataTableHeadRow>
+                            <DataTableHeadCell>
+                                <DataTableHeadText>{tableData[activeDataFrame].index.name}</DataTableHeadText>
+                            </DataTableHeadCell>
+                            {tableData[activeDataFrame].column_names.map(
+                                (dfCol: string, index: number) => 
+                                (_create_cell(dfCol, 0, dfCol, true)))}
+                        </DataTableHeadRow>
+                    </DataTableHead>                
+                    <TableBody>                
+                    {tableData[activeDataFrame].rows.map((rowData: any[], index: number) => (
+                        _create_row(tableData[activeDataFrame].column_names, tableData[activeDataFrame].index.data[index], rowData)
+                    ))}
+                    </TableBody>
+                </DataTable>
+            </TableContainer>      
+            : null}     
+            
+            {show=='Summary' ? <TableSummary/> :null}
+            
+        </Fragment>
     );
 }
 
-export default TableComponent;
+export default TableView;
 
 

@@ -126,9 +126,17 @@ def create_error_message(webapp_endpoint, trace):
 def handle_DataFrameManager_message(message):
     send_reply = False
     # message execution_mode will always be `eval` for this sender
-    log.info('eval...')
+    log.info('eval... %s' % message)
     try:        
         if message.command_name == CommandName.plot_column_histogram:
+            result = eval(message.content, globals())
+            if result is not None:                
+                log.info("get plot data")                                        
+                output = _create_dataframemanager_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
+                content_type = ContentType.plotly_fig
+                send_reply = True
+
+        if message.command_name == CommandName.plot_column_quantile:
             result = eval(message.content, globals())
             if result is not None:                
                 log.info("get plot data")                                        
@@ -163,9 +171,10 @@ def handle_DataFrameManager_message(message):
             columns = {}
             for col_name, ctype in dtypes.items():
                 # print(col_name, ctype)
-                unique = None #eval("%s['%s'].unique().tolist()"%(df_id, col_name), globals())
+                # FIXME: only get at most 100 values here, this is hacky, find a better way
+                unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), globals())[:100]                
                 columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique, 
-                                        'describe': describe[col_name].to_json(), 'countna': countna[col_name].item()}                
+                                        'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}                
             output = {'df_id': df_id, 'shape': shape, 'columns': columns}    
             log.info(output)
             content_type = ContentType.dict
@@ -232,7 +241,7 @@ def handle_CodeArea_message(message):
 
 def process_active_df_status():
     if DataFrameStatusHook.update_active_df_status(get_global_df_list()):
-        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, 
+        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, 
                                             "command_name": CommandName.active_df_status, 
                                             "seq_number": 1, 
                                             "content_type": "dict", 
@@ -257,11 +266,11 @@ if __name__ == "__main__":
             sys.stdout = io.StringIO()
             try:                
                 # log.info('Got message from %s' % (message.webapp_endpoint))
-                if message.webapp_endpoint == WebappEndpoint.CodeEditorComponent:                     
+                if message.webapp_endpoint == WebappEndpoint.CodeEditor:                     
                     handle_CodeArea_message(message)
                     process_active_df_status()
                 
-                elif message.webapp_endpoint == WebappEndpoint.DataFrameManager: 
+                elif message.webapp_endpoint == WebappEndpoint.DFManager: 
                     handle_DataFrameManager_message(message)
 
             except OSError as error: #TODO check if this has to do with buffer error

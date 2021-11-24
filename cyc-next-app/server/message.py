@@ -10,8 +10,8 @@ logging.basicConfig(filename='./log.txt', filemode='a', format='%(asctime)s,%(ms
 log = logging.getLogger(__name__)
 
 class WebappEndpoint(str, Enum):
-    DataFrameManager = 'DataFrameManager'
-    CodeEditorComponent = 'CodeEditorComponent'
+    DFManager = 'DFManager'
+    CodeEditor = 'CodeEditor'
 
     def __str__(self):
         return str(self.value)
@@ -26,7 +26,8 @@ class CommandName(str, Enum):
     plot_countna = 'plot_countna'  
     get_table_data = 'get_table_data'
     get_df_metadata = 'get_df_metadata'
-
+    plot_column_quantile = 'plot_column_quantile'
+    
     def __str__(self):
         return str(self.value)
     

@@ -1,11 +1,11 @@
 import React, { useRef } from "react";
 import { DataTable, TablePanel, TableToolbar } from "./StyledComponents";
-import TableComponent from "./TableViewer";
+import TableView from "./TableView";
 import DFExplorer from "./DFExplorer";
 
 import dynamic from 'next/dynamic'
 const VizComponentWithNoSSR = dynamic(
-    () => import("./VizComponent"),
+    () => import("./PlotView"),
     { ssr: false }
   )
 
@@ -25,7 +25,7 @@ const TablePanelComponent = (props: any) => {
               <DFFilter></DFFilter>
             </TableToolbar>
             <WorkingPanelDividerComponent />
-            <TableComponent {... props}/>
+            <TableView {... props}/>
             <VizComponentWithNoSSR />
             {/* <DFStatusNotification/> */}
         </TablePanel>

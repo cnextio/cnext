@@ -55,7 +55,8 @@ export enum CommandName {
     get_countna = 'get_countna',
     plot_countna = 'plot_countna',
     get_table_data = 'get_table_data',
-    get_df_metadata = 'get_df_metadata'
+    get_df_metadata = 'get_df_metadata',
+    plot_column_quantile = 'plot_column_quantile'
 };
 
 export enum ContentType {  
@@ -70,8 +71,8 @@ export enum ContentType {
 // 'query_data'|'row_difference'|'column_difference'
 
 export enum WebAppEndpoint {
-    DataFrameManager = 'DataFrameManager',
-    CodeEditorComponent = 'CodeEditorComponent'
+    DFManager = 'DFManager',
+    CodeEditor = 'CodeEditor'
 };
 
 export interface ITableData {
@@ -152,6 +153,22 @@ export interface IDFUpdatesReview {
     // col_end_index is the running end index corresponding to a column.
     // it is the sum of the length of the this and previous columns.
     col_end_index: number[];
+};
+
+export interface IColumnMetaData {
+    name: string;
+    type: string;
+    countna: number;
+    unique: string|number[];
+    describe: {};
+    histogram_plot: {};
+    quantile_plot: {};
+};
+
+export interface IDFMetadata {
+    df_id: string;
+    shape: [number, number];
+    columns: {[key: string]: IColumnMetaData};
 };
 
 // export class DFUpdates {
