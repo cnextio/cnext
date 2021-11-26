@@ -1,11 +1,11 @@
 // import { python } from "@codemirror/lang-python";
-import { cnextQuery } from "./codemirror-extentions/lang-cnext-query";
+import { cnextQuery } from "../codemirror-extentions/lang-cnext-query";
 import { FormControl, InputLabel, MenuItem, OutlinedInput, Select } from "@mui/material";
 import React, { Fragment, useEffect, useRef, useState } from "react";
 
 // redux
 import { useDispatch, useSelector } from 'react-redux'
-import { CodeEditor, DFFilterForm, DFFilterInput, StyledCodeMirror, StyledFilterCodeMirror } from "./StyledComponents";
+import { CodeEditor, DFFilterForm, DFFilterInput, StyledCodeMirror, StyledFilterCodeMirror } from "../StyledComponents";
 import { bracketMatching } from "@codemirror/matchbrackets";
 import { closeBrackets } from "@codemirror/closebrackets";
 import { defaultHighlightStyle } from "@codemirror/highlight";
@@ -14,9 +14,9 @@ import { dfFilterLanguageServer } from "codemirror-languageserver";
 import { basicSetup } from "@codemirror/basic-setup";
 import { keymap } from "@codemirror/view";
 import { WHILE_TYPES } from "@babel/types";
-import { CommandName, WebAppEndpoint } from "./AppInterfaces";
-import { setDFFilter } from "../../redux/reducers/dataFrames";
-import store from "../../redux/store";
+import { CommandName, WebAppEndpoint } from "../AppInterfaces";
+import { setDFFilter } from "../../../redux/reducers/DataFramesRedux";
+import store from "../../../redux/store";
 
 const ls = dfFilterLanguageServer({
     languageId: 'cnextquery'

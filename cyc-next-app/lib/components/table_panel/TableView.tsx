@@ -4,10 +4,10 @@ import shortid from "shortid";
 import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 
 import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHeadCell, 
-    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, DataTableHeadCellOfNewCol as DataTableReviewHeadCell, DataTablCellOfNewCol as DataTablReviewCell } from "./StyledComponents";
-import {Message, WebAppEndpoint, DataTableContent, UpdateType, IReviewRequest, IDFUpdatesReview, ReviewType} from "./AppInterfaces";
-import socket from "./Socket";
-import { scrollLock, scrollUnlock } from "../../redux/reducers/scrollLockSlice";
+    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, DataTableHeadCellOfNewCol as DataTableReviewHeadCell, DataTablCellOfNewCol as DataTablReviewCell, PlotViewContainer } from "../StyledComponents";
+import {Message, WebAppEndpoint, DataTableContent, UpdateType, IReviewRequest, IDFUpdatesReview, ReviewType} from "../AppInterfaces";
+import socket from "../Socket";
+import { scrollLock, scrollUnlock } from "../../../redux/reducers/obs-scrollLockSlice";
 import ColumnHistogram from "./ColumnHistogram"
 
 // import dynamic from 'next/dynamic'
@@ -19,11 +19,11 @@ import ColumnHistogram from "./ColumnHistogram"
 // redux
 import { useSelector, useDispatch } from 'react-redux'
 import CountNAComponent from "./CountNA";
-import store from '../../redux/store';
-import { ifElse, ifElseDict } from "./libs";
-import { setDFUpdates } from "../../redux/reducers/dataFrames";
+import { ifElse, ifElseDict } from "../libs";
+import { setDFUpdates } from "../../../redux/reducers/DataFramesRedux";
 import TableViewHeader from "./TableViewHeader";
-import TableSummary from "./table_summary/TableSummary";
+import SummaryView from "../summary_panel/SummaryView";
+import PlotView from "../plot_panel/PlotView";
 
 const TableView = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);
@@ -128,7 +128,11 @@ const TableView = (props: any) => {
             </TableContainer>      
             : null}     
             
-            {show=='Summary' ? <TableSummary/> :null}
+            {show=='Summary' && <SummaryView/>}
+            {show=='Plots' && 
+            <PlotViewContainer>
+                <PlotView/>
+            </PlotViewContainer>}
             
         </Fragment>
     );

@@ -1,12 +1,12 @@
 import React, { Fragment, ReactElement, useEffect, useRef, useState } from "react";
 import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
-import { CodeOutputContainer, CodeOutputHeader, CodeOutputContent, IndividualCodeOutputContent} from "./StyledComponents";
+import { CodeOutputContainer, CodeOutputHeader, CodeOutputContent, IndividualCodeOutputContent} from "../StyledComponents";
 import { Box, Icon, IconButton, Typography } from "@mui/material";  
-import { UpdateType } from "./AppInterfaces";
+import { UpdateType } from "../AppInterfaces";
 import { useDispatch, useSelector } from "react-redux";
-import store from '../../redux/store';
-import { ifElse } from "./libs";
-import { scrollLock, scrollUnlock } from "../../redux/reducers/scrollLockSlice";
+import store from '../../../redux/store';
+import { ifElse } from "../libs";
+import { scrollLock, scrollUnlock } from "../../../redux/reducers/obs-scrollLockSlice";
 import ReviewComponent from "./DFReview";
 
 

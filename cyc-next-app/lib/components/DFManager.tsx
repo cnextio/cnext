@@ -12,7 +12,7 @@ import {Message, WebAppEndpoint, CommandName, UpdateType} from "./AppInterfaces"
 import socket from "./Socket";
 import { TableContainer } from "./StyledComponents";
 import { setTableData, setColumnHistogramPlot, setMetaData, 
-    setCountNA, setDFUpdates, setActiveDF, setColumnQuantilePlot } from "../../redux/reducers/dataFrames";
+    setCountNA, setDFUpdates, setActiveDF, setColumnQuantilePlot } from "../../redux/reducers/DataFramesRedux";
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'

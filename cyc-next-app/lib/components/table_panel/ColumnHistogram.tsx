@@ -1,9 +1,8 @@
 import dynamic from "next/dynamic";
 import React, { useEffect, useRef, useState } from "react";
-import { SmallVizContainer, VizContainer } from "./StyledComponents";
+import { SmallVizContainer, VizContainer } from "../StyledComponents";
 // const Plot = require("react-plotly.js");
 // import Plot from "react-plotly.js";
-import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 
 const PlotWithNoSSR = dynamic(
     () => import("react-plotly.js"),
@@ -12,22 +11,8 @@ const PlotWithNoSSR = dynamic(
 // redux
 import { useSelector, useDispatch } from 'react-redux'
 
-// for testing
-import {vizData as testVizData} from "./tests/TestVizData"  
-
-
 export function ColumnHistogram({df_id, col_name, width=80, height=50}) {    
-    // const columnHistogram = useSelector((state) => checkColumnHistograms(state));
     const columnHistogram = useSelector((state) => state.dataFrames.metadata[df_id].columns[col_name].histogram_plot);
-    
-    // function checkColumnHistograms(state) {
-    //     if (df_id in state.dataFrames.columnHistogram){
-    //         if (col_name in state.dataFrames.columnHistogram[df_id]){
-    //             return state.dataFrames.columnHistogram[df_id][col_name];
-    //         }
-    //     }
-    //     return null;
-    // }
 
     function setLayout(width: number = 80, height: number = 50) {
         try {

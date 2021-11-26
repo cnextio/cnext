@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 
 // redux
 import { useSelector } from 'react-redux'
-import { CountNAContainer } from "./StyledComponents";
+import { CountNAContainer } from "../StyledComponents";
 
 const CountNAComponent = ({df_id, col_name}) => {
     const countna = useSelector((state) => state.dataFrames.metadata[df_id].columns[col_name].countna);

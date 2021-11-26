@@ -1,10 +1,10 @@
 import React, { FC, ReactElement, useEffect, useRef, useState } from "react";
-import { CodePanel, CodeToolbar, CodeContainer, CodeOutputContainer, CodeOutputContent} from "./StyledComponents";
+import { CodePanel, CodeToolbar, CodeContainer, CodeOutputContainer, CodeOutputContent} from "../StyledComponents";
 import SplitPane, {Pane} from 'react-split-pane';
 import CodeEditorComponent from "./CodeEditor";
-import WorkingPanelDividerComponent from "./WorkingPanelDivider";
+import WorkingPanelDividerComponent from "../WorkingPanelDivider";
 import { Typography } from "@mui/material";  
-import {Message} from "./AppInterfaces";
+import {Message} from "../AppInterfaces";
 import CodeOutputComponent from "./CodeOutput";
 // import { pure } from 'recompose';
 

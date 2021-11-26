@@ -24,7 +24,7 @@ export interface Message {
 														 // 'query_data'|'row_difference'|'column_difference' 
 	seq_number: number;      // sequence number of the command. This is needed 
 														 // for commands that requires more than one command
-    content_type: string;    // the object type of the output content
+    content_type: ContentType;    // the object type of the output content
     content: string|object;  // the command string and output string|object
     error: boolean;
     metadata: object;            // store info about the dataframe and columns 

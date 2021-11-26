@@ -1,4 +1,4 @@
-import { Box, Button, FormControl, Input, MenuItem, OutlinedInput, Popover, Select, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Box, Button, FormControl, Input, MenuItem, OutlinedInput, Paper, Popover, Select, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
 // import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import SplitPane, { Pane } from 'react-split-pane';
@@ -418,12 +418,24 @@ export const TablePanel = styled.div`
                         ? newColTransition(props)
                         : null)} 1s linear 0s; 
                 `
-
-        export const VizContainer = styled(MuiTableContainer)`
+        
+        export const PlotViewContainer = styled.div`
             background-color: ${props => props.theme.palette.background.paper};
-            padding: 10px; 
-            overflow: hidden;               
-        `;
+            padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
+            max-height: 100%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
+            overflow: auto;
+            width: 100%;      
+            // display: flex;
+            // flex-direction: column;
+            // align-content: center;    
+        `;        
+
+            export const PlotContainer = styled.div`
+                background-color: ${props => props.theme.palette.background.paper};
+                padding: 10px; 
+                overflow: hidden;       
+                width: fit-content;            
+            `;
         
         export const SmallVizContainer = styled(MuiTableContainer)`
             background-color: ${props => props.theme.palette.background.paper};

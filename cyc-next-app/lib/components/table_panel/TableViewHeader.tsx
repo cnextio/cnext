@@ -4,10 +4,10 @@ import shortid from "shortid";
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
-import store from '../../redux/store';
-import { CodeOutputHeader, StyledTableViewHeader, StyledTableViewHeaderItem, TableShape, TableSummaryButton, TableSummaryPopover, TableViewHeaderButton } from "./StyledComponents";
-import { ifElse } from "./libs";
-import { IDFMetadata } from "./AppInterfaces";
+import store from '../../../redux/store';
+import { CodeOutputHeader, StyledTableViewHeader, StyledTableViewHeaderItem, TableShape, TableSummaryButton, TableSummaryPopover, TableViewHeaderButton } from "../StyledComponents";
+import { ifElse } from "../libs";
+import { IDFMetadata } from "../AppInterfaces";
 
 
 const TableViewHeader = ({show, setShow}) => {        

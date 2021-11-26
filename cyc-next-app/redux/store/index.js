@@ -1,8 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
 import vizDataReducer from '../reducers/vizDataSlice'
-import dataFrameReducer from '../reducers/dataFrames'
-import scrollLockReducer from '../reducers/scrollLockSlice'
-import codeDocReducer from '../reducers/codeDocSlice'
+import dataFrameReducer from '../reducers/DataFramesRedux'
+import scrollLockReducer from '../reducers/obs-scrollLockSlice'
+import codeDocReducer from '../reducers/CodeEditorRedux'
 // import dfUpdatesReducer from '../reducers/dfUpdates'
 
 export default configureStore({

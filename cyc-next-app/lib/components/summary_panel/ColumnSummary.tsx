@@ -6,12 +6,11 @@ import shortid from "shortid";
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
-import store from '../../../redux/store';
 import { ifElse } from "../libs";
 import { IColumnMetaData, IDFMetadata } from "../AppInterfaces";
-import { DataTable, DataTableCell, DataTableRow } from "../StyledComponents";
-import CountNAComponent from "../CountNA1";
-import ColumnHistogram from "../ColumnHistogram";
+import { DataTable, DataTableCell, DataTableRow, TableContainer } from "../StyledComponents";
+import CountNAComponent from "../table_panel/CountNA1";
+import ColumnHistogram from "../table_panel/ColumnHistogram";
 
 
 const PlotWithNoSSR = dynamic(
@@ -43,11 +42,11 @@ const ColumnSummary = (props: any) => {
     }
 
     return (
-        <Fragment>
+        <TableContainer style={{'padding': '10px'}}>
             {console.log("Render ColumnSummary ")}
             {dfMetadata ?                
-            <DataTable style={{ 'border': 0 }} size="small">
-                <TableBody>                
+            <DataTable style={{ 'border': 0}} size="small">
+                <TableBody style={{ 'border': 0}}>                
                     {Object.keys(dfMetadata.columns).map((col_name: string, index: number) => (
                     <TableRow key={index}>
                         {/* , 'width': '1%', 'white-space': 'nowrap' */}
@@ -101,7 +100,7 @@ const ColumnSummary = (props: any) => {
                 </TableBody>
             </DataTable>
             : null}
-        </Fragment>        
+        </TableContainer>        
     );
 }
 

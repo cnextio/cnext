@@ -3,9 +3,9 @@ import React, { Fragment, useEffect } from "react";
 
 // redux
 import { useDispatch, useSelector } from 'react-redux'
-import { setActiveDF } from "../../redux/reducers/dataFrames";
-import store from "../../redux/store";
-import { DFSelector, DFSelectorForm, DFSelectorIcon, DFSelectorInput, DFSelectorMenuItem } from "./StyledComponents";
+import { setActiveDF } from "../../../redux/reducers/DataFramesRedux";
+import store from "../../../redux/store";
+import { DFSelector, DFSelectorForm, DFSelectorIcon, DFSelectorInput, DFSelectorMenuItem } from "../StyledComponents";
 // import { CountNAContainer } from "./StyledComponents";
 
 const DFExplorer = () => {

@@ -1,19 +1,19 @@
 import React, { useRef } from "react";
-import { DataTable, TablePanel, TableToolbar } from "./StyledComponents";
+import { DataTable, TablePanel, TableToolbar } from "../StyledComponents";
 import TableView from "./TableView";
 import DFExplorer from "./DFExplorer";
 
 import dynamic from 'next/dynamic'
-const VizComponentWithNoSSR = dynamic(
-    () => import("./PlotView"),
-    { ssr: false }
-  )
+// const VizComponentWithNoSSR = dynamic(
+//     () => import("../plot_panel/PlotView"),
+//     { ssr: false }
+//   )
 
-import WorkingPanelDividerComponent from "./WorkingPanelDivider";
-import DFStatusNotification from "./DFStatusNotification";
+import WorkingPanelDividerComponent from "../WorkingPanelDivider";
+import DFStatusNotification from "../DFStatusNotification";
 
 //for testing
-import {tableData as testTableData} from "./tests/TestTableData";
+import {tableData as testTableData} from "../tests/TestTableData";
 import DFFilter from "./DFFilter";
 
 const TablePanelComponent = (props: any) => {
@@ -26,7 +26,7 @@ const TablePanelComponent = (props: any) => {
             </TableToolbar>
             <WorkingPanelDividerComponent />
             <TableView {... props}/>
-            <VizComponentWithNoSSR />
+            {/* <VizComponentWithNoSSR /> */}
             {/* <DFStatusNotification/> */}
         </TablePanel>
     );
