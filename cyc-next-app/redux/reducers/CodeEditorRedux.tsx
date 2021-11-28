@@ -1,16 +1,19 @@
 import shortid from "shortid";
 import { createSlice, current } from '@reduxjs/toolkit'
-import { ICodeResult, ICodeResultMessage, ICodeLine, IInsertLineInfo, IPlotResult, LineStatus, IStatePlotResults, ICodeLineStatus } from '../../lib/interfaces/ICodeEditor';
+import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, IStatePlotResults, ICodeLineStatus } from '../../lib/interfaces/ICodeEditor';
 import { ifElseDict } from "../../lib/components/libs";
+import { ContentType } from "../../lib/components/AppInterfaces";
 
 export const CodeEditorRedux = createSlice({
     name: 'codeEditor',
     initialState: {
         text: '',
         codeLines: [],
-        // we also use plotResults to store plot out indexed by lineID. This is to optimize for the performance of PlotView, which would only be rerendered
-        // when this variable is updated
-        plotResults: {},
+        
+        /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of 
+         * PlotView, which would only be rerendered when this variable is updated */ 
+        plotResultUpdate: 0,
+        activeLine: -1,
     },
 
     reducers: {
@@ -23,28 +26,49 @@ export const CodeEditorRedux = createSlice({
             }
         },
 
-        insertLines: (state, action) => {
-            let insertedLineInfo: IInsertLineInfo = action.payload;
-            state.text = insertedLineInfo.text;
-            console.log('Insert line info: ', insertedLineInfo);
-            let addedLines: ICodeLine[] = [];
-            for(let i=0; i<insertedLineInfo.insertedLineCount; i++){
-                let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null};
-                addedLines.push(codeLine);                    
+        updateLines: (state, action) => {
+            let lineUpdate: ILineUpdate = action.payload;
+            let updatedStartLineNumber = lineUpdate.updatedStartLineNumber;
+            let codeLines: ICodeLine[] = state.codeLines;
+
+            state.text = lineUpdate.text;
+
+            console.log('Line update info: ', lineUpdate);
+            // console.log('added line index started at: ', updatedStartLineNumber+1);
+            if (lineUpdate.updatedLineCount>0){
+                let addedLines: ICodeLine[] = [];
+                for(let i=0; i<lineUpdate.updatedLineCount; i++){
+                    let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null};
+                    addedLines.push(codeLine);                    
+                }
+                /** Insert the insersted lines into the array. Keep the ID of lines between 0 and updatedStartLineNumber 
+                 * the same. That means line updatedStartLineNumber will be considered as `edited` but not a new line.
+                 * See more note below. */                 
+                codeLines = [...codeLines.slice(0, updatedStartLineNumber+1), ...addedLines, 
+                    ...codeLines.slice(updatedStartLineNumber+1)];           
+            } else if (lineUpdate.updatedLineCount<0){
+                let deletedLineCount = -lineUpdate.updatedLineCount;
+                /** Some lines have been deleted */
+                for(let i=0; i<deletedLineCount; i++){
+                    //TODO: make this thing like plugin and hook so we can handle different kind of output
+                    if(codeLines[updatedStartLineNumber+1+i].result && 
+                        codeLines[updatedStartLineNumber+1+i].result.type == ContentType.PLOTLY_FIG){
+                        state.plotResultUpdate -= 1;
+                    }                 
+                }
+                /** Remove lines from updatedStartLineNumber+1. Keep the ID of lines between 0 and updatedStartLineNumber 
+                 * the same. That means line updatedStartLineNumber will be considered as `edited` but not a new line.
+                 * See more note below. */                 
+                codeLines = [...codeLines.slice(0, updatedStartLineNumber+1), 
+                    ...codeLines.slice(updatedStartLineNumber+1+deletedLineCount)];                           
             }
                  
-            let insertedLineNumber = insertedLineInfo.anchorLineNumber-insertedLineInfo.insertedLineCount;
-            let codeLines: ICodeLine[] = state.codeLines;
-            // Insert the insersted lines into the array
-            codeLines = [...codeLines.slice(0, insertedLineNumber+1), ...addedLines, 
-                ...codeLines.slice(insertedLineNumber+1)];           
-            
-            // mark the line where the first line `edited`, this is correct in most case except for case
-            // where the anchor is right after the new line character. In this case, the anchor will be
-            // right at the beginning of an existing line, so technically this line is not edited.
-            // for simplicity, we ignore this case for now
-            codeLines[insertedLineNumber].status = LineStatus.EXECUTED;
-            state.text = insertedLineInfo.text;
+            /** mark the first line where the insert is `edited`, this is correct in most case except for case
+            * where the anchor is right after the new line character. In this case, the anchor will be
+            * right at the beginning of an existing line, so technically this line is not edited.
+            * for simplicity, we ignore this case for now */
+            codeLines[updatedStartLineNumber].status = LineStatus.EDITED;
+            state.codeLines = codeLines;
         },
 
         setLineStatus: (state, action) => {
@@ -58,8 +82,8 @@ export const CodeEditorRedux = createSlice({
          * @param state 
          * @param action 
          * 
-         * We store the result both in `codeLines` and `plotResults` (see note above). 
-         * Since they share the same memory it wont affect performance.
+         * TODO: implement an optimized version to store result. currently the consumer of the resul will
+         * be invoked anytime `codeLines` updated
          */
         addPlotResult: (state, action) => {
             let resultMessage: ICodeResultMessage = action.payload;            
@@ -70,14 +94,21 @@ export const CodeEditorRedux = createSlice({
                 let codeLine: ICodeLine = state.codeLines[lineNumber];
                 codeLine.result = result;
 
-                let statePlotResults: IStatePlotResults = state.plotResults;
-                statePlotResults[codeLine.lineID] = plotResult;
+                // let statePlotResults: IStatePlotResults = state.plotResults;
+                // statePlotResults[codeLine.lineID] = plotResult;
+                state.plotResultUpdate += 1;
             }               
+        },
+
+        setActiveLine: (state, action) => {
+            let lineNumber = action.payload;
+            let codeLines: ICodeLine[] = state.codeLines;
+            state.activeLine = codeLines[lineNumber].lineID;
         }
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { initCodeDoc, insertLines, addPlotResult, setLineStatus } = CodeEditorRedux.actions
+export const { initCodeDoc, updateLines, addPlotResult, setLineStatus, setActiveLine } = CodeEditorRedux.actions
 
 export default CodeEditorRedux.reducer

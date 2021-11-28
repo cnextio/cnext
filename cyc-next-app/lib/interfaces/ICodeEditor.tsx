@@ -15,7 +15,8 @@ export interface ICodeLine {
 
 export enum LineStatus {
 	EDITED,
-	EXECUTED
+	EXECUTING,
+	EXECUTED,
 };
 
 // export interface ICodeResult {
@@ -37,10 +38,10 @@ export enum LineStatus {
 * lineNumber: line above which the new lines are added
 * lineCount: number of lines added above the lineNumber
  */
-export interface IInsertLineInfo {
-    text: string 
-    anchorLineNumber: number;
-    insertedLineCount: number;
+export interface ILineUpdate {
+    text: string[] 
+    updatedStartLineNumber: number;
+    updatedLineCount: number;
 }
 
 export interface ICodeResultMessage {

@@ -60,11 +60,11 @@ export enum CommandName {
 };
 
 export enum ContentType {  
-    str = 'str',
-    dict = 'dict',
-    pandas_dataframe = 'pandas_dataframe',
-    plotly_fig = 'plotly_fig',
-    none = 'none'
+    STRING = 'str',
+    DICT = 'dict',
+    PANDAS_DATAFRAME = 'pandas_dataframe',
+    PLOTLY_FIG = 'plotly_fig',
+    NONE = 'none'
 };
 // 'code_area_command'|'active_df_status'|
 // 'plot_column_histogram'|'plot_count_na'|

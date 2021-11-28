@@ -8,6 +8,7 @@ import store from '../../../redux/store';
 import { CodeOutputHeader, StyledTableViewHeader, StyledTableViewHeaderItem, TableShape, TableSummaryButton, TableSummaryPopover, TableViewHeaderButton } from "../StyledComponents";
 import { ifElse } from "../libs";
 import { IDFMetadata } from "../AppInterfaces";
+import { ResultViewHeader } from "../../interfaces/IResultViewer";
 
 
 const TableViewHeader = ({show, setShow}) => {        
@@ -23,10 +24,9 @@ const TableViewHeader = ({show, setShow}) => {
 
     return (
         <Fragment>
-            {console.log("Render TableViewHeader ", dfMetadata)}
-            {dfMetadata?                
+            {console.log("Render TableViewHeader ", dfMetadata)}            
             <StyledTableViewHeader>
-                {['Tables', 'Plots', 'Summary'].map((name, index) => (                    
+                {ResultViewHeader.map((name, index) => (                    
                     <TableViewHeaderButton 
                         selected={show==name? true : false} 
                         variant="overline" 
@@ -35,12 +35,13 @@ const TableViewHeader = ({show, setShow}) => {
                     >
                         {name} 
                     </TableViewHeaderButton>
-                ))}                
+                ))}          
+                {dfMetadata?                      
                 <TableShape variant='subtitle'>
                     Shape: {dfMetadata.shape[0]}x{dfMetadata.shape[1]}
                 </TableShape>
-            </StyledTableViewHeader>
-            : null}
+                : null}
+            </StyledTableViewHeader>            
         </Fragment>
         
     );

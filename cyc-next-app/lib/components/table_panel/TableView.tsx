@@ -24,13 +24,15 @@ import { setDFUpdates } from "../../../redux/reducers/DataFramesRedux";
 import TableViewHeader from "./TableViewHeader";
 import SummaryView from "../summary_panel/SummaryView";
 import PlotView from "../plot_panel/PlotView";
+import { IResultViewHeader } from "../../interfaces/IResultViewer";
 
 const TableView = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);
+    const plotResultUpdate = useSelector((state) => state.codeDoc.plotResultUpdate); 
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     const dfReview: IDFUpdatesReview = useSelector((state) => _get_review_request(state));
     const dispatch = useDispatch();  
-    const [show, setShow] = useState('Tables');
+    const [show, setShow] = useState(IResultViewHeader.TABLE);
 
     function _get_review_request(state): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
@@ -99,11 +101,19 @@ const TableView = (props: any) => {
         dispatch(setDFUpdates({df_id: df_id}));
     }
 
+    useEffect(()=>{
+        setShow(IResultViewHeader.TABLE);
+    }, [tableData]);
+
+    useEffect(()=>{
+        setShow(IResultViewHeader.PLOTS);
+    }, [plotResultUpdate]);
+
     return (
         <Fragment>
             <TableViewHeader show={show} setShow={setShow}/>
             <Divider/>
-            {show=='Tables' && ifElse(tableData, activeDataFrame, null)?
+            {show==IResultViewHeader.TABLE && ifElse(tableData, activeDataFrame, null)?
             <TableContainer>
             {/* {console.log("Render TableContainer: ", tableData)} */}
             {console.log("Render TableContainer")}                    
@@ -128,12 +138,11 @@ const TableView = (props: any) => {
             </TableContainer>      
             : null}     
             
-            {show=='Summary' && <SummaryView/>}
-            {show=='Plots' && 
+            {show==IResultViewHeader.SUMMARY && <SummaryView/>}
+            {show==IResultViewHeader.PLOTS && 
             <PlotViewContainer>
                 <PlotView/>
-            </PlotViewContainer>}
-            
+            </PlotViewContainer>}            
         </Fragment>
     );
 }

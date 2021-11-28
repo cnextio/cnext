@@ -181,6 +181,8 @@ export const CodePanel = styled.div`
             //     overflow: scroll;
             // }
             
+            
+
             .cm-tooltip.lint {
               white-space: pre;
             }
@@ -200,7 +202,13 @@ export const CodePanel = styled.div`
                 outline: none
             }
         `
-        
+        export const CodeEditMarker = styled.div`
+            height: 10px;
+            width: 10px;
+            // background-color: ${props => props.edited ? props.theme.palette.primary.light : props.theme.palette.success.light};    
+            background-color: green;
+            border: 2px;
+        `
         export const CodeOutputContainer = styled.div`
             // display: flex;
             padding: 0px 10px 10px; 
@@ -430,11 +438,13 @@ export const TablePanel = styled.div`
             // align-content: center;    
         `;        
 
-            export const PlotContainer = styled.div`
+            export const PlotContainer = styled(Paper)`
                 background-color: ${props => props.theme.palette.background.paper};
-                padding: 10px; 
+                margin: 1px; 
                 overflow: hidden;       
-                width: fit-content;            
+                width: fit-content; 
+                border-color: ${props => props.focused ? props.theme.palette.primary.light : null};
+                border-width: ${props => props.focused ? '2px' : null};         
             `;
         
         export const SmallVizContainer = styled(MuiTableContainer)`
@@ -476,6 +486,14 @@ function newColTransition(props) {
         background-color: ${props.theme.palette.primary.light};
       }
     `;
-  }
+}
+
+function codeExecutingTransition(props) {
+    return keyframes`
+      50% {
+        background-color: ${props.theme.palette.primary.light};
+      }
+    `;
+}
   
 
