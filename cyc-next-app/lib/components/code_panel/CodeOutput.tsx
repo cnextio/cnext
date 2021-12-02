@@ -2,7 +2,7 @@ import React, { Fragment, ReactElement, useEffect, useRef, useState } from "reac
 import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 import { CodeOutputContainer, CodeOutputHeader, CodeOutputContent, IndividualCodeOutputContent} from "../StyledComponents";
 import { Box, Icon, IconButton, Typography } from "@mui/material";  
-import { UpdateType } from "../AppInterfaces";
+import { UpdateType } from "../../interfaces/IApp";
 import { useDispatch, useSelector } from "react-redux";
 import store from '../../../redux/store';
 import { ifElse } from "../libs";
@@ -135,41 +135,41 @@ const CodeOutputComponent = ({codeOutput}) => {
     }
     useEffect(handleDFUpdates, [dfUpdates]);
     
-    const _setTimeoutToUnlockScroll = () => {
-        /* 
-        * We use this scroll lock and timeout to make sure this and TableComponent can scroll to view
-        * at the same time. This is very ugly solution for this problem. The current assumption is this will 
-        * scroll first.
-        * https://stackoverflow.com/questions/49318497/google-chrome-simultaneously-smooth-scrollintoview-with-more-elements-doesn
-        */
-        if (codeOutputRef.current){
-            let scrollTimeout;            
-            codeOutputRef.current.addEventListener('scroll', function(e) {                
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(function() {                
-                    dispatch(scrollUnlock()); 
-                }, 50);
-            });
-            // have to set this outside as well to handle the case where there is no scroll
-            scrollTimeout = setTimeout(function() {              
-                dispatch(scrollUnlock()); 
-            }, 200); //TODO: the latency here is pretty high, but it does not work with lower number. 
-                     // need to figure out a better way to handle this no scroll event.
-        }   
-    }
+    // const _setTimeoutToUnlockScroll = () => {
+    //     /* 
+    //     * We use this scroll lock and timeout to make sure this and TableComponent can scroll to view
+    //     * at the same time. This is very ugly solution for this problem. The current assumption is this will 
+    //     * scroll first.
+    //     * https://stackoverflow.com/questions/49318497/google-chrome-simultaneously-smooth-scrollintoview-with-more-elements-doesn
+    //     */
+    //     if (codeOutputRef.current){
+    //         let scrollTimeout;            
+    //         codeOutputRef.current.addEventListener('scroll', function(e) {                
+    //             clearTimeout(scrollTimeout);
+    //             scrollTimeout = setTimeout(function() {                
+    //                 dispatch(scrollUnlock()); 
+    //             }, 50);
+    //         });
+    //         // have to set this outside as well to handle the case where there is no scroll
+    //         scrollTimeout = setTimeout(function() {              
+    //             dispatch(scrollUnlock()); 
+    //         }, 200); //TODO: the latency here is pretty high, but it does not work with lower number. 
+    //                  // need to figure out a better way to handle this no scroll event.
+    //     }   
+    // }
     
-    const scrollToBottom = () => {        
-        // need block and inline property because of this 
-        // https://stackoverflow.com/questions/11039885/scrollintoview-causing-the-whole-page-to-move/11041376        
-        if(endPointRef.current){                                                
-            // see: https://stackoverflow.com/questions/46795955/how-to-know-scroll-to-element-is-done-in-javascript                         
-            dispatch(scrollLock());
-            endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' });           
-            _setTimeoutToUnlockScroll();                         
-        }
-    }
+    // const scrollToBottom = () => {        
+    //     // need block and inline property because of this 
+    //     // https://stackoverflow.com/questions/11039885/scrollintoview-causing-the-whole-page-to-move/11041376        
+    //     if(endPointRef.current){                                                
+    //         // see: https://stackoverflow.com/questions/46795955/how-to-know-scroll-to-element-is-done-in-javascript                         
+    //         dispatch(scrollLock());
+    //         endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' });           
+    //         _setTimeoutToUnlockScroll();                         
+    //     }
+    // }
 
-    useEffect(scrollToBottom, [outputContent]);
+    // useEffect(scrollToBottom, [outputContent]);
 
     return (
         <CodeOutputContainer >
@@ -195,7 +195,8 @@ const CodeOutputComponent = ({codeOutput}) => {
                             (index===outputContent.length-1)
                                 && updateTypeToReview.includes(item['content']['updateType']))}
                     </IndividualCodeOutputContent>}                    
-                    {index===outputContent.length-1 && <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline:'center', behavior: 'smooth'}}/>}
+                    {index===outputContent.length-1 && 
+                    <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline:'center', behavior: 'smooth'}}/>}
                 </Fragment>
                 ))}                
             </CodeOutputContent>  

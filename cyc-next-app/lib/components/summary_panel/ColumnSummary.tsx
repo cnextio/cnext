@@ -7,7 +7,7 @@ import shortid from "shortid";
 // redux
 import { useSelector, useDispatch } from 'react-redux'
 import { ifElse } from "../libs";
-import { IColumnMetaData, IDFMetadata } from "../AppInterfaces";
+import { IColumnMetaData, IDFMetadata } from "../../interfaces/IApp";
 import { DataTable, DataTableCell, DataTableRow, TableContainer } from "../StyledComponents";
 import CountNAComponent from "../table_panel/CountNA1";
 import ColumnHistogram from "../table_panel/ColumnHistogram";

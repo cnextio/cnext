@@ -1,6 +1,6 @@
 import React, { forwardRef, RefObject, SyntheticEvent, useEffect, useRef, useState } from "react";
 import ReactDOM from 'react-dom';
-import {RecvCodeOutput, Message, DataTableContent, WebAppEndpoint, ContentType, CommandName} from "../AppInterfaces";
+import {RecvCodeOutput, Message, DataTableContent, WebAppEndpoint, ContentType, CommandName} from "../../interfaces/IApp";
 
 //redux
 import { useSelector, useDispatch } from 'react-redux'
@@ -8,7 +8,6 @@ import { setTableData } from "../../../redux/reducers/DataFramesRedux";
 import { update as vizDataUpdate } from "../../../redux/reducers/vizDataSlice";
 import shortid from "shortid";
 import store from '../../../redux/store';
-
 import socket from "../Socket";
 
 // import CodeMirror from '@uiw/react-codemirror';
@@ -20,11 +19,11 @@ import { python } from '@codemirror/lang-python';
 import {keymap, EditorView, ViewUpdate} from "@codemirror/view"
 import { indentUnit } from "@codemirror/language";
 import { lineNumbers, gutter, GutterMarker } from "@codemirror/gutter";
-import { CodeEditMarker, CodeEditor, StyledCodeMirror } from "../StyledComponents";
+import { CodeEditMarker, StyledCodeEditor, StyledCodeMirror } from "../StyledComponents";
 import { languageServer } from "codemirror-languageserver";
 import { addPlotResult, initCodeDoc, updateLines, setLineStatus, setActiveLine } from "../../../redux/reducers/CodeEditorRedux";
 import { ICodeLineStatus as ILineStatus, ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, MessageMetaData, ICodeLineStatus } from "../../interfaces/ICodeEditor";
-import { Transaction } from "@codemirror/state";
+import { EditorState, Transaction } from "@codemirror/state";
 import { keyframes } from "styled-components";
 // import { extensions } from './codemirror-extentions/extensions';
 
@@ -36,19 +35,13 @@ const ls = languageServer({
 });
   
 // const CodeEditorComponent = React.memo((props: {recvCodeOutput: RecvCodeOutput}) => {
-const CodeEditorComponent = React.memo((props: any) => {
+const CodeEditor = React.memo((props: any) => {
     const [init, setInit] = useState(false);
     const codeLines = useSelector(state => state.codeDoc.codeLines);
+    const inViewID = useSelector(state => state.fileManager.inViewID);
+    const codeText = useSelector(state => state.codeDoc.text);    
     const dispatch = useDispatch();
     const editorRef = useRef();
-
-    // const _handlePlotData = (message: {}) => {
-    //     console.log(`${WebAppEndpoint.CodeEditor} got plot data`);
-    //     let content = message.content;
-    //     content['plot'] = JSON.parse(content['plot']);      
-    //     console.log("dispatch plot data");                  
-    //     dispatch(vizDataUpdate(content));     
-    // }
 
     const _handlePlotData = (message: Message) => {
         console.log(`${WebAppEndpoint.CodeEditor} got plot data`);
@@ -90,9 +83,9 @@ const CodeEditorComponent = React.memo((props: any) => {
                 }
                 let lineStatus: ILineStatus = {lineNumber: codeOutput.metadata.line_number, status: LineStatus.EXECUTED};
                 dispatch(setLineStatus(lineStatus));
-                //for testing
-                // let codeOutput: DataTableContent = JSON.parse(result);
-                // dispatch(tableDataUpdate(testTableData)
+                /** set active code line to be the current line after it is excuted so the result will be show accordlingly
+                 * not sure if this is a good design but will live with it for now */ 
+                dispatch(setActiveLine(codeOutput.metadata.line_number)); 
             } catch {
 
             }
@@ -100,7 +93,19 @@ const CodeEditorComponent = React.memo((props: any) => {
         // editorRef;
     }, []); //run this only once - not on rerender
 
+    useEffect(() => {
+        if(editorRef.current.view){
+            setInit(false);
+            editorRef.current.view.setState(EditorState.create({doc: '', extensions: extensions}));
+        }
+    }, [inViewID]);
 
+    useEffect(() => {
+        if(editorRef.current.view && !init){
+            setInit(true);
+            editorRef.current.view.setState(EditorState.create({doc: codeText.join(''), extensions: extensions}));
+        }
+    }, [codeText]);
     // const socket = socketIOClient(CODE_SERVER_SOCKET_ENDPOINT);
     
     /**
@@ -119,53 +124,6 @@ const CodeEditorComponent = React.memo((props: any) => {
         let result: ILineContent = {lineNumber: currentLine.number-1, content: text}; 
         return result;
     }
-
-    
-    /**
-     * (Note: need to implement this to get the current line number. could not find a better way)
-     * @param editorState 
-     * @returns The line number of the current line in code doc. This number is indexed started with **1**.
-     * This is how CodeMirror uses internally.
-     */
-    // function _getCurrentLineNumber(editorState: EditorState): number{
-    //     const anchor = editorState.selection.ranges[0].anchor;
-    //     const line_count = editorState.doc.lines;
-    //     const doc = editorState.doc;
-    //     //the line in CodeMirror is indexed starting with 1
-    //     var current_line_end = doc.line(1).length;
-    //     for(var i=1; i<=line_count; i++){            
-    //         if (anchor<=current_line_end){
-    //             return i;
-    //         } else {
-    //             // notice that line length does not account for newline character, but anchor does
-    //             // so for each line we need to add 1 newline character to the total length
-    //             current_line_end += doc.line(i+1).length+1;
-    //         }
-    //     }
-    //     // FIXME: the code will never reach here but need to return a number so TypeScript is happy
-    //     // check on this later
-    //     return -1;
-    // }
-
-    // function _getLineNumberAt(pos: number): number{
-    //     const anchor = editorState.selection.ranges[0].anchor;
-    //     const line_count = editorState.doc.lines;
-    //     const doc = editorState.doc;
-    //     //the line in CodeMirror is indexed starting with 1
-    //     var current_line_end = doc.line(1).length;
-    //     for(var i=1; i<=line_count; i++){            
-    //         if (anchor<=current_line_end){
-    //             return i;
-    //         } else {
-    //             // notice that line length does not account for newline character, but anchor does
-    //             // so for each line we need to add 1 newline character to the total length
-    //             current_line_end += doc.line(i+1).length+1;
-    //         }
-    //     }
-    //     // FIXME: the code will never reach here but need to return a number so TypeScript is happy
-    //     // check on this later
-    //     return -1;
-    // }
 
     function _create_message(content: ILineContent) {
         let message: Message = {
@@ -202,13 +160,19 @@ const CodeEditorComponent = React.memo((props: any) => {
     }
 
     function onMouseDown(event){
-        //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
-        let doc = editorRef.current.view.viewState.state.doc;
-        let pos = editorRef.current.view.posAtDOM(event.target);
-        // console.log(doc, pos, lineNumber);
-        //convert to 0-based
-        let lineNumber = doc.lineAt(pos).number-1;        
-        dispatch(setActiveLine(lineNumber));        
+        try {
+            //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
+            let doc = editorRef.current.view.viewState.state.doc;
+            let pos = editorRef.current.view.posAtDOM(event.target);
+            // console.log(doc, pos, lineNumber);
+            //convert to 0-based
+            let lineNumber = doc.lineAt(pos).number-1;        
+            dispatch(setActiveLine(lineNumber));        
+        } catch(error) {
+            console.log(error);
+            console.trace();
+        }
+        
     }
 
     useEffect(() => {
@@ -233,21 +197,12 @@ const CodeEditorComponent = React.memo((props: any) => {
      */
     function onCMChange(value: string, viewUpdate: ViewUpdate){
         try{
-            // const cmState = editorRef.current.state;
-            let doc = viewUpdate.state.doc;
-            // let text = viewUpdate.state.doc.text;
-            // ReactDOM.render(<CodeEditMarker/>, document.getElementById('statusDiv'));        
-            if (!init){
-                // let text = viewUpdate.state.doc.text;
-                if (doc){
-                    dispatch(initCodeDoc({text: doc.text}));
-                }
-                setInit(true);            
-            } else {
+            let doc = viewUpdate.state.doc;    
+            if (init){                
                 // let startText = viewUpdate.startState.doc.text;
                 // let text = viewUpdate.state.doc.text;
                 let startDoc = viewUpdate.startState.doc;
-                let doc = viewUpdate.state.doc
+                // let doc = viewUpdate.state.doc
                 let text: string[] = doc.toJSON();
                 // let startLineLength = (typeof startDoc == TextLeaf ? startDoc.text.length : startDoc.lines)
                 let updatedLineCount = doc.lines - startDoc.lines;
@@ -283,15 +238,6 @@ const CodeEditorComponent = React.memo((props: any) => {
     /**
      * Implement line status gutter
      */
-
-     function codeExecutingTransition() {
-        return keyframes`
-          50% {
-            background-color: #42a5f5;
-          }
-        `;
-    }
-
     const markerDiv = () => {
         let statusDiv = document.createElement('div');
         statusDiv.style.width = '2px';
@@ -353,7 +299,6 @@ const CodeEditorComponent = React.memo((props: any) => {
         EditorView.lineWrapping,
         lineNumbers(),
         editStatusGutter,
-        // emptyLineGutter
         bracketMatching(),
         defaultHighlightStyle.fallback,
         python(),
@@ -363,37 +308,11 @@ const CodeEditorComponent = React.memo((props: any) => {
     ];
 
     return (
-        <CodeEditor>
+        <StyledCodeEditor>
             {console.log('Render CodeEditorComponent')}
             <StyledCodeMirror
                 ref = {editorRef}
-                value = {
-`df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')
-df.drop(index=0, inplace=True)
-
-df['copy'] = df['Engine Speed']
-df.drop('copy', 1, inplace=True)
-df.iloc[10]
-
-df[:30]
-df.iloc[4]
-
-
-df = CycDataFrame('tests/data/housing_data/data.csv')
-
-import plotly.express as px
-import pandas as pd
-df = pd.DataFrame()
-
-df.drop('Alley', 1, inplace=True)
-df['CopyStreet'] = df['Street']
-df[['LotFrontage']] = df[['LotFrontage']].fillna(method="ffill")
-df.loc[-1] = df.loc[0]
-df[:30]
-px.scatter(df, x="YearBuilt", y="LotArea")
-
-`}
-                height = "700px"
+                height = "100%"
                 style = {{fontSize: "14px"}}
                 // extensions = {[python(), ls, keymap.of([{key: 'Mod-l', run: runLine}])]}                    
                 // extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
@@ -405,11 +324,11 @@ px.scatter(df, x="YearBuilt", y="LotArea")
                 onChange = {onCMChange}
             >
             </StyledCodeMirror> 
-        </CodeEditor>
+        </StyledCodeEditor>
     )
 });
 
-export default CodeEditorComponent;
+export default CodeEditor;
 
 
 

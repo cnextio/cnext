@@ -5,7 +5,7 @@ import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 
 import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHeadCell, 
     DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, DataTableHeadCellOfNewCol as DataTableReviewHeadCell, DataTablCellOfNewCol as DataTablReviewCell, PlotViewContainer } from "../StyledComponents";
-import {Message, WebAppEndpoint, DataTableContent, UpdateType, IReviewRequest, IDFUpdatesReview, ReviewType} from "../AppInterfaces";
+import {Message, WebAppEndpoint, DataTableContent, UpdateType, IReviewRequest, IDFUpdatesReview, ReviewType} from "../../interfaces/IApp";
 import socket from "../Socket";
 import { scrollLock, scrollUnlock } from "../../../redux/reducers/obs-scrollLockSlice";
 import ColumnHistogram from "./ColumnHistogram"
@@ -139,10 +139,7 @@ const TableView = (props: any) => {
             : null}     
             
             {show==IResultViewHeader.SUMMARY && <SummaryView/>}
-            {show==IResultViewHeader.PLOTS && 
-            <PlotViewContainer>
-                <PlotView/>
-            </PlotViewContainer>}            
+            {show==IResultViewHeader.PLOTS && <PlotView/>}            
         </Fragment>
     );
 }

@@ -5,7 +5,7 @@ import "animate.css/animate.min.css";
 // import 'animate.css'
 import 'react-toastify/dist/ReactToastify.css';
 import { useSelector } from 'react-redux';
-import { UpdateType } from './AppInterfaces';
+import { UpdateType } from '../interfaces/IApp';
 import { Fragment, useEffect } from 'react';
 import store from '../../redux/store';
 import { StyledDFStatusNotification as DFStatusNotificationContainer } from './StyledComponents';

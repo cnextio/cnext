@@ -8,7 +8,7 @@
  * */ 
 
 import React, { useEffect, useState } from "react";
-import {Message, WebAppEndpoint, CommandName, UpdateType} from "./AppInterfaces";
+import {Message, WebAppEndpoint, CommandName, UpdateType} from "../interfaces/IApp";
 import socket from "./Socket";
 import { TableContainer } from "./StyledComponents";
 import { setTableData, setColumnHistogramPlot, setMetaData, 
@@ -136,7 +136,7 @@ const DFManager = () => {
         });        
     }
 
-    const showHistogram = false;
+    const showHistogram = true;
     const _handleGetTableData = (message: {}) => {
         const df_id = message.metadata['df_id'];
         console.log("Dispatch to tableData (DataFrame) ");        
@@ -215,10 +215,10 @@ const DFManager = () => {
     useEffect(() => {
         // console.log('DFManager useEffect');
         socket.emit("ping", "DataFrameManager");
-        socket.on(WebAppEndpoint.DFManager, (result: string) => {
-            console.log("DataFrameManager got results...");
+        socket.on(WebAppEndpoint.DFManager, (result: string) => {            
             try {
-                let message: Message = JSON.parse(result);                  
+                let message: Message = JSON.parse(result);       
+                console.log("DataFrameManager got results for command ", message.command_name);           
                 if(message.error==true){
                     // props.recvCodeOutput(message); //TODO move this to redux
                 } else if (message.command_name == CommandName.active_df_status){

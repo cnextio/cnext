@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { DataTable, TablePanel, TableToolbar } from "../StyledComponents";
+import { DataTable, PanelDivider, TablePanel, TableToolbar } from "../StyledComponents";
 import TableView from "./TableView";
 import DFExplorer from "./DFExplorer";
 
@@ -9,7 +9,7 @@ import dynamic from 'next/dynamic'
 //     { ssr: false }
 //   )
 
-import WorkingPanelDividerComponent from "../WorkingPanelDivider";
+// import WorkingPanelDivider from "../obs-WorkingPanelDivider";
 import DFStatusNotification from "../DFStatusNotification";
 
 //for testing
@@ -24,7 +24,7 @@ const TablePanelComponent = (props: any) => {
               <DFExplorer></DFExplorer>
               <DFFilter></DFFilter>
             </TableToolbar>
-            <WorkingPanelDividerComponent />
+            <PanelDivider/>
             <TableView {... props}/>
             {/* <VizComponentWithNoSSR /> */}
             {/* <DFStatusNotification/> */}

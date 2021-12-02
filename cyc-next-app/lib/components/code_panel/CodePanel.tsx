@@ -1,14 +1,15 @@
 import React, { FC, ReactElement, useEffect, useRef, useState } from "react";
-import { CodePanel, CodeToolbar, CodeContainer, CodeOutputContainer, CodeOutputContent} from "../StyledComponents";
+import { StyledCodePanel, PanelDivider, StyledCodeToolbar, CodeContainer, CodeOutputContainer, CodeOutputContent} from "../StyledComponents";
 import SplitPane, {Pane} from 'react-split-pane';
-import CodeEditorComponent from "./CodeEditor";
-import WorkingPanelDividerComponent from "../WorkingPanelDivider";
+import CodeEditor from "./CodeEditor";
+// import WorkingPanelDivider from "../obs-WorkingPanelDivider";
 import { Typography } from "@mui/material";  
-import {Message} from "../AppInterfaces";
+import {Message} from "../../interfaces/IApp";
 import CodeOutputComponent from "./CodeOutput";
+import CodeToolbar from "./CodeToolbar";
 // import { pure } from 'recompose';
 
-const CodePanelComponent = React.memo((props: any) => {
+const CodePanel = React.memo((props: any) => {
     const [codeOutput, setCodeOutput] = useState<Message>({commandType: "", contentType: "", content: "", error: false});
 
     // use useCallback to avoid rerender CodeEditorComponent when this is rerendered
@@ -19,21 +20,21 @@ const CodePanelComponent = React.memo((props: any) => {
     }, []);
 
     return (        
-        <CodePanel >
+        <StyledCodePanel >
             {console.log('CodePanelComponent rerender')}            
             <CodeToolbar />                
-            <WorkingPanelDividerComponent />
+            {/* <WorkingPanelDivider color='white'/> */}
             <CodeContainer>
                 <SplitPane split="horizontal" defaultSize="70%" pane2Style={{height: "30%"}}>  
                             {/* panel2 height is the must for the scrolling to work */}
-                    <CodeEditorComponent {... props} recvCodeOutput={recvCodeOutput} />
+                    <CodeEditor {... props} recvCodeOutput={recvCodeOutput} />
                     <CodeOutputComponent codeOutput={codeOutput} />
                 </SplitPane>            
             </CodeContainer>
-        </CodePanel>
+        </StyledCodePanel>
     );
   });
   
-  export default CodePanelComponent;
+  export default CodePanel;
 
 

@@ -2,7 +2,7 @@ import shortid from "shortid";
 import { createSlice, current } from '@reduxjs/toolkit'
 import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, IStatePlotResults, ICodeLineStatus } from '../../lib/interfaces/ICodeEditor';
 import { ifElseDict } from "../../lib/components/libs";
-import { ContentType } from "../../lib/components/AppInterfaces";
+import { ContentType } from "../../lib/interfaces/IApp";
 
 export const CodeEditorRedux = createSlice({
     name: 'codeEditor',

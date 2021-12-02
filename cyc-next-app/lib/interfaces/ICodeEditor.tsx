@@ -1,4 +1,4 @@
-import { ContentType } from "../components/AppInterfaces";
+import { ContentType } from "./IApp";
 
 export interface ICodeDoc {
 	text: Object;

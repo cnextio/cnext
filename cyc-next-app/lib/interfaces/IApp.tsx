@@ -1,4 +1,5 @@
 import React from "react";
+import { FileCommandName, FileMetadata } from "./IFileManager";
 
 export type RecvCodeOutput = (output: Message) => void;
 
@@ -19,13 +20,13 @@ export type RecvCodeOutput = (output: Message) => void;
 export interface Message {
     webapp_endpoint: string; // the web client component which sends 
 														 // and/or receives this message    
-    command_name: string;    // 'code_area_command'|'updated_dataframe_list'|
+    command_name: CommandName|FileCommandName;    // 'code_area_command'|'updated_dataframe_list'|
 														 // 'plot_column_histogram'|'plot_count_na'|
 														 // 'query_data'|'row_difference'|'column_difference' 
 	seq_number: number;      // sequence number of the command. This is needed 
 														 // for commands that requires more than one command
     content_type: ContentType;    // the object type of the output content
-    content: string|object;  // the command string and output string|object
+    content: string|object|FileMetadata;  // the command string and output string|object
     error: boolean;
     metadata: object;            // store info about the dataframe and columns 
                              // related to this command
@@ -60,19 +61,25 @@ export enum CommandName {
 };
 
 export enum ContentType {  
+    COMMAND = 'command',
     STRING = 'str',
     DICT = 'dict',
     PANDAS_DATAFRAME = 'pandas_dataframe',
-    PLOTLY_FIG = 'plotly_fig',
-    NONE = 'none'
+    PLOTLY_FIG = 'plotly_fig',    
+    DIR_LIST = 'dir_list',
+    FILE_METADATA = 'file_metadata',
+    FILE_CONTENT = 'file_content',
+    NONE = 'none',
 };
+
 // 'code_area_command'|'active_df_status'|
 // 'plot_column_histogram'|'plot_count_na'|
 // 'query_data'|'row_difference'|'column_difference'
 
 export enum WebAppEndpoint {
     DFManager = 'DFManager',
-    CodeEditor = 'CodeEditor'
+    CodeEditor = 'CodeEditor',
+    FileManager = 'FileManager'
 };
 
 export interface ITableData {

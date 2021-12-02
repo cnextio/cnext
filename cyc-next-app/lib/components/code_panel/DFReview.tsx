@@ -5,7 +5,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { useDispatch, useSelector } from "react-redux";
 import { setReview } from "../../../redux/reducers/DataFramesRedux";
-import { IDFUpdatesReview, IReviewRequest, ReviewRequestType, UndefReviewIndex } from "../AppInterfaces";
+import { IDFUpdatesReview, IReviewRequest, ReviewRequestType, UndefReviewIndex } from "../../interfaces/IApp";
 import { ifElse } from "../libs";
 
 const ReviewButton = ({type, onClick, disabled}) => {

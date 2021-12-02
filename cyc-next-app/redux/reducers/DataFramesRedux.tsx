@@ -10,7 +10,7 @@ import { DataTableContent,
         ReviewRequestType,
         IDFUpdatesReview,
         IDFUpdates,
-        LoadDataRequest} from '../../lib/components/AppInterfaces';
+        LoadDataRequest} from '../../lib/interfaces/IApp';
 import { ifElse, ifElseDict } from '../../lib/components/libs';
 
 // for testing

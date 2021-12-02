@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 class WebappEndpoint(str, Enum):
     DFManager = 'DFManager'
     CodeEditor = 'CodeEditor'
+    FileManager = 'FileManager'
 
     def __str__(self):
         return str(self.value)
@@ -34,12 +35,29 @@ class CommandName(str, Enum):
     def __repr__(self):
         return str(self.value)  
 
+class FileCommandName(str, Enum):  
+    list_dir = 'list_dir'
+    get_file_metadata = 'get_file_metadata'
+    read_file = 'read_file'
+    save_file = 'save_file'
+    set_name = 'set_name'
+    get_open_files = 'get_open_files'
+    add_file = 'add_file'
+    add_folder = 'add_folder'
+    remove_file = 'remove_file'
+    remove_folder = 'remove_folder'
+    set_working_dir = 'set_working_dir'
+
 class ContentType(str, Enum):  
-    str = 'str'
-    dict = 'dict'
-    pandas_dataframe = 'pandas_dataframe'
-    plotly_fig = 'plotly_fig'
-    none = 'none'
+    COMMAND = 'command'
+    STRING = 'str'
+    DICT = 'dict'
+    PANDAS_DATAFRAME = 'pandas_dataframe'
+    PLOTLY_FIG = 'plotly_fig'
+    DIR_LIST = 'dir_list',
+    FILE_METADATA = 'file_metadata',
+    FILE_CONTENT = 'file_content',
+    NONE = 'none'
 
     def __str__(self):
         return str(self.value)    
@@ -48,17 +66,6 @@ class ContentType(str, Enum):
         return str(self.value) 
 
 class Message:
-    # @dispatch(str, str, int, str, str, bool, dict)
-    # def __init__(self, webapp_endpoint, command_name, seq_number, content_type, content, error, metadata={}):
-    #     self.webapp_endpoint = webapp_endpoint
-    #     self.command_name = command_name
-    #     self.seq_number = seq_number
-    #     self.content_type = content_type
-    #     self.content = content
-    #     self.error = error
-    #     self.metadata = metadata
-
-    # @dispatch(dict)
     def __init__(self, **entries): 
         self.webapp_endpoint = None
         self.command_name = None
@@ -69,16 +76,23 @@ class Message:
         self.metadata = None
         self.__dict__.update(entries)
         
-    def __repr__(self):        
-        return json.dumps({
-            "webapp_endpoint": self.webapp_endpoint,
-            "command_name": self.command_name, 
-            "seq_number": self.seq_number,
-            "content_type": self.content_type, 
-            "content": self.content, 
-            "error": self.error,
-            "metadata": self.metadata
-        }, ignore_nan=True)
+    def toJSON(self):        
+        return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
     
-    # def __str__(self):
-    #     return self.__repr__()        
+    def __repr__(self) -> str:
+        return self.toJSON()
+
+class FileMetadata:
+    def __init__(self, **entries): 
+        self.path = None
+        self.name = None
+        self.type = None
+        self.executor = None
+        self.update_timestamp = None
+        self.__dict__.update(entries) 
+    
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
+
+    def __repr__(self) -> str:
+        return self.toJSON()

@@ -1,14 +1,15 @@
-import React, { Fragment, useEffect } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { PlotContainer } from "../StyledComponents";
+import { PlotContainer, PlotViewContainer } from "../StyledComponents";
+import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
 import { update as vizDataUpdate } from "../../../redux/reducers/vizDataSlice";
-import { Paper } from "@mui/material";
+import { Box, Paper } from "@mui/material";
 import { ICodeLine, IPlotResult } from "../../interfaces/ICodeEditor";
 import store from "../../../redux/store";
-import { ContentType } from "../AppInterfaces";
+import { ContentType } from "../../interfaces/IApp";
 
 
 const PlotWithNoSSR = dynamic(
@@ -24,6 +25,9 @@ export function PlotView(props: any) {
     // const codeLines = useSelector((state) => state.codeDoc.codeLines);
     const plotResultUpdate = useSelector((state) => state.codeDoc.plotResultUpdate);    
     const activeLine = useSelector((state) => state.codeDoc.activeLine);
+    const [plotRendered, setPlotRendered] = useState(false);
+    const scrollRef = useRef();
+    const noscrollRef = useRef();
 
     function setLayout(plotData: IPlotResult, width: number|null = null, height: number|null = null) {
         try {
@@ -40,58 +44,72 @@ export function PlotView(props: any) {
         }
     }
 
+    function plotWithNoScroll(props){
+        return (
+            <Fragment>
+                <PlotWithNoSSR {...props}></PlotWithNoSSR>
+            </Fragment>
+        )
+    }
+
+    function plotWithScroll(layout, active){
+        return (    
+            // <div 
+            //     ref={active ? scrollRef : noscrollRef}
+            // >
+                <PlotWithNoSSR {...layout} ></PlotWithNoSSR>
+            // </div>              
+        )
+    }
+    
+    const plotContainerID = 'plotContainerID';
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+                inline: "center",
+                boundary: document.getElementById(plotContainerID)
+            });
+        }
+    }, [scrollRef.current])
+
     function renderPlots(){
         const state = store.getState();
         const codeLines: ICodeLine[] = state.codeDoc.codeLines;
         const codeWithPlots: ICodeLine[] = codeLines
-            .filter(code => (code.result && code.result.type==ContentType.PLOTLY_FIG));
+            .filter(code => (code.result && code.result.type==ContentType.PLOTLY_FIG));        
         return (
-            <Fragment>
-                {codeWithPlots.map((plot: ICodeLine) => (
-                    <PlotContainer key={plot.lineID} variant="outlined" focused={plot.lineID==activeLine}>                    
-                        {/* <Paper elevation={0} variant="outlined" sx={{borderColor: {props => props.theme.palette.primary.light}}}>                     */}
-                            {/* have to do JSON stringify and parse again to recover the original json string. It won't work without this */}
-                            {React.createElement(PlotWithNoSSR, setLayout(plot.result.content))}
-                            {/* {React.createElement(Plot, vizData['application/json'])} */}
-                        {/* </Paper>                 */}
+            <PlotViewContainer id={plotContainerID}>                
+                {console.log('Render PlotView')}
+                {codeWithPlots.map((plot: ICodeLine) => (                    
+                    <ScrollIntoViewIfNeeded 
+                            active={plot.lineID==activeLine}
+                            options={{
+                                block: 'start', 
+                                inline:'center', 
+                                behavior: 'smooth',
+                                boundary: document.getElementById(plotContainerID)}}>
+                    {/* <Box ref={plot.lineID==activeLine ? scrollRef : null} > */}
+                    <PlotContainer 
+                        // ref={plot.lineID==activeLine ? scrollRef : null} 
+                        key={plot.lineID} 
+                        variant="outlined" 
+                        focused={plot.lineID==activeLine}>                                            
+                        {React.createElement(PlotWithNoSSR, setLayout(plot.result.content))}
+                        {console.log('Render PlotView: ', plot.lineID==activeLine)}
+                        {/* </Box> */}
+                        {/* {React.createElement(plotWithScroll, setLayout(plot.result.content), plot.lineID==activeLine)}                         */}
                     </PlotContainer>
+                    {/* </Box> */}                        
+                    </ScrollIntoViewIfNeeded> 
                 ))}
-            </Fragment>
+            </PlotViewContainer>
         )         
     }
 
     return renderPlots();
-    // (
-        
-        // (plotResultCount?
-        //     <Fragment>
-        //         {console.log("Redering PlotView: ")}
-        //         {Object.keys(plotResults).map((key)=>(
-        //         <PlotContainer key={key}>                    
-        //             <Paper elevation={1}>                    
-        //                 {/* have to do JSON stringify and parse again to recover the original json string. It won't work without this */}
-        //                 {React.createElement(PlotWithNoSSR, setLayout(plotResults[key]))}
-        //                 {/* {React.createElement(Plot, vizData['application/json'])} */}
-        //             </Paper>                
-        //         </PlotContainer>
-        //         ))}                
-        //     </Fragment>
-        //     :null)
-        // (plotResults?
-        // <Fragment>
-        //     {console.log("Redering PlotView: ")}
-        //     {Object.keys(plotResults).map((key)=>(
-        //     <PlotContainer key={key}>                    
-        //         <Paper elevation={1}>                    
-        //             {/* have to do JSON stringify and parse again to recover the original json string. It won't work without this */}
-        //             {React.createElement(PlotWithNoSSR, setLayout(plotResults[key]))}
-        //             {/* {React.createElement(Plot, vizData['application/json'])} */}
-        //         </Paper>                
-        //     </PlotContainer>
-        //     ))}                
-        // </Fragment>
-        // :null)
-    // );
 }
 
 export default PlotView;

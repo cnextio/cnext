@@ -1,4 +1,4 @@
-import { DataTableContent } from "../AppInterfaces";
+import { DataTableContent } from "../../interfaces/IApp";
 
 function createData(
     name: string,

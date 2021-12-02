@@ -4,19 +4,6 @@ const socketIo = require("socket.io");
 const fs = require('fs');
 const YAML = require('yaml');
 
-// workaround because of the `module not found` problem
-// const {CodeExecutionMessageType} = require("../lib/components/Interfaces");
-// enum CodeExecutionMessageType {
-//     code_panel_request = 'code_panel_request',
-//     table_panel_request = 'table_panel_request'
-// }
-
-//TODO: should use a shared interface file with the web client but have not found the way to do that yet
-// enum CommandType { exec = 'exec', eval = 'eval' }
-
-// for testing
-// import tableData from "../lib/components/tests";
-
 const port = process.env.PORT || 4000;
 const index = require("./routes/index");
 const app = express();
@@ -33,8 +20,8 @@ let ready = false;
 
 // TODO: move to Interfaces.tsx
 const CodeEditor = 'CodeEditor';
-// const TableAreaComponent = 'table_panel';
 const DFManager = 'DFManager';
+const FileManager = 'FileManager';
 
 /*
 * Communicate with web client
@@ -55,37 +42,23 @@ try {
             io.emit("pong", minutes);
         });
 
-        // socket.on(CodeEditorComponent, command => {  //TODO: use enum       
-        //     console.log("server will run: ", command);       
-        //     pyshell.send({request_originator: CodeEditorComponent, command_type: '', command: command});
-        //     // for testing
-        //     // pyshell.send(testData);
-        // });
-
         //TODO: catch json parse error here
         socket.on(CodeEditor, str_message => {  //TODO: use enum    
             message = JSON.parse(str_message);
-            console.log("Receive msg from CodeEditorComponent, server will run: ", message);         
+            console.log("Receive msg from CodeEditor, server will run: ", message);         
             pyshell.send(message);
-            // for testing
-            // pyshell.send(testData);
         });
-
-        // socket.on(TableAreaComponent, command => {  //TODO: use enum       
-        //     console.log("server will run: ", command);       
-        //     pyshell.send({request_originator: TableAreaComponent, command_type: '', command: command});
-        //     // for testing
-        //     // pyshell.send(testData);
-        // });
 
         socket.on(DFManager, str_message => {  //TODO: use enum                  
             message = JSON.parse(str_message);
-            console.log("Receive msg from DataFrameManager, server will run: ", message);  
+            console.log("Receive msg from DFManager, server will run: ", message);  
             pyshell.send(message);
-            // pyshell.send({request_originator: DataFrameManager, command_type: '', 
-            //                 command: message['command'], metadata: message['metadata']});
-            // for testing
-            // pyshell.send(testData);
+        });
+
+        socket.on(FileManager, str_message => {  //TODO: use enum                  
+            message = JSON.parse(str_message);
+            console.log("Receive msg from FileManager, server will run: ", message);  
+            pyshell.send(message);
         });
 
         socket.once("disconnect", () => {
@@ -105,7 +78,7 @@ try {
     /*
     * Communicate with python server
     */
-    const { PythonShell, NewlineTransformer } = require('python-shell');
+    const { PythonShell } = require('python-shell');
     const pyshell_opts = {
         'stdio':
             ['pipe', 'pipe', 'pipe', 'pipe'], // stdin, stdout, stderr, custom
@@ -115,12 +88,14 @@ try {
     console.log("Starting python shell...");
     let pyshell = new PythonShell('server.py', pyshell_opts);
 
-    // processing outputs from python server
+    /**
+     * Standard communication from python-shell to node server
+     * Note: we are not going to use zmq instead of this
+     */
     pyshell.on('message', function (message) {
         try {
             console.log('stdout: forward output to client');
             sendOutput(message);            
-            // console.log('stdout:', message);
         } catch (error) {
             console.log(error.stack);
         }
@@ -138,13 +113,12 @@ try {
     pyshell.on('close', function (message) {
         console.log('close ', "python-shell closed: " + message);
     })
-
-    /*********************************************************************/
+    /** */
     
 
-    /*********************************************************************
-     * Use zmq to transfer message from python to node
-    /*********************************************************************/
+    /**
+     * ZMQ communication from python-shell to node server
+     */
     const zmq = require("zeromq");
     async function zmq_receive() {
         const command_output_zmq = new zmq.Pull; 
@@ -157,25 +131,13 @@ try {
         console.log(`Waiting for python server message on ${p2n_port}`);
     
         for await (const [message] of command_output_zmq) {
-        // command_output_zmq.on("message", function (message) {
             const json_message = JSON.parse(message.toString());
             console.log(`command_output_zmq: forward output of command_name ${json_message['command_name']}`);
-            // if (json_message['metadata'] !== null){
-            //     console.log(`   ${json_message['metadata']['col_name']}`)
-            // }
             sendOutput(json_message);         
         }
     };
     zmq_receive().catch(e => console.error("ZMQ_error: ", e.stack));
-    // zmq_receive().catch(e => console.error(e.stack));
-    // console.log(command_output_zmq)
-    // console.log(zmq.Socket)
-    // console.log(zmq)
-    // notification_zmq.on("message", function (message) {
-    //     console.log(`Socket got disconnected, reconnect now ...`);
-    //     // command_output_zmq.bind(`${p2n_host}:${p2n_port}`);            
-    // });
-    /*********************************************************************/
+    /** */
 
 
     const initialize = () => {

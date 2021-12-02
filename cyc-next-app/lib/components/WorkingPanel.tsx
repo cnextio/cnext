@@ -1,30 +1,31 @@
 import { Box } from "@mui/system";
 import React, {FC} from "react";
-import { MainPanel, WorkingPanel, WorkingPanelSplitPanel } from "./StyledComponents";
+import { MainPanel, WorkingPanel as StyledWorkingPanel, WorkingPanelSplitPanel } from "./StyledComponents";
 import SplitPane, { Pane } from "react-split-pane";
-import CodePanelComponent from "./code_panel/CodePanel";
+import CodePanel from "./code_panel/CodePanel";
 import TablePanelComponent from "./table_panel/TablePanel";
 import DFManager from "./DFManager";
 import DFStatusNotification from "./DFStatusNotification";
+import FileManager from "./file_manager/FileManager";
 
-const WorkingPanelComponent = (props: any) => {  
+const WorkingPanel = (props: any) => {  
   return (
-    <WorkingPanel>      
+    <StyledWorkingPanel>      
         {/* have to do complicated inline style because of this 
         https://newbedev.com/absolute-positioning-ignoring-padding-of-parent */}
         {/* minus 12px to variable which is WorkingPannel's padding */}
         {/* pane2Style width is the must for the scrolling to work when resize, this is like the min width of pane 2 */}
         <WorkingPanelSplitPanel split="vertical" defaultSize="30%" pane2Style={{width: "0%"}}>             
-            <CodePanelComponent {... props}/>
+            <CodePanel {... props}/>
             <TablePanelComponent {... props}/>                                 
         </WorkingPanelSplitPanel>
         <DFManager/> 
-        
+        <FileManager/>
         {/* {props.children} */}        
         {/* <CodePanelComponent />
         <TablePanelComponent /> */}
-    </WorkingPanel> 
+    </StyledWorkingPanel> 
   );
 };
 
-export default WorkingPanelComponent;
+export default WorkingPanel;

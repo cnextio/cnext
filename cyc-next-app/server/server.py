@@ -5,9 +5,11 @@ import traceback
 import yaml
 import logs
 import re
+from zmq_message import MessageQueue
+from message import Message, WebappEndpoint, CommandName, ContentType, FileCommandName
+from file_management import *
 
 log = logs.get_logger(__name__)
-
 from config import read_config
 try:
     if platform.system() == 'Windows':
@@ -18,8 +20,6 @@ except Exception as error:
     log.error("%s - %s" % (error, traceback.format_exc()))          
     exit(1)
 
-from zmq_message import MessageQueue
-from message import Message, WebappEndpoint, CommandName, ContentType
 
 
 #TODO: Point this to the cycdataframe repos folder
@@ -113,12 +113,12 @@ def send_result_to_node_server(message: Message):
     # log.info("Send to node server: %s" % message)
     log.info("Send output to node server...")
     # print(message)
-    p2n_queue.push(message.__repr__())
+    p2n_queue.push(message.toJSON())
     
 def create_error_message(webapp_endpoint, trace):
     return Message(**{
         "webapp_endpoint": webapp_endpoint, 
-        "content_type": ContentType.str,
+        "content_type": ContentType.STRING,
         "content": trace,
         "error": True
     })
@@ -133,7 +133,7 @@ def handle_DataFrameManager_message(message):
             if result is not None:                
                 log.info("get plot data")                                        
                 output = _create_dataframemanager_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
-                content_type = ContentType.plotly_fig
+                content_type = ContentType.PLOTLY_FIG
                 send_reply = True
 
         if message.command_name == CommandName.plot_column_quantile:
@@ -141,7 +141,7 @@ def handle_DataFrameManager_message(message):
             if result is not None:                
                 log.info("get plot data")                                        
                 output = _create_dataframemanager_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
-                content_type = ContentType.plotly_fig
+                content_type = ContentType.PLOTLY_FIG
                 send_reply = True
 
         elif message.command_name == CommandName.get_table_data:    
@@ -149,7 +149,7 @@ def handle_DataFrameManager_message(message):
             if result is not None:                
                 log.info("get table data")
                 output = _create_table_data(message.metadata['df_id'], result)       
-                content_type = ContentType.pandas_dataframe
+                content_type = ContentType.PANDAS_DATAFRAME
                 send_reply = True
                                        
         elif message.command_name == CommandName.get_countna: 
@@ -159,7 +159,7 @@ def handle_DataFrameManager_message(message):
             if (countna is not None) and (len is not None):                
                 log.info("get countna data")
                 output = _create_countna_data(message.metadata['df_id'], len, countna)       
-                content_type = ContentType.dict
+                content_type = ContentType.DICT
                 send_reply = True                            
         
         elif message.command_name == CommandName.get_df_metadata: 
@@ -177,7 +177,7 @@ def handle_DataFrameManager_message(message):
                                         'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}                
             output = {'df_id': df_id, 'shape': shape, 'columns': columns}    
             log.info(output)
-            content_type = ContentType.dict
+            content_type = ContentType.DICT
             send_reply = True    
 
         if send_reply:
@@ -197,7 +197,7 @@ def handle_CodeArea_message(message):
     if message.execution_mode == 'exec':
         log.info('exec...')
         exec(message.content, globals())
-        content_type = ContentType.str
+        content_type = ContentType.STRING
         output = sys.stdout.getvalue()
     elif message.execution_mode == 'eval':
         log.info('eval...')
@@ -208,12 +208,12 @@ def handle_CodeArea_message(message):
             if _result_is_dataframe(result):
                 df_id = _get_dataframe_id(message.content)
                 output = _create_table_data(df_id, result)       
-                content_type = ContentType.pandas_dataframe
+                content_type = ContentType.PANDAS_DATAFRAME
             elif _result_is_plotly_fig(result):
                 output = _create_CodeArea_plot_data(result)
-                content_type = ContentType.plotly_fig
+                content_type = ContentType.PLOTLY_FIG
             else:
-                content_type = ContentType.str
+                content_type = ContentType.STRING
                 output = str(result)                
         else:
             result = sys.stdout.getvalue()
@@ -224,12 +224,12 @@ def handle_CodeArea_message(message):
                 if _plotly_show_match(message.content): 
                     print("get plot data")                                        
                     output = _create_plot_data(result) 
-                    content_type = ContentType.plotly_fig
+                    content_type = ContentType.PLOTLY_FIG
                 else:
-                    content_type = ContentType.str
+                    content_type = ContentType.STRING
                     output = str(result)
             else:
-                content_type = ContentType.none
+                content_type = ContentType.NONE
                 output = ''
 
     message.content_type = content_type
@@ -238,6 +238,46 @@ def handle_CodeArea_message(message):
     # print(message)           
     send_result_to_node_server(message)                                 
     # return message
+
+def handle_FileManager_message(message):
+    log.info('Handle FileManager message: %s' % message)
+    try:    
+        metadata = message.metadata    
+        if message.command_name == FileCommandName.list_dir:            
+            output = []
+            if 'path' in metadata.keys():
+                names = list_dir(metadata['path'])                                    
+                for name in names:
+                    if os.path.isdir(name):
+                        output.append({name: name, dir: True})
+                    else:
+                        output.append({name: name, dir: False})
+                content_type = ContentType.DIR_LIST    
+        elif message.command_name == FileCommandName.get_open_files:
+            output = get_open_files()
+            content_type = ContentType.FILE_METADATA   
+        elif message.command_name == FileCommandName.set_working_dir:
+            output = None
+            if 'path' in metadata.keys():
+                output = set_working_dir(metadata['path'])
+            content_type = ContentType.NONE   
+        elif message.command_name == FileCommandName.read_file:
+            output = None
+            if 'path' in metadata.keys():
+                output = read_file(metadata['path'])
+            content_type = ContentType.FILE_CONTENT   
+
+        # create reply message
+        message.content_type = content_type
+        message.content = output
+        message.error = False
+        send_result_to_node_server(message)   
+
+    except:
+        trace = traceback.format_exc()
+        log.error("%s" % (trace))
+        error_message = create_error_message(message.webapp_endpoint, trace)          
+        send_result_to_node_server(error_message)
 
 def process_active_df_status():
     if DataFrameStatusHook.update_active_df_status(get_global_df_list()):
@@ -272,6 +312,9 @@ if __name__ == "__main__":
                 
                 elif message.webapp_endpoint == WebappEndpoint.DFManager: 
                     handle_DataFrameManager_message(message)
+
+                elif message.webapp_endpoint == WebappEndpoint.FileManager: 
+                    handle_FileManager_message(message)
 
             except OSError as error: #TODO check if this has to do with buffer error
                 #since this error might be related to the pipe, we do not send this error to nodejs

@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import store from '../../../redux/store';
 import { CodeOutputHeader, StyledTableViewHeader, StyledTableViewHeaderItem, TableShape, TableSummaryButton, TableSummaryPopover, TableViewHeaderButton } from "../StyledComponents";
 import { ifElse } from "../libs";
-import { IDFMetadata } from "../AppInterfaces";
+import { IDFMetadata } from "../../interfaces/IApp";
 import { ResultViewHeader } from "../../interfaces/IResultViewer";
 
 

@@ -1,6 +1,8 @@
-import { Box, Button, FormControl, Input, MenuItem, OutlinedInput, Paper, Popover, Select, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Box, Button, Divider, FormControl, Input, MenuItem, OutlinedInput, Paper, Popover, Select, Tab, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
+// import { TabsUnstyled } from '@mui/base';
 // import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import BoltIcon from '@mui/icons-material/Bolt';
 import SplitPane, { Pane } from 'react-split-pane';
 import styled, { keyframes } from 'styled-components';
 // import { CSSTransition } from 'react-transition-group';
@@ -60,6 +62,7 @@ export const AppBarIcon = styled.div`
 export const MainPanel = styled.div`
     display: flex;
     height: 100%;
+    overflow: hidden;     
 `;
 
 export const Sidebar = styled.div`
@@ -123,6 +126,8 @@ export const WorkingPanel = styled.div`
     padding: 0px; 
     flex-grow: 1;   
     position: relative;
+    height: 100%;
+    overflow: hidden;     
 `;
 
 export const WorkingPanelSplitPanel = styled(SplitPane)`
@@ -131,44 +136,64 @@ export const WorkingPanelSplitPanel = styled(SplitPane)`
     height: 100% - 12px;
 `;
 
-export const CodePanel = styled.div`
+export const StyledCodePanel = styled.div`
     background-color: ${props => props.theme.palette.background.paper};
-    // overflow: hidden;
-    // border-radius: 4px;
-    // display: flex;
     flex-direction: column;
     align-items: center;
     // border: 1px solid ${props => props.theme.palette.divider};
     // width: 30%;
-    height: 100%;    
+    height: 100%;
+    overflow: hidden;     
+    // overflow: auto;
 `;
 
-    export const CodeToolbar = styled.div`
+    export const StyledCodeToolbar = styled.div`
         display: flex;
-        height: 45px;
-        padding: 10px;
-        align-self: stretch;
+        --var-height: 46px;
+        height: calc(var(--var-height));
+        align-items: center;        
+        background-color: ${props => props.theme.palette.grey.A200};
     `;
-
+    
+    export const FileNameTab = styled(Typography)`      
+        display: flex;
+        align-items: center;
+        height: calc(var(--var-height));
+        line-height: calc(var(--var-height));
+        padding: 0px 10px 0px 10px;
+        font-size: 14px;
+        color: ${props => props.theme.palette.text.secondary};
+        background-color: ${props => props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
+        border-width: 1px;
+        &:hover {
+            cursor: pointer;
+            background-color: ${props => props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
+        }
+    `;
+    
+    export const StyledExecutorIcon = styled(BoltIcon)`
+        display: inline-block;
+        margin: 0 auto;
+    `
     export const CodeContainer = styled.div`
         // display: flex;
         padding: 0px; 
         flex-grow: 1;   
         position: relative; //must have for the spliter to work
         height: 100%;    //TODO: can't make this 100% because the scroll to the top will mess the frame up
+        overflow: auto;
     `;
 
-        export const CodeEditor = styled.div`    
+        export const StyledCodeEditor = styled.div`    
             background-color: ${props => props.theme.palette.background.paper};
             padding: 10px 10px 10px 10px;
             align-self: stretch;      
             height: 100%; 
             width: 100%;
-            
             //scrollable (https://stackoverflow.com/questions/43788878/scrollable-list-component-from-material-ui-in-react)
             overflow: auto;
             max-width: 100%;
-            max-height: 100%;
+            // max-height: 100%;
         `;
 
         export const StyledCodeMirror = styled(CodeMirror)`
@@ -254,9 +279,10 @@ export const CodePanel = styled.div`
                 
             // `
 
-export const WorkingPanelDivider = styled.div`
+export const PanelDivider = styled(Divider)`
     // adding display flex here does not work because the divider width becomes 0, no sure why        
-    align-self: stretch;    
+    align-self: stretch;
+    border-color: ${props => props.color=='light'? props.theme.palette.grey.A100 : props.theme.palette.divider};    
 `;
 
 export const TablePanel = styled.div`
@@ -267,7 +293,8 @@ export const TablePanel = styled.div`
     flex-grow: 1;   
     flex-direction: column;
     align-items: center;
-    height: 100%;                
+    height: 100%;
+    overflow: hidden;                
 `;
 
         export const TableToolbar = styled.div`
@@ -487,13 +514,4 @@ function newColTransition(props) {
       }
     `;
 }
-
-function codeExecutingTransition(props) {
-    return keyframes`
-      50% {
-        background-color: ${props.theme.palette.primary.light};
-      }
-    `;
-}
   
-
