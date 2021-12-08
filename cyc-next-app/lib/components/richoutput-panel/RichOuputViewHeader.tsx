@@ -11,7 +11,7 @@ import { IDFMetadata } from "../../interfaces/IApp";
 import { ResultViewHeader } from "../../interfaces/IResultViewer";
 
 
-const TableViewHeader = ({show, setShow}) => {        
+const RichOuputViewHeader = ({show, setShow}) => {        
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     const dfMetadata = useSelector((state) => state.dataFrames.metadata[activeDataFrame]);
     const dispatch = useDispatch();  
@@ -47,6 +47,6 @@ const TableViewHeader = ({show, setShow}) => {
     );
 }
 
-export default TableViewHeader;
+export default RichOuputViewHeader;
 
 

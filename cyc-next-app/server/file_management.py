@@ -1,6 +1,8 @@
 import os
-
+import logs
 from message import FileMetadata
+
+log = logs.get_logger(__name__)
 
 def list_dir(path):
     try:
@@ -22,21 +24,21 @@ def set_name(path):
 
 def read_file(path):
     try:
-        with open(path) as f:
-            contents = f.readlines()
+        log.info('Read file %s' % path)
+        with open(path) as file:
+            contents = file.read().splitlines()
         return contents
     except Exception:
         raise Exception
 
-def save_file(path):
+def save_file(path, content):
     """Save file and return file metadata
-
-    Args:
-        path ([type]): [description]
-        file_name ([type]): [description]
     """
     try:
-        dirs = os.listdir(path)
+        log.info('Save file %s' % path)
+        with open(path, 'w') as file:
+            file.write(content)
+        return FileMetadata(**{'path': path, 'name': path.split('/')[-1]})
     except Exception:
         raise Exception
 
@@ -54,5 +56,6 @@ def set_working_dir(path):
         raise Exception        
 
 PROJECT_DIR = '/Users/bachbui/works/cycai/cnext-working-dir'
-open_files = [FileMetadata(**{'path': PROJECT_DIR+'/data-loader.py', 'name': 'data-loader.py', 'executor': False, 'type': 'python'}),
-    FileMetadata(**{'path': PROJECT_DIR+'/demo.py', 'name': 'demo.py', 'executor': True, 'type': 'python'})]        
+open_files = [FileMetadata(**{'path': PROJECT_DIR+'/data_loader.py', 'name': 'data_loader.py', 'executor': False, 'type': 'python'}),
+    FileMetadata(**{'path': PROJECT_DIR+'/demo.py', 'name': 'demo.py', 'executor': True, 'type': 'python'})] 
+# os.chdir(PROJECT_DIR)       

@@ -7,9 +7,9 @@ import { ContentType } from "../../lib/interfaces/IApp";
 export const CodeEditorRedux = createSlice({
     name: 'codeEditor',
     initialState: {
-        text: '',
+        text: [],
         codeLines: [],
-        
+        fileSaved: true,
         /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of 
          * PlotView, which would only be rerendered when this variable is updated */ 
         plotResultUpdate: 0,
@@ -19,11 +19,12 @@ export const CodeEditorRedux = createSlice({
     reducers: {
         initCodeDoc: (state, action) => {  
             state.text = action.payload.text;
-            let codeLines: ICodeLine[] = state.codeLines;
+            let codeLines: ICodeLine[] = [];
             for(let i=0; i<state.text.length; i++){
                 let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null};
                 codeLines.push(codeLine);                    
             }
+            state.codeLines = codeLines;
         },
 
         updateLines: (state, action) => {
@@ -32,6 +33,7 @@ export const CodeEditorRedux = createSlice({
             let codeLines: ICodeLine[] = state.codeLines;
 
             state.text = lineUpdate.text;
+            state.fileSaved = false;
 
             console.log('Line update info: ', lineUpdate);
             // console.log('added line index started at: ', updatedStartLineNumber+1);
@@ -73,7 +75,8 @@ export const CodeEditorRedux = createSlice({
 
         setLineStatus: (state, action) => {
             let lineStatus: ICodeLineStatus = action.payload;
-            let codeLines: ICodeLine[] = state.codeLines;
+            // state.text = lineStatus.text;
+            let codeLines: ICodeLine[] = state.codeLines;            
             codeLines[lineStatus.lineNumber].status = lineStatus.status;
         },
 
@@ -104,11 +107,15 @@ export const CodeEditorRedux = createSlice({
             let lineNumber = action.payload;
             let codeLines: ICodeLine[] = state.codeLines;
             state.activeLine = codeLines[lineNumber].lineID;
+        },
+
+        setFileSaved: (state, action) => {
+            state.fileSaved = true;
         }
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { initCodeDoc, updateLines, addPlotResult, setLineStatus, setActiveLine } = CodeEditorRedux.actions
+export const { initCodeDoc, updateLines, addPlotResult, setLineStatus, setActiveLine, setFileSaved } = CodeEditorRedux.actions
 
 export default CodeEditorRedux.reducer

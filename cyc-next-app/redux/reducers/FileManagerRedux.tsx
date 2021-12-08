@@ -7,7 +7,7 @@ export const FileManagerRedux = createSlice({
     initialState: {
         openFiles: {},
         executorID: null,
-        inViewID: null,
+        inViewID: null,        
     },
 
     reducers: {

@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { PlotContainer, PlotViewContainer } from "../StyledComponents";
+import { PlotContainer as SinglePlot, PlotViewContainer as StyledPlotView } from "../StyledComponents";
 import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 
 // redux
@@ -23,11 +23,9 @@ export function PlotView(props: any) {
     // const plotResultCount = useSelector((state) => state.codeDoc.plotResultCount);
     // FIXME: PlotView render on every codeLines change => poor performance
     // const codeLines = useSelector((state) => state.codeDoc.codeLines);
-    const plotResultUpdate = useSelector((state) => state.codeDoc.plotResultUpdate);    
+    // const plotResultUpdate = useSelector((state) => state.codeDoc.plotResultUpdate);    
     const activeLine = useSelector((state) => state.codeDoc.activeLine);
-    const [plotRendered, setPlotRendered] = useState(false);
-    const scrollRef = useRef();
-    const noscrollRef = useRef();
+    const [containerMounted, setContainerMounted] = useState(false);
 
     function setLayout(plotData: IPlotResult, width: number|null = null, height: number|null = null) {
         try {
@@ -43,69 +41,43 @@ export function PlotView(props: any) {
             return null;
         }
     }
-
-    function plotWithNoScroll(props){
-        return (
-            <Fragment>
-                <PlotWithNoSSR {...props}></PlotWithNoSSR>
-            </Fragment>
-        )
-    }
-
-    function plotWithScroll(layout, active){
-        return (    
-            // <div 
-            //     ref={active ? scrollRef : noscrollRef}
-            // >
-                <PlotWithNoSSR {...layout} ></PlotWithNoSSR>
-            // </div>              
-        )
-    }
     
-    const plotContainerID = 'plotContainerID';
-
+    //FIXME: this still not work as expected
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollIntoView({
-                behavior: "smooth",
-                block: "nearest",
-                inline: "center",
-                boundary: document.getElementById(plotContainerID)
-            });
-        }
-    }, [scrollRef.current])
+        setContainerMounted(true);
+        // return function cleanup () {
+        //     setContainerMounted(false);
+        // }
+    })
 
+    const plotViewID = 'StyledPlotView';
     function renderPlots(){
         const state = store.getState();
         const codeLines: ICodeLine[] = state.codeDoc.codeLines;
         const codeWithPlots: ICodeLine[] = codeLines
             .filter(code => (code.result && code.result.type==ContentType.PLOTLY_FIG));        
+        // console.log(document.getElementById(plotContainerID));
         return (
-            <PlotViewContainer id={plotContainerID}>                
-                {console.log('Render PlotView')}
-                {codeWithPlots.map((plot: ICodeLine) => (                    
+            <StyledPlotView id={plotViewID}>                
+                {console.log('Render PlotView', containerMounted)}
+                {containerMounted ? codeWithPlots.map((plot: ICodeLine) => (                    
                     <ScrollIntoViewIfNeeded 
                             active={plot.lineID==activeLine}
                             options={{
                                 block: 'start', 
                                 inline:'center', 
                                 behavior: 'smooth',
-                                boundary: document.getElementById(plotContainerID)}}>
-                    {/* <Box ref={plot.lineID==activeLine ? scrollRef : null} > */}
-                    <PlotContainer 
-                        // ref={plot.lineID==activeLine ? scrollRef : null} 
-                        key={plot.lineID} 
-                        variant="outlined" 
-                        focused={plot.lineID==activeLine}>                                            
-                        {React.createElement(PlotWithNoSSR, setLayout(plot.result.content))}
-                        {console.log('Render PlotView: ', plot.lineID==activeLine)}
-                        {/* </Box> */}
-                        {/* {React.createElement(plotWithScroll, setLayout(plot.result.content), plot.lineID==activeLine)}                         */}
-                    </PlotContainer>
-                    {/* </Box> */}                        
+                                boundary: document.getElementById(plotViewID)}}>
+                        <SinglePlot 
+                            key={plot.lineID} 
+                            variant="outlined" 
+                            focused={plot.lineID==activeLine}>                                            
+                            {React.createElement(PlotWithNoSSR, setLayout(plot.result.content))}
+                            {console.log('Render PlotView: ', plot.lineID==activeLine)}
+                        </SinglePlot>          
                     </ScrollIntoViewIfNeeded> 
-                ))}
-            </PlotViewContainer>
+                )) : null}
+            </StyledPlotView>
         )         
     }
 

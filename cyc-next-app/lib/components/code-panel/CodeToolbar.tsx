@@ -23,6 +23,7 @@ function CodeToolbar() {
     const openFiles = useSelector(state => state.fileManager.openFiles);
     const executorID = useSelector(state => state.fileManager.executorID);
     const inViewID = useSelector(state => state.fileManager.inViewID);
+    const fileSaved = useSelector(state => state.codeDoc.fileSaved);
     const dispatch = useDispatch()
 
     function onClick(key: string){
@@ -39,6 +40,7 @@ function CodeToolbar() {
                     component = "span" 
                     key = {id}
                     onClick = {() => onClick(id)}
+                    fileSaved = {id!=inViewID || fileSaved}
                 >
                     {name}
                     {(id==executorID) && <ExecutorIcon/>}

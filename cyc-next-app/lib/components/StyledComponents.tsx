@@ -133,7 +133,7 @@ export const WorkingPanel = styled.div`
 export const WorkingPanelSplitPanel = styled(SplitPane)`
     padding-left: inherit;
     padding-right: inherit;
-    height: 100% - 12px;
+    height: 100%;// - 12px;
 `;
 
 export const StyledCodePanel = styled.div`
@@ -162,7 +162,7 @@ export const StyledCodePanel = styled.div`
         line-height: calc(var(--var-height));
         padding: 0px 10px 0px 10px;
         font-size: 14px;
-        color: ${props => props.theme.palette.text.secondary};
+        color: ${props => props.fileSaved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
         background-color: ${props => props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
         border-width: 1px;
         &:hover {
@@ -205,9 +205,7 @@ export const StyledCodePanel = styled.div`
             //     white-space: pre;
             //     overflow: scroll;
             // }
-            
-            
-
+                        
             .cm-tooltip.lint {
               white-space: pre;
             }
@@ -226,6 +224,11 @@ export const StyledCodePanel = styled.div`
             .cm-editor.cm-focused { 
                 outline: none
             }
+
+            .cm-magic-generated-code {
+                background-color: #fff3f9;
+                animation:  ${backgroundTransitionToColor('#fff3f9', 'white')} 1s ease 0s;
+            }
         `
         export const CodeEditMarker = styled.div`
             height: 10px;
@@ -236,11 +239,11 @@ export const StyledCodePanel = styled.div`
         `
         export const CodeOutputContainer = styled.div`
             // display: flex;
-            padding: 0px 10px 10px; 
+            padding: 0px 10px 0px 10px; 
             color: ${props => props.theme.palette.text.secondary};
             // flex-grow: 1;   
             height: 100%; 
-            max-width: 100%;
+            width: 100%;
             max-height: 80%; //have to keep this 80% otherwise scroll to view will mess the frame up           
         `;
             export const CodeOutputHeader = styled(Typography)`
@@ -429,7 +432,7 @@ export const TablePanel = styled.div`
                     font-size: 13px;
                     vertical-align: bottom;
                     ${props => (props.review 
-                        ? newColTransition(props)
+                        ? backgroundTransition(props.theme.palette.primary.light)
                         : null)} 1s linear 0s;
                 `;
                 
@@ -441,7 +444,7 @@ export const TablePanel = styled.div`
                     font-weight: bold;
                     font-size: 13px;
                     animation:  ${props => (props.review 
-                        ? newColTransition(props)
+                        ? backgroundTransition(props.theme.palette.primary.light)
                         : null)} 1s linear 0s; 
                 `
                 export const DataTableCell = styled(TableCell)`
@@ -450,19 +453,17 @@ export const TablePanel = styled.div`
                     text-align: ${props => (props.head ? 'left' : 'right')};
                     font-size: 13px;
                     animation:  ${props => (props.review 
-                        ? newColTransition(props)
+                        ? backgroundTransition(props.theme.palette.primary.light)
                         : null)} 1s linear 0s; 
                 `
         
         export const PlotViewContainer = styled.div`
             background-color: ${props => props.theme.palette.background.paper};
             padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
-            max-height: 100%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
+            // max-height: 100%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
             overflow: auto;
-            width: 100%;      
-            // display: flex;
-            // flex-direction: column;
-            // align-content: center;    
+            width: 100%;   
+            height: 100%;       
         `;        
 
             export const PlotContainer = styled(Paper)`
@@ -507,11 +508,24 @@ export const StyledDFStatusNotification = styled(ToastContainer)`
     }
 `
 
-function newColTransition(props) {
+function backgroundTransition(color) {
     return keyframes`
       50% {
-        background-color: ${props.theme.palette.primary.light};
+        background-color: ${color};
       }
     `;
 }
   
+function backgroundTransitionToColor(color1, color2) {
+    return keyframes`
+      0% {
+        background-color: ${color1};
+      }
+      50% {
+        background-color: ${color2};
+      }
+      100% {
+        background-color: ${color1};
+      }
+    `;
+}

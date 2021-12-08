@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { DataTable, PanelDivider, TablePanel, TableToolbar } from "../StyledComponents";
-import TableView from "./TableView";
+import TableView from "./RichOutputView";
 import DFExplorer from "./DFExplorer";
 
 import dynamic from 'next/dynamic'
@@ -26,8 +26,6 @@ const TablePanelComponent = (props: any) => {
             </TableToolbar>
             <PanelDivider/>
             <TableView {... props}/>
-            {/* <VizComponentWithNoSSR /> */}
-            {/* <DFStatusNotification/> */}
         </TablePanel>
     );
   };

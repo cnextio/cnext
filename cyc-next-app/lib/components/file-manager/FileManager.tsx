@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { initCodeDoc } from "../../../redux/reducers/CodeEditorRedux";
+import { initCodeDoc, setFileSaved } from "../../../redux/reducers/CodeEditorRedux";
 import { setOpenFiles } from "../../../redux/reducers/FileManagerRedux";
 import store from '../../../redux/store';
 import { CommandName, ContentType, Message, WebAppEndpoint } from "../../interfaces/IApp";
@@ -10,7 +10,12 @@ import socket from "../Socket";
 function FileManager() {
     const dispatch = useDispatch();
     const inViewID = useSelector(state => state.fileManager.inViewID);
-
+    const codeText = useSelector(state => state.codeDoc.text);  
+    const [codeTextUpdated, setcodeTextUpdated] = useState(false);    
+    // using this to avoid saving the file when we load code doc for the first time
+    const [codeTextInit, setcodeTextInit] = useState(0);
+    const [timerExpire, setTimerExpire] = useState(false);
+    
     function _setup_socket(){
         socket.emit("ping", "FileManager");
         socket.on(WebAppEndpoint.FileManager, (result: string) => {
@@ -26,6 +31,11 @@ function FileManager() {
                         // console.log('Get file content: ', fmResult.content);
                         console.log('Get file content...');
                         dispatch(initCodeDoc({text: fmResult.content}));
+                        setcodeTextInit(1);
+                        break;
+                    case FileCommandName.save_file:
+                        console.log('Get save file result: ', fmResult);
+                        dispatch(setFileSaved());
                         break;
                 } 
             } catch(error) {
@@ -52,6 +62,7 @@ function FileManager() {
         return message;
     }
 
+    // called when the in-view file changed
     useEffect(() => {
         let state = store.getState();
         if(inViewID){
@@ -62,10 +73,37 @@ function FileManager() {
         }
     }, [inViewID])
 
+    const SAVE_FILE_DURATION = 1000;
+    function saveFile(){
+        if(codeTextUpdated && codeText){
+            setcodeTextUpdated(false);
+            let state = store.getState();
+            let file: FileMetadata = state.fileManager.openFiles[inViewID];
+            let message: Message = _createMessage(FileCommandName.save_file, codeText.join('\n'), 1, {path: file.path});
+            console.log('FileManager send:', message.command_name);        
+            // console.log('FileManager send:', message);        
+            _sendMessage(message);
+        }
+    }
+
+    useEffect(() => {
+        setTimerExpire(false);
+        saveFile();
+    }, [timerExpire])
+
+    useEffect(() => {
+        if(codeTextInit==1){
+            console.log('codeText update', codeTextUpdated);
+            setcodeTextUpdated(true);
+        }
+    }, [codeText])
+
     useEffect(() => {
         _setup_socket();        
         let message: Message = _createMessage(FileCommandName.get_open_files, '', 1);
         _sendMessage(message);
+        const saveFileTimer = setInterval(() => {setTimerExpire(timerExpire => true)}, SAVE_FILE_DURATION);
+        return () => clearInterval(saveFileTimer);
     }, []); //run this only once - not on rerender
 
     return null;

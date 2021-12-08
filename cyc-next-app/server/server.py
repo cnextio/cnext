@@ -10,6 +10,7 @@ from message import Message, WebappEndpoint, CommandName, ContentType, FileComma
 from file_management import *
 
 log = logs.get_logger(__name__)
+
 from config import read_config
 try:
     if platform.system() == 'Windows':
@@ -266,6 +267,11 @@ def handle_FileManager_message(message):
             if 'path' in metadata.keys():
                 output = read_file(metadata['path'])
             content_type = ContentType.FILE_CONTENT   
+        elif message.command_name == FileCommandName.save_file:
+            output = None
+            if 'path' in metadata.keys():
+                output = save_file(metadata['path'], message.content)
+            content_type = ContentType.FILE_METADATA
 
         # create reply message
         message.content_type = content_type

@@ -39,9 +39,15 @@ export enum LineStatus {
 * lineCount: number of lines added above the lineNumber
  */
 export interface ILineUpdate {
-    text: string[] 
+    text: string[]; 
     updatedStartLineNumber: number;
     updatedLineCount: number;
+}
+
+export interface ICodeLineStatus {
+	text: string[]; 
+	lineNumber: number;
+	status: LineStatus;
 }
 
 export interface ICodeResultMessage {
@@ -77,7 +83,4 @@ export interface IStatePlotResults {
 	[lineID: string]: IPlotResult
 }
 
-export interface ICodeLineStatus {
-	lineNumber: number;
-	status: LineStatus;
-}
+

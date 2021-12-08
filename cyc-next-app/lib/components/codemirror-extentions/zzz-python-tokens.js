@@ -1,9 +1,10 @@
-import {ExternalTokenizer, ContextTracker} from "lezer"
+// import {ExternalTokenizer, ContextTracker} from "@codemirror/lang-python"
+import { ExternalTokenizer, ContextTracker } from '@lezer/lr';
 import {
   newline as newlineToken, eof, newlineEmpty, newlineBracketed, indent, dedent, printKeyword,
   ParenthesizedExpression, TupleExpression, ComprehensionExpression, ArrayExpression, ArrayComprehensionExpression,
   DictionaryExpression, DictionaryComprehensionExpression, SetExpression, SetComprehensionExpression
-} from "./parser.terms.js"
+} from "./cnext-python.terms.js"
 
 const newline = 10, carriageReturn = 13, space = 32, tab = 9, hash = 35, parenOpen = 40, dot = 46
 

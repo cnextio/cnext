@@ -170,14 +170,14 @@ const CodeOutputComponent = ({codeOutput}) => {
     // }
 
     // useEffect(scrollToBottom, [outputContent]);
-
+    const codeOutputContentID = 'CodeOutputContent';
     return (
         <CodeOutputContainer >
             {console.log('Render CodeOutputAreaComponent')}   
             <CodeOutputHeader variant="overline" component="span">
                 Output
             </CodeOutputHeader>
-            <CodeOutputContent ref={codeOutputRef} id='CodeOutput'>
+            <CodeOutputContent ref={codeOutputRef} id={codeOutputContentID}>
                 {outputContent.map((item, index) => (
                 <Fragment>
                     {/* {console.log('Item:', item)} */}
@@ -196,7 +196,15 @@ const CodeOutputComponent = ({codeOutput}) => {
                                 && updateTypeToReview.includes(item['content']['updateType']))}
                     </IndividualCodeOutputContent>}                    
                     {index===outputContent.length-1 && 
-                    <ScrollIntoViewIfNeeded options={{active: true, block: 'nearest', inline:'center', behavior: 'smooth'}}/>}
+                    <ScrollIntoViewIfNeeded 
+                        options={{
+                            active: true, 
+                            block: 'nearest', 
+                            inline:'center', 
+                            behavior: 'smooth',
+                            boundary: document.getElementById(codeOutputContentID)
+                        }}
+                    />}
                 </Fragment>
                 ))}                
             </CodeOutputContent>  

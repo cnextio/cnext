@@ -21,9 +21,9 @@ import { useSelector, useDispatch } from 'react-redux'
 import CountNAComponent from "./CountNA";
 import { ifElse, ifElseDict } from "../libs";
 import { setDFUpdates } from "../../../redux/reducers/DataFramesRedux";
-import TableViewHeader from "./TableViewHeader";
-import SummaryView from "../summary_panel/SummaryView";
-import PlotView from "../plot_panel/PlotView";
+import RichOuputViewHeader from "./RichOuputViewHeader";
+import SummaryView from "../summary-panel/SummaryView";
+import PlotView from "../plot-panel/PlotView";
 import { IResultViewHeader } from "../../interfaces/IResultViewer";
 
 const TableView = (props: any) => {    
@@ -111,7 +111,7 @@ const TableView = (props: any) => {
 
     return (
         <Fragment>
-            <TableViewHeader show={show} setShow={setShow}/>
+            <RichOuputViewHeader show={show} setShow={setShow}/>
             <Divider/>
             {show==IResultViewHeader.TABLE && ifElse(tableData, activeDataFrame, null)?
             <TableContainer>
