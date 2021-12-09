@@ -1,3 +1,5 @@
+import { Line } from "@codemirror/text";
+
 export interface MagicPlotData {
     // this is the range of the magic text that generated this plot code
     magicTextRange: {from: number, to: number},
@@ -37,6 +39,23 @@ export interface CodeGenResult {
 export interface TextRange {
     from: number;
     to: number;
+}
+
+export interface GeneratedLineInfo {
+    line: number;
+    to: number;
+}
+
+export interface IMagicInfo {
+	status: CodeGenStatus,
+	line?: Line,
+	magicText?: string,
+	plotData?: MagicPlotData,
+}
+
+export enum CodeGenStatus {
+	INSERTING,
+	INSERTED
 }
 
 export const MAGIC_STARTER = '#!';

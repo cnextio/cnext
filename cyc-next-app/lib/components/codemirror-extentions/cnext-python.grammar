@@ -61,11 +61,12 @@ smallStatement {
 }
 
 CNextPlotAddDimKeyword {kw<"vs"> | kw<"over"> | kw<"against">}
-ColumnNameExpression {shortString}
-DataFrameExpresion { identifier }
-CNextPlotYDimExpression { commaSep<ColumnNameExpression> }
-CNextPlotXDimExpression { ColumnNameExpression | kw<"index"> }
-CNextPlotExpression { CNextPlotKeyword DataFrameExpresion? (CNextPlotYDimExpression? (CNextPlotAddDimKeyword CNextPlotXDimExpression?)?)? (newline | eof)}
+CNextXDimColumnNameExpression {shortString }
+CNextYDimColumnNameExpression {shortString }
+CNextDataFrameExpresion { identifier }
+CNextPlotYDimExpression { commaSep<CNextYDimColumnNameExpression> }
+CNextPlotXDimExpression { CNextXDimColumnNameExpression | kw<"index"> }
+CNextPlotExpression { CNextPlotKeyword CNextDataFrameExpresion? (CNextPlotYDimExpression? (CNextPlotAddDimKeyword CNextPlotXDimExpression?)?)? (newline | eof)}
 
 expressions { commaSep<"*" expression | test> }
 

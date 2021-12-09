@@ -10,7 +10,8 @@ export interface ICodeDoc {
 export interface ICodeLine {
 	lineID: string;
 	status: LineStatus;
-	result: ICodeResult | null; 
+	result: ICodeResult | null;
+	generated: boolean; 
 };
 
 export enum LineStatus {
@@ -44,10 +45,11 @@ export interface ILineUpdate {
     updatedLineCount: number;
 }
 
-export interface ICodeLineStatus {
-	text: string[]; 
+export interface ICodeLineStatus {	
 	lineNumber: number;
-	status: LineStatus;
+	status?: LineStatus;
+	generated?: boolean;
+	text?: string[]; 
 }
 
 export interface ICodeResultMessage {
@@ -82,5 +84,4 @@ export enum MessageMetaData {
 export interface IStatePlotResults {
 	[lineID: string]: IPlotResult
 }
-
 

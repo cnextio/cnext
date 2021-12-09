@@ -21,7 +21,7 @@ export const CodeEditorRedux = createSlice({
             state.text = action.payload.text;
             let codeLines: ICodeLine[] = [];
             for(let i=0; i<state.text.length; i++){
-                let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null};
+                let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null, generated: false};
                 codeLines.push(codeLine);                    
             }
             state.codeLines = codeLines;
@@ -40,7 +40,7 @@ export const CodeEditorRedux = createSlice({
             if (lineUpdate.updatedLineCount>0){
                 let addedLines: ICodeLine[] = [];
                 for(let i=0; i<lineUpdate.updatedLineCount; i++){
-                    let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null};
+                    let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null, generated: false};
                     addedLines.push(codeLine);                    
                 }
                 /** Insert the insersted lines into the array. Keep the ID of lines between 0 and updatedStartLineNumber 
@@ -75,9 +75,17 @@ export const CodeEditorRedux = createSlice({
 
         setLineStatus: (state, action) => {
             let lineStatus: ICodeLineStatus = action.payload;
-            // state.text = lineStatus.text;
             let codeLines: ICodeLine[] = state.codeLines;            
-            codeLines[lineStatus.lineNumber].status = lineStatus.status;
+            if(lineStatus.status !== undefined){
+                if(lineStatus.status === LineStatus.EDITED && lineStatus.text !== undefined){
+                    // console.log('CodeEditorRedux: ', lineStatus.status);
+                    state.text = lineStatus.text;
+                } 
+                codeLines[lineStatus.lineNumber].status = lineStatus.status;
+            } 
+            if(lineStatus.generated !== undefined){
+                codeLines[lineStatus.lineNumber].generated = lineStatus.generated;
+            }            
         },
 
         /**

@@ -225,9 +225,13 @@ export const StyledCodePanel = styled.div`
                 outline: none
             }
 
-            .cm-magic-generated-code {
+            .cm-gencode-flash {
                 background-color: #fff3f9;
                 animation:  ${backgroundTransitionToColor('#fff3f9', 'white')} 1s ease 0s;
+            }
+            
+            .cm-gencode-solid {
+                background-color: #fff3f9;
             }
         `
         export const CodeEditMarker = styled.div`

@@ -28,8 +28,9 @@ import { EditorSelection, EditorState, SelectionRange, StateEffect, StateField, 
 import { keyframes } from "styled-components";
 // import { extensions } from './codemirror-extentions/extensions';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import { CodeGenResult, MagicPlotData, MAGIC_STARTER, TextRange } from "../../interfaces/IMagic";
+import { CodeGenResult, CodeGenStatus, IMagicInfo, MagicPlotData, MAGIC_STARTER, TextRange } from "../../interfaces/IMagic";
 import { magicsGetPlotCommand } from "../../cnext-magics/plot-command";
+import { CNextColumnNameExpression, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../codemirror-extentions/cnext-python.terms";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -39,17 +40,18 @@ const ls = languageServer({
 });
   
 // const CodeEditorComponent = React.memo((props: {recvCodeOutput: RecvCodeOutput}) => {
-const CodeEditor = React.memo((props: any) => {
-    const [initialized, setInit] = useState(false);
+const CodeEditor = (props: any) => {
+    const [initialized, setInitialized] = useState(false);
     const codeLines = useSelector(state => state.codeDoc.codeLines);
     const inViewID = useSelector(state => state.fileManager.inViewID);
-    const initCodeText = useSelector(state => state.codeDoc.text);    
+    const codeText = useSelector(state => state.codeDoc.text);    
     const dispatch = useDispatch();
     const editorRef = useRef();
     const [inlinePlotData, setInlinePlotData] = useState<MagicPlotData | undefined>();
-    const [magicText, setMagicText] = useState();
-    const [generatedCodeRange, setGeneratedCodeRange] = useState<TextRange | undefined>();
-    
+    // const [magicText, setMagicText] = useState();
+    // const [generatedCodeRange, setGeneratedCodeRange] = useState<TextRange | undefined>();
+    // const [generatedLineNumber, setGeneratedLineNumber] = useState(-1);
+    const [magicInfo, setMagicInfo] = useState<IMagicInfo | undefined>();
     const _handlePlotData = (message: Message) => {
         console.log(`${WebAppEndpoint.CodeEditor} got plot data`);
         let result: ICodeResultMessage = {
@@ -100,29 +102,73 @@ const CodeEditor = React.memo((props: any) => {
         // editorRef;
     }, []); //run this only once - not on rerender
 
+
+    /**
+     * FIXME: This is used to set onmousedown event handler. This does not seem to be the best way. 
+     * Also set the SOLID effect for generated lines
+     * */
+    function _setCMPropertyOnMount(){
+        let cm: ReactCodeMirrorRef = editorRef.current;                
+        if (cm && cm.editor){
+            cm.editor.onmousedown = onMouseDown;        
+
+            if (cm.view) {
+                cm.view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
+                cm.view.dispatch({effects: [generatedCodeStateEffect.of({type: GenCodeEffectType.SOLID})]});             
+            }            
+        }  
+    }
+    useEffect(() => {
+        _setCMPropertyOnMount();
+    });
+    
     /**
      * Reset the code editor state when the doc is selected to be in view
      */
     useEffect(() => {
         if(editorRef.current.view){
-            setInit(false);
+            setInitialized(false);
             // clear the state
             editorRef.current.view.setState(EditorState.create({doc: '', extensions: extensions}));
         }
     }, [inViewID]);
 
     /**
-     * Init CodeEditor value with content load from the file
+     * Init CodeEditor value with content load from the file if `initilized` is False
      */
+    function _initCM(cm: ReactCodeMirrorRef){
+        cm.view ? cm.view.setState(EditorState.create({doc: codeText.join('\n'), extensions: extensions})) : null;
+    }
     useEffect(() => {
         let cm: ReactCodeMirrorRef = editorRef.current;
-        if(cm && cm.view && !initialized){
-            setInit(true);
-            cm.view.setState(EditorState.create({doc: initCodeText.join('\n'), extensions: extensions}));
+        if (cm && cm.view && !initialized){            
+            _initCM(cm);
+            setInitialized(true);
         }
-    }, [initCodeText]);
-    // const socket = socketIOClient(CODE_SERVER_SOCKET_ENDPOINT);
+    }, [codeText]);
     
+    /** Implement the flashing effect after line is inserted */
+    function _setFlashingEffect(){
+        let cm: ReactCodeMirrorRef = editorRef.current;                
+        if (cm && cm.editor){
+            /** Only clear the magicInfo after the animation complete. Otherwise, the component will be rerendered before the animation takes place */
+            cm.editor.addEventListener('animationend', () => {
+                setMagicInfo(undefined);
+            });         
+        }   
+        
+        /** 
+         * Have to make sure that the component wont be rerendered after this until the effect complete.
+         */
+        if (cm && cm.view && magicInfo && magicInfo.status === CodeGenStatus.INSERTED && magicInfo.line !== undefined) {
+            cm.view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
+            cm.view.dispatch({effects: [generatedCodeStateEffect.of({lineNumber: magicInfo.line.number, type: GenCodeEffectType.FLASHING})]});             
+        }
+    }
+    useEffect(() => {
+        _setFlashingEffect();    
+    }, [magicInfo]);
+
     /**
      * Important: the line number in the result will be 0-based indexed instead of 1-based index
      * @param editorView 
@@ -132,20 +178,22 @@ const CodeEditor = React.memo((props: any) => {
         const doc = editorView.state.doc;
         const state = editorView.state;
         const anchor = state.selection.ranges[0].anchor;
-        let codeLine = doc.lineAt(anchor);
-        let text: string = codeLine.text;        
+        let line = doc.lineAt(anchor);
+        let text: string = line.text;        
         let result: ILineContent;
 
         if(text.startsWith(MAGIC_STARTER)){
-            if(inlinePlotData){
-                codeLine = doc.lineAt(inlinePlotData.magicTextRange.to);
-                text = codeLine.text;
+            let lines: ICodeLineStatus[] = store.getState().codeDoc.codeLines;            
+            /** note that because the CM line index is 0-based, this if condition is looking at the next line*/
+            if (lines[line.number].generated){
+                line = doc.line(line.number+1);
+                text = line.text;
             }
         } 
 
         console.log('Code line to run: ', text);
-        // convert the line number 0-based index, which is what we use internally
-        result = {lineNumber: codeLine.number-1, content: text}; 
+        // convert the line number to 0-based index, which is what we use internally
+        result = {lineNumber: line.number-1, content: text}; 
         return result;
     }
 
@@ -199,16 +247,7 @@ const CodeEditor = React.memo((props: any) => {
         
     }
 
-    useEffect(() => {
-        let cm: ReactCodeMirrorRef = editorRef.current;                
-        if (cm && cm.editor){
-            cm.editor.onmousedown = onMouseDown;
-            if (generatedCodeRange){
-                cm.view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
-                cm.view.dispatch({effects: [generatedCodeStateEffect.of({from: generatedCodeRange.from, to: generatedCodeRange.to})]});
-            }      
-        }
-    });
+    
     
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update 
      * with line status. This works but might need to find a better performant solution. */ 
@@ -216,7 +255,7 @@ const CodeEditor = React.memo((props: any) => {
         let cm: ReactCodeMirrorRef = editorRef.current;   
         if(cm && cm.view){            
             cm.view.dispatch();
-        }
+        }         
     }, [codeLines]);
     
     /**
@@ -234,7 +273,7 @@ const CodeEditor = React.memo((props: any) => {
                 // let doc = viewUpdate.state.doc
                 let text: string[] = doc.toJSON();
                 // let startLineLength = (typeof startDoc == TextLeaf ? startDoc.text.length : startDoc.lines)
-                let updatedLineCount = doc.lines - startDoc.lines;
+                let updatedLineCount = doc.lines - startDoc.lines;                
                 let changes = viewUpdate.changes.toJSON();
                 let changeStartLine = doc.lineAt(changes[0]);
                 // convert the line number 0-based index, which is what we use internally
@@ -255,7 +294,8 @@ const CodeEditor = React.memo((props: any) => {
                     // If there is new text in the current line then current line is `edited`                            
                     dispatch(updateLines(updatedLineInfo));
                 } else {
-                    let lineStatus: ICodeLineStatus = {text: text, lineNumber: changeStartLineNumber, status: LineStatus.EDITED};
+                    let lineStatus: ICodeLineStatus;
+                    lineStatus = {text: text, lineNumber: changeStartLineNumber, status: LineStatus.EDITED, generated: false};                    
                     dispatch(setLineStatus(lineStatus));
                 }
                 
@@ -268,16 +308,6 @@ const CodeEditor = React.memo((props: any) => {
 
     /**
      * This handle all the CNext magics.
-     * 
-     * Currently only implement the plot magic. The plot will start first with #! plot.
-     * The current grammar will make good detection of CNextStatement except for when 
-     * the command line ends with eof. Not sure why the grammar does not work with it.
-     * The cnext plot pattern looks like this:
-     * CNextPlotExpression(CNextPlotKeyword,
-     * DataFrameExpresion,
-     * CNextPlotYDimExpression(ColumnNameExpression),
-     * CNextPlotAddDimKeyword(vs),
-     * CNextPlotXDimExpression(ColumnNameExpression))
      */
     function _handleMagics(){
         if (editorRef.current){
@@ -287,114 +317,167 @@ const CodeEditor = React.memo((props: any) => {
                 if(state){
                     let tree = state.tree;
                     let curPos = state.selection.ranges[0].anchor;
-                    
-                    /** If the update position is within the generatedCodeRange then reset the generatedCodeRange
+                    // let plotData: MagicPlotData = inlinePlotData
+                    /** If the updating position is within the generatedCodeRange then reset the generatedCodeRange
                      * so new line magic will be insert in new line instead of updating the existing one */
-                    if (generatedCodeRange && curPos>=generatedCodeRange.from && curPos<generatedCodeRange.to){
-                        setGeneratedCodeRange(null);
-                    }             
+                    // console.log('Magic: ', curPos, generatedCodeRange);
+                    // if (generatedCodeRange && curPos>=generatedCodeRange.from && curPos<generatedCodeRange.to){
+                    //     setGeneratedCodeRange(null);
+                    // }             
 
                     let cursor = tree.cursor(curPos, 0);                    
-                    // console.log(tree.cursor(curPos, -1).toString());
-                    // console.log(tree.cursor(curPos, 0).toString());
-                    // console.log(tree.cursor(curPos, 1).toString());                    
-                    console.log(cursor.toString());
-                    console.log(cursor.name);
-                    if (cursor.name === 'CNextPlotExpression'){                        
-                        let text: string = state.doc.toString();
-                        let newMagicText: string = text.substring(cursor.from, cursor.to); 
-                        // use this to avoid circular update because this code will generate
-                        // new content added to the editor, which will trigger onCMChange
-                        if(newMagicText !== magicText){      
-                            let plotData: MagicPlotData = {
-                                magicTextRange: {from: cursor.from, to: cursor.to},
-                                df: null,
-                                x: null,
-                                y: null
-                            };              
-                            // let endPlotPos = cursor.to;  
-                            plotData.magicTextRange = {from: cursor.from, to: cursor.to};                      
-                            // while(cursor.to <= endPlotPos){
-                            cursor.next();
-                            // console.log(cursor.name);
-                            cursor.nextSibling(); //skip CNextPlotKeyword
-                            // console.log(cursor.name);
-                            if (cursor.name == 'DataFrameExpresion'){
-                                // console.log('DF: ', text.substring(cursor.from, cursor.to));
-                                plotData.df = text.substring(cursor.from, cursor.to);
-                                cursor.nextSibling();
-                                // console.log(cursor.name);
-                            } 
-                            if (cursor.name === 'CNextPlotYDimExpression'){
-                                let endYDim = cursor.to;
-                                plotData.y = []
-                                while((cursor.to <= endYDim) && cursor){
-                                    if(cursor.name === 'ColumnNameExpression'){
-                                        // console.log('Y dim: ', text.substring(cursor.from, cursor.to));
-                                        // remove quotes
-                                        plotData.y.push(text.substring(cursor.from+1, cursor.to-1));
-                                    }       
-                                    cursor.next();     
-                                    // console.log(cursor.name);       
-                                }         
-                                cursor.nextSibling(); //skip CNextPlotAddDimKeyword
-                                console.log(cursor.name);
-                                if (cursor.name === 'CNextPlotXDimExpression'){
-                                    let endXDim = cursor.to;
-                                    while((cursor.to <= endXDim) && cursor){                                        
-                                        if(cursor.name === 'ColumnNameExpression'){
-                                            // console.log('X dim: ', text.substring(cursor.from, cursor.to));
-                                            // remove quotes
-                                            plotData.x = text.substring(cursor.from+1, cursor.to-1);
-                                        }
-                                        cursor.next();                  
-                                        // console.log(cursor.name);
-                                    }         
-                                }    
-                            }                              
-                            console.log(plotData);      
-                            setMagicText(newMagicText);
-                            setInlinePlotData(plotData);                            
-                        }                     
+                                        
+                    if ([CNextDataFrameExpresion, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression]
+                        .includes(cursor.type.id)){
+                        /** Move the cursor up to CNextPlotExpression so we can parse the whole cnext text and
+                         * generate the new inline plot command */
+                        cursor.parent();
+                        cursor.parent();
                     }
+                    console.log('_handleMagics: ', cursor.toString());
+                    if (cursor.type.id === CNextPlotExpression) {                        
+                        let text: string = state.doc.toString();
+                        let newMagicText: string = text.substring(cursor.from, cursor.to);                         
+                        let generatedLine = cm.view.state.doc.lineAt(cursor.to);
+                        console.log('Magics magicInfo: ', magicInfo);
+                        /** 
+                         * Check the status here to avoid circular update because this code will generate
+                         * new content added to the editor, which will trigger onCMChange -> _handleMagic 
+                         * */
+                        // if(newMagicText !== magicText){                         
+                        if (magicInfo === undefined) {         
+                        // if (magicInfo === undefined) {         
+                            let plotData = _parseMagicText(cursor, text);
+                            let magicInfo: IMagicInfo = {
+                                status: CodeGenStatus.INSERTING, 
+                                magicText: newMagicText, 
+                                plotData: plotData, 
+                                line: generatedLine
+                            };
+                            setMagicInfo(magicInfo);                              
+                        } else if (magicInfo && magicInfo.status === CodeGenStatus.INSERTING && magicInfo.line) {
+                            /** 
+                             * The second time _handleMagic being called is after new code has been inserted
+                             */
+                            /** convert line number to 0-based */
+                            let lineStatus = {lineNumber: magicInfo.line.number-1, status: LineStatus.EDITED, generated: true};                        
+                            dispatch(setLineStatus(lineStatus));
+                            // console.log('Magics after inserted lineStatus: ', lineStatus);
+                            let newMagicInfo: IMagicInfo = { status: CodeGenStatus.INSERTED, line: magicInfo.line };
+                            setMagicInfo(newMagicInfo);         
+                            // console.log('Magics after inserted magicInfo: ', newMagicInfo);                
+                        }                    
+                    } 
                 }
             }
         }        
     } 
 
     /**
-     * This useEffect handle the plot magic used in supporting _handleMagics. 
-     * This will be triggered when there are updates on inlinePlotData
+     * Currently only implement the plot magic. The plot will start first with #! plot.
+     * The current grammar will make good detection of CNextStatement except for when 
+     * the command line ends with eof. Not sure why the grammar does not work with it.
+     * The cnext plot pattern looks like this:
+     * CNextPlotExpression(CNextPlotKeyword,
+     * DataFrameExpresion,
+     * CNextPlotYDimExpression(ColumnNameExpression),
+     * CNextPlotAddDimKeyword(vs),
+     * CNextPlotXDimExpression(ColumnNameExpression))
+     * */
+    function _parseMagicText(cursor, text) {
+        let plotData: MagicPlotData = {
+            magicTextRange: {from: cursor.from, to: cursor.to},
+            df: null,
+            x: null,
+            y: null
+        };              
+        // let endPlotPos = cursor.to;  
+        plotData.magicTextRange = {from: cursor.from, to: cursor.to};                      
+        // while(cursor.to <= endPlotPos){
+        cursor.next();
+        // console.log(cursor.name);
+        cursor.nextSibling(); //skip CNextPlotKeyword
+        // console.log(cursor.name);
+        if (cursor.type.id == CNextDataFrameExpresion){
+            // console.log('DF: ', text.substring(cursor.from, cursor.to));
+            plotData.df = text.substring(cursor.from, cursor.to);
+            cursor.nextSibling();
+            // console.log(cursor.name);
+        } 
+        if (cursor.type.id === CNextPlotYDimExpression){
+            let endYDim = cursor.to;
+            plotData.y = []
+            while((cursor.to <= endYDim) && cursor){
+                if(cursor.type.id === CNextYDimColumnNameExpression){
+                    // console.log('Y dim: ', text.substring(cursor.from, cursor.to));
+                    // remove quotes
+                    plotData.y.push(text.substring(cursor.from+1, cursor.to-1));
+                }       
+                cursor.next();     
+                // console.log(cursor.name);       
+            }         
+            cursor.nextSibling(); //skip CNextPlotAddDimKeyword
+            console.log(cursor.name);
+            if (cursor.type.id === CNextPlotXDimExpression){
+                let endXDim = cursor.to;
+                while((cursor.to <= endXDim) && cursor){                                        
+                    if(cursor.type.id === CNextXDimColumnNameExpression){
+                        // console.log('X dim: ', text.substring(cursor.from, cursor.to));
+                        // remove quotes
+                        plotData.x = text.substring(cursor.from+1, cursor.to-1);
+                    }
+                    cursor.next();                  
+                    // console.log(cursor.name);
+                }         
+            }
+        }
+        return plotData; 
+    }
+
+    /**
+     * This useEffect handle the plot magic. This is used in conjunction with _handleMagics. 
+     * This will be triggered when there are updates on magicInfo
      */
-    useEffect(() => {
-        if (editorRef.current){
+    function _handleMagicInfoUpdate(){
+        if (editorRef.current && magicInfo && magicInfo.status === CodeGenStatus.INSERTING){
             let cm: ReactCodeMirrorRef = editorRef.current;
             if (cm.view){
-                let state: EditorState = cm.view.state;
-                let startGeneratedCode: number = inlinePlotData.magicTextRange.to;                
-                console.log('Magic: ', inlinePlotData);
-                let genCodeResult: CodeGenResult =  magicsGetPlotCommand(inlinePlotData);
-                console.log('Magic code gen result: ', genCodeResult);
-                if (!genCodeResult.error && genCodeResult.code){
-                    let genCode: string|undefined = genCodeResult.code;
-                    let transactionSpec: TransactionSpec = {
-                        changes: {
-                            from: startGeneratedCode, 
-                            to: generatedCodeRange ? startGeneratedCode+(generatedCodeRange.to-generatedCodeRange.from) : startGeneratedCode, 
-                            insert: generatedCodeRange ? genCode : genCode.concat('\n')
-                        }
-                    };                
-                    setGeneratedCodeRange({from: startGeneratedCode, to: startGeneratedCode+genCode.length});
-                    let transaction: Transaction = state.update(transactionSpec);
-                    cm.view.dispatch(transaction);                       
+                let state: EditorState = cm.view.state;  
+                if (magicInfo.plotData !== undefined && magicInfo.line !== undefined) {          
+                    // console.log('Magic inlinePlotData: ', inlinePlotData);
+                    let genCodeResult: CodeGenResult =  magicsGetPlotCommand(magicInfo.plotData);
+                    console.log('Magic code gen result: ', genCodeResult);
+                    // console.log('Magic generatedCodeRange: ', generatedCodeRange);
+                    if (!genCodeResult.error && genCodeResult.code){
+                        let genCode: string|undefined = genCodeResult.code;
+                        /** line.number in state.doc is 1 based, so convert to 0 base */ 
+                        let lineNumber = magicInfo.line.number - 1;
+                        let insertedPos = magicInfo.line.from;
+                        let isLineGenerated = codeLines[lineNumber].generated;
+                        let insertTo = isLineGenerated ? insertedPos+codeText[lineNumber].length : insertedPos;
+                        console.log('Magic insert range: ', insertedPos, insertTo);
+                        let transactionSpec: TransactionSpec = {
+                            changes: {
+                                from: insertedPos, 
+                                to: insertTo, 
+                                insert: isLineGenerated ? genCode : genCode.concat('\n')
+                            }
+                        };                
+                        // setGeneratedLineNumber(lineNumber);
+                        let transaction: Transaction = state.update(transactionSpec);
+                        cm.view.dispatch(transaction);                     
+                    } else {
+                        setMagicInfo(undefined);       
+                    }
                 }
             }
         }
-    }, [inlinePlotData])
+    }
+    useEffect(() => {
+        _handleMagicInfoUpdate();
+    }, [magicInfo])
 
-    /**
-     * Implement line status gutter
-     */
+    /** Implement line status gutter */
     const markerDiv = () => {
         let statusDiv = document.createElement('div');
         statusDiv.style.width = '2px';
@@ -428,9 +511,11 @@ const CodeEditor = React.memo((props: any) => {
         }
     }
 
-    // This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror 
-    // intenal, we can't dictate when it will be called. To cope with this, we have to check the object existence carefully
-    // and rely on useEffect to force this to be called again when `codeLines` updated
+    /** 
+     * This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror 
+     * intenal, we can't dictate when it will be called. To cope with this, we have to check the object existence carefully 
+     * and rely on useEffect to force this to be called again when `codeLines` updated 
+    */ 
     const editStatusGutter = gutter({
         lineMarker(view, line) {
             let lines = store.getState().codeDoc.codeLines;
@@ -453,7 +538,12 @@ const CodeEditor = React.memo((props: any) => {
     /**
      * Implement the decoration for magic generated code lines
      */
-    const generatedCodeStateEffect = StateEffect.define<{from: number, to: number}>()
+    enum GenCodeEffectType {
+        FLASHING,
+        SOLID
+    };
+    /** note that this lineNumber is 1-based */
+    const generatedCodeStateEffect = StateEffect.define<{lineNumber?: number, type: GenCodeEffectType}>()
     const generatedCodeDeco = StateField.define<DecorationSet>({
         create() {
             return Decoration.none;
@@ -461,21 +551,36 @@ const CodeEditor = React.memo((props: any) => {
         update(marks, tr) {
             let cm: ReactCodeMirrorRef = editorRef.current;  
             if (cm && cm.view){               
-                console.log('Magic: ', marks);
+                // console.log('Magic: ', marks);
                 marks = marks.map(tr.changes)
                 for (let effect of tr.effects) if (effect.is(generatedCodeStateEffect)) {
-                    let line = cm.view.state.doc.lineAt(effect.value.from);
-                    marks = marks.update({
-                        add: [generatedCodeCSS.range(line.from)]
-                    })
-                }
+                    if (effect.value.type == GenCodeEffectType.FLASHING) {
+                        if (effect.value.lineNumber !== undefined){
+                            let line = cm.view.state.doc.line(effect.value.lineNumber);
+                            // console.log('Magics line from: ', line, line.from);
+                            marks = marks.update({
+                                add: [genCodeFlashCSS.range(line.from)]
+                            })
+                        }                        
+                    } else { /** effect.value.type is SOLID */
+                        let lines: ICodeLineStatus[] = store.getState().codeDoc.codeLines;
+                        for (let l=0; l < lines.length; l++){
+                            if (lines[l].generated === true){
+                                let line = cm.view.state.doc.line(l+1);
+                                marks = marks.update({
+                                    add: [genCodeSolidCSS.range(line.from)]
+                                })
+                            }                            
+                        }
+                    }
+                }                
                 return marks
             }
         },
         provide: f => EditorView.decorations.from(f)
     });
-    // const generatedCodeMark = Decoration.mark({class: "cm-activeLine"});
-    const generatedCodeCSS = Decoration.line({attributes: {class: "cm-magic-generated-code"}});
+    const genCodeFlashCSS = Decoration.line({attributes: {class: "cm-gencode-flash"}});
+    const genCodeSolidCSS = Decoration.line({attributes: {class: "cm-gencode-solid"}});
     /** */
     
     const extensions = [
@@ -511,7 +616,7 @@ const CodeEditor = React.memo((props: any) => {
             </StyledCodeMirror> 
         </StyledCodeEditor>
     )
-});
+};
 
 export default CodeEditor;
 
