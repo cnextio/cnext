@@ -42,7 +42,13 @@ def _create_table_data(df_id, df):
     tableData = {}
     tableData['df_id'] = df_id
     tableData['column_names'] = list(df.columns)
-    tableData['rows'] = df.values.tolist() 
+    
+    ## Convert datetime to string so it can be displayed in the frontend #
+    for i,t in enumerate(df.dtypes):
+        if t.name == 'datetime64[ns]':
+            df[df.columns[i]] = df[df.columns[i]].dt.strftime('%Y-%m-%d %H:%M:%S')
+    tableData['rows'] = df.values.tolist()
+
     tableData['index'] = {}
     tableData['index']['name'] = df.index.name
     tableData['index']['data'] = []

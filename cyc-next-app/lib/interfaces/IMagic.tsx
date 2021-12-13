@@ -61,4 +61,4 @@ export enum CodeGenStatus {
 export const MAGIC_STARTER = '#!';
 
 export const NumericalTypes = ['int64', 'float64'];
-export const CategoricalTypes = ['category', 'object', 'bool'];
+export const CategoricalTypes = ['category', 'object', 'bool', 'datetime64[ns]'];

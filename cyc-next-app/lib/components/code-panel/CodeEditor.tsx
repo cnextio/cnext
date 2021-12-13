@@ -124,7 +124,7 @@ const CodeEditor = (props: any) => {
     
     /**
      * Reset the code editor state when the doc is selected to be in view
-     */
+     * */
     useEffect(() => {
         if(editorRef.current.view){
             setInitialized(false);
@@ -247,8 +247,6 @@ const CodeEditor = (props: any) => {
         
     }
 
-    
-    
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update 
      * with line status. This works but might need to find a better performant solution. */ 
     useEffect(() => {
