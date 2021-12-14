@@ -4,7 +4,7 @@ export interface MagicPlotData {
     // this is the range of the magic text that generated this plot code
     magicTextRange: {from: number, to: number},
     df: string | null,
-    x: string | null,
+    x: string[] | null,
     y: string[] | null
 }
 
@@ -56,6 +56,10 @@ export interface IMagicInfo {
 export enum CodeGenStatus {
 	INSERTING,
 	INSERTED
+}
+
+export interface IGetCardinalResult {
+    cardinals: [];
 }
 
 export const MAGIC_STARTER = '#!';

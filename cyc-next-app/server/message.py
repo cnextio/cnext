@@ -13,6 +13,7 @@ class WebappEndpoint(str, Enum):
     DFManager = 'DFManager'
     CodeEditor = 'CodeEditor'
     FileManager = 'FileManager'
+    MagicCommandGen = 'MagicCommandGen'
 
     def __str__(self):
         return str(self.value)
@@ -28,6 +29,7 @@ class CommandName(str, Enum):
     get_table_data = 'get_table_data'
     get_df_metadata = 'get_df_metadata'
     plot_column_quantile = 'plot_column_quantile'
+    get_cardinal = 'get_cardinal'
     
     def __str__(self):
         return str(self.value)
@@ -57,6 +59,7 @@ class ContentType(str, Enum):
     DIR_LIST = 'dir_list',
     FILE_METADATA = 'file_metadata',
     FILE_CONTENT = 'file_content',
+    COLUMN_CARDINAL = 'column_cardinal',
     NONE = 'none'
 
     def __str__(self):

@@ -66,7 +66,7 @@ CNextYDimColumnNameExpression {shortString }
 CNextDataFrameExpresion { identifier }
 CNextPlotYDimExpression { commaSep<CNextYDimColumnNameExpression> }
 CNextPlotXDimExpression { CNextXDimColumnNameExpression | kw<"index"> }
-CNextPlotExpression { CNextPlotKeyword CNextDataFrameExpresion? (CNextPlotYDimExpression? (CNextPlotAddDimKeyword CNextPlotXDimExpression?)?)? (newline | eof)}
+CNextPlotExpression { CNextPlotKeyword CNextDataFrameExpresion? (CNextPlotYDimExpression? (CNextPlotAddDimKeyword CNextPlotXDimExpression?)?)? ("\n"|"\r")}
 
 expressions { commaSep<"*" expression | test> }
 

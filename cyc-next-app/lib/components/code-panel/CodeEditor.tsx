@@ -16,7 +16,7 @@ import { bracketMatching } from "@codemirror/matchbrackets";
 import { defaultHighlightStyle } from "@codemirror/highlight";
 import { oneDark } from "@codemirror/theme-one-dark";
 // import { python } from '@codemirror/lang-python';
-import { python } from "../codemirror-extentions/lang-cnext-python";
+import { python } from "../../codemirror-grammar/lang-cnext-python";
 import {keymap, EditorView, ViewUpdate, DecorationSet, Decoration} from "@codemirror/view"
 import { indentUnit } from "@codemirror/language";
 import { lineNumbers, gutter, GutterMarker } from "@codemirror/gutter";
@@ -29,8 +29,8 @@ import { keyframes } from "styled-components";
 // import { extensions } from './codemirror-extentions/extensions';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { CodeGenResult, CodeGenStatus, IMagicInfo, MagicPlotData, MAGIC_STARTER, TextRange } from "../../interfaces/IMagic";
-import { magicsGetPlotCommand } from "../../cnext-magics/plot-command";
-import { CNextColumnNameExpression, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../codemirror-extentions/cnext-python.terms";
+import { magicsGetPlotCommand } from "../../cnext-magics/magic-plot-gen";
+import { CNextColumnNameExpression, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror-grammar/cnext-python.terms";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -47,11 +47,12 @@ const CodeEditor = (props: any) => {
     const codeText = useSelector(state => state.codeDoc.text);    
     const dispatch = useDispatch();
     const editorRef = useRef();
-    const [inlinePlotData, setInlinePlotData] = useState<MagicPlotData | undefined>();
+    //const [inlinePlotData, setInlinePlotData] = useState<MagicPlotData | undefined>();
     // const [magicText, setMagicText] = useState();
     // const [generatedCodeRange, setGeneratedCodeRange] = useState<TextRange | undefined>();
     // const [generatedLineNumber, setGeneratedLineNumber] = useState(-1);
     const [magicInfo, setMagicInfo] = useState<IMagicInfo | undefined>();
+    
     const _handlePlotData = (message: Message) => {
         console.log(`${WebAppEndpoint.CodeEditor} got plot data`);
         let result: ICodeResultMessage = {
@@ -65,9 +66,11 @@ const CodeEditor = (props: any) => {
         dispatch(addPlotResult(result));     
     }
 
-    useEffect(() => {
-        // setMounted(true);
-        socket.emit("ping", "CodeEditorComponent");
+    /**
+     * Init component socket connection. This should be run only once on the first mount.
+     */
+    function _socketInit(){
+        socket.emit("ping", WebAppEndpoint.CodeEditor);
         socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
             // console.log("Got results: ", result, '\n');
             console.log("CodeEditor got results...");
@@ -99,8 +102,10 @@ const CodeEditor = (props: any) => {
 
             }
         });
-        // editorRef;
-    }, []); //run this only once - not on rerender
+    }
+    useEffect(() => {
+        _socketInit();
+    }, []); 
 
 
     /**
@@ -147,27 +152,10 @@ const CodeEditor = (props: any) => {
         }
     }, [codeText]);
     
-    /** Implement the flashing effect after line is inserted */
-    function _setFlashingEffect(){
-        let cm: ReactCodeMirrorRef = editorRef.current;                
-        if (cm && cm.editor){
-            /** Only clear the magicInfo after the animation complete. Otherwise, the component will be rerendered before the animation takes place */
-            cm.editor.addEventListener('animationend', () => {
-                setMagicInfo(undefined);
-            });         
-        }   
-        
-        /** 
-         * Have to make sure that the component wont be rerendered after this until the effect complete.
-         */
-        if (cm && cm.view && magicInfo && magicInfo.status === CodeGenStatus.INSERTED && magicInfo.line !== undefined) {
-            cm.view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
-            cm.view.dispatch({effects: [generatedCodeStateEffect.of({lineNumber: magicInfo.line.number, type: GenCodeEffectType.FLASHING})]});             
-        }
-    }
-    useEffect(() => {
-        _setFlashingEffect();    
-    }, [magicInfo]);
+    
+    // useEffect(() => {
+    //     //_setFlashingEffect();    
+    // }, [magicInfo]);
 
     /**
      * Important: the line number in the result will be 0-based indexed instead of 1-based index
@@ -327,8 +315,10 @@ const CodeEditor = (props: any) => {
                                         
                     if ([CNextDataFrameExpresion, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression]
                         .includes(cursor.type.id)){
-                        /** Move the cursor up to CNextPlotExpression so we can parse the whole cnext text and
-                         * generate the new inline plot command */
+                        /** 
+                         * Move the cursor up to CNextPlotExpression so we can parse the whole cnext text and
+                         * generate the new inline plot command 
+                         * */
                         cursor.parent();
                         cursor.parent();
                     }
@@ -337,14 +327,13 @@ const CodeEditor = (props: any) => {
                         let text: string = state.doc.toString();
                         let newMagicText: string = text.substring(cursor.from, cursor.to);                         
                         let generatedLine = cm.view.state.doc.lineAt(cursor.to);
-                        console.log('Magics magicInfo: ', magicInfo);
+                        console.log('Magics current magicInfo: ', magicInfo);
                         /** 
                          * Check the status here to avoid circular update because this code will generate
-                         * new content added to the editor, which will trigger onCMChange -> _handleMagic 
-                         * */
-                        // if(newMagicText !== magicText){                         
-                        if (magicInfo === undefined) {         
-                        // if (magicInfo === undefined) {         
+                         * new content added to the editor, which will trigger onCMChange -> _handleMagic. 
+                         * Note: if magicInfo status is CodeGenStatus.INSERTED, we also reset the magicInfo content
+                         * */                       
+                        if (magicInfo === undefined || (magicInfo && magicInfo.status === CodeGenStatus.INSERTED)) {            
                             let plotData = _parseMagicText(cursor, text);
                             let magicInfo: IMagicInfo = {
                                 status: CodeGenStatus.INSERTING, 
@@ -352,18 +341,17 @@ const CodeEditor = (props: any) => {
                                 plotData: plotData, 
                                 line: generatedLine
                             };
-                            setMagicInfo(magicInfo);                              
+                            setMagicInfo(magicInfo);
+                            console.log('Magics inserting magicInfo: ', magicInfo);                                              
                         } else if (magicInfo && magicInfo.status === CodeGenStatus.INSERTING && magicInfo.line) {
-                            /** 
-                             * The second time _handleMagic being called is after new code has been inserted
-                             */
+                            /** The second time _handleMagic being called is after new code has been inserted */
                             /** convert line number to 0-based */
-                            let lineStatus = {lineNumber: magicInfo.line.number-1, status: LineStatus.EDITED, generated: true};                        
+                            let lineStatus = {lineNumber: magicInfo.line.number - 1, status: LineStatus.EDITED, generated: true};                        
                             dispatch(setLineStatus(lineStatus));
                             // console.log('Magics after inserted lineStatus: ', lineStatus);
                             let newMagicInfo: IMagicInfo = { status: CodeGenStatus.INSERTED, line: magicInfo.line };
                             setMagicInfo(newMagicInfo);         
-                            // console.log('Magics after inserted magicInfo: ', newMagicInfo);                
+                            console.log('Magics after inserted magicInfo: ', newMagicInfo);                
                         }                    
                     } 
                 }
@@ -418,11 +406,12 @@ const CodeEditor = (props: any) => {
             console.log(cursor.name);
             if (cursor.type.id === CNextPlotXDimExpression){
                 let endXDim = cursor.to;
+                plotData.x = []
                 while((cursor.to <= endXDim) && cursor){                                        
                     if(cursor.type.id === CNextXDimColumnNameExpression){
                         // console.log('X dim: ', text.substring(cursor.from, cursor.to));
                         // remove quotes
-                        plotData.x = text.substring(cursor.from+1, cursor.to-1);
+                        plotData.x.push(text.substring(cursor.from+1, cursor.to-1));
                     }
                     cursor.next();                  
                     // console.log(cursor.name);
@@ -432,49 +421,100 @@ const CodeEditor = (props: any) => {
         return plotData; 
     }
 
+
     /**
      * This useEffect handle the plot magic. This is used in conjunction with _handleMagics. 
-     * This will be triggered when there are updates on magicInfo
+     * This will be triggered when there are updates on magicInfo. 
+     * Could not make it work when run this directly inside _handleMagics(), 
+     * might be because that function is called within onCMUpdate which is in the middle of
+     * a transaction.
      */
-    function _handleMagicInfoUpdate(){
-        if (editorRef.current && magicInfo && magicInfo.status === CodeGenStatus.INSERTING){
-            let cm: ReactCodeMirrorRef = editorRef.current;
-            if (cm.view){
-                let state: EditorState = cm.view.state;  
+    function _handleNewMagicInfo(){
+        let cm: ReactCodeMirrorRef = editorRef.current;
+        console.log('_handleMagicInfoUpdate: ', magicInfo);
+        if (cm && cm.editor && cm.view && magicInfo){
+            if (magicInfo.status === CodeGenStatus.INSERTING){
                 if (magicInfo.plotData !== undefined && magicInfo.line !== undefined) {          
                     // console.log('Magic inlinePlotData: ', inlinePlotData);
-                    let genCodeResult: CodeGenResult =  magicsGetPlotCommand(magicInfo.plotData);
-                    console.log('Magic code gen result: ', genCodeResult);
-                    // console.log('Magic generatedCodeRange: ', generatedCodeRange);
-                    if (!genCodeResult.error && genCodeResult.code){
-                        let genCode: string|undefined = genCodeResult.code;
-                        /** line.number in state.doc is 1 based, so convert to 0 base */ 
-                        let lineNumber = magicInfo.line.number - 1;
-                        let insertedPos = magicInfo.line.from;
-                        let isLineGenerated = codeLines[lineNumber].generated;
-                        let insertTo = isLineGenerated ? insertedPos+codeText[lineNumber].length : insertedPos;
-                        console.log('Magic insert range: ', insertedPos, insertTo);
-                        let transactionSpec: TransactionSpec = {
-                            changes: {
-                                from: insertedPos, 
-                                to: insertTo, 
-                                insert: isLineGenerated ? genCode : genCode.concat('\n')
-                            }
-                        };                
-                        // setGeneratedLineNumber(lineNumber);
-                        let transaction: Transaction = state.update(transactionSpec);
-                        cm.view.dispatch(transaction);                     
+                    let result: Promise<CodeGenResult>|CodeGenResult = magicsGetPlotCommand(magicInfo.plotData);
+                    if (isPromise(result)){
+                        result.then((genCodeResult: CodeGenResult) => {
+                            console.log('Magic code gen result: ', genCodeResult);
+                            _processGenCodeResult(genCodeResult);
+                        });
                     } else {
-                        setMagicInfo(undefined);       
-                    }
+                        let genCodeResult: CodeGenResult = result;
+                        console.log('Magic code gen result: ', genCodeResult);
+                        _processGenCodeResult(genCodeResult)
+                    } 
                 }
+            } else if (magicInfo.status === CodeGenStatus.INSERTED && magicInfo.line !== undefined) {
+                _setFlashingEffect(cm.view);
             }
         }
     }
-    useEffect(() => {
-        _handleMagicInfoUpdate();
-    }, [magicInfo])
+    /** 
+     * Implement the flashing effect after line is inserted.
+     * This function also reset magicInfo after the animation completes. 
+     * */
+     function _setFlashingEffect(view: EditorView){
+        // let cm: ReactCodeMirrorRef = editorRef.current;                
+        // /** Have to make sure that the component wont be rerendered after this until the effect completes. */        
+        // if (cm && cm.editor && cm.view && magicInfo && magicInfo.status === CodeGenStatus.INSERTED && magicInfo.line !== undefined) {
+        //     console.log('Magic _setFlashingEffect', magicInfo);
+        //     /** Only clear the magicInfo after the animation complete. Otherwise, the component will be rerendered before the animation takes place */
+        //     // cm.editor.addEventListener('animationend', () => {
+        //     //     // console.log('setMagicInfo to undefined')
+        //     //     // setMagicInfo(undefined);
+        //     // }); 
 
+        //     cm.view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
+        //     cm.view.dispatch({effects: [generatedCodeStateEffect.of({lineNumber: magicInfo.line.number, type: GenCodeEffectType.FLASHING})]});             
+        // }
+        console.log('Magic _setFlashingEffect', magicInfo);    
+        view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
+        view.dispatch({effects: [generatedCodeStateEffect.of({lineNumber: magicInfo.line.number, type: GenCodeEffectType.FLASHING})]});             
+    }
+    useEffect(() => {
+        _handleNewMagicInfo();
+    }, [magicInfo])
+    
+    function isPromise(object) {
+        if (Promise && Promise.resolve) {
+            return Promise.resolve(object) == object;
+        } else {
+            throw "Promise not supported in your environment"; // Most modern browsers support Promises
+        }
+    }
+
+    function _processGenCodeResult(genCodeResult){
+        let cm: ReactCodeMirrorRef = editorRef.current;
+        if (cm.view){
+            let state: EditorState = cm.view.state;
+            if (!genCodeResult.error && genCodeResult.code && magicInfo && magicInfo.line){
+                let genCode: string = genCodeResult.code;
+                /** line.number in state.doc is 1 based, so convert to 0 base */ 
+                let lineNumber = magicInfo.line.number - 1;
+                let insertedPos = magicInfo.line.from;
+                let isLineGenerated = codeLines[lineNumber].generated;
+                let insertTo = isLineGenerated ? insertedPos+codeText[lineNumber].length : insertedPos;
+                console.log('Magic insert range: ', insertedPos, insertTo);
+                let transactionSpec: TransactionSpec = {
+                    changes: {
+                        from: insertedPos, 
+                        to: insertTo, 
+                        insert: isLineGenerated ? genCode : genCode.concat('\n')
+                    }
+                };                
+                let transaction: Transaction = state.update(transactionSpec);
+                cm.view.dispatch(transaction);                     
+            } else {
+                setMagicInfo(undefined);       
+            }
+        }
+    }
+    /** */
+    
     /** Implement line status gutter */
     const markerDiv = () => {
         let statusDiv = document.createElement('div');

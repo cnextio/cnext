@@ -22,6 +22,7 @@ let ready = false;
 const CodeEditor = 'CodeEditor';
 const DFManager = 'DFManager';
 const FileManager = 'FileManager';
+const MagicCommandGen = 'MagicCommandGen';
 
 /*
 * Communicate with web client
@@ -58,6 +59,12 @@ try {
         socket.on(FileManager, str_message => {  //TODO: use enum                  
             message = JSON.parse(str_message);
             console.log("Receive msg from FileManager, server will run: ", message);  
+            pyshell.send(message);
+        });
+
+        socket.on(MagicCommandGen, str_message => {  //TODO: use enum                  
+            message = JSON.parse(str_message);
+            console.log("Receive msg from MagicCommandGen, server will run: ", message);  
             pyshell.send(message);
         });
 

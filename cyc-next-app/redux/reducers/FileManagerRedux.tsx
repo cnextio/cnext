@@ -1,6 +1,6 @@
 import shortid from "shortid";
 import { createSlice, current } from '@reduxjs/toolkit'
-import { FileMetadata } from "../../lib/interfaces/IFileManager";
+import { IFileMetadata } from "../../lib/interfaces/IFileManager";
 
 export const FileManagerRedux = createSlice({
     name: 'fileManager',
@@ -12,7 +12,7 @@ export const FileManagerRedux = createSlice({
 
     reducers: {
         setOpenFiles: (state, action) => {  
-            action.payload.map((file: FileMetadata) => {
+            action.payload.map((file: IFileMetadata) => {
                 let id = shortid();
                 state.openFiles[id] = file;
                 if (file.executor == true){

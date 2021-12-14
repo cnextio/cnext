@@ -4,7 +4,7 @@ import { initCodeDoc, setFileSaved } from "../../../redux/reducers/CodeEditorRed
 import { setOpenFiles } from "../../../redux/reducers/FileManagerRedux";
 import store from '../../../redux/store';
 import { CommandName, ContentType, Message, WebAppEndpoint } from "../../interfaces/IApp";
-import { FileCommandName, FileMetadata } from "../../interfaces/IFileManager";
+import { FileCommandName, IFileMetadata } from "../../interfaces/IFileManager";
 import socket from "../Socket";
 
 function FileManager() {
@@ -66,7 +66,7 @@ function FileManager() {
     useEffect(() => {
         let state = store.getState();
         if(inViewID){
-            let file: FileMetadata = state.fileManager.openFiles[inViewID];
+            let file: IFileMetadata = state.fileManager.openFiles[inViewID];
             let message: Message = _createMessage(FileCommandName.read_file, '', 1, {path: file.path});
             console.log('FileManager send:', message);        
             _sendMessage(message);
@@ -78,7 +78,7 @@ function FileManager() {
         if(codeTextUpdated && codeText){
             setcodeTextUpdated(false);
             let state = store.getState();
-            let file: FileMetadata = state.fileManager.openFiles[inViewID];
+            let file: IFileMetadata = state.fileManager.openFiles[inViewID];
             let message: Message = _createMessage(FileCommandName.save_file, codeText.join('\n'), 1, {path: file.path});
             console.log('FileManager send:', message.command_name);        
             // console.log('FileManager send:', message);        

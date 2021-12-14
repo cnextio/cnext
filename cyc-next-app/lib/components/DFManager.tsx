@@ -54,7 +54,7 @@ const DFManager = () => {
     }
 
     const _sendGetCountna = (df_id: string) => {
-        // TODO: the content is actually not important because python server will generate the python command itself based on CommandName
+        // FIXME: the content is actually not important because python server will generate the python command itself based on CommandName
         let content: string = `${df_id}.isna().sum()`;
         let message = _createMessage(CommandName.get_countna, content, 1, {'df_id': df_id})
         _sendMessage(message);

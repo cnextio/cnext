@@ -31,7 +31,7 @@ export enum FileCommandName {
     set_working_dir = 'set_working_dir'
 };
 
-export interface FileMetadata {
+export interface IFileMetadata {
     path: string;
     name: string;
     type: string;

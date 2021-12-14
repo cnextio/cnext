@@ -1,5 +1,6 @@
 import React from "react";
-import { FileCommandName, FileMetadata } from "./IFileManager";
+import { FileCommandName, IFileMetadata } from "./IFileManager";
+import { IGetCardinalResult } from "./IMagic";
 
 export type RecvCodeOutput = (output: Message) => void;
 
@@ -26,7 +27,7 @@ export interface Message {
 	seq_number: number;      // sequence number of the command. This is needed 
 														 // for commands that requires more than one command
     content_type: ContentType;    // the object type of the output content
-    content: string|object|FileMetadata;  // the command string and output string|object
+    content: string|object|IFileMetadata|IGetCardinalResult|null;  // the command string and output string|object
     error: boolean;
     metadata: object;            // store info about the dataframe and columns 
                              // related to this command
@@ -57,7 +58,8 @@ export enum CommandName {
     plot_countna = 'plot_countna',
     get_table_data = 'get_table_data',
     get_df_metadata = 'get_df_metadata',
-    plot_column_quantile = 'plot_column_quantile'
+    plot_column_quantile = 'plot_column_quantile',
+    get_cardinal = 'get_cardinal' /** get number of elements of a column given some filters */
 };
 
 export enum ContentType {  
@@ -69,6 +71,7 @@ export enum ContentType {
     DIR_LIST = 'dir_list',
     FILE_METADATA = 'file_metadata',
     FILE_CONTENT = 'file_content',
+    COLUMN_CARDINAL = 'column_cardinal',
     NONE = 'none',
 };
 
@@ -79,7 +82,8 @@ export enum ContentType {
 export enum WebAppEndpoint {
     DFManager = 'DFManager',
     CodeEditor = 'CodeEditor',
-    FileManager = 'FileManager'
+    FileManager = 'FileManager',
+    MagicCommandGen = 'MagicCommandGen',
 };
 
 export interface ITableData {

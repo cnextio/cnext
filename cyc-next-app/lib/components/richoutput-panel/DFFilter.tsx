@@ -1,5 +1,5 @@
 // import { python } from "@codemirror/lang-python";
-import { cnextQuery } from "../codemirror-extentions/lang-cnext-query";
+import { cnextQuery } from "../../codemirror-grammar/lang-cnext-query";
 import { FormControl, InputLabel, MenuItem, OutlinedInput, Select } from "@mui/material";
 import React, { Fragment, useEffect, useRef, useState } from "react";
 
