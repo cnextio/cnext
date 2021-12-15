@@ -62,6 +62,13 @@ export interface IGetCardinalResult {
     cardinals: [];
 }
 
+export interface IDimStatsResult {
+    groupby_x0: {[key: string]: number};
+    groupby_all: {[key: string]: number};
+    unique_counts: {[key: string]: number};
+    monotonics: {[key: string]: number};
+}
+
 export const MAGIC_STARTER = '#!';
 
 export const NumericalTypes = ['int64', 'float64'];

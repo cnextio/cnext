@@ -309,13 +309,35 @@ def handle_MagicCommandGen_message(message):
             col_name = message.metadata['col_name']
             if 'groupby' in message.metadata:
                 groupby = message.metadata['groupby']
+
+                ## Get stat for groupby x0
+                groupby_cols = ''
+                groupby_cols += '"%s",'%groupby[0]
+                command_str = '%s.groupby([%s])["%s"].count()'%(df_id, groupby_cols, col_name)
+                result = {'groupby_x0': eval(command_str, globals()).describe().to_dict()}
+                
+                ## Get stat for groupby all x
                 groupby_cols = ''
                 for c in groupby:
-                    groupby_cols += '%s,'%c
-                result = eval('%s.groupby(["%s"]["%s"].count())'%(df_id, groupby_cols, col_name), globals())
+                    groupby_cols += '"%s",'%c
+                command_str = '%s.groupby([%s])["%s"].count()'%(df_id, groupby_cols, col_name)
+                result.update({'groupby_all': eval(command_str, globals()).describe().to_dict()})
+                
+                ## Count unique and get monotonic for all x
+                unique_counts = {}
+                monotonics = {}
+                for col_name in groupby:
+                    command_str = 'len(%s["%s"].unique())'%(df_id, col_name)
+                    unique_counts[col_name] = eval(command_str, globals())
+                    command_str = '%s["%s"].is_monotonic'%(df_id, col_name)
+                    monotonics[col_name] = eval(command_str, globals())
+                result.update({'unique_counts': unique_counts, 'monotonics': monotonics})
+                # log.info('Result:  %s' % (result))
             else:
-                ## return a list to make it consistent with the groupby case above
-                result = [eval('%s["%s"].shape[0]'%(df_id, col_name), globals())]
+                ## TODO: consider to remove this because it is not used
+                ## return a describe dict to make it consistent with the groupby case above
+                command_str = '%s["%s"].shape[0]'%(df_id, col_name)
+                result = pandas.DataFrame([eval(command_str, globals())]).describe().to_dict()
 
             if result is not None:                
                 # log.info("get cardinal data: %s"%type(result))                                        

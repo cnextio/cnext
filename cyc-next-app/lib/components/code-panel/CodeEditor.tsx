@@ -30,7 +30,7 @@ import { keyframes } from "styled-components";
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { CodeGenResult, CodeGenStatus, IMagicInfo, MagicPlotData, MAGIC_STARTER, TextRange } from "../../interfaces/IMagic";
 import { magicsGetPlotCommand } from "../../cnext-magics/magic-plot-gen";
-import { CNextColumnNameExpression, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror-grammar/cnext-python.terms";
+import { CNextPlotKeyword, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror-grammar/cnext-python.terms";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -381,8 +381,9 @@ const CodeEditor = (props: any) => {
         plotData.magicTextRange = {from: cursor.from, to: cursor.to};                      
         // while(cursor.to <= endPlotPos){
         cursor.next();
-        // console.log(cursor.name);
-        cursor.nextSibling(); //skip CNextPlotKeyword
+        if(cursor.type.id === CNextPlotKeyword){
+            cursor.nextSibling(); //skip CNextPlotKeyword
+        }
         // console.log(cursor.name);
         if (cursor.type.id == CNextDataFrameExpresion){
             // console.log('DF: ', text.substring(cursor.from, cursor.to));
@@ -403,7 +404,7 @@ const CodeEditor = (props: any) => {
                 // console.log(cursor.name);       
             }         
             cursor.nextSibling(); //skip CNextPlotAddDimKeyword
-            console.log(cursor.name);
+            // console.log(cursor.name);
             if (cursor.type.id === CNextPlotXDimExpression){
                 let endXDim = cursor.to;
                 plotData.x = []
@@ -453,6 +454,19 @@ const CodeEditor = (props: any) => {
             }
         }
     }
+    
+    useEffect(() => {
+        _handleNewMagicInfo();
+    }, [magicInfo])
+    
+    function isPromise(object) {
+        if (Promise && Promise.resolve) {
+            return Promise.resolve(object) == object;
+        } else {
+            throw "Promise not supported in your environment"; // Most modern browsers support Promises
+        }
+    }
+
     /** 
      * Implement the flashing effect after line is inserted.
      * This function also reset magicInfo after the animation completes. 
@@ -474,17 +488,6 @@ const CodeEditor = (props: any) => {
         console.log('Magic _setFlashingEffect', magicInfo);    
         view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
         view.dispatch({effects: [generatedCodeStateEffect.of({lineNumber: magicInfo.line.number, type: GenCodeEffectType.FLASHING})]});             
-    }
-    useEffect(() => {
-        _handleNewMagicInfo();
-    }, [magicInfo])
-    
-    function isPromise(object) {
-        if (Promise && Promise.resolve) {
-            return Promise.resolve(object) == object;
-        } else {
-            throw "Promise not supported in your environment"; // Most modern browsers support Promises
-        }
     }
 
     function _processGenCodeResult(genCodeResult){

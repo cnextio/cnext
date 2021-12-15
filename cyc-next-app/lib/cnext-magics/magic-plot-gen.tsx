@@ -1,4 +1,4 @@
-import { CategoricalTypes, CodeGenResult, MagicPlotData, NumericalTypes, PlotType, IGetCardinalResult } from "../interfaces/IMagic";
+import { CategoricalTypes, CodeGenResult, MagicPlotData, NumericalTypes, PlotType, IGetCardinalResult, IDimStatsResult } from "../interfaces/IMagic";
 import store from '../../redux/store';
 import { ifElse } from "../components/libs";
 import { CommandName, ContentType, Message, WebAppEndpoint } from "../interfaces/IApp";
@@ -27,25 +27,37 @@ export function socketInit(codeOutputComponent){
     });
 }
 
-
 class PlotCommand {
     type: PlotType;
-    df: string;
-    x: string | undefined;
+    df: string;    
     y: string[];
+    x: string | undefined;
+    color: string | undefined;
+    size: string | undefined;
+    shape: string | undefined;
 
-    constructor (type: PlotType, df: string, y: string[], x: string|undefined = undefined) {
+    constructor (type: PlotType, df: string, y: string[], xs: string[]|undefined = undefined) {
         this.type = type;
         this.df = df;
-        this.x = x;
         this.y = y;
+        if (xs){
+            this.x = xs.length > 0 ? xs[0] : undefined;
+            this.color = xs.length > 1 ? xs[1] : undefined;
+            this.size = xs.length > 2 ? xs[2] : undefined;
+            this.shape = xs.length > 3 ? xs[3] : undefined
+        }
+        
     }
 
     toString() {
-        let xdim;
-        let ydim;
+        let xDim;
+        let yDim;
+        let colorDim;
+        let sizeDim;
+        let shapeDim;
+
         if (this.x){
-            xdim = `x='${this.x}'`;
+            xDim = `x='${this.x}'`;
         } 
         let yarray = ''
         if(Array.isArray(this.y)){
@@ -53,25 +65,61 @@ class PlotCommand {
                 for(let c of this.y){
                     yarray = yarray.concat(`'${c}',`);
                 }
-                ydim = `y=[${yarray}]`;
+                yDim = `y=[${yarray}]`;
             } else if (this.y.length==1) {
                 if(this.x === undefined) {
                     // NOTE: we using x here to construct the command instead of y because it is easier for cnext magic
                     // language to generate the first part as y. But plotly accept univariate as x not y. Need to revisit this.
-                    ydim = `x='${this.y}'`;  
+                    yDim = `x='${this.y}'`;  
                 } else {
-                    ydim = `y='${this.y}'`;  
+                    yDim = `y='${this.y}'`;  
                 }  
             }
         }
-        if (xdim && ydim)
-            return `px.${this.type}(${this.df}, ${xdim}, ${ydim})`;
-        else if (xdim)            
-            return `px.${this.type}(${this.df}, ${xdim})`;
-        else if (ydim)            
-            return `px.${this.type}(${this.df}, ${ydim})`;    
-        else
+        if (this.color){
+            colorDim= `color='${this.color}'`;
+        }
+        if (this.shape){
+            shapeDim= `shape='${this.shape}'`;
+        }
+        if (this.size){
+            sizeDim= `size='${this.size}'`;
+        }
+
+        let command;
+
+        if (yDim){
+            command = `px.${this.type}(${this.df}`;
+        }
+        else{
             return undefined;
+        }
+
+        if (xDim){
+            command += `, ${xDim}`;
+        }
+        if (yDim){
+            command += `, ${yDim}`;
+        }
+        if (colorDim){
+            command += `, ${colorDim}`;
+        }
+        if (sizeDim){
+            command += `, ${sizeDim}`;
+        }
+        if (shapeDim){
+            command += `, ${shapeDim}`;   
+        }
+        command += ')' ;   
+        return command;
+        // if (xdim && ydim)
+        //     return `px.${this.type}(${this.df}, ${xdim}, ${ydim})`;
+        // else if (xdim)            
+        //     return `px.${this.type}(${this.df}, ${xdim})`;
+        // else if (ydim)            
+        //     return `px.${this.type}(${this.df}, ${ydim})`;    
+        // else
+        //     return undefined;
     }
 }
 
@@ -97,7 +145,7 @@ function isColExist(col: string|string[], allColMetadata: object){
  * @param groupby : names of columns which colName column will be grouped by and counted
  * @returns 
  */
-function _create_get_cardinal_message(df_id: string, col_name: string, groupby: []|undefined = undefined) {
+function _create_get_dim_stats_message(df_id: string, col_name: string, groupby: string[]|undefined = undefined) {
     let message: Message = {
         webapp_endpoint: WebAppEndpoint.MagicCommandGen,
         command_name: CommandName.get_cardinal,
@@ -146,24 +194,7 @@ function _send_message(message: Message, timeout = 10000) {
     });    
 }
 
-function _handle_bivariate_plot_data(df_id: string, x: string[], y: string[], allColMetadata): CodeGenResult{
-    let result: CodeGenResult;
-    if(NumericalTypes.includes(allColMetadata[y[0]].type) && NumericalTypes.includes(allColMetadata[x[0]].type)){
-        let plot = new PlotCommand(PlotType.SCATTER, df_id, y, x[0]);
-        result = {code: plot.toString(), error: false};
-    } else if(CategoricalTypes.includes(allColMetadata[y[0]].type) && CategoricalTypes.includes(allColMetadata[x[0]].type)){
-        let plot = new PlotCommand(PlotType.BAR, df_id, y, x[0]);
-        result = {code: plot.toString(), error: false};
-    } else if(NumericalTypes.includes(allColMetadata[y[0]].type) && CategoricalTypes.includes(allColMetadata[x[0]].type)){
-        let plot = new PlotCommand(PlotType.BAR, df_id, y, x[0]);
-        result = {code: plot.toString(), error: false};
-    } else {
-        result = {error: true};
-    }
-    return result;
-}
-
-function _handle_univariate_plot_data(df_id: string, y: string[]): CodeGenResult {
+function _handle_univariate_plot(df_id: string, y: string[]): CodeGenResult {
     let result: CodeGenResult;
     if(y.length == 1){                
         let plot = new PlotCommand(PlotType.HISTOGRAM, df_id, y);
@@ -173,6 +204,79 @@ function _handle_univariate_plot_data(df_id: string, y: string[]): CodeGenResult
     } else {
         result = {error: true}; 
     }
+    return result;
+}
+
+const SCATTER_MIN_X_UNIQUE=20
+const LINE_MIN_X_UNIQUE=2
+
+function _handle_bivariate_plot(df_id: string, x: string[], y: string[], dimStats: IDimStatsResult): CodeGenResult{
+    let result: CodeGenResult;
+    let plot;
+    console.log('Magic _handle_bivariate_plot: ', df_id, x, y, dimStats);  
+    if(dimStats.groupby_x0.std > 0) {
+        plot = new PlotCommand(PlotType.SCATTER, df_id, y, x);        
+    } else { //yCardinals.std === 0.
+        // console.log('magicsGetPlotCommand: ', dimStats.max, dimStats.unique_counts[x[0]]);                
+        if (dimStats.groupby_x0.max === 1 && dimStats.unique_counts[x[0]] > LINE_MIN_X_UNIQUE && dimStats.monotonics[x[0]]){
+            // TODO: should also check xCardinal according to the design
+            plot = new PlotCommand(PlotType.LINE, df_id, y, x);
+        } else if(dimStats.unique_counts[x[0]] > SCATTER_MIN_X_UNIQUE) {
+            plot = new PlotCommand(PlotType.SCATTER, df_id, y, x);
+        } else {
+            plot = new PlotCommand(PlotType.BAR, df_id, y, x);
+        }       
+    }
+    result = plot ? {code: plot.toString(), error: false} : {error: true};
+    return result;
+}
+
+function _handle_x_multivariate_plot(df_id: string, x: string[], y: string[], dimStats: IDimStatsResult): CodeGenResult{
+    let result: CodeGenResult;
+    let plot;
+    console.log('Magic _handle_x_multivariate_plot: ', df_id, x, y, dimStats);                
+    if(dimStats.groupby_x0.std > 0) {
+        plot = new PlotCommand(PlotType.SCATTER, df_id, y, x);        
+    } else { //yCardinals.std === 0.
+        // console.log('magicsGetPlotCommand: ', dimStats.max, dimStats.unique_counts[x[0]]);                
+        if (dimStats.groupby_x0.max === 1 && dimStats.unique_counts[x[0]] > LINE_MIN_X_UNIQUE && dimStats.monotonics[x[0]]){
+            // TODO: should also check xCardinal according to the design
+            plot = new PlotCommand(PlotType.LINE, df_id, y, x);
+        } else if(dimStats.unique_counts[x[0]] > SCATTER_MIN_X_UNIQUE) {
+            plot = new PlotCommand(PlotType.SCATTER, df_id, y, x);
+        } else {
+            plot = new PlotCommand(PlotType.BAR, df_id, y, x);
+        }       
+    }
+    result = plot ? {code: plot.toString(), error: false} : {error: true};
+    return result;
+}
+
+function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], allColMetadata, dimStats: IDimStatsResult): CodeGenResult{
+    let result: CodeGenResult;
+    let plot;
+    if(NumericalTypes.includes(allColMetadata[y[0]].type) && NumericalTypes.includes(allColMetadata[x[0]].type)){
+        /** Possible plots: Scatter or Line */
+        if (dimStats.groupby_x0.max === 1 && dimStats.unique_counts[x[0]] > LINE_MIN_X_UNIQUE && dimStats.monotonics[x[0]]){
+            // TODO: should also check xCardinal according to the design
+            plot = new PlotCommand(PlotType.LINE, df_id, y, x);
+        } else if(dimStats.unique_counts[x[0]] > SCATTER_MIN_X_UNIQUE) {
+            plot = new PlotCommand(PlotType.SCATTER, df_id, y, x);
+        } else {
+            // TODO: 1. consider when to use Bar when x cardinality is small for example year, month
+            plot = new PlotCommand(PlotType.SCATTER, df_id, y, x);
+        }
+    } else if(CategoricalTypes.includes(allColMetadata[y[0]].type) && CategoricalTypes.includes(allColMetadata[x[0]].type)){
+        plot = new PlotCommand(PlotType.BAR, df_id, y, x);
+    } else if(NumericalTypes.includes(allColMetadata[y[0]].type) && CategoricalTypes.includes(allColMetadata[x[0]].type)){
+        // TODO: 1. consider Scatter when x cardinality is too large. 
+        // 2. consider groupby if y cardinality std > 0
+        // 3. consider Line when y cardinality is 1 and x is monotonic
+        plot = new PlotCommand(PlotType.BAR, df_id, y, x);
+    } else {
+        result = {error: true};
+    }
+    result = plot ? {code: plot.toString(), error: false} : {error: true};
     return result;
 }
 
@@ -188,15 +292,20 @@ export function magicsGetPlotCommand(plotData: MagicPlotData): Promise<CodeGenRe
         let allColMetadata = dfMetadata.columns;                
         console.debug(`magicsGetPlotCommand: ${plotData}, metadata: ${allColMetadata}`);        
         if (plotData.x == null && plotData.y && isColExist(plotData.y, allColMetadata)) {                
-            return _handle_univariate_plot_data(plotData.df, plotData.y);
+            return _handle_univariate_plot(plotData.df, plotData.y);
         } else if(plotData.x && plotData.y && isColExist(plotData.x, allColMetadata) && isColExist(plotData.y, allColMetadata)) {
-            let message = _create_get_cardinal_message(plotData.df, plotData.y[0]);
+            let message = _create_get_dim_stats_message(plotData.df, plotData.y[0], plotData.x);
             let y = plotData.y;
             let x = plotData.x;
             let df_id = plotData.df;
-            return _send_message(message).then(result => {
-                console.log('magicsGetPlotCommand: ', result, allColMetadata, y);                
-                return _handle_bivariate_plot_data(df_id, x, y, allColMetadata)
+            return _send_message(message).then((dimStats: IDimStatsResult) => {
+                console.log('magicsGetPlotCommand: ', dimStats, allColMetadata, x, y);   
+                // if(x.length == 1){
+                //     return _handle_bivariate_plot(df_id, x, y, dimStats);
+                // } else { 
+                //     return _handle_x_multivariate_plot2(df_id, x, y, allColMetadata, dimStats);
+                // }
+                return _handle_x_multivariate_plot2(df_id, x, y, allColMetadata, dimStats);
             });
         }
     }
