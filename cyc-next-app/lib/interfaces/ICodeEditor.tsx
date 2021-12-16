@@ -12,7 +12,13 @@ export interface ICodeLine {
 	status: LineStatus;
 	result: ICodeResult | null;
 	generated: boolean; 
+	groupID?: string;
 };
+
+// export interface IGroup {
+// 	from: number;
+// 	to: number;
+// }
 
 export enum LineStatus {
 	EDITED,
@@ -52,6 +58,21 @@ export interface ICodeLineStatus {
 	text?: string[]; 
 }
 
+export interface ICodeLineGroupStatus {	
+	fromLine: number;
+	toLine: number;
+	status?: LineStatus;
+	generated?: boolean;
+	text?: string[]; 
+	setGroup: SetLineGroupCommand; /** if true, new group will be created for this set of lines */
+}
+
+export enum SetLineGroupCommand {
+	NEW,		/** create a new group */
+	CURRENT,	/** don't change the groupID */
+	UNDEF,		/** set groupID to undefined */
+}
+
 export interface ICodeResultMessage {
     type: ContentType;    
     content: string|object;  
@@ -72,6 +93,11 @@ export interface ILineContent {
 	content: string;
 }
 
+export interface ILineRange {
+	fromLine: number;
+	toLine: number;
+}
+
 export enum MessageMetaData {
 	dfID = 'df_id',
 	colName = 'col_name',
@@ -85,3 +111,15 @@ export interface IStatePlotResults {
 	[lineID: string]: IPlotResult
 }
 
+/** CodeEditor run queue  */
+export interface IRunQueue {
+	status: RunQueueStatus,
+	fromLine: number,
+	toLine: number,
+	runningLine: number,
+}
+export enum RunQueueStatus {
+	STOP,
+	RUNNING
+}
+/** */

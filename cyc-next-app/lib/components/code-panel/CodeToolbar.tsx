@@ -23,7 +23,7 @@ function CodeToolbar() {
     const openFiles = useSelector(state => state.fileManager.openFiles);
     const executorID = useSelector(state => state.fileManager.executorID);
     const inViewID = useSelector(state => state.fileManager.inViewID);
-    const fileSaved = useSelector(state => state.codeDoc.fileSaved);
+    const fileSaved = useSelector(state => state.codeEditor.fileSaved);
     const dispatch = useDispatch()
 
     function onClick(key: string){

@@ -10,7 +10,7 @@ import socket from "../Socket";
 function FileManager() {
     const dispatch = useDispatch();
     const inViewID = useSelector(state => state.fileManager.inViewID);
-    const codeText = useSelector(state => state.codeDoc.text);  
+    const codeText = useSelector(state => state.codeEditor.text);  
     const [codeTextUpdated, setcodeTextUpdated] = useState(false);    
     // using this to avoid saving the file when we load code doc for the first time
     const [codeTextInit, setcodeTextInit] = useState(0);

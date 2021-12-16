@@ -33,7 +33,9 @@ export enum PlotType {
 
 export interface CodeGenResult {
     code?: string;
+    lineCount?: number;
     error: boolean;
+
 }
 
 export interface TextRange {
@@ -41,14 +43,19 @@ export interface TextRange {
     to: number;
 }
 
-export interface GeneratedLineInfo {
-    line: number;
-    to: number;
+/**
+ * Inserted lines are from fromLine to toLine excluding toLine
+ */
+export interface IInsertLinesInfo {
+    fromLine: number;
+    toLine: number;
+    fromPos: number;
 }
 
 export interface IMagicInfo {
 	status: CodeGenStatus,
 	line?: Line,
+    lineInfo: IInsertLinesInfo,
 	magicText?: string,
 	plotData?: MagicPlotData,
 }
@@ -69,7 +76,17 @@ export interface IDimStatsResult {
     monotonics: {[key: string]: number};
 }
 
+export enum AggregateType {
+    MEAN = 'mean',
+    MEDIAN = 'median',
+    SUM = 'sum',
+    STD = 'std',
+    VAR = 'var',
+}
+
 export const MAGIC_STARTER = '#!';
 
 export const NumericalTypes = ['int64', 'float64'];
 export const CategoricalTypes = ['category', 'object', 'bool', 'datetime64[ns]'];
+
+export const LINE_SEP = '\n';

@@ -1,6 +1,6 @@
 import shortid from "shortid";
 import { createSlice, current } from '@reduxjs/toolkit'
-import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, IStatePlotResults, ICodeLineStatus } from '../../lib/interfaces/ICodeEditor';
+import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, IStatePlotResults, ICodeLineStatus, ICodeLineGroupStatus, SetLineGroupCommand, IRunQueue, RunQueueStatus } from '../../lib/interfaces/ICodeEditor';
 import { ifElseDict } from "../../lib/components/libs";
 import { ContentType } from "../../lib/interfaces/IApp";
 
@@ -10,6 +10,7 @@ export const CodeEditorRedux = createSlice({
         text: [],
         codeLines: [],
         fileSaved: true,
+        runQueue: {status: RunQueueStatus.STOP},
         /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of 
          * PlotView, which would only be rerendered when this variable is updated */ 
         plotResultUpdate: 0,
@@ -88,6 +89,30 @@ export const CodeEditorRedux = createSlice({
             }            
         },
 
+        setLineGroupStatus: (state, action) => {
+            let lineGroupStatus: ICodeLineGroupStatus = action.payload;
+            let codeLines: ICodeLine[] = state.codeLines; 
+            let groupID;           
+            
+            if (lineGroupStatus.setGroup === SetLineGroupCommand.NEW){
+                groupID = shortid();
+            }
+
+            for(let i=lineGroupStatus.fromLine; i<lineGroupStatus.toLine; i++){
+                if(lineGroupStatus.status !== undefined){
+                    if(lineGroupStatus.status === LineStatus.EDITED && lineGroupStatus.text !== undefined){
+                        // console.log('CodeEditorRedux: ', lineStatus.status);
+                        state.text = lineGroupStatus.text;
+                    } 
+                    codeLines[i].status = lineGroupStatus.status;
+                } 
+                if(lineGroupStatus.generated !== undefined){
+                    codeLines[i].generated = lineGroupStatus.generated;
+                }
+                codeLines[i].groupID = groupID;
+            }                        
+        },
+
         /**
          * 
          * @param state 
@@ -119,11 +144,47 @@ export const CodeEditorRedux = createSlice({
 
         setFileSaved: (state, action) => {
             state.fileSaved = true;
+        },
+
+        /**
+         * Set run queue with a new queue. If the queue is in running state, the new queue will be rejected
+         * @param state 
+         * @param action action.playload contains the lines that will be executed 
+         * i.e. lines from fromLine to toLine excluding toLine
+         * @returns `true` if the run queue is not running, `false` otherwise. 
+         */
+        setRunQueue: (state, action) => {
+            console.log('CodeEditorRedux setRunQueue status: ', state.runQueue.status);
+            if(state.runQueue.status === RunQueueStatus.STOP) {
+                let data = action.payload;            
+                state.runQueue = {
+                    status: RunQueueStatus.RUNNING,
+                    fromLine: data.fromLine,
+                    toLine: data.toLine,
+                    runningLine: data.fromLine,
+                }
+                // return true;
+            }
+            // return false;
+        },
+
+        /** Inform the run queue that the current line execution has been completed */
+        compeleteRunLine: (state, action) => {
+            if(state.runQueue.status === RunQueueStatus.RUNNING){
+                let runQueue: IRunQueue = state.runQueue;
+                if (runQueue.runningLine<runQueue.toLine-1){ /** do not run line at toLine */
+                    runQueue.runningLine += 1;
+                } else {
+                    runQueue.status = RunQueueStatus.STOP;
+                }                
+            }
         }
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { initCodeDoc, updateLines, addPlotResult, setLineStatus, setActiveLine, setFileSaved } = CodeEditorRedux.actions
+export const { 
+    initCodeDoc, updateLines, addPlotResult, setLineStatus, setLineGroupStatus, setActiveLine, setFileSaved,
+    setRunQueue, compeleteRunLine } = CodeEditorRedux.actions
 
 export default CodeEditorRedux.reducer

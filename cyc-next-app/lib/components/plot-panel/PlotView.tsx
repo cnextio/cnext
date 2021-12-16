@@ -24,7 +24,7 @@ export function PlotView(props: any) {
     // FIXME: PlotView render on every codeLines change => poor performance
     // const codeLines = useSelector((state) => state.codeDoc.codeLines);
     // const plotResultUpdate = useSelector((state) => state.codeDoc.plotResultUpdate);    
-    const activeLine = useSelector((state) => state.codeDoc.activeLine);
+    const activeLine = useSelector((state) => state.codeEditor.activeLine);
     const [containerMounted, setContainerMounted] = useState(false);
 
     function setLayout(plotData: IPlotResult, width: number|null = null, height: number|null = null) {
@@ -53,7 +53,7 @@ export function PlotView(props: any) {
     const plotViewID = 'StyledPlotView';
     function renderPlots(){
         const state = store.getState();
-        const codeLines: ICodeLine[] = state.codeDoc.codeLines;
+        const codeLines: ICodeLine[] = state.codeEditor.codeLines;
         const codeWithPlots: ICodeLine[] = codeLines
             .filter(code => (code.result && code.result.type==ContentType.PLOTLY_FIG));        
         // console.log(document.getElementById(plotContainerID));

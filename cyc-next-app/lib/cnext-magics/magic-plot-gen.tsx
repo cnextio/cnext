@@ -1,8 +1,9 @@
-import { CategoricalTypes, CodeGenResult, MagicPlotData, NumericalTypes, PlotType, IGetCardinalResult, IDimStatsResult } from "../interfaces/IMagic";
+import { CategoricalTypes, CodeGenResult, MagicPlotData, NumericalTypes, PlotType, IGetCardinalResult, IDimStatsResult, AggregateType, LINE_SEP } from "../interfaces/IMagic";
 import store from '../../redux/store';
 import { ifElse } from "../components/libs";
 import { CommandName, ContentType, Message, WebAppEndpoint } from "../interfaces/IApp";
 import socket from "../components/Socket";
+import shortid from "shortid";
 
 export function socketInit(codeOutputComponent){
     socket.emit("ping", WebAppEndpoint.MagicCommandGen);
@@ -27,26 +28,55 @@ export function socketInit(codeOutputComponent){
     });
 }
 
+const TMP_DF_PREFIX = '_tmp_df';
 class PlotCommand {
     type: PlotType;
     df: string;    
     y: string[];
     x: string | undefined;
-    color: string | undefined;
-    size: string | undefined;
-    shape: string | undefined;
+    xs: string[] | undefined;
+    color: string|undefined;
+    size: string|undefined;
+    shape: string|undefined;
+    aggType: AggregateType|undefined;
 
-    constructor (type: PlotType, df: string, y: string[], xs: string[]|undefined = undefined) {
+    constructor (type: PlotType, df: string, y: string[], xs: string[]|undefined = undefined, aggType: AggregateType|undefined = undefined) {
         this.type = type;
         this.df = df;
         this.y = y;
         if (xs){
+            this.xs = xs;
             this.x = xs.length > 0 ? xs[0] : undefined;
             this.color = xs.length > 1 ? xs[1] : undefined;
             this.size = xs.length > 2 ? xs[2] : undefined;
             this.shape = xs.length > 3 ? xs[3] : undefined
         }
-        
+        this.aggType = aggType    
+    }
+
+    _getAggCommand(){
+        let selectCols: string = '';
+        let groupbyCols: string|undefined;
+        // let command: string|undefined;
+        let res: {}|undefined;
+        if(this.xs){
+            groupbyCols = '';
+            for(let c of this.xs){
+                groupbyCols += `'${c}',`;
+            }
+            selectCols = '';
+            for(let c of this.y){
+                selectCols += `'${c}',`;
+            }
+            selectCols = selectCols.concat(groupbyCols);
+            // let tmpDFName = TMP_DF_PREFIX + '_' + shortid();
+            let tmpDFName = TMP_DF_PREFIX;
+            let command = `${tmpDFName} = ${this.df}[[${selectCols}]].groupby([${groupbyCols}]).agg(['${this.aggType}'])`
+            command = command + LINE_SEP + `${tmpDFName} = ${tmpDFName}.reset_index()`;
+            command = command + LINE_SEP + `${tmpDFName}.columns = ${tmpDFName}.columns.get_level_values(0)`;
+            res = {command: command, tmp_df_id: tmpDFName};
+        }
+        return res;        
     }
 
     toString() {
@@ -55,6 +85,11 @@ class PlotCommand {
         let colorDim;
         let sizeDim;
         let shapeDim;
+        let aggCommand;
+
+        if (this.aggType){
+            aggCommand = this._getAggCommand();
+        }
 
         if (this.x){
             xDim = `x='${this.x}'`;
@@ -89,7 +124,11 @@ class PlotCommand {
         let command;
 
         if (yDim){
-            command = `px.${this.type}(${this.df}`;
+            if (aggCommand){
+                command = `px.${this.type}(${aggCommand.tmp_df_id}`;
+            } else {
+                command = `px.${this.type}(${this.df}`;
+            }            
         }
         else{
             return undefined;
@@ -111,15 +150,12 @@ class PlotCommand {
             command += `, ${shapeDim}`;   
         }
         command += ')' ;   
+
+        if(aggCommand){
+            command = aggCommand.command + LINE_SEP + command;
+        }
+
         return command;
-        // if (xdim && ydim)
-        //     return `px.${this.type}(${this.df}, ${xdim}, ${ydim})`;
-        // else if (xdim)            
-        //     return `px.${this.type}(${this.df}, ${xdim})`;
-        // else if (ydim)            
-        //     return `px.${this.type}(${this.df}, ${ydim})`;    
-        // else
-        //     return undefined;
     }
 }
 
@@ -198,7 +234,9 @@ function _handle_univariate_plot(df_id: string, y: string[]): CodeGenResult {
     let result: CodeGenResult;
     if(y.length == 1){                
         let plot = new PlotCommand(PlotType.HISTOGRAM, df_id, y);
-        result = {code: plot.toString(), error: false}; 
+        let codeStr = plot.toString();
+        let lineCount = codeStr ? codeStr.split(/\r\n|\r|\n/).length : 1;
+        return {code: codeStr, lineCount: lineCount, error: false};
     } else if(y.length > 1){                
         result = {error: true}; 
     } else {
@@ -227,8 +265,13 @@ function _handle_bivariate_plot(df_id: string, x: string[], y: string[], dimStat
             plot = new PlotCommand(PlotType.BAR, df_id, y, x);
         }       
     }
-    result = plot ? {code: plot.toString(), error: false} : {error: true};
-    return result;
+    if(plot){
+        let codeStr = plot.toString();
+        let lineCount = codeStr ? codeStr.split(/\r\n|\r|\n/).length : 1;
+        return {code: codeStr, lineCount: lineCount, error: false}
+    } else {
+        return {error: true};
+    }
 }
 
 function _handle_x_multivariate_plot(df_id: string, x: string[], y: string[], dimStats: IDimStatsResult): CodeGenResult{
@@ -248,8 +291,13 @@ function _handle_x_multivariate_plot(df_id: string, x: string[], y: string[], di
             plot = new PlotCommand(PlotType.BAR, df_id, y, x);
         }       
     }
-    result = plot ? {code: plot.toString(), error: false} : {error: true};
-    return result;
+    if(plot){
+        let codeStr = plot.toString();
+        let lineCount = codeStr ? codeStr.split(/\r\n|\r|\n/).length : 1;
+        return {code: codeStr, lineCount: lineCount, error: false};
+    } else {
+        return {error: true};
+    }
 }
 
 function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], allColMetadata, dimStats: IDimStatsResult): CodeGenResult{
@@ -270,14 +318,23 @@ function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], a
         plot = new PlotCommand(PlotType.BAR, df_id, y, x);
     } else if(NumericalTypes.includes(allColMetadata[y[0]].type) && CategoricalTypes.includes(allColMetadata[x[0]].type)){
         // TODO: 1. consider Scatter when x cardinality is too large. 
-        // 2. consider groupby if y cardinality std > 0
+        // 2. consider groupby if y cardinality max > 1
         // 3. consider Line when y cardinality is 1 and x is monotonic
-        plot = new PlotCommand(PlotType.BAR, df_id, y, x);
+        if(dimStats.groupby_all.max > 1){
+            plot = new PlotCommand(PlotType.BAR, df_id, y, x, AggregateType.MEAN);
+        } else {
+            plot = new PlotCommand(PlotType.BAR, df_id, y, x);
+        }                
     } else {
         result = {error: true};
     }
-    result = plot ? {code: plot.toString(), error: false} : {error: true};
-    return result;
+    if(plot){
+        let codeStr = plot.toString();
+        let lineCount = codeStr ? codeStr.split(/\r\n|\r|\n/).length : 1;
+        return {code: codeStr, lineCount: lineCount, error: false};
+    } else {
+        return {error: true};
+    }
 }
 
 export function magicsGetPlotCommand(plotData: MagicPlotData): Promise<CodeGenResult>|CodeGenResult {     
@@ -290,7 +347,7 @@ export function magicsGetPlotCommand(plotData: MagicPlotData): Promise<CodeGenRe
     // console.info('magicsGetPlotCommand: ', plotData, dfMetadata);  
     if (dfMetadata){
         let allColMetadata = dfMetadata.columns;                
-        console.debug(`magicsGetPlotCommand: ${plotData}, metadata: ${allColMetadata}`);        
+        console.log('magicsGetPlotCommand: ', plotData, allColMetadata);        
         if (plotData.x == null && plotData.y && isColExist(plotData.y, allColMetadata)) {                
             return _handle_univariate_plot(plotData.df, plotData.y);
         } else if(plotData.x && plotData.y && isColExist(plotData.x, allColMetadata) && isColExist(plotData.y, allColMetadata)) {

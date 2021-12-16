@@ -28,7 +28,7 @@ import { IResultViewHeader } from "../../interfaces/IResultViewer";
 
 const TableView = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);
-    const plotResultUpdate = useSelector((state) => state.codeDoc.plotResultUpdate); 
+    const plotResultUpdate = useSelector((state) => state.codeEditor.plotResultUpdate); 
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     const dfReview: IDFUpdatesReview = useSelector((state) => _get_review_request(state));
     const dispatch = useDispatch();  
