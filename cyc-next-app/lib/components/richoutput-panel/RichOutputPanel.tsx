@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { DataTable, PanelDivider, TablePanel, TableToolbar } from "../StyledComponents";
-import TableView from "./RichOutputView";
+import RichOutputView from "./RichOutputView";
 import DFExplorer from "./DFExplorer";
 
 import dynamic from 'next/dynamic'
@@ -16,7 +16,7 @@ import DFStatusNotification from "../DFStatusNotification";
 import {tableData as testTableData} from "../tests/TestTableData";
 import DFFilter from "./DFFilter";
 
-const TablePanelComponent = (props: any) => {
+const RichOutputPanel = (props: any) => {
     return (
         <TablePanel>
             {/* {console.log(props)} */}
@@ -25,11 +25,11 @@ const TablePanelComponent = (props: any) => {
               <DFFilter></DFFilter>
             </TableToolbar>
             <PanelDivider/>
-            <TableView {... props}/>
+            <RichOutputView {... props}/>
         </TablePanel>
     );
   };
   
-  export default TablePanelComponent;
+  export default RichOutputPanel;
 
 

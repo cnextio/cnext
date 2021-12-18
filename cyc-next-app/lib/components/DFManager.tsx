@@ -136,7 +136,7 @@ const DFManager = () => {
         });        
     }
 
-    const showHistogram = false;
+    const showHistogram = true;
     const _handleGetTableData = (message: {}) => {
         const df_id = message.metadata['df_id'];
         console.log("Dispatch to tableData (DataFrame) ", message.content);        
@@ -184,7 +184,7 @@ const DFManager = () => {
     const _handleGetDFMetadata = (message: {}) => {
         console.log(`${WebAppEndpoint.DFManager} get metadata for "${message.metadata['df_id']}"`,);
         let content = message.content;
-        let columns = Object.keys(content.columns);
+        let columns: string[] = Object.keys(content.columns);
         let df_id = message.metadata['df_id'];
         // console.log('Metadata', columns);        
         dispatch(setMetaData(content));     
@@ -197,8 +197,10 @@ const DFManager = () => {
                 //only update histogram of columns that has been updated
                 let newColumns = dfUpdates['update_content'];
                 console.log("Send request for column histograms for columns: ", newColumns);
-                _getQuantilesPlot(df_id, newColumns);
-                _getHistogramPlot(df_id, newColumns); 
+                // _getQuantilesPlot(df_id, newColumns);
+                // _getHistogramPlot(df_id, newColumns); 
+                _getQuantilesPlot(df_id, columns);
+                _getHistogramPlot(df_id, columns); 
                 _sendGetCountna(df_id);
             } else if((dfUpdates['update_type'] == UpdateType.add_rows) ||
                         (dfUpdates['update_type'] == UpdateType.del_rows) || 

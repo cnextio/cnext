@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { ifElse } from "../libs";
 import { IColumnMetaData, IDFMetadata } from "../../interfaces/IApp";
 import { DataTable, DataTableCell, DataTableRow, TableContainer } from "../StyledComponents";
-import CountNAComponent from "../richoutput-panel/CountNA1";
+import CountNA from "../richoutput-panel/CountNA";
 import ColumnHistogram from "../richoutput-panel/ColumnHistogram";
 
 
@@ -57,7 +57,7 @@ const ColumnSummary = (props: any) => {
                             <Typography sx={{'font-size': '14px'}} variant='caption'>{dfMetadata.columns[col_name].type}</Typography>
                         </DataTableCell>
                         <DataTableCell style={{'text-align': 'left', 'white-space': 'nowrap'}}>
-                            <CountNAComponent df_id={activeDataFrame} col_name={col_name}></CountNAComponent>
+                            <CountNA df_id={activeDataFrame} col_name={col_name}></CountNA>
                         </DataTableCell>  
                         <DataTableCell style={{'text-align': 'left', 'width':'1%', 'white-space': 'nowrap'}}>
                             {/* {console.log(dfMetadata.columns[col_name].desribe)} */}

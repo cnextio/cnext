@@ -4,10 +4,8 @@ import shortid from "shortid";
 import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 
 import { DataTable, DataTableCell, DataTableHead, DataTableHeadRow, DataTableHeadCell, 
-    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText, DataTableHeadCellOfNewCol as DataTableReviewHeadCell, DataTablCellOfNewCol as DataTablReviewCell, PlotViewContainer } from "../StyledComponents";
-import {Message, WebAppEndpoint, DataTableContent, UpdateType, IReviewRequest, IDFUpdatesReview, ReviewType} from "../../interfaces/IApp";
-import socket from "../Socket";
-import { scrollLock, scrollUnlock } from "../../../redux/reducers/obs-scrollLockSlice";
+    DataTableIndexCell, DataTableRow, TableContainer, DataTableHeadText } from "../StyledComponents";
+import {IDFUpdatesReview, ReviewType} from "../../interfaces/IApp";
 import ColumnHistogram from "./ColumnHistogram"
 
 // import dynamic from 'next/dynamic'
@@ -18,27 +16,27 @@ import ColumnHistogram from "./ColumnHistogram"
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
-import CountNAComponent from "./CountNA";
 import { ifElse, ifElseDict } from "../libs";
 import { setDFUpdates } from "../../../redux/reducers/DataFramesRedux";
 import RichOuputViewHeader from "./RichOuputViewHeader";
 import SummaryView from "../summary-panel/SummaryView";
 import PlotView from "../plot-panel/PlotView";
 import { IResultViewHeader } from "../../interfaces/IResultViewer";
+import CountNA from "./CountNA";
 
-const TableView = (props: any) => {    
+const RichOutputView = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);
     const plotResultUpdate = useSelector((state) => state.codeEditor.plotResultUpdate); 
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
-    const dfReview: IDFUpdatesReview = useSelector((state) => _get_review_request(state));
+    const dfReview: IDFUpdatesReview = useSelector((state) => _getReviewRequest(state));
     const dispatch = useDispatch();  
     const [show, setShow] = useState(IResultViewHeader.TABLE);
 
-    function _get_review_request(state): IDFUpdatesReview {
+    function _getReviewRequest(state): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
     }
     
-    const _create_cell = (dfColName: string, dfRowIndex: number, item: any, head: boolean = false, indexCell: boolean=false) => {
+    const _createCell = (dfColName: string, dfRowIndex: number, item: any, head: boolean = false, indexCell: boolean=false) => {
         let review: boolean = false;
         if (dfReview){
             if (dfReview.type==ReviewType.col){
@@ -52,8 +50,9 @@ const TableView = (props: any) => {
             }
         }
         // if (review){
-        //     console.log('dfReview: ', dfReview, dfColName, dfRowIndex, head);
+            // console.log('dfReview: ', dfReview, dfColName, dfRowIndex, head);
         // }
+        // console.log('RichOutputView _createCell: ', dfColName);
         return (
             <Fragment>
                 {indexCell ? 
@@ -71,7 +70,7 @@ const TableView = (props: any) => {
                     /> : null
                     }
                     {head ? 
-                    <CountNAComponent 
+                    <CountNA
                         df_id={activeDataFrame} 
                         col_name={dfColName}
                     /> : null
@@ -86,20 +85,20 @@ const TableView = (props: any) => {
         );
     }
 
-    const _create_row = (colNames: [], rowIndex: any, rowData: any[]) => {
+    const _createRow = (colNames: [], rowIndex: any, rowData: any[]) => {
         return (
             <DataTableRow hover key={shortid.generate()}>                
-                {_create_cell(null, rowIndex, null, false, true)}
+                {_createCell(null, rowIndex, null, false, true)}
                 {rowData.map((item: any, index: number) => (                            
-                    _create_cell(colNames[index], rowIndex, item)
+                    _createCell(colNames[index], rowIndex, item)
                 ))}
             </DataTableRow>
         )
     }
 
-    const _clear_dataFrameUpdateState = (df_id: string) => {
-        dispatch(setDFUpdates({df_id: df_id}));
-    }
+    // const _clear_dataFrameUpdateState = (df_id: string) => {
+    //     dispatch(setDFUpdates({df_id: df_id}));
+    // }
 
     useEffect(()=>{
         setShow(IResultViewHeader.TABLE);
@@ -115,8 +114,8 @@ const TableView = (props: any) => {
             <Divider/>
             {show==IResultViewHeader.TABLE && ifElse(tableData, activeDataFrame, null)?
             <TableContainer>
-            {/* {console.log("Render TableContainer: ", tableData)} */}
-            {console.log("Render TableContainer")}                    
+                {/* {console.log("Render TableContainer: ", tableData)} */}
+                {console.log("Render TableContainer")}                    
                 <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
                     {/* {console.log(tableData)} */}
                     <DataTableHead>
@@ -125,25 +124,24 @@ const TableView = (props: any) => {
                                 <DataTableHeadText>{tableData[activeDataFrame].index.name}</DataTableHeadText>
                             </DataTableHeadCell>
                             {tableData[activeDataFrame].column_names.map(
-                                (dfCol: string, index: number) => 
-                                (_create_cell(dfCol, 0, dfCol, true)))}
+                                (dfColName: string, index: number) => 
+                                (_createCell(dfColName, 0, dfColName, true)))}
                         </DataTableHeadRow>
                     </DataTableHead>                
                     <TableBody>                
                     {tableData[activeDataFrame].rows.map((rowData: any[], index: number) => (
-                        _create_row(tableData[activeDataFrame].column_names, tableData[activeDataFrame].index.data[index], rowData)
+                        _createRow(tableData[activeDataFrame].column_names, tableData[activeDataFrame].index.data[index], rowData)
                     ))}
                     </TableBody>
                 </DataTable>
             </TableContainer>      
-            : null}     
-            
+            : null}                 
             {show==IResultViewHeader.SUMMARY && <SummaryView/>}
             {show==IResultViewHeader.PLOTS && <PlotView/>}            
         </Fragment>
     );
 }
 
-export default TableView;
+export default RichOutputView;
 
 

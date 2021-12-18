@@ -322,6 +322,9 @@ function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], a
         // 3. consider Line when y cardinality is 1 and x is monotonic
         if(dimStats.groupby_all.max > 1){
             plot = new PlotCommand(PlotType.BAR, df_id, y, x, AggregateType.MEAN);
+        } else if (dimStats.groupby_x0.max === 1 && dimStats.unique_counts[x[0]] > LINE_MIN_X_UNIQUE && dimStats.monotonics[x[0]]){
+            // TODO: should also check xCardinal according to the design
+            plot = new PlotCommand(PlotType.LINE, df_id, y, x);
         } else {
             plot = new PlotCommand(PlotType.BAR, df_id, y, x);
         }                

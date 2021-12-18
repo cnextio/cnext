@@ -1,36 +1,27 @@
-import React, { forwardRef, RefObject, SyntheticEvent, useEffect, useRef, useState } from "react";
-import ReactDOM from 'react-dom';
-import {RecvCodeOutput, Message, DataTableContent, WebAppEndpoint, ContentType, CommandName} from "../../interfaces/IApp";
-
-//redux
+import React, { useEffect, useRef, useState } from "react";
+import {Message, WebAppEndpoint, ContentType, CommandName} from "../../interfaces/IApp";
 import { useSelector, useDispatch } from 'react-redux'
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
-import { update as vizDataUpdate } from "../../../redux/reducers/vizDataSlice";
-import shortid from "shortid";
 import store from '../../../redux/store';
 import socket from "../Socket";
-
-// import CodeMirror from '@uiw/react-codemirror';
 import { basicSetup } from "@codemirror/basic-setup";
 import { bracketMatching } from "@codemirror/matchbrackets";
 import { defaultHighlightStyle } from "@codemirror/highlight";
-import { oneDark } from "@codemirror/theme-one-dark";
-// import { python } from '@codemirror/lang-python';
-import { python } from "../../codemirror-grammar/lang-cnext-python";
+import { python } from "../../codemirror/grammar/lang-cnext-python";
 import {keymap, EditorView, ViewUpdate, DecorationSet, Decoration} from "@codemirror/view"
 import { indentUnit } from "@codemirror/language";
 import { lineNumbers, gutter, GutterMarker } from "@codemirror/gutter";
-import { CodeEditMarker, StyledCodeEditor, StyledCodeMirror } from "../StyledComponents";
-import { languageServer } from "codemirror-languageserver";
-import { addPlotResult, initCodeDoc, updateLines, setLineStatus, setActiveLine, setLineGroupStatus, setRunQueue as setReduxRunQueue, compeleteRunLine } from "../../../redux/reducers/CodeEditorRedux";
-import { ICodeLineStatus as ILineStatus, ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, MessageMetaData, ICodeLineStatus, ICodeLine, ICodeLineGroupStatus, SetLineGroupCommand, RunQueueStatus, ILineRange } from "../../interfaces/ICodeEditor";
-import { EditorSelection, EditorState, SelectionRange, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
-import { keyframes } from "styled-components";
+import { StyledCodeEditor, StyledCodeMirror } from "../StyledComponents";
+// import { languageServer } from "../../codemirror/codemirror-languageserver";
+import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
+import { addPlotResult, updateLines, setLineStatus, setActiveLine, setLineGroupStatus, setRunQueue as setReduxRunQueue, compeleteRunLine } from "../../../redux/reducers/CodeEditorRedux";
+import { ICodeLineStatus as ILineStatus, ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, ICodeLineStatus, ICodeLine, ICodeLineGroupStatus, SetLineGroupCommand, RunQueueStatus, ILineRange } from "../../interfaces/ICodeEditor";
+import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
 // import { extensions } from './codemirror-extentions/extensions';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import { CodeGenResult, CodeGenStatus, IInsertLinesInfo, IMagicInfo, LINE_SEP, MagicPlotData, MAGIC_STARTER, TextRange } from "../../interfaces/IMagic";
+import { CodeGenResult, CodeGenStatus, IInsertLinesInfo, IMagicInfo, LINE_SEP, MagicPlotData, MAGIC_STARTER } from "../../interfaces/IMagic";
 import { magicsGetPlotCommand } from "../../cnext-magics/magic-plot-gen";
-import { CNextPlotKeyword, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror-grammar/cnext-python.terms";
+import { CNextPlotKeyword, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -175,36 +166,36 @@ const CodeEditor = (props: any) => {
      * @param editorView 
      * @returns 
      */
-     function _getLineContent(editorView: EditorView): ILineContent {
-        const doc = editorView.state.doc;
-        const state = editorView.state;
-        const anchor = state.selection.ranges[0].anchor;
-        let line = doc.lineAt(anchor);
-        let text: string = line.text;        
-        let result: ILineContent;
+    // function _getLineContent(editorView: EditorView): ILineContent {
+    //     const doc = editorView.state.doc;
+    //     const state = editorView.state;
+    //     const anchor = state.selection.ranges[0].anchor;
+    //     let line = doc.lineAt(anchor);
+    //     let text: string = line.text;        
+    //     let result: ILineContent;
 
-        if(text.startsWith(MAGIC_STARTER)){
-            let lines: ICodeLineStatus[] = store.getState().codeEditor.codeLines;            
-            /** note that because the CM line index is 0-based, this if condition is looking at the next line*/
-            if (lines[line.number].generated){
-                line = doc.line(line.number+1);
-                text = line.text;
-            }
-        } 
+    //     if(text.startsWith(MAGIC_STARTER)){
+    //         let lines: ICodeLineStatus[] = store.getState().codeEditor.codeLines;            
+    //         /** note that because the CM line index is 0-based, this if condition is looking at the next line*/
+    //         if (lines[line.number].generated){
+    //             line = doc.line(line.number+1);
+    //             text = line.text;
+    //         }
+    //     } 
 
-        console.log('Code line to run: ', text);
-        // convert the line number to 0-based index, which is what we use internally
-        result = {lineNumber: line.number-1, content: text}; 
-        return result;
-    }
+    //     console.log('Code line to run: ', text);
+    //     // convert the line number to 0-based index, which is what we use internally
+    //     result = {lineNumber: line.number-1, content: text}; 
+    //     return result;
+    // }
 
-    function runLine(editorView: EditorView) {
-        let content: ILineContent = _getLineContent(editorView);
-        _send_message(content);
-        let lineStatus: ILineStatus = {lineNumber: content.lineNumber, status: LineStatus.EXECUTING};
-        dispatch(setLineStatus(lineStatus));
-        return true;
-    }
+    // function runLine(editorView: EditorView) {
+    //     let content: ILineContent = _getLineContent(editorView);
+    //     _send_message(content);
+    //     let lineStatus: ILineStatus = {lineNumber: content.lineNumber, status: LineStatus.EXECUTING};
+    //     dispatch(setLineStatus(lineStatus));
+    //     return true;
+    // }
 
     /** Functions that support runQueue */
     function _getLineContent2(lineNumber: number): string|undefined {
@@ -265,6 +256,7 @@ const CodeEditor = (props: any) => {
             }
         }
     }
+    
     useEffect(()=>{
         execLine()
     },[runQueue])

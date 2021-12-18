@@ -5,7 +5,7 @@ import CodeEditor from "./CodeEditor";
 // import WorkingPanelDivider from "../obs-WorkingPanelDivider";
 import { Typography } from "@mui/material";  
 import {Message} from "../../interfaces/IApp";
-import CodeOutputComponent from "./CodeOutput";
+import CodeOutput from "./CodeOutput";
 import CodeToolbar from "./CodeToolbar";
 // import { pure } from 'recompose';
 
@@ -28,7 +28,7 @@ const CodePanel = React.memo((props: any) => {
                 <SplitPane split="horizontal" defaultSize="70%" pane2Style={{height: "30%"}}>  
                             {/* panel2 height is the must for the scrolling to work */}
                     <CodeEditor {... props} recvCodeOutput={recvCodeOutput} />
-                    <CodeOutputComponent codeOutput={codeOutput} />
+                    <CodeOutput codeOutput={codeOutput} />
                 </SplitPane>            
             </CodeContainer>
         </StyledCodePanel>

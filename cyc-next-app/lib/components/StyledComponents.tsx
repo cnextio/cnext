@@ -133,7 +133,7 @@ export const WorkingPanel = styled.div`
 export const WorkingPanelSplitPanel = styled(SplitPane)`
     padding-left: inherit;
     padding-right: inherit;
-    height: 100%;// - 12px;
+    height: 100%;
 `;
 
 export const StyledCodePanel = styled.div`
