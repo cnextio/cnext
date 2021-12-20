@@ -2,26 +2,34 @@ import platform, sys, logging, simplejson as json, io, os
 import pandas 
 import plotly
 import traceback
-import yaml
 import logs
 import re
 from zmq_message import MessageQueue
-from message import Message, WebappEndpoint, CommandName, ContentType, FileCommandName
-from file_management import *
+from message import Message, WebappEndpoint, CommandName, ContentType, ProjectCommand
+from project_manager import files, projects
 
 log = logs.get_logger(__name__)
 
-from config import read_config
+from libs.config import read_config
 try:
-    if platform.system() == 'Windows':
-        config = read_config('config-win.yaml')
-    else:
-        config = read_config('config.yaml')
+    config = read_config('.server.yaml', {'node_py_zmq':{'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
+    log.info('Server config: %s'%config)
+    open_projects = []
+    active_project: projects.ProjectMetadata = None
+    if hasattr(config, 'projects'):
+        if 'open_projects' in config.projects:
+            if isinstance(config.projects['open_projects'], list):
+                open_projects = config.projects['open_projects']
+        if 'active_project' in config.projects:
+            for project_config in open_projects:
+                if config.projects['active_project'] == project_config['id']:
+                    active_project = projects.ProjectMetadata(**project_config)
+    if active_project:
+        projects.set_active_project(active_project)
+
 except Exception as error:
     log.error("%s - %s" % (error, traceback.format_exc()))          
     exit(1)
-
-
 
 #TODO: Point this to the cycdataframe repos folder
 sys.path.append(config.path_to_cycdataframe_lib); 
@@ -77,7 +85,6 @@ def _result_is_dataframe(result):
 def _result_is_plotly_fig(result):
     return hasattr(plotly.graph_objs, '_figure') and (type(result) == plotly.graph_objs._figure.Figure)
 
-
 def _create_table_data(df_id, df):
     tableData = {}
     tableData['df_id'] = df_id
@@ -129,7 +136,6 @@ def create_error_message(webapp_endpoint, trace):
         "error": True
     })
 
-
 def send_result_to_node_server(message: Message):
     # the current way of communicate with node server is through stdout with a json string
     # log.info("Send to node server: %s" % message)
@@ -137,7 +143,6 @@ def send_result_to_node_server(message: Message):
     log.info("Send output to node server...")
     p2n_queue.push(message.toJSON())
     
-
 def handle_DataFrameManager_message(message):
     send_reply = False
     # message execution_mode will always be `eval` for this sender
@@ -258,34 +263,57 @@ def handle_FileManager_message(message):
     log.info('Handle FileManager message: %s' % message)
     try:    
         metadata = message.metadata    
-        if message.command_name == FileCommandName.list_dir:            
+        output = None
+        if message.command_name == ProjectCommand.list_dir:            
             output = []
             if 'path' in metadata.keys():
-                names = list_dir(metadata['path'])                                    
-                for name in names:
-                    if os.path.isdir(name):
-                        output.append({name: name, dir: True})
-                    else:
-                        output.append({name: name, dir: False})
+                output = files.list_dir(metadata['path']) 
                 content_type = ContentType.DIR_LIST    
-        elif message.command_name == FileCommandName.get_open_files:
-            output = get_open_files()
+        elif message.command_name == ProjectCommand.get_open_files:
+            output = projects.get_open_files()
             content_type = ContentType.FILE_METADATA   
-        elif message.command_name == FileCommandName.set_working_dir:
-            output = None
+        elif message.command_name == ProjectCommand.set_working_dir:
             if 'path' in metadata.keys():
-                output = set_working_dir(metadata['path'])
+                output = projects.set_working_dir(metadata['path'])
+            content_type = ContentType.NONE 
+        elif message.command_name == ProjectCommand.set_project_dir:
+            if 'path' in metadata.keys():
+                output = projects.set_project_dir(metadata['path'])
             content_type = ContentType.NONE   
-        elif message.command_name == FileCommandName.read_file:
-            output = None
+        elif message.command_name == ProjectCommand.read_file:
             if 'path' in metadata.keys():
-                output = read_file(metadata['path'])
+                output = files.read_file(metadata['path'])
             content_type = ContentType.FILE_CONTENT   
-        elif message.command_name == FileCommandName.save_file:
-            output = None
+        elif message.command_name == ProjectCommand.save_file:
             if 'path' in metadata.keys():
-                output = save_file(metadata['path'], message.content)
+                output = files.save_file(metadata['path'], message.content)
             content_type = ContentType.FILE_METADATA
+        elif message.command_name == ProjectCommand.get_active_project:
+            output = projects.get_active_project()
+            content_type = ContentType.PROJECT_METADATA    
+
+        # create reply message
+        message.content_type = content_type
+        message.content = output
+        message.error = False
+        send_result_to_node_server(message)   
+
+    except:
+        trace = traceback.format_exc()
+        log.error("%s" % (trace))
+        error_message = create_error_message(message.webapp_endpoint, trace)          
+        send_result_to_node_server(error_message)
+
+def handle_FileExplorer_message(message):
+    log.info('Handle FileExplorer message: %s' % message)
+    try:    
+        metadata = message.metadata    
+        output = None
+        if message.command_name == ProjectCommand.list_dir:            
+            output = []
+            if 'path' in metadata.keys():
+                output = files.list_dir(metadata['path']) 
+                content_type = ContentType.DIR_LIST    
 
         # create reply message
         message.content_type = content_type
@@ -372,6 +400,7 @@ message_handler = {
     WebappEndpoint.DFManager: handle_DataFrameManager_message,
     WebappEndpoint.FileManager: handle_FileManager_message,
     WebappEndpoint.MagicCommandGen: handle_MagicCommandGen_message,
+    WebappEndpoint.FileExplorer: handle_FileExplorer_message,
 }
 if __name__ == "__main__":    
     try:

@@ -1,12 +1,4 @@
 
-export interface File {
-    is_executor: boolean;
-    type: FileType;
-    name: string;
-    path: string;
-    status: FileStatus;
-}
-
 export enum FileType {
     python = 'py',
     jupyter = 'ipy'
@@ -17,7 +9,7 @@ export enum FileStatus {
     saved = 'saved'
 }
 
-export enum FileCommandName {  
+export enum ProjectCommand {  
     list_dir = 'list_dir',
     get_file_metadata = 'get_file_metadata',
     read_file = 'read_file',
@@ -28,7 +20,8 @@ export enum FileCommandName {
     add_folder = 'add_folder',
     remove_file = 'remove_file',
     remove_folder = 'remove_folder',
-    set_working_dir = 'set_working_dir'
+    set_working_dir = 'set_working_dir',
+    get_active_project = 'get_active_project'
 };
 
 export interface IFileMetadata {
@@ -37,4 +30,21 @@ export interface IFileMetadata {
     type: string;
     executor: boolean;
     update_timestamp: string;
+}
+
+export interface IProjectMetadata {
+    path: string;
+    name: string;
+    id: string;
+}
+
+export interface IDirectoryMetadata {
+    path: string;
+    name: string;
+    is_file: boolean;
+}
+
+export interface IDirListResult {
+    id: string;
+    dirs: IDirectoryMetadata[];
 }

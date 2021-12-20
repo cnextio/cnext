@@ -34,7 +34,7 @@ const ls = languageServer({
 const CodeEditor = (props: any) => {
     const [initialized, setInitialized] = useState(false);
     const codeLines: ICodeLine[] = useSelector(state => state.codeEditor.codeLines);
-    const inViewID = useSelector(state => state.fileManager.inViewID);
+    const inViewID = useSelector(state => state.projectManager.inViewID);
     const codeText = useSelector(state => state.codeEditor.text);    
     const runQueue = useSelector(state => state.codeEditor.runQueue);
     const dispatch = useDispatch();

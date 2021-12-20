@@ -1,10 +1,10 @@
 import React, { FC, Fragment, ReactElement, useEffect, useRef, useState } from "react";
-import { StyledCodePanel, StyledCodeToolbar, CodeContainer, CodeOutputContainer, CodeOutputContent, FileNameTab, TableViewHeaderButton, PanelDivider, StyledExecutorIcon} from "../StyledComponents";
+import { StyledCodePanel, CodeToolbar as StyledCodeToolbar, CodeContainer, CodeOutputContainer, CodeOutputContent, FileNameTab, TableViewHeaderButton, PanelDivider, StyledExecutorIcon} from "../StyledComponents";
 import { Divider, IconButton, Tab, Typography } from "@mui/material";  
 import MenuIcon from '@mui/icons-material/Menu';
 import { useDispatch, useSelector } from "react-redux";
 import store from '../../../redux/store';
-import { setInView } from "../../../redux/reducers/FileManagerRedux";
+import { setInView } from "../../../redux/reducers/ProjectManagerRedux";
 
 function FileMenu() {
     return (
@@ -20,9 +20,9 @@ function ExecutorIcon() {
     )
 }
 function CodeToolbar() {
-    const openFiles = useSelector(state => state.fileManager.openFiles);
-    const executorID = useSelector(state => state.fileManager.executorID);
-    const inViewID = useSelector(state => state.fileManager.inViewID);
+    const openFiles = useSelector(state => state.projectManager.openFiles);
+    const executorID = useSelector(state => state.projectManager.executorID);
+    const inViewID = useSelector(state => state.projectManager.inViewID);
     const fileSaved = useSelector(state => state.codeEditor.fileSaved);
     const dispatch = useDispatch()
 

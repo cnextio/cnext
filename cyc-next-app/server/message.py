@@ -14,6 +14,7 @@ class WebappEndpoint(str, Enum):
     CodeEditor = 'CodeEditor'
     FileManager = 'FileManager'
     MagicCommandGen = 'MagicCommandGen'
+    FileExplorer = 'FileExplorer'
 
     def __str__(self):
         return str(self.value)
@@ -37,7 +38,7 @@ class CommandName(str, Enum):
     def __repr__(self):
         return str(self.value)  
 
-class FileCommandName(str, Enum):  
+class ProjectCommand(str, Enum):  
     list_dir = 'list_dir'
     get_file_metadata = 'get_file_metadata'
     read_file = 'read_file'
@@ -49,6 +50,8 @@ class FileCommandName(str, Enum):
     remove_file = 'remove_file'
     remove_folder = 'remove_folder'
     set_working_dir = 'set_working_dir'
+    set_project_dir = 'set_project_dir'
+    get_active_project = 'get_active_project'
 
 class ContentType(str, Enum):  
     COMMAND = 'command'
@@ -58,6 +61,7 @@ class ContentType(str, Enum):
     PLOTLY_FIG = 'plotly_fig'
     DIR_LIST = 'dir_list',
     FILE_METADATA = 'file_metadata',
+    PROJECT_METADATA = 'project_metadata',
     FILE_CONTENT = 'file_content',
     COLUMN_CARDINAL = 'column_cardinal',
     NONE = 'none'

@@ -1,14 +1,33 @@
 import os
+from os.path import isfile, join
+import simplejson as json
 import logs
 from message import FileMetadata
 
 log = logs.get_logger(__name__)
 
+class Directory:
+    def __init__(self, **entries): 
+        self.path = None
+        self.name = None
+        self.is_file = None
+        self.__dict__.update(entries) 
+    
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
+
+    def __repr__(self) -> str:
+        return self.toJSON() 
+
 def list_dir(path):
+    dir_list: Directory = []
     try:
-        pass
+        for f in os.listdir(path):
+            fpath = join(path, f)
+            dir_list.append(Directory(**{'path': fpath, 'name': f, 'is_file': isfile(fpath)}))
     except Exception:
         raise Exception
+    return dir_list
 
 def get_file_metadata(path):
     try:
@@ -42,12 +61,6 @@ def save_file(path, content):
     except Exception:
         raise Exception
 
-def get_open_files():
-    try:
-        return open_files
-    except Exception:
-        raise Exception
-
 def set_working_dir(path):
     try:
         os.chdir(path)
@@ -55,7 +68,3 @@ def set_working_dir(path):
     except Exception:
         raise Exception        
 
-PROJECT_DIR = '/Users/bachbui/works/cycai/cnext-working-dir'
-open_files = [FileMetadata(**{'path': PROJECT_DIR+'/data_loader.py', 'name': 'data_loader.py', 'executor': False, 'type': 'python'}),
-    FileMetadata(**{'path': PROJECT_DIR+'/demo.py', 'name': 'demo.py', 'executor': True, 'type': 'python'})] 
-# os.chdir(PROJECT_DIR)       

@@ -4,6 +4,7 @@ import CodePanel from "./code-panel/CodePanel";
 import RichOutputPanel from "./richoutput-panel/RichOutputPanel";
 import DFManager from "./DFManager";
 import FileManager from "./file-manager/FileManager";
+import FileExplorer from "./file-manager/FileExplorer";
 
 const WorkingPanel = (props: any) => {  
   return (
@@ -12,7 +13,7 @@ const WorkingPanel = (props: any) => {
         https://newbedev.com/absolute-positioning-ignoring-padding-of-parent */}
         <WorkingPanelSplitPanel split="vertical" defaultSize="30%" pane2Style={{width: "0%"}}>
         {/* <WorkingPanelSplitPanel split="vertical"> */}
-            {/* <div></div> */}
+            <FileExplorer />
             <CodePanel {... props}/>
             <RichOutputPanel {... props}/>                                 
         </WorkingPanelSplitPanel>

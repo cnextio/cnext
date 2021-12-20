@@ -1,6 +1,6 @@
 import React, { FC, ReactElement, useEffect, useRef, useState } from "react";
-import { StyledCodePanel, PanelDivider, StyledCodeToolbar, CodeContainer, CodeOutputContainer, CodeOutputContent} from "../StyledComponents";
-import SplitPane, {Pane} from 'react-split-pane';
+import { StyledCodePanel, PanelDivider, CodeContainer, CodeOutputContainer, CodeOutputContent} from "../StyledComponents";
+import SplitPane from 'react-split-pane-v2';
 import CodeEditor from "./CodeEditor";
 // import WorkingPanelDivider from "../obs-WorkingPanelDivider";
 import { Typography } from "@mui/material";  

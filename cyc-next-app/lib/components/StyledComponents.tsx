@@ -3,11 +3,12 @@ import { Box, Button, Divider, FormControl, Input, MenuItem, OutlinedInput, Pape
 // import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import BoltIcon from '@mui/icons-material/Bolt';
-import SplitPane, { Pane } from 'react-split-pane';
+import SplitPane from 'react-split-pane-v2';
 import styled, { keyframes } from 'styled-components';
 // import { CSSTransition } from 'react-transition-group';
 import { ToastContainer } from 'react-toastify';
 import CodeMirror from '@uiw/react-codemirror';
+import { TreeView, TreeItem } from '@mui/lab';
 
 export const TopPanel = styled.div`
     display: flex;
@@ -130,6 +131,42 @@ export const WorkingPanel = styled.div`
     overflow: hidden;     
 `;
 
+export const FileExplorerHeaderName = styled(Typography)`      
+    display: flex;
+    align-items: center;
+    height: calc(var(--var-height));
+    line-height: calc(var(--var-height));
+    padding: 0px 10px 0px 10px;
+    font-size: 12px;
+    color: ${props => props.theme.palette.text.secondary};
+    background-color: ${props => props.theme.palette.grey.A200};
+    border-width: 1px;
+    // &:hover {
+    //     cursor: pointer;
+    //     background-color: ${props => props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
+    // }
+`;
+
+export const FileTree = styled(TreeView)`
+    padding: 10px 0px 0px 0px;
+    max-width: 100%;
+    .MuiTreeItem-group {
+        margin-left: 5px;
+    }
+`
+
+export const FileItem = styled(TreeItem)`
+    .MuiTreeItem-label {
+        font-size: 14px;
+        line-height: 2em;    
+    }    
+    .MuiTreeItem-content {
+        padding-left: 5px;
+    }
+    color: ${props => props.theme.palette.text.secondary};
+    width: 100%    
+`
+
 export const WorkingPanelSplitPanel = styled(SplitPane)`
     padding-left: inherit;
     padding-right: inherit;
@@ -147,7 +184,7 @@ export const StyledCodePanel = styled.div`
     // overflow: auto;
 `;
 
-    export const StyledCodeToolbar = styled.div`
+    export const CodeToolbar = styled.div`
         display: flex;
         --var-height: 46px;
         height: calc(var(--var-height));

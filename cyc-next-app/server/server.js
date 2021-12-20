@@ -22,6 +22,7 @@ let ready = false;
 const CodeEditor = 'CodeEditor';
 const DFManager = 'DFManager';
 const FileManager = 'FileManager';
+const FileExplorer = 'FileExplorer';
 const MagicCommandGen = 'MagicCommandGen';
 
 /*
@@ -29,11 +30,12 @@ const MagicCommandGen = 'MagicCommandGen';
 */
 try {
     let file;
-    if (process.platform=='win32'){
-        file = fs.readFileSync('config-win.yaml', 'utf8');
-    } else {
-        file = fs.readFileSync('config.yaml', 'utf8');
-    }
+    // if (process.platform=='win32'){
+    //     file = fs.readFileSync('config-win.yaml', 'utf8');
+    // } else {
+    //     file = fs.readFileSync('config.yaml', 'utf8');
+    // }
+    file = fs.readFileSync('.server.yaml', 'utf8');
     config = YAML.parse(file);
 
     io.on("connection", (socket) => {
@@ -59,6 +61,12 @@ try {
         socket.on(FileManager, str_message => {  //TODO: use enum                  
             message = JSON.parse(str_message);
             console.log("Receive msg from FileManager, server will run: ", message);  
+            pyshell.send(message);
+        });
+
+        socket.on(FileExplorer, str_message => {  //TODO: use enum                  
+            message = JSON.parse(str_message);
+            console.log("Receive msg from FileExplorer, server will run: ", message);  
             pyshell.send(message);
         });
 
