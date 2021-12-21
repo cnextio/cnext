@@ -1,7 +1,6 @@
 import React, { FC } from "react";
 import { Box } from "@mui/material";
-import MiniSidebar from "./Sidebar";
-import SidebarDividerComponent from "./SidebarDivider";
+import MiniSidebar from "./sidebar/Sidebar";
 import {MainPanel} from "./StyledComponents";
 import WorkingPanel from "./WorkingPanel";
   
@@ -21,7 +20,6 @@ const Main: FC = (props: any) => {
             <MainPanel>
                 {console.log(props)}
                 <MiniSidebar {...props}/>
-                <SidebarDividerComponent />
                 <WorkingPanel {... props}/>            
             </MainPanel>
         </Box>

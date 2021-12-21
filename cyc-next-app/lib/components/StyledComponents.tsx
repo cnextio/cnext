@@ -81,7 +81,7 @@ export const Sidebar = styled.div`
 export const SidebarList = styled.div`
     background-color: ${props =>
     props.theme.palette.background.paper};
-    padding: 8px 0;
+    padding: 0px 0px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -89,14 +89,28 @@ export const SidebarList = styled.div`
     width: 47px;
 `;
 export const SidebarListItem = styled.div`
-    padding: 8px;
+    padding: 8px 0px;
     display: flex;
     align-items: center;
     justify-content: center;
     height: 50x;
-    width: 40px;
+    width: 50px;
     &:not(:last-of-type) {
-    margin-bottom: 10px;
+        margin-bottom: 10px;    
+    }
+    border-left: 4px solid ${props => props.selected 
+        ? 'rgba(25, 118, 210, 1)':
+        props.theme.palette.background.paper};
+    background-color: ${props => props.selected 
+        ? 'rgba(25, 118, 210, 0.1)'
+        : 'props.theme.palette.background.paper'};
+    &:hover {
+        cursor: pointer;
+        background-color: ${props => props.selected ? 'rgba(25, 118, 210, 0.1)'
+            : props.theme.palette.grey.A200};
+        border-left: 4px solid ${props => props.selected 
+                ? 'rgba(25, 118, 210, 1)':
+                'black'};
     }
 `;
 export const SidebarButton = styled.div`
@@ -104,17 +118,17 @@ export const SidebarButton = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 24px;
+    width: 30px;
     height: 24px;
+    
 `;
 export const SidebarIcon = styled.div`
-    color: ${props =>
-    props.theme.palette.action};
+    color: ${props => props.theme.palette.action};
     width: 75%;
     height: 75%;
 `;
 
-export const SideBarDivider = styled.div`
+export const SideBarDivider = styled(Divider)`
     display: flex;
     align-items: center;
 `;

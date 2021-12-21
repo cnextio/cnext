@@ -54,11 +54,21 @@ export const ProjectManagerRedux = createSlice({
         },
         setFileToOpen: (state, action) => {
             state.fileToOpen = action.payload;
+        },
+        setShowProjectExplorer: (state, action) => {
+            state.showProjectExplore = action.payload;
         }
     },        
 })
 
 // Action creators are generated for each case reducer function
-export const { setOpenFiles, setInView, setActiveProject, setOpenDir, setFileToClose, setFileToOpen } = ProjectManagerRedux.actions
+export const { 
+    setOpenFiles, 
+    setInView, 
+    setActiveProject, 
+    setOpenDir, 
+    setFileToClose, 
+    setFileToOpen,
+    setShowProjectExplorer } = ProjectManagerRedux.actions
 
 export default ProjectManagerRedux.reducer
