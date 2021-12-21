@@ -7,15 +7,21 @@ type ProjectManagerState = {
     activeProject: IProjectMetadata | null,
     executorID: string | null,
     inViewID: string | null, 
-    openDirs: {[id: string]: IDirectoryMetadata[]}
+    openDirs: {[id: string]: IDirectoryMetadata[]},
+    fileToClose: string | null,
+    fileToOpen: string | null,
+    showProjectExplore: boolean
 }
 
 const initialState: ProjectManagerState = {
     openFiles: {},
     activeProject: null,
     executorID: null,
-    inViewID: null, 
-    openDirs: {}
+    inViewID: null,
+    openDirs: {},
+    fileToClose: null,
+    fileToOpen: null,
+    showProjectExplore: false, 
 }
 
 export const ProjectManagerRedux = createSlice({
@@ -26,8 +32,9 @@ export const ProjectManagerRedux = createSlice({
             state.activeProject = action.payload;
         },
         setOpenFiles: (state, action) => {  
-            action.payload.map((file: IFileMetadata) => {
-                let id = shortid();
+            state.openFiles = {};
+            action.payload.map((file: IFileMetadata) => {                
+                let id = file.path;
                 state.openFiles[id] = file;
                 if (file.executor == true){
                     state.executorID = id;
@@ -41,11 +48,17 @@ export const ProjectManagerRedux = createSlice({
         setOpenDir: (state, action) => {
             let data: IDirListResult = action.payload;
             state.openDirs[data.id] = data.dirs;
+        },
+        setFileToClose: (state, action) => {
+            state.fileToClose = action.payload;
+        },
+        setFileToOpen: (state, action) => {
+            state.fileToOpen = action.payload;
         }
     },        
 })
 
 // Action creators are generated for each case reducer function
-export const { setOpenFiles, setInView, setActiveProject, setOpenDir } = ProjectManagerRedux.actions
+export const { setOpenFiles, setInView, setActiveProject, setOpenDir, setFileToClose, setFileToOpen } = ProjectManagerRedux.actions
 
 export default ProjectManagerRedux.reducer

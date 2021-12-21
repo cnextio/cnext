@@ -1,8 +1,9 @@
-import { Box, Button, Divider, FormControl, Input, MenuItem, OutlinedInput, Paper, Popover, Select, Tab, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Box, Button, Divider, FormControl, Input, Menu, MenuItem, OutlinedInput, Paper, Popover, Select, Tab, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
 // import { TabsUnstyled } from '@mui/base';
 // import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import BoltIcon from '@mui/icons-material/Bolt';
+import CloseIcon from '@mui/icons-material/Close';
 import SplitPane from 'react-split-pane-v2';
 import styled, { keyframes } from 'styled-components';
 // import { CSSTransition } from 'react-transition-group';
@@ -148,8 +149,9 @@ export const FileExplorerHeaderName = styled(Typography)`
 `;
 
 export const FileTree = styled(TreeView)`
-    padding: 10px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
     max-width: 100%;
+    height: 80%;
     .MuiTreeItem-group {
         margin-left: 5px;
     }
@@ -165,6 +167,25 @@ export const FileItem = styled(TreeItem)`
     }
     color: ${props => props.theme.palette.text.secondary};
     width: 100%    
+`
+
+export const FileContextMenu = styled(Menu)`
+    .MuiMenu-paper {
+        background-color: ${props => props.theme.palette.grey.A100};
+    }    
+`
+
+export const FileContextMenuItem = styled(MenuItem)`
+    font-size: 14px;
+`
+
+export const FileContextMenuNewItem = styled(TextField)`
+    .MuiInputBase-input {
+        font-size: 14px;
+        padding: 5px;
+        width: 100%;
+    }
+    
 `
 
 export const WorkingPanelSplitPanel = styled(SplitPane)`
@@ -208,10 +229,23 @@ export const StyledCodePanel = styled.div`
         }
     `;
     
-    export const StyledExecutorIcon = styled(BoltIcon)`
+    export const ExecutorIcon = styled(BoltIcon)`
         display: inline-block;
         margin: 0 auto;
     `
+
+    export const FileCloseIcon = styled(CloseIcon)`
+        display: inline-block;
+        margin: 0px 0px 0px 2px;
+        padding: 4px 0px 2px 0px;
+        color: ${props => props.theme.palette.text.secondary};
+        
+        &:hover {
+            cursor: pointer;
+            background-color: ${props => props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
+        }
+    `
+
     export const CodeContainer = styled.div`
         // display: flex;
         padding: 0px; 

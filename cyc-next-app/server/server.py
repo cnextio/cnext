@@ -287,6 +287,12 @@ def handle_FileManager_message(message):
         elif message.command_name == ProjectCommand.save_file:
             if 'path' in metadata.keys():
                 output = files.save_file(metadata['path'], message.content)
+            content_type = ContentType.FILE_METADATA        
+        elif message.command_name == ProjectCommand.close_file:
+            output = projects.close_file(metadata['path'])
+            content_type = ContentType.FILE_METADATA
+        elif message.command_name == ProjectCommand.open_file:
+            output = projects.open_file(metadata['path'])
             content_type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.get_active_project:
             output = projects.get_active_project()
@@ -314,7 +320,19 @@ def handle_FileExplorer_message(message):
             if 'path' in metadata.keys():
                 output = files.list_dir(metadata['path']) 
                 content_type = ContentType.DIR_LIST    
-
+        elif message.command_name == ProjectCommand.create_file:
+            if 'path' in metadata.keys():
+                files.create_file(metadata['path'])
+            output = projects.open_file(metadata['path'])
+            content_type = ContentType.FILE_METADATA
+        elif message.command_name == ProjectCommand.delete:
+            if 'path' in metadata.keys():
+                files.delete(metadata['path'], metadata['is_file'])            
+            if ('is_file'in metadata) and metadata['is_file']:
+                output = projects.close_file(metadata['path'])
+            else: #TODO: handle the case where a dir is deleted and deleted files were opened
+                output = projects.get_open_files()
+            content_type = ContentType.FILE_METADATA
         # create reply message
         message.content_type = content_type
         message.content = output

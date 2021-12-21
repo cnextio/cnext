@@ -1,49 +1,67 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { initCodeDoc, setFileSaved } from "../../../redux/reducers/CodeEditorRedux";
-import { setActiveProject, setOpenFiles } from "../../../redux/reducers/ProjectManagerRedux";
+import { setActiveProject, setFileToClose, setFileToOpen, setInView, setOpenFiles } from "../../../redux/reducers/ProjectManagerRedux";
 import store from '../../../redux/store';
 import { CommandName, ContentType, Message, WebAppEndpoint } from "../../interfaces/IApp";
 import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
 import socket from "../Socket";
 
-function FileManager() {
+const FileManager = () => {
     const dispatch = useDispatch();
     const inViewID = useSelector(state => state.projectManager.inViewID);
+    const fileToClose = useSelector(state => state.projectManager.fileToClose);
+    const fileToOpen = useSelector(state => state.projectManager.fileToOpen);
     const codeText = useSelector(state => state.codeEditor.text);  
     const [codeTextUpdated, setcodeTextUpdated] = useState(false);    
     // using this to avoid saving the file when we load code doc for the first time
     const [codeTextInit, setcodeTextInit] = useState(0);
     const [saveTimer, setSaveTimer] = useState(false);
     
-    function _setup_socket(){
+    const _setup_socket = () => {
         socket.emit("ping", "FileManager");
         socket.on(WebAppEndpoint.FileManager, (result: string) => {
             console.log("FileManager got results...", result);
             try {
-                let fmResult: Message = JSON.parse(result);                
-                switch(fmResult.command_name) {
-                    case ProjectCommand.get_open_files: 
-                        console.log('FileManager get open files: ', fmResult.content);
-                        dispatch(setOpenFiles(fmResult.content));                        
-                        break;
-                    case ProjectCommand.read_file:
-                        // console.log('Get file content: ', fmResult.content);
-                        console.log('FileManager get file content...');
-                        dispatch(initCodeDoc({text: fmResult.content}));
-                        setcodeTextInit(1);
-                        break;
-                    case ProjectCommand.save_file:
-                        console.log('FileManager get save file result: ', fmResult);
-                        dispatch(setFileSaved(null));
-                        break;
-                    case ProjectCommand.get_active_project:
-                        console.log('FileManager get active project result: ', fmResult);
-                        let message: Message = _createMessage(ProjectCommand.get_open_files, '', 1);
-                        _sendMessage(message);
-                        dispatch(setActiveProject(fmResult.content));
-                        break;
-                } 
+                let fmResult: Message = JSON.parse(result);
+                if(!fmResult.error){                
+                    switch(fmResult.command_name) {
+                        case ProjectCommand.get_open_files: 
+                            console.log('FileManager got open files: ', fmResult.content);
+                            dispatch(setOpenFiles(fmResult.content));                        
+                            break;
+                        case ProjectCommand.read_file:
+                            // console.log('Get file content: ', fmResult.content);
+                            console.log('FileManager got file content...');
+                            dispatch(initCodeDoc({text: fmResult.content}));
+                            setcodeTextInit(1);
+                            break;
+                        case ProjectCommand.save_file:
+                            console.log('FileManager got save file result: ', fmResult);
+                            dispatch(setFileSaved(null));
+                            break;
+                        case ProjectCommand.close_file:
+                            console.log('FileManager got close file result: ', fmResult);
+                            dispatch(setFileToClose(null));
+                            dispatch(setOpenFiles(fmResult.content));   
+                            break;
+                        case ProjectCommand.open_file:
+                            console.log('FileManager got open file result: ', fmResult);
+                            dispatch(setFileToOpen(null));
+                            dispatch(setOpenFiles(fmResult.content));   
+                            dispatch(setInView(fmResult.metadata['path']));
+                            break;
+                        case ProjectCommand.get_active_project:
+                            console.log('FileManager got active project result: ', fmResult);
+                            let message: Message = _createMessage(ProjectCommand.get_open_files, '', 1);
+                            _sendMessage(message);
+                            dispatch(setActiveProject(fmResult.content));
+                            break;
+                    } 
+                } else {
+                    //TODO: send error to ouput
+                    console.log('FileManager command error: ', fmResult);
+                }
             } catch(error) {
                 throw(error);
             }
@@ -51,11 +69,11 @@ function FileManager() {
     };
 
     const _sendMessage = (message: Message) => {
-        console.log(`Send ${WebAppEndpoint.FileManager} request: `, JSON.stringify(message));
-        socket.emit(WebAppEndpoint.FileManager, JSON.stringify(message));
+        console.log(`FileManager ${message.webapp_endpoint} send  message: `, JSON.stringify(message));
+        socket.emit(message.webapp_endpoint, JSON.stringify(message));
     }
 
-    function _createMessage(command_name: ProjectCommand, content: string, seq_number: number, metadata: {} = {}): Message {
+    const _createMessage = (command_name: ProjectCommand, content: string, seq_number: number, metadata: {} = {}): Message => {
         let message: Message = {
             webapp_endpoint: WebAppEndpoint.FileManager,
             command_name: command_name,
@@ -73,14 +91,29 @@ function FileManager() {
         let state = store.getState();
         if(inViewID){
             let file: IFileMetadata = state.projectManager.openFiles[inViewID];
-            let message: Message = _createMessage(ProjectCommand.read_file, '', 1, {path: file.path});
-            console.log('FileManager send:', message);        
+            let message: Message = _createMessage(ProjectCommand.read_file, '', 1, {path: file.path});    
             _sendMessage(message);
         }
     }, [inViewID])
 
+    useEffect(() => {
+        if (fileToClose){
+            // TODO: make sure the file is saved before being closed
+            let message: Message = _createMessage(ProjectCommand.close_file, '', 1, {path: fileToClose});    
+            _sendMessage(message);
+        }        
+    }, [fileToClose])
+
+    useEffect(() => {
+        if (fileToOpen){
+            // TODO: make sure the file is saved before being closed
+            let message: Message = _createMessage(ProjectCommand.open_file, '', 1, {path: fileToOpen});    
+            _sendMessage(message);
+        }        
+    }, [fileToOpen])
+
     const SAVE_FILE_DURATION = 1000;
-    function saveFile(){
+    const saveFile = () => {
         if(codeTextUpdated && codeText){
             setcodeTextUpdated(false);
             let state = store.getState();

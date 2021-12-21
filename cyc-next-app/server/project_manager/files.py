@@ -1,5 +1,6 @@
 import os
-from os.path import isfile, join
+from os.path import isfile, join, exists
+import send2trash
 import simplejson as json
 import logs
 from message import FileMetadata
@@ -47,6 +48,26 @@ def read_file(path):
         with open(path) as file:
             contents = file.read().splitlines()
         return contents
+    except Exception:
+        raise Exception
+
+def create_file(path):
+    try:
+        log.info('Create file %s' % path)
+        if exists(path): #TODO return error here
+            log.info('File already exists %s' % path)
+        else:
+            with open(path, 'w') as file:
+                pass
+        return True
+    except Exception:
+        raise Exception
+
+def delete(path, is_file):
+    try:
+        log.info('Send item to trash %s' % path)
+        send2trash.send2trash(path)
+        return True
     except Exception:
         raise Exception
 

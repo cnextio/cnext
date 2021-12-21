@@ -43,10 +43,13 @@ class ProjectCommand(str, Enum):
     get_file_metadata = 'get_file_metadata'
     read_file = 'read_file'
     save_file = 'save_file'
+    close_file = 'close_file'
+    open_file = 'open_file'
     set_name = 'set_name'
     get_open_files = 'get_open_files'
-    add_file = 'add_file'
-    add_folder = 'add_folder'
+    create_file = 'create_file'
+    create_folder = 'create_folder'
+    delete = 'delete'
     remove_file = 'remove_file'
     remove_folder = 'remove_folder'
     set_working_dir = 'set_working_dir'
@@ -93,9 +96,9 @@ class FileMetadata:
     def __init__(self, **entries): 
         self.path = None
         self.name = None
-        self.type = None
+        # self.type = None
         self.executor = None
-        self.update_timestamp = None
+        # self.update_timestamp = None
         self.__dict__.update(entries) 
     
     def toJSON(self):

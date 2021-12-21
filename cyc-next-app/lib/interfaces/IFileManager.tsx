@@ -14,11 +14,13 @@ export enum ProjectCommand {
     get_file_metadata = 'get_file_metadata',
     read_file = 'read_file',
     save_file = 'save_file',
+    create_file = 'create_file',
+    close_file = 'close_file',
+    open_file = 'open_file',
+    delete = 'delete',
     set_name = 'set_name',
-    get_open_files = 'get_open_files',
-    add_file = 'add_file',
-    add_folder = 'add_folder',
-    remove_file = 'remove_file',
+    get_open_files = 'get_open_files',    
+    create_folder = 'create_folder',    
     remove_folder = 'remove_folder',
     set_working_dir = 'set_working_dir',
     get_active_project = 'get_active_project'
@@ -48,3 +50,11 @@ export interface IDirListResult {
     id: string;
     dirs: IDirectoryMetadata[];
 }
+
+export enum FileContextMenuItem {
+    NEW_FILE,
+    NEW_FOLDER,
+    RENAME,
+    DELETE,
+    DIVIDER,
+};

@@ -157,7 +157,7 @@ const CodeEditor = (props: any) => {
 
     function _send_message(content: ILineContent) {
         let message = _create_message(content);
-        console.log(`send ${WebAppEndpoint.CodeEditor} message: `, message);
+        console.log(`${message.webapp_endpoint} send message: `, message);
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     }
 
