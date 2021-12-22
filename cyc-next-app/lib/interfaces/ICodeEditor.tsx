@@ -114,9 +114,9 @@ export interface IStatePlotResults {
 /** CodeEditor run queue  */
 export interface IRunQueue {
 	status: RunQueueStatus,
-	fromLine: number,
-	toLine: number,
-	runningLine: number,
+	fromLine?: number,
+	toLine?: number,
+	runningLine?: number,
 }
 export enum RunQueueStatus {
 	STOP,

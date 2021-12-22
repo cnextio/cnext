@@ -18,11 +18,10 @@ import { addPlotResult, updateLines, setLineStatus, setActiveLine, setLineGroupS
 import { ICodeLineStatus as ILineStatus, ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, ICodeLineStatus, ICodeLine, ICodeLineGroupStatus, SetLineGroupCommand, RunQueueStatus, ILineRange } from "../../interfaces/ICodeEditor";
 import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
 // import { extensions } from './codemirror-extentions/extensions';
-import { ReactCodeMirrorRef, useCodeMirror } from '@uiw/react-codemirror';
+import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { CodeGenResult, CodeGenStatus, IInsertLinesInfo, IMagicInfo, LINE_SEP, MagicPlotData, MAGIC_STARTER } from "../../interfaces/IMagic";
 import { magicsGetPlotCommand } from "../../cnext-magics/magic-plot-gen";
 import { CNextPlotKeyword, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
-import { Box } from "@mui/system";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -44,53 +43,6 @@ const CodeEditor = (props: any) => {
     const editorRef = useRef();
     const [magicInfo, setMagicInfo] = useState<IMagicInfo | undefined>();
     
-    /** 
-     * This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror 
-     * intenal, we can't dictate when it will be called. To cope with this, we have to check the object existence carefully 
-     * and rely on useEffect to force this to be called again when `codeLines` updated 
-    */ 
-    const editStatusGutter = gutter({
-        lineMarker(view, line) {
-            let lines = store.getState().codeEditor.codeLines;
-            // line.number in state.doc is 1 based, so convert to 0 base
-            let lineNumber = view.state.doc.lineAt(line.from).number-1;
-            // console.log(lines.length);
-            if(lines && lineNumber<lines.length){                                
-                switch(lines[lineNumber].status){
-                    case LineStatus.EDITED: return editedMarker;
-                    case LineStatus.EXECUTING: return executingMarker;
-                    case LineStatus.EXECUTED: return executedMarker;
-                }
-            }
-            return null;
-        },
-        initialSpacer: () => executedMarker
-    })
-    /** */
-    
-    const extensions = [
-        basicSetup,
-        // oneDark,
-        EditorView.lineWrapping,
-        lineNumbers(),
-        editStatusGutter,
-        bracketMatching(),
-        defaultHighlightStyle.fallback,
-        python(),
-        ls,
-        // keymap.of([{key: 'Mod-l', run: runLine}]),
-        keymap.of([{key: 'Mod-l', run: setRunQueue}]),
-        indentUnit.of('    '),
-    ];
-
-    const { view, container, setContainer } = useCodeMirror({
-        container: editorRef.current,
-        extensions: extensions,
-        height: "100%",
-        theme: 'light',
-        onChange: onCMChange,     
-    });
-
     const _handlePlotData = (message: Message) => {
         console.log(`${WebAppEndpoint.CodeEditor} got plot data`);
         let result: ICodeResultMessage = {
@@ -150,28 +102,36 @@ const CodeEditor = (props: any) => {
      * FIXME: This is used to set onmousedown event handler. This does not seem to be the best way. 
      * Also set the SOLID effect for generated lines
      * */
-    function _setCMPropertyOnMount(){                
-        if (container){
-            container.onmousedown = onMouseDown;  
-        }      
-        if (view) {
-            view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
-            view.dispatch({effects: [generatedCodeStateEffect.of({type: GenCodeEffectType.SOLID})]});             
-        }            
+    function _setCMPropertyOnMount(){
+        let cm: ReactCodeMirrorRef = editorRef.current;                
+        if (cm && cm.editor){
+            cm.editor.onmousedown = onMouseDown;        
+            if (cm.view) {
+                cm.view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
+                cm.view.dispatch({effects: [generatedCodeStateEffect.of({type: GenCodeEffectType.SOLID})]});             
+            }            
+        }  
     }
     useEffect(() => {        
         _setCMPropertyOnMount();
-    }, [container, view]);
+        let cm: ReactCodeMirrorRef = editorRef.current;
+        console.log('CodeEditor: useEffect ', cm, inViewID, codeText[0], codeLines[0], editorRef, runQueue);
+        // console.log('CodeEditor: useEffect ');
+        // _initCM();
+        /** This is super crazy */
+        // setTimeout(() => {_initCM();}, 100);
+    });
     
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
     useEffect(() => {
-        if(inViewID && view){
+        let cm: ReactCodeMirrorRef = editorRef.current;
+        if(inViewID && cm && cm.view){
             // console.log('CodeEditor useEffect inViewID');
             setServerSynced(false);
             // clear the state
-            view.setState(EditorState.create({doc: '', extensions: extensions}));
+            cm.view.setState(EditorState.create({doc: '', extensions: extensions}));
         }
     }, [inViewID]);
 
@@ -179,20 +139,21 @@ const CodeEditor = (props: any) => {
      * Init CodeEditor value with content load from the file if `initilized` is False
      */
     function _initCM(){
-        // console.log('CodeEditor useEffect _initCM', view, codeText[0]);
-        if (view) {
-            view.setState(EditorState.create({
+        let cm: ReactCodeMirrorRef = editorRef.current;
+        console.log('CodeEditor: useEffect _initCM', cm);
+        if (cm && cm.view) {
+            cm.view.setState(EditorState.create({
                 doc: codeText.join('\n'), extensions: extensions
             }))
         }
     }
     useEffect(() => {
-        // console.log('CodeEditor useEffect codeText', view, codeText[0], serverSynced);
-        if (codeText && view && !serverSynced){            
+        let cm: ReactCodeMirrorRef = editorRef.current;
+        if (codeText && cm && cm.view && !serverSynced){            
             _initCM();
             setServerSynced(true);                        
         }
-    }, [codeText, view]);
+    }, [codeText]);
 
     function _create_message(content: ILineContent) {
         let message: Message = {
@@ -216,9 +177,10 @@ const CodeEditor = (props: any) => {
 
     /** Functions that support runQueue */
     function _getLineContent(lineNumber: number): string|undefined {
+        let cm: ReactCodeMirrorRef = editorRef.current; 
         let text: string|undefined;
-        if (view){ 
-            const doc = view.state.doc;
+        if (cm && cm.view){ 
+            const doc = cm.view.state.doc;
             /** convert lineNumber to 1-based */
             // console.log('CodeEditor', cm, doc, doc.line(10));
             let line = doc.line(lineNumber+1);
@@ -285,15 +247,13 @@ const CodeEditor = (props: any) => {
     
     function onMouseDown(event){
         try {
-            if(view){
-                //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
-                let doc = view.state.doc;
-                let pos = view.posAtDOM(event.target);                
-                //convert to 0-based
-                let lineNumber = doc.lineAt(pos).number-1;        
-                dispatch(setActiveLine(lineNumber));
-                // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
-            }                    
+            //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
+            let doc = editorRef.current.view.viewState.state.doc;
+            let pos = editorRef.current.view.posAtDOM(event.target);
+            // console.log(doc, pos, lineNumber);
+            //convert to 0-based
+            let lineNumber = doc.lineAt(pos).number-1;        
+            dispatch(setActiveLine(lineNumber));        
         } catch(error) {
             console.log(error);
             console.trace();
@@ -304,8 +264,9 @@ const CodeEditor = (props: any) => {
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update 
      * with line status. This works but might need to find a better performant solution. */ 
     useEffect(() => {
-        if(view){            
-            view.dispatch();
+        let cm: ReactCodeMirrorRef = editorRef.current;   
+        if(cm && cm.view){            
+            cm.view.dispatch();
         }         
     }, [codeLines]);
     
@@ -362,68 +323,81 @@ const CodeEditor = (props: any) => {
      * This handle all the CNext magics.
      */
     function _handleMagicsOnCMChange(){
-        if(view){
-            let state = view.state;
-            if(state){
-                let tree = state.tree;
-                let curPos = state.selection.ranges[0].anchor;             
-                let cursor = tree.cursor(curPos, 0);                    
-                                    
-                if ([CNextDataFrameExpresion, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression]
-                    .includes(cursor.type.id)){
-                    /** 
-                     * Move the cursor up to CNextPlotExpression so we can parse the whole cnext text and
-                     * generate the new inline plot command 
-                     * */
-                    cursor.parent();
-                    cursor.parent();
+        if (editorRef.current){
+            let cm: ReactCodeMirrorRef = editorRef.current
+            if(cm.view){
+                let state = cm.view.state;
+                if(state){
+                    let tree = state.tree;
+                    let curPos = state.selection.ranges[0].anchor;             
+                    let cursor = tree.cursor(curPos, 0);                    
+                                        
+                    if ([CNextDataFrameExpresion, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression]
+                        .includes(cursor.type.id)){
+                        /** 
+                         * Move the cursor up to CNextPlotExpression so we can parse the whole cnext text and
+                         * generate the new inline plot command 
+                         * */
+                        cursor.parent();
+                        cursor.parent();
+                    }
+                    console.log('_handleMagics: ', cursor.toString());
+                    if (cursor.type.id === CNextPlotExpression) {                        
+                        let text: string = state.doc.toString();
+                        let newMagicText: string = text.substring(cursor.from, cursor.to);                         
+                        let generatedLine = cm.view.state.doc.lineAt(cursor.to);
+                        console.log('Magics current magicInfo: ', magicInfo);
+                        /** 
+                         * Check the status here to avoid circular update because this code will generate
+                         * new content added to the editor, which will trigger onCMChange -> _handleMagic. 
+                         * Note: if magicInfo status is CodeGenStatus.INSERTED, we also reset the magicInfo content
+                         * */                       
+                        if (magicInfo === undefined || (magicInfo && magicInfo.status === CodeGenStatus.INSERTED)) {            
+                            let plotData = _parseMagicText(cursor, text);
+                            let magicInfo: IMagicInfo = {
+                                status: CodeGenStatus.INSERTING, 
+                                magicText: newMagicText, 
+                                plotData: plotData, 
+                                line: generatedLine,
+                                /** generatedLine.number in state.doc is 1 based, so convert to 0 base */ 
+                                lineInfo: {
+                                    fromLine: generatedLine.number-1, 
+                                    fromPos: generatedLine.from,
+                                    toLine: generatedLine.number, /** this will need to be replaced when the code is generated */
+                                }
+                            };
+                            setMagicInfo(magicInfo);
+                            console.log('Magics inserting magicInfo: ', magicInfo);                                              
+                        } else if (magicInfo && magicInfo.status === CodeGenStatus.INSERTING && magicInfo.line && magicInfo.lineInfo) {
+                            /** The second time _handleMagic being called is after new code has been inserted */
+                            /** convert line number to 0-based */
+                            // let lineStatus: ICodeLineStatus = {
+                            //     lineNumber: magicInfo.lineInfo.fromLine, 
+                            //     status: LineStatus.EDITED, 
+                            //     generated: true
+                            // };                        
+                            // dispatch(setLineStatus(lineStatus));
+                            let lineStatus: ICodeLineGroupStatus = {
+                                fromLine: magicInfo.lineInfo.fromLine, 
+                                toLine: magicInfo.lineInfo.toLine, 
+                                status: LineStatus.EDITED, 
+                                generated: true,
+                                setGroup: SetLineGroupCommand.NEW,
+                            };                        
+                            dispatch(setLineGroupStatus(lineStatus));
+                            // console.log('Magics after inserted lineStatus: ', lineStatus);
+                            let newMagicInfo: IMagicInfo = { 
+                                status: CodeGenStatus.INSERTED, 
+                                line: magicInfo.line,
+                                lineInfo: magicInfo.lineInfo,
+                            };
+                            setMagicInfo(newMagicInfo);         
+                            console.log('Magics after inserted magicInfo: ', newMagicInfo);                
+                        }                    
+                    } 
                 }
-                console.log('_handleMagics: ', cursor.toString());
-                if (cursor.type.id === CNextPlotExpression) {                        
-                    let text: string = state.doc.toString();
-                    let newMagicText: string = text.substring(cursor.from, cursor.to);                         
-                    let generatedLine = view.state.doc.lineAt(cursor.to);
-                    console.log('Magics current magicInfo: ', magicInfo);
-                    /** 
-                     * Check the status here to avoid circular update because this code will generate
-                     * new content added to the editor, which will trigger onCMChange -> _handleMagic. 
-                     * Note: if magicInfo status is CodeGenStatus.INSERTED, we also reset the magicInfo content
-                     * */                       
-                    if (magicInfo === undefined || (magicInfo && magicInfo.status === CodeGenStatus.INSERTED)) {            
-                        let plotData = _parseMagicText(cursor, text);
-                        let magicInfo: IMagicInfo = {
-                            status: CodeGenStatus.INSERTING, 
-                            magicText: newMagicText, 
-                            plotData: plotData, 
-                            line: generatedLine,
-                            /** generatedLine.number in state.doc is 1 based, so convert to 0 base */ 
-                            lineInfo: {
-                                fromLine: generatedLine.number-1, 
-                                fromPos: generatedLine.from,
-                                toLine: generatedLine.number, /** this will need to be replaced when the code is generated */
-                            }
-                        };
-                        setMagicInfo(magicInfo);
-                        console.log('Magics inserting magicInfo: ', magicInfo);                                              
-                    } else if (magicInfo && magicInfo.status === CodeGenStatus.INSERTING && magicInfo.line && magicInfo.lineInfo) {
-                        /** The second time _handleMagic being called is after new code has been inserted */
-                        /** convert line number to 0-based */
-                        let lineStatus: ICodeLineGroupStatus = {
-                            fromLine: magicInfo.lineInfo.fromLine, 
-                            toLine: magicInfo.lineInfo.toLine, 
-                            status: LineStatus.EDITED, 
-                            generated: true,
-                            setGroup: SetLineGroupCommand.NEW,
-                        };                        
-                        dispatch(setLineGroupStatus(lineStatus));
-                        // console.log('Magics after inserted lineStatus: ', lineStatus);
-                        magicInfo.status = CodeGenStatus.INSERTED;
-                        setMagicInfo({...magicInfo});           
-                        console.log('Magics after inserted magicInfo: ', magicInfo);                
-                    }                    
-                } 
             }
-        }      
+        }        
     } 
 
     /**
@@ -497,8 +471,9 @@ const CodeEditor = (props: any) => {
      * a transaction.
      */
     function _handleNewMagicInfo(){
+        let cm: ReactCodeMirrorRef = editorRef.current;
         console.log('_handleMagicInfoUpdate: ', magicInfo);
-        if (view && magicInfo){
+        if (cm && cm.editor && cm.view && magicInfo){
             if (magicInfo.status === CodeGenStatus.INSERTING){
                 if (magicInfo.plotData !== undefined && magicInfo.lineInfo !== undefined) {          
                     // console.log('Magic inlinePlotData: ', inlinePlotData);
@@ -515,11 +490,11 @@ const CodeEditor = (props: any) => {
                     } 
                 }
             } else if (magicInfo.status === CodeGenStatus.INSERTED && magicInfo.lineInfo !== undefined) {
-                _setFlashingEffect();
+                _setFlashingEffect(cm.view);
             }
         }
     }
-
+    
     useEffect(() => {
         _handleNewMagicInfo();
     }, [magicInfo])
@@ -558,10 +533,10 @@ const CodeEditor = (props: any) => {
      * The replacement range will be identified from the line group that contains magicInfo.lineInfo.fromLine
      * @param genCodeResult 
      */
-    // TODO: make this pure function
     function _processGenCodeResult(genCodeResult: CodeGenResult){
-        if (view){
-            let state: EditorState = view.state;
+        let cm: ReactCodeMirrorRef = editorRef.current;
+        if (cm.view){
+            let state: EditorState = cm.view.state;
             if (!genCodeResult.error && genCodeResult.code && magicInfo && magicInfo.line && magicInfo.lineInfo){
                 let genCode: string = genCodeResult.code;
                 let lineCount: number|undefined = genCodeResult.lineCount;                
@@ -580,7 +555,7 @@ const CodeEditor = (props: any) => {
                 }
                 /** Update magicInfo with lineCount */
                 magicInfo.lineInfo.toLine = magicInfo.lineInfo.fromLine + (lineCount?lineCount:0);
-                setMagicInfo(magicInfo); //only update do not create new magic info so state wont be updated
+                setMagicInfo(magicInfo);
 
                 console.log('Magic insert range: ', insertFrom, insertTo);
                 let transactionSpec: TransactionSpec = {
@@ -588,10 +563,12 @@ const CodeEditor = (props: any) => {
                         from: insertFrom, 
                         to: insertTo, 
                         insert: isLineGenerated ? genCode : genCode + LINE_SEP
-                    }
+                    },
+                    // effects: [StateEffect.appendConfig.of([generatedCodeDeco]),
+                    // generatedCodeStateEffect.of({lineInfo: magicInfo.lineInfo, type: GenCodeEffectType.FLASHING})]
                 };                
                 let transaction: Transaction = state.update(transactionSpec);
-                view.dispatch(transaction);                                       
+                cm.view.dispatch(transaction);                                     
             } else {
                 setMagicInfo(undefined);       
             }
@@ -633,20 +610,43 @@ const CodeEditor = (props: any) => {
         }
     }
 
+    /** 
+     * This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror 
+     * intenal, we can't dictate when it will be called. To cope with this, we have to check the object existence carefully 
+     * and rely on useEffect to force this to be called again when `codeLines` updated 
+    */ 
+    const editStatusGutter = gutter({
+        lineMarker(view, line) {
+            let lines = store.getState().codeEditor.codeLines;
+            // line.number in state.doc is 1 based, so convert to 0 base
+            let lineNumber = view.state.doc.lineAt(line.from).number-1;
+            // console.log(lines.length);
+            if(lines && lineNumber<lines.length){                                
+                switch(lines[lineNumber].status){
+                    case LineStatus.EDITED: return editedMarker;
+                    case LineStatus.EXECUTING: return executingMarker;
+                    case LineStatus.EXECUTED: return executedMarker;
+                }
+            }
+            return null;
+        },
+        initialSpacer: () => executedMarker
+    })
+    /** end of line status gutter */  
+
     /** Implement the decoration for magic generated code lines */
     /** 
      * Implement the flashing effect after line is inserted.
      * This function also reset magicInfo after the animation completes. 
      * */
-    function _setFlashingEffect(){
-        console.log('Magic _setFlashingEffect', magicInfo, view, container);    
-        if(magicInfo && view){
+    function _setFlashingEffect(view: EditorView){
+        console.log('Magic _setFlashingEffect', magicInfo, view);        
+        if(magicInfo){
             view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
-            view.dispatch({effects: [generatedCodeStateEffect.of({
-                lineInfo: magicInfo.lineInfo, 
-                type: GenCodeEffectType.FLASHING})]});             
+            view.dispatch({effects: [generatedCodeStateEffect.of({lineInfo: magicInfo.lineInfo, type: GenCodeEffectType.FLASHING})]});             
         }        
     }
+
     enum GenCodeEffectType {
         FLASHING,
         SOLID
@@ -658,35 +658,35 @@ const CodeEditor = (props: any) => {
             return Decoration.none;
         },
         update(marks, tr) {
-            if (view){                               
+            let cm: ReactCodeMirrorRef = editorRef.current;  
+            if (cm && cm.view){               
+                // console.log('Magic: ', marks);
                 marks = marks.map(tr.changes)
                 for (let effect of tr.effects) if (effect.is(generatedCodeStateEffect)) {
-                    // console.log('Magic generatedCodeDeco update ', effect.value.type);     
                     if (effect.value.type == GenCodeEffectType.FLASHING) {
                         if (effect.value.lineInfo !== undefined){
                             let lineInfo = effect.value.lineInfo;
                             for (let i=lineInfo.fromLine; i<lineInfo.toLine; i++){
                                 /** convert line number to 1-based */
-                                let line = view.state.doc.line(i+1);
+                                let line = cm.view.state.doc.line(i+1);
                                 // console.log('Magics line from: ', line, line.from);
                                 marks = marks.update({
                                     add: [genCodeFlashCSS.range(line.from)]
                                 })
-                                // console.log('Magic _setFlashingEffect generatedCodeDeco update ', line.from);                         
                             }                            
                         }                        
                     } else { /** effect.value.type is SOLID */
                         let lines: ICodeLineStatus[] = store.getState().codeEditor.codeLines;
                         for (let l=0; l < lines.length; l++){
                             if (lines[l].generated === true){
-                                let line = view.state.doc.line(l+1);
+                                let line = cm.view.state.doc.line(l+1);
                                 marks = marks.update({
                                     add: [genCodeSolidCSS.range(line.from)]
                                 })
                             }                            
                         }
                     }
-                }           
+                }                
                 return marks
             }
         },
@@ -695,18 +695,43 @@ const CodeEditor = (props: any) => {
     const genCodeFlashCSS = Decoration.line({attributes: {class: "cm-gencode-flash"}});
     const genCodeSolidCSS = Decoration.line({attributes: {class: "cm-gencode-solid"}});
     /** end of generated code line decoration */
-        
-    useEffect(() => {
-        if (editorRef.current) {
-            setContainer(editorRef.current);
-        }
-    }, [editorRef.current]);
+    
+    const extensions = [
+        basicSetup,
+        // oneDark,
+        EditorView.lineWrapping,
+        lineNumbers(),
+        editStatusGutter,
+        bracketMatching(),
+        defaultHighlightStyle.fallback,
+        python(),
+        ls,
+        // keymap.of([{key: 'Mod-l', run: runLine}]),
+        keymap.of([{key: 'Mod-l', run: setRunQueue}]),
+        indentUnit.of('    '),
+    ];
 
     return (
-        <StyledCodeEditor ref={editorRef}>
-            {console.log('CodeEditor render')}
+        <StyledCodeEditor>
+            {/* {console.log('Render CodeEditorComponent')} */}
+            {console.log('Magic _setFlashingEffect rerender')}    
+            <StyledCodeMirror
+                ref = {editorRef}
+                // value = {codeText.join('\n')}
+                height = "100%"
+                style = {{fontSize: "14px"}}
+                // extensions = {[python(), ls, keymap.of([{key: 'Mod-l', run: runLine}])]}                    
+                // extensions = {[python(), keymap.of([{key: 'Mod-l', run: runLine}])]}                    
+                extensions = {extensions}
+                theme = 'light'                
+                // onChange = {(text, viewUpdate) => onChange(text, viewUpdate)}    
+                // onChange = {(text, viewUpdate) => onCMChange(text, viewUpdate)}                 
+                // onUpdate = {(viewUpdate) => onCMUpdate(viewUpdate)}   
+                onChange = {onCMChange}
+            > 
+            </StyledCodeMirror> 
         </StyledCodeEditor>
-    );
+    )
 };
 
 export default CodeEditor;

@@ -163,7 +163,7 @@ export const FileExplorerHeaderName = styled(Typography)`
 `;
 
 export const FileTree = styled(TreeView)`
-    padding: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 10px;
     max-width: 100%;
     height: 80%;
     .MuiTreeItem-group {
@@ -271,14 +271,42 @@ export const StyledCodePanel = styled.div`
 
         export const StyledCodeEditor = styled.div`    
             background-color: ${props => props.theme.palette.background.paper};
-            padding: 10px 10px 10px 10px;
+            padding: 0px 0px 10px 0px;
             align-self: stretch;      
             height: 100%; 
             width: 100%;
             //scrollable (https://stackoverflow.com/questions/43788878/scrollable-list-component-from-material-ui-in-react)
             overflow: auto;
             max-width: 100%;
+            font-size: 14px;
             // max-height: 100%;
+            .cm-tooltip.lint {
+                white-space: pre;
+              }
+              
+              .cm-tooltip.cm-completionInfo {
+                position: absolute;
+                margin: 1px -4px;
+                padding: 10px 10px 10px 10px;
+                width: max-content;
+                max-width: 1000px;
+                max-height: 700px;
+                white-space: pre;
+                overflow: scroll;
+              }
+  
+              .cm-editor.cm-focused { 
+                  outline: none
+              }
+  
+              .cm-gencode-flash {
+                  background-color: #fff3f9;
+                  animation:  ${backgroundTransitionToColor('#fff3f9', 'white')} 1s ease 0s;
+              }
+              
+              .cm-gencode-solid {
+                  background-color: #fff3f9;
+              }
         `;
 
         export const StyledCodeMirror = styled(CodeMirror)`
@@ -617,4 +645,26 @@ function backgroundTransitionToColor(color1, color2) {
         background-color: ${color1};
       }
     `;
+}
+
+import Pane from "react-split-pane-v2/lib/Pane";
+
+export const FilePane = styled(Pane)`
+    animation: ${slidein()} 1s easein 0s
+    // animation-duration: 3s;
+    // animation-name: ${slidein()};
+`
+
+function slidein() {
+    return keyframes`{
+        from {
+          margin-left: 100%;
+          width: 300%;
+        }
+
+        to {
+          margin-left: 0%;
+          width: 100%;
+        }
+    }`
 }

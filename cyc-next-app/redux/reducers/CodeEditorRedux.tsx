@@ -4,6 +4,26 @@ import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, L
 import { ifElseDict } from "../../lib/components/libs";
 import { ContentType } from "../../lib/interfaces/IApp";
 
+type CodeEditorState = { 
+    codeText: {[id: string]: string[]},
+    codeLines: {[id: string]: ICodeLine[]},
+    fileSaved: boolean,
+    runQueue: IRunQueue, 
+    /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of 
+     * PlotView, which would only be rerendered when this variable is updated */ 
+    plotResultUpdate: number,
+    activeLine: number,
+}
+
+const initialState: CodeEditorState = {
+    codeText: {},
+    codeLines: {},
+    fileSaved: true,
+    runQueue: {status: RunQueueStatus.STOP},
+    plotResultUpdate: 0,
+    activeLine: -1,
+}
+
 export const CodeEditorRedux = createSlice({
     name: 'codeEditor',
     initialState: {
@@ -184,7 +204,14 @@ export const CodeEditorRedux = createSlice({
 
 // Action creators are generated for each case reducer function
 export const { 
-    initCodeDoc, updateLines, addPlotResult, setLineStatus, setLineGroupStatus, setActiveLine, setFileSaved,
-    setRunQueue, compeleteRunLine } = CodeEditorRedux.actions
+    initCodeDoc, 
+    updateLines, 
+    addPlotResult, 
+    setLineStatus, 
+    setLineGroupStatus, 
+    setActiveLine, 
+    setFileSaved,
+    setRunQueue, 
+    compeleteRunLine } = CodeEditorRedux.actions
 
 export default CodeEditorRedux.reducer
