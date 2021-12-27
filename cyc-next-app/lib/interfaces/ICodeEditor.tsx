@@ -7,13 +7,7 @@ export interface ICodeDoc {
 										// might change.
 };
 
-export interface ICodeLine {
-	lineID: string;
-	status: LineStatus;
-	result: ICodeResult | null;
-	generated: boolean; 
-	groupID?: string;
-};
+
 
 // export interface IGroup {
 // 	from: number;
@@ -40,18 +34,28 @@ export enum LineStatus {
 //     none = 'none'
 // }
 
+export interface ICodeLine {
+	lineID: string;
+	status: LineStatus;
+	result: ICodeResult | null;
+	generated: boolean; 
+	groupID?: string;
+};
+
 /**
 * text: content of the new text doc
 * lineNumber: line above which the new lines are added
 * lineCount: number of lines added above the lineNumber
  */
 export interface ILineUpdate {
+	inViewID: string;
     text: string[]; 
     updatedStartLineNumber: number;
     updatedLineCount: number;
 }
 
-export interface ICodeLineStatus {	
+export interface ICodeLineStatus {
+	inViewID: string;	
 	lineNumber: number;
 	status?: LineStatus;
 	generated?: boolean;
@@ -59,12 +63,24 @@ export interface ICodeLineStatus {
 }
 
 export interface ICodeLineGroupStatus {	
+	inViewID: string;
 	fromLine: number;
 	toLine: number;
 	status?: LineStatus;
 	generated?: boolean;
 	text?: string[]; 
 	setGroup: SetLineGroupCommand; /** if true, new group will be created for this set of lines */
+}
+
+export interface ICodeActiveLine {
+	inViewID: string;
+	lineNumber: number
+}
+
+export interface ICodeText {
+	reduxFileID: string;
+	codeText: string[];
+	// timestamp: number;
 }
 
 export enum SetLineGroupCommand {
@@ -74,6 +90,7 @@ export enum SetLineGroupCommand {
 }
 
 export interface ICodeResultMessage {
+	inViewID: string;
     type: ContentType;    
     content: string|object;  
     metadata: object;        

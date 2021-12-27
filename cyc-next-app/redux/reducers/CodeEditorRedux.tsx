@@ -1,62 +1,62 @@
 import shortid from "shortid";
-import { createSlice, current } from '@reduxjs/toolkit'
-import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, IStatePlotResults, ICodeLineStatus, ICodeLineGroupStatus, SetLineGroupCommand, IRunQueue, RunQueueStatus } from '../../lib/interfaces/ICodeEditor';
+import { createSlice } from '@reduxjs/toolkit'
+import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, ICodeLineStatus, ICodeLineGroupStatus, SetLineGroupCommand, IRunQueue, RunQueueStatus, ICodeActiveLine, ICodeText } from '../../lib/interfaces/ICodeEditor';
 import { ifElseDict } from "../../lib/components/libs";
 import { ContentType } from "../../lib/interfaces/IApp";
 
 type CodeEditorState = { 
     codeText: {[id: string]: string[]},
     codeLines: {[id: string]: ICodeLine[]},
+    /** file timestamp will be used to check whether the code need to be reloaded
+     * A better design might be to move all codeText, codeLines and fileTimestamp under
+     * a same dictionary */
+    timestamp: {[id: string]: number},
     fileSaved: boolean,
     runQueue: IRunQueue, 
     /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of 
      * PlotView, which would only be rerendered when this variable is updated */ 
     plotResultUpdate: number,
-    activeLine: number,
+    activeLine: string|null,
 }
 
 const initialState: CodeEditorState = {
     codeText: {},
     codeLines: {},
+    timestamp: {},
     fileSaved: true,
     runQueue: {status: RunQueueStatus.STOP},
     plotResultUpdate: 0,
-    activeLine: -1,
+    activeLine: null,
 }
 
 export const CodeEditorRedux = createSlice({
     name: 'codeEditor',
-    initialState: {
-        text: [],
-        codeLines: [],
-        fileSaved: true,
-        runQueue: {status: RunQueueStatus.STOP},
-        /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of 
-         * PlotView, which would only be rerendered when this variable is updated */ 
-        plotResultUpdate: 0,
-        activeLine: -1,
-    },
+    initialState: initialState,
 
     reducers: {
-        initCodeDoc: (state, action) => {  
-            state.text = action.payload.text;
+        initCodeText: (state, action) => {
+            let codeTextData: ICodeText = action.payload
+            let reduxFileID = codeTextData.reduxFileID;
+            state.codeText[reduxFileID] = codeTextData.codeText;
             let codeLines: ICodeLine[] = [];
-            for(let i=0; i<state.text.length; i++){
+            for(let i=0; i<state.codeText[reduxFileID].length; i++){
                 let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null, generated: false};
                 codeLines.push(codeLine);                    
             }
-            state.codeLines = codeLines;
+            state.codeLines[reduxFileID] = codeLines;
+            // state.timestamp[reduxFileID] = codeTextData.timestamp;
         },
 
         updateLines: (state, action) => {
             let lineUpdate: ILineUpdate = action.payload;
+            let inViewID = lineUpdate.inViewID;
             let updatedStartLineNumber = lineUpdate.updatedStartLineNumber;
-            let codeLines: ICodeLine[] = state.codeLines;
+            let codeLines: ICodeLine[] = state.codeLines[inViewID];
 
-            state.text = lineUpdate.text;
+            state.codeText[inViewID] = lineUpdate.text;
             state.fileSaved = false;
 
-            console.log('Line update info: ', lineUpdate);
+            console.log('CodeEditorRedux line update info: ', lineUpdate, state.fileSaved);
             // console.log('added line index started at: ', updatedStartLineNumber+1);
             if (lineUpdate.updatedLineCount>0){
                 let addedLines: ICodeLine[] = [];
@@ -91,16 +91,18 @@ export const CodeEditorRedux = createSlice({
             * right at the beginning of an existing line, so technically this line is not edited.
             * for simplicity, we ignore this case for now */
             codeLines[updatedStartLineNumber].status = LineStatus.EDITED;
-            state.codeLines = codeLines;
+            state.codeLines[inViewID] = codeLines;
         },
 
         setLineStatus: (state, action) => {
             let lineStatus: ICodeLineStatus = action.payload;
-            let codeLines: ICodeLine[] = state.codeLines;            
+            let inViewID = lineStatus.inViewID;
+            let codeLines: ICodeLine[] = state.codeLines[inViewID];            
             if(lineStatus.status !== undefined){
                 if(lineStatus.status === LineStatus.EDITED && lineStatus.text !== undefined){
                     // console.log('CodeEditorRedux: ', lineStatus.status);
-                    state.text = lineStatus.text;
+                    state.codeText[inViewID] = lineStatus.text;
+                    state.fileSaved = false;
                 } 
                 codeLines[lineStatus.lineNumber].status = lineStatus.status;
             } 
@@ -111,7 +113,8 @@ export const CodeEditorRedux = createSlice({
 
         setLineGroupStatus: (state, action) => {
             let lineGroupStatus: ICodeLineGroupStatus = action.payload;
-            let codeLines: ICodeLine[] = state.codeLines; 
+            let inViewID = lineGroupStatus.inViewID;
+            let codeLines: ICodeLine[] = state.codeLines[inViewID]; 
             let groupID;           
             
             if (lineGroupStatus.setGroup === SetLineGroupCommand.NEW){
@@ -122,7 +125,7 @@ export const CodeEditorRedux = createSlice({
                 if(lineGroupStatus.status !== undefined){
                     if(lineGroupStatus.status === LineStatus.EDITED && lineGroupStatus.text !== undefined){
                         // console.log('CodeEditorRedux: ', lineStatus.status);
-                        state.text = lineGroupStatus.text;
+                        state.codeText[inViewID] = lineGroupStatus.text;
                     } 
                     codeLines[i].status = lineGroupStatus.status;
                 } 
@@ -142,12 +145,13 @@ export const CodeEditorRedux = createSlice({
          * be invoked anytime `codeLines` updated
          */
         addPlotResult: (state, action) => {
-            let resultMessage: ICodeResultMessage = action.payload;            
+            let resultMessage: ICodeResultMessage = action.payload;  
+            let inViewID = resultMessage.inViewID;          
             let plotResult: IPlotResult = {plot: JSON.parse(ifElseDict(resultMessage.content, 'plot'))};   
             let lineNumber = ifElseDict(resultMessage.metadata, 'line_number');
             let result: ICodeResult = {type: resultMessage.type, content: plotResult};            
             if(lineNumber){
-                let codeLine: ICodeLine = state.codeLines[lineNumber];
+                let codeLine: ICodeLine = state.codeLines[inViewID][lineNumber];
                 codeLine.result = result;
 
                 // let statePlotResults: IStatePlotResults = state.plotResults;
@@ -157,8 +161,9 @@ export const CodeEditorRedux = createSlice({
         },
 
         setActiveLine: (state, action) => {
-            let lineNumber = action.payload;
-            let codeLines: ICodeLine[] = state.codeLines;
+            let activeLine: ICodeActiveLine = action.payload;
+            let lineNumber = activeLine.lineNumber;
+            let codeLines: ICodeLine[] = state.codeLines[activeLine.inViewID];
             state.activeLine = codeLines[lineNumber].lineID;
         },
 
@@ -192,7 +197,8 @@ export const CodeEditorRedux = createSlice({
         compeleteRunLine: (state, action) => {
             if(state.runQueue.status === RunQueueStatus.RUNNING){
                 let runQueue: IRunQueue = state.runQueue;
-                if (runQueue.runningLine<runQueue.toLine-1){ /** do not run line at toLine */
+                if (runQueue.runningLine && runQueue.toLine && runQueue.runningLine<runQueue.toLine-1){ 
+                    /** do not run line at toLine */
                     runQueue.runningLine += 1;
                 } else {
                     runQueue.status = RunQueueStatus.STOP;
@@ -204,7 +210,7 @@ export const CodeEditorRedux = createSlice({
 
 // Action creators are generated for each case reducer function
 export const { 
-    initCodeDoc, 
+    initCodeText, 
     updateLines, 
     addPlotResult, 
     setLineStatus, 

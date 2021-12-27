@@ -1,25 +1,14 @@
+import os
 from os.path import exists
 import simplejson as json
 import traceback
-from message import FileMetadata
+from project_manager.interfaces import ProjectMetadata
 import logs
 from libs.config import read_config, save_config
+from project_manager.interfaces import FileMetadata
 
 log = logs.get_logger(__name__)
-
-class ProjectMetadata:
-    def __init__(self, **entries): 
-        self.path = None
-        self.name = None
-        self.id = None
-        self.__dict__.update(entries) 
-    
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
-
-    def __repr__(self) -> str:
-        return self.toJSON()       
-
+     
 active_project = None        
 CNEXT_PROJECT_DIR = './'
 
@@ -31,8 +20,6 @@ def get_open_files():
             if exists(config_path):
                 config = read_config(config_path)
                 if hasattr(config, 'open_files'):
-                    # for f in config.open_files:
-                    #     open_files.append(f)
                     open_files = config.open_files
             else:
                 log.error("Config file does not exist %s" % (config_path))        
@@ -77,7 +64,11 @@ def open_file(path):
                 config = read_config(config_path)
                 if hasattr(config, 'open_files'):
                     open_files = config.open_files
-                open_files.append({'path': path, 'name': path.split('/')[-1], 'executor': (config.executor==path)})    
+                ## Note that we dont set the timestamp when open the file #    
+                file = FileMetadata(path, 
+                    name = path.split('/')[-1], 
+                    executor = (config.executor==path))
+                open_files.append(file.toJSON())    
                 config.open_files = open_files
                 save_config(config.__dict__, config_path)        
             else:
@@ -103,3 +94,9 @@ def set_active_project(project: ProjectMetadata):
 def get_active_project():
     return active_project
 
+def set_working_dir(path):
+    try:
+        os.chdir(path)
+        return True
+    except Exception:
+        raise Exception

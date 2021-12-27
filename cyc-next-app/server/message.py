@@ -92,17 +92,3 @@ class Message:
     def __repr__(self) -> str:
         return self.toJSON()
 
-class FileMetadata:
-    def __init__(self, **entries): 
-        self.path = None
-        self.name = None
-        # self.type = None
-        self.executor = None
-        # self.update_timestamp = None
-        self.__dict__.update(entries) 
-    
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
-
-    def __repr__(self) -> str:
-        return self.toJSON()

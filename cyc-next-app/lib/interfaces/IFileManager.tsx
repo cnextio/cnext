@@ -31,7 +31,7 @@ export interface IFileMetadata {
     name: string;
     type: string;
     executor: boolean;
-    update_timestamp: string;
+    timestamp: number;
 }
 
 export interface IProjectMetadata {

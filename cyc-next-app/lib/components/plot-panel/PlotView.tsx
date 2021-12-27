@@ -17,7 +17,7 @@ const PlotWithNoSSR = dynamic(
     { ssr: false }
 )
 
-export function PlotView(props: any) {    
+export const PlotView = (props: any) => {    
     // const vizData = useSelector((state) => state.vizData.data);
     // const plotResults = useSelector((state) => state.codeDoc.plotResults);
     // const plotResultCount = useSelector((state) => state.codeDoc.plotResultCount);
@@ -27,7 +27,7 @@ export function PlotView(props: any) {
     const activeLine = useSelector((state) => state.codeEditor.activeLine);
     const [containerMounted, setContainerMounted] = useState(false);
 
-    function setLayout(plotData: IPlotResult, width: number|null = null, height: number|null = null) {
+    const setLayout = (plotData: IPlotResult, width: number|null = null, height: number|null = null) => {
         try {
             /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
             let inPlotData = JSON.parse(JSON.stringify(plotData.plot));
@@ -51,34 +51,37 @@ export function PlotView(props: any) {
     })
 
     const plotViewID = 'StyledPlotView';
-    function renderPlots(){
+    const renderPlots = () => {
         const state = store.getState();
-        const codeLines: ICodeLine[] = state.codeEditor.codeLines;
-        const codeWithPlots: ICodeLine[] = codeLines
-            .filter(code => (code.result && code.result.type==ContentType.PLOTLY_FIG));        
-        // console.log(document.getElementById(plotContainerID));
-        return (
-            <StyledPlotView id={plotViewID}>                
-                {console.log('Render PlotView', containerMounted)}
-                {containerMounted ? codeWithPlots.map((plot: ICodeLine) => (                    
-                    <ScrollIntoViewIfNeeded 
-                            active={plot.lineID==activeLine}
-                            options={{
-                                block: 'start', 
-                                inline:'center', 
-                                behavior: 'smooth',
-                                boundary: document.getElementById(plotViewID)}}>
-                        <SinglePlot 
-                            key={plot.lineID} 
-                            variant="outlined" 
-                            focused={plot.lineID==activeLine}>                                            
-                            {React.createElement(PlotWithNoSSR, setLayout(plot.result.content))}
-                            {console.log('Render PlotView: ', plot.lineID==activeLine)}
-                        </SinglePlot>          
-                    </ScrollIntoViewIfNeeded> 
-                )) : null}
-            </StyledPlotView>
-        )         
+        const inViewID = state.projectManager.inViewID;  
+        if (inViewID){      
+            const codeLines: ICodeLine[] = state.codeEditor.codeLines[inViewID];
+            const codeWithPlots: ICodeLine[] = codeLines
+                .filter(code => (code.result && code.result.type==ContentType.PLOTLY_FIG));        
+            // console.log(document.getElementById(plotContainerID));
+            return (
+                <StyledPlotView id={plotViewID}>                
+                    {console.log('Render PlotView', containerMounted)}
+                    {containerMounted ? codeWithPlots.map((plot: ICodeLine) => (                    
+                        <ScrollIntoViewIfNeeded 
+                                active={plot.lineID==activeLine}
+                                options={{
+                                    block: 'start', 
+                                    inline:'center', 
+                                    behavior: 'smooth',
+                                    boundary: document.getElementById(plotViewID)}}>
+                            <SinglePlot 
+                                key={plot.lineID} 
+                                variant="outlined" 
+                                focused={plot.lineID==activeLine}>                                            
+                                {React.createElement(PlotWithNoSSR, setLayout(plot.result.content))}
+                                {console.log('Render PlotView: ', plot.lineID==activeLine)}
+                            </SinglePlot>          
+                        </ScrollIntoViewIfNeeded> 
+                    )) : null}
+                </StyledPlotView>
+            )         
+        } else return null;
     }
 
     return renderPlots();

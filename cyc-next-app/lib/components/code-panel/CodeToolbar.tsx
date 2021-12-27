@@ -1,14 +1,16 @@
-import React, { FC, Fragment, useState } from "react";
+import React, { FC, Fragment, useEffect, useState } from "react";
 import { 
     CodeToolbar as StyledCodeToolbar, 
     FileNameTab, 
     PanelDivider, 
     ExecutorIcon as StyledExecutorIcon,
-    FileCloseIcon as StyledFileCloseIcon } from "../StyledComponents";
+    FileCloseIcon as StyledFileCloseIcon, 
+    FileNameTabContainer} from "../StyledComponents";
 import { IconButton, stepConnectorClasses } from "@mui/material";  
 import MenuIcon from '@mui/icons-material/Menu';
 import { useDispatch, useSelector } from "react-redux";
 import { setFileToClose, setInView } from "../../../redux/reducers/ProjectManagerRedux";
+import store from "../../../redux/store";
 
 const FileMenu = () => {
     return (
@@ -47,9 +49,24 @@ const CodeToolbar = () => {
         dispatch(setFileToClose(openFiles[id].path));
     }
 
+    /** Set inViewID whenever there is a new openFiles */
+    useEffect(() => {
+        let inViewID = store.getState().projectManager.inViewID;
+        let executorID = store.getState().projectManager.executorID;
+        let keys = Object.keys(openFiles);
+        if (inViewID === null) {
+            if (executorID) {
+                dispatch(setInView(executorID));
+            } else if (keys.length > 0) {
+                dispatch(setInView(openFiles[keys[0]]));
+            }                
+        }
+    },[openFiles])
+
     const _getFileNameComponent = (id: string, name: string) => {
         return (
             <Fragment>
+                {console.log('CodeToolbar: ', id, name, displayState, fileSaved)}
                 <FileNameTab 
                     selected = {id==inViewID}
                     component = "span" 
@@ -74,12 +91,13 @@ const CodeToolbar = () => {
                     }}
                 >
                     {name}
-                    {(id==executorID) && <ExecutorIcon/>}
-                    {console.log('CodeToolbar: ', id, name, displayState)}
-                    <FileCloseIcon 
-                        style = {id in displayState?displayState[id]:{display: 'none'}}
-                        onClick = {(event) => onClose(event, id)}
-                    />
+                    {(id===executorID) && <ExecutorIcon/>}                    
+                    <FileNameTabContainer>
+                        <FileCloseIcon 
+                            style = {(id in displayState) && (id!==executorID) ? displayState[id] : {display: 'none'}}
+                            onClick = {(event) => onClose(event, id)}
+                        />
+                    </FileNameTabContainer>
                 </FileNameTab>
                 <PanelDivider orientation='vertical' color='light'/>
             </Fragment>

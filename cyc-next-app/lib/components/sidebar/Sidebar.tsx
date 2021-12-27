@@ -66,18 +66,18 @@ const MiniSidebar = () => {
 	return (
 	<Fragment>
 		<Box>
-		<LogoComponent />
-		<Sidebar variant="permanent" >        
-			<SidebarList>
-			{iconList.map((icon, index) => (
-				<SidebarItem 
-					icon={icon} 
-					selectedIcon={selectedIcon} 
-					handleClick={handleClick}
-				/>
-			))}
-			</SidebarList>        
-		</Sidebar>      
+			<LogoComponent />
+			<Sidebar variant="permanent" >        
+				<SidebarList>
+				{iconList.map((icon, index) => (
+					<SidebarItem 
+						icon={icon} 
+						selectedIcon={selectedIcon} 
+						handleClick={handleClick}
+					/>
+				))}
+				</SidebarList>        
+			</Sidebar>      
 		</Box>
 		<SideBarDivider orientation='vertical'/>
 	</Fragment>

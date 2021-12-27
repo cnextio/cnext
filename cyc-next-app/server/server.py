@@ -263,44 +263,48 @@ def handle_FileManager_message(message):
     log.info('Handle FileManager message: %s' % message)
     try:    
         metadata = message.metadata    
-        output = None
+        result = None
         if message.command_name == ProjectCommand.list_dir:            
-            output = []
+            result = []
             if 'path' in metadata.keys():
-                output = files.list_dir(metadata['path']) 
+                result = files.list_dir(metadata['path']) 
                 content_type = ContentType.DIR_LIST    
         elif message.command_name == ProjectCommand.get_open_files:
-            output = projects.get_open_files()
+            result = projects.get_open_files()
             content_type = ContentType.FILE_METADATA   
         elif message.command_name == ProjectCommand.set_working_dir:
             if 'path' in metadata.keys():
-                output = projects.set_working_dir(metadata['path'])
+                result = projects.set_working_dir(metadata['path'])
             content_type = ContentType.NONE 
         elif message.command_name == ProjectCommand.set_project_dir:
             if 'path' in metadata.keys():
-                output = projects.set_project_dir(metadata['path'])
+                result = projects.set_project_dir(metadata['path'])
             content_type = ContentType.NONE   
         elif message.command_name == ProjectCommand.read_file:
             if 'path' in metadata.keys():
-                output = files.read_file(metadata['path'])
-            content_type = ContentType.FILE_CONTENT   
+                timestamp = metadata['timestamp'] if 'timestamp' in metadata else None
+                result = files.read_file(metadata['path'], timestamp)
+                if result == None:
+                    content_type = ContentType.NONE
+                else:
+                    content_type = ContentType.FILE_CONTENT
         elif message.command_name == ProjectCommand.save_file:
             if 'path' in metadata.keys():
-                output = files.save_file(metadata['path'], message.content)
+                result = files.save_file(metadata['path'], message.content)
             content_type = ContentType.FILE_METADATA        
         elif message.command_name == ProjectCommand.close_file:
-            output = projects.close_file(metadata['path'])
+            result = projects.close_file(metadata['path'])
             content_type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.open_file:
-            output = projects.open_file(metadata['path'])
+            result = projects.open_file(metadata['path'])
             content_type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.get_active_project:
-            output = projects.get_active_project()
+            result = projects.get_active_project()
             content_type = ContentType.PROJECT_METADATA    
 
         # create reply message
         message.content_type = content_type
-        message.content = output
+        message.content = result
         message.error = False
         send_result_to_node_server(message)   
 

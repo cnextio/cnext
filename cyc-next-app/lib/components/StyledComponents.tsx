@@ -89,12 +89,12 @@ export const SidebarList = styled.div`
     width: 47px;
 `;
 export const SidebarListItem = styled.div`
-    padding: 8px 0px;
+    padding: 0px 0px;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 50x;
-    width: 50px;
+    height: 45px;
+    width: 100%;
     &:not(:last-of-type) {
         margin-bottom: 10px;    
     }
@@ -198,8 +198,7 @@ export const FileContextMenuNewItem = styled(TextField)`
         font-size: 14px;
         padding: 5px;
         width: 100%;
-    }
-    
+    }   
 `
 
 export const WorkingPanelSplitPanel = styled(SplitPane)`
@@ -227,12 +226,17 @@ export const StyledCodePanel = styled.div`
         background-color: ${props => props.theme.palette.grey.A200};
     `;
     
+    export const FileNameTabContainer = styled.div`
+        display: flex;    
+        width: 22.5px;
+        height: 22.5px;        
+    `
     export const FileNameTab = styled(Typography)`      
         display: flex;
         align-items: center;
         height: calc(var(--var-height));
         line-height: calc(var(--var-height));
-        padding: 0px 10px 0px 10px;
+        padding: 0px 5px 0px 10px;
         font-size: 14px;
         color: ${props => props.fileSaved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
         background-color: ${props => props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
@@ -242,7 +246,7 @@ export const StyledCodePanel = styled.div`
             background-color: ${props => props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
         }
     `;
-    
+        
     export const ExecutorIcon = styled(BoltIcon)`
         display: inline-block;
         margin: 0 auto;

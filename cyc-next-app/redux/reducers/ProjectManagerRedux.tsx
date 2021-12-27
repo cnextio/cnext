@@ -1,6 +1,7 @@
 import shortid from "shortid";
-import { createSlice, current } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
 import { IDirectoryMetadata, IDirListResult, IFileMetadata, IProjectMetadata } from "../../lib/interfaces/IFileManager";
+
 
 type ProjectManagerState = { 
     openFiles: {[id: string]: IFileMetadata},
@@ -10,7 +11,9 @@ type ProjectManagerState = {
     openDirs: {[id: string]: IDirectoryMetadata[]},
     fileToClose: string | null,
     fileToOpen: string | null,
-    showProjectExplore: boolean
+    fileToSave: string[],
+    showProjectExplore: boolean,
+    serverSynced: boolean,
 }
 
 const initialState: ProjectManagerState = {
@@ -21,7 +24,9 @@ const initialState: ProjectManagerState = {
     openDirs: {},
     fileToClose: null,
     fileToOpen: null,
+    fileToSave: [],
     showProjectExplore: false, 
+    serverSynced: false,
 }
 
 export const ProjectManagerRedux = createSlice({
@@ -31,30 +36,65 @@ export const ProjectManagerRedux = createSlice({
         setActiveProject: (state, action) => {  
             state.activeProject = action.payload;
         },
+        
         setOpenFiles: (state, action) => {  
             state.openFiles = {};
-            action.payload.map((file: IFileMetadata) => {                
+            let files: IFileMetadata[] = action.payload;
+            files.map((file: IFileMetadata) => {                
                 let id = file.path;
                 state.openFiles[id] = file;
                 if (file.executor == true){
                     state.executorID = id;
-                    state.inViewID = id;
                 }
-            })
+            });
         },
+        
+        setFileMetaData: (state, action) => {
+            let file: IFileMetadata = action.payload;
+            let id = file.path;
+            state.openFiles[id] = file;
+            if (file.executor == true){
+                state.executorID = id;
+            }
+        },
+
         setInView: (state, action) => {
             state.inViewID = action.payload;
+            state.serverSynced = false;
         },
+        
+        setServerSynced: (state, action) => {
+            state.serverSynced = action.payload;
+        },
+
         setOpenDir: (state, action) => {
             let data: IDirListResult = action.payload;
             state.openDirs[data.id] = data.dirs;
         },
+        
         setFileToClose: (state, action) => {
             state.fileToClose = action.payload;
         },
+        
         setFileToOpen: (state, action) => {
-            state.fileToOpen = action.payload;
+            let path = action.payload;
+            if (Object.keys(state.openFiles).includes(path)){
+                console.log('ProjectManagerRedux setFileToOpen file already open: ', path);
+                state.inViewID = path;
+                state.serverSynced = false;
+            } else {
+                state.fileToOpen = action.payload;
+            }            
         },
+
+        setFileToSave: (state, action) => {
+            if(action.payload){
+                state.fileToSave.push(action.payload);
+            } else {
+                state.fileToSave = [];
+            }            
+        },
+        
         setShowProjectExplorer: (state, action) => {
             state.showProjectExplore = action.payload;
         }
@@ -69,6 +109,9 @@ export const {
     setOpenDir, 
     setFileToClose, 
     setFileToOpen,
-    setShowProjectExplorer } = ProjectManagerRedux.actions
+    setFileToSave,
+    setShowProjectExplorer,
+    setFileMetaData,
+    setServerSynced, } = ProjectManagerRedux.actions
 
 export default ProjectManagerRedux.reducer

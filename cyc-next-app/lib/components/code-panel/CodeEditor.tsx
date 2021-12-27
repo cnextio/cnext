@@ -15,7 +15,7 @@ import { StyledCodeEditor, StyledCodeMirror } from "../StyledComponents";
 // import { languageServer } from "../../codemirror/codemirror-languageserver";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
 import { addPlotResult, updateLines, setLineStatus, setActiveLine, setLineGroupStatus, setRunQueue as setReduxRunQueue, compeleteRunLine } from "../../../redux/reducers/CodeEditorRedux";
-import { ICodeLineStatus as ILineStatus, ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, ICodeLineStatus, ICodeLine, ICodeLineGroupStatus, SetLineGroupCommand, RunQueueStatus, ILineRange } from "../../interfaces/ICodeEditor";
+import { ICodeLineStatus as ILineStatus, ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, ICodeLineStatus, ICodeLine, ICodeLineGroupStatus, SetLineGroupCommand, RunQueueStatus, ILineRange, ICodeActiveLine } from "../../interfaces/ICodeEditor";
 import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
 // import { extensions } from './codemirror-extentions/extensions';
 import { ReactCodeMirrorRef, useCodeMirror } from '@uiw/react-codemirror';
@@ -23,6 +23,9 @@ import { CodeGenResult, CodeGenStatus, IInsertLinesInfo, IMagicInfo, LINE_SEP, M
 import { magicsGetPlotCommand } from "../../cnext-magics/magic-plot-gen";
 import { CNextPlotKeyword, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
 import { Box } from "@mui/system";
+import { ifElse } from "../libs";
+import { Store } from "redux";
+import { setFileToSave } from "../../../redux/reducers/ProjectManagerRedux";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -35,15 +38,32 @@ const ls = languageServer({
 const CodeEditor = (props: any) => {
     /** This state is used to indicate server sync status. Code doc need to be resynced only 
      * when it is first opened or being selected to be in view */
-    const [serverSynced, setServerSynced] = useState(false);
+    // const [serverSynced, setServerSynced] = useState(false);
+    const serverSynced = useSelector(state => state.projectManager.serverSynced);
     const inViewID = useSelector(state => state.projectManager.inViewID);
-    const codeLines: ICodeLine[] = useSelector(state => state.codeEditor.codeLines);
-    const codeText = useSelector(state => state.codeEditor.text);    
+    const codeLines: ICodeLine[] = useSelector(state => getCodeLineRedux(state));
+    const codeText: string[] = useSelector(state => getCodeTextRedux(state));    
     const runQueue = useSelector(state => state.codeEditor.runQueue);
     const dispatch = useDispatch();
     const editorRef = useRef();
-    const [magicInfo, setMagicInfo] = useState<IMagicInfo | undefined>();
+    const [magicInfo, setMagicInfo] = useState<IMagicInfo|undefined>();
     
+    function getCodeLineRedux(state) {
+        let inViewID = state.projectManager.inViewID;
+        if (inViewID) {
+            return ifElse(state.codeEditor.codeLines, inViewID, null);
+        }
+        return null;
+    }
+
+    function getCodeTextRedux(state) {
+        let inViewID = state.projectManager.inViewID;
+        if (inViewID) {
+            return ifElse(state.codeEditor.codeText, inViewID, null);
+        }
+        return null;
+    }
+
     /** 
      * This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror 
      * intenal, we can't dictate when it will be called. To cope with this, we have to check the object existence carefully 
@@ -51,15 +71,18 @@ const CodeEditor = (props: any) => {
     */ 
     const editStatusGutter = gutter({
         lineMarker(view, line) {
-            let lines = store.getState().codeEditor.codeLines;
-            // line.number in state.doc is 1 based, so convert to 0 base
-            let lineNumber = view.state.doc.lineAt(line.from).number-1;
-            // console.log(lines.length);
-            if(lines && lineNumber<lines.length){                                
-                switch(lines[lineNumber].status){
-                    case LineStatus.EDITED: return editedMarker;
-                    case LineStatus.EXECUTING: return executingMarker;
-                    case LineStatus.EXECUTED: return executedMarker;
+            let inViewID = store.getState().projectManager.inViewID;
+            if (inViewID) {
+                let lines = getCodeLineRedux(store.getState());
+                // line.number in state.doc is 1 based, so convert to 0 base
+                let lineNumber = view.state.doc.lineAt(line.from).number-1;
+                // console.log(lines.length);
+                if(lines && lineNumber<lines.length){                                
+                    switch(lines[lineNumber].status){
+                        case LineStatus.EDITED: return editedMarker;
+                        case LineStatus.EXECUTING: return executingMarker;
+                        case LineStatus.EXECUTED: return executedMarker;
+                    }
                 }
             }
             return null;
@@ -93,15 +116,19 @@ const CodeEditor = (props: any) => {
 
     const _handlePlotData = (message: Message) => {
         console.log(`${WebAppEndpoint.CodeEditor} got plot data`);
-        let result: ICodeResultMessage = {
-            content: message.content, 
-            type: message.content_type,
-            metadata: message.metadata
-        };
+        let inViewID = store.getState().projectManager.inViewID;
+        if (inViewID) {
+            let result: ICodeResultMessage = {
+                inViewID: inViewID,
+                content: message.content, 
+                type: message.content_type,
+                metadata: message.metadata
+            };
 
-        // content['plot'] = JSON.parse(content['plot']);      
-        console.log("dispatch plot data");                  
-        dispatch(addPlotResult(result));     
+            // content['plot'] = JSON.parse(content['plot']);      
+            console.log("dispatch plot data");                  
+            dispatch(addPlotResult(result));     
+        }
     }
 
     /**
@@ -113,30 +140,41 @@ const CodeEditor = (props: any) => {
             // console.log("Got results: ", result, '\n');
             console.log("CodeEditor got results...");
             try {
-                let codeOutput: Message = JSON.parse(result);                
-                if (codeOutput.content_type == ContentType.STRING){
-                    props.recvCodeOutput(codeOutput); //TODO: move this to redux
-                } else {
-                    if(codeOutput.error==true){
-                        props.recvCodeOutput(codeOutput);
-                    } else if (codeOutput.content_type==ContentType.PANDAS_DATAFRAME){
-                        console.log("dispatch tableData");               
-                        dispatch(setTableData(codeOutput.content));
-                    } else if (codeOutput.content_type==ContentType.PLOTLY_FIG){
-                        // _handlePlotData(codeOutput); 
-                        _handlePlotData(codeOutput);                       
+                let codeOutput: Message = JSON.parse(result);   
+                let inViewID = store.getState().projectManager.inViewID;
+                if (inViewID) {
+                    if (codeOutput.content_type == ContentType.STRING){
+                        props.recvCodeOutput(codeOutput); //TODO: move this to redux
+                    } else {
+                        if(codeOutput.error==true){
+                            props.recvCodeOutput(codeOutput);
+                        } else if (codeOutput.content_type==ContentType.PANDAS_DATAFRAME){
+                            console.log("dispatch tableData");               
+                            dispatch(setTableData(codeOutput.content));
+                        } else if (codeOutput.content_type==ContentType.PLOTLY_FIG){
+                            // _handlePlotData(codeOutput); 
+                            _handlePlotData(codeOutput);                       
+                        }
+                        else {  
+                            console.log("dispatch text output:", codeOutput);                        
+                            props.recvCodeOutput(codeOutput);
+                        }
                     }
-                    else {  
-                        console.log("dispatch text output:", codeOutput);                        
-                        props.recvCodeOutput(codeOutput);
+                    let lineStatus: ILineStatus = {
+                        inViewID: inViewID,
+                        lineNumber: codeOutput.metadata.line_number, 
+                        status: LineStatus.EXECUTED};
+                    console.log('CodeEditor socket ', lineStatus);
+                    dispatch(setLineStatus(lineStatus));
+                    /** set active code line to be the current line after it is excuted so the result will be show accordlingly
+                     * not sure if this is a good design but will live with it for now */ 
+                    let activeLine: ICodeActiveLine = {
+                        inViewID: inViewID,
+                        lineNumber: codeOutput.metadata.line_number
                     }
-                }
-                let lineStatus: ILineStatus = {lineNumber: codeOutput.metadata.line_number, status: LineStatus.EXECUTED};
-                dispatch(setLineStatus(lineStatus));
-                /** set active code line to be the current line after it is excuted so the result will be show accordlingly
-                 * not sure if this is a good design but will live with it for now */ 
-                dispatch(setActiveLine(codeOutput.metadata.line_number)); 
-                dispatch(compeleteRunLine(null));
+                    dispatch(setActiveLine(activeLine)); 
+                    dispatch(compeleteRunLine(null));
+                }    
             } catch {
 
             }
@@ -150,29 +188,39 @@ const CodeEditor = (props: any) => {
      * FIXME: This is used to set onmousedown event handler. This does not seem to be the best way. 
      * Also set the SOLID effect for generated lines
      * */
-    function _setCMPropertyOnMount(){                
+    const setMouseDownHandler = () => {                
         if (container){
             container.onmousedown = onMouseDown;  
-        }      
-        if (view) {
-            view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
-            view.dispatch({effects: [generatedCodeStateEffect.of({type: GenCodeEffectType.SOLID})]});             
-        }            
+        }                 
     }
     useEffect(() => {        
-        _setCMPropertyOnMount();
-    }, [container, view]);
+        setMouseDownHandler();
+    }, [container]);
     
+    const setGenCodeLineDeco = () => {
+        if (view) {
+            // console.log('CodeEditor set gencode solid')
+            view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
+            view.dispatch({effects: [generatedCodeStateEffect.of({type: GenCodeEffectType.SOLID})]});             
+        }
+    }
+    useEffect(() => {
+        setGenCodeLineDeco()
+    })
+
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
-    useEffect(() => {
-        if(inViewID && view){
+    const resetEditorState = () => {
+        if(view){
             // console.log('CodeEditor useEffect inViewID');
-            setServerSynced(false);
+            // dispatch(setServerSynced(false));
             // clear the state
             view.setState(EditorState.create({doc: '', extensions: extensions}));
         }
+    }
+    useEffect(() => {
+        resetEditorState();
     }, [inViewID]);
 
     /**
@@ -180,19 +228,25 @@ const CodeEditor = (props: any) => {
      */
     function _initCM(){
         // console.log('CodeEditor useEffect _initCM', view, codeText[0]);
-        if (view) {
+        if (view && codeText) {
             view.setState(EditorState.create({
                 doc: codeText.join('\n'), extensions: extensions
             }))
         }
     }
+    // useEffect(() => {
+    //     // console.log('CodeEditor useEffect codeText', view, codeText[0], serverSynced);
+    //     if (codeText && view && !serverSynced){            
+    //         _initCM();
+    //         setServerSynced(true);                        
+    //     }
+    // }, [codeText, view]);
     useEffect(() => {
         // console.log('CodeEditor useEffect codeText', view, codeText[0], serverSynced);
-        if (codeText && view && !serverSynced){            
+        if (serverSynced){            
             _initCM();
-            setServerSynced(true);                        
         }
-    }, [codeText, view]);
+    }, [serverSynced]);
 
     function _create_message(content: ILineContent) {
         let message: Message = {
@@ -241,24 +295,27 @@ const CodeEditor = (props: any) => {
             /** convert to 0-based which is used internally */
             let fromLine = doc.lineAt(anchor).number-1;
             let lineRange: ILineRange|undefined;
+            let inViewId = store.getState().projectManager.inViewID;
 
-            if(text.startsWith(MAGIC_STARTER)){
-                /** Get line range of group starting from next line */
-                let codeEditorReduxLines: ICodeLineStatus[] = store.getState().codeEditor.codeLines;            
-                /** this if condition is looking at the next line*/
-                if (codeEditorReduxLines[lineNumberAtAnchor+1].generated){
-                    lineRange = _getLineRangeOfGroup(lineNumberAtAnchor+1);
+            if(inViewId) {
+                if(text.startsWith(MAGIC_STARTER)){
+                    /** Get line range of group starting from next line */
+                    let codeEditorReduxLines: ICodeLine[] = getCodeLineRedux(store.getState());            
+                    /** this if condition is looking at the next line*/
+                    if (codeEditorReduxLines[lineNumberAtAnchor+1].generated){
+                        lineRange = _getLineRangeOfGroup(lineNumberAtAnchor+1);
+                    }
+                } else {
+                    /** Get line range of group starting from the current line */
+                    /** convert to 0-based */
+                    lineRange = _getLineRangeOfGroup(lineNumberAtAnchor);
                 }
-            } else {
-                /** Get line range of group starting from the current line */
-                /** convert to 0-based */
-                lineRange = _getLineRangeOfGroup(lineNumberAtAnchor);
-            }
 
-            if (lineRange){
-                console.log('CodeEditor setRunQueue: ', lineRange);
-                dispatch(setReduxRunQueue(lineRange));
-            }
+                if (lineRange){
+                    console.log('CodeEditor setRunQueue: ', lineRange);
+                    dispatch(setReduxRunQueue(lineRange));
+                }
+            }    
         } else {
             console.log("CodeEditor can't execute code on none executor file!")
         }   
@@ -268,11 +325,15 @@ const CodeEditor = (props: any) => {
     function execLine(){
         if(runQueue.status === RunQueueStatus.RUNNING){
             let text: string|undefined = _getLineContent(runQueue.runningLine);
-            if(text){
+            let inViewID = store.getState().projectManager.inViewID;
+            if(text && inViewID){
                 console.log('CodeEditor execLine: ', runQueue.runningLine);
                 let content: ILineContent = {lineNumber: runQueue.runningLine, content: text};
                 _send_message(content);
-                let lineStatus: ILineStatus = {lineNumber: content.lineNumber, status: LineStatus.EXECUTING};
+                let lineStatus: ILineStatus = {
+                    inViewID: inViewID, 
+                    lineNumber: content.lineNumber, 
+                    status: LineStatus.EXECUTING};
                 dispatch(setLineStatus(lineStatus));
             }
         }
@@ -317,8 +378,9 @@ const CodeEditor = (props: any) => {
     function onCMChange(value: string, viewUpdate: ViewUpdate){
         try{
             let doc = viewUpdate.state.doc;    
+            let inViewID = store.getState().projectManager.inViewID;
             console.log('CodeEditor onCMChange', doc, viewUpdate.changes.toJSON());
-            if (serverSynced){                
+            if (serverSynced && inViewID){                
                 // let startText = viewUpdate.startState.doc.text;
                 // let text = viewUpdate.state.doc.text;
                 let startDoc = viewUpdate.startState.doc;
@@ -332,23 +394,35 @@ const CodeEditor = (props: any) => {
                 let changeStartLineNumber = changeStartLine.number-1;          
                 // console.log(changes); 
                 // console.log('changeStartLineNumber', changeStartLineNumber);
-                let updatedLineInfo: ILineUpdate = {text: text, updatedStartLineNumber: changeStartLineNumber, updatedLineCount: updatedLineCount};
+                let updatedLineInfo: ILineUpdate = {
+                    inViewID: inViewID,
+                    text: text, 
+                    updatedStartLineNumber: changeStartLineNumber, 
+                    updatedLineCount: updatedLineCount};
                 if (updatedLineCount>0){                
                     // Note 1: _getCurrentLineNumber returns line number indexed starting from 1.
                     // Convert it to 0-indexed by -1.
                     // Note 2: the lines being added are lines above currentLine.
                     // If there is new text in the current line then current line is `edited` not `added`                
                     dispatch(updateLines(updatedLineInfo));
+                    dispatch(setFileToSave(inViewID));
                 } else if (updatedLineCount<0){               
                     // Note 1: _getCurrentLineNumber returns line number indexed starting from 1.
                     // Convert it to 0-indexed by -1. 
                     // Note 2: the lines being deleted are lines above currentLine.
                     // If there is new text in the current line then current line is `edited`                            
                     dispatch(updateLines(updatedLineInfo));
+                    dispatch(setFileToSave(inViewID));
                 } else {
                     let lineStatus: ICodeLineStatus;
-                    lineStatus = {text: text, lineNumber: changeStartLineNumber, status: LineStatus.EDITED, generated: false};                    
+                    lineStatus = {
+                        inViewID: inViewID,
+                        text: text, 
+                        lineNumber: changeStartLineNumber, 
+                        status: LineStatus.EDITED, 
+                        generated: false};                    
                     dispatch(setLineStatus(lineStatus));
+                    dispatch(setFileToSave(inViewID));
                 }
                 
                 _handleMagicsOnCMChange();
@@ -364,7 +438,8 @@ const CodeEditor = (props: any) => {
     function _handleMagicsOnCMChange(){
         if(view){
             let state = view.state;
-            if(state){
+            let inViewID = store.getState().projectManager.inViewID;
+            if(state && inViewID){
                 let tree = state.tree;
                 let curPos = state.selection.ranges[0].anchor;             
                 let cursor = tree.cursor(curPos, 0);                    
@@ -409,6 +484,7 @@ const CodeEditor = (props: any) => {
                         /** The second time _handleMagic being called is after new code has been inserted */
                         /** convert line number to 0-based */
                         let lineStatus: ICodeLineGroupStatus = {
+                            inViewID: inViewID,
                             fromLine: magicInfo.lineInfo.fromLine, 
                             toLine: magicInfo.lineInfo.toLine, 
                             status: LineStatus.EDITED, 
@@ -662,7 +738,7 @@ const CodeEditor = (props: any) => {
                 marks = marks.map(tr.changes)
                 for (let effect of tr.effects) if (effect.is(generatedCodeStateEffect)) {
                     // console.log('Magic generatedCodeDeco update ', effect.value.type);     
-                    if (effect.value.type == GenCodeEffectType.FLASHING) {
+                    if (effect.value.type === GenCodeEffectType.FLASHING) {
                         if (effect.value.lineInfo !== undefined){
                             let lineInfo = effect.value.lineInfo;
                             for (let i=lineInfo.fromLine; i<lineInfo.toLine; i++){
@@ -676,15 +752,20 @@ const CodeEditor = (props: any) => {
                             }                            
                         }                        
                     } else { /** effect.value.type is SOLID */
-                        let lines: ICodeLineStatus[] = store.getState().codeEditor.codeLines;
-                        for (let l=0; l < lines.length; l++){
-                            if (lines[l].generated === true){
-                                let line = view.state.doc.line(l+1);
-                                marks = marks.update({
-                                    add: [genCodeSolidCSS.range(line.from)]
-                                })
-                            }                            
-                        }
+                        let inViewID = store.getState().projectManager.inViewID;
+                        if (inViewID) {
+                            let lines: ICodeLine[] = getCodeLineRedux(store.getState());
+                            if (lines) {
+                                for (let l=0; l < lines.length; l++){
+                                    if (lines[l].generated === true){
+                                        let line = view.state.doc.line(l+1);
+                                        marks = marks.update({
+                                            add: [genCodeSolidCSS.range(line.from)]
+                                        })
+                                    }                            
+                                }
+                            }
+                        }    
                     }
                 }           
                 return marks
