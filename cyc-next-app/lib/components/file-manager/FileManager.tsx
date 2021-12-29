@@ -41,7 +41,7 @@ const FileManager = () => {
                             if (inViewID) {
                                 // console.log('Get file content: ', fmResult.content);
                                 console.log('FileManager got read_file result: ', fmResult);
-                                if(fmResult.content_type !== ContentType.NONE){
+                                if(fmResult.content_type === ContentType.FILE_CONTENT){
                                     let reduxCodeText: ICodeText = {
                                         reduxFileID: inViewID, 
                                         codeText: fmResult.content['content'],
@@ -49,6 +49,7 @@ const FileManager = () => {
                                     }
                                     dispatch(initCodeText(reduxCodeText));
 
+                                    /** update file timestamp */
                                     let fileMetadata = {...store.getState().projectManager.openFiles[inViewID]};
                                     fileMetadata.timestamp = fmResult.content['timestamp'];
                                     dispatch(setFileMetaData(fileMetadata));                                    
@@ -59,7 +60,16 @@ const FileManager = () => {
                             break;
                         case ProjectCommand.save_file:
                             console.log('FileManager got save_file result: ', fmResult);
-                            dispatch(setFileSaved(null));
+                            if(fmResult.content_type === ContentType.FILE_METADATA){
+                                dispatch(setFileSaved(null));
+                                
+                                /** update file timestamp */
+                                if (inViewID) {
+                                    let fileMetadata = {...store.getState().projectManager.openFiles[inViewID]};
+                                    fileMetadata.timestamp = fmResult.content['timestamp'];
+                                    dispatch(setFileMetaData(fileMetadata));
+                                }
+                            }
                             break;
                         case ProjectCommand.close_file:
                             console.log('FileManager got close_file result: ', fmResult);
@@ -156,7 +166,7 @@ const FileManager = () => {
 
     const saveFile = () => {
         // console.log('FileManager save file', codeTextUpdated);
-        if(saveTimeout && codeTextUpdated && codeText){
+        if(codeText){
             console.log('FileManager save file');
             setCodeTextUpdated(false);
             let state = store.getState();
@@ -174,7 +184,9 @@ const FileManager = () => {
         }
     }
     useEffect(() => {
-        saveFile();
+        if(saveTimeout && codeTextUpdated){
+            saveFile();
+        }            
     }, [saveTimeout, codeTextUpdated])
 
     // useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, useEffect, useRef, useState } from "react";
+import React, { FC, ReactElement, useEffect, useMemo, useRef, useState } from "react";
 import { StyledCodePanel, PanelDivider, CodeContainer, CodeOutputContainer, CodeOutputContent} from "../StyledComponents";
 import SplitPane from 'react-split-pane-v2';
 import CodeEditor from "./CodeEditor";
@@ -9,8 +9,9 @@ import {Message} from "../../interfaces/IApp";
 import CodeOutput from "./CodeOutput";
 import CodeToolbar from "./CodeToolbar";
 // import { pure } from 'recompose';
+import shortid from "shortid";
 
-const CodePanel = React.memo((props: any) => {
+const CodePanel = () => {
     const [codeOutput, setCodeOutput] = useState<Message>({commandType: "", contentType: "", content: "", error: false});
 
     // use useCallback to avoid rerender CodeEditorComponent when this is rerendered
@@ -20,22 +21,27 @@ const CodePanel = React.memo((props: any) => {
         setCodeOutput(output);
     }, []);
 
+    // const codeEditor = useMemo(() => {return (<CodeEditor recvCodeOutput={recvCodeOutput} id={shortid()}/>)}, []);
+    // const codeEditor = <CodeEditor recvCodeOutput={recvCodeOutput} id={shortid()}/>;
+    // console.log("CodeEditor render CodePanel codeEditor", codeEditor.props.id);
+    // console.log('CodeEditor render CodePanel render ');            
     return (        
         <StyledCodePanel >
-            {console.log('CodePanelComponent rerender')}            
+            {/* {console.log('CodeEditor render CodePanel render ', id)}             */}
             <CodeToolbar />                
             {/* <WorkingPanelDivider color='white'/> */}
             <CodeContainer>
                 <SplitPane split="horizontal" defaultSize="70%" pane2Style={{height: "30%"}}>  
                             {/* panel2 height is the must for the scrolling to work */}
-                    <CodeEditor {... props} recvCodeOutput={recvCodeOutput} />
+                    {/* {codeEditor} */}
+                    <CodeEditor recvCodeOutput={recvCodeOutput} id='code-editor'/>
                     <CodeOutput codeOutput={codeOutput} />
                 </SplitPane>            
             </CodeContainer>
         </StyledCodePanel>
     );
-  });
+};
   
-  export default CodePanel;
+export default CodePanel;
 
 
