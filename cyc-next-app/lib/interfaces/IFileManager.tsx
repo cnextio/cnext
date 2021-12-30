@@ -32,6 +32,7 @@ export interface IFileMetadata {
     type: string;
     executor: boolean;
     timestamp: number;
+    scroll_pos?: number;
 }
 
 export interface IProjectMetadata {

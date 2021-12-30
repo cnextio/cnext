@@ -97,6 +97,11 @@ export const ProjectManagerRedux = createSlice({
         
         setShowProjectExplorer: (state, action) => {
             state.showProjectExplore = action.payload;
+        },
+
+        setScrollPos: (state, action) => {
+            if(state.inViewID)
+                state.openFiles[state.inViewID].scroll_pos = action.payload;
         }
     },        
 })
@@ -112,6 +117,7 @@ export const {
     setFileToSave,
     setShowProjectExplorer,
     setFileMetaData,
-    setServerSynced, } = ProjectManagerRedux.actions
+    setServerSynced,
+    setScrollPos, } = ProjectManagerRedux.actions
 
 export default ProjectManagerRedux.reducer

@@ -23,7 +23,7 @@ import { CodeGenResult, CodeGenStatus, IInsertLinesInfo, IMagicInfo, LINE_SEP, M
 import { magicsGetPlotCommand } from "../../cnext-magics/magic-plot-gen";
 import { CNextPlotKeyword, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
 import { ifElse } from "../libs";
-import { setFileToSave } from "../../../redux/reducers/ProjectManagerRedux";
+import { setFileToSave, setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -208,26 +208,27 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         _socketInit();
     }, []); 
 
+    const scrollTimer = (scrollEl: HTMLElement) => {
+        scrollEl.onscroll = null;
+        setTimeout(() => {
+            scrollEl.onscroll = ((event) => scrollTimer(scrollEl));
+            dispatch(setScrollPos(scrollEl.scrollTop));
+        }, 100);
+    }
     /**
      * FIXME: This is used to set onmousedown event handler. This does not seem to be the best way. 
      * Also set the SOLID effect for generated lines
      * */
-    const setMouseDownHandler = () => {
+    const setHTMLEventHandler = () => {
         if (container){                
             container.onmousedown = onMouseDown;  
-            // container.onscroll = ((event) => {console.log("Scroll: ", container.scrollTop);});
-            // for(let i=0; i<container.children.length; i++){
-            //     container.children[i].onscroll = ((event) => {console.log("Scroll: ", container.scrollTop);});
-            // }
-            // container.parentElement.onscroll = ((event) => {console.log("Scroll: ", container.scrollTop);});
-            // container.parentElement.parentElement.onscroll = ((event) => {console.log("Scroll: ", container.scrollTop);});
-            // container.parentElement.parentElement.parentElement.onscroll = ((event) => {console.log("Scroll: ", container.scrollTop);});
-            // container.onmousemove = ((event) => {console.log("Scroll: ", container.scrollTop);});
+            let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;
+            scrollEl.onscroll = ((event) => scrollTimer(scrollEl));
         }
     }
     useEffect(() => { 
         console.log('CodeEditor useEffect container', container);                  
-        setMouseDownHandler();                   
+        setHTMLEventHandler();                   
     }, [container]);
     
     const setGenCodeLineDeco = () => {
@@ -237,25 +238,6 @@ const CodeEditor = ({id, recvCodeOutput}) => {
             view.dispatch({effects: [generatedCodeStateEffect.of({type: GenCodeEffectType.SOLID})]});             
         }
     }
-    // useEffect(() => {
-    //     // console.log('CodeEditor useEffect - firstMount', firstMount);
-    //     // if (firstMount){
-    //     //     setFirstMount(false);
-    //     //     let transactionSpec: TransactionSpec = {
-    //     //         changes: {
-    //     //             from: 0, 
-    //     //             to: 0, 
-    //     //             insert: getCodeText()
-    //     //         }
-    //     //     };                
-    //     //     let transaction: Transaction = view.state.update(transactionSpec);
-    //     //     view.dispatch(transaction); 
-    //     // }
-    //     if (serverSynced){                        
-    //         // loadCodeText();
-    //         setGenCodeLineDeco();
-    //     }        
-    // })
 
     /**
      * Reset the code editor state when the doc is selected to be in view
@@ -271,8 +253,20 @@ const CodeEditor = ({id, recvCodeOutput}) => {
             resetEditorState();
     }, [inViewID]);
 
+    const scrollToPrevPos = () => {
+        let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;
+        let inViewID = store.getState().projectManager.inViewID;
+        if(inViewID){
+            let openFile = store.getState().projectManager.openFiles[inViewID];
+            if (openFile && openFile.scroll_pos){
+                scrollEl.scrollTop = openFile.scroll_pos;
+            }
+        }
+        
+    }
     /**
-     * Init CodeEditor value with content load from the file if `initilized` is False
+     * Init CodeEditor value with content load from the file
+     * Also scroll the file to the previous position
      */
     const loadCodeText = () => {
         console.log('CodeEditor loadCodeText');
@@ -287,7 +281,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
             };                
             let transaction: Transaction = view.state.update(transactionSpec);
             view.dispatch(transaction); 
-            // setGenCodeLineDeco();
+            scrollToPrevPos();
             setCodeReloading(false);
         }
     }
@@ -301,6 +295,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
 
     useEffect(() => {
         try {
+            //TODO: improve this
             setGenCodeLineDeco();
             console.log('CodeEditor useEffect setGenCodeLineDeco');
         } catch {
@@ -459,7 +454,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                 return;
 
             if (viewUpdate.viewportChanged)
-                console.log('CodeEditor viewport ', editorRef.current.scrollTop);
+                console.log('CodeEditor viewport ', document.querySelector('div.cm-scroller').scrollTop);
 
             let doc = viewUpdate.state.doc;    
             let inViewID = store.getState().projectManager.inViewID;
