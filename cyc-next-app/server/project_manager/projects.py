@@ -68,7 +68,7 @@ def open_file(path):
                 file = FileMetadata(path, 
                     name = path.split('/')[-1], 
                     executor = (config.executor==path))
-                open_files.append(file.toJSON())    
+                open_files.append(file.__dict__)    
                 config.open_files = open_files
                 save_config(config.__dict__, config_path)        
             else:

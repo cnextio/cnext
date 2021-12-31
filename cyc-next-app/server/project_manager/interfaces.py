@@ -28,12 +28,13 @@ class FileMetadata:
     #     self.timestamp = None
     #     self.__dict__.update(entries) 
     
-    def __init__(self, path, name, timestamp, executor=False): 
+    def __init__(self, path, name, timestamp=None, executor=False): 
         self.path = path
         self.name = name
         # self.type = None
         self.executor = executor
-        self.timestamp = timestamp
+        if timestamp!=None:
+            self.timestamp = timestamp
 
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
@@ -43,6 +44,7 @@ class FileMetadata:
 
 class FileContent:
     def __init__(self, content, timestamp=None): 
+        # self.__dict__.update(locals())
         self.content = content
         self.timestamp = timestamp
 

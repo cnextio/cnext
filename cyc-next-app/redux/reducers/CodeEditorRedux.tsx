@@ -39,10 +39,17 @@ export const CodeEditorRedux = createSlice({
             let reduxFileID = codeTextData.reduxFileID;
             state.codeText[reduxFileID] = codeTextData.codeText;
             let codeLines: ICodeLine[] = [];
-            for(let i=0; i<state.codeText[reduxFileID].length; i++){
+            /** create at least 1 empty line when code text is empty */
+            if (state.codeText[reduxFileID].length==0){
                 let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null, generated: false};
-                codeLines.push(codeLine);                    
+                codeLines.push(codeLine);    
             }
+            else {
+                for( let i=0; i<state.codeText[reduxFileID].length; i++){
+                    let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null, generated: false};
+                    codeLines.push(codeLine);                    
+                }
+            }            
             state.codeLines[reduxFileID] = codeLines;
             // state.timestamp[reduxFileID] = codeTextData.timestamp;
         },

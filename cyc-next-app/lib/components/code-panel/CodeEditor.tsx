@@ -309,7 +309,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                 range.from, 
                 range.to);
             let inViewID = store.getState().projectManager.inViewID;
-            console.log('CodeEditor setGroup: ', lineRange);
+            console.log('CodeEditor setGroup: ', lineRange, range);
             if(inViewID && lineRange && lineRange.toLine>lineRange.fromLine){
                 let lineStatus: ICodeLineGroupStatus = {
                     inViewID: inViewID,

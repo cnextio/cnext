@@ -261,10 +261,10 @@ const setGroupedLineDeco = (reduxState, view: EditorView|undefined) => {
     if (groupID === undefined){
         toLine = fromLine+1;
     } else {
-        while(codeLines[fromLine-1].groupID && codeLines[fromLine-1].groupID === groupID){
+        while(fromLine>0 && codeLines[fromLine-1].groupID && codeLines[fromLine-1].groupID === groupID){
             fromLine -= 1;
         }
-        while(codeLines[toLine].groupID && codeLines[toLine].groupID === groupID){
+        while(toLine<codeLines.length && codeLines[toLine].groupID && codeLines[toLine].groupID === groupID){
             toLine += 1;
         }
     }        
@@ -343,6 +343,7 @@ const getNonGeneratedLinesInRange = (codeLines: ICodeLine[]|null, view: EditorVi
         let fromLine;            
         let toLine;
         while(pos<=toPos){
+            console.log("Group ", fromPos, toPos, doc.lineAt(pos));
             let line = doc.lineAt(pos);
             /** minus 1 to convert to 0-based */
             if(codeLines[line.number-1].groupID===undefined && !codeLines[line.number-1].generated && line){
@@ -360,7 +361,7 @@ const getNonGeneratedLinesInRange = (codeLines: ICodeLine[]|null, view: EditorVi
             }
                 
         }
-        if(fromLine && toLine){
+        if(fromLine!==undefined && toLine!==undefined){
             /** the operating range will exclude toLine => add 1 to the value here*/
             return {fromLine: fromLine, toLine: toLine+1};
         }
