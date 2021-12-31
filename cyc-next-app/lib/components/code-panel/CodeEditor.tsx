@@ -15,15 +15,16 @@ import { StyledCodeEditor, StyledCodeMirror } from "../StyledComponents";
 // import { languageServer } from "../../codemirror/codemirror-languageserver";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
 import { addPlotResult, updateLines, setLineStatus, setActiveLine, setLineGroupStatus, setRunQueue as setReduxRunQueue, compeleteRunLine } from "../../../redux/reducers/CodeEditorRedux";
-import { ICodeLineStatus as ILineStatus, ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, ICodeLineStatus, ICodeLine, ICodeLineGroupStatus, SetLineGroupCommand, RunQueueStatus, ILineRange, ICodeActiveLine } from "../../interfaces/ICodeEditor";
-import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
+import { ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, ICodeLineStatus, ICodeLine, ICodeLineGroupStatus, SetLineGroupCommand, RunQueueStatus, ILineRange, ICodeActiveLine } from "../../interfaces/ICodeEditor";
+import { EditorState, StateEffect, Transaction, TransactionSpec } from "@codemirror/state";
 // import { extensions } from './codemirror-extentions/extensions';
-import { ReactCodeMirrorRef, useCodeMirror } from '@uiw/react-codemirror';
+import { useCodeMirror } from '@uiw/react-codemirror';
 import { CodeGenResult, CodeGenStatus, IInsertLinesInfo, IMagicInfo, LINE_SEP, MagicPlotData, MAGIC_STARTER } from "../../interfaces/IMagic";
 import { magicsGetPlotCommand } from "../../cnext-magics/magic-plot-gen";
 import { CNextPlotKeyword, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
 import { ifElse } from "../libs";
 import { setFileToSave, setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
+import { editStatusGutter, getCodeLine, getCodeText, getLineContent, getLineRangeOfGroup, getNonGeneratedLinesInRange, isPromise, resetEditorState, scrollToPrevPos, setFlashingEffect, setGenLineDeco, setGroupedLineDeco, setHTMLEventHandler, setViewCodeText } from "./libCodeEditor";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -39,7 +40,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
     // const [serverSynced, setServerSynced] = useState(false);
     const serverSynced = useSelector(state => state.projectManager.serverSynced);
     const inViewID = useSelector(state => state.projectManager.inViewID);
-    const codeLines: ICodeLine[] = useSelector(state => getCodeLineRedux(state));
+    const codeLines: ICodeLine[]|null = useSelector(state => getCodeLine(state));
     // const codeText: string[] = useSelector(state => getCodeTextRedux(state));    
     const runQueue = useSelector(state => state.codeEditor.runQueue);
     const dispatch = useDispatch();
@@ -49,86 +50,26 @@ const CodeEditor = ({id, recvCodeOutput}) => {
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
     
-    function getCodeLineRedux(state) {
-        let inViewID = state.projectManager.inViewID;
-        if (inViewID) {
-            return ifElse(state.codeEditor.codeLines, inViewID, null);
-        }
-        return null;
-    }
-
-    // function getCodeTextRedux(state) {
-    //     let inViewID = state.projectManager.inViewID;
-    //     if (inViewID) {
-    //         return ifElse(state.codeEditor.codeText, inViewID, null);
-    //     }
-    //     return null;
-    // }
-
-    /** 
-     * This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror 
-     * intenal, we can't dictate when it will be called. To cope with this, we have to check the object existence carefully 
-     * and rely on useEffect to force this to be called again when `codeLines` updated 
-    */ 
-    const editStatusGutter = gutter({
-        lineMarker(view, line) {
-            let inViewID = store.getState().projectManager.inViewID;
-            if (inViewID) {
-                let lines = getCodeLineRedux(store.getState());
-                // line.number in state.doc is 1 based, so convert to 0 base
-                let lineNumber = view.state.doc.lineAt(line.from).number-1;
-                // console.log(lines.length);
-                if(lines && lineNumber<lines.length){                                
-                    switch(lines[lineNumber].status){
-                        case LineStatus.EDITED: return editedMarker;
-                        case LineStatus.EXECUTING: return executingMarker;
-                        case LineStatus.EXECUTED: return executedMarker;
-                    }
-                }
-            }
-            return null;
-        },
-        initialSpacer: () => executedMarker
-    })
-    /** */
-    
     const extensions = [
         basicSetup,
         // oneDark,
-        EditorView.lineWrapping,
+        // EditorView.lineWrapping,
         lineNumbers(),
-        editStatusGutter,
+        editStatusGutter(
+            store.getState().projectManager.inViewID, 
+            getCodeLine(store.getState())
+        ),
         bracketMatching(),
         defaultHighlightStyle.fallback,
         python(),
         ls,
         // keymap.of([{key: 'Mod-l', run: runLine}]),
-        keymap.of([{key: 'Mod-l', run: setRunQueue}]),
+        keymap.of([
+            {key: 'Mod-l', run: setRunQueue},
+            {key: 'Mod-k', run: setGroup},
+            {key: 'Mod-j', run: setUnGroup}]),
         indentUnit.of('    '),
     ];
-
-    const getCodeText = () => {
-        let state = store.getState();
-        let inViewID = state.projectManager.inViewID;
-        // console.log('CodeEditor getCodeText ', inViewID, editorRef.current);
-        let codeText;
-        if (inViewID) {            
-            codeText = ifElse(state.codeEditor.codeText, inViewID, null);            
-        }
-        return codeText;
-    }
-
-    const getJoinedCodeText = () => {
-        let state = store.getState();
-        let inViewID = state.projectManager.inViewID;
-        // console.log('CodeEditor getCodeText ', inViewID, editorRef.current);
-        if (inViewID) {            
-            let codeText = ifElse(state.codeEditor.codeText, inViewID, null);
-            if (codeText)
-                return codeText.join('\n');
-        }
-        return undefined;
-    }
 
     const { view, container, setContainer } = useCodeMirror({
         container: editorRef.current,
@@ -138,7 +79,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         onChange: onCodeMirrorChange,     
     });
 
-    const _handlePlotData = (message: Message) => {
+    const handlePlotData = (message: Message) => {
         console.log(`${WebAppEndpoint.CodeEditor} got plot data`);
         let inViewID = store.getState().projectManager.inViewID;
         if (inViewID) {
@@ -161,34 +102,32 @@ const CodeEditor = ({id, recvCodeOutput}) => {
     function _socketInit(){
         socket.emit("ping", WebAppEndpoint.CodeEditor);
         socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
-            // console.log("Got results: ", result, '\n');
-            console.log("CodeEditor got results...");
+            console.log("Got results: ", result, '\n');
+            // console.log("CodeEditor got results...");
             try {
                 let codeOutput: Message = JSON.parse(result);   
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
-                    if (codeOutput.content_type == ContentType.STRING){
+                    if ((codeOutput.content_type===ContentType.STRING) || (codeOutput.error===true)){
                         recvCodeOutput(codeOutput); //TODO: move this to redux
                     } else {
-                        if(codeOutput.error==true){
-                            recvCodeOutput(codeOutput);
-                        } else if (codeOutput.content_type==ContentType.PANDAS_DATAFRAME){
+                        if (codeOutput.content_type==ContentType.PANDAS_DATAFRAME){
                             console.log("dispatch tableData");               
                             dispatch(setTableData(codeOutput.content));
                         } else if (codeOutput.content_type==ContentType.PLOTLY_FIG){
                             // _handlePlotData(codeOutput); 
-                            _handlePlotData(codeOutput);                       
+                            handlePlotData(codeOutput);                       
                         }
                         else {  
                             console.log("dispatch text output:", codeOutput);                        
                             recvCodeOutput(codeOutput);
                         }
                     }
-                    let lineStatus: ILineStatus = {
+                    let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
                         lineNumber: codeOutput.metadata.line_number, 
                         status: LineStatus.EXECUTED};
-                    console.log('CodeEditor socket ', lineStatus);
+                    // console.log('CodeEditor socket ', lineStatus);
                     dispatch(setLineStatus(lineStatus));
                     /** set active code line to be the current line after it is excuted so the result will be show accordlingly
                      * not sure if this is a good design but will live with it for now */ 
@@ -208,115 +147,77 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         _socketInit();
     }, []); 
 
-    const scrollTimer = (scrollEl: HTMLElement) => {
-        scrollEl.onscroll = null;
-        setTimeout(() => {
-            scrollEl.onscroll = ((event) => scrollTimer(scrollEl));
-            dispatch(setScrollPos(scrollEl.scrollTop));
-        }, 100);
-    }
     /**
      * FIXME: This is used to set onmousedown event handler. This does not seem to be the best way. 
      * Also set the SOLID effect for generated lines
      * */
-    const setHTMLEventHandler = () => {
-        if (container){                
-            container.onmousedown = onMouseDown;  
-            let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;
-            scrollEl.onscroll = ((event) => scrollTimer(scrollEl));
-        }
-    }
+    
     useEffect(() => { 
         console.log('CodeEditor useEffect container', container);                  
-        setHTMLEventHandler();                   
+        setHTMLEventHandler(container, view, dispatch);                   
     }, [container]);
     
-    const setGenCodeLineDeco = () => {
-        if (view) {
-            // console.log('CodeEditor set gencode solid')
-            view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
-            view.dispatch({effects: [generatedCodeStateEffect.of({type: GenCodeEffectType.SOLID})]});             
-        }
-    }
-
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
-    const resetEditorState = () => {
-        if(view)
-            view.setState(EditorState.create({doc: '', extensions: extensions}));
-        setCodeReloading(true);
-    }
     useEffect(() => {
         console.log('CodeEditor useEffect inViewID ', inViewID);   
-        if(inViewID)
-            resetEditorState();
+        if(inViewID){
+            resetEditorState(view, extensions);
+            setCodeReloading(true);
+        }            
     }, [inViewID]);
 
-    const scrollToPrevPos = () => {
-        let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;
-        let inViewID = store.getState().projectManager.inViewID;
-        if(inViewID){
-            let openFile = store.getState().projectManager.openFiles[inViewID];
-            if (openFile && openFile.scroll_pos){
-                scrollEl.scrollTop = openFile.scroll_pos;
-            }
-        }
-        
-    }
     /**
      * Init CodeEditor value with content load from the file
      * Also scroll the file to the previous position
-     */
-    const loadCodeText = () => {
-        console.log('CodeEditor loadCodeText');
-        let codeText = getJoinedCodeText();
-        if (view) {
-            let transactionSpec: TransactionSpec = {
-                changes: {
-                    from: 0, 
-                    to: 0, 
-                    insert: codeText
-                }
-            };                
-            let transaction: Transaction = view.state.update(transactionSpec);
-            view.dispatch(transaction); 
-            scrollToPrevPos();
-            setCodeReloading(false);
-        }
-    }
+     */    
     useEffect(() => {
         console.log('CodeEditor useEffect serverSynced, mustReload, view', serverSynced, codeReloading, view);    
         // console.log('CodeEditor useEffect codeText', view, codeText[0], serverSynced);
         if (serverSynced && codeReloading && view){      
-            loadCodeText();
+            setViewCodeText(store.getState(), view);
+            setCodeReloading(false);
+            scrollToPrevPos(store.getState());
         }        
     }, [serverSynced, codeReloading, view]);
 
     useEffect(() => {
         try {
-            //TODO: improve this
-            setGenCodeLineDeco();
+            //TODO: improve this            
+            setGroupedLineDeco(store.getState(), view);
+            setGenLineDeco(store.getState(), view);
             console.log('CodeEditor useEffect setGenCodeLineDeco');
         } catch {
                
         }        
     })
-    // useEffect(() => {
-    //     console.log('CodeEditor useEffect serverSynced ', serverSynced);    
-    //     // console.log('CodeEditor useEffect codeText', view, codeText[0], serverSynced);
-    //     if (serverSynced){      
-    //         // loadCodeText();
-    //     }
-    // }, [serverSynced]);
-    // useEffect(() => {
-    //     // console.log('CodeEditor useEffect codeText', view, codeText[0], serverSynced);
-    //     if (codeText && view && !serverSynced){            
-    //         _initCM();
-    //         setServerSynced(true);                        
-    //     }
-    // }, [codeText, view]);
     
+    useEffect(()=>{
+        execLine()
+    },[runQueue])
+    /** */
+    
+    /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update 
+     * with line status. This works but might need to find a better performant solution. */ 
+    useEffect(() => {
+        console.log('CodeEditor useEffect codeLines', codeLines!==null);                 
+        if(view){            
+            view.dispatch();
+        }         
+    }, [codeLines]);
+
+    useEffect(() => {
+        console.log('CodeEditor useEffect magicInfo ', magicInfo);
+        processMagicInfo();
+    }, [magicInfo])
+    
+    useEffect(() => {
+        console.log('CodeEditor useEffect editorRef.current ', editorRef.current);
+        if (editorRef.current) {
+            setContainer(editorRef.current);
+        }
+    }, [editorRef.current]);
 
     function _create_message(content: ILineContent) {
         let message: Message = {
@@ -338,27 +239,12 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     }
 
-    /** Functions that support runQueue */
-    function _getLineContent(lineNumber: number): string|undefined {
-        let text: string|undefined;
-        if (view){ 
-            const doc = view.state.doc;
-            /** convert lineNumber to 1-based */
-            // console.log('CodeEditor', cm, doc, doc.line(10));
-            let line = doc.line(lineNumber+1);
-            text = line.text;         
-            console.log('CodeEditor _getLineContent2 code line to run: ', lineNumber+1, text);
-            // convert the line number to 0-based index, which is what we use internally
-        }
-        return text;
-    }
-
-    function setRunQueue(editorView: EditorView): boolean {
+    function setRunQueue(): boolean {
         const executorID = store.getState().projectManager.executorID;
         let inViewID = store.getState().projectManager.inViewID;
-        if (inViewID === executorID){
-            const doc = editorView.state.doc;
-            const state = editorView.state;
+        if (view && inViewID === executorID){
+            const doc = view.state.doc;
+            const state = view.state;
             const anchor = state.selection.ranges[0].anchor;
             let lineAtAnchor = doc.lineAt(anchor);
             let text: string = lineAtAnchor.text;   
@@ -369,17 +255,18 @@ const CodeEditor = ({id, recvCodeOutput}) => {
             let inViewId = store.getState().projectManager.inViewID;
 
             if(inViewId) {
+                let codeLines: ICodeLine[]|null = getCodeLine(store.getState());            
                 if(text.startsWith(MAGIC_STARTER)){
-                    /** Get line range of group starting from next line */
-                    let codeEditorReduxLines: ICodeLine[] = getCodeLineRedux(store.getState());            
+                    /** Get line range of group starting from next line */                    
                     /** this if condition is looking at the next line*/
-                    if (codeEditorReduxLines[lineNumberAtAnchor+1].generated){
-                        lineRange = _getLineRangeOfGroup(lineNumberAtAnchor+1);
+                    if (codeLines && codeLines[lineNumberAtAnchor+1].generated){
+                        lineRange = getLineRangeOfGroup(codeLines, lineNumberAtAnchor+1);
                     }
                 } else {
                     /** Get line range of group starting from the current line */
                     /** convert to 0-based */
-                    lineRange = _getLineRangeOfGroup(lineNumberAtAnchor);
+                    if (codeLines)
+                        lineRange = getLineRangeOfGroup(codeLines, lineNumberAtAnchor);
                 }
 
                 if (lineRange){
@@ -393,15 +280,15 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         return true;
     }
 
-    function execLine(){
+    const execLine = () => {
         if(runQueue.status === RunQueueStatus.RUNNING){
-            let text: string|undefined = _getLineContent(runQueue.runningLine);
+            let text: string|undefined = getLineContent(view, runQueue.runningLine);
             let inViewID = store.getState().projectManager.inViewID;
             if(text && inViewID){
                 console.log('CodeEditor execLine: ', runQueue.runningLine);
                 let content: ILineContent = {lineNumber: runQueue.runningLine, content: text};
                 _send_message(content);
-                let lineStatus: ILineStatus = {
+                let lineStatus: ICodeLineStatus = {
                     inViewID: inViewID, 
                     lineNumber: content.lineNumber, 
                     status: LineStatus.EXECUTING};
@@ -410,38 +297,60 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         }
     }
     
-    useEffect(()=>{
-        execLine()
-    },[runQueue])
-    /** */
-    
-    function onMouseDown(event){
-        try {
-            if(view){
-                //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
-                let doc = view.state.doc;
-                let pos = view.posAtDOM(event.target);                
-                //convert to 0-based
-                let lineNumber = doc.lineAt(pos).number-1;        
-                dispatch(setActiveLine(lineNumber));
-                // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
-            }                    
-        } catch(error) {
-            console.log(error);
-            console.trace();
-        }
-        
+    /**
+     * Do not allow grouping involed generated lines
+     */
+    function setGroup(): boolean {
+        if(view){
+            let range = view.state.selection.asSingle().ranges[0];
+            let lineRange = getNonGeneratedLinesInRange(
+                getCodeLine(store.getState()), 
+                view, 
+                range.from, 
+                range.to);
+            let inViewID = store.getState().projectManager.inViewID;
+            console.log('CodeEditor setGroup: ', lineRange);
+            if(inViewID && lineRange && lineRange.toLine>lineRange.fromLine){
+                let lineStatus: ICodeLineGroupStatus = {
+                    inViewID: inViewID,
+                    fromLine: lineRange.fromLine, 
+                    toLine: lineRange.toLine, 
+                    status: LineStatus.EDITED, 
+                    setGroup: SetLineGroupCommand.NEW,
+                };                        
+                dispatch(setLineGroupStatus(lineStatus));
+            }            
+        }     
+        return true;       
     }
 
-    /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update 
-     * with line status. This works but might need to find a better performant solution. */ 
-    useEffect(() => {
-        console.log('CodeEditor useEffect codeLines', codeLines!==null);                 
-        if(view){            
-            view.dispatch();
-        }         
-    }, [codeLines]);
-    
+    function setUnGroup(): boolean {
+        if(view){
+            const doc = view.state.doc;
+            const anchor = view.state.selection.asSingle().ranges[0].anchor;
+            let lineAtAnchor = doc.lineAt(anchor);
+            let reduxState = store.getState()
+            let inViewID = reduxState.projectManager.inViewID;
+            if(inViewID){
+                let codeLines = reduxState.codeEditor.codeLines[inViewID];
+                /** minus 1 to convert to 0-based */
+                let lineRange = getLineRangeOfGroup(codeLines, lineAtAnchor.number-1);
+                console.log('CodeEditor setUnGroup: ', lineRange);
+                if(inViewID && lineRange && lineRange.toLine>lineRange.fromLine){
+                    let lineStatus: ICodeLineGroupStatus = {
+                        inViewID: inViewID,
+                        fromLine: lineRange.fromLine, 
+                        toLine: lineRange.toLine, 
+                        // status: LineStatus.EDITED, 
+                        setGroup: SetLineGroupCommand.UNDEF,
+                    };                        
+                    dispatch(setLineGroupStatus(lineStatus));
+                }    
+            }                    
+        }     
+        return true;       
+    }
+
     /**
      * Any code change after initialization will be handled by this function
      * @param value 
@@ -664,32 +573,35 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                 let lineCount: number|undefined = genCodeResult.lineCount;                
                 let lineNumber = magicInfo.lineInfo.fromLine;
                 let insertFrom =  magicInfo.lineInfo.fromPos; //magicInfo.line.from;
-                let isLineGenerated = codeLines[lineNumber].generated;
-                let lineRange = _getLineRangeOfGroup(lineNumber);
-                let codeText = getCodeText();
-                let insertTo: number = insertFrom;
-                if(isLineGenerated){
-                    for(let i=lineRange.fromLine; i<lineRange.toLine; i++){
-                        console.log('CodeEditor Magic codeText length: ', codeText[i].length, insertTo);
-                        insertTo += codeText[i].length; 
+                let codeLines: ICodeLine[]|null = getCodeLine(store.getState());
+                if(codeLines){
+                    let isLineGenerated = codeLines[lineNumber].generated;                
+                    let lineRange = getLineRangeOfGroup(codeLines, lineNumber);
+                    let codeText = getCodeText(store.getState());
+                    let insertTo: number = insertFrom;
+                    if(isLineGenerated){
+                        for(let i=lineRange.fromLine; i<lineRange.toLine; i++){
+                            console.log('CodeEditor Magic codeText length: ', codeText[i].length, insertTo);
+                            insertTo += codeText[i].length; 
+                        }
+                        /** add the number of the newline character between fromLine to toLine excluding the last one*/
+                        insertTo += (lineRange.toLine-lineRange.fromLine-1); 
                     }
-                    /** add the number of the newline character between fromLine to toLine excluding the last one*/
-                    insertTo += (lineRange.toLine-lineRange.fromLine-1); 
-                }
-                /** Update magicInfo with lineCount */
-                magicInfo.lineInfo.toLine = magicInfo.lineInfo.fromLine + (lineCount?lineCount:0);
-                setMagicInfo(magicInfo); //only update do not create new magic info so state wont be updated
+                    /** Update magicInfo with lineCount */
+                    magicInfo.lineInfo.toLine = magicInfo.lineInfo.fromLine + (lineCount?lineCount:0);
+                    setMagicInfo(magicInfo); //only update do not create new magic info so state wont be updated
 
-                console.log('CodeEditor Magic insert range: ', insertFrom, insertTo, lineRange, lineNumber, codeText);
-                let transactionSpec: TransactionSpec = {
-                    changes: {
-                        from: insertFrom, 
-                        to: insertTo, 
-                        insert: isLineGenerated ? genCode : genCode + LINE_SEP
-                    }
-                };                
-                let transaction: Transaction = state.update(transactionSpec);
-                view.dispatch(transaction);                                       
+                    console.log('CodeEditor Magic insert range: ', insertFrom, insertTo, lineRange, lineNumber, codeText);
+                    let transactionSpec: TransactionSpec = {
+                        changes: {
+                            from: insertFrom, 
+                            to: insertTo, 
+                            insert: isLineGenerated ? genCode : genCode + LINE_SEP
+                        }
+                    };                
+                    let transaction: Transaction = state.update(transactionSpec);
+                    view.dispatch(transaction);  
+                }                  
             } else {
                 setMagicInfo(undefined);       
             }
@@ -722,158 +634,11 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                     } 
                 }
             } else if (magicInfo.status === CodeGenStatus.INSERTED && magicInfo.lineInfo !== undefined) {
-                _setFlashingEffect();
+                setFlashingEffect(store.getState(), view, magicInfo);
             }
         }
     }
-    useEffect(() => {
-        console.log('CodeEditor useEffect magicInfo ', magicInfo);
-        processMagicInfo();
-    }, [magicInfo])
     
-    function isPromise(object) {
-        if (Promise && Promise.resolve) {
-            return Promise.resolve(object) == object;
-        } else {
-            throw "Promise not supported in your environment"; // Most modern browsers support Promises
-        }
-    }
-
-    /**
-     * Get the line range of the group that contains lineNumber
-     * @param lineNumber 
-     * @returns line range which is from fromLine to toLine excluding toLine
-     */
-    function _getLineRangeOfGroup(lineNumber: number): ILineRange {
-        let groupID = codeLines[lineNumber].groupID;
-        let fromLine = lineNumber;
-        let toLine = lineNumber;
-        if (groupID === undefined){
-            toLine = fromLine+1;
-        } else {
-            while(codeLines[fromLine-1].groupID && codeLines[fromLine-1].groupID === groupID){
-                fromLine -= 1;
-            }
-            while(codeLines[toLine].groupID && codeLines[toLine].groupID === groupID){
-                toLine += 1;
-            }
-        }        
-        return {fromLine: fromLine, toLine: toLine};
-    }    
-    /** */
-    
-    /** Implement line status gutter */
-    const markerDiv = () => {
-        let statusDiv = document.createElement('div');
-        statusDiv.style.width = '2px';
-        statusDiv.style.height = '100%';        
-        return statusDiv;
-    }
-
-    const executedColor = '#42a5f5';
-    const editedMarker = new class extends GutterMarker {
-        toDOM() { 
-            return markerDiv();
-        }
-    }
-
-    const executingMarker = new class extends GutterMarker {
-        toDOM() { 
-            let statusDiv = markerDiv();
-            statusDiv.animate([
-                {backgroundColor: ''},
-                {backgroundColor: executedColor, offset: 0.5}], 
-                {duration: 2000, iterations: Infinity});
-            return statusDiv;
-        }
-    }
-    
-    const executedMarker = new class extends GutterMarker {
-        toDOM() { 
-            let statusDiv = markerDiv();
-            statusDiv.style.backgroundColor = executedColor;
-            return statusDiv;
-        }
-    }
-
-    /** Implement the decoration for magic generated code lines */
-    /** 
-     * Implement the flashing effect after line is inserted.
-     * This function also reset magicInfo after the animation completes. 
-     * */
-    function _setFlashingEffect(){
-        console.log('Magic _setFlashingEffect', magicInfo, view, container);    
-        if(magicInfo && view){
-            view.dispatch({effects: [StateEffect.appendConfig.of([generatedCodeDeco])]});
-            view.dispatch({effects: [generatedCodeStateEffect.of({
-                lineInfo: magicInfo.lineInfo, 
-                type: GenCodeEffectType.FLASHING})]});             
-        }        
-    }
-    enum GenCodeEffectType {
-        FLASHING,
-        SOLID
-    };
-    /** note that this lineNumber is 1-based */
-    const generatedCodeStateEffect = StateEffect.define<{lineInfo?: IInsertLinesInfo, type: GenCodeEffectType}>()
-    const generatedCodeDeco = StateField.define<DecorationSet>({
-        create() {
-            return Decoration.none;
-        },
-        update(marks, tr) {
-            if (view){                               
-                marks = marks.map(tr.changes)
-                for (let effect of tr.effects) if (effect.is(generatedCodeStateEffect)) {
-                    // console.log('Magic generatedCodeDeco update ', effect.value.type);     
-                    if (effect.value.type === GenCodeEffectType.FLASHING) {
-                        if (effect.value.lineInfo !== undefined){
-                            let lineInfo = effect.value.lineInfo;
-                            for (let i=lineInfo.fromLine; i<lineInfo.toLine; i++){
-                                /** convert line number to 1-based */
-                                let line = view.state.doc.line(i+1);
-                                // console.log('Magics line from: ', line, line.from);
-                                marks = marks.update({
-                                    add: [genCodeFlashCSS.range(line.from)]
-                                })
-                                // console.log('Magic _setFlashingEffect generatedCodeDeco update ', line.from);                         
-                            }                            
-                        }                        
-                    } else { /** effect.value.type is SOLID */
-                        let inViewID = store.getState().projectManager.inViewID;
-                        if (inViewID) {
-                            let lines: ICodeLine[] = getCodeLineRedux(store.getState());
-                            if (lines) {
-                                for (let l=0; l < lines.length; l++){
-                                    if (lines[l].generated === true){
-                                        console.log('CodeEditor Magic generatedCodeDeco ', effect.value.type);     
-                                        let line = view.state.doc.line(l+1);
-                                        marks = marks.update({
-                                            add: [genCodeSolidCSS.range(line.from)]
-                                        })
-                                    }                            
-                                }
-                            }
-                        }    
-                    }
-                }           
-                return marks
-            }
-        },
-        provide: f => EditorView.decorations.from(f)
-    });
-    const genCodeFlashCSS = Decoration.line({attributes: {class: "cm-gencode-flash"}});
-    const genCodeSolidCSS = Decoration.line({attributes: {class: "cm-gencode-solid"}});
-    /** end of generated code line decoration */
-        
-    useEffect(() => {
-        console.log('CodeEditor useEffect editorRef.current ', editorRef.current);
-        if (editorRef.current) {
-            setContainer(editorRef.current);
-        }
-    }, [editorRef.current]);
-    
-    // {console.log('CodeEditor render ', id, editorRef)}
-
     return (
         <StyledCodeEditor ref={editorRef}>
             {console.log('CodeEditor render')}
@@ -882,6 +647,4 @@ const CodeEditor = ({id, recvCodeOutput}) => {
 };
 
 export default CodeEditor;
-
-
 

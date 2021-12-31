@@ -286,9 +286,9 @@ export const StyledCodePanel = styled.div`
             // max-height: 100%;
             .cm-tooltip.lint {
                 white-space: pre;
-              }
-              
-              .cm-tooltip.cm-completionInfo {
+            }
+            
+            .cm-tooltip.cm-completionInfo {
                 position: absolute;
                 margin: 1px -4px;
                 padding: 10px 10px 10px 10px;
@@ -297,20 +297,24 @@ export const StyledCodePanel = styled.div`
                 max-height: 700px;
                 white-space: pre;
                 overflow: scroll;
-              }
-  
-              .cm-editor.cm-focused { 
-                  outline: none
-              }
-  
-              .cm-gencode-flash {
-                  background-color: #fff3f9;
-                  animation:  ${backgroundTransitionToColor('#fff3f9', 'white')} 1s ease 0s;
-              }
-              
-              .cm-gencode-solid {
-                  background-color: #fff3f9;
-              }
+            }
+
+            .cm-editor.cm-focused { 
+                outline: none
+            }
+
+            .cm-genline-flash {
+                background-color: #fff3f9;
+                animation:  ${backgroundTransitionToColor('#fff3f9', 'white')} 1s ease 0s;
+            }
+            
+            .cm-genline-solid {
+                background-color: rgb(255,218,236,0.5);
+            }
+            
+            .cm-groupedline {
+                background-color: rgb(218,255,237, 0.5);
+            }
         `;
 
         export const StyledCodeMirror = styled(CodeMirror)`

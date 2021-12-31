@@ -60,12 +60,19 @@ export const CodeEditorRedux = createSlice({
             // console.log('added line index started at: ', updatedStartLineNumber+1);
             if (lineUpdate.updatedLineCount>0){
                 let addedLines: ICodeLine[] = [];
+                /** use the same groupID of updatedStartLineNumber*/
                 for(let i=0; i<lineUpdate.updatedLineCount; i++){
-                    let codeLine: ICodeLine = {lineID: shortid(), status: LineStatus.EDITED, result: null, generated: false};
+                    let codeLine: ICodeLine = {
+                        lineID: shortid(), 
+                        status: LineStatus.EDITED, 
+                        result: null, 
+                        generated: false,
+                        groupID: codeLines[updatedStartLineNumber].groupID
+                    };
                     addedLines.push(codeLine);                    
                 }
                 /** Insert the insersted lines into the array. Keep the ID of lines between 0 and updatedStartLineNumber 
-                 * the same. That means line updatedStartLineNumber will be considered as `edited` but not a new line.
+                 * the same. That means line updatedStartLineNumber will be considered as `edited` not a new line.
                  * See more note below. */                 
                 codeLines = [...codeLines.slice(0, updatedStartLineNumber+1), ...addedLines, 
                     ...codeLines.slice(updatedStartLineNumber+1)];           
@@ -87,7 +94,7 @@ export const CodeEditorRedux = createSlice({
             }
                  
             /** mark the first line where the insert is `edited`, this is correct in most case except for case
-            * where the anchor is right after the new line character. In this case, the anchor will be
+            * where the anchor is right before the new line character. In this case, after inserting the anchor will be
             * right at the beginning of an existing line, so technically this line is not edited.
             * for simplicity, we ignore this case for now */
             codeLines[updatedStartLineNumber].status = LineStatus.EDITED;

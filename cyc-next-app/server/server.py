@@ -128,12 +128,13 @@ def _create_CodeArea_plot_data(result):
 def _create_get_cardinal_data(result):
      return {'cardinals': result}
 
-def create_error_message(webapp_endpoint, trace):
+def create_error_message(webapp_endpoint, trace, metadata=None):
     return Message(**{
         "webapp_endpoint": webapp_endpoint, 
         "content_type": ContentType.STRING,
         "content": trace,
-        "error": True
+        "error": True,
+        "metadata": metadata,
     })
 
 def send_result_to_node_server(message: Message):
@@ -212,52 +213,59 @@ def handle_DataFrameManager_message(message):
         send_result_to_node_server(error_message)
 
 def handle_CodeArea_message(message):
-    assign_exec_mode(message)
-    # sys.stdout = normal_stdout                        
-    if message.execution_mode == 'exec':
-        log.info('exec...')
-        exec(message.content, globals())
-        content_type = ContentType.STRING
-        output = sys.stdout.getvalue()
-    elif message.execution_mode == 'eval':
-        log.info('eval...')
-        result = eval(message.content, globals())
-        if result is not None:            
-            # log.info("eval result: \n%s" % (result))
-            log.info("got eval results")
-            if _result_is_dataframe(result):
-                df_id = _get_dataframe_id(message.content)
-                output = _create_table_data(df_id, result)       
-                content_type = ContentType.PANDAS_DATAFRAME
-            elif _result_is_plotly_fig(result):
-                output = _create_CodeArea_plot_data(result)
-                content_type = ContentType.PLOTLY_FIG
-            else:
-                content_type = ContentType.STRING
-                output = str(result)                
-        else:
-            result = sys.stdout.getvalue()
-            # log.info("eval stdout: \n"+ result)                     
-            log.info("got eval result on stdout ...")
-            if result is not None:             
-                #this is super hacky. for now just assume only plotly will return a dict type
-                if _plotly_show_match(message.content): 
-                    print("get plot data")                                        
-                    output = _create_plot_data(result) 
+    try:
+        assign_exec_mode(message)
+        # sys.stdout = normal_stdout                        
+        if message.execution_mode == 'exec':
+            log.info('exec...')
+            exec(message.content, globals())
+            content_type = ContentType.STRING
+            output = sys.stdout.getvalue()
+        elif message.execution_mode == 'eval':
+            log.info('eval...')
+            result = eval(message.content, globals())
+            if result is not None:            
+                # log.info("eval result: \n%s" % (result))
+                log.info("got eval results")
+                if _result_is_dataframe(result):
+                    df_id = _get_dataframe_id(message.content)
+                    output = _create_table_data(df_id, result)       
+                    content_type = ContentType.PANDAS_DATAFRAME
+                elif _result_is_plotly_fig(result):
+                    output = _create_CodeArea_plot_data(result)
                     content_type = ContentType.PLOTLY_FIG
                 else:
                     content_type = ContentType.STRING
-                    output = str(result)
+                    output = str(result)                
             else:
-                content_type = ContentType.NONE
-                output = ''
+                result = sys.stdout.getvalue()
+                # log.info("eval stdout: \n"+ result)                     
+                log.info("got eval result on stdout ...")
+                if result is not None:             
+                    #this is super hacky. for now just assume only plotly will return a dict type
+                    if _plotly_show_match(message.content): 
+                        print("get plot data")                                        
+                        output = _create_plot_data(result) 
+                        content_type = ContentType.PLOTLY_FIG
+                    else:
+                        content_type = ContentType.STRING
+                        output = str(result)
+                else:
+                    content_type = ContentType.NONE
+                    output = ''
 
-    message.content_type = content_type
-    message.content = output
-    message.error = False
-    # print(message)           
-    send_result_to_node_server(message)                                 
-    # return message
+        message.content_type = content_type
+        message.content = output
+        message.error = False
+        # print(message)           
+        send_result_to_node_server(message)                                 
+        # return message
+
+    except:
+        trace = traceback.format_exc()
+        log.error("%s" % (trace))
+        error_message = create_error_message(message.webapp_endpoint, trace, message.metadata)          
+        send_result_to_node_server(error_message)
 
 def handle_FileManager_message(message):
     log.info('Handle FileManager message: %s' % message)
