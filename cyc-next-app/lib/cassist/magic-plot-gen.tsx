@@ -1,4 +1,4 @@
-import { CategoricalTypes, CodeGenResult, MagicPlotData, NumericalTypes, PlotType, IGetCardinalResult, IDimStatsResult, AggregateType, LINE_SEP } from "../interfaces/IMagic";
+import { CategoricalTypes, ICodeGenResult, MagicPlotData, NumericalTypes, PlotType, IGetCardinalResult, IDimStatsResult, AggregateType, LINE_SEP } from "../interfaces/ICAssist";
 import store from '../../redux/store';
 import { ifElse } from "../components/libs";
 import { CommandName, ContentType, Message, WebAppEndpoint } from "../interfaces/IApp";
@@ -230,8 +230,8 @@ function _send_message(message: Message, timeout = 10000) {
     });    
 }
 
-function _handle_univariate_plot(df_id: string, y: string[]): CodeGenResult {
-    let result: CodeGenResult;
+function _handle_univariate_plot(df_id: string, y: string[]): ICodeGenResult {
+    let result: ICodeGenResult;
     if(y.length == 1){                
         let plot = new PlotCommand(PlotType.HISTOGRAM, df_id, y);
         let codeStr = plot.toString();
@@ -248,8 +248,8 @@ function _handle_univariate_plot(df_id: string, y: string[]): CodeGenResult {
 const SCATTER_MIN_X_UNIQUE=20
 const LINE_MIN_X_UNIQUE=2
 
-function _handle_bivariate_plot(df_id: string, x: string[], y: string[], dimStats: IDimStatsResult): CodeGenResult{
-    let result: CodeGenResult;
+function _handle_bivariate_plot(df_id: string, x: string[], y: string[], dimStats: IDimStatsResult): ICodeGenResult{
+    let result: ICodeGenResult;
     let plot;
     console.log('Magic _handle_bivariate_plot: ', df_id, x, y, dimStats);  
     if(dimStats.groupby_x0.std > 0) {
@@ -274,8 +274,8 @@ function _handle_bivariate_plot(df_id: string, x: string[], y: string[], dimStat
     }
 }
 
-function _handle_x_multivariate_plot(df_id: string, x: string[], y: string[], dimStats: IDimStatsResult): CodeGenResult{
-    let result: CodeGenResult;
+function _handle_x_multivariate_plot(df_id: string, x: string[], y: string[], dimStats: IDimStatsResult): ICodeGenResult{
+    let result: ICodeGenResult;
     let plot;
     console.log('Magic _handle_x_multivariate_plot: ', df_id, x, y, dimStats);                
     if(dimStats.groupby_x0.std > 0) {
@@ -300,8 +300,8 @@ function _handle_x_multivariate_plot(df_id: string, x: string[], y: string[], di
     }
 }
 
-function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], allColMetadata, dimStats: IDimStatsResult): CodeGenResult{
-    let result: CodeGenResult;
+function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], allColMetadata, dimStats: IDimStatsResult): ICodeGenResult{
+    let result: ICodeGenResult;
     let plot;
     if(NumericalTypes.includes(allColMetadata[y[0]].type) && NumericalTypes.includes(allColMetadata[x[0]].type)){
         /** Possible plots: Scatter or Line */
@@ -340,7 +340,7 @@ function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], a
     }
 }
 
-export function magicsGetPlotCommand(plotData: MagicPlotData): Promise<CodeGenResult>|CodeGenResult {     
+export function magicsGetPlotCommand(plotData: MagicPlotData): Promise<ICodeGenResult>|ICodeGenResult {     
     if (plotData.df == null){
         return {error: true};
     }

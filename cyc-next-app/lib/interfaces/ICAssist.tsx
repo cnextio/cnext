@@ -31,7 +31,7 @@ export enum PlotType {
     HISTOGRAM = 'histogram',
 }
 
-export interface CodeGenResult {
+export interface ICodeGenResult {
     code?: string;
     lineCount?: number;
     error: boolean;
@@ -52,12 +52,13 @@ export interface IInsertLinesInfo {
     fromPos: number;
 }
 
-export interface IMagicInfo {
+export interface ICAssistInfo {
 	status: CodeGenStatus,
 	line?: Line,
     lineInfo: IInsertLinesInfo,
 	magicText?: string,
 	plotData?: MagicPlotData,
+    genCode?: string,
 }
 
 export enum CodeGenStatus {
@@ -84,7 +85,7 @@ export enum AggregateType {
     VAR = 'var',
 }
 
-export const MAGIC_STARTER = '#!';
+export const CASSIST_STARTER = '#!';
 
 export const NumericalTypes = ['int64', 'float64'];
 export const CategoricalTypes = ['category', 'object', 'bool', 'datetime64[ns]'];

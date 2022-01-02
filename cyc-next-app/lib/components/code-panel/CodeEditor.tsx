@@ -19,12 +19,13 @@ import { ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, ICodeLineSta
 import { EditorState, StateEffect, Transaction, TransactionSpec } from "@codemirror/state";
 // import { extensions } from './codemirror-extentions/extensions';
 import { useCodeMirror } from '@uiw/react-codemirror';
-import { CodeGenResult, CodeGenStatus, IInsertLinesInfo, IMagicInfo, LINE_SEP, MagicPlotData, MAGIC_STARTER } from "../../interfaces/IMagic";
-import { magicsGetPlotCommand } from "../../cnext-magics/magic-plot-gen";
-import { CNextPlotKeyword, CNextDataFrameExpresion, CNextPlotExpression, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
+import { ICodeGenResult, CodeGenStatus, IInsertLinesInfo, ICAssistInfo, LINE_SEP, CASSIST_STARTER } from "../../interfaces/ICAssist";
+import { magicsGetPlotCommand } from "../../cassist/magic-plot-gen";
+import { CNextDataFrameExpresion, CNextPlotExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
 import { ifElse } from "../libs";
 import { setFileToSave, setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import { editStatusGutter, getCodeLine, getCodeText, getLineContent, getLineRangeOfGroup, getNonGeneratedLinesInRange, isPromise, resetEditorState, scrollToPrevPos, setFlashingEffect, setGenLineDeco, setGroupedLineDeco, setHTMLEventHandler, setViewCodeText } from "./libCodeEditor";
+import { checkboxPlugin, dropdownPlugin, parseCAssistText } from "./libCAssist";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -45,7 +46,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
     const runQueue = useSelector(state => state.codeEditor.runQueue);
     const dispatch = useDispatch();
     const editorRef = useRef();
-    const [magicInfo, setMagicInfo] = useState<IMagicInfo|undefined>();
+    const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
@@ -59,6 +60,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
             store.getState().projectManager.inViewID, 
             getCodeLine(store.getState())
         ),
+        dropdownPlugin.extension,
         bracketMatching(),
         defaultHighlightStyle.fallback,
         python(),
@@ -208,9 +210,9 @@ const CodeEditor = ({id, recvCodeOutput}) => {
     }, [codeLines]);
 
     useEffect(() => {
-        console.log('CodeEditor useEffect magicInfo ', magicInfo);
-        processMagicInfo();
-    }, [magicInfo])
+        console.log('CodeEditor useEffect magicInfo ', cAssistInfo);
+        handleCAssistInfoUpdate();
+    }, [cAssistInfo])
     
     useEffect(() => {
         console.log('CodeEditor useEffect editorRef.current ', editorRef.current);
@@ -256,7 +258,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
 
             if(inViewId) {
                 let codeLines: ICodeLine[]|null = getCodeLine(store.getState());            
-                if(text.startsWith(MAGIC_STARTER)){
+                if(text.startsWith(CASSIST_STARTER)){
                     /** Get line range of group starting from next line */                    
                     /** this if condition is looking at the next line*/
                     if (codeLines && codeLines[lineNumberAtAnchor+1].generated){
@@ -358,17 +360,14 @@ const CodeEditor = ({id, recvCodeOutput}) => {
      */
     function onCodeMirrorChange(value: string, viewUpdate: ViewUpdate){
         try{
+            console.log('CodeEditor onCodeMirrorChange', );
             /** do nothing if the update is due to code reloading from external source */
             if (codeReloading)
                 return;
 
-            if (viewUpdate.viewportChanged)
-                console.log('CodeEditor viewport ', document.querySelector('div.cm-scroller').scrollTop);
-
             let doc = viewUpdate.state.doc;    
             let inViewID = store.getState().projectManager.inViewID;
             let serverSynced = store.getState().projectManager.serverSynced;
-            // console.log('CodeEditor onCodeMirrorChange', );
             viewUpdate.changes.iterChanges(
                 (fromA, toA, fromB, toB, inserted) => {console.log('CodeEditor render onCodeMirrorChange', fromA, toA, fromB, toB)});
             if (serverSynced && inViewID){                
@@ -418,7 +417,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                     dispatch(setFileToSave(inViewID));
                 }
                 
-                magicsPreProcess();
+                handleCAsisstTextUpdate();
             }
         } catch(error) {
             throw(error);
@@ -426,9 +425,22 @@ const CodeEditor = ({id, recvCodeOutput}) => {
     }
 
     /**
-     * This handle all the CNext magics.
+     * This function is called inside onCodeMirrorChange. 
+     * It will check if there is new cAssist information in the code text. 
+     * If yes, generate new cAssistInfo which will be processed later in processCAssistInfo
      */
-    const magicsPreProcess = () => {
+    const handleCAsisstTextUpdate = () => {
+        const updateCAssistInfoWithGenCode = (cAssistInfo: ICAssistInfo, codeGenResult: ICodeGenResult) => {
+            console.log('CodeEditor cAssist updateCAssistInfoWithGenCode: ', codeGenResult);
+            if (!codeGenResult.error && cAssistInfo){
+                let lineCount: number|undefined = codeGenResult.lineCount; 
+                cAssistInfo.lineInfo.toLine = cAssistInfo.lineInfo.fromLine + (lineCount?lineCount:0);
+                cAssistInfo.genCode = codeGenResult.code;
+                console.log('CodeEditor cAssist updateCAssistInfoWithGenCode cAssistInfo: ', cAssistInfo);
+                setCAssistInfo(cAssistInfo);  
+            } 
+        }
+
         if(view){
             let state = view.state;
             let inViewID = store.getState().projectManager.inViewID;
@@ -451,18 +463,18 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                     let text: string = state.doc.toString();
                     let newMagicText: string = text.substring(cursor.from, cursor.to);                         
                     let generatedLine = view.state.doc.lineAt(cursor.to);
-                    console.log('CodeEditor Magics magicsPreProcess current magicInfo: ', magicInfo);
+                    console.log('CodeEditor Magics magicsPreProcess current magicInfo: ', cAssistInfo);
                     /** 
                      * Check the status here to avoid circular update because this code will generate
                      * new content added to the editor, which will trigger onCMChange -> _handleMagic. 
                      * Note: if magicInfo status is CodeGenStatus.INSERTED, we also reset the magicInfo content
                      * */                       
-                    if (magicInfo === undefined || (magicInfo && magicInfo.status === CodeGenStatus.INSERTED)) {            
-                        let plotData = parseMagicText(cursor, text);
-                        let magicInfo: IMagicInfo = {
+                    if (cAssistInfo === undefined || (cAssistInfo && cAssistInfo.status === CodeGenStatus.INSERTED)) {            
+                        let parsedCAText = parseCAssistText(cursor, text);
+                        let cAssistInfo: ICAssistInfo|undefined = {
                             status: CodeGenStatus.INSERTING, 
                             magicText: newMagicText, 
-                            plotData: plotData, 
+                            plotData: parsedCAText, 
                             line: generatedLine,
                             /** generatedLine.number in state.doc is 1 based, so convert to 0 base */ 
                             lineInfo: {
@@ -471,24 +483,33 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                                 toLine: generatedLine.number, /** this will need to be replaced when the code is generated */
                             }
                         };
-                        console.log('CodeEditor Magics magicsPreProcess inserting magicInfo: ', magicInfo);
-                        setMagicInfo(magicInfo);                                                                      
-                    } else if (magicInfo && magicInfo.status === CodeGenStatus.INSERTING && magicInfo.line && magicInfo.lineInfo) {
+
+                        let result: Promise<ICodeGenResult>|ICodeGenResult = magicsGetPlotCommand(parsedCAText);
+                        if (isPromise(result)){
+                            result.then((codeGenResult: ICodeGenResult) => {
+                                updateCAssistInfoWithGenCode(cAssistInfo, codeGenResult);                                
+                            });
+                        } else {
+                            let codeGenResult: ICodeGenResult = result;
+                            updateCAssistInfoWithGenCode(cAssistInfo, codeGenResult);  
+                        }
+
+                    } else if (cAssistInfo && cAssistInfo.status === CodeGenStatus.INSERTING && cAssistInfo.line && cAssistInfo.lineInfo) {
                         /** The second time _handleMagic being called is after new code has been inserted */
                         /** convert line number to 0-based */
                         let lineStatus: ICodeLineGroupStatus = {
                             inViewID: inViewID,
-                            fromLine: magicInfo.lineInfo.fromLine, 
-                            toLine: magicInfo.lineInfo.toLine, 
+                            fromLine: cAssistInfo.lineInfo.fromLine, 
+                            toLine: cAssistInfo.lineInfo.toLine, 
                             status: LineStatus.EDITED, 
                             generated: true,
                             setGroup: SetLineGroupCommand.NEW,
                         };                        
                         dispatch(setLineGroupStatus(lineStatus));
                         // console.log('Magics after inserted lineStatus: ', lineStatus);
-                        magicInfo.status = CodeGenStatus.INSERTED;
-                        console.log('CodeEditor Magics magicsPreProcess after inserted magicInfo: ', magicInfo); 
-                        setMagicInfo({...magicInfo});                                                  
+                        cAssistInfo.status = CodeGenStatus.INSERTED;
+                        console.log('CodeEditor Magics magicsPreProcess after inserted magicInfo: ', cAssistInfo); 
+                        setCAssistInfo({...cAssistInfo});                                                  
                     }                    
                 } 
             }
@@ -496,87 +517,24 @@ const CodeEditor = ({id, recvCodeOutput}) => {
     } 
 
     /**
-     * Parse the magic code lines and generate magic internal data structure
-     * 
-     * Currently only implement the plot magic. The plot will start first with #! plot.
-     * The current grammar will make good detection of CNextStatement except for when 
-     * the command line ends with eof. Not sure why the grammar does not work with it.
-     * The cnext plot pattern looks like this:
-     * CNextPlotExpression(CNextPlotKeyword,
-     * DataFrameExpresion,
-     * CNextPlotYDimExpression(ColumnNameExpression),
-     * CNextPlotAddDimKeyword(vs),
-     * CNextPlotXDimExpression(ColumnNameExpression))
-     * */
-    const parseMagicText = (cursor, text) => {
-        let plotData: MagicPlotData = {
-            magicTextRange: {from: cursor.from, to: cursor.to},
-            df: null,
-            x: null,
-            y: null
-        };              
-        // let endPlotPos = cursor.to;  
-        plotData.magicTextRange = {from: cursor.from, to: cursor.to};                      
-        // while(cursor.to <= endPlotPos){
-        cursor.next();
-        if(cursor.type.id === CNextPlotKeyword){
-            cursor.nextSibling(); //skip CNextPlotKeyword
-        }
-        // console.log(cursor.name);
-        if (cursor.type.id == CNextDataFrameExpresion){
-            // console.log('DF: ', text.substring(cursor.from, cursor.to));
-            plotData.df = text.substring(cursor.from, cursor.to);
-            cursor.nextSibling();
-            // console.log(cursor.name);
-        } 
-        if (cursor.type.id === CNextPlotYDimExpression){
-            let endYDim = cursor.to;
-            plotData.y = []
-            while((cursor.to <= endYDim) && cursor){
-                if(cursor.type.id === CNextYDimColumnNameExpression){
-                    // console.log('Y dim: ', text.substring(cursor.from, cursor.to));
-                    // remove quotes
-                    plotData.y.push(text.substring(cursor.from+1, cursor.to-1));
-                }       
-                cursor.next();     
-                // console.log(cursor.name);       
-            }         
-            cursor.nextSibling(); //skip CNextPlotAddDimKeyword
-            // console.log(cursor.name);
-            if (cursor.type.id === CNextPlotXDimExpression){
-                let endXDim = cursor.to;
-                plotData.x = []
-                while((cursor.to <= endXDim) && cursor){                                        
-                    if(cursor.type.id === CNextXDimColumnNameExpression){
-                        // console.log('X dim: ', text.substring(cursor.from, cursor.to));
-                        // remove quotes
-                        plotData.x.push(text.substring(cursor.from+1, cursor.to-1));
-                    }
-                    cursor.next();                  
-                    // console.log(cursor.name);
-                }         
-            }
-        }
-        return plotData; 
-    }
-
-    /**
-     * The replacement range will be identified from the line group that contains magicInfo.lineInfo.fromLine
-     * @param genCodeResult 
+     * This function create transaction toupdate codemirror view with generated code.
+     * This has to be done async after onCodeMirrorUpdate has been complete.
      */
-    // TODO: make this pure function
-    const processGenCodeResult = (genCodeResult: CodeGenResult) => {
-        if (view){
-            let state: EditorState = view.state;
-            if (!genCodeResult.error && genCodeResult.code && magicInfo && magicInfo.line && magicInfo.lineInfo){
-                let genCode: string = genCodeResult.code;
-                let lineCount: number|undefined = genCodeResult.lineCount;                
-                let lineNumber = magicInfo.lineInfo.fromLine;
-                let insertFrom =  magicInfo.lineInfo.fromPos; //magicInfo.line.from;
+    const handleCAssistInfoUpdate = () => {
+        /**
+         * The replacement range will be identified from the line group that contains magicInfo.lineInfo.fromLine
+         * @param codeGenResult 
+         */
+        const insertCodeGenToView = (genCode: string) => {            
+            if (view && cAssistInfo && cAssistInfo.lineInfo){
+                let state: EditorState = view.state;
+                // let genCode: string = codeGenResult.code;       
+                let fromLine = cAssistInfo.lineInfo.fromLine;
+                let insertFrom =  cAssistInfo.lineInfo.fromPos; //magicInfo.line.from;
                 let codeLines: ICodeLine[]|null = getCodeLine(store.getState());
                 if(codeLines){
-                    let isLineGenerated = codeLines[lineNumber].generated;                
-                    let lineRange = getLineRangeOfGroup(codeLines, lineNumber);
+                    let isLineGenerated = codeLines[fromLine].generated;                
+                    let lineRange = getLineRangeOfGroup(codeLines, fromLine);
                     let codeText = getCodeText(store.getState());
                     let insertTo: number = insertFrom;
                     if(isLineGenerated){
@@ -587,11 +545,8 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                         /** add the number of the newline character between fromLine to toLine excluding the last one*/
                         insertTo += (lineRange.toLine-lineRange.fromLine-1); 
                     }
-                    /** Update magicInfo with lineCount */
-                    magicInfo.lineInfo.toLine = magicInfo.lineInfo.fromLine + (lineCount?lineCount:0);
-                    setMagicInfo(magicInfo); //only update do not create new magic info so state wont be updated
 
-                    console.log('CodeEditor Magic insert range: ', insertFrom, insertTo, lineRange, lineNumber, codeText);
+                    console.log('CodeEditor Magic insert range: ', insertFrom, insertTo, lineRange, fromLine, codeText);
                     let transactionSpec: TransactionSpec = {
                         changes: {
                             from: insertFrom, 
@@ -601,40 +556,17 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                     };                
                     let transaction: Transaction = state.update(transactionSpec);
                     view.dispatch(transaction);  
-                }                  
-            } else {
-                setMagicInfo(undefined);       
-            }
+                } 
+            }                 
         }
-    }
 
-    /**
-     * This useEffect handle the plot magic. This is used in conjunction with _handleMagics. 
-     * This will be triggered when there are updates on magicInfo. 
-     * Could not make it work when run this directly inside _handleMagics(), 
-     * might be because that function is called within onCMUpdate which is in the middle of
-     * a transaction.
-     */
-    const processMagicInfo = () => {
-        // console.log('CodeEditor processMagicInfo: ', magicInfo);
-        if (view && magicInfo){
-            if (magicInfo.status === CodeGenStatus.INSERTING){
-                if (magicInfo.plotData !== undefined && magicInfo.lineInfo !== undefined) {          
-                    // console.log('Magic inlinePlotData: ', inlinePlotData);
-                    let result: Promise<CodeGenResult>|CodeGenResult = magicsGetPlotCommand(magicInfo.plotData);
-                    if (isPromise(result)){
-                        result.then((genCodeResult: CodeGenResult) => {
-                            console.log('CodeEditor Magic code gen result: ', genCodeResult);
-                            processGenCodeResult(genCodeResult);
-                        });
-                    } else {
-                        let genCodeResult: CodeGenResult = result;
-                        console.log('CodeEditor Magic code gen result: ', genCodeResult);
-                        processGenCodeResult(genCodeResult)
-                    } 
+        if (view && cAssistInfo){
+            if (cAssistInfo.status === CodeGenStatus.INSERTING){
+                if (cAssistInfo.genCode !== undefined) {          
+                    insertCodeGenToView(cAssistInfo.genCode);
                 }
-            } else if (magicInfo.status === CodeGenStatus.INSERTED && magicInfo.lineInfo !== undefined) {
-                setFlashingEffect(store.getState(), view, magicInfo);
+            } else if (cAssistInfo.status === CodeGenStatus.INSERTED && cAssistInfo.lineInfo !== undefined) {
+                setFlashingEffect(store.getState(), view, cAssistInfo);
             }
         }
     }

@@ -1,6 +1,6 @@
 import React from "react";
 import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from "./IFileManager";
-import { IGetCardinalResult } from "./IMagic";
+import { IGetCardinalResult } from "./ICAssist";
 
 export type RecvCodeOutput = (output: Message) => void;
 
@@ -27,7 +27,7 @@ export interface Message {
 	seq_number: number;      // sequence number of the command. This is needed 
 														 // for commands that requires more than one command
     content_type: ContentType;    // the object type of the output content
-    content: string|object|IFileMetadata|IGetCardinalResult|IDirectoryMetadata|null;  // the command string and output string|object
+    content: string|object|IFileMetadata|IFileMetadata[]|IGetCardinalResult|IDirectoryMetadata|null;  // the command string and output string|object
     error: boolean;
     metadata: object;            // store info about the dataframe and columns 
                              // related to this command

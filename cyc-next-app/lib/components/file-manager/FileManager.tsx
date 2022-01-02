@@ -74,11 +74,15 @@ const FileManager = () => {
                         case ProjectCommand.close_file:
                             console.log('FileManager got close_file result: ', fmResult);
                             dispatch(setFileToClose(null));
-                            dispatch(setOpenFiles(fmResult.content));   
+                            let openFiles: IFileMetadata[] = fmResult.content;
+                            dispatch(setOpenFiles(openFiles));   
+                            if(openFiles.length>0){
+                                dispatch(setInView(openFiles[0].path));
+                            }
                             break;
                         case ProjectCommand.open_file:
                             console.log('FileManager got open_file result: ', fmResult);
-                            dispatch(setFileToOpen(null));
+                            dispatch(setFileToOpen(null));                            
                             dispatch(setOpenFiles(fmResult.content));   
                             dispatch(setInView(fmResult.metadata['path']));
                             break;

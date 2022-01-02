@@ -311,9 +311,16 @@ export const StyledCodePanel = styled.div`
             .cm-genline-solid {
                 background-color: rgb(255,218,236,0.5);
             }
-            
+
             .cm-groupedline {
                 background-color: rgb(218,255,237, 0.5);
+            }
+
+            .cm-cassist-selection {
+                // color: ${props => props.theme.palette.text.secondary};
+                border-color: ${props => props.theme.palette.grey.A400};
+                height: 20px;
+                padding: 0 3px 0 3px;
             }
         `;
 

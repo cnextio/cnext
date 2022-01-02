@@ -4,7 +4,7 @@ import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import { setActiveLine } from "../../../redux/reducers/CodeEditorRedux";
 import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import { ICodeLine, ILineRange, LineStatus } from "../../interfaces/ICodeEditor";
-import { IInsertLinesInfo } from "../../interfaces/IMagic";
+import { IInsertLinesInfo } from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
 
 const markerDiv = () => {
@@ -116,7 +116,7 @@ const setViewCodeText = (state, view) => {
             }
         };                
         let transaction: Transaction = view.state.update(transactionSpec);
-        view.dispatch(transaction);                         
+        view.dispatch(transaction);                                 
     }
 }
 
@@ -125,14 +125,14 @@ const resetEditorState = (view, extensions) => {
         view.setState(EditorState.create({doc: '', extensions: extensions}));
 }
 
-enum GenCodeEffectType {
+enum GenLineEffectType {
     FLASHING,
     SOLID
 };
 
-const genCodeFlashCSS = Decoration.line({attributes: {class: "cm-genline-flash"}});
+const genLineFlashCSS = Decoration.line({attributes: {class: "cm-genline-flash"}});
 
-const genCodeSolidCSS = Decoration.line({attributes: {class: "cm-genline-solid"}});
+const genLineSolidCSS = Decoration.line({attributes: {class: "cm-genline-solid"}});
 
 /** Implement the decoration for magic generated code lines */
 /** 
@@ -143,33 +143,33 @@ const setFlashingEffect = (reduxState, view: EditorView, magicInfo) => {
     console.log('Magic _setFlashingEffect', magicInfo, view);    
     if(magicInfo && view){
         view.dispatch({effects: [StateEffect.appendConfig.of([genLineDeco(reduxState, view)])]});
-        view.dispatch({effects: [genLineStateEffect.of({
+        view.dispatch({effects: [GenLineStateEffect.of({
             lineInfo: magicInfo.lineInfo, 
-            type: GenCodeEffectType.FLASHING})]});             
+            type: GenLineEffectType.FLASHING})]});             
     }        
 }
 
 /** note that this lineNumber is 1-based */
-const genLineStateEffect = StateEffect.define<{lineInfo?: IInsertLinesInfo, type: GenCodeEffectType}>()
+const GenLineStateEffect = StateEffect.define<{lineInfo?: IInsertLinesInfo, type: GenLineEffectType}>()
 const genLineDeco = (reduxState, view: EditorView) => StateField.define<DecorationSet>({
     create() {
         return Decoration.none;
     },
-    update(marks, tr) {
-        if (view){                               
-            marks = marks.map(tr.changes)
+    update(lineBackgrounds, tr) {
+        lineBackgrounds = lineBackgrounds.map(tr.changes)
+        if (view){                                           
             for (let effect of tr.effects) {
-                if (effect.is(genLineStateEffect)) {
+                if (effect.is(GenLineStateEffect)) {
                     // console.log('Magic generatedCodeDeco update ', effect.value.type);     
-                    if (effect.value.type === GenCodeEffectType.FLASHING) {
+                    if (effect.value.type === GenLineEffectType.FLASHING) {
                         if (effect.value.lineInfo !== undefined){
                             let lineInfo = effect.value.lineInfo;
                             for (let i=lineInfo.fromLine; i<lineInfo.toLine; i++){
                                 /** convert line number to 1-based */
                                 let line = view.state.doc.line(i+1);
                                 // console.log('Magics line from: ', line, line.from);
-                                marks = marks.update({
-                                    add: [genCodeFlashCSS.range(line.from)]
+                                lineBackgrounds = lineBackgrounds.update({
+                                    add: [genLineFlashCSS.range(line.from)]
                                 })
                                 // console.log('Magic _setFlashingEffect generatedCodeDeco update ', line.from);                         
                             }                            
@@ -183,8 +183,8 @@ const genLineDeco = (reduxState, view: EditorView) => StateField.define<Decorati
                                     if (lines[l].generated === true){
                                         console.log('CodeEditor Magic generatedCodeDeco ', effect.value.type);     
                                         let line = view.state.doc.line(l+1);
-                                        marks = marks.update({
-                                            add: [genCodeSolidCSS.range(line.from)]
+                                        lineBackgrounds = lineBackgrounds.update({
+                                            add: [genLineSolidCSS.range(line.from)]
                                         })
                                     }                            
                                 }
@@ -192,9 +192,9 @@ const genLineDeco = (reduxState, view: EditorView) => StateField.define<Decorati
                         }    
                     }
                 }
-            }           
-            return marks
+            }                       
         }
+        return lineBackgrounds;
     },
     provide: f => EditorView.decorations.from(f)
 });
@@ -202,21 +202,21 @@ const setGenLineDeco = (reduxState, view: EditorView|undefined) => {
     if (view) {
         // console.log('CodeEditor set gencode solid')
         view.dispatch({effects: [StateEffect.appendConfig.of([genLineDeco(reduxState, view)])]});
-        view.dispatch({effects: [genLineStateEffect.of({type: GenCodeEffectType.SOLID})]});             
+        view.dispatch({effects: [GenLineStateEffect.of({type: GenLineEffectType.SOLID})]});             
     }
 }
 
 const groupedLinesCSS = Decoration.line({attributes: {class: "cm-groupedline"}});
-const groupedLineStateEffect = StateEffect.define<{}>()
+const GroupedLineStateEffect = StateEffect.define<{}>()
 const groupedLineDeco = (reduxState, view: EditorView) => StateField.define<DecorationSet>({
     create() {
         return Decoration.none;
     },
-    update(marks, tr) {
+    update(lineBackgrounds, tr) {
         if (view){                               
-            marks = marks.map(tr.changes)
+            lineBackgrounds = lineBackgrounds.map(tr.changes)
             for (let effect of tr.effects) {
-                if (effect.is(groupedLineStateEffect)) {
+                if (effect.is(GroupedLineStateEffect)) {
                     // console.log('Magic generatedCodeDeco update ', effect.value.type);     
                     let inViewID = reduxState.projectManager.inViewID;
                     if (inViewID) {
@@ -227,7 +227,7 @@ const groupedLineDeco = (reduxState, view: EditorView) => StateField.define<Deco
                                     // console.log('CodeEditor grouped line deco');
                                     /** convert to 1-based */     
                                     let line = view.state.doc.line(ln+1);
-                                    marks = marks.update({
+                                    lineBackgrounds = lineBackgrounds.update({
                                         add: [groupedLinesCSS.range(line.from)]
                                     })
                                 }                            
@@ -236,7 +236,7 @@ const groupedLineDeco = (reduxState, view: EditorView) => StateField.define<Deco
                     }    
                 }
             }           
-            return marks
+            return lineBackgrounds
         }
     },
     provide: f => EditorView.decorations.from(f)
@@ -245,7 +245,7 @@ const setGroupedLineDeco = (reduxState, view: EditorView|undefined) => {
     if (view) {
         // console.log('CodeEditor set gencode solid')
         view.dispatch({effects: [StateEffect.appendConfig.of([groupedLineDeco(reduxState, view)])]});
-        view.dispatch({effects: [groupedLineStateEffect.of({})]});             
+        view.dispatch({effects: [GroupedLineStateEffect.of({})]});             
     }
 }
 
@@ -299,7 +299,7 @@ function onMouseDown(event, view: EditorView, dispatch){
 
 const setHTMLEventHandler = (container, view: EditorView, dispatch) => {
     if (container){                
-        container.onmousedown = (event) => onMouseDown(event, view, dispatch);  
+        // container.onmousedown = (event) => onMouseDown(event, view, dispatch);  
         let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;
         scrollEl.onscroll = ((event) => scrollTimer(dispatch, scrollEl));
     }
@@ -382,10 +382,10 @@ export {
     scrollToPrevPos,
     setViewCodeText,
     resetEditorState,
-    genLineStateEffect,
-    GenCodeEffectType,
-    genCodeFlashCSS,
-    genCodeSolidCSS,
+    GenLineStateEffect as genLineStateEffect,
+    GenLineEffectType as GenCodeEffectType,
+    genLineFlashCSS as genCodeFlashCSS,
+    genLineSolidCSS as genCodeSolidCSS,
     genLineDeco,
     setGenLineDeco,
     setGroupedLineDeco,
