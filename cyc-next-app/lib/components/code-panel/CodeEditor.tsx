@@ -24,7 +24,7 @@ import { magicsGetPlotCommand as cassistGetPlotCommand } from "../../cassist/mag
 import { CNextDataFrameExpresion, CNextPlotExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
 import { ifElse } from "../libs";
 import { setFileToSave, setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
-import { editStatusGutter, getCodeLine, getCodeText, getRunningCommandContent, getLineRangeOfGroup, getNonGeneratedLinesInRange, isPromise, resetEditorState, scrollToPrevPos, setFlashingEffect, setGenLineDeco, setGroupedLineDeco, setHTMLEventHandler, setViewCodeText, textShouldBeExec } from "./libCodeEditor";
+import { editStatusGutter, getCodeLine, getCodeText, getRunningCommandContent, getLineRangeOfGroup, getNonGeneratedLinesInRange, isPromise, resetEditorState, scrollToPrevPos, setFlashingEffect, setGenLineDeco, setGroupedLineDeco, setHTMLEventHandler, setViewCodeText, textShouldBeExec as isExpression } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, checkboxPlugin, dropdownPlugin, parseCAssistText } from "./libCAssist";
 
 const ls = languageServer({
@@ -62,7 +62,6 @@ const CodeEditor = ({id, recvCodeOutput}) => {
             store.getState().projectManager.inViewID, 
             getCodeLine(store.getState())
         ),
-        // dropdownPlugin.extension,
         cAssistExtraOptsPlugin.extension,
         bracketMatching(),
         defaultHighlightStyle.fallback,
@@ -157,9 +156,11 @@ const CodeEditor = ({id, recvCodeOutput}) => {
      * */
     
     useEffect(() => { 
-        console.log('CodeEditor useEffect container', container);                  
-        setHTMLEventHandler(container, view, dispatch);                   
-    }, [container]);
+        console.log('CodeEditor useEffect container', container);       
+        if(container && view){
+            setHTMLEventHandler(container, view, dispatch);                   
+        }                   
+    }, [container, view]);
     
     /**
      * Reset the code editor state when the doc is selected to be in view
@@ -188,6 +189,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
 
     useEffect(() => {
         try {
+            setHTMLEventHandler(container, view, dispatch);                   
             //TODO: improve this            
             setGroupedLineDeco(store.getState(), view);
             setGenLineDeco(store.getState(), view);
@@ -286,12 +288,16 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         let inViewID = store.getState().projectManager.inViewID;
         if(inViewID && view && runQueue.status === RunQueueStatus.RUNNING){
             const doc = view.state.doc;
-            let rangeToRun: ILineRange[];
-            if (textShouldBeExec(doc.line(runQueue.toLine).text)){ 
+            let rangeToRun: ILineRange[];            
+            /** if the last line is an Expression instead of a Statement then separate it out. 
+             * The server will 'exec' every group of multiple lines. And will either 'exec' or 'eval' single line
+             * This is not a perfect solution but working for now */
+            if (isExpression(doc.line(runQueue.toLine).text)){ 
                 rangeToRun = [{fromLine: runQueue.fromLine, toLine: runQueue.toLine-1}, {fromLine: runQueue.toLine-1, toLine: runQueue.toLine}];
             } else {
                 rangeToRun = [{fromLine: runQueue.fromLine, toLine: runQueue.toLine}];                
             }
+            console.log('CodeEditor execLines: ', rangeToRun);
             for(let lineRange of rangeToRun){
                 let content: IRunningCommandContent|undefined = getRunningCommandContent(view, lineRange);            
                 if(content && inViewID){

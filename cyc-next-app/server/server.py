@@ -52,7 +52,6 @@ def assign_exec_mode(message: Message):
     
     log.info("assigned command type: %s" % message.execution_mode)
 
-
 # have to do this here. do it in df_status_hook does not work
 def get_global_df_list():
     names = list(globals())
@@ -63,7 +62,6 @@ def get_global_df_list():
     log.info('Current global df list: %s' % df_list)
     return df_list
 
-    
 def _plotly_show_match(command):
     res = re.search(r'^\w+(?=\.show\(\))',command)
     if res is not None:

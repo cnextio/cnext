@@ -70,6 +70,7 @@ export const PlotView = (props: any) => {
                                     inline:'center', 
                                     behavior: 'smooth',
                                     boundary: document.getElementById(plotViewID)}}>
+                            {console.log('Render PlotView', plot.lineID, activeLine)}                                        
                             <SinglePlot 
                                 key={plot.lineID} 
                                 variant="outlined" 

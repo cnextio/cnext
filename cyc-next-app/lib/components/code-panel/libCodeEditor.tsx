@@ -3,10 +3,11 @@ import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } fr
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import { setActiveLine } from "../../../redux/reducers/CodeEditorRedux";
 import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
-import { ICodeLine, ILineRange, IRunningCommandContent, IRunQueue, LineStatus } from "../../interfaces/ICodeEditor";
+import { ICodeActiveLine, ICodeLine, ILineRange, IRunningCommandContent, IRunQueue, LineStatus } from "../../interfaces/ICodeEditor";
 import { ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
 import { python } from "../../codemirror/grammar/lang-cnext-python";
+import store from "../../../redux/store";
 
 const markerDiv = () => {
     let statusDiv = document.createElement('div');
@@ -283,14 +284,22 @@ const scrollTimer = (dispatch, scrollEl: HTMLElement) => {
 
 function onMouseDown(event, view: EditorView, dispatch){
     try {
+        console.log('CodeEditor onMouseDown', view, event, dispatch);
         if(view){
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
             let pos = view.posAtDOM(event.target);                
             //convert to 0-based
-            let lineNumber = doc.lineAt(pos).number-1;        
-            dispatch(setActiveLine(lineNumber));
-            // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
+            let lineNumber = doc.lineAt(pos).number-1;     
+            let inViewID = store.getState().projectManager.inViewID;   
+            if(inViewID){
+                let activeLine: ICodeActiveLine = {
+                    inViewID: inViewID,
+                    lineNumber: lineNumber,
+                }
+                dispatch(setActiveLine(activeLine));
+                console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
+            }
         }                    
     } catch(error) {
         console.log(error);
@@ -300,7 +309,7 @@ function onMouseDown(event, view: EditorView, dispatch){
 
 const setHTMLEventHandler = (container, view: EditorView, dispatch) => {
     if (container){                
-        // container.onmousedown = (event) => onMouseDown(event, view, dispatch);  
+        container.onmousedown = (event) => onMouseDown(event, view, dispatch);  
         let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;
         scrollEl.onscroll = ((event) => scrollTimer(dispatch, scrollEl));
     }
@@ -350,7 +359,7 @@ const getRunningCommandContent = (view: EditorView, lineRange: ILineRange): IRun
     let content: IRunningCommandContent|undefined;
     if (view){ 
         const doc = view.state.doc;
-        if (lineRange.fromLine && lineRange.toLine && lineRange.fromLine<lineRange.toLine){
+        if (lineRange.fromLine!==undefined && lineRange.toLine!==undefined && lineRange.fromLine<lineRange.toLine){
             /** convert line number to 1-based */
             let fromPos = doc.line(lineRange.fromLine+1).from;
             /** runqueue.toLine won't be executed so getting line at toLine is equivalent getting toLine-1 in 1-based */
@@ -409,8 +418,10 @@ const getNonGeneratedLinesInRange = (codeLines: ICodeLine[]|null, view: EditorVi
 export const notStartWithSpace = (text: string): boolean => {
     return !/^\s/.test(text);
 }
-/** check if the text line can be exec instead of eval 
- * this function is used to check if the last line in a group should be executed with 'exec' seperatedly */
+
+/** 
+ * check if the text line is an Expression instead of a Statement
+ * */
 export const textShouldBeExec = (text: string): boolean => {
     let parser = python().language.parser;
     let tree = parser.parse(text);
