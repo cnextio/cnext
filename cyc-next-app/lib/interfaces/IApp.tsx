@@ -51,7 +51,8 @@ export enum UpdateType {
 // };
 
 export enum CommandName {  
-    code_area_command = 'code_area_command',
+    exec_line = 'exec_line',
+    exec_grouped_lines = 'exec_grouped_lines',
     active_df_status = 'active_df_status',
     plot_column_histogram = 'plot_column_histogram',
     get_countna = 'get_countna',

@@ -1,6 +1,6 @@
 import { Line } from "@codemirror/text";
 
-export interface MagicPlotData {
+export interface CAssistPlotData {
     // this is the range of the magic text that generated this plot code
     magicTextRange: {from: number, to: number},
     df: string | null,
@@ -31,11 +31,22 @@ export enum PlotType {
     HISTOGRAM = 'histogram',
 }
 
+export enum CAssistOptType {
+    SELECT = 'select'
+}
+
+export interface ICAssistExtraOpt {
+    type: CAssistOptType;
+    name: string;
+    default?: string;
+    opts?: string[];
+}
+
 export interface ICodeGenResult {
     code?: string;
     lineCount?: number;
     error: boolean;
-
+    extraOpts?: ICAssistExtraOpt[];
 }
 
 export interface TextRange {
@@ -54,11 +65,18 @@ export interface IInsertLinesInfo {
 
 export interface ICAssistInfo {
 	status: CodeGenStatus,
-	line?: Line,
-    lineInfo: IInsertLinesInfo,
-	magicText?: string,
-	plotData?: MagicPlotData,
+	cAssistLineNumber: number,
+    insertedLinesInfo: IInsertLinesInfo,
+	cAssistText?: string,
+	plotData?: CAssistPlotData,
     genCode?: string,
+    cAssistExtraOpts?: ICAssistExtraOpt[],
+}
+
+export interface ICAssistInfoRedux {
+	inViewID: string;
+    cAssistLineNumber: number;
+	cAssistInfo: ICAssistInfo;
 }
 
 export enum CodeGenStatus {

@@ -3,9 +3,10 @@ import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } fr
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import { setActiveLine } from "../../../redux/reducers/CodeEditorRedux";
 import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
-import { ICodeLine, ILineRange, LineStatus } from "../../interfaces/ICodeEditor";
-import { IInsertLinesInfo } from "../../interfaces/ICAssist";
+import { ICodeLine, ILineRange, IRunningCommandContent, IRunQueue, LineStatus } from "../../interfaces/ICodeEditor";
+import { ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
+import { python } from "../../codemirror/grammar/lang-cnext-python";
 
 const markerDiv = () => {
     let statusDiv = document.createElement('div');
@@ -139,12 +140,12 @@ const genLineSolidCSS = Decoration.line({attributes: {class: "cm-genline-solid"}
  * Implement the flashing effect after line is inserted.
  * This function also reset magicInfo after the animation completes. 
  * */
-const setFlashingEffect = (reduxState, view: EditorView, magicInfo) => {
-    console.log('Magic _setFlashingEffect', magicInfo, view);    
-    if(magicInfo && view){
+const setFlashingEffect = (reduxState, view: EditorView, cAssistInfo: ICAssistInfo) => {
+    console.log('CodeEditor cAssist _setFlashingEffect', cAssistInfo, view);    
+    if(cAssistInfo && view){
         view.dispatch({effects: [StateEffect.appendConfig.of([genLineDeco(reduxState, view)])]});
         view.dispatch({effects: [GenLineStateEffect.of({
-            lineInfo: magicInfo.lineInfo, 
+            lineInfo: cAssistInfo.insertedLinesInfo, 
             type: GenLineEffectType.FLASHING})]});             
     }        
 }
@@ -314,18 +315,52 @@ const isPromise = (object) => {
 }
 
 /** Functions that support runQueue */
-const getLineContent = (view, lineNumber: number): string|undefined => {
-    let text: string|undefined;
+// const getRunningCommandContent = (view: EditorView, runqueue: IRunQueue): IRunningCommandContent|undefined => {
+//     let content: IRunningCommandContent|undefined;
+//     if (view){ 
+//         const doc = view.state.doc;
+//         if (!runqueue.runAllAtOnce){
+//             const lineNumber = runqueue.runningLine;
+//             // console.log('CodeEditor', cm, doc, doc.line(10));
+//             if (lineNumber){
+//                 /** convert lineNumber to 1-based */
+//                 let line = doc.line(lineNumber+1);
+//                 let text = line.text; 
+//                 /** Note that lines that are being run in lineRange must exclude toLine*/        
+//                 content = {lineRange: {fromLine: lineNumber, toLine: lineNumber+1}, content: text, runAllAtOnce: runqueue.runAllAtOnce};
+//                 // convert the line number to 0-based index, which is what we use internally
+//                 console.log('CodeEditor getRunningCommandContent code line to run: ', content);
+//             }
+//         } else {
+//             if (runqueue.fromLine && runqueue.toLine){
+//                 /** convert line number to 1-based */
+//                 let fromPos = doc.line(runqueue.fromLine+1).from;
+//                 /** runqueue.toLine won't be executed so getting line at toLine is equivalent getting toLine-1 in 1-based */
+//                 let toPos = doc.line(runqueue.toLine).to;
+//                 let text = doc.sliceString(fromPos, toPos);
+//                 content = {lineRange: {fromLine: runqueue.fromLine, toLine: runqueue.toLine}, content: text, runAllAtOnce: runqueue.runAllAtOnce};
+//                 console.log('CodeEditor getRunningCommandContent code group to run: ', content);
+//             }
+//         }        
+        
+//     }
+//     return content;
+// }
+const getRunningCommandContent = (view: EditorView, lineRange: ILineRange): IRunningCommandContent|undefined => {
+    let content: IRunningCommandContent|undefined;
     if (view){ 
         const doc = view.state.doc;
-        /** convert lineNumber to 1-based */
-        // console.log('CodeEditor', cm, doc, doc.line(10));
-        let line = doc.line(lineNumber+1);
-        text = line.text;         
-        console.log('CodeEditor _getLineContent2 code line to run: ', lineNumber+1, text);
-        // convert the line number to 0-based index, which is what we use internally
+        if (lineRange.fromLine && lineRange.toLine && lineRange.fromLine<lineRange.toLine){
+            /** convert line number to 1-based */
+            let fromPos = doc.line(lineRange.fromLine+1).from;
+            /** runqueue.toLine won't be executed so getting line at toLine is equivalent getting toLine-1 in 1-based */
+            let toPos = doc.line(lineRange.toLine).to;
+            let text = doc.sliceString(fromPos, toPos);
+            content = {lineRange: {fromLine: lineRange.fromLine, toLine: lineRange.toLine}, content: text};
+            console.log('CodeEditor getRunningCommandContent code group to run: ', content);
+        }        
     }
-    return text;
+    return content;
 }
 
 /**
@@ -371,6 +406,22 @@ const getNonGeneratedLinesInRange = (codeLines: ICodeLine[]|null, view: EditorVi
     }
 }
 
+export const notStartWithSpace = (text: string): boolean => {
+    return !/^\s/.test(text);
+}
+/** check if the text line can be exec instead of eval 
+ * this function is used to check if the last line in a group should be executed with 'exec' seperatedly */
+export const textShouldBeExec = (text: string): boolean => {
+    let parser = python().language.parser;
+    let tree = parser.parse(text);
+    let cursor = tree.cursor(0, 0);
+    let parentName = cursor.name;
+    cursor.firstChild();
+    let childName = cursor.name;
+    /** not start with space */
+    return (parentName=='Script' && childName=='ExpressionStatement' && notStartWithSpace(text))
+}
+
 export {
     editedMarker, 
     executedMarker, 
@@ -393,6 +444,6 @@ export {
     getLineRangeOfGroup,
     setHTMLEventHandler,
     isPromise,
-    getLineContent,
+    getRunningCommandContent,
     getNonGeneratedLinesInRange
 }

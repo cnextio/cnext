@@ -317,23 +317,18 @@ export const StyledCodePanel = styled.div`
             }
 
             .cm-cassist-selection {
-                // color: ${props => props.theme.palette.text.secondary};
                 border-color: ${props => props.theme.palette.grey.A400};
+                border-radius: 4px;
+                border-width: 0px;
                 height: 20px;
-                padding: 0 3px 0 3px;
+                padding: 0px 3px 0 3px;
+                &:focus {
+                    outline: 0px solid ${props => props.theme.palette.grey.A400};
+                }
             }
         `;
 
-        export const StyledCodeMirror = styled(CodeMirror)`
-            // &.cm-tooltip.documentation {
-            //     display: block;
-            //     margin-left: 0;
-            //     padding: 3px 6px 3px 8px;
-            //     border-left: 5px solid #999;
-            //     white-space: pre;
-            //     overflow: scroll;
-            // }
-                        
+        export const StyledCodeMirror = styled(CodeMirror)`       
             .cm-tooltip.lint {
               white-space: pre;
             }
@@ -478,14 +473,14 @@ export const TablePanel = styled.div`
                 // height = "100%"                 
                 
                 .cm-tooltip.cm-completionInfo {
-                position: absolute;
-                margin: 1px -4px;
-                padding: 10px 10px 10px 10px;
-                width: max-content;
-                max-width: 1000px;
-                max-height: 700px;
-                white-space: pre;
-                overflow: scroll;
+                    position: absolute;
+                    margin: 1px -4px;
+                    padding: 10px 10px 10px 10px;
+                    width: max-content;
+                    max-width: 1000px;
+                    max-height: 700px;
+                    white-space: pre;
+                    overflow: scroll;
                 }
 
                 .cm-line {

@@ -1,4 +1,5 @@
 import { ContentType } from "./IApp";
+import { ICAssistInfo } from "./ICAssist";
 
 export interface ICodeDoc {
 	text: Object;
@@ -40,6 +41,7 @@ export interface ICodeLine {
 	result: ICodeResult | null;
 	generated: boolean; 
 	groupID?: string;
+	cAssistInfo?: ICAssistInfo;
 };
 
 /**
@@ -56,7 +58,7 @@ export interface ILineUpdate {
 
 export interface ICodeLineStatus {
 	inViewID: string;	
-	lineNumber: number;
+	lineRange: ILineRange;
 	status?: LineStatus;
 	generated?: boolean;
 	text?: string[]; 
@@ -105,14 +107,20 @@ export interface IPlotResult {
     plot: object;  
 }
 
-export interface ILineContent {
-	lineNumber: number;
+export interface IRunningCommandContent {
+	lineRange: ILineRange;
 	content: string;
+	// runAllAtOnce: boolean|undefined;
 }
 
 export interface ILineRange {
 	fromLine: number;
 	toLine: number;
+}
+
+export interface IReduxRunQueueMessage {
+	lineRange: ILineRange;
+	runAllAtOnce: boolean;
 }
 
 export enum MessageMetaData {
@@ -134,6 +142,7 @@ export interface IRunQueue {
 	fromLine?: number,
 	toLine?: number,
 	runningLine?: number,
+	runAllAtOnce?: boolean, /** true if the grouped lines are run all at once, and false if run line by line */
 }
 export enum RunQueueStatus {
 	STOP,

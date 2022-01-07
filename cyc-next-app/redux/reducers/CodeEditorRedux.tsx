@@ -1,8 +1,9 @@
 import shortid from "shortid";
 import { createSlice } from '@reduxjs/toolkit'
-import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, ICodeLineStatus, ICodeLineGroupStatus, SetLineGroupCommand, IRunQueue, RunQueueStatus, ICodeActiveLine, ICodeText } from '../../lib/interfaces/ICodeEditor';
+import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, ICodeLineStatus, ICodeLineGroupStatus, SetLineGroupCommand, IRunQueue, RunQueueStatus, ICodeActiveLine, ICodeText, IReduxRunQueueMessage, ILineRange } from '../../lib/interfaces/ICodeEditor';
 import { ifElseDict } from "../../lib/components/libs";
 import { ContentType } from "../../lib/interfaces/IApp";
+import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 
 type CodeEditorState = { 
     codeText: {[id: string]: string[]},
@@ -17,6 +18,7 @@ type CodeEditorState = {
      * PlotView, which would only be rerendered when this variable is updated */ 
     plotResultUpdate: number,
     activeLine: string|null,
+    cAssistInfo: ICAssistInfo|undefined
 }
 
 const initialState: CodeEditorState = {
@@ -27,6 +29,7 @@ const initialState: CodeEditorState = {
     runQueue: {status: RunQueueStatus.STOP},
     plotResultUpdate: 0,
     activeLine: null,
+    cAssistInfo: undefined,
 }
 
 export const CodeEditorRedux = createSlice({
@@ -108,6 +111,7 @@ export const CodeEditorRedux = createSlice({
             state.codeLines[inViewID] = codeLines;
         },
 
+        //TODO: unify this with setLineGroupStatus
         setLineStatus: (state, action) => {
             let lineStatus: ICodeLineStatus = action.payload;
             let inViewID = lineStatus.inViewID;
@@ -118,10 +122,16 @@ export const CodeEditorRedux = createSlice({
                     state.codeText[inViewID] = lineStatus.text;
                     state.fileSaved = false;
                 } 
-                codeLines[lineStatus.lineNumber].status = lineStatus.status;
+                const lineRange: ILineRange = lineStatus.lineRange;
+                for(let ln=lineRange.fromLine; ln< lineRange.toLine; ln++){
+                    codeLines[ln].status = lineStatus.status;
+                }
             } 
             if(lineStatus.generated !== undefined){
-                codeLines[lineStatus.lineNumber].generated = lineStatus.generated;
+                const lineRange: ILineRange = lineStatus.lineRange;
+                for(let ln=lineRange.fromLine; ln< lineRange.toLine; ln++){
+                    codeLines[ln].generated = lineStatus.generated;
+                }
             }            
         },
 
@@ -162,9 +172,12 @@ export const CodeEditorRedux = createSlice({
             let resultMessage: ICodeResultMessage = action.payload;  
             let inViewID = resultMessage.inViewID;          
             let plotResult: IPlotResult = {plot: JSON.parse(ifElseDict(resultMessage.content, 'plot'))};   
-            let lineNumber = ifElseDict(resultMessage.metadata, 'line_number');
+            let lineRange: ILineRange = ifElseDict(resultMessage.metadata, 'line_range');
             let result: ICodeResult = {type: resultMessage.type, content: plotResult};            
-            if(lineNumber){
+            if(lineRange){
+                /** only associate fromLine to result. This is ok because at the moment the group execution is not supposed to output plot
+                 * in the backend it is run using exec */
+                let lineNumber = lineRange.fromLine;                
                 let codeLine: ICodeLine = state.codeLines[inViewID][lineNumber];
                 codeLine.result = result;
 
@@ -193,14 +206,15 @@ export const CodeEditorRedux = createSlice({
          * @returns `true` if the run queue is not running, `false` otherwise. 
          */
         setRunQueue: (state, action) => {
-            console.log('CodeEditorRedux setRunQueue status: ', state.runQueue.status);
+            console.log('CodeEditorRedux setRunQueue current status: ', state.runQueue.status);
             if(state.runQueue.status === RunQueueStatus.STOP) {
-                let data = action.payload;            
+                let data: ILineRange = action.payload;            
                 state.runQueue = {
                     status: RunQueueStatus.RUNNING,
                     fromLine: data.fromLine,
                     toLine: data.toLine,
                     runningLine: data.fromLine,
+                    // runAllAtOnce: data.runAllAtOnce,
                 }
                 // return true;
             }
@@ -218,6 +232,21 @@ export const CodeEditorRedux = createSlice({
                     runQueue.status = RunQueueStatus.STOP;
                 }                
             }
+        },
+
+        compeleteRunQueue: (state, action) => {
+            if(state.runQueue.status === RunQueueStatus.RUNNING){
+                let runQueue: IRunQueue = state.runQueue;
+                runQueue.status = RunQueueStatus.STOP;
+            }
+        },
+
+        updateCAssistInfo: (state, action) => {
+            const cAssistInfoRedux: ICAssistInfoRedux = action.payload;
+            const inViewID = cAssistInfoRedux.inViewID;
+            const lineNumber = cAssistInfoRedux.cAssistLineNumber;
+            state.codeLines[inViewID][lineNumber].cAssistInfo = cAssistInfoRedux.cAssistInfo;
+            state.cAssistInfo = cAssistInfoRedux.cAssistInfo;
         }
     },
 })
@@ -232,6 +261,8 @@ export const {
     setActiveLine, 
     setFileSaved,
     setRunQueue, 
-    compeleteRunLine } = CodeEditorRedux.actions
+    compeleteRunLine,
+    updateCAssistInfo,
+    compeleteRunQueue } = CodeEditorRedux.actions
 
 export default CodeEditorRedux.reducer

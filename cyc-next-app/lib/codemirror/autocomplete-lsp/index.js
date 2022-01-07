@@ -7,7 +7,7 @@ import { EditorView, ViewPlugin } from '@codemirror/view';
 import { WebSocketTransport, RequestManager, Client } from '@open-rpc/client-js';
 import { CompletionItemKind, CompletionTriggerKind, DiagnosticSeverity } from 'vscode-languageserver-protocol';
 import store from '/redux/store';
-
+import { python } from "../grammar/lang-cnext-python";
 const timeout = 10000;
 const changesDelay = 500;
 const CompletionItemKindMap = Object.fromEntries(Object.entries(CompletionItemKind).map(([key, value]) => [value, key]));
@@ -486,32 +486,26 @@ class LanguageServerPlugin {
         // let editor = context.view;
         let state = context.state;
         let text = state.doc.toString();
-        // console.log(state);
-        //this is a hacky way to get parser out of state
-        for (var v of state.values){
-            if (v.context && v.context.parser){
-                let parser = v.context.parser;
-                console.log("_getDFCompletion current line parser ", parser.parse(state.doc.text[line]).toString());
-                let tree = state.tree;
-                let curPos = state.selection.ranges[0].anchor;
-                // let cursor = tree.cursor(curPos, 1);
-                // console.log(cursor.toString());
-                let result = this._matchColNameExpression_DFFilter(text, tree, curPos);   
-                let items = null;     
-                if (result.matched){
-                    items = this._createColNameAutocompleItems(result.df_name, result.str_content);
-                } else {
-                    result = this._matchColValueExpression_DFFilter(text, tree, curPos, this.colNamePattern_DFFilter);   
-                    if (result.matched){
-                        console.log(result);
-                        items = this._createColValueAutocompleItems(result.df_name, result.col_name);
-                    }
-                }
-                console.log("Items: ", items);
-                return items;
+        
+        let parser = python().language.parser;
+        console.log("_getDFCompletion current line parser ", parser.parse(state.doc.text[line]).toString());
+        let tree = state.tree;
+        let curPos = state.selection.ranges[0].anchor;
+        // let cursor = tree.cursor(curPos, 1);
+        // console.log(cursor.toString());
+        let result = this._matchColNameExpression_DFFilter(text, tree, curPos);   
+        let items = null;     
+        if (result.matched){
+            items = this._createColNameAutocompleItems(result.df_name, result.str_content);
+        } else {
+            result = this._matchColValueExpression_DFFilter(text, tree, curPos, this.colNamePattern_DFFilter);   
+            if (result.matched){
+                console.log(result);
+                items = this._createColValueAutocompleItems(result.df_name, result.col_name);
             }
         }
-        return null;        
+        console.log("Items: ", items);
+        return items;        
     }
     /**
      * End support DataFrame-related autocomplete

@@ -5,7 +5,7 @@ import traceback
 import logs
 import re
 from zmq_message import MessageQueue
-from message import Message, WebappEndpoint, CommandName, ContentType, ProjectCommand
+from message import Message, WebappEndpoint, DFManagerCommand, ContentType, ProjectCommand, CodeEditorCommand
 from project_manager import files, projects
 
 log = logs.get_logger(__name__)
@@ -37,13 +37,19 @@ from cycdataframe.df_status_hook import DataFrameStatusHook
 from cycdataframe.cycdataframe import CycDataFrame
 
 #TODO: need to heavily test this
-def assign_exec_mode(message):
+def assign_exec_mode(message: Message):
     message.execution_mode = 'eval'
+    if message.metadata and ('line_range' in message.metadata):
+        line_range = message.metadata['line_range']
+        if line_range['fromLine'] < line_range['toLine']-1: ## always 'exec' if there are more than 1 line in the code
+            message.execution_mode = 'exec'
+
     try:
         compile(message.content, '<stdin>', 'eval')
     except SyntaxError as error:
         log.error(error)
         message.execution_mode = 'exec'
+    
     log.info("assigned command type: %s" % message.execution_mode)
 
 
@@ -149,7 +155,7 @@ def handle_DataFrameManager_message(message):
     # message execution_mode will always be `eval` for this sender
     log.info('eval... %s' % message)
     try:        
-        if message.command_name == CommandName.plot_column_histogram:
+        if message.command_name == DFManagerCommand.plot_column_histogram:
             result = eval(message.content, globals())
             if result is not None:                
                 log.info("get plot data")                                        
@@ -157,7 +163,7 @@ def handle_DataFrameManager_message(message):
                 content_type = ContentType.PLOTLY_FIG
                 send_reply = True
 
-        if message.command_name == CommandName.plot_column_quantile:
+        if message.command_name == DFManagerCommand.plot_column_quantile:
             result = eval(message.content, globals())
             if result is not None:                
                 log.info("get plot data")                                        
@@ -165,7 +171,7 @@ def handle_DataFrameManager_message(message):
                 content_type = ContentType.PLOTLY_FIG
                 send_reply = True
 
-        elif message.command_name == CommandName.get_table_data:    
+        elif message.command_name == DFManagerCommand.get_table_data:    
             result = eval(message.content, globals())        
             if result is not None:                
                 log.info("get table data")
@@ -173,7 +179,7 @@ def handle_DataFrameManager_message(message):
                 content_type = ContentType.PANDAS_DATAFRAME
                 send_reply = True
                                        
-        elif message.command_name == CommandName.get_countna: 
+        elif message.command_name == DFManagerCommand.get_countna: 
             df_id = message.metadata['df_id']
             countna = eval("%s.isna().sum()"%df_id, globals())
             len = eval("%s.shape[0]"%df_id, globals())      
@@ -183,7 +189,7 @@ def handle_DataFrameManager_message(message):
                 content_type = ContentType.DICT
                 send_reply = True                            
         
-        elif message.command_name == CommandName.get_df_metadata: 
+        elif message.command_name == DFManagerCommand.get_df_metadata: 
             df_id = message.metadata['df_id']
             shape = eval("%s.df.shape"%df_id, globals())
             dtypes = eval("%s.df.dtypes"%df_id, globals())
@@ -217,12 +223,12 @@ def handle_CodeArea_message(message):
         assign_exec_mode(message)
         # sys.stdout = normal_stdout                        
         if message.execution_mode == 'exec':
-            log.info('exec...')
+            log.info('exec mode...')
             exec(message.content, globals())
             content_type = ContentType.STRING
             output = sys.stdout.getvalue()
         elif message.execution_mode == 'eval':
-            log.info('eval...')
+            log.info('eval mode...')
             result = eval(message.content, globals())
             if result is not None:            
                 # log.info("eval result: \n%s" % (result))
@@ -362,7 +368,7 @@ def handle_MagicCommandGen_message(message):
     # message execution_mode will always be `eval` for this sender
     log.info('eval... %s' % message)
     try:        
-        if message.command_name == CommandName.get_cardinal:
+        if message.command_name == DFManagerCommand.get_cardinal:
             df_id = message.metadata['df_id']
             col_name = message.metadata['col_name']
             if 'groupby' in message.metadata:
@@ -418,7 +424,7 @@ def handle_MagicCommandGen_message(message):
 def process_active_df_status():
     if DataFrameStatusHook.update_active_df_status(get_global_df_list()):
         active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, 
-                                            "command_name": CommandName.active_df_status, 
+                                            "command_name": DFManagerCommand.active_df_status, 
                                             "seq_number": 1, 
                                             "content_type": "dict", 
                                             "content": DataFrameStatusHook.get_active_df(), 
@@ -432,6 +438,7 @@ message_handler = {
     WebappEndpoint.MagicCommandGen: handle_MagicCommandGen_message,
     WebappEndpoint.FileExplorer: handle_FileExplorer_message,
 }
+
 if __name__ == "__main__":    
     try:
         p2n_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['p2n_port'])
@@ -447,21 +454,11 @@ if __name__ == "__main__":
             message = Message(**json.loads(line))        
             normal_stdout = sys.stdout            
             sys.stdout = io.StringIO()
+
             try:                
                 message_handler[message.webapp_endpoint](message);
                 if message.webapp_endpoint == WebappEndpoint.CodeEditor:                     
                     process_active_df_status()
-                
-                # log.info('Got message from %s' % (message.webapp_endpoint))
-                # if message.webapp_endpoint == WebappEndpoint.CodeEditor:                     
-                #     handle_CodeArea_message(message)
-                #     process_active_df_status()
-                
-                # elif message.webapp_endpoint == WebappEndpoint.DFManager: 
-                #     handle_DataFrameManager_message(message)
-
-                # elif message.webapp_endpoint == WebappEndpoint.FileManager: 
-                #     handle_FileManager_message(message)
 
             except OSError as error: #TODO check if this has to do with buffer error
                 #since this error might be related to the pipe, we do not send this error to nodejs

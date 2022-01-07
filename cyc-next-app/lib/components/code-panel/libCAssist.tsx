@@ -1,16 +1,24 @@
 import { CNextDataFrameExpresion, CNextPlotXDimExpression, CNextPlotYDimExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
+import {ViewUpdate, ViewPlugin, DecorationSet} from "@codemirror/view"
+import {WidgetType} from "@codemirror/view"
+import {EditorView, Decoration} from "@codemirror/view"
+import { CAssistOptType, CAssistPlotData, CASSIST_STARTER, ICAssistExtraOpt, ICAssistInfo } from "../../interfaces/ICAssist";
+import store from '../../../redux/store';
+import { ICodeLine } from "../../interfaces/ICodeEditor";
 
-enum CAssistWidgetType {
-    DROPDOWN, OPTION,
-};
-interface CAssistWidget {
-    widgetType: CAssistWidgetType;
-    choices: string|string[];
-};
-interface CAssistLineInfo {
-    lineNumber: number;
-    widgets: CAssistWidget[];
-};
+// enum CAssistWidgetType {
+//     DROPDOWN, OPTION,
+// };
+
+// interface CAssistWidget {
+//     widgetType: CAssistWidgetType;
+//     choices: string|string[];
+// };
+
+// interface CAssistLineInfo {
+//     lineNumber: number;
+//     widgets: CAssistWidget[];
+// };
 // const CAssistLineStateEffect = StateEffect.define<CAssistLineInfo[]>()
 // const cassistLineDeco = (reduxState, view: EditorView) => StateField.define<DecorationSet>({
 //     create() {
@@ -46,140 +54,144 @@ interface CAssistLineInfo {
 //     provide: f => EditorView.decorations.from(f)
 // });
 
-import {WidgetType} from "@codemirror/view"
+// class CheckboxWidget extends WidgetType {
+//   constructor(readonly checked: boolean) { super() }
 
-class CheckboxWidget extends WidgetType {
-  constructor(readonly checked: boolean) { super() }
+//   eq(other: CheckboxWidget) { return other.checked == this.checked }
 
-  eq(other: CheckboxWidget) { return other.checked == this.checked }
+//   toDOM() {
+//     let wrap = document.createElement("span")
+//     wrap.setAttribute("aria-hidden", "true")
+//     wrap.className = "cm-boolean-toggle"
+//     let box = wrap.appendChild(document.createElement("input"))
+//     box.type = "checkbox"
+//     box.checked = this.checked
+//     return wrap
+//   }
 
-  toDOM() {
-    let wrap = document.createElement("span")
-    wrap.setAttribute("aria-hidden", "true")
-    wrap.className = "cm-boolean-toggle"
-    let box = wrap.appendChild(document.createElement("input"))
-    box.type = "checkbox"
-    box.checked = this.checked
-    return wrap
-  }
+//   ignoreEvent() { return false }
+// }
 
-  ignoreEvent() { return false }
-}
+// function checkboxes(view: EditorView) {
+//     let widgets = []
+//     let doc = view.state.doc;
+//     if (doc) {
+//         //TODO: implement it in the visibleRange
+//         for (let ln=0; ln < doc.lines; ln++){
+//             let line = view.state.doc.line(ln+1);
+//             if(line.text.startsWith(CASSIST_STARTER)){
+//                 let deco = Decoration.widget({widget: new CheckboxWidget(true), side: 1});
+//                 widgets.push(deco.range(line.to));    
+//             }            
+//         }
+//     }
+//     return Decoration.set(widgets)
+// }
 
-import {ViewUpdate, ViewPlugin, DecorationSet} from "@codemirror/view"
+// function toggleBoolean(view: EditorView, pos: number) {
+//     let before = view.state.doc.sliceString(Math.max(0, pos - 5), pos)
+//     let change
+//     if (before == "false")
+//         change = {from: pos - 5, to: pos, insert: "true"}
+//     else if (before.endsWith("true"))
+//         change = {from: pos - 4, to: pos, insert: "false"}
+//     else
+//         return false
+//     view.dispatch({changes: change})
+//     return true
+// }
 
-import {EditorView, Decoration} from "@codemirror/view"
-import { MagicPlotData, CASSIST_STARTER as CASSIST_STARTER } from "../../interfaces/ICAssist";
+// const checkboxPlugin = ViewPlugin.fromClass(
+//     class {
+//         decorations: DecorationSet
 
-function checkboxes(view: EditorView) {
-    let widgets = []
-    let doc = view.state.doc;
-    if (doc) {
-        //TODO: implement it in the visibleRange
-        for (let ln=0; ln < doc.lines; ln++){
-            let line = view.state.doc.line(ln+1);
-            if(line.text.startsWith(CASSIST_STARTER)){
-                let deco = Decoration.widget({widget: new CheckboxWidget(true), side: 1});
-                widgets.push(deco.range(line.to));    
-            }            
-        }
-    }
-    return Decoration.set(widgets)
-}
+//         constructor(view: EditorView) {
+//             this.decorations = checkboxes(view)
+//         }
 
-function toggleBoolean(view: EditorView, pos: number) {
-    let before = view.state.doc.sliceString(Math.max(0, pos - 5), pos)
-    let change
-    if (before == "false")
-        change = {from: pos - 5, to: pos, insert: "true"}
-    else if (before.endsWith("true"))
-        change = {from: pos - 4, to: pos, insert: "false"}
-    else
-        return false
-    view.dispatch({changes: change})
-    return true
-}
+//         update(update: ViewUpdate) {
+//             if (update.docChanged || update.viewportChanged)
+//                 this.decorations = checkboxes(update.view)
+//         }
+//     }, {
+//         decorations: v => v.decorations,
 
-const checkboxPlugin = ViewPlugin.fromClass(
-    class {
-        decorations: DecorationSet
+//         eventHandlers: {
+//             mousedown: (e, view) => {
+//             let target = e.target as HTMLElement
+//             if (target.nodeName == "INPUT" &&
+//                 target.parentElement!.classList.contains("cm-boolean-toggle"))
+//                 return toggleBoolean(view, view.posAtDOM(target))
+//             }
+//         }
+//     }
+// )
 
-        constructor(view: EditorView) {
-            this.decorations = checkboxes(view)
-        }
-
-        update(update: ViewUpdate) {
-            if (update.docChanged || update.viewportChanged)
-                this.decorations = checkboxes(update.view)
-        }
-    }, {
-        decorations: v => v.decorations,
-
-        eventHandlers: {
-            mousedown: (e, view) => {
-            let target = e.target as HTMLElement
-            if (target.nodeName == "INPUT" &&
-                target.parentElement!.classList.contains("cm-boolean-toggle"))
-                return toggleBoolean(view, view.posAtDOM(target))
-            }
-        }
-    }
-)
-
-class DropdownWidget extends WidgetType {
-    constructor() { super() }
+class SelectWidget extends WidgetType {
+    constructor(readonly opt: ICAssistExtraOpt) { super() }
   
-    eq(other: DropdownWidget) { return true }
+    eq(other: SelectWidget) { return false }
   
     toDOM() {
         let wrap = document.createElement("span");
         // wrap.setAttribute("aria-hidden", "true");
-        // wrap.className = "cm-cassist-selection";
         let select = wrap.appendChild(document.createElement("select"));
-        select.name = 'graph-selection';
-        select.id = 'graph-selection';
+        select.name = this.opt.name;
+        // select.id = this.opt.name;
         select.className = "cm-cassist-selection"
-        // select.
-        // select.onmousedown = (event)=>(console.log("CodeEditor select mouse down"));
-        for(let v of ['aaaaaaa', 'bbbbbb', 'cccccc']){
-            let option = select.appendChild(document.createElement("option"));
-            option.value = v;
-            option.label = v;
-            // option.className = "cm-cassist-selection"
-        }
+        if (this.opt.opts) {
+            for(let v of this.opt.opts){
+                let option = select.appendChild(document.createElement("option"));
+                option.value = v;
+                option.label = v;
+            }
+        }    
         return wrap;
     }
   
     ignoreEvent() { return true }
 }
 
-function dropdowns(view: EditorView) {
-    let widgets = []
-    let doc = view.state.doc;
-    if (doc) {
-        //TODO: implement it in the visibleRange
-        for (let ln=0; ln < doc.lines; ln++){
-            let line = view.state.doc.line(ln+1);
-            if(line.text.startsWith(CASSIST_STARTER)){
-                let deco = Decoration.widget({widget: new DropdownWidget(true), side: 1});
-                widgets.push(deco.range(line.to));    
-            }            
+function cAssistExtraOptsFunc(view: EditorView) {
+    let widgets = [];
+    let inViewID = store.getState().projectManager.inViewID;
+    if (inViewID){
+        let codeLines: ICodeLine[] = store.getState().codeEditor.codeLines[inViewID];
+        if(codeLines){
+            for (let line of codeLines){
+                if(line.cAssistInfo!==undefined){
+                    let cAssistInfo: ICAssistInfo|undefined = line.cAssistInfo;
+                    if (cAssistInfo) {
+                        let cAssistExtraOpts: ICAssistExtraOpt[]|undefined = cAssistInfo.cAssistExtraOpts;            
+                        let lineEnd = view.state.doc.line(cAssistInfo.cAssistLineNumber+1).to;
+                        if(cAssistExtraOpts){
+                            for (let opt of cAssistExtraOpts) {
+                                /** only support select for now */
+                                if(opt && opt.type === CAssistOptType.SELECT){
+                                    let deco = Decoration.widget({widget: new SelectWidget(opt), side: 1});
+                                    widgets.push(deco.range(lineEnd));   
+                                }
+                            }
+                        } 
+                    }
+                }    
+            }
         }
     }
     return Decoration.set(widgets)
 }
 
-const dropdownPlugin = ViewPlugin.fromClass(
+export const cAssistExtraOptsPlugin = ViewPlugin.fromClass(
     class {
         decorations: DecorationSet
 
         constructor(view: EditorView) {
-            this.decorations = dropdowns(view)
+            this.decorations = cAssistExtraOptsFunc(view)
         }
 
         update(update: ViewUpdate) {
             if (update.docChanged || update.viewportChanged)
-                this.decorations = dropdowns(update.view)
+                this.decorations = cAssistExtraOptsFunc(update.view)
         }
     }, {
         decorations: v => v.decorations,
@@ -209,8 +221,8 @@ const dropdownPlugin = ViewPlugin.fromClass(
      * CNextPlotAddDimKeyword(vs),
      * CNextPlotXDimExpression(ColumnNameExpression))
      * */
- const parseCAssistText = (cursor, text) => {
-    let plotData: MagicPlotData = {
+export const parseCAssistText = (cursor, text) => {
+    let plotData: CAssistPlotData = {
         magicTextRange: {from: cursor.from, to: cursor.to},
         df: null,
         x: null,
@@ -260,5 +272,3 @@ const dropdownPlugin = ViewPlugin.fromClass(
     }
     return plotData; 
 }
-
-export {dropdownPlugin, parseCAssistText}

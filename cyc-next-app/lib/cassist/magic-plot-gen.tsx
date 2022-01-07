@@ -1,4 +1,4 @@
-import { CategoricalTypes, ICodeGenResult, MagicPlotData, NumericalTypes, PlotType, IGetCardinalResult, IDimStatsResult, AggregateType, LINE_SEP } from "../interfaces/ICAssist";
+import { CategoricalTypes, ICodeGenResult, CAssistPlotData, NumericalTypes, PlotType, IGetCardinalResult, IDimStatsResult, AggregateType, LINE_SEP, ICAssistExtraOpt, CAssistOptType } from "../interfaces/ICAssist";
 import store from '../../redux/store';
 import { ifElse } from "../components/libs";
 import { CommandName, ContentType, Message, WebAppEndpoint } from "../interfaces/IApp";
@@ -181,7 +181,7 @@ function isColExist(col: string|string[], allColMetadata: object){
  * @param groupby : names of columns which colName column will be grouped by and counted
  * @returns 
  */
-function _create_get_dim_stats_message(df_id: string, col_name: string, groupby: string[]|undefined = undefined) {
+function createGetDimStatsMessage(df_id: string, col_name: string, groupby: string[]|undefined = undefined) {
     let message: Message = {
         webapp_endpoint: WebAppEndpoint.MagicCommandGen,
         command_name: CommandName.get_cardinal,
@@ -194,7 +194,7 @@ function _create_get_dim_stats_message(df_id: string, col_name: string, groupby:
     return message;
 }
 
-function _send_message(message: Message, timeout = 10000) {
+function sendMessage(message: Message, timeout = 10000) {
     return new Promise((resolve, reject) => {
         console.log(`send ${WebAppEndpoint.MagicCommandGen} message: `, message);
         // let timer;
@@ -230,13 +230,25 @@ function _send_message(message: Message, timeout = 10000) {
     });    
 }
 
-function _handle_univariate_plot(df_id: string, y: string[]): ICodeGenResult {
+function handleUnivariatePlot(df_id: string, y: string[]): ICodeGenResult {
     let result: ICodeGenResult;
     if(y.length == 1){                
         let plot = new PlotCommand(PlotType.HISTOGRAM, df_id, y);
         let codeStr = plot.toString();
         let lineCount = codeStr ? codeStr.split(/\r\n|\r|\n/).length : 1;
-        return {code: codeStr, lineCount: lineCount, error: false};
+        let extraOpts: ICAssistExtraOpt = {
+            type: CAssistOptType.SELECT,
+            name: 'Plot',
+            default: PlotType.HISTOGRAM, 
+            opts: [PlotType.HISTOGRAM, PlotType.PIE]
+        }
+        let result: ICodeGenResult = {
+            code: codeStr, 
+            lineCount: lineCount, 
+            error: false,
+            // extraOpts: [extraOpts]            
+        };
+        return result
     } else if(y.length > 1){                
         result = {error: true}; 
     } else {
@@ -274,7 +286,7 @@ function _handle_bivariate_plot(df_id: string, x: string[], y: string[], dimStat
     }
 }
 
-function _handle_x_multivariate_plot(df_id: string, x: string[], y: string[], dimStats: IDimStatsResult): ICodeGenResult{
+function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], dimStats: IDimStatsResult): ICodeGenResult{
     let result: ICodeGenResult;
     let plot;
     console.log('Magic _handle_x_multivariate_plot: ', df_id, x, y, dimStats);                
@@ -300,7 +312,7 @@ function _handle_x_multivariate_plot(df_id: string, x: string[], y: string[], di
     }
 }
 
-function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], allColMetadata, dimStats: IDimStatsResult): ICodeGenResult{
+function handleXMultivariatePlot(df_id: string, x: string[], y: string[], allColMetadata, dimStats: IDimStatsResult): ICodeGenResult{
     let result: ICodeGenResult;
     let plot;
     if(NumericalTypes.includes(allColMetadata[y[0]].type) && NumericalTypes.includes(allColMetadata[x[0]].type)){
@@ -340,7 +352,7 @@ function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], a
     }
 }
 
-export function magicsGetPlotCommand(plotData: MagicPlotData): Promise<ICodeGenResult>|ICodeGenResult {     
+export function magicsGetPlotCommand(plotData: CAssistPlotData): Promise<ICodeGenResult>|ICodeGenResult {     
     if (plotData.df == null){
         return {error: true};
     }
@@ -352,20 +364,20 @@ export function magicsGetPlotCommand(plotData: MagicPlotData): Promise<ICodeGenR
         let allColMetadata = dfMetadata.columns;                
         console.log('magicsGetPlotCommand: ', plotData, allColMetadata);        
         if (plotData.x == null && plotData.y && isColExist(plotData.y, allColMetadata)) {                
-            return _handle_univariate_plot(plotData.df, plotData.y);
+            return handleUnivariatePlot(plotData.df, plotData.y);
         } else if(plotData.x && plotData.y && isColExist(plotData.x, allColMetadata) && isColExist(plotData.y, allColMetadata)) {
-            let message = _create_get_dim_stats_message(plotData.df, plotData.y[0], plotData.x);
+            let message = createGetDimStatsMessage(plotData.df, plotData.y[0], plotData.x);
             let y = plotData.y;
             let x = plotData.x;
             let df_id = plotData.df;
-            return _send_message(message).then((dimStats: IDimStatsResult) => {
+            return sendMessage(message).then((dimStats: IDimStatsResult) => {
                 console.log('magicsGetPlotCommand: ', dimStats, allColMetadata, x, y);   
                 // if(x.length == 1){
                 //     return _handle_bivariate_plot(df_id, x, y, dimStats);
                 // } else { 
                 //     return _handle_x_multivariate_plot2(df_id, x, y, allColMetadata, dimStats);
                 // }
-                return _handle_x_multivariate_plot2(df_id, x, y, allColMetadata, dimStats);
+                return handleXMultivariatePlot(df_id, x, y, allColMetadata, dimStats);
             });
         }
     }

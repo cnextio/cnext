@@ -22,7 +22,7 @@ class WebappEndpoint(str, Enum):
     def __repr__(self):
         return str(self.value)    
 
-class CommandName(str, Enum):
+class DFManagerCommand(str, Enum):
     active_df_status = 'active_df_status'
     plot_column_histogram = 'plot_column_histogram'
     get_countna = 'get_countna'
@@ -55,6 +55,10 @@ class ProjectCommand(str, Enum):
     set_working_dir = 'set_working_dir'
     set_project_dir = 'set_project_dir'
     get_active_project = 'get_active_project'
+
+class CodeEditorCommand(str, Enum):  
+    exec_line = 'exec_line'
+    exec_grouped_lines = 'exec_grouped_lines'
 
 class ContentType(str, Enum):  
     COMMAND = 'command'

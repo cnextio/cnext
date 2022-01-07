@@ -14,18 +14,18 @@ import { lineNumbers, gutter, GutterMarker } from "@codemirror/gutter";
 import { StyledCodeEditor, StyledCodeMirror } from "../StyledComponents";
 // import { languageServer } from "../../codemirror/codemirror-languageserver";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
-import { addPlotResult, updateLines, setLineStatus, setActiveLine, setLineGroupStatus, setRunQueue as setReduxRunQueue, compeleteRunLine } from "../../../redux/reducers/CodeEditorRedux";
-import { ICodeResultMessage, ILineUpdate, ILineContent, LineStatus, ICodeLineStatus, ICodeLine, ICodeLineGroupStatus, SetLineGroupCommand, RunQueueStatus, ILineRange, ICodeActiveLine } from "../../interfaces/ICodeEditor";
+import { addPlotResult, updateLines, setLineStatus, setActiveLine, setLineGroupStatus, setRunQueue as setReduxRunQueue, compeleteRunLine, updateCAssistInfo, compeleteRunQueue } from "../../../redux/reducers/CodeEditorRedux";
+import { ICodeResultMessage, ILineUpdate, IRunningCommandContent, LineStatus, ICodeLineStatus, ICodeLine, ICodeLineGroupStatus, SetLineGroupCommand, RunQueueStatus, ILineRange, ICodeActiveLine, IReduxRunQueueMessage } from "../../interfaces/ICodeEditor";
 import { EditorState, StateEffect, Transaction, TransactionSpec } from "@codemirror/state";
 // import { extensions } from './codemirror-extentions/extensions';
 import { useCodeMirror } from '@uiw/react-codemirror';
-import { ICodeGenResult, CodeGenStatus, IInsertLinesInfo, ICAssistInfo, LINE_SEP, CASSIST_STARTER } from "../../interfaces/ICAssist";
-import { magicsGetPlotCommand } from "../../cassist/magic-plot-gen";
+import { ICodeGenResult, CodeGenStatus, IInsertLinesInfo, ICAssistInfo, LINE_SEP, CASSIST_STARTER, ICAssistInfoRedux } from "../../interfaces/ICAssist";
+import { magicsGetPlotCommand as cassistGetPlotCommand } from "../../cassist/magic-plot-gen";
 import { CNextDataFrameExpresion, CNextPlotExpression, CNextXDimColumnNameExpression, CNextYDimColumnNameExpression } from "../../codemirror/grammar/cnext-python.terms";
 import { ifElse } from "../libs";
 import { setFileToSave, setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
-import { editStatusGutter, getCodeLine, getCodeText, getLineContent, getLineRangeOfGroup, getNonGeneratedLinesInRange, isPromise, resetEditorState, scrollToPrevPos, setFlashingEffect, setGenLineDeco, setGroupedLineDeco, setHTMLEventHandler, setViewCodeText } from "./libCodeEditor";
-import { checkboxPlugin, dropdownPlugin, parseCAssistText } from "./libCAssist";
+import { editStatusGutter, getCodeLine, getCodeText, getRunningCommandContent, getLineRangeOfGroup, getNonGeneratedLinesInRange, isPromise, resetEditorState, scrollToPrevPos, setFlashingEffect, setGenLineDeco, setGroupedLineDeco, setHTMLEventHandler, setViewCodeText, textShouldBeExec } from "./libCodeEditor";
+import { cAssistExtraOptsPlugin, checkboxPlugin, dropdownPlugin, parseCAssistText } from "./libCAssist";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -44,9 +44,11 @@ const CodeEditor = ({id, recvCodeOutput}) => {
     const codeLines: ICodeLine[]|null = useSelector(state => getCodeLine(state));
     // const codeText: string[] = useSelector(state => getCodeTextRedux(state));    
     const runQueue = useSelector(state => state.codeEditor.runQueue);
+    const cAssistInfo = useSelector(state => state.codeEditor.cAssistInfo);
+    // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
     const editorRef = useRef();
-    const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
+    
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
@@ -60,12 +62,12 @@ const CodeEditor = ({id, recvCodeOutput}) => {
             store.getState().projectManager.inViewID, 
             getCodeLine(store.getState())
         ),
-        dropdownPlugin.extension,
+        // dropdownPlugin.extension,
+        cAssistExtraOptsPlugin.extension,
         bracketMatching(),
         defaultHighlightStyle.fallback,
         python(),
         ls,
-        // keymap.of([{key: 'Mod-l', run: runLine}]),
         keymap.of([
             {key: 'Mod-l', run: setRunQueue},
             {key: 'Mod-k', run: setGroup},
@@ -127,7 +129,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                     }
                     let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
-                        lineNumber: codeOutput.metadata.line_number, 
+                        lineRange: codeOutput.metadata.line_range, 
                         status: LineStatus.EXECUTED};
                     // console.log('CodeEditor socket ', lineStatus);
                     dispatch(setLineStatus(lineStatus));
@@ -135,10 +137,10 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                      * not sure if this is a good design but will live with it for now */ 
                     let activeLine: ICodeActiveLine = {
                         inViewID: inViewID,
-                        lineNumber: codeOutput.metadata.line_number
+                        lineNumber: codeOutput.metadata.line_range.fromLine,
                     }
                     dispatch(setActiveLine(activeLine)); 
-                    dispatch(compeleteRunLine(null));
+                    dispatch(compeleteRunQueue(null));
                 }    
             } catch {
 
@@ -195,9 +197,6 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         }        
     })
     
-    useEffect(()=>{
-        execLine()
-    },[runQueue])
     /** */
     
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update 
@@ -221,21 +220,22 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         }
     }, [editorRef.current]);
 
-    function _create_message(content: ILineContent) {
+    function _create_message(content: IRunningCommandContent) {
         let message: Message = {
             webapp_endpoint: WebAppEndpoint.CodeEditor,
-            command_name: CommandName.code_area_command,
+            // command_name: content.runAllAtOnce?CommandName.exec_grouped_lines:CommandName.exec_line,
+            command_name: CommandName.exec_line,
             seq_number: 1,
             content: content.content,
             content_type: ContentType.STRING,
             error: false,
-            metadata: {line_number: content.lineNumber}
+            metadata: {line_range: content.lineRange}
         };
         
         return message;
     }
 
-    function _send_message(content: ILineContent) {
+    function _send_message(content: IRunningCommandContent) {
         let message = _create_message(content);
         console.log(`${message.webapp_endpoint} send message: `, message);
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
@@ -271,7 +271,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                         lineRange = getLineRangeOfGroup(codeLines, lineNumberAtAnchor);
                 }
 
-                if (lineRange){
+                if (lineRange){                    
                     console.log('CodeEditor setRunQueue: ', lineRange);
                     dispatch(setReduxRunQueue(lineRange));
                 }
@@ -282,23 +282,35 @@ const CodeEditor = ({id, recvCodeOutput}) => {
         return true;
     }
 
-    const execLine = () => {
-        if(runQueue.status === RunQueueStatus.RUNNING){
-            let text: string|undefined = getLineContent(view, runQueue.runningLine);
-            let inViewID = store.getState().projectManager.inViewID;
-            if(text && inViewID){
-                console.log('CodeEditor execLine: ', runQueue.runningLine);
-                let content: ILineContent = {lineNumber: runQueue.runningLine, content: text};
-                _send_message(content);
-                let lineStatus: ICodeLineStatus = {
-                    inViewID: inViewID, 
-                    lineNumber: content.lineNumber, 
-                    status: LineStatus.EXECUTING};
-                dispatch(setLineStatus(lineStatus));
+    const execLines = () => {
+        let inViewID = store.getState().projectManager.inViewID;
+        if(inViewID && view && runQueue.status === RunQueueStatus.RUNNING){
+            const doc = view.state.doc;
+            let rangeToRun: ILineRange[];
+            if (textShouldBeExec(doc.line(runQueue.toLine).text)){ 
+                rangeToRun = [{fromLine: runQueue.fromLine, toLine: runQueue.toLine-1}, {fromLine: runQueue.toLine-1, toLine: runQueue.toLine}];
+            } else {
+                rangeToRun = [{fromLine: runQueue.fromLine, toLine: runQueue.toLine}];                
             }
+            for(let lineRange of rangeToRun){
+                let content: IRunningCommandContent|undefined = getRunningCommandContent(view, lineRange);            
+                if(content && inViewID){
+                    console.log('CodeEditor execLines: ', content, lineRange);
+                    // let content: IRunningCommandContent = {lineRange: runQueue.runningLine, content: text};
+                    _send_message(content);
+                    let lineStatus: ICodeLineStatus = {
+                        inViewID: inViewID, 
+                        lineRange: content.lineRange, 
+                        status: LineStatus.EXECUTING};
+                    dispatch(setLineStatus(lineStatus));
+                }
+            }            
         }
     }
-    
+    useEffect(()=>{
+        execLines()
+    },[runQueue])
+
     /**
      * Do not allow grouping involed generated lines
      */
@@ -410,7 +422,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                     lineStatus = {
                         inViewID: inViewID,
                         text: text, 
-                        lineNumber: changeStartLineNumber, 
+                        lineRange: {fromLine: changeStartLineNumber, toLine: changeStartLineNumber+1},
                         status: LineStatus.EDITED, 
                         generated: false};                    
                     dispatch(setLineStatus(lineStatus));
@@ -430,14 +442,21 @@ const CodeEditor = ({id, recvCodeOutput}) => {
      * If yes, generate new cAssistInfo which will be processed later in processCAssistInfo
      */
     const handleCAsisstTextUpdate = () => {
-        const updateCAssistInfoWithGenCode = (cAssistInfo: ICAssistInfo, codeGenResult: ICodeGenResult) => {
+        const updateCAssistInfoWithGenCode = (inViewID: string, cAssistInfo: ICAssistInfo, codeGenResult: ICodeGenResult) => {
             console.log('CodeEditor cAssist updateCAssistInfoWithGenCode: ', codeGenResult);
-            if (!codeGenResult.error && cAssistInfo){
+            if (codeGenResult && !codeGenResult.error && cAssistInfo){
                 let lineCount: number|undefined = codeGenResult.lineCount; 
-                cAssistInfo.lineInfo.toLine = cAssistInfo.lineInfo.fromLine + (lineCount?lineCount:0);
+                cAssistInfo.insertedLinesInfo.toLine = cAssistInfo.insertedLinesInfo.fromLine + (lineCount?lineCount:0);
                 cAssistInfo.genCode = codeGenResult.code;
+                cAssistInfo.cAssistExtraOpts = codeGenResult.extraOpts;
                 console.log('CodeEditor cAssist updateCAssistInfoWithGenCode cAssistInfo: ', cAssistInfo);
-                setCAssistInfo(cAssistInfo);  
+                // setCAssistInfo(cAssistInfo);  
+                let cAssistInfoRedux: ICAssistInfoRedux = {
+                    inViewID: inViewID,
+                    cAssistLineNumber: cAssistInfo.cAssistLineNumber,
+                    cAssistInfo: cAssistInfo,
+                }
+                dispatch(updateCAssistInfo(cAssistInfoRedux));
             } 
         }
 
@@ -458,12 +477,12 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                     cursor.parent();
                     cursor.parent();
                 }
-                console.log('CodeEditor Magics magicsPreProcess: ', cursor.toString());
+                console.log('CodeEditor cAssist handleCAsisstTextUpdate tree: ', cursor.toString());
                 if (cursor.type.id === CNextPlotExpression) {                        
                     let text: string = state.doc.toString();
                     let newMagicText: string = text.substring(cursor.from, cursor.to);                         
                     let generatedLine = view.state.doc.lineAt(cursor.to);
-                    console.log('CodeEditor Magics magicsPreProcess current magicInfo: ', cAssistInfo);
+                    console.log('CodeEditor cAssist magicsPreProcess current cAssistInfo: ', cAssistInfo);
                     /** 
                      * Check the status here to avoid circular update because this code will generate
                      * new content added to the editor, which will trigger onCMChange -> _handleMagic. 
@@ -471,45 +490,52 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                      * */                       
                     if (cAssistInfo === undefined || (cAssistInfo && cAssistInfo.status === CodeGenStatus.INSERTED)) {            
                         let parsedCAText = parseCAssistText(cursor, text);
-                        let cAssistInfo: ICAssistInfo|undefined = {
+                        let newCAssistInfo: ICAssistInfo|undefined = {
                             status: CodeGenStatus.INSERTING, 
-                            magicText: newMagicText, 
+                            cAssistText: newMagicText, 
                             plotData: parsedCAText, 
-                            line: generatedLine,
-                            /** generatedLine.number in state.doc is 1 based, so convert to 0 base */ 
-                            lineInfo: {
+                            /** generatedLine.number in state.doc is 1 based, so convert to 0 base 
+                             * and minus another 1 to get the line where cAssist's text is */ 
+                            cAssistLineNumber: generatedLine.number-2,                            
+                            insertedLinesInfo: {
                                 fromLine: generatedLine.number-1, 
                                 fromPos: generatedLine.from,
                                 toLine: generatedLine.number, /** this will need to be replaced when the code is generated */
                             }
                         };
 
-                        let result: Promise<ICodeGenResult>|ICodeGenResult = magicsGetPlotCommand(parsedCAText);
+                        let result: Promise<ICodeGenResult>|ICodeGenResult = cassistGetPlotCommand(parsedCAText);
                         if (isPromise(result)){
                             result.then((codeGenResult: ICodeGenResult) => {
-                                updateCAssistInfoWithGenCode(cAssistInfo, codeGenResult);                                
+                                updateCAssistInfoWithGenCode(inViewID, newCAssistInfo, codeGenResult);                                
                             });
                         } else {
                             let codeGenResult: ICodeGenResult = result;
-                            updateCAssistInfoWithGenCode(cAssistInfo, codeGenResult);  
+                            updateCAssistInfoWithGenCode(inViewID, newCAssistInfo, codeGenResult);  
                         }
-
-                    } else if (cAssistInfo && cAssistInfo.status === CodeGenStatus.INSERTING && cAssistInfo.line && cAssistInfo.lineInfo) {
+                    } else if (cAssistInfo && cAssistInfo.status === CodeGenStatus.INSERTING && cAssistInfo.insertedLinesInfo) {
                         /** The second time _handleMagic being called is after new code has been inserted */
                         /** convert line number to 0-based */
                         let lineStatus: ICodeLineGroupStatus = {
                             inViewID: inViewID,
-                            fromLine: cAssistInfo.lineInfo.fromLine, 
-                            toLine: cAssistInfo.lineInfo.toLine, 
+                            fromLine: cAssistInfo.insertedLinesInfo.fromLine, 
+                            toLine: cAssistInfo.insertedLinesInfo.toLine, 
                             status: LineStatus.EDITED, 
                             generated: true,
                             setGroup: SetLineGroupCommand.NEW,
                         };                        
                         dispatch(setLineGroupStatus(lineStatus));
                         // console.log('Magics after inserted lineStatus: ', lineStatus);
-                        cAssistInfo.status = CodeGenStatus.INSERTED;
-                        console.log('CodeEditor Magics magicsPreProcess after inserted magicInfo: ', cAssistInfo); 
-                        setCAssistInfo({...cAssistInfo});                                                  
+                        let newCAssistInfo = {...cAssistInfo};
+                        newCAssistInfo.status = CodeGenStatus.INSERTED;
+                        console.log('CodeEditor cAssist after inserted: ', newCAssistInfo); 
+                        // setCAssistInfo(newCAssistInfo);    
+                        let cAssistInfoRedux: ICAssistInfoRedux = {
+                            inViewID: inViewID,
+                            cAssistLineNumber: newCAssistInfo.cAssistLineNumber,
+                            cAssistInfo: newCAssistInfo,
+                        }
+                        dispatch(updateCAssistInfo(cAssistInfoRedux));                                              
                     }                    
                 } 
             }
@@ -526,11 +552,11 @@ const CodeEditor = ({id, recvCodeOutput}) => {
          * @param codeGenResult 
          */
         const insertCodeGenToView = (genCode: string) => {            
-            if (view && cAssistInfo && cAssistInfo.lineInfo){
+            if (view && cAssistInfo && cAssistInfo.insertedLinesInfo){
                 let state: EditorState = view.state;
                 // let genCode: string = codeGenResult.code;       
-                let fromLine = cAssistInfo.lineInfo.fromLine;
-                let insertFrom =  cAssistInfo.lineInfo.fromPos; //magicInfo.line.from;
+                let fromLine = cAssistInfo.insertedLinesInfo.fromLine;
+                let insertFrom =  cAssistInfo.insertedLinesInfo.fromPos; //magicInfo.line.from;
                 let codeLines: ICodeLine[]|null = getCodeLine(store.getState());
                 if(codeLines){
                     let isLineGenerated = codeLines[fromLine].generated;                
@@ -565,7 +591,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                 if (cAssistInfo.genCode !== undefined) {          
                     insertCodeGenToView(cAssistInfo.genCode);
                 }
-            } else if (cAssistInfo.status === CodeGenStatus.INSERTED && cAssistInfo.lineInfo !== undefined) {
+            } else if (cAssistInfo.status === CodeGenStatus.INSERTED && cAssistInfo.insertedLinesInfo !== undefined) {
                 setFlashingEffect(store.getState(), view, cAssistInfo);
             }
         }
