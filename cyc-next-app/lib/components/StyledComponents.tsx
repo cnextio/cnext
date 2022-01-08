@@ -220,7 +220,7 @@ export const StyledCodePanel = styled.div`
 
     export const CodeToolbar = styled.div`
         display: flex;
-        --var-height: 46px;
+        --var-height: 30px;
         height: calc(var(--var-height));
         align-items: center;        
         background-color: ${props => props.theme.palette.grey.A200};
@@ -237,7 +237,7 @@ export const StyledCodePanel = styled.div`
         height: calc(var(--var-height));
         line-height: calc(var(--var-height));
         padding: 0px 5px 0px 10px;
-        font-size: 14px;
+        font-size: 13px;
         color: ${props => props.fileSaved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
         background-color: ${props => props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
         border-width: 1px;
@@ -282,7 +282,7 @@ export const StyledCodePanel = styled.div`
             //scrollable (https://stackoverflow.com/questions/43788878/scrollable-list-component-from-material-ui-in-react)
             overflow: auto;
             max-width: 100%;
-            font-size: 14px;
+            font-size: 13px;
             // max-height: 100%;
             .cm-tooltip.lint {
                 white-space: pre;
@@ -399,7 +399,7 @@ export const StyledCodePanel = styled.div`
                 padding: 5px 0px 5px 0px;
                 overflow: auto;
                 max-height: 100%;   
-                font-size: 14px;
+                font-size: 13px;
                 &:hover {
                     background-color: ${props => props.theme.palette.action.hover};
                 }

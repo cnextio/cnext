@@ -38,7 +38,16 @@ try {
     file = fs.readFileSync('.server.yaml', 'utf8');
     config = YAML.parse(file);
 
+    /** this variable is used to send back stdout to server */
+    let clientMessage;
+
     io.on("connection", (socket) => {
+        function messageHandler(strMessage){
+            clientMessage = strMessage.slice();
+            console.log("Receive msg from client, server will run: ", JSON.parse(strMessage));         
+            pyshell.send(strMessage);
+        }
+
         socket.on("ping", message => {
             const minutes = new Date().getMinutes();
             console.log(`Got ping at ${minutes}: ${message}` );
@@ -46,34 +55,24 @@ try {
         });
 
         //TODO: catch json parse error here
-        socket.on(CodeEditor, str_message => {  //TODO: use enum    
-            message = JSON.parse(str_message);
-            console.log("Receive msg from CodeEditor, server will run: ", message);         
-            pyshell.send(message);
+        socket.on(CodeEditor, message => {  //TODO: use enum    
+            messageHandler(message);
         });
 
-        socket.on(DFManager, str_message => {  //TODO: use enum                  
-            message = JSON.parse(str_message);
-            console.log("Receive msg from DFManager, server will run: ", message);  
-            pyshell.send(message);
+        socket.on(DFManager, message => {  //TODO: use enum                  
+            messageHandler(message);
         });
 
-        socket.on(FileManager, str_message => {  //TODO: use enum                  
-            message = JSON.parse(str_message);
-            console.log("Receive msg from FileManager, server will run: ", message);  
-            pyshell.send(message);
+        socket.on(FileManager, message => {  //TODO: use enum                  
+            messageHandler(message);
         });
 
-        socket.on(FileExplorer, str_message => {  //TODO: use enum                  
-            message = JSON.parse(str_message);
-            console.log("Receive msg from FileExplorer, server will run: ", message);  
-            pyshell.send(message);
+        socket.on(FileExplorer, message => {  //TODO: use enum                  
+            messageHandler(message);
         });
 
-        socket.on(MagicCommandGen, str_message => {  //TODO: use enum                  
-            message = JSON.parse(str_message);
-            console.log("Receive msg from MagicCommandGen, server will run: ", message);  
-            pyshell.send(message);
+        socket.on(MagicCommandGen, message => {  //TODO: use enum                  
+            messageHandler(message);
         });
 
         socket.once("disconnect", () => {
@@ -81,8 +80,6 @@ try {
     });
 
     const sendOutput = (message) => {
-        // message['error'] = error
-        // console.log(message);
         io.emit(message['webapp_endpoint'], JSON.stringify(message));
     }
 
@@ -93,32 +90,40 @@ try {
     /*
     * Communicate with python server
     */
-    const { PythonShell } = require('python-shell');
-    const pyshell_opts = {
-        'stdio':
+    const { PythonShell, NewlineTransformer } = require('python-shell');
+    
+    const pyshellOpts = {
+        pythonPath: '/Users/bachbui/miniforge3-m1/envs/py39-m1/bin/python',
+        stdio:
             ['pipe', 'pipe', 'pipe', 'pipe'], // stdin, stdout, stderr, custom
-        'mode': 'json'
+        mode: 'text',
+        env: process.env
     }
 
     console.log("Starting python shell...");
-    let pyshell = new PythonShell('server.py', pyshell_opts);
+    let pyshell = new PythonShell('server.py', pyshellOpts);
 
     /**
-     * Standard communication from python-shell to node server
-     * Note: we are not going to use zmq instead of this
+     * This function handles the stdout of python-shell
      */
-    pyshell.on('message', function (message) {
-        try {
-            console.log('stdout: forward output to client');
-            sendOutput(message);            
+    pyshell.on('message', function (stdout) {
+        try {            
+            let replyMessage = {...JSON.parse(clientMessage)};
+            replyMessage['content'] = stdout;
+            console.log('stdout: forward output to client', replyMessage);
+            sendOutput(replyMessage);            
         } catch (error) {
             console.log(error.stack);
         }
     });
 
-    pyshell.on('stderr', function (message) {
-        sendOutput({"command_type": "eval", "content_type": "str", "content": message}, true); 
-        console.log('stderr:', message);
+    pyshell.on('stderr', function (stderr) {
+        let replyMessage = {...JSON.parse(clientMessage)};
+        replyMessage['content'] = stderr;
+        replyMessage['content_type'] = "str";
+        console.log('stderr: forward output to client', replyMessage);
+        sendOutput(replyMessage);            
+        console.log('stderr:', stderr);
     });
 
     pyshell.on('error', function (message) {
@@ -158,14 +163,13 @@ try {
     const initialize = () => {
         // pyshell.send({webapp_endpoint: CodeEditorComponent, content: 'print("hello world!")'});
         // seting up plotly
-        pyshell.send({webapp_endpoint: CodeEditor, content: 'import plotly.express as px'});
-        pyshell.send({webapp_endpoint: CodeEditor, content: 'import plotly.io as pio'});
-        pyshell.send({webapp_endpoint: CodeEditor, content: 'pio.renderers.default = "json"'});
+        pyshell.send(JSON.stringify({webapp_endpoint: CodeEditor, content: 'import plotly.express as px'}));
+        pyshell.send(JSON.stringify({webapp_endpoint: CodeEditor, content: 'import plotly.io as pio'}));
+        pyshell.send(JSON.stringify({webapp_endpoint: CodeEditor, content: 'pio.renderers.default = "json"'}));
         
-
         //for testing
-        pyshell.send({webapp_endpoint: CodeEditor, 
-                        content: `import os, sys, pandas as pd; os.chdir('${config.path_to_cycdataframe_lib}cycdataframe/'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame`});
+        pyshell.send(JSON.stringify({webapp_endpoint: CodeEditor, 
+                        content: `import os, sys, pandas as pd; os.chdir('${config.path_to_cycdataframe_lib}cycdataframe/'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame`}));
         // pyshell.send({webapp_endpoint: CodeEditorComponent, 
         //                 content: "df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')"}); 
         // pyshell.send({webapp_endpoint: CodeEditorComponent, 
@@ -182,9 +186,9 @@ try {
         // pyshell.send({request_originator: CodeEditorComponent, command: 'df.head()'});
 
         //test plot_count_na
-        pyshell.send({webapp_endpoint: DFManager,
-            command_name: "get_count_na",
-            seq_number: 1}); 
+        // pyshell.send({webapp_endpoint: DFManager,
+        //     command_name: "get_count_na",
+        //     seq_number: 1}); 
     }
 
 

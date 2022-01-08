@@ -136,7 +136,7 @@ const DFManager = () => {
         });        
     }
 
-    const showHistogram = false;
+    const showHistogram = true;
     const _handleGetTableData = (message: {}) => {
         const df_id = message.metadata['df_id'];
         console.log("Dispatch to tableData (DataFrame) ", message.content);        

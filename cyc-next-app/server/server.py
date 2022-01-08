@@ -4,6 +4,8 @@ import plotly
 import traceback
 import logs
 import re
+import threading
+import copy
 from zmq_message import MessageQueue
 from message import Message, WebappEndpoint, DFManagerCommand, ContentType, ProjectCommand, CodeEditorCommand
 from project_manager import files, projects
@@ -216,15 +218,16 @@ def handle_DataFrameManager_message(message):
         error_message = create_error_message(message.webapp_endpoint, trace)          
         send_result_to_node_server(error_message)
 
-def handle_CodeArea_message(message):
+def handle_CodeEditor_message(message):
     try:
         assign_exec_mode(message)
-        # sys.stdout = normal_stdout                        
+        content_type = ContentType.NONE
+        output = ''                        
         if message.execution_mode == 'exec':
             log.info('exec mode...')
             exec(message.content, globals())
             content_type = ContentType.STRING
-            output = sys.stdout.getvalue()
+            # output = sys.stdout.getvalue()
         elif message.execution_mode == 'eval':
             log.info('eval mode...')
             result = eval(message.content, globals())
@@ -241,33 +244,14 @@ def handle_CodeArea_message(message):
                 else:
                     content_type = ContentType.STRING
                     output = str(result)                
-            else:
-                result = sys.stdout.getvalue()
-                # log.info("eval stdout: \n"+ result)                     
-                log.info("got eval result on stdout ...")
-                if result is not None:             
-                    #this is super hacky. for now just assume only plotly will return a dict type
-                    if _plotly_show_match(message.content): 
-                        print("get plot data")                                        
-                        output = _create_plot_data(result) 
-                        content_type = ContentType.PLOTLY_FIG
-                    else:
-                        content_type = ContentType.STRING
-                        output = str(result)
-                else:
-                    content_type = ContentType.NONE
-                    output = ''
-
+            
         message.content_type = content_type
         message.content = output
         message.error = False
-        # print(message)           
         send_result_to_node_server(message)                                 
-        # return message
-
     except:
         trace = traceback.format_exc()
-        log.error("%s" % (trace))
+        log.error("Exception %s" % (trace))
         error_message = create_error_message(message.webapp_endpoint, trace, message.metadata)          
         send_result_to_node_server(error_message)
 
@@ -430,12 +414,28 @@ def process_active_df_status():
         send_result_to_node_server(active_df_status_message)
 
 message_handler = {
-    WebappEndpoint.CodeEditor: handle_CodeArea_message,
+    WebappEndpoint.CodeEditor: handle_CodeEditor_message,
     WebappEndpoint.DFManager: handle_DataFrameManager_message,
     WebappEndpoint.FileManager: handle_FileManager_message,
     WebappEndpoint.MagicCommandGen: handle_MagicCommandGen_message,
     WebappEndpoint.FileExplorer: handle_FileExplorer_message,
 }
+
+class StdoutHandler:
+    def __init__(self):
+        self.message = None
+
+    def handler(self):
+        while self.message != None:
+            # if self.message != None:
+            # log.info('Getting message on stdout')
+            for output in sys.stdout:    
+                log.info('Got message on stdout: %s'%output)
+                self.message.content_type = ContentType.STRING
+                self.message.content = output
+                self.message.error = False
+                send_result_to_node_server(self.message)                                 
+        
 
 if __name__ == "__main__":    
     try:
@@ -443,39 +443,43 @@ if __name__ == "__main__":
         # notification_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['p2n_notif_port']) 
         # n2p_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['n2p_port'])
     except Exception as error:
-        log.error("%s - %s" % (error, traceback.format_exc()))          
+        log.error("Failed to make connection to node server %s - %s" % (error, traceback.format_exc()))          
         exit(1)
 
-    while True:    
-        for line in sys.stdin:            
-            log.info('Got message %s' % json.loads(line))
-            message = Message(**json.loads(line))        
-            normal_stdout = sys.stdout            
-            sys.stdout = io.StringIO()
-
-            try:                
+    # normal_stdout = sys.stdout            
+    # sys.stdout = io.StringIO()
+    # stdoutHandler = StdoutHandler()
+    # stdoutHandlerThread = threading.Thread(target=stdoutHandler.handler, daemon=True)
+    
+    while True:            
+        for line in sys.stdin:                  
+            # stdoutHandler.message = copy.deepcopy(message)
+            # stdoutHandlerThread.start()
+            
+            try:              
+                # sys.stdout = io.StringIO()            
+                log.info('Got message %s' % line)
+                message = Message(**json.loads(line))    
+                
                 message_handler[message.webapp_endpoint](message);
                 if message.webapp_endpoint == WebappEndpoint.CodeEditor:                     
                     process_active_df_status()
 
             except OSError as error: #TODO check if this has to do with buffer error
                 #since this error might be related to the pipe, we do not send this error to nodejs
-                sys.stdout = normal_stdout
+                # sys.stdout = normal_stdout
                 log.error("OSError: %s" % (error))  
 
             except:            
-                sys.stdout = normal_stdout    
-                log.error(traceback.format_exc())
+                # sys.stdout = normal_stdout    
+                log.error("Failed to execute the command %s", traceback.format_exc())
                 message = create_error_message(message.webapp_endpoint, traceback.format_exc())                
                 send_result_to_node_server(message)
-                # error_message = Message(message['request_originator'], 'eval', "str", traceback.format_exc(), True)    
-                # send_result_to_node_server(error_message)
-                # traceback.print_exc()        
             
-            sys.stdout = normal_stdout    
+            # stdoutHandler.message = None
+            # stdoutHandlerThread.join()
+            # sys.stdout = normal_stdout    
             try:    
                 sys.stdout.flush()                 
             except Exception as error:
-                log.error("%s - %s" % (error, traceback.format_exc()))  
-                # error_message = Message(req['request_originator'], 'eval', "str", "Got some unexpected errors", True)    
-                # send_result_to_node_server(error_message) 
+                log.error("Failed to flush stdout %s - %s" % (error, traceback.format_exc()))  

@@ -118,7 +118,6 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                             console.log("dispatch tableData");               
                             dispatch(setTableData(codeOutput.content));
                         } else if (codeOutput.content_type==ContentType.PLOTLY_FIG){
-                            // _handlePlotData(codeOutput); 
                             handlePlotData(codeOutput);                       
                         }
                         else {  
