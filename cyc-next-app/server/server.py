@@ -446,18 +446,9 @@ if __name__ == "__main__":
         log.error("Failed to make connection to node server %s - %s" % (error, traceback.format_exc()))          
         exit(1)
 
-    # normal_stdout = sys.stdout            
-    # sys.stdout = io.StringIO()
-    # stdoutHandler = StdoutHandler()
-    # stdoutHandlerThread = threading.Thread(target=stdoutHandler.handler, daemon=True)
-    
     while True:            
         for line in sys.stdin:                  
-            # stdoutHandler.message = copy.deepcopy(message)
-            # stdoutHandlerThread.start()
-            
-            try:              
-                # sys.stdout = io.StringIO()            
+            try:                      
                 log.info('Got message %s' % line)
                 message = Message(**json.loads(line))    
                 
@@ -467,18 +458,13 @@ if __name__ == "__main__":
 
             except OSError as error: #TODO check if this has to do with buffer error
                 #since this error might be related to the pipe, we do not send this error to nodejs
-                # sys.stdout = normal_stdout
                 log.error("OSError: %s" % (error))  
 
             except:            
-                # sys.stdout = normal_stdout    
                 log.error("Failed to execute the command %s", traceback.format_exc())
                 message = create_error_message(message.webapp_endpoint, traceback.format_exc())                
                 send_result_to_node_server(message)
             
-            # stdoutHandler.message = None
-            # stdoutHandlerThread.join()
-            # sys.stdout = normal_stdout    
             try:    
                 sys.stdout.flush()                 
             except Exception as error:
