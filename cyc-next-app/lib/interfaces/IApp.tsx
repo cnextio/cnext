@@ -1,6 +1,7 @@
 import React from "react";
 import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from "./IFileManager";
 import { IGetCardinalResult } from "./ICAssist";
+import { ExperimentManagerCommand } from "./IExperimentManager";
 
 export type RecvCodeOutput = (output: Message) => void;
 
@@ -9,24 +10,15 @@ export type RecvCodeOutput = (output: Message) => void;
 //     content: string;
 // };
 
-// export interface Message {
-//     request_originator: string;    
-//     command_type: string;    
-//     content_type: string;
-//     content: string|object;
-//     error: boolean;
-//     meta: object;
-// };
-
 export interface Message {
     webapp_endpoint: string; // the web client component which sends 
 														 // and/or receives this message    
-    command_name: CommandName|ProjectCommand;    // 'code_area_command'|'updated_dataframe_list'|
+    command_name: CommandName|ProjectCommand|ExperimentManagerCommand;    // 'code_area_command'|'updated_dataframe_list'|
 														 // 'plot_column_histogram'|'plot_count_na'|
 														 // 'query_data'|'row_difference'|'column_difference' 
 	seq_number: number;      // sequence number of the command. This is needed 
 														 // for commands that requires more than one command
-    content_type: ContentType;    // the object type of the output content
+    type: ContentType|CommandType;    // the object type of the output content
     content: string|object|IFileMetadata|IFileMetadata[]|IGetCardinalResult|IDirectoryMetadata|null;  // the command string and output string|object
     error: boolean;
     metadata: object;            // store info about the dataframe and columns 
@@ -76,16 +68,19 @@ export enum ContentType {
     NONE = 'none',
 };
 
-// 'code_area_command'|'active_df_status'|
-// 'plot_column_histogram'|'plot_count_na'|
-// 'query_data'|'row_difference'|'column_difference'
+export enum CommandType {  
+    MLFLOW = 'mlflow',
+    MLFLOW_CLIENT = 'mlflow_client',
+    MLFLOW_COMBINE = 'mlflow_combine',
+};
 
 export enum WebAppEndpoint {
     DFManager = 'DFManager',
     CodeEditor = 'CodeEditor',
     FileManager = 'FileManager',
     MagicCommandGen = 'MagicCommandGen',
-    FileExplorer = 'FileExplorer'
+    FileExplorer = 'FileExplorer',
+    ExperimentManager = 'ExperimentManager',
 };
 
 export interface ITableData {

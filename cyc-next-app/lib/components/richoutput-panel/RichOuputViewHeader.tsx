@@ -14,8 +14,6 @@ import { ResultViewHeader } from "../../interfaces/IResultViewer";
 const RichOuputViewHeader = ({show, setShow}) => {        
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     const dfMetadata = useSelector((state) => state.dataFrames.metadata[activeDataFrame]);
-    const dispatch = useDispatch();  
-    const header = useRef();    
     // const [show, setShow] = useState('Tables');
 
     function onClick(name: string) {

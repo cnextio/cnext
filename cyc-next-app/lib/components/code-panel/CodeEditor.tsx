@@ -89,7 +89,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
             let result: ICodeResultMessage = {
                 inViewID: inViewID,
                 content: message.content, 
-                type: message.content_type,
+                type: message.type,
                 metadata: message.metadata
             };
 
@@ -111,13 +111,13 @@ const CodeEditor = ({id, recvCodeOutput}) => {
                 let codeOutput: Message = JSON.parse(result);   
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
-                    if ((codeOutput.content_type===ContentType.STRING) || (codeOutput.error===true)){
+                    if ((codeOutput.type===ContentType.STRING) || (codeOutput.error===true)){
                         recvCodeOutput(codeOutput); //TODO: move this to redux
                     } else {
-                        if (codeOutput.content_type==ContentType.PANDAS_DATAFRAME){
+                        if (codeOutput.type==ContentType.PANDAS_DATAFRAME){
                             console.log("dispatch tableData");               
                             dispatch(setTableData(codeOutput.content));
-                        } else if (codeOutput.content_type==ContentType.PLOTLY_FIG){
+                        } else if (codeOutput.type==ContentType.PLOTLY_FIG){
                             handlePlotData(codeOutput);                       
                         }
                         else {  
@@ -228,7 +228,7 @@ const CodeEditor = ({id, recvCodeOutput}) => {
             command_name: CommandName.exec_line,
             seq_number: 1,
             content: content.content,
-            content_type: ContentType.STRING,
+            type: ContentType.STRING,
             error: false,
             metadata: {line_range: content.lineRange}
         };

@@ -1,20 +1,27 @@
 import platform, sys, logging, simplejson as json, io, os
 import pandas 
 import plotly
+import plotly.express as px, plotly.io as pio
+pio.renderers.default = "json"
+
 import traceback
 import logs
 import re
 import threading
 import copy
 from zmq_message import MessageQueue
-from message import Message, WebappEndpoint, DFManagerCommand, ContentType, ProjectCommand, CodeEditorCommand
+from message import CommandType, ExperimentManagerCommand, Message, WebappEndpoint, DFManagerCommand, ContentType, ProjectCommand, CodeEditorCommand
 from project_manager import files, projects
+
+import mlflow
+import mlflow.tensorflow
+from mlflow.tracking.client import MlflowClient
 
 log = logs.get_logger(__name__)
 
 from libs.config import read_config
 try:
-    config = read_config('.server.yaml', {'node_py_zmq':{'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
+    config = read_config('.server.yaml', {'code_executor_comm':{'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
     log.info('Server config: %s'%config)
     open_projects = []
     active_project: projects.ProjectMetadata = None
@@ -137,18 +144,18 @@ def _create_get_cardinal_data(result):
 def create_error_message(webapp_endpoint, trace, metadata=None):
     return Message(**{
         "webapp_endpoint": webapp_endpoint, 
-        "content_type": ContentType.STRING,
+        "type": ContentType.STRING,
         "content": trace,
         "error": True,
         "metadata": metadata,
     })
 
-def send_result_to_node_server(message: Message):
+def send_to_node(message: Message):
     # the current way of communicate with node server is through stdout with a json string
     # log.info("Send to node server: %s" % message)
     # log.info("Send output to node server... %s"%message.toJSON())
     log.info("Send output to node server...")
-    p2n_queue.push(message.toJSON())
+    p2n_queue.send(message.toJSON())
     
 def handle_DataFrameManager_message(message):
     send_reply = False
@@ -160,7 +167,7 @@ def handle_DataFrameManager_message(message):
             if result is not None:                
                 log.info("get plot data")                                        
                 output = _create_DFManager_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
-                content_type = ContentType.PLOTLY_FIG
+                type = ContentType.PLOTLY_FIG
                 send_reply = True
 
         if message.command_name == DFManagerCommand.plot_column_quantile:
@@ -168,7 +175,7 @@ def handle_DataFrameManager_message(message):
             if result is not None:                
                 log.info("get plot data")                                        
                 output = _create_DFManager_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
-                content_type = ContentType.PLOTLY_FIG
+                type = ContentType.PLOTLY_FIG
                 send_reply = True
 
         elif message.command_name == DFManagerCommand.get_table_data:    
@@ -176,7 +183,7 @@ def handle_DataFrameManager_message(message):
             if result is not None:                
                 log.info("get table data")
                 output = _create_table_data(message.metadata['df_id'], result)       
-                content_type = ContentType.PANDAS_DATAFRAME
+                type = ContentType.PANDAS_DATAFRAME
                 send_reply = True
                                        
         elif message.command_name == DFManagerCommand.get_countna: 
@@ -186,7 +193,7 @@ def handle_DataFrameManager_message(message):
             if (countna is not None) and (len is not None):                
                 log.info("get countna data")
                 output = _create_countna_data(message.metadata['df_id'], len, countna)       
-                content_type = ContentType.DICT
+                type = ContentType.DICT
                 send_reply = True                            
         
         elif message.command_name == DFManagerCommand.get_df_metadata: 
@@ -204,29 +211,29 @@ def handle_DataFrameManager_message(message):
                                         'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}                
             output = {'df_id': df_id, 'shape': shape, 'columns': columns}    
             log.info(output)
-            content_type = ContentType.DICT
+            type = ContentType.DICT
             send_reply = True    
 
         if send_reply:
-            message.content_type = content_type
+            message.type = type
             message.content = output
             message.error = False
-            send_result_to_node_server(message)
+            send_to_node(message)
     except:
         trace = traceback.format_exc()
         log.error("%s" % (trace))
         error_message = create_error_message(message.webapp_endpoint, trace)          
-        send_result_to_node_server(error_message)
+        send_to_node(error_message)
 
 def handle_CodeEditor_message(message):
     try:
         assign_exec_mode(message)
-        content_type = ContentType.NONE
+        type = ContentType.NONE
         output = ''                        
         if message.execution_mode == 'exec':
             log.info('exec mode...')
             exec(message.content, globals())
-            content_type = ContentType.STRING
+            type = ContentType.STRING
             # output = sys.stdout.getvalue()
         elif message.execution_mode == 'eval':
             log.info('eval mode...')
@@ -237,23 +244,23 @@ def handle_CodeEditor_message(message):
                 if _result_is_dataframe(result):
                     df_id = _get_dataframe_id(message.content)
                     output = _create_table_data(df_id, result)       
-                    content_type = ContentType.PANDAS_DATAFRAME
+                    type = ContentType.PANDAS_DATAFRAME
                 elif _result_is_plotly_fig(result):
                     output = _create_CodeArea_plot_data(result)
-                    content_type = ContentType.PLOTLY_FIG
+                    type = ContentType.PLOTLY_FIG
                 else:
-                    content_type = ContentType.STRING
+                    type = ContentType.STRING
                     output = str(result)                
             
-        message.content_type = content_type
+        message.type = type
         message.content = output
         message.error = False
-        send_result_to_node_server(message)                                 
+        send_to_node(message)                                 
     except:
         trace = traceback.format_exc()
         log.error("Exception %s" % (trace))
         error_message = create_error_message(message.webapp_endpoint, trace, message.metadata)          
-        send_result_to_node_server(error_message)
+        send_to_node(error_message)
 
 def handle_FileManager_message(message):
     log.info('Handle FileManager message: %s' % message)
@@ -264,51 +271,51 @@ def handle_FileManager_message(message):
             result = []
             if 'path' in metadata.keys():
                 result = files.list_dir(metadata['path']) 
-                content_type = ContentType.DIR_LIST    
+                type = ContentType.DIR_LIST    
         elif message.command_name == ProjectCommand.get_open_files:
             result = projects.get_open_files()
-            content_type = ContentType.FILE_METADATA   
+            type = ContentType.FILE_METADATA   
         elif message.command_name == ProjectCommand.set_working_dir:
             if 'path' in metadata.keys():
                 result = projects.set_working_dir(metadata['path'])
-            content_type = ContentType.NONE 
+            type = ContentType.NONE 
         elif message.command_name == ProjectCommand.set_project_dir:
             if 'path' in metadata.keys():
                 result = projects.set_project_dir(metadata['path'])
-            content_type = ContentType.NONE   
+            type = ContentType.NONE   
         elif message.command_name == ProjectCommand.read_file:
             if 'path' in metadata.keys():
                 timestamp = metadata['timestamp'] if 'timestamp' in metadata else None
                 result = files.read_file(metadata['path'], timestamp)
                 if result == None:
-                    content_type = ContentType.NONE
+                    type = ContentType.NONE
                 else:
-                    content_type = ContentType.FILE_CONTENT
+                    type = ContentType.FILE_CONTENT
         elif message.command_name == ProjectCommand.save_file:
             if 'path' in metadata.keys():
                 result = files.save_file(metadata['path'], message.content)
-            content_type = ContentType.FILE_METADATA        
+            type = ContentType.FILE_METADATA        
         elif message.command_name == ProjectCommand.close_file:
             result = projects.close_file(metadata['path'])
-            content_type = ContentType.FILE_METADATA
+            type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.open_file:
             result = projects.open_file(metadata['path'])
-            content_type = ContentType.FILE_METADATA
+            type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.get_active_project:
             result = projects.get_active_project()
-            content_type = ContentType.PROJECT_METADATA    
+            type = ContentType.PROJECT_METADATA    
 
         # create reply message
-        message.content_type = content_type
+        message.type = type
         message.content = result
         message.error = False
-        send_result_to_node_server(message)   
+        send_to_node(message)   
 
     except:
         trace = traceback.format_exc()
         log.error("%s" % (trace))
         error_message = create_error_message(message.webapp_endpoint, trace)          
-        send_result_to_node_server(error_message)
+        send_to_node(error_message)
 
 def handle_FileExplorer_message(message):
     log.info('Handle FileExplorer message: %s' % message)
@@ -319,12 +326,12 @@ def handle_FileExplorer_message(message):
             output = []
             if 'path' in metadata.keys():
                 output = files.list_dir(metadata['path']) 
-                content_type = ContentType.DIR_LIST    
+                type = ContentType.DIR_LIST    
         elif message.command_name == ProjectCommand.create_file:
             if 'path' in metadata.keys():
                 files.create_file(metadata['path'])
             output = projects.open_file(metadata['path'])
-            content_type = ContentType.FILE_METADATA
+            type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.delete:
             if 'path' in metadata.keys():
                 files.delete(metadata['path'], metadata['is_file'])            
@@ -332,18 +339,18 @@ def handle_FileExplorer_message(message):
                 output = projects.close_file(metadata['path'])
             else: #TODO: handle the case where a dir is deleted and deleted files were opened
                 output = projects.get_open_files()
-            content_type = ContentType.FILE_METADATA
+            type = ContentType.FILE_METADATA
         # create reply message
-        message.content_type = content_type
+        message.type = type
         message.content = output
         message.error = False
-        send_result_to_node_server(message)   
+        send_to_node(message)   
 
     except:
         trace = traceback.format_exc()
         log.error("%s" % (trace))
         error_message = create_error_message(message.webapp_endpoint, trace)          
-        send_result_to_node_server(error_message)
+        send_to_node(error_message)
 
 def handle_MagicCommandGen_message(message):
     send_reply = False
@@ -389,29 +396,113 @@ def handle_MagicCommandGen_message(message):
                 # log.info("get cardinal data: %s"%type(result))                                        
                 log.info("get cardinal data")                                        
                 output = _create_get_cardinal_data(result) 
-                content_type = ContentType.COLUMN_CARDINAL
+                type = ContentType.COLUMN_CARDINAL
                 send_reply = True  
 
         if send_reply:
-            message.content_type = content_type
+            message.type = type
             message.content = output
             message.error = False
-            send_result_to_node_server(message)
+            send_to_node(message)
     except:
         trace = traceback.format_exc()
         log.error("%s" % (trace))
         error_message = create_error_message(message.webapp_endpoint, trace)          
-        send_result_to_node_server(error_message)
+        send_to_node(error_message)
+
+def handle_ExperimentManager_message(message):
+    log.info('Handle ExperimentManager message: %s' % message)    
+    try:    
+        params = message.content
+        if message.type == CommandType.MLFLOW_CLIENT:    
+            mlFlowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
+            params.pop('tracking_uri')
+            message.content = getattr(mlFlowClient, message.command_name)(**params)
+            if message.command_name == ExperimentManagerCommand.list_experiments:
+                running_exp_id = None
+                experiments = message.content
+                ## 
+                # Identify the running experiment.
+                # Since the API does not provide this functionality, use running run as the proxy for running experiments
+                # A run is running if it's end_time is None. This might not work when there are multiple running runs 
+                # initiated from different context
+                # #
+                for exp in experiments:
+                    run_infos = mlFlowClient.list_run_infos(exp.experiment_id)
+                    log.info(run_infos)
+                    if len(run_infos)>0 and run_infos[0].status == 'RUNNING':
+                        running_exp_id = exp.experiment_id
+                        break                    
+                message.content = {'experiments': experiments, 'running_exp_id': running_exp_id}
+            if message.command_name == ExperimentManagerCommand.list_run_infos:
+                active_run_id = None
+                run_infos = message.content
+                ## 
+                # Identify the running experiment.
+                # Since the API does not provide this functionality, use running run as the proxy for running experiments
+                # A run is running if it's end_time is None. This might not work when there are multiple running runs 
+                # initiated from different context
+                # #
+                for run_info in run_infos:
+                    log.info(run_info)
+                    if run_info.status == 'RUNNING':
+                        active_run_id = run_info.run_id
+                        break
+                
+                ## fix the naming issue for run
+                # for run_info in run_infos:
+                #         run = mlFlowClient.get_run(run_info.run_id)
+                #         if 'mlflow.runName' in run.data.tags:
+                #             ## add underscore prefix to make it consistent with other fileds on mlflow
+                #             run_info['_name'] = run.data.tags['mlflow.runName']
+                #         else:
+                #             run_info['_name'] = run_info.run_id[:10]
+                message.content = {'runs': run_infos, 'active_run_id': active_run_id}    
+        elif message.type == CommandType.MFLOW:
+            message.content = getattr(mlflow, message.command_name)(**params)    
+        elif message.type == CommandType.MLFLOW_COMBINE:
+            if message.command_name == ExperimentManagerCommand.get_metric_plots:             
+                mlFlowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
+                # for run_id in message.content['run_ids']:
+                #     runs_data.append(mlFlowClient.get_run(run_id))
+                metrics_data = {}
+                for id in message.content['run_ids']:
+                    run = mlFlowClient.get_run(id)
+                    metric_keys = run.data.metrics.keys()    
+                    for metric in metric_keys:
+                        metric_history = mlFlowClient.get_metric_history(id, metric)
+                        if metric not in metrics_data:
+                            metrics_data[metric] = {}
+                        metrics_data[metric][id] = [m.value for m in metric_history]
+                result = {}
+                for metric in metrics_data.keys():
+                    metrics_df = pandas.DataFrame(dict([ (k,pandas.Series(v)) for k,v in metrics_data[metric].items() ]))
+                    # metrics_df = pandas.DataFrame.from_dict(metrics_data[metric])
+                    metrics_df.columns = [c[:10] for c in metrics_df.columns]                    
+                    result[metric] = px.line(metrics_df, labels={"y": metric}).to_json()
+                log.info(result)
+                message.content = result
+
+        # elif message.type == CommandType.MLFLOW_COMBINE:
+        #     if message.command                 
+        message.error = False
+        send_to_node(message)   
+
+    except:
+        trace = traceback.format_exc()
+        log.error("%s" % (trace))
+        error_message = create_error_message(message.webapp_endpoint, trace)          
+        send_to_node(error_message)
 
 def process_active_df_status():
     if DataFrameStatusHook.update_active_df_status(get_global_df_list()):
         active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, 
                                             "command_name": DFManagerCommand.active_df_status, 
                                             "seq_number": 1, 
-                                            "content_type": "dict", 
+                                            "type": "dict", 
                                             "content": DataFrameStatusHook.get_active_df(), 
                                             "error": False})
-        send_result_to_node_server(active_df_status_message)
+        send_to_node(active_df_status_message)
 
 message_handler = {
     WebappEndpoint.CodeEditor: handle_CodeEditor_message,
@@ -419,6 +510,7 @@ message_handler = {
     WebappEndpoint.FileManager: handle_FileManager_message,
     WebappEndpoint.MagicCommandGen: handle_MagicCommandGen_message,
     WebappEndpoint.FileExplorer: handle_FileExplorer_message,
+    WebappEndpoint.ExperimentManager: handle_ExperimentManager_message,
 }
 
 class StdoutHandler:
@@ -431,17 +523,20 @@ class StdoutHandler:
             # log.info('Getting message on stdout')
             for output in sys.stdout:    
                 log.info('Got message on stdout: %s'%output)
-                self.message.content_type = ContentType.STRING
+                self.message.type = ContentType.STRING
                 self.message.content = output
                 self.message.error = False
-                send_result_to_node_server(self.message)                                 
+                send_to_node(self.message)                                 
         
-
 if __name__ == "__main__":    
     try:
-        p2n_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['p2n_port'])
-        # notification_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['p2n_notif_port']) 
-        # n2p_queue = MessageQueue(config.node_py_zmq['host'], config.node_py_zmq['n2p_port'])
+        p2n_queue = MessageQueue(config.p2n_comm['host'], config.p2n_comm['p2n_port'])
+        # if sys.argv[1]=='code-executor':
+        #     p2n_queue = MessageQueue(config.code_executor_comm['host'], config.code_executor_comm['p2n_port'])
+        # elif sys.argv[1]=='non-code-executor':
+        #     p2n_queue = MessageQueue(config.non_code_executor_comm['host'], config.non_code_executor_comm['p2n_port'])
+        #     pass
+
     except Exception as error:
         log.error("Failed to make connection to node server %s - %s" % (error, traceback.format_exc()))          
         exit(1)
@@ -463,7 +558,7 @@ if __name__ == "__main__":
             except:            
                 log.error("Failed to execute the command %s", traceback.format_exc())
                 message = create_error_message(message.webapp_endpoint, traceback.format_exc())                
-                send_result_to_node_server(message)
+                send_to_node(message)
             
             try:    
                 sys.stdout.flush()                 

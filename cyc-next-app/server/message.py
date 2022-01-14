@@ -15,6 +15,7 @@ class WebappEndpoint(str, Enum):
     FileManager = 'FileManager'
     MagicCommandGen = 'MagicCommandGen'
     FileExplorer = 'FileExplorer'
+    ExperimentManager = 'ExperimentManager'
 
     def __str__(self):
         return str(self.value)
@@ -56,6 +57,11 @@ class ProjectCommand(str, Enum):
     set_project_dir = 'set_project_dir'
     get_active_project = 'get_active_project'
 
+class ExperimentManagerCommand(str, Enum):
+    list_experiments = 'list_experiments'
+    list_run_infos = 'list_run_infos'
+    get_metric_plots = 'get_metric_plots'
+
 class CodeEditorCommand(str, Enum):  
     exec_line = 'exec_line'
     exec_grouped_lines = 'exec_grouped_lines'
@@ -79,12 +85,23 @@ class ContentType(str, Enum):
     def __repr__(self):
         return str(self.value) 
 
+class CommandType(str, Enum):  
+    MFLOW = 'mlflow' ## use mlflow object to call the function #
+    MLFLOW_CLIENT = 'mlflow_client' ## use mlflow.client object to call the function #
+    MLFLOW_COMBINE = 'mlflow_combine' ## use combine a set of mlflow functions #
+
+    def __str__(self):
+        return str(self.value)    
+    
+    def __repr__(self):
+        return str(self.value) 
+
 class Message:
     def __init__(self, **entries): 
         self.webapp_endpoint = None
         self.command_name = None
         self.seq_number = None
-        self.content_type = None
+        self.type = None
         self.content = None
         self.error = None
         self.metadata = None

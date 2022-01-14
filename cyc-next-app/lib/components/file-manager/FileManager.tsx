@@ -41,7 +41,7 @@ const FileManager = () => {
                             if (inViewID) {
                                 // console.log('Get file content: ', fmResult.content);
                                 console.log('FileManager got read_file result: ', fmResult);
-                                if(fmResult.content_type === ContentType.FILE_CONTENT){
+                                if(fmResult.type === ContentType.FILE_CONTENT){
                                     let reduxCodeText: ICodeText = {
                                         reduxFileID: inViewID, 
                                         codeText: fmResult.content['content'],
@@ -60,7 +60,7 @@ const FileManager = () => {
                             break;
                         case ProjectCommand.save_file:
                             console.log('FileManager got save_file result: ', fmResult);
-                            if(fmResult.content_type === ContentType.FILE_METADATA){
+                            if(fmResult.type === ContentType.FILE_METADATA){
                                 dispatch(setFileSaved(null));
                                 
                                 /** update file timestamp */
@@ -120,7 +120,7 @@ const FileManager = () => {
         let message: Message = {
             webapp_endpoint: WebAppEndpoint.FileManager,
             command_name: command_name,
-            content_type: ContentType.COMMAND,
+            type: ContentType.COMMAND,
             seq_number: seq_number,
             content: content,
             metadata: metadata,

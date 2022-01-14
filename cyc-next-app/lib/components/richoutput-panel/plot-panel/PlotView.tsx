@@ -1,15 +1,15 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { PlotContainer as SinglePlot, PlotViewContainer as StyledPlotView } from "../StyledComponents";
+import { PlotContainer as SinglePlot, PlotViewContainer as StyledPlotView } from "../../StyledComponents";
 import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
-import { update as vizDataUpdate } from "../../../redux/reducers/vizDataSlice";
+import { update as vizDataUpdate } from "../../../../redux/reducers/vizDataSlice";
 import { Box, Paper } from "@mui/material";
-import { ICodeLine, IPlotResult } from "../../interfaces/ICodeEditor";
-import store from "../../../redux/store";
-import { ContentType } from "../../interfaces/IApp";
+import { ICodeLine, IPlotResult } from "../../../interfaces/ICodeEditor";
+import store from "../../../../redux/store";
+import { ContentType } from "../../../interfaces/IApp";
 
 
 const PlotWithNoSSR = dynamic(
@@ -31,6 +31,7 @@ export const PlotView = (props: any) => {
         try {
             /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
             let inPlotData = JSON.parse(JSON.stringify(plotData.plot));
+            console.log('ExperimentView: ', inPlotData);
             inPlotData['data'][0]['hovertemplate'] = "%{x}: %{y}";  
             inPlotData.layout.width = width ? width : inPlotData.layout.width;
             inPlotData.layout.height = height ? height : inPlotData.layout.height;  

@@ -6,11 +6,11 @@ import shortid from "shortid";
 
 // redux
 import { useSelector, useDispatch } from 'react-redux'
-import { ifElse } from "../libs";
-import { IColumnMetaData, IDFMetadata } from "../../interfaces/IApp";
-import { DataTable, DataTableCell, DataTableRow, TableContainer } from "../StyledComponents";
-import CountNA from "../richoutput-panel/CountNA";
-import ColumnHistogram from "../richoutput-panel/ColumnHistogram";
+import { ifElse } from "../../libs";
+import { IColumnMetaData, IDFMetadata } from "../../../interfaces/IApp";
+import { DataTable, DataTableCell, DataTableRow, TableContainer } from "../../StyledComponents";
+import CountNA from "../CountNA";
+import ColumnHistogram from "../ColumnHistogram";
 
 
 const PlotWithNoSSR = dynamic(

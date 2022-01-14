@@ -42,7 +42,7 @@ const FileExplorer = (props: any) => {
                 switch(fmResult.command_name) {
                     case ProjectCommand.list_dir: 
                         console.log('FileExplorer got list dir: ', fmResult.content);
-                        if (fmResult.content_type == ContentType.DIR_LIST){
+                        if (fmResult.type == ContentType.DIR_LIST){
                             const dirs: IDirectoryMetadata[]|null = fmResult.content; 
                             if (dirs) {
                                 const data: IDirListResult = {id: fmResult.metadata['path'], dirs: dirs}
@@ -77,7 +77,7 @@ const FileExplorer = (props: any) => {
             command_name: command,
             seq_number: 1,
             content: null,
-            content_type: ContentType.STRING,
+            type: ContentType.STRING,
             error: false,
             metadata: metadata
         };    

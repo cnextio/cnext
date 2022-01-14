@@ -18,7 +18,9 @@ type CodeEditorState = {
      * PlotView, which would only be rerendered when this variable is updated */ 
     plotResultUpdate: number,
     activeLine: string|null,
-    cAssistInfo: ICAssistInfo|undefined
+    cAssistInfo: ICAssistInfo|undefined,
+    runDict: {}|undefined,
+    runningId: string|undefined,
 }
 
 const initialState: CodeEditorState = {
@@ -30,6 +32,8 @@ const initialState: CodeEditorState = {
     plotResultUpdate: 0,
     activeLine: null,
     cAssistInfo: undefined,
+    runDict: undefined,
+    runningId: undefined,
 }
 
 export const CodeEditorRedux = createSlice({
@@ -247,7 +251,7 @@ export const CodeEditorRedux = createSlice({
             const lineNumber = cAssistInfoRedux.cAssistLineNumber;
             state.codeLines[inViewID][lineNumber].cAssistInfo = cAssistInfoRedux.cAssistInfo;
             state.cAssistInfo = cAssistInfoRedux.cAssistInfo;
-        }
+        },
     },
 })
 
@@ -263,6 +267,6 @@ export const {
     setRunQueue, 
     compeleteRunLine,
     updateCAssistInfo,
-    compeleteRunQueue } = CodeEditorRedux.actions
+    compeleteRunQueue} = CodeEditorRedux.actions
 
 export default CodeEditorRedux.reducer

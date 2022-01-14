@@ -11,10 +11,10 @@ export function socketInit(codeOutputComponent){
         console.log(`${WebAppEndpoint.MagicCommandGen} got results...`);
         try {
             let codeOutput: Message = JSON.parse(result);                
-            if (codeOutput.content_type == ContentType.STRING || codeOutput.error==true){
+            if (codeOutput.type == ContentType.STRING || codeOutput.error==true){
                 codeOutputComponent(codeOutput); //TODO: move this to redux
             } else {
-                if (codeOutput.content_type==ContentType.COLUMN_CARDINAL){
+                if (codeOutput.type==ContentType.COLUMN_CARDINAL){
                     resolve(message);
                         // clearTimeout(timer);
                 } else {  
@@ -187,7 +187,7 @@ function createGetDimStatsMessage(df_id: string, col_name: string, groupby: stri
         command_name: CommandName.get_cardinal,
         seq_number: 1,
         content: null,
-        content_type: ContentType.STRING,
+        type: ContentType.STRING,
         error: false,
         metadata: groupby ? {df_id: df_id, col_name: col_name, groupby: groupby} : {df_id: df_id, col_name: col_name}
     };    
@@ -205,10 +205,10 @@ function sendMessage(message: Message, timeout = 10000) {
             console.log(`${WebAppEndpoint.MagicCommandGen} got results...`);
             try {
                 let codeOutput: Message = JSON.parse(result);                
-                if (codeOutput.content_type == ContentType.STRING || codeOutput.error==true){
+                if (codeOutput.type == ContentType.STRING || codeOutput.error==true){
                     // codeOutputComponent(codeOutput); //TODO: move this to redux
                 } else {
-                    if (codeOutput.content_type==ContentType.COLUMN_CARDINAL){
+                    if (codeOutput.type==ContentType.COLUMN_CARDINAL){
                         let result: IGetCardinalResult = codeOutput.content;
                         resolve(result.cardinals);
                         // clearTimeout(timer);

@@ -19,10 +19,12 @@ import { useSelector, useDispatch } from 'react-redux'
 import { ifElse, ifElseDict } from "../libs";
 import { setDFUpdates } from "../../../redux/reducers/DataFramesRedux";
 import RichOuputViewHeader from "./RichOuputViewHeader";
-import SummaryView from "../summary-panel/SummaryView";
-import PlotView from "../plot-panel/PlotView";
+import SummaryView from "./summary-panel/SummaryView";
+import PlotView from "./plot-panel/PlotView";
 import { IResultViewHeader } from "../../interfaces/IResultViewer";
 import CountNA from "./CountNA";
+import ExperimentManager from "./experiments-panel/ExperimentsManager";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 const RichOutputView = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);
@@ -30,8 +32,9 @@ const RichOutputView = (props: any) => {
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     const dfReview: IDFUpdatesReview = useSelector((state) => _getReviewRequest(state));
     const dispatch = useDispatch();  
-    const [show, setShow] = useState(IResultViewHeader.TABLE);
-
+    const [show, setShow] = useState(IResultViewHeader.EXPERIMENTS);
+    const queryClient = new QueryClient() ;
+    
     function _getReviewRequest(state): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
     }
@@ -96,10 +99,6 @@ const RichOutputView = (props: any) => {
         )
     }
 
-    // const _clear_dataFrameUpdateState = (df_id: string) => {
-    //     dispatch(setDFUpdates({df_id: df_id}));
-    // }
-
     useEffect(()=>{
         setShow(IResultViewHeader.TABLE);
     }, [tableData]);
@@ -137,7 +136,11 @@ const RichOutputView = (props: any) => {
             </TableContainer>      
             : null}                 
             {show==IResultViewHeader.SUMMARY && <SummaryView/>}
-            {show==IResultViewHeader.PLOTS && <PlotView/>}            
+            {show==IResultViewHeader.PLOTS && <PlotView/>}    
+            {show==IResultViewHeader.EXPERIMENTS &&
+            <QueryClientProvider client={queryClient}>        
+                <ExperimentManager/>            
+            </QueryClientProvider>}
         </Fragment>
     );
 }

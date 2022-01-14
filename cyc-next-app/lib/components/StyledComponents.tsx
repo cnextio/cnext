@@ -1,4 +1,4 @@
-import { Box, Button, Divider, FormControl, Input, Menu, MenuItem, OutlinedInput, Paper, Popover, Select, Tab, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
+import { Box, Button, Divider, FormControl, FormControlLabel, Input, Menu, MenuItem, OutlinedInput, Paper, Popover, Select, Tab, Table, TableCell, TableContainer as MuiTableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
 // import { TabsUnstyled } from '@mui/base';
 // import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -220,7 +220,7 @@ export const StyledCodePanel = styled.div`
 
     export const CodeToolbar = styled.div`
         display: flex;
-        --var-height: 30px;
+        --var-height: 40px;
         height: calc(var(--var-height));
         align-items: center;        
         background-color: ${props => props.theme.palette.grey.A200};
@@ -609,6 +609,61 @@ export const TablePanel = styled.div`
             font-weight: normal;           
         `;
 
+        export const ExperimentContainer = styled.div`
+            display: flex;
+            height: 100%;
+            padding: 5px;
+            align-self: stretch;
+        `;
+            export const ExperimentLeftPanel = styled.div`
+                padding-left: 20px;
+                padding-top: 20px;
+                height: 100%;
+                width: 200px; 
+                font-size: 13px; 
+            `;
+                export const ExpSelectorForm = styled(FormControl)`
+                    width: 100%;
+                    font-size: 13px;     
+                    margin-bottom: 10px;                   
+                `;
+                export const RunSelectorForm = styled(FormControl)`                
+                    padding: 5px 0px 5px 0px;
+                    height: 300px;
+                    width: 100%;
+                    font-size: 13px;                        
+                    border: 1px solid ${props => props.theme.palette.grey.A400};
+                    border-radius: 4px;
+                    overflow: auto;
+                    height: 85%;
+                `;
+                export const RunSelectorLabel = styled(FormControlLabel)`
+                    margin: 0px;
+                    width: 100%;
+                    white-space: nowrap;
+                    .MuiFormControlLabel-label {                    
+                        font-size: 13px;                     
+                    }
+                    .MuiCheckbox-root {
+                        padding: 5px 5px 5px 5px;
+                    }
+                    .MuiSvgIcon-root {
+                        font-size: 18px;              
+                    }
+                `;
+                export const RunTimeLabel = styled(Typography)`
+                    color: ${props => props.theme.palette.text.secondary};
+                    font-size: 12px
+                `
+
+            export const ExperimentRightPanel = styled.div`
+                padding-left: 20px;
+                padding-top: 20px;
+                height: 100%;
+                width: 100%px; 
+                font-size: 13px; 
+            `;
+        
 export const CountNAContainer = styled.div`
     background-color: ${props => props.nonZeroNA 
                         ? props.theme.palette.error.light
