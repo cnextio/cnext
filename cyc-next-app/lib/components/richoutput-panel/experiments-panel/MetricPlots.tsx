@@ -1,25 +1,22 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, {useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { PlotContainer as SinglePlot, PlotViewContainer as StyledPlotView } from "../../StyledComponents";
-import ScrollIntoViewIfNeeded from 'react-scroll-into-view-if-needed';
-
-// redux
-import { useSelector, useDispatch } from 'react-redux'
-import { update as vizDataUpdate } from "../../../../redux/reducers/vizDataSlice";
-import { Box, Paper } from "@mui/material";
-import { ICodeLine, IPlotResult } from "../../../interfaces/ICodeEditor";
-import store from "../../../../redux/store";
-import { ContentType } from "../../../interfaces/IApp";
-import { ConstructionOutlined } from "@mui/icons-material";
-
+import { ExperimentMetricPlots, PlotContainer as SinglePlot, PlotViewContainer as StyledPlotView } from "../../StyledComponents";
+import { IPlotResult } from "../../../interfaces/ICodeEditor";
+import useWindowDims from "./WindowDims";
 
 const PlotWithNoSSR = dynamic(
     () => import("react-plotly.js"),
     { ssr: false }
 )
 
+import { Responsive, WidthProvider } from "react-grid-layout";
+const ResponsiveGridLayout = WidthProvider(Responsive);
+import GridLayout from "react-grid-layout";
+
 export const MetricPlot = ({ metricPlotData }) => {      
-    const [containerMounted, setContainerMounted] = useState(false);
+    // const [containerMounted, setContainerMounted] = useState(false);
+    // const {winWidth, winHeight} = useWindowDims();
+    const [plotSize, setPlotSize] = useState({width: 600, height: 350});
 
     const setLayout = (plotData: IPlotResult, width: number|null = null, height: number|null = null) => {
         try {
@@ -36,27 +33,44 @@ export const MetricPlot = ({ metricPlotData }) => {
             return null;
         }
     }
-    
-    //FIXME: this still not work as expected
-    useEffect(() => {
-        setContainerMounted(true);
-    })
 
-    const plotViewID = 'StyledPlotView';
-    const renderPlots = () => {
-        return (
-            <StyledPlotView id={plotViewID}>                
-                {console.log('Render PlotView', containerMounted)}
-                {containerMounted && metricPlotData ? Object.keys(metricPlotData).map((key: string) => (                    
-                    <SinglePlot variant="outlined">
-                        {React.createElement(PlotWithNoSSR, setLayout(metricPlotData[key], 500, 300))}
-                    </SinglePlot>  
-                )) : null}
-            </StyledPlotView>
-        )         
+    const handleLayoutChange = (layout, layouts) => {
+        console.log('Metric layout ', layout[0], gridRef.current?gridRef.current.cols: null, gridRef.current?gridRef.current.width: null);
     }
-
-    return renderPlots();
+    const gridRef = useRef();
+    const plotViewID = 'MetricPlots';
+    const rowHeight = 50 //unit: px;
+    const screenSize = 1200;
+    const cols = 100;
+    return (
+        <ExperimentMetricPlots id={plotViewID}>                
+            {/* {console.log('Render PlotView', containerMounted)} */}
+            <GridLayout 
+                ref={gridRef}
+                measureBeforeMount={false}
+                className="layout" 
+                rowHeight={rowHeight}
+                width={screenSize}
+                cols={cols}
+                margin={[0,0]}
+                isResizable={true}
+                onLayoutChange={(layout, layouts) =>
+                    handleLayoutChange(layout, layouts)
+                }
+            >                
+                {metricPlotData ? Object.keys(metricPlotData).map((key: string, index: number) => (
+                    <SinglePlot key={index} variant="outlined" 
+                        data-grid={{
+                            x: 0, 
+                            y: index, 
+                            w: Math.round(plotSize.width/(screenSize/cols)), 
+                            h: Math.round(plotSize.height/rowHeight)}}>
+                        {React.createElement(PlotWithNoSSR, setLayout(metricPlotData[key], plotSize.width, plotSize.height))}
+                    </SinglePlot> 
+                )) : null}
+            </GridLayout>
+        </ExperimentMetricPlots>
+    )
 }
 
 export default MetricPlot;

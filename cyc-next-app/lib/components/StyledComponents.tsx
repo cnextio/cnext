@@ -590,7 +590,19 @@ export const TablePanel = styled.div`
             // max-height: 100%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
             overflow: auto;
             width: 100%;   
-            height: 100%;       
+            height: 100%;  
+            .react-grid-layout {
+                position: relative !important;
+            }
+            .react-grid-item {
+                // position: relative !important;
+            }
+            .react-grid-item > .react-resizable-handle {
+                // position: relative !important;
+            }     
+            .react-grid-item.react-grid-placeholder {
+                // position: relative !important;
+            }     
         `;        
 
             export const PlotContainer = styled(Paper)`
@@ -629,13 +641,12 @@ export const TablePanel = styled.div`
                 `;
                 export const RunSelectorForm = styled(FormControl)`                
                     padding: 5px 0px 5px 0px;
-                    height: 300px;
                     width: 100%;
                     font-size: 13px;                        
                     border: 1px solid ${props => props.theme.palette.grey.A400};
                     border-radius: 4px;
                     overflow: auto;
-                    height: 85%;
+                    height: 92%;
                 `;
                 export const RunSelectorLabel = styled(FormControlLabel)`
                     margin: 0px;
@@ -660,9 +671,19 @@ export const TablePanel = styled.div`
                 padding-left: 20px;
                 padding-top: 20px;
                 height: 100%;
-                width: 100%px; 
+                width: 100%; 
                 font-size: 13px; 
             `;
+                export const ExperimentMetricPlots = styled.div`
+                    background-color: ${props => props.theme.palette.background.paper};
+                    padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
+                    overflow: auto;
+                    width: 100%;   
+                    height: 100%;  
+                    .react-grid-layout {
+                        position: relative !important;
+                    }
+                `; 
         
 export const CountNAContainer = styled.div`
     background-color: ${props => props.nonZeroNA 

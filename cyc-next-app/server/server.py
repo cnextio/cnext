@@ -478,8 +478,19 @@ def handle_ExperimentManager_message(message):
                 for metric in metrics_data.keys():
                     metrics_df = pandas.DataFrame(dict([ (k,pandas.Series(v)) for k,v in metrics_data[metric].items() ]))
                     # metrics_df = pandas.DataFrame.from_dict(metrics_data[metric])
-                    metrics_df.columns = [c[:10] for c in metrics_df.columns]                    
-                    result[metric] = px.line(metrics_df, labels={"y": metric}).to_json()
+                    metrics_df.columns = [c[:10] for c in metrics_df.columns] 
+                    fig = px.line(metrics_df)
+                    fig.update_layout(
+                        xaxis_title="steps",
+                        yaxis_title=metric,
+                        legend_title="Runs",
+                        font=dict(
+                            # family="Courier New, monospace",
+                            size=11,
+                            # color="RebeccaPurple"
+                        )
+                    )    
+                    result[metric] = fig.to_json()                                   
                 log.info(result)
                 message.content = result
 

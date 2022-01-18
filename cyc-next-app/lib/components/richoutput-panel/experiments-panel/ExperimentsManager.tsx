@@ -127,7 +127,8 @@ const ExperimentManager = (props: any) => {
                             dispatch(setRunningRun(runningRunId));
                             break;
                         case ExperimentManagerCommand.get_metric_plots: 
-                            console.log('ExperimentView got metric plots: ', emResult.content);
+                            console.log('ExperimentView got metric plots: ');
+                            // console.log('ExperimentView got metric plots: ', emResult.content);
                             setMetricPlot(emResult.content);
                             break;
                     } 
@@ -204,7 +205,7 @@ const ExperimentManager = (props: any) => {
             dispatch(setRunSelection({id: event.target.id, selected: event.target.checked}));
         }        
     }
-
+    const RUN_NAME_LENGTH = 10;
     return (
         <ExperimentContainer>
             <ExperimentLeftPanel>
@@ -251,7 +252,7 @@ const ExperimentManager = (props: any) => {
                             } 
                             label={
                                 <Fragment>
-                                {Object.keys(runDict[key]).includes('_name')?runDict[key]['_name']:key.slice(0,10)}
+                                {Object.keys(runDict[key]).includes('_name')?runDict[key]['_name']:key.slice(0,RUN_NAME_LENGTH)}
                                 {' - '}
                                 <RunTimeLabel variant='caption' sx={{fontStyle: 'italic'}}>
                                     <Moment unix fromNow>{runDict[key]['_start_time']/1000}</Moment>

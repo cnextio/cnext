@@ -1,7 +1,9 @@
+import '../node_modules/react-grid-layout/css/styles.css';
+import '../node_modules/react-resizable/css/styles.css';
+
 import { createTheme, StyledEngineProvider, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-// import { ThemeProvider as MuiThemeProvider } from '@mui/styles';
-import type { NextPage } from 'next'
-import React, { useEffect } from "react";
+import type { NextPage } from 'next';
+import React from "react";
 import Helmet from 'react-helmet';
 import { Provider } from 'react-redux';
 import store from '../redux/store/index';
@@ -9,8 +11,6 @@ import Main from '../lib/components/Main';
 // import themes from '../theme';
 // global style
 import { createGlobalStyle, ThemeProvider as StyledThemeProvider } from 'styled-components'
-import { CssBaseline } from '@mui/material';
-import props from '../theme/props';
 const GlobalStyle = createGlobalStyle`
   body {
     height: 100vh;
@@ -39,7 +39,6 @@ const Home: NextPage = () => {
                 <StyledEngineProvider injectFirst>
                     <StyledThemeProvider theme={theme}>
                         <MuiThemeProvider theme={theme}>    
-                            {/* <CssBaseline/>     */}
                             <Main/>
                         </MuiThemeProvider>
                     </StyledThemeProvider>

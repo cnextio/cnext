@@ -2,7 +2,7 @@ import type { AppProps } from 'next/app'
 
 import '../styles/global.css'
 import "../styles/styles.css";
-import "../styles/example-styles.css";
+// import "../styles/example-styles.css";
 // import "./materialui/vendor/jvectormap.css";
 // import "./materialui/vendor/perfect-scrollbar.css";
 // import "react-dragula/dist/dragula.css";
