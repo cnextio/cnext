@@ -1,13 +1,15 @@
 export enum IResultViewHeader {
-    TABLE = 'TABLE',
-    PLOTS = 'PLOTS',
+    DATA = 'DATA',
     SUMMARY = 'SUMMARY',
-    EXPERIMENTS = 'EXPERIMENTS'
+    PLOTS = 'PLOTS',
+    EXPERIMENTS = 'EXPERIMENTS',
+    MODEL = 'MODEL'
 };
 
 export const ResultViewHeader = [
-    IResultViewHeader.TABLE, 
-    IResultViewHeader.PLOTS, 
+    IResultViewHeader.DATA,     
     IResultViewHeader.SUMMARY,
-    IResultViewHeader.EXPERIMENTS
+    IResultViewHeader.PLOTS, 
+    IResultViewHeader.EXPERIMENTS,
+    IResultViewHeader.MODEL
 ];

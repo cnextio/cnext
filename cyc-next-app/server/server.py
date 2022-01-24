@@ -410,6 +410,23 @@ def handle_MagicCommandGen_message(message):
         error_message = create_error_message(message.webapp_endpoint, trace)          
         send_to_node(error_message)
 
+RUN_NAME_SHORTEN_LENGTH = 10
+def get_run_name(mlFlowClient, run_id):
+    run = mlFlowClient.get_run(run_id)
+    if 'mlflow.runName' in run.data.tags:
+        ## add underscore prefix to make it consistent with other fileds on mlflow
+        return run.data.tags['mlflow.runName']
+    else:
+        return run_id[:RUN_NAME_SHORTEN_LENGTH]
+
+def add_cnext_metadata(object, metadata):
+    if type(object) == dict:
+        object['_cnext_metadata'] = metadata
+    elif type(object) == mlflow.entities.run_info.RunInfo:
+        object._cnext_metadata = metadata
+    else:
+        raise TypeError('object type has to be dict or object, got %s'%type(object))
+
 def handle_ExperimentManager_message(message):
     log.info('Handle ExperimentManager message: %s' % message)    
     try:    
@@ -442,6 +459,8 @@ def handle_ExperimentManager_message(message):
                 # Since the API does not provide this functionality, use running run as the proxy for running experiments
                 # A run is running if it's end_time is None. This might not work when there are multiple running runs 
                 # initiated from different context
+                # Note: cann't use mlflow.active_run().info.run_uuid here because this is a different python context with
+                # that initiated the run. We can improve this by attach the active run id to the message from client 
                 # #
                 for run_info in run_infos:
                     log.info(run_info)
@@ -449,14 +468,10 @@ def handle_ExperimentManager_message(message):
                         active_run_id = run_info.run_id
                         break
                 
-                ## fix the naming issue for run
-                # for run_info in run_infos:
-                #         run = mlFlowClient.get_run(run_info.run_id)
-                #         if 'mlflow.runName' in run.data.tags:
-                #             ## add underscore prefix to make it consistent with other fileds on mlflow
-                #             run_info['_name'] = run.data.tags['mlflow.runName']
-                #         else:
-                #             run_info['_name'] = run_info.run_id[:10]
+                ## define run name according to cnext rule
+                for run_info in run_infos:
+                    add_cnext_metadata(run_info, {'run_name': get_run_name(mlFlowClient, run_info.run_id)})
+                    # run_info._cnext_metadata = {'run_name': get_run_name(mlFlowClient, run_info.run_id)}
                 message.content = {'runs': run_infos, 'active_run_id': active_run_id}    
         elif message.type == CommandType.MFLOW:
             message.content = getattr(mlflow, message.command_name)(**params)    
@@ -466,20 +481,31 @@ def handle_ExperimentManager_message(message):
                 # for run_id in message.content['run_ids']:
                 #     runs_data.append(mlFlowClient.get_run(run_id))
                 metrics_data = {}
-                for id in message.content['run_ids']:
-                    run = mlFlowClient.get_run(id)
+                metrics_index = {}
+                for run_id in message.content['run_ids']:
+                    run = mlFlowClient.get_run(run_id)
                     metric_keys = run.data.metrics.keys()    
                     for metric in metric_keys:
-                        metric_history = mlFlowClient.get_metric_history(id, metric)
+                        metric_history = mlFlowClient.get_metric_history(run_id, metric)
                         if metric not in metrics_data:
                             metrics_data[metric] = {}
-                        metrics_data[metric][id] = [m.value for m in metric_history]
+                        run_cnext_name = get_run_name(mlFlowClient, run_id)
+                        ## use run cnext name format for column name # 
+                        metrics_data[metric][run_cnext_name] = [m.value for m in metric_history]
+                        metrics_index = {
+                            'step': [m.step for m in metric_history],
+                            'timestamp': [m.timestamp for m in metric_history]
+                        }
                 result = {}
                 for metric in metrics_data.keys():
-                    metrics_df = pandas.DataFrame(dict([ (k,pandas.Series(v)) for k,v in metrics_data[metric].items() ]))
+                    metrics_df = pandas.DataFrame(
+                        dict([(k,pandas.Series(v)) for k,v in metrics_data[metric].items()]),
+                        index = metrics_index['step']
+                    )
                     # metrics_df = pandas.DataFrame.from_dict(metrics_data[metric])
-                    metrics_df.columns = [c[:10] for c in metrics_df.columns] 
-                    fig = px.line(metrics_df)
+                    # metrics_df.columns = [c[:RUN_NAME_SHORTEN_LENGTH] for c in metrics_df.columns] 
+                    # log.info(metrics_df.columns)
+                    fig = px.line(metrics_df, text=metrics_df.index)
                     fig.update_layout(
                         xaxis_title="steps",
                         yaxis_title=metric,
@@ -490,7 +516,8 @@ def handle_ExperimentManager_message(message):
                             # color="RebeccaPurple"
                         )
                     )    
-                    result[metric] = fig.to_json()                                   
+                    result[metric] = fig.to_json()
+                    # add_cnext_metadata(result[metric], {})
                 log.info(result)
                 message.content = result
 

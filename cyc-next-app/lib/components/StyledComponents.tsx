@@ -183,17 +183,17 @@ export const FileItem = styled(TreeItem)`
     width: 100%    
 `
 
-export const FileContextMenu = styled(Menu)`
+export const ContextMenu = styled(Menu)`
     .MuiMenu-paper {
         background-color: ${props => props.theme.palette.grey.A100};
     }    
 `
 
-export const FileContextMenuItem = styled(MenuItem)`
+export const ContextMenuItem = styled(MenuItem)`
     font-size: 14px;
 `
 
-export const FileContextMenuNewItem = styled(TextField)`
+export const ContextMenuNewItem = styled(TextField)`
     .MuiInputBase-input {
         font-size: 14px;
         padding: 5px;

@@ -169,7 +169,8 @@ try {
     const initialize = () => {
         codeExecutor.send2executor(JSON.stringify({webapp_endpoint: CodeEditor, content: 'import os, sys, pandas as pd, plotly.express as px, plotly.io as pio'}));
         codeExecutor.send2executor(JSON.stringify({webapp_endpoint: CodeEditor, content: 'from cycdataframe.cycdataframe import CycDataFrame'}));
-        codeExecutor.send2executor(JSON.stringify({webapp_endpoint: CodeEditor, content: `pio.renderers.default = "json"; os.chdir('${config.path_to_cycdataframe_lib}cycdataframe/'); sys.path.append(os.getcwd())`}));
+        // console.log(config.projects.open_projects[0]['path'])
+        codeExecutor.send2executor(JSON.stringify({webapp_endpoint: CodeEditor, content: `pio.renderers.default = "json"; sys.path.append('${config.path_to_cycdataframe_lib}cycdataframe/'); os.chdir('${config.projects.open_projects[0]['path']}');`}));
         nonCodeExecutor.send2executor(JSON.stringify({webapp_endpoint: ExperimentManager, content: 'import mlflow, mlflow.tensorflow'}));
         
         // pyshell.send({webapp_endpoint: CodeEditorComponent, 

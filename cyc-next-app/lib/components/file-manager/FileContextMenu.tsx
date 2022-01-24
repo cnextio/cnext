@@ -1,11 +1,12 @@
 import React from "react";
 import { 
-    FileContextMenu as StyledFileContextMenu, 
-    FileContextMenuItem as StyledFileContextMenuItem } from "../StyledComponents";
+    ContextMenu, 
+    ContextMenuItem } from "../StyledComponents";
 import { FileContextMenuItem } from "../../interfaces/IFileManager"
 import { Menu } from "@mui/material";
 
-const FileContextMenu = ({contextMenu, handleClose, handleSelection}) => {      
+//TODO: refactor to use libs/ContextMenu instead
+const FileContextMenu = ({contextMenuPos, handleClose, handleSelection}) => {      
     const menu = [
         {name: FileContextMenuItem.NEW_FILE, text: 'New file', disable: false},
         {name: FileContextMenuItem.NEW_FOLDER, text: 'New folder', disable: true},
@@ -14,26 +15,26 @@ const FileContextMenu = ({contextMenu, handleClose, handleSelection}) => {
         {name: FileContextMenuItem.DELETE, text: 'Delete', disable: false},
     ];
     return (
-        <StyledFileContextMenu
-            open={contextMenu !== null}
+        <ContextMenu
+            open={contextMenuPos !== null}
             onClose={handleClose}
             anchorReference="anchorPosition"
             anchorPosition={
-            contextMenu !== null
-                ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+            contextMenuPos !== null
+                ? { top: contextMenuPos.mouseY, left: contextMenuPos.mouseX }
                 : undefined
             }
         >
             {menu.map((item) => {
                return (
-                    <StyledFileContextMenuItem 
+                    <ContextMenuItem 
                         disabled = {item.disable?true:false}
                         divider = {item.name===FileContextMenuItem.DIVIDER}
                         onClick = {() => handleSelection(item.name)}>{item.text}
-                    </StyledFileContextMenuItem> 
+                    </ContextMenuItem> 
                 )
             })}
-        </StyledFileContextMenu>
+        </ContextMenu>
     );
 };
 

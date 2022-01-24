@@ -252,7 +252,8 @@ const ExperimentManager = (props: any) => {
                             } 
                             label={
                                 <Fragment>
-                                {Object.keys(runDict[key]).includes('_name')?runDict[key]['_name']:key.slice(0,RUN_NAME_LENGTH)}
+                                {runDict[key]['_cnext_metadata']['run_name']}
+                                {/* {Object.keys(runDict[key]).includes('_name')?runDict[key]['_name']:key.slice(0,RUN_NAME_LENGTH)} */}
                                 {' - '}
                                 <RunTimeLabel variant='caption' sx={{fontStyle: 'italic'}}>
                                     <Moment unix fromNow>{runDict[key]['_start_time']/1000}</Moment>

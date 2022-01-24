@@ -23,15 +23,15 @@ import SummaryView from "./summary-panel/SummaryView";
 import PlotView from "./plot-panel/PlotView";
 import { IResultViewHeader } from "../../interfaces/IResultViewer";
 import CountNA from "./CountNA";
-import ExperimentManager from "./experiments-panel/ExperimentsManager";
+import ExperimentManager from "./experiment-panel/ExperimentsManager";
 import { QueryClient, QueryClientProvider } from "react-query";
+import ModelView from "./model-panel/ModelView";
 
 const RichOutputView = (props: any) => {    
     const tableData = useSelector((state) => state.dataFrames.tableData);
     const plotResultUpdate = useSelector((state) => state.codeEditor.plotResultUpdate); 
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     const dfReview: IDFUpdatesReview = useSelector((state) => _getReviewRequest(state));
-    const dispatch = useDispatch();  
     const [show, setShow] = useState(IResultViewHeader.EXPERIMENTS);
     const queryClient = new QueryClient() ;
     
@@ -100,7 +100,7 @@ const RichOutputView = (props: any) => {
     }
 
     useEffect(()=>{
-        setShow(IResultViewHeader.TABLE);
+        setShow(IResultViewHeader.DATA);
     }, [tableData]);
 
     useEffect(()=>{
@@ -111,7 +111,7 @@ const RichOutputView = (props: any) => {
         <Fragment>
             <RichOuputViewHeader show={show} setShow={setShow}/>
             <Divider/>
-            {show==IResultViewHeader.TABLE && ifElse(tableData, activeDataFrame, null)?
+            {show==IResultViewHeader.DATA && ifElse(tableData, activeDataFrame, null)?
             <TableContainer>
                 {/* {console.log("Render TableContainer: ", tableData)} */}
                 {console.log("Render TableContainer")}                    
@@ -141,6 +141,7 @@ const RichOutputView = (props: any) => {
             <QueryClientProvider client={queryClient}>        
                 <ExperimentManager/>            
             </QueryClientProvider>}
+            {show==IResultViewHeader.MODEL && <ModelView/>}
         </Fragment>
     );
 }

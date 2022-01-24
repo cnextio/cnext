@@ -1,13 +1,7 @@
 import { Box, Popover } from "@mui/material";
-import React, { useEffect, useRef, useState, useCallback, Fragment } from "react";
-import shortid from "shortid";
-
-// redux
-import { useSelector, useDispatch } from 'react-redux'
-import store from '../../../redux/store';
-import { CodeOutputHeader, StyledTableViewHeader, StyledTableViewHeaderItem, TableShape, TableSummaryButton, TableSummaryPopover, TableViewHeaderButton } from "../StyledComponents";
-import { ifElse } from "../libs";
-import { IDFMetadata } from "../../interfaces/IApp";
+import React, { Fragment } from "react";
+import { useSelector } from 'react-redux'
+import { StyledTableViewHeader, TableShape, TableViewHeaderButton } from "../StyledComponents";
 import { ResultViewHeader } from "../../interfaces/IResultViewer";
 
 

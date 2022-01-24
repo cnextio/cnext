@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react"
-import { FileContextMenuNewItem } from "../StyledComponents"
+import { ContextMenuNewItem } from "../StyledComponents"
 
 const NewItemInput = ({handleKeyPress}) => {
     const newItemRef = useRef();
@@ -13,7 +13,7 @@ const NewItemInput = ({handleKeyPress}) => {
     }, [newItemRef])
 
     return (
-        <FileContextMenuNewItem
+        <ContextMenuNewItem
             inputRef = {newItemRef}
             defaultValue = ".py"
             onKeyDown = {(event: React.KeyboardEvent) => handleKeyPress(event, newItemRef.current.value)}

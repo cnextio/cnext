@@ -17,7 +17,7 @@ const PlotWithNoSSR = dynamic(
     { ssr: false }
 )
 
-export const PlotView = (props: any) => {    
+const PlotView = (props: any) => {    
     // const vizData = useSelector((state) => state.vizData.data);
     // const plotResults = useSelector((state) => state.codeDoc.plotResults);
     // const plotResultCount = useSelector((state) => state.codeDoc.plotResultCount);

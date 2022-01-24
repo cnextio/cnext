@@ -253,7 +253,7 @@ const FileExplorer = (props: any) => {
                 </FileItem>
             </FileTree> : null}
             <FileContextMenu 
-                contextMenu={contextMenuPos} 
+                contextMenuPos={contextMenuPos} 
                 handleClose={handleContextMenuClose} 
                 handleSelection={handleContextMenuSelection}
             />
