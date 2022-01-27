@@ -10,12 +10,13 @@ const PlotWithNoSSR = dynamic(
 )
 
 import GridLayout from "react-grid-layout";
-import { IContextMenu } from "../../../interfaces/IContextMenu";
+import { IContextMenu, IMenuItem, IMenuPosision, MetricPlotContextMenuItems } from "../../../interfaces/IContextMenu";
+import ContextMenu from "../../libs/ContextMenu";
 
 export const MetricPlot = ({ metricPlotData }) => {      
     // const [containerMounted, setContainerMounted] = useState(false);
     // const {winWidth, winHeight} = useWindowDims();
-    const [plotSize, setPlotSize] = useState({width: 600, height: 350});
+    const [plotSize, setPlotSize] = useState({width: 500, height: 300});
     const [openContextMenu, setOpenContextMenu] = useState(false);
     const [contextMenu, setContextMenu] = useState<IContextMenu|undefined>();
     
@@ -39,10 +40,29 @@ export const MetricPlot = ({ metricPlotData }) => {
         // console.log('Metric layout ', layout[0], gridRef.current?gridRef.current.cols: null, gridRef.current?gridRef.current.width: null);
     }
 
-    const handleClick = (event) => {
-        console.log(event);
+    const handleOpenContextMenu = (event) => {
+        let mouseEvent = event.event;
+        let index = event.points[0].pointIndex;
+        let run_name = event.points[0].data.name;
+        let checkpoint = metricPlotData._cnext_metadata.checkpoints[run_name][index];
+        let pos: IMenuPosision = {mouseX: mouseEvent.x, mouseY: mouseEvent.y};
+        let menu: IMenuItem = {
+            name: MetricPlotContextMenuItems.LOAD_CHECKPOINT, 
+            text: "Load checkpoint", 
+            disable: false,
+            metadata: {checkpoint: checkpoint}
+        };
+        let contextMenu: IContextMenu = {menu: [menu], pos: pos};
+        setContextMenu(contextMenu);
+        setOpenContextMenu(true);
+        // console.log(event);
     }
 
+    const handleContextMenuSelection = (item: IMenuItem) => {
+        setOpenContextMenu(false);
+        console.log(item);
+    }
+    
     const gridRef = useRef();
     const plotViewID = 'MetricPlots';
     const rowHeight = 50; //unit: px
@@ -64,7 +84,7 @@ export const MetricPlot = ({ metricPlotData }) => {
                     handleLayoutChange(layout, layouts)
                 }
             >                
-                {metricPlotData ? Object.keys(metricPlotData).map((key: string, index: number) => (
+                {metricPlotData ? Object.keys(metricPlotData['plots']).map((key: string, index: number) => (
                     <SinglePlot 
                         key={index} 
                         variant="outlined" 
@@ -76,8 +96,15 @@ export const MetricPlot = ({ metricPlotData }) => {
                         >
                         {/* {React.createElement(PlotWithNoSSR, setLayout(metricPlotData[key], plotSize.width, plotSize.height))} */}
                         <PlotWithNoSSR 
-                            {...setLayout(metricPlotData[key], plotSize.width, plotSize.height)}
-                            onClick = {(event) => handleClick(event)}
+                            {...setLayout(metricPlotData['plots'][key], plotSize.width, plotSize.height)}
+                            onClick = {(event) => handleOpenContextMenu(event)}
+                            onContextMenu = {(event) => {handleOpenContextMenu(event)}}
+                        />
+                        <ContextMenu 
+                            open={openContextMenu} 
+                            contextMenu={contextMenu} 
+                            handleClose={handleContextMenuSelection} 
+                            handleSelection={handleContextMenuSelection}                        
                         />
                     </SinglePlot> 
                 )) : null}

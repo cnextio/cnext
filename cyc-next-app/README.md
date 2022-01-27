@@ -1,41 +1,29 @@
-### Manually installed lib
-clone [codemirror-languageserver](https://github.com/FurqanSoftware/codemirror-languageserver)
-then fix depencies as follows:
+## Latest Instructions
+
+### 1. Install and run web client
+From the main folder, do
 ```
--    "@codemirror/autocomplete": "^0.18.6",
--    "@codemirror/lint": "^0.18.3",
--    "@codemirror/state": "^0.18.7",
--    "@codemirror/tooltip": "^0.18.4",
--    "@codemirror/view": "^0.18.15",
-+    "@codemirror/autocomplete": "0.19.3",
-+    "@codemirror/lint": "^0.19.2",
-+    "@codemirror/state": "^0.19.2",
-+    "@codemirror/tooltip": "^0.19.2",
-+    "@codemirror/view": "^0.19.9",
+npm install
+npm run dev
 ```
 
-### Install dependencies
-```
-conda install -c conda-forge pyzmq pyyaml
-```
+### 2. Install and run server
+For the server you will need to install both Nodejs packages and Python packages.
+1. for Python packages, you will need to:     
+    1. setup the base python env using conda
+        - install `conda` python environment
+    2. setup our internal python package called `cycdataframe`
+        - clone `cycdataframe`
+        - install dependencies follow the instructions in the `cycdataframe/README.md`    
+    3. setup other python dependencies with
+        ```
+        conda install -c conda-forge pyzmq pyyaml
+        ```
+2. for Nodejs packages, you will need to:
+   1. Installation: enter folder `server/` and run `npm install`
+   2. Configuration: open `.server.yaml`, modify the field `path_to_cycdataframe_lib` to point to the folder where you clone `cycdataframe` (see 1.2 above)
 
-### Run web app
-`npm run dev`
-
-### Run server
-Currently `server.js` is hard coded with some folder name where the library `cycdataframe.py` is stored.
-
-Check for this line:
-```
-pyshell.send({request_originator: CodeAreaComponent, 
-                        command: "import os, sys; os.chdir('../../../cyc-dataframe/'); sys.path.append(os.getcwd()); from cycdataframe.cycdataframe import CycDataFrame"});
-```
-
-The folder `../../../cyc-dataframe/` should point to where you cloned the `cyc-dataframe` repos.
-
-```
-cd server
-npm start
-```
-
-## Autocomplete
+### 3. Create a working project
+Think of this like a project in your VSCode env. 
+1. Create a project folder. You can create a project any where in the manchine where the server is running.
+2. Go to `server/.server.yaml`, modify the field `projects/open_projects/path` to point to the project folder created in step 1

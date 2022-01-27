@@ -1,7 +1,8 @@
-export interface IMenuContent {
-    name: MetricPlotContextMenuItems|null;
+export interface IMenuItem {
+    name: MetricPlotContextMenuItems|undefined;
     text: string;
     disable: boolean;
+    metadata?: {}|undefined;
 }
 
 export interface IMenuPosision {
@@ -10,7 +11,7 @@ export interface IMenuPosision {
 }
 
 export interface IContextMenu {
-    menu: IMenuContent[];
+    menu: IMenuItem[];
     pos: IMenuPosision;
 }
 

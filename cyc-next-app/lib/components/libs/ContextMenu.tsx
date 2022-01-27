@@ -5,24 +5,24 @@ import {
 import { IContextMenu } from "../../interfaces/IContextMenu";
 
 const ContextMenu = ({open, contextMenu, handleClose, handleSelection} : 
-                    {open: boolean, contextMenu: IContextMenu, handleClose: any, handleSelection: any}) => {          
+                    {open: boolean, contextMenu: IContextMenu|undefined, handleClose: any, handleSelection: any}) => {          
     return (
         <StyledContextMenu
             open={open}
             onClose={handleClose}
             anchorReference="anchorPosition"
             anchorPosition={
-            contextMenu !== null
+            contextMenu
                 ? { top: contextMenu.pos.mouseY, left: contextMenu.pos.mouseX }
                 : undefined
             }
         >
-            {contextMenu.menu.map((item) => {
+            {contextMenu && contextMenu.menu.map((item) => {
                return (
                     <StyledContextMenuItem 
                         disabled = {item.disable?true:false}
                         divider = {item.name===null}
-                        onClick = {() => handleSelection(item.name)}>{item.text}
+                        onClick = {() => handleSelection(item)}>{item.text}
                     </StyledContextMenuItem> 
                 )
             })}

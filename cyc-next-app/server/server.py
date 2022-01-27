@@ -7,15 +7,16 @@ pio.renderers.default = "json"
 import traceback
 import logs
 import re
-import threading
-import copy
 from zmq_message import MessageQueue
 from message import CommandType, ExperimentManagerCommand, Message, WebappEndpoint, DFManagerCommand, ContentType, ProjectCommand, CodeEditorCommand
-from project_manager import files, projects
 
 import mlflow
 import mlflow.tensorflow
 from mlflow.tracking.client import MlflowClient
+
+from project_manager import files, projects
+from experiment_manager import experiment_manager as em
+
 
 log = logs.get_logger(__name__)
 
@@ -426,15 +427,16 @@ def add_cnext_metadata(object, metadata):
         object._cnext_metadata = metadata
     else:
         raise TypeError('object type has to be dict or object, got %s'%type(object))
+    return object
 
 def handle_ExperimentManager_message(message):
     log.info('Handle ExperimentManager message: %s' % message)    
     try:    
         params = message.content
         if message.type == CommandType.MLFLOW_CLIENT:    
-            mlFlowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
+            mlflowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
             params.pop('tracking_uri')
-            message.content = getattr(mlFlowClient, message.command_name)(**params)
+            message.content = getattr(mlflowClient, message.command_name)(**params)
             if message.command_name == ExperimentManagerCommand.list_experiments:
                 running_exp_id = None
                 experiments = message.content
@@ -445,7 +447,7 @@ def handle_ExperimentManager_message(message):
                 # initiated from different context
                 # #
                 for exp in experiments:
-                    run_infos = mlFlowClient.list_run_infos(exp.experiment_id)
+                    run_infos = mlflowClient.list_run_infos(exp.experiment_id)
                     log.info(run_infos)
                     if len(run_infos)>0 and run_infos[0].status == 'RUNNING':
                         running_exp_id = exp.experiment_id
@@ -460,7 +462,7 @@ def handle_ExperimentManager_message(message):
                 # A run is running if it's end_time is None. This might not work when there are multiple running runs 
                 # initiated from different context
                 # Note: cann't use mlflow.active_run().info.run_uuid here because this is a different python context with
-                # that initiated the run. We can improve this by attach the active run id to the message from client 
+                # that initiated the run. We can improve this by attach the active run id to the message from client. 
                 # #
                 for run_info in run_infos:
                     log.info(run_info)
@@ -468,56 +470,60 @@ def handle_ExperimentManager_message(message):
                         active_run_id = run_info.run_id
                         break
                 
-                ## define run name according to cnext rule
+                ## define run name according to the cnext rule
                 for run_info in run_infos:
-                    add_cnext_metadata(run_info, {'run_name': get_run_name(mlFlowClient, run_info.run_id)})
+                    add_cnext_metadata(run_info, {'run_name': get_run_name(mlflowClient, run_info.run_id)})
                     # run_info._cnext_metadata = {'run_name': get_run_name(mlFlowClient, run_info.run_id)}
                 message.content = {'runs': run_infos, 'active_run_id': active_run_id}    
         elif message.type == CommandType.MFLOW:
             message.content = getattr(mlflow, message.command_name)(**params)    
         elif message.type == CommandType.MLFLOW_COMBINE:
             if message.command_name == ExperimentManagerCommand.get_metric_plots:             
-                mlFlowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
+                mlflowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
                 # for run_id in message.content['run_ids']:
                 #     runs_data.append(mlFlowClient.get_run(run_id))
                 metrics_data = {}
                 metrics_index = {}
-                for run_id in message.content['run_ids']:
-                    run = mlFlowClient.get_run(run_id)
+                run_ids = message.content['run_ids']
+                for run_id in run_ids:
+                    run = mlflowClient.get_run(run_id)
                     metric_keys = run.data.metrics.keys()    
                     for metric in metric_keys:
-                        metric_history = mlFlowClient.get_metric_history(run_id, metric)
+                        metric_history = mlflowClient.get_metric_history(run_id, metric)
                         if metric not in metrics_data:
                             metrics_data[metric] = {}
-                        run_cnext_name = get_run_name(mlFlowClient, run_id)
+                        run_cnext_name = get_run_name(mlflowClient, run_id)
                         ## use run cnext name format for column name # 
                         metrics_data[metric][run_cnext_name] = [m.value for m in metric_history]
                         metrics_index = {
                             'step': [m.step for m in metric_history],
                             'timestamp': [m.timestamp for m in metric_history]
                         }
-                result = {}
+                result = {'plots': {}}
                 for metric in metrics_data.keys():
                     metrics_df = pandas.DataFrame(
                         dict([(k,pandas.Series(v)) for k,v in metrics_data[metric].items()]),
                         index = metrics_index['step']
                     )
-                    # metrics_df = pandas.DataFrame.from_dict(metrics_data[metric])
-                    # metrics_df.columns = [c[:RUN_NAME_SHORTEN_LENGTH] for c in metrics_df.columns] 
-                    # log.info(metrics_df.columns)
                     fig = px.line(metrics_df, text=metrics_df.index)
                     fig.update_layout(
-                        xaxis_title="steps",
+                        xaxis_title="Steps",
                         yaxis_title=metric,
                         legend_title="Runs",
-                        font=dict(
-                            # family="Courier New, monospace",
-                            size=11,
-                            # color="RebeccaPurple"
-                        )
-                    )    
-                    result[metric] = fig.to_json()
-                    # add_cnext_metadata(result[metric], {})
+                        font=dict(size=11)
+                    )
+                    result['plots'][metric] = fig.to_json()
+                
+                ## Checkpoins are keyed using cnext run name. It would be better if we key it by the run id instead
+                #  but since the trace name in the plot using name not id, we have to use name to make it consistent #
+                checkpoints={}
+                for run_id in run_ids:
+                    run_cnext_name = get_run_name(mlflowClient, run_id)
+                    checkpoints[run_cnext_name] = em.get_checkpoints(mlflowClient, run_id)
+                log.info(checkpoints)
+                if len(checkpoints) > 0:
+                    add_cnext_metadata(result, {'checkpoints': checkpoints})
+
                 log.info(result)
                 message.content = result
 
