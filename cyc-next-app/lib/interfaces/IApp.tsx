@@ -16,12 +16,12 @@ export interface Message {
     command_name: CommandName|ProjectCommand|ExperimentManagerCommand;    // 'code_area_command'|'updated_dataframe_list'|
 														 // 'plot_column_histogram'|'plot_count_na'|
 														 // 'query_data'|'row_difference'|'column_difference' 
-	seq_number: number;      // sequence number of the command. This is needed 
+	seq_number?: number;      // sequence number of the command. This is needed 
 														 // for commands that requires more than one command
     type: ContentType|CommandType;    // the object type of the output content
     content: string|object|IFileMetadata|IFileMetadata[]|IGetCardinalResult|IDirectoryMetadata|null;  // the command string and output string|object
-    error: boolean;
-    metadata: object;            // store info about the dataframe and columns 
+    error?: boolean;
+    metadata?: object;            // store info about the dataframe and columns 
                              // related to this command
 };
 
