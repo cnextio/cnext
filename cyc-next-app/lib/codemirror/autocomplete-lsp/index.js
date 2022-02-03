@@ -231,12 +231,14 @@ class LanguageServerPlugin {
         end = posToOffset(view.state.doc, range.end);
       }
       if (pos === null) return null;
+
       const dom = document.createElement('div');
       dom.classList.add('documentation');
       dom.style.whiteSpace = 'pre-wrap';
       dom.style.overflow = 'auto';
       dom.style.maxHeight = '50vh';
       dom.textContent = formatContents(contents);
+
       return { pos, end, create: (view) => ({ dom }), above: true };
     } catch (e) {
       console.error('requestHoverTooltip: ', e);
@@ -953,7 +955,7 @@ function offsetToPos(doc, offset) {
 
 function formatContents(contents) {
   if (Array.isArray(contents)) {
-    return contents.map((c) => formatContents(c) + '\n\n').join('');
+    return contents.map((c) => formatContents(c) + '\n').join('');
   } else if (typeof contents === 'string') {
     return contents;
   } else {
