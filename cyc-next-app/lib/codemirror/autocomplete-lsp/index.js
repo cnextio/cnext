@@ -237,6 +237,7 @@ class LanguageServerPlugin {
       dom.style.whiteSpace = 'pre-wrap';
       dom.style.overflow = 'auto';
       dom.style.maxHeight = '50vh';
+      dom.style.padding = '10px';
       dom.textContent = formatContents(contents);
 
       return { pos, end, create: (view) => ({ dom }), above: true };
