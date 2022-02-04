@@ -230,14 +230,11 @@ class LanguageServerPlugin {
         pos = posToOffset(view.state.doc, range.start);
         end = posToOffset(view.state.doc, range.end);
       }
-      if (pos === null) return null;
+
+      if (pos === null || !contents) return null;
 
       const dom = document.createElement('div');
       dom.classList.add('documentation');
-      dom.style.whiteSpace = 'pre-wrap';
-      dom.style.overflow = 'auto';
-      dom.style.maxHeight = '50vh';
-      dom.style.padding = '10px';
       dom.textContent = formatContents(contents);
 
       return { pos, end, create: (view) => ({ dom }), above: true };
@@ -963,6 +960,7 @@ function formatContents(contents) {
     return contents.value;
   }
 }
+
 function toSet(chars) {
   let preamble = '';
   let flat = Array.from(chars).join('');
@@ -973,6 +971,7 @@ function toSet(chars) {
   }
   return `[${preamble}${flat.replace(/[^\w\s]/g, '\\$&')}]`;
 }
+
 function prefixMatch(options) {
   const first = new Set();
   const rest = new Set();
@@ -986,6 +985,7 @@ function prefixMatch(options) {
   const source = toSet(first) + toSet(rest) + '*$';
   return [new RegExp('^' + source), new RegExp(source)];
 }
+
 const baseTheme = EditorView.baseTheme({
   '.cm-tooltip.documentation': {
     display: 'block',
