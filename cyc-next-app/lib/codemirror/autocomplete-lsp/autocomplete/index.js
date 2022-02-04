@@ -618,7 +618,7 @@ class CompletionTooltip {
         const doc_opener = code_doc.appendChild(document.createElement("a"));
         doc_opener.style.fontSize = '13px';
         doc_opener.style.textDecorationLine = 'underline';
-        doc_opener.innerText = 'Documnent';
+        doc_opener.innerText = 'Document';
         const doc_content = code_doc.appendChild(document.createElement("div"));
         doc_content.id = 'code-doc-content';
         

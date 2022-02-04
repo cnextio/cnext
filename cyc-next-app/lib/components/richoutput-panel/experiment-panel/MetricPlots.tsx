@@ -98,7 +98,7 @@ export const MetricPlot = ({ metricPlotData }) => {
                         <PlotWithNoSSR 
                             {...setLayout(metricPlotData['plots'][key], plotSize.width, plotSize.height)}
                             onClick = {(event) => handleOpenContextMenu(event)}
-                            onContextMenu = {(event) => {handleOpenContextMenu(event)}}
+                            // onContextMenu = {(event) => {handleOpenContextMenu(event)}}
                         />
                         <ContextMenu 
                             open={openContextMenu} 
