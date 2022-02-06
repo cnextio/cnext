@@ -633,6 +633,7 @@ class LanguageServerPlugin {
           documentation,
           sortText,
           filterText,
+          insertText,
         }) => {
           var _a;
           const completion = {
@@ -644,7 +645,7 @@ class LanguageServerPlugin {
                   ? void 0
                   : textEdit.newText) !== null && _a !== void 0
                 ? _a
-                : label,
+                : insertText,
             type: kind && CompletionItemKindMap[kind].toLowerCase(),
             sortText:
               sortText !== null && sortText !== void 0 ? sortText : label,
