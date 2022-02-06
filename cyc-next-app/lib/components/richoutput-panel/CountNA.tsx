@@ -6,6 +6,7 @@ import { CountNAContainer } from "../StyledComponents";
 
 const CountNA = ({df_id, col_name}) => {
     const countna = useSelector((state) => _getCountNA(state));
+    console.log("CountNa", df_id);
     const shape = useSelector((state) => state.dataFrames.metadata[df_id].shape);
     const naPct = (shape) ? countna/shape[0]*100 : 0.;    
     

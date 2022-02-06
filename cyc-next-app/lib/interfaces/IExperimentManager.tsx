@@ -1,8 +1,9 @@
-export enum ExperimentManagerCommand {  
-    list_experiments = 'list_experiments',
-    get_metric_history = 'get_metric_history',
-    list_run_infos = 'list_run_infos',
-    get_metric_plots = 'get_metric_plots',
+export enum ExperimentManagerCommand {
+  list_experiments = "list_experiments",
+  get_metric_history = "get_metric_history",
+  list_run_infos = "list_run_infos",
+  get_metric_plots = "get_metric_plots",
+  load_artifacts_to_local = "load_artifacts_to_local",
 };
 
 export enum ReduxActionType {

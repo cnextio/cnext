@@ -187,7 +187,7 @@ try {
     codeExecutor.send2executor(
       JSON.stringify({
         webapp_endpoint: CodeEditor,
-        content: 'from cycdataframe.cycdataframe import CycDataFrame',
+        content: 'import cycdataframe.cycdataframe as cd',
       })
     );
     // console.log(config.projects.open_projects[0]['path'])

@@ -43,7 +43,7 @@ except Exception as error:
 #TODO: Point this to the cycdataframe repos folder
 sys.path.append(config.path_to_cycdataframe_lib); 
 from cycdataframe.df_status_hook import DataFrameStatusHook
-from cycdataframe.cycdataframe import CycDataFrame
+import cycdataframe.cycdataframe as cd 
 
 #TODO: need to heavily test this
 def assign_exec_mode(message: Message):
@@ -66,7 +66,7 @@ def get_global_df_list():
     names = list(globals())
     df_list = []
     for name in names:
-        if type(globals()[name]) == CycDataFrame:
+        if type(globals()[name]) == cd.DataFrame:
             df_list.append((name, id(globals()[name])))
     log.info('Current global df list: %s' % df_list)
     return df_list
@@ -200,7 +200,7 @@ def handle_DataFrameManager_message(message):
             df_id = message.metadata['df_id']
             shape = eval("%s.df.shape"%df_id, globals())
             dtypes = eval("%s.df.dtypes"%df_id, globals())
-            countna = eval("%s.df.isna().sum()"%df_id, globals())
+            countna = eval("%s.df.isna().sum()"%df_id, globals())                        
             describe = eval("%s.df.describe(include='all')"%df_id, globals())
             columns = {}
             for col_name, ctype in dtypes.items():
@@ -476,3 +476,6 @@ if __name__ == "__main__":
                 sys.stdout.flush()                 
             except Exception as error:
                 log.error("Failed to flush stdout %s - %s" % (error, traceback.format_exc()))  
+
+df = pandas.DataFrame()
+df.drop

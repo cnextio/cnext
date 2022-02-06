@@ -1,6 +1,7 @@
 import shortid from "shortid";
 import { createSlice } from '@reduxjs/toolkit'
 import { IDirectoryMetadata, IDirListResult, IFileMetadata, IProjectMetadata } from "../../lib/interfaces/IFileManager";
+import { IConfigs } from "../../lib/interfaces/IApp";
 
 
 type ProjectManagerState = { 
@@ -14,20 +15,27 @@ type ProjectManagerState = {
     fileToSave: string[],
     showProjectExplore: boolean,
     serverSynced: boolean,
+    configs: IConfigs,
 }
 
 const initialState: ProjectManagerState = {
-    openFiles: {},
-    activeProject: null,
-    executorID: null,
-    inViewID: null,
-    openDirs: {},
-    fileToClose: null,
-    fileToOpen: null,
-    fileToSave: [],
-    showProjectExplore: false, 
-    serverSynced: false,
-}
+  openFiles: {},
+  activeProject: null,
+  executorID: null,
+  inViewID: null,
+  openDirs: {},
+  fileToClose: null,
+  fileToOpen: null,
+  fileToSave: [],
+  showProjectExplore: false,
+  serverSynced: false,
+  configs: {
+    local_tmp_dir:
+      "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.tmp",
+    mlflow_tracking_uri:
+      "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+  },
+};
 
 export const ProjectManagerRedux = createSlice({
     name: 'projectManager',

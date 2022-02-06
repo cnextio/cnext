@@ -1,27 +1,28 @@
 import shortid from "shortid";
 import { createSlice } from '@reduxjs/toolkit'
-import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, ICodeLineStatus, ICodeLineGroupStatus, SetLineGroupCommand, IRunQueue, RunQueueStatus, ICodeActiveLine, ICodeText, IReduxRunQueueMessage, ILineRange } from '../../lib/interfaces/ICodeEditor';
+import { ICodeResult, ICodeResultMessage, ICodeLine, ILineUpdate, IPlotResult, LineStatus, ICodeLineStatus, ICodeLineGroupStatus, SetLineGroupCommand, IRunQueue, RunQueueStatus, ICodeActiveLine, ICodeText, IReduxRunQueueMessage, ILineRange, ICodeToInsert } from '../../lib/interfaces/ICodeEditor';
 import { ifElseDict } from "../../lib/components/libs";
 import { ContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 
-type CodeEditorState = { 
-    codeText: {[id: string]: string[]},
-    codeLines: {[id: string]: ICodeLine[]},
-    /** file timestamp will be used to check whether the code need to be reloaded
-     * A better design might be to move all codeText, codeLines and fileTimestamp under
-     * a same dictionary */
-    timestamp: {[id: string]: number},
-    fileSaved: boolean,
-    runQueue: IRunQueue, 
-    /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of 
-     * PlotView, which would only be rerendered when this variable is updated */ 
-    plotResultUpdate: number,
-    activeLine: string|null,
-    cAssistInfo: ICAssistInfo|undefined,
-    runDict: {}|undefined,
-    runningId: string|undefined,
-}
+type CodeEditorState = {
+  codeText: { [id: string]: string[] };
+  codeLines: { [id: string]: ICodeLine[] };
+  /** file timestamp will be used to check whether the code need to be reloaded
+   * A better design might be to move all codeText, codeLines and fileTimestamp under
+   * a same dictionary */
+  timestamp: { [id: string]: number };
+  fileSaved: boolean;
+  runQueue: IRunQueue;
+  /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of
+   * PlotView, which would only be rerendered when this variable is updated */
+  plotResultUpdate: number;
+  activeLine: string | null;
+  cAssistInfo: ICAssistInfo | undefined;
+  runDict: {} | undefined;
+  runningId: string | undefined;
+  codeToInsert: ICodeToInsert | undefined;
+};
 
 const initialState: CodeEditorState = {
     codeText: {},
@@ -34,6 +35,7 @@ const initialState: CodeEditorState = {
     cAssistInfo: undefined,
     runDict: undefined,
     runningId: undefined,
+    codeToInsert: undefined,
 }
 
 export const CodeEditorRedux = createSlice({
@@ -252,21 +254,27 @@ export const CodeEditorRedux = createSlice({
             state.codeLines[inViewID][lineNumber].cAssistInfo = cAssistInfoRedux.cAssistInfo;
             state.cAssistInfo = cAssistInfoRedux.cAssistInfo;
         },
+
+        setCodeToInsert: (state, action) => {
+            state.codeToInsert = action.payload;
+        }
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { 
-    initCodeText, 
-    updateLines, 
-    addPlotResult, 
-    setLineStatus, 
-    setLineGroupStatus, 
-    setActiveLine, 
-    setFileSaved,
-    setRunQueue, 
-    compeleteRunLine,
-    updateCAssistInfo,
-    compeleteRunQueue} = CodeEditorRedux.actions
+export const {
+  initCodeText,
+  updateLines,
+  addPlotResult,
+  setLineStatus,
+  setLineGroupStatus,
+  setActiveLine,
+  setFileSaved,
+  setRunQueue,
+  compeleteRunLine,
+  updateCAssistInfo,
+  compeleteRunQueue,
+  setCodeToInsert,
+} = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer

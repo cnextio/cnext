@@ -16,5 +16,7 @@ export interface IContextMenu {
 }
 
 export enum MetricPlotContextMenuItems {
-    LOAD_CHECKPOINT,
+    LOAD_CHECKPOINT = 'Load checkpoint',
+    LOAD_MODEL = 'Load model',
+    COPY_CHECKPOINT_PATH = 'Copy checkpoint path',
 }

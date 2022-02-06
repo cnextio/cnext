@@ -1,3 +1,4 @@
+import os
 import re
 import traceback
 
@@ -58,9 +59,9 @@ class MessageHandler(BaseMessageHandler):
         else:
             return run_id[:MessageHandler.RUN_NAME_SHORTEN_LENGTH]
 
-    def _get_metric_plots(self, message):
-        params = message.content
-        mlflowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
+    def _get_metric_plots(self, mlflowClient, message):
+        # params = message.content
+        # mlflowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
         # for run_id in message.content['run_ids']:
         #     runs_data.append(mlFlowClient.get_run(run_id))
         metrics_data = {}
@@ -102,18 +103,20 @@ class MessageHandler(BaseMessageHandler):
         ## Checkpoins are keyed using cnext run name. It would be better if we key it by the run id instead
         #  but since the trace name in the plot using name not id, we have to use name to make it consistent #
         checkpoints={}
+        name_to_run_ids={}
         for run_id in run_ids:
             run_cnext_name = self._get_run_name(mlflowClient, run_id)
             checkpoints[run_cnext_name] = get_checkpoints(mlflowClient, run_id)
+            name_to_run_ids[run_cnext_name] = run_id
         log.info(checkpoints)
         if len(checkpoints) > 0:
-            self._add_cnext_metadata(result, {'checkpoints': checkpoints})
+            self._add_cnext_metadata(result, {'checkpoints': checkpoints, 'name_to_run_ids': name_to_run_ids})
 
         log.info(result)
         message.content = result
 
     def _get_list_experiments(self, mlflowClient, message):
-        params = message.content
+        # params = message.content
         running_exp_id = None
         experiments = message.content
         ## 
@@ -153,12 +156,22 @@ class MessageHandler(BaseMessageHandler):
             # run_info._cnext_metadata = {'run_name': get_run_name(mlFlowClient, run_info.run_id)}
         message.content = {'runs': run_infos, 'active_run_id': active_run_id}   
 
+    def _load_artifact_to_local(self, mlflowClient, message):
+        params = message.content
+        local_dir = params['local_dir']
+        run_id = params['run_id']
+        artifact_path = params['artifact_path']
+        if not os.path.exists(local_dir):
+            os.mkdir(local_dir)
+        local_path = mlflowClient.download_artifacts(run_id, artifact_path, local_dir)
+        message.content = {'local_path': local_path}   
+
     def handle_message(self, message):
         log.info('Handle ExperimentManager message: %s' % message)    
         try:    
             params = message.content
-            if message.type == CommandType.MLFLOW_CLIENT:    
-                mlflowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
+            mlflowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
+            if message.type == CommandType.MLFLOW_CLIENT:                    
                 params.pop('tracking_uri')
                 message.content = getattr(mlflowClient, message.command_name)(**params)
                 if message.command_name == ExperimentManagerCommand.list_experiments:
@@ -169,7 +182,9 @@ class MessageHandler(BaseMessageHandler):
                 message.content = getattr(mlflow, message.command_name)(**params)    
             elif message.type == CommandType.MLFLOW_COMBINE:
                 if message.command_name == ExperimentManagerCommand.get_metric_plots:             
-                    self._get_metric_plots(message)
+                    self._get_metric_plots(mlflowClient, message)
+                elif message.command_name == ExperimentManagerCommand.load_artifacts_to_local:             
+                    self._load_artifact_to_local(mlflowClient, message) 
 
             # elif message.type == CommandType.MLFLOW_COMBINE:
             #     if message.command                 

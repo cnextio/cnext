@@ -179,6 +179,11 @@ export interface IDFMetadata {
     columns: {[key: string]: IColumnMetaData};
 };
 
+export interface IConfigs {
+    local_tmp_dir: string;
+    mlflow_tracking_uri: string;
+}
+
 // export class DFUpdates {
 //     update_type: UpdateType = UpdateType.no_update;
 //     update_content: string[] | number[] | [number, number][] = [];

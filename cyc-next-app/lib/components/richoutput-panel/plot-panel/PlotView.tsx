@@ -76,7 +76,7 @@ const PlotView = (props: any) => {
                                 key={plot.lineID} 
                                 variant="outlined" 
                                 focused={plot.lineID==activeLine}>                                            
-                                {React.createElement(PlotWithNoSSR, setLayout(plot.result.content, 400, 300))}
+                                {React.createElement(PlotWithNoSSR, setLayout(plot.result.content, 600, 350))}
                                 {console.log('Render PlotView: ', plot.lineID==activeLine)}
                             </SinglePlot>          
                         </ScrollIntoViewIfNeeded> 

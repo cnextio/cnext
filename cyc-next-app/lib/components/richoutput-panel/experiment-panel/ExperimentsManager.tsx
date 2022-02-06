@@ -22,6 +22,10 @@ import MetricPlots from "./MetricPlots";
 import { setExpDict, setRunDict, setRunningRun, setRunSelection, setSelectedExp } from "../../../../redux/reducers/ExperimentManagerRedux";
 import store from "../../../../redux/store";
 import { DefaultRootState, shallowEqual, useDispatch, useSelector } from "react-redux";
+import { setCodeToInsert } from "../../../../redux/reducers/CodeEditorRedux";
+import { ICodeToInsert } from "../../../interfaces/ICodeEditor";
+import { IMenuItem, MetricPlotContextMenuItems } from "../../../interfaces/IContextMenu";
+import { ifElse } from "../../libs";
 
 // const queryCache = new QueryCache();    
 
@@ -260,20 +264,20 @@ const ExperimentManager = (props: any) => {
 
   useEffect(() => {
     setup_socket();
+    let tracking_uri = store.getState().projectManager.configs.mlflow_tracking_uri;
     let message: Message = {
       webapp_endpoint: WebAppEndpoint.ExperimentManager,
       command_name: ExperimentManagerCommand.list_experiments,
       type: CommandType.MLFLOW_CLIENT,
       content: {
-        tracking_uri:
-          "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+        tracking_uri: tracking_uri,
       },
     };
     sendMessage(message);
   }, []);
 
   function handleExpChange(event: React.SyntheticEvent) {
-    console.log("ExperimentView handleExpChange: ", target);
+    console.log("ExperimentView handleExpChange: ", event.target);
     dispatch(setSelectedExp(event.target.value));
   }
 
@@ -289,6 +293,47 @@ const ExperimentManager = (props: any) => {
       );
     }
   }
+
+  const handleContextMenuSelection = (item: IMenuItem) => {
+    console.log("ExperimentView handleContextMenuSelection", item);    
+    if (item){
+      switch(item.name) {
+        case MetricPlotContextMenuItems.LOAD_CHECKPOINT:
+          /** first, download the artifacts to local */
+          let local_dir = store.getState().projectManager.configs.local_tmp_dir;
+          let tracking_uri =
+            store.getState().projectManager.configs.mlflow_tracking_uri;
+          let artifact_path =
+            item && item.metadata
+              ? ifElse(item.metadata, "checkpoint", null)
+              : null;
+          let run_id =
+            item && item.metadata
+              ? ifElse(item.metadata, "run_id", null)
+              : null;
+          if (artifact_path){
+            let message: Message = {
+              webapp_endpoint: WebAppEndpoint.ExperimentManager,
+              command_name: ExperimentManagerCommand.load_artifacts_to_local,
+              type: CommandType.MLFLOW_COMBINE,
+              content: {
+                tracking_uri: tracking_uri,
+                artifact_path: artifact_path,
+                local_dir: local_dir,
+                run_id: run_id
+              },
+            };
+            sendMessage(message);
+            /** then, insert code to load weights */
+            let codeToInsert: ICodeToInsert = {
+              code: `model.load_weights('${local_dir}/${artifact_path}')`,
+            };
+            dispatch(setCodeToInsert(codeToInsert));
+          }
+          break;
+      }      
+    }    
+  };
 
   return (
     <ExperimentContainer>
@@ -372,7 +417,12 @@ const ExperimentManager = (props: any) => {
         </RunSelectorForm>
       </ExperimentLeftPanel>
       <ExperimentRightPanel>
-        {selectedRunIds && (selectedRunIds.length > 0) && <MetricPlots metricPlotData={metricPlotData} />}
+        {selectedRunIds && selectedRunIds.length > 0 && (
+          <MetricPlots
+            metricPlotData={metricPlotData}
+            handleContextMenuSelection={handleContextMenuSelection}
+          />
+        )}
       </ExperimentRightPanel>
     </ExperimentContainer>
   );

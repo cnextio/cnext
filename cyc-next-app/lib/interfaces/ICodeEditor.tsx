@@ -148,4 +148,9 @@ export enum RunQueueStatus {
 	STOP,
 	RUNNING
 }
+
+/** This is used for other components to inser code to CodeEditor */
+export interface ICodeToInsert {
+  code: string;
+}
 /** */
