@@ -4,6 +4,7 @@ const socketIo = require('socket.io');
 const fs = require('fs');
 const YAML = require('yaml');
 const zmq = require('zeromq');
+require('dotenv').config();
 const { PythonShell } = require('python-shell');
 
 const port = process.env.PORT || 4000;
@@ -40,7 +41,7 @@ const NotCodeExecutor = [ExperimentManager];
 
 class PythonProcess {
   static pyshellOpts = {
-    pythonPath: 'C:/Users/HoaTV/anaconda3/envs/py39/python',
+    pythonPath: process.env.PYTHON_PATH,
     stdio: ['pipe', 'pipe', 'pipe', 'pipe'], // stdin, stdout, stderr, custom
     mode: 'text',
     env: process.env,

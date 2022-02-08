@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import React, { useEffect, useRef, useState } from "react";
-import { SmallVizContainer, VizContainer } from "../StyledComponents";
+import { SmallVizContainer, VizContainer } from "../../StyledComponents";
 // const Plot = require("react-plotly.js");
 // import Plot from "react-plotly.js";
 
