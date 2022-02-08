@@ -494,6 +494,17 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
       width: '10px',
     },
   },
+  '.cm-completionIcon': {
+    fontSize: '90%',
+    width: '.8em',
+    display: 'inline-block',
+    textAlign: 'center',
+    paddingRight: '.6em',
+    opacity: '0.6',
+  },
+  '.cm-completionIcon-function, .cm-completionIcon-method': {
+    '&:after': { content: "'ƒ'" },
+  },
   '.cm-completionIcon-class': {
     '&:after': { content: "'○'" },
   },
@@ -531,9 +542,19 @@ function optionContent(config) {
   if (config.icons)
     content.push({
       render(completion) {
-        let icon = document.createElement('img');
-        icon.src = '../icons/cube.svg';
-        icon.className = 'cm-completion-icon';
+        // let icon = document.createElement('img');
+        // icon.src = '../icons/cube.svg';
+        // icon.className = 'cm-completion-icon';
+        // icon.setAttribute('aria-hidden', 'true');
+        // return icon;
+        let icon = document.createElement('div');
+        icon.classList.add('cm-completionIcon');
+        if (completion.type)
+          icon.classList.add(
+            ...completion.type
+              .split(/\s+/g)
+              .map((cls) => 'cm-completionIcon-' + cls)
+          );
         icon.setAttribute('aria-hidden', 'true');
         return icon;
       },
@@ -699,7 +720,7 @@ class CompletionTooltip {
       };
 
       const matchText = opt.querySelector('.cm-completionMatchedText');
-      const icon = opt.querySelector('.cm-completion-icon');
+      //const icon = opt.querySelector('.cm-completion-icon');
       if (i == selected) {
         if (!opt.hasAttribute('aria-selected')) {
           opt.setAttribute('aria-selected', 'true');
@@ -707,8 +728,8 @@ class CompletionTooltip {
           opt.appendChild(moreBtn);
 
           matchText.style.color = '#62ebff';
-          icon.setAttribute('src', '../icons/cube-white.svg');
-          icon.classList.add('cm-completion-icon-selected');
+          // icon.setAttribute('src', '../icons/cube-white.svg');
+          // icon.classList.add('cm-completion-icon-selected');
         }
       } else {
         if (opt.hasAttribute('aria-selected')) {
@@ -716,8 +737,8 @@ class CompletionTooltip {
           opt.removeChild(opt.querySelector('.cm-read-more-btn'));
 
           matchText.style.color = '#0064b7';
-          icon.setAttribute('src', '../icons/cube.svg');
-          icon.setAttribute('class', 'cm-completion-icon');
+          // icon.setAttribute('src', '../icons/cube.svg');
+          // icon.setAttribute('class', 'cm-completion-icon');
         }
       }
     }
@@ -1179,6 +1200,7 @@ Returns a command that moves the completion selection forward or
 backward by the given amount.
 */
 function moveCompletionSelection(forward, by = 'option') {
+  console.log('moveCompletionSelection', forward);
   return (view) => {
     let cState = view.state.field(completionState, false);
     if (
