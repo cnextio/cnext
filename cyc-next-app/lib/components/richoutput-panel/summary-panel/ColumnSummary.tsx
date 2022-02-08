@@ -9,8 +9,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import { ifElse } from "../../libs";
 import { IColumnMetaData, IDFMetadata } from "../../../interfaces/IApp";
 import { DataTable, DataTableCell, DataTableRow, TableContainer } from "../../StyledComponents";
-import CountNA from "../CountNA";
-import ColumnHistogram from "../ColumnHistogram";
+import CountNA from "../data-panel/CountNA";
+import ColumnHistogram from "../data-panel/ColumnHistogram";
 
 
 const PlotWithNoSSR = dynamic(
