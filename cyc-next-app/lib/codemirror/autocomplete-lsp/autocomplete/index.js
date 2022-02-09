@@ -505,7 +505,8 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
         '&:after': { content: "'□'" },
     },
     '.cm-completionIcon-keyword': {
-        '&:after': { content: "'🔑\uFE0E'" }, // Disable emoji rendering
+        paddingRight: '1.0em !important',
+        '&:after': { content: "'🔑\uFE0E'", fontSize: '90%' }, // Disable emoji rendering
     },
     '.cm-completionIcon-namespace': {
         '&:after': { content: "'▢'" },
@@ -750,6 +751,9 @@ class CompletionTooltip {
                 detail: null,
             };
 
+            console.log('completionClone', completionClone);
+            console.log('range', range);
+
             const li = ul.appendChild(document.createElement('li'));
             li.id = id + '-' + i;
             li.setAttribute('role', 'option');
@@ -764,10 +768,6 @@ class CompletionTooltip {
                 applyCompletion(this.view, options[i]);
             };
         }
-
-        const li = ul.appendChild(document.createElement('li'));
-        li.id = id + '-' + range.to;
-        li.setAttribute('role', 'option');
 
         if (range.from) ul.classList.add('cm-completionListIncompleteTop');
         if (range.to < options.length) ul.classList.add('cm-completionListIncompleteBottom');
