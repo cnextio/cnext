@@ -109,6 +109,18 @@ export enum FilterType {
     col = 'col'
 };
 
+export enum FileMimeType {
+    FILEPNG = 'file/png',
+    FILEJPG = 'file/jpg',
+};
+
+export enum BinaryMimeType {
+    IMAGEPNG = 'img/png',
+    IMAGEJPG = 'img/jpg'
+};
+export const CNextMimeType = {...FileMimeType, ...BinaryMimeType}
+export type CNextMimeType = FileMimeType | BinaryMimeType;
+
 export interface DFFilter {
     type: FilterType,
     index: string,

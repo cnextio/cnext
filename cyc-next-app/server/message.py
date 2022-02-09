@@ -5,9 +5,9 @@ from multipledispatch import dispatch
 import simplejson as json
 from enum import Enum
 
-logging.basicConfig(filename='./log.txt', filemode='a', format='%(asctime)s,%(msecs)d %(name)s %(funcName)s %(levelname)s %(message)s', 
-                        datefmt='%H:%M:%S', level=logging.DEBUG)
-log = logging.getLogger(__name__)
+# logging.basicConfig(filename='./log.txt', filemode='a', format='%(asctime)s,%(msecs)d %(name)s %(funcName)s %(levelname)s %(message)s', 
+#                         datefmt='%H:%M:%S', level=logging.DEBUG)
+# log = logging.getLogger(__name__)
 
 class WebappEndpoint(str, Enum):
     DFManager = 'DFManager'
@@ -32,7 +32,7 @@ class DFManagerCommand(str, Enum):
     get_df_metadata = 'get_df_metadata'
     plot_column_quantile = 'plot_column_quantile'
     get_cardinal = 'get_cardinal'
-    
+    get_file_content = 'get_file_content'
     def __str__(self):
         return str(self.value)
     
@@ -72,6 +72,7 @@ class ContentType(str, Enum):
     COMMAND = 'command'
     STRING = 'str'
     DICT = 'dict'
+    BINARY = 'binary'
     PANDAS_DATAFRAME = 'pandas_dataframe'
     PLOTLY_FIG = 'plotly_fig'
     DIR_LIST = 'dir_list',
