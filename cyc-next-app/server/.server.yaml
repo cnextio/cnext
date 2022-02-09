@@ -1,10 +1,14 @@
-node_py_zmq:
+p2n_comm:
     host: tcp://127.0.0.1
     n2p_port: 5000
     p2n_port: 5001
-    p2n_notif_port: 5002
 
-path_to_cycdataframe_lib: '..\..\..\'
+# non_code_executor_comm:
+#   host: tcp://127.0.0.1
+#   n2p_port: 5002
+#   p2n_port: 5003
+
+path_to_cycdataframe_lib: "../../../"
 
 projects:
     open_projects:

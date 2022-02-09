@@ -166,7 +166,7 @@ class MessageHandler(BaseMessageHandler):
         local_path = mlflowClient.download_artifacts(run_id, artifact_path, local_dir)
         message.content = {'local_path': local_path}   
 
-    def handle_message(self, message, ext_global):
+    def handle_message(self, message, client_globals):
         log.info('Handle ExperimentManager message: %s' % message)    
         try:    
             params = message.content
