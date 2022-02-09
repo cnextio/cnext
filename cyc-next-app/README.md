@@ -14,42 +14,42 @@ npm run dev
 For the server you will need to install both Nodejs packages and Python packages.
 
 1. for Python packages, you will need to:
-   1. clone `cycdataframe`
-   1. install `conda` and create an environment (such as `py39`)
-   1. setup our internal python package for `cycdataframe`
-      - clone `cycdataframe`
-      - activate above invironment (`py39`) install dependencies follow the instructions in the `cycdataframe/README.md`
-   1. setup other python dependencies with
-      ```
-      conda install -c conda-forge pyzmq pyyaml
-      ```
+    1. clone `cycdataframe`
+    1. install `conda` and create an environment (such as `py39`)
+    1. setup our internal python package for `cycdataframe`
+        - clone `cycdataframe`
+        - activate above invironment (`py39`) install dependencies follow the instructions in the `cycdataframe/README.md`
+    1. setup other python dependencies with
+        ```
+        conda install -c conda-forge pyzmq pyyaml
+        ```
 2. for Nodejs packages, you will need to:
 
-   1. Installation: enter folder `server/` and run `npm install`
-   2. Configuration: create `.server.yaml`
+    1. Installation: enter folder `server/` and run `npm install`
+    2. Configuration: create `.server.yaml`
 
-      ```yaml
-      p2n_comm:
-        host: tcp://127.0.0.1
-        n2p_port: 5000
-        p2n_port: 5001
+        ```yaml
+        p2n_comm:
+            host: tcp://127.0.0.1
+            n2p_port: 5000
+            p2n_port: 5001
 
-      path_to_cycdataframe_lib: '${{ PATH_TO_CYCDATAFRAME_LIB }}'
+        path_to_cycdataframe_lib: '${{ PATH_TO_CYCDATAFRAME_LIB }}'
 
-      projects:
-        open_projects:
-          - id: '1'
-            name: Skywalker
-            path: '${{ PATH_TO_SAMPLE_PROJECT }}'
-        active_project: '1'
-      ```
+        projects:
+            open_projects:
+                - id: '1'
+                  name: Skywalker
+                  path: '${{ PATH_TO_SAMPLE_PROJECT }}'
+            active_project: '1'
+        ```
 
-      modify the field `path_to_cycdataframe_lib` to point to the folder where you clone `cycdataframe` (see 1.2 above)
+        modify the field `path_to_cycdataframe_lib` to point to the folder where you clone `cycdataframe` (see 1.2 above)
 
-   3. Create `.env` file
-      ```shell
-      PYTHON_PATH= ${{ PATH_TO_EXECUTE_PYTHON }}
-      ```
+    3. Create `.env` file
+        ```shell
+        PYTHON_PATH= ${{ PATH_TO_EXECUTE_PYTHON }}
+        ```
 
 ### 3. Create a working project
 
@@ -62,14 +62,20 @@ Think of this like a project in your VSCode env.
 ```yaml
 executor: ${{ PATH_TO_SAMPLE_PROJECT }}/main.py
 open_files:
-  - executor: true
-    name: main.py
-    path: ${{ PATH_TO_SAMPLE_PROJECT }}/main.py
-  - executor: false
-    name: data_loader.py
-    path: ${{ PATH_TO_SAMPLE_PROJECT }}/data_loader.py
-  - executor: false
-    name: model.py
-    path: ${{ PATH_TO_SAMPLE_PROJECT }}/model.py
+    - executor: true
+      name: main.py
+      path: ${{ PATH_TO_SAMPLE_PROJECT }}/main.py
+    - executor: false
+      name: data_loader.py
+      path: ${{ PATH_TO_SAMPLE_PROJECT }}/data_loader.py
+    - executor: false
+      name: model.py
+      path: ${{ PATH_TO_SAMPLE_PROJECT }}/model.py
 project_dir: ${{ PATH_TO_SAMPLE_PROJECT }}
 ```
+
+### 4. Code formater
+
+1. use `prettier plugin for vs`
+2. use `single quote` and `tab width = 4`
+3. use `print width = 100`
