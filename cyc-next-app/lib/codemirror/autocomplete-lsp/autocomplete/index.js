@@ -397,7 +397,7 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
                 cursor: 'pointer',
                 lineHeight: 1.2,
                 margin: 'auto',
-                padding: '1px 1em 1px 3px !important',
+                padding: '4px 1em 1px 3px !important',
             },
             '& > li[aria-selected]': {
                 background_fallback: '#bdf',
@@ -456,9 +456,10 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
     '.cm-read-more-btn': {
         backgroundColor: 'transparent',
         border: 'none',
-        cusor: 'pointer',
+        cursor: 'pointer',
         outline: 'none',
         color: 'white',
+        float: 'right',
         fontWeight: 'bold',
         fontSize: '116%',
     },
@@ -505,10 +506,11 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
     '.cm-completionIcon': {
         fontSize: '90%',
         width: '.8em',
-        display: 'inline-block',
+        float: 'left',
         textAlign: 'center',
-        paddingRight: '1.1em !important',
+        paddingRight: '1.0em !important',
         opacity: '0.8',
+        paddingTop: '1px',
     },
     '.cm-completionIcon-function, .cm-completionIcon-method': {
         '&:after': { content: "'ƒ'" },
