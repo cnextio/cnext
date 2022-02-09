@@ -1159,9 +1159,10 @@ const CompletionInteractMargin = 75;
 Returns a command that moves the completion selection forward or
 backward by the given amount.
 */
-function moveCompletionSelection(forward, by = 'option') {
-    console.log('moveCompletionSelection', forward);
+const moveCompletionSelection = (forward, by = 'option') => {
     return (view) => {
+        console.log('moveCompletionSelection', forward);
+
         let cState = view.state.field(completionState, false);
         if (
             !cState ||
@@ -1180,12 +1181,11 @@ function moveCompletionSelection(forward, by = 'option') {
         view.dispatch({ effects: setSelectedEffect.of(selected) });
         return true;
     };
-}
+};
 /**
 Accept the current completion.
 */
 const acceptCompletion = (view) => {
-    console.log('acceptCompletion');
     let cState = view.state.field(completionState, false);
     if (!cState || !cState.open || Date.now() - cState.open.timestamp < CompletionInteractMargin)
         return false;
@@ -1196,7 +1196,6 @@ const acceptCompletion = (view) => {
 Explicitly start autocompletion.
 */
 const startCompletion = (view) => {
-    console.log('startCompletion');
     let cState = view.state.field(completionState, false);
     if (!cState) return false;
     view.dispatch({ effects: startCompletionEffect.of(true) });
@@ -1206,7 +1205,6 @@ const startCompletion = (view) => {
 Close the currently active completion.
 */
 const closeCompletion = (view) => {
-    console.log('closeCompletion');
     let cState = view.state.field(completionState, false);
     if (!cState || !cState.active.some((a) => a.state != 0 /* Inactive */)) return false;
     view.dispatch({ effects: closeCompletionEffect.of(null) });
