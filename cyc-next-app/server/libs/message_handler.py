@@ -22,3 +22,7 @@ class BaseMessageHandler:
         # log.info("Send output to node server... %s"%message.toJSON())
         log.info("Send output to node server...")
         self.p2n_queue.send(message.toJSON())
+
+    def handle_message(self, message, client_globals):
+        ''' `ext_globals` is the user namespace where the user executes their command'''
+        raise "Abstract function must be implemented by subclass"

@@ -16,6 +16,7 @@ from mlflow.tracking.client import MlflowClient
 
 from project_manager import files, projects
 from experiment_manager import experiment_manager as em
+from dataframe_manager import dataframe_manager as dm
 
 log = logs.get_logger(__name__)
 
@@ -157,75 +158,7 @@ def send_to_node(message: Message):
     log.info("Send output to node server...")
     p2n_queue.send(message.toJSON())
     
-def handle_DataFrameManager_message(message):
-    send_reply = False
-    # message execution_mode will always be `eval` for this sender
-    log.info('eval... %s' % message)
-    try:        
-        if message.command_name == DFManagerCommand.plot_column_histogram:
-            result = eval(message.content, globals())
-            if result is not None:                
-                log.info("get plot data")                                        
-                output = _create_DFManager_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
-                type = ContentType.PLOTLY_FIG
-                send_reply = True
-
-        if message.command_name == DFManagerCommand.plot_column_quantile:
-            result = eval(message.content, globals())
-            if result is not None:                
-                log.info("get plot data")                                        
-                output = _create_DFManager_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
-                type = ContentType.PLOTLY_FIG
-                send_reply = True
-
-        elif message.command_name == DFManagerCommand.get_table_data:    
-            result = eval(message.content, globals())        
-            if result is not None:                
-                log.info("get table data")
-                output = _create_table_data(message.metadata['df_id'], result)       
-                type = ContentType.PANDAS_DATAFRAME
-                send_reply = True
-                                       
-        elif message.command_name == DFManagerCommand.get_countna: 
-            df_id = message.metadata['df_id']
-            countna = eval("%s.isna().sum()"%df_id, globals())
-            len = eval("%s.shape[0]"%df_id, globals())      
-            if (countna is not None) and (len is not None):                
-                log.info("get countna data")
-                output = _create_countna_data(message.metadata['df_id'], len, countna)       
-                type = ContentType.DICT
-                send_reply = True                            
-        
-        elif message.command_name == DFManagerCommand.get_df_metadata: 
-            df_id = message.metadata['df_id']
-            shape = eval("%s.df.shape"%df_id, globals())
-            dtypes = eval("%s.df.dtypes"%df_id, globals())
-            countna = eval("%s.df.isna().sum()"%df_id, globals())                        
-            describe = eval("%s.df.describe(include='all')"%df_id, globals())
-            columns = {}
-            for col_name, ctype in dtypes.items():
-                # print(col_name, ctype)
-                # FIXME: only get at most 100 values here, this is hacky, find a better way
-                unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), globals())[:100]                
-                columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique, 
-                                        'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}                
-            output = {'df_id': df_id, 'shape': shape, 'columns': columns}    
-            log.info(output)
-            type = ContentType.DICT
-            send_reply = True    
-
-        if send_reply:
-            message.type = type
-            message.content = output
-            message.error = False
-            send_to_node(message)
-    except:
-        trace = traceback.format_exc()
-        log.error("%s" % (trace))
-        error_message = create_error_message(message.webapp_endpoint, trace)          
-        send_to_node(error_message)
-
-def handle_CodeEditor_message(message):
+def handle_CodeEditor_message(message, client_globals=None):
     try:
         assign_exec_mode(message)
         type = ContentType.NONE
@@ -250,7 +183,8 @@ def handle_CodeEditor_message(message):
                     type = ContentType.PLOTLY_FIG
                 else:
                     type = ContentType.STRING
-                    output = str(result)                
+                    output = str(result)        
+        # log.info('Globals: %s' % globals())        
             
         message.type = type
         message.content = output
@@ -262,7 +196,7 @@ def handle_CodeEditor_message(message):
         error_message = create_error_message(message.webapp_endpoint, trace, message.metadata)          
         send_to_node(error_message)
 
-def handle_FileManager_message(message):
+def handle_FileManager_message(message, client_globals=None):
     log.info('Handle FileManager message: %s' % message)
     try:    
         metadata = message.metadata    
@@ -317,7 +251,7 @@ def handle_FileManager_message(message):
         error_message = create_error_message(message.webapp_endpoint, trace)          
         send_to_node(error_message)
 
-def handle_FileExplorer_message(message):
+def handle_FileExplorer_message(message, client_globals=None):
     log.info('Handle FileExplorer message: %s' % message)
     try:    
         metadata = message.metadata    
@@ -352,7 +286,7 @@ def handle_FileExplorer_message(message):
         error_message = create_error_message(message.webapp_endpoint, trace)          
         send_to_node(error_message)
 
-def handle_MagicCommandGen_message(message):
+def handle_MagicCommandGen_message(message, client_globals=None):
     send_reply = False
     # message execution_mode will always be `eval` for this sender
     log.info('eval... %s' % message)
@@ -442,7 +376,7 @@ if __name__ == "__main__":
         ## TODO: refactor message handler to separate class like ExperimentManager
         message_handler = {
             WebappEndpoint.CodeEditor: handle_CodeEditor_message,
-            WebappEndpoint.DFManager: handle_DataFrameManager_message,
+            WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue).handle_message,
             WebappEndpoint.FileManager: handle_FileManager_message,
             WebappEndpoint.MagicCommandGen: handle_MagicCommandGen_message,
             WebappEndpoint.FileExplorer: handle_FileExplorer_message,
@@ -459,7 +393,7 @@ if __name__ == "__main__":
                 log.info('Got message %s' % line)
                 message = Message(**json.loads(line))    
                 
-                message_handler[message.webapp_endpoint](message);
+                message_handler[message.webapp_endpoint](message, client_globals=globals());
                 if message.webapp_endpoint == WebappEndpoint.CodeEditor:                     
                     process_active_df_status()
 

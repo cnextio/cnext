@@ -5,4 +5,4 @@ interface LanguageServerOptions {
     languageId: string;
 }
 declare function languageServer(options: LanguageServerOptions): import("@codemirror/state").Extension[];
-export { languageServer };
+export { languageServer, dfFilterLanguageServer };

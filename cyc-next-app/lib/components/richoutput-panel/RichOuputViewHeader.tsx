@@ -28,14 +28,13 @@ const RichOuputViewHeader = ({show, setShow}) => {
                         {name} 
                     </TableViewHeaderButton>
                 ))}          
-                {dfMetadata?                      
+                {/* {dfMetadata?                      
                 <TableShape variant='subtitle'>
                     Shape: {dfMetadata.shape[0]}x{dfMetadata.shape[1]}
                 </TableShape>
-                : null}
+                : null} */}
             </StyledTableViewHeader>            
         </Fragment>
-        
     );
 }
 

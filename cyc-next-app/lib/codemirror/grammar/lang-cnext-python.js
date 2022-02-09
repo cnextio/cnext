@@ -98,7 +98,7 @@ const pythonLanguage = LRLanguage.define({
 /// Python language support.
 function python() {
     return new LanguageSupport(pythonLanguage, pythonLanguage.data.of({
-        autocomplete: ifNotIn(["Comment", "String"], completeFromList(snippets))
+        // autocomplete: ifNotIn(["Comment", "String"], completeFromList(snippets))
     }));
 }
 

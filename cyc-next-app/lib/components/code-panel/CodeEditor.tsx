@@ -53,11 +53,9 @@ const CodeEditor = ({id, recvCodeOutput}) => {
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
-    
+
     const extensions = [
         basicSetup,
-        // oneDark,
-        // EditorView.lineWrapping,
         lineNumbers(),
         editStatusGutter(
             store.getState().projectManager.inViewID, 

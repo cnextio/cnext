@@ -1,20 +1,15 @@
-import { TableBody } from "@mui/material";
+import { Paper, styled, TableBody } from "@mui/material";
 import React, { Fragment } from "react";
 import shortid from "shortid";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 
 import {
-    DataTable,
     DataTableCell,
-    DataTableHead,
-    DataTableHeadRow,
-    DataTableHeadCell,
     DataTableIndexCell,
-    DataTableRow,
     TableContainer,
-    DataTableHeadText,
 } from "../../StyledComponents";
 import {
+    CNextMimeType,
     FileMimeType,
     IDFUpdatesReview,
     ReviewType,
@@ -25,7 +20,7 @@ import { ifElse, ifElseDict } from "../../libs";
 import CountNA from "./CountNA";
 import store from "../../../../redux/store";
 
-const TableView = (props: any) => {
+const GridView = (props: any) => {
     const tableData = useSelector((state) => state.dataFrames.tableData);
 
     const activeDataFrame = useSelector(
@@ -154,49 +149,76 @@ const TableView = (props: any) => {
         );
     };
 
-    const _createRow = (colNames: [], rowIndex: any, rowData: any[]) => {
+    const Item = styled(Paper)(({ theme }) => ({
+        ...theme.typography.body2,
+        padding: theme.spacing(1),
+        textAlign: "center",
+        color: theme.palette.text.secondary,
+    }));
+
+    const createMime = (item: object, mimeType: CNextMimeType) => {
+        switch (mimeType) {
+            case FileMimeType.FILEPNG:
+                return <img src={"data:image/png;base64," + item.binary} />;
+            case FileMimeType.FILEJPG:
+                return <img src={"data:image/jpg;base64," + item.binary} />;
+        }
+    };
+
+    const createGridCell = (colNames: [], rowIndex: any, rowData: any[]) => {
+        const metadata = ifElse(
+            store.getState().dataFrames.metadata,
+            activeDataFrame,
+            null
+        );
+
+        // let colsWithMime = colNames.filter(
+        //     (colName) =>
+        //         metadata &&
+        //         metadata.columns[colName] &&
+        //         (Object.values(FileMimeType).includes(
+        //             metadata.columns[colName].type
+        //         ) ||
+        //             Object.values(BinaryMimeType).includes(
+        //                 metadata.columns[colName].type
+        //             ))
+        // );
+
         return (
-            <DataTableRow hover key={shortid.generate()}>
-                {createCell(null, rowIndex, null, false, true)}
-                {rowData.map((item: any, index: number) =>
-                    createCell(colNames[index], rowIndex, item)
+            <Item>
+                {rowData.map(
+                    (item: any, index: number) =>
+                        // createCell(colNames[index], rowIndex, item)
+                        metadata &&
+                        metadata.columns[colNames[index]] &&
+                        Object.values(CNextMimeType).includes(
+                            metadata.columns[colNames[index]].type
+                        ) &&
+                        createMime(item, metadata.columns[colNames[index]].type)
                 )}
-            </DataTableRow>
+            </Item>
         );
     };
 
     return (
         <TableContainer>
             {/* {console.log("Render TableContainer: ", tableData)} */}
-            {console.log("Render TableContainer")}
-            <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
-                {/* {console.log(tableData)} */}
-                <DataTableHead>
-                    <DataTableHeadRow>
-                        <DataTableHeadCell>
-                            <DataTableHeadText>
-                                {tableData[activeDataFrame].index.name}
-                            </DataTableHeadText>
-                        </DataTableHeadCell>
-                        {tableData[activeDataFrame].column_names.map(
-                            (dfColName: string, index: number) =>
-                                createCell(dfColName, 0, dfColName, true)
-                        )}
-                    </DataTableHeadRow>
-                </DataTableHead>
-                <TableBody>
-                    {tableData[activeDataFrame].rows.map(
-                        (rowData: any[], index: number) =>
-                            _createRow(
-                                tableData[activeDataFrame].column_names,
-                                tableData[activeDataFrame].index.data[index],
-                                rowData
-                            )
-                    )}
-                </TableBody>
-            </DataTable>
+            {console.log("Render GridView")}
+            {/* <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader> */}
+            {/* {console.log(tableData)} */}
+            <Grid container spacing={0.5}>
+                {tableData[activeDataFrame].rows.map(
+                    (rowData: any[], index: number) =>
+                        createGridCell(
+                            tableData[activeDataFrame].column_names,
+                            tableData[activeDataFrame].index.data[index],
+                            rowData
+                        )
+                )}
+            </Grid>
+            {/* </DataTable> */}
         </TableContainer>
     );
 };
 
-export default TableView;
+export default GridView;
