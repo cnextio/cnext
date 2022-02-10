@@ -1,20 +1,11 @@
 import base64
-import os
-import re
 import traceback
+from libs.message_handler import BaseMessageHandler
+from message import ContentType, DFManagerCommand
+from cycdataframe import CnextMimeType
 
-import pandas
-from dataframe_manager.message_content import LoadFileMessageContent
 import logs
 log = logs.get_logger(__name__)
-import mlflow
-import mlflow.tensorflow
-from mlflow.tracking.client import MlflowClient
-import plotly.express as px, plotly.io as pio
-import plotly.graph_objects as go
-pio.renderers.default = "json"
-from libs.message_handler import BaseMessageHandler
-from message import CommandType, ContentType, DFManagerCommand
 
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue):
@@ -49,7 +40,7 @@ class MessageHandler(BaseMessageHandler):
         # We chose to do this outside of the dataframe, but it can also be done with a dataframe 
         # see https://stackoverflow.com/questions/41710501/is-there-a-way-to-have-a-dictionary-as-an-entry-of-a-pandas-dataframe-in-python #
         for i,t in enumerate(df.dtypes):
-            if t.name in ['file/png', 'file/jpg']:
+            if t.name in [CnextMimeType.FILEPNG, CnextMimeType.FILEJPG]:
                 log.info('Load file for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     file_path = df[df.columns[i]].iloc[r]
