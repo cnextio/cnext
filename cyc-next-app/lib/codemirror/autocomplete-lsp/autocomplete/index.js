@@ -1182,8 +1182,6 @@ const moveCompletionSelection = (forward, by = 'option') => {
 
         //handler for info dialog
         let codeDocContainerDom = tooltip.querySelector('#code-doc-container');
-        console.log('codeDocContainerDom', codeDocContainerDom);
-        console.log('cState', cState);
 
         const option = cState.open.options[selected];
         if (codeDocContainerDom) {
@@ -1200,6 +1198,14 @@ const moveCompletionSelection = (forward, by = 'option') => {
 
 const changeCompletionSelection = () => {
     return (view) => {
+        let cState = view.state.field(completionState, false);
+        if (
+            !cState ||
+            !cState.open ||
+            Date.now() - cState.open.timestamp < CompletionInteractMargin
+        )
+            return false;
+
         let tooltip = view.dom.querySelector('.cm-tooltip-autocomplete');
         if (tooltip) {
             let moreBtn = tooltip.querySelector('.cm-read-more-btn');
