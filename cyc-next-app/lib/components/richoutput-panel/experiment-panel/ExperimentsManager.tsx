@@ -35,8 +35,6 @@ import { IMenuItem, MetricPlotContextMenuItems } from "../../../interfaces/ICont
 import { ifElse } from "../../libs";
 import { CONSTANT } from "../../../../constants";
 
-// const queryCache = new QueryCache();
-
 const ExperimentManager = (props: any) => {
     const [metricPlotData, setMetricPlot] = useState();
     const [timer, setTimer] = useState();
@@ -218,7 +216,6 @@ const ExperimentManager = (props: any) => {
                             break;
                         case ExperimentManagerCommand.get_metric_plots:
                             console.log("ExperimentView got metric plots: ");
-                            console.log("emrsultttttttttttttttttt", emResult);
                             // console.log('ExperimentView got metric plots: ', emResult.content);
                             setMetricPlot(emResult.content);
                             break;
