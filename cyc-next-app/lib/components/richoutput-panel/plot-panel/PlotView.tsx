@@ -13,7 +13,7 @@ import { Box, Paper } from "@mui/material";
 import { ICodeLine, IPlotResult } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
 import { ContentType } from "../../../interfaces/IApp";
-import { IPlotInput } from "../../../interfaces/ICodeEditor";
+import { IMetricPlots } from "../../../interfaces/ICodeEditor";
 import MetricPlots from "../shared-components/MetricPlots";
 import { CONSTANT } from "../../../../constants";
 
@@ -28,6 +28,7 @@ const PlotView = (props: any) => {
     // const plotResultUpdate = useSelector((state) => state.codeDoc.plotResultUpdate);
     const activeLine = useSelector((state) => state.codeEditor.activeLine);
     const [containerMounted, setContainerMounted] = useState(false);
+    const [plotMetric, setPlotMetric] = useState<IMetricPlots | null>(null);
 
     const setLayout = (
         plotData: IPlotResult,
@@ -68,14 +69,13 @@ const PlotView = (props: any) => {
                 (code) => code.result && code.result.type == ContentType.PLOTLY_FIG
             );
 
-            // fomart plot input
-            const plotInput: IPlotInput = { plots: codeWithPlots };
+            setPlotMetric({ plots: codeWithPlots });
 
             return (
                 <StyledPlotView id={plotViewID}>
-                    {containerMounted && plotInput.plots.length > 0 ? (
+                    {containerMounted && plotMetric !== null && plotMetric.plots.length > 0 ? (
                         <MetricPlots
-                            metricPlotData={plotInput}
+                            metricPlotData={plotMetric}
                             handleContextMenuSelection={handleContextMenuSelection}
                             typePanel={CONSTANT.PLOT_TYPE_PANEL.PLOT}
                         />

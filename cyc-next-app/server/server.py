@@ -1,5 +1,5 @@
-import cycdataframe.cycdataframe as cd
 from cycdataframe.df_status_hook import DataFrameStatusHook
+import cycdataframe.cycdataframe as cd
 from libs.config import read_config
 from plot_manager import plot_manager as pm
 from dataframe_manager import dataframe_manager as dm
@@ -421,7 +421,8 @@ if __name__ == "__main__":
             WebappEndpoint.MagicCommandGen: handle_MagicCommandGen_message,
             WebappEndpoint.FileExplorer: handle_FileExplorer_message,
             WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue).handle_message,
-            WebappEndpoint.PlotManager: pm.MessageHandler.handle_message
+            WebappEndpoint.PlotManager: pm.MessageHandler(
+                p2n_queue).handle_message
         }
 
     except Exception as error:
