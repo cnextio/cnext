@@ -1170,15 +1170,30 @@ const moveCompletionSelection = (forward, by = 'option') => {
             Date.now() - cState.open.timestamp < CompletionInteractMargin
         )
             return false;
-        let step = 1,
-            tooltip;
-        if (by == 'page' && (tooltip = view.dom.querySelector('.cm-tooltip-autocomplete')))
+        let step = 1;
+        let tooltip = view.dom.querySelector('.cm-tooltip-autocomplete');
+        if (by == 'page' && tooltip)
             step = Math.max(2, Math.floor(tooltip.offsetHeight / tooltip.firstChild.offsetHeight));
         let selected = cState.open.selected + step * (forward ? 1 : -1),
             { length } = cState.open.options;
         if (selected < 0) selected = by == 'page' ? 0 : length - 1;
         else if (selected >= length) selected = by == 'page' ? length - 1 : 0;
         view.dispatch({ effects: setSelectedEffect.of(selected) });
+
+        //handler for info dialog
+        let codeDocContainerDom = tooltip.querySelector('#code-doc-container');
+        console.log('codeDocContainerDom', codeDocContainerDom);
+        console.log('cState', cState);
+
+        const option = cState.open.options[selected];
+        if (codeDocContainerDom) {
+            tooltip.removeChild(codeDocContainerDom);
+            codeDocContainerDom = tooltip.appendChild(document.createElement('div'));
+            codeDocContainerDom.id = 'code-doc-container';
+            let { info } = option.completion;
+            if (info) codeDocContainerDom.appendChild(createDocContentDom(option));
+        }
+
         return true;
     };
 };
