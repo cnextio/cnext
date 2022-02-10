@@ -1,29 +1,37 @@
-import platform, sys, logging, simplejson as json, io, os
-import pandas 
+import cycdataframe.cycdataframe as cd
+from cycdataframe.df_status_hook import DataFrameStatusHook
+from libs.config import read_config
+from plot_manager import plot_manager as pm
+from dataframe_manager import dataframe_manager as dm
+from experiment_manager import experiment_manager as em
+from project_manager import files, projects
+from mlflow.tracking.client import MlflowClient
+import mlflow.tensorflow
+import mlflow
+from message import CommandType, ExperimentManagerCommand, Message, WebappEndpoint, DFManagerCommand, ContentType, ProjectCommand, CodeEditorCommand
+from zmq_message import MessageQueue
+import re
+import logs
+import traceback
+import platform
+import sys
+import logging
+import simplejson as json
+import io
+import os
+import pandas
 import plotly
-import plotly.express as px, plotly.io as pio
+import plotly.express as px
+import plotly.io as pio
 pio.renderers.default = "json"
 
-import traceback
-import logs
-import re
-from zmq_message import MessageQueue
-from message import CommandType, ExperimentManagerCommand, Message, WebappEndpoint, DFManagerCommand, ContentType, ProjectCommand, CodeEditorCommand
-
-import mlflow
-import mlflow.tensorflow
-from mlflow.tracking.client import MlflowClient
-
-from project_manager import files, projects
-from experiment_manager import experiment_manager as em
-from dataframe_manager import dataframe_manager as dm
 
 log = logs.get_logger(__name__)
 
-from libs.config import read_config
 try:
-    config = read_config('.server.yaml', {'code_executor_comm':{'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
-    log.info('Server config: %s'%config)
+    config = read_config('.server.yaml', {'code_executor_comm': {
+                         'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
+    log.info('Server config: %s' % config)
     open_projects = []
     active_project: projects.ProjectMetadata = None
     if hasattr(config, 'projects'):
@@ -38,20 +46,21 @@ try:
         projects.set_active_project(active_project)
 
 except Exception as error:
-    log.error("%s - %s" % (error, traceback.format_exc()))          
+    log.error("%s - %s" % (error, traceback.format_exc()))
     exit(1)
 
-#TODO: Point this to the cycdataframe repos folder
-sys.path.append(config.path_to_cycdataframe_lib); 
-from cycdataframe.df_status_hook import DataFrameStatusHook
-import cycdataframe.cycdataframe as cd 
+# TODO: Point this to the cycdataframe repos folder
+sys.path.append(config.path_to_cycdataframe_lib)
 
-#TODO: need to heavily test this
+# TODO: need to heavily test this
+
+
 def assign_exec_mode(message: Message):
     message.execution_mode = 'eval'
     if message.metadata and ('line_range' in message.metadata):
         line_range = message.metadata['line_range']
-        if line_range['fromLine'] < line_range['toLine']-1: ## always 'exec' if there are more than 1 line in the code
+        # always 'exec' if there are more than 1 line in the code
+        if line_range['fromLine'] < line_range['toLine']-1:
             message.execution_mode = 'exec'
 
     try:
@@ -59,10 +68,12 @@ def assign_exec_mode(message: Message):
     except SyntaxError as error:
         log.error(error)
         message.execution_mode = 'exec'
-    
+
     log.info("assigned command type: %s" % message.execution_mode)
 
 # have to do this here. do it in df_status_hook does not work
+
+
 def get_global_df_list():
     names = list(globals())
     df_list = []
@@ -72,42 +83,48 @@ def get_global_df_list():
     log.info('Current global df list: %s' % df_list)
     return df_list
 
+
 def _plotly_show_match(command):
-    res = re.search(r'^\w+(?=\.show\(\))',command)
+    res = re.search(r'^\w+(?=\.show\(\))', command)
     if res is not None:
         name = res.group()
         log.info("Name of the object before .show(): %s" % name)
         if type(globals()[name]) == plotly.graph_objs._figure.Figure:
             return True
-        else: 
+        else:
             return False
-    else: 
+    else:
         return False
 
+
 def _get_dataframe_id(command):
-    res = re.search(r'^\w+(?=[\.\[])',command)
+    res = re.search(r'^\w+(?=[\.\[])', command)
     if res is not None:
         name = res.group()
         log.info("Name of the dataframe object: %s" % name)
         return name
-    else: 
+    else:
         return None
+
 
 def _result_is_dataframe(result):
     return type(result) == pandas.core.frame.DataFrame
 
+
 def _result_is_plotly_fig(result):
     return hasattr(plotly.graph_objs, '_figure') and (type(result) == plotly.graph_objs._figure.Figure)
+
 
 def _create_table_data(df_id, df):
     tableData = {}
     tableData['df_id'] = df_id
     tableData['column_names'] = list(df.columns)
-    
+
     ## Convert datetime to string so it can be displayed in the frontend #
-    for i,t in enumerate(df.dtypes):
+    for i, t in enumerate(df.dtypes):
         if t.name == 'datetime64[ns]':
-            df[df.columns[i]] = df[df.columns[i]].dt.strftime('%Y-%m-%d %H:%M:%S')
+            df[df.columns[i]] = df[df.columns[i]
+                                   ].dt.strftime('%Y-%m-%d %H:%M:%S')
     tableData['rows'] = df.values.tolist()
 
     tableData['index'] = {}
@@ -117,8 +134,9 @@ def _create_table_data(df_id, df):
         [tableData['index']['data'].append(str(idx)) for idx in df.index]
     else:
         tableData['index']['data'] = df.index.tolist()
-    
+
     return tableData
+
 
 def _create_countna_data(df_id, len, countna_series):
     countna = {}
@@ -126,30 +144,37 @@ def _create_countna_data(df_id, len, countna_series):
         countna[k] = {'na': v, 'len': len}
     return {'df_id': df_id, 'countna': countna}
 
+
 def _create_plot_data(result):
     result = result.replace("'", '"')
     result = result.replace("True", 'true')
     result = result.replace("False", 'false')
     return {'plot': result}
 
-#TODO: unify this with _create_plot_data
-def _create_DFManager_plot_data(df_id, col_name, result):    
+# TODO: unify this with _create_plot_data
+
+
+def _create_DFManager_plot_data(df_id, col_name, result):
     return {'df_id': df_id, 'col_name': col_name, 'plot': result.to_json()}
 
+
 def _create_CodeArea_plot_data(result):
-    return {'plot': result.to_json()}       
+    return {'plot': result.to_json()}
+
 
 def _create_get_cardinal_data(result):
-     return {'cardinals': result}
+    return {'cardinals': result}
+
 
 def create_error_message(webapp_endpoint, trace, metadata=None):
     return Message(**{
-        "webapp_endpoint": webapp_endpoint, 
+        "webapp_endpoint": webapp_endpoint,
         "type": ContentType.STRING,
         "content": trace,
         "error": True,
         "metadata": metadata,
     })
+
 
 def send_to_node(message: Message):
     # the current way of communicate with node server is through stdout with a json string
@@ -157,12 +182,13 @@ def send_to_node(message: Message):
     # log.info("Send output to node server... %s"%message.toJSON())
     log.info("Send output to node server...")
     p2n_queue.send(message.toJSON())
-    
+
+
 def handle_CodeEditor_message(message, client_globals=None):
     try:
         assign_exec_mode(message)
         type = ContentType.NONE
-        output = ''                        
+        output = ''
         if message.execution_mode == 'exec':
             log.info('exec mode...')
             exec(message.content, globals())
@@ -171,52 +197,54 @@ def handle_CodeEditor_message(message, client_globals=None):
         elif message.execution_mode == 'eval':
             log.info('eval mode...')
             result = eval(message.content, globals())
-            if result is not None:            
+            if result is not None:
                 # log.info("eval result: \n%s" % (result))
                 log.info("got eval results")
                 if _result_is_dataframe(result):
                     df_id = _get_dataframe_id(message.content)
-                    output = _create_table_data(df_id, result)       
+                    output = _create_table_data(df_id, result)
                     type = ContentType.PANDAS_DATAFRAME
                 elif _result_is_plotly_fig(result):
                     output = _create_CodeArea_plot_data(result)
                     type = ContentType.PLOTLY_FIG
                 else:
                     type = ContentType.STRING
-                    output = str(result)        
-        # log.info('Globals: %s' % globals())        
-            
+                    output = str(result)
+        # log.info('Globals: %s' % globals())
+
         message.type = type
         message.content = output
         message.error = False
-        send_to_node(message)                                 
+        send_to_node(message)
     except:
         trace = traceback.format_exc()
         log.error("Exception %s" % (trace))
-        error_message = create_error_message(message.webapp_endpoint, trace, message.metadata)          
+        error_message = create_error_message(
+            message.webapp_endpoint, trace, message.metadata)
         send_to_node(error_message)
+
 
 def handle_FileManager_message(message, client_globals=None):
     log.info('Handle FileManager message: %s' % message)
-    try:    
-        metadata = message.metadata    
+    try:
+        metadata = message.metadata
         result = None
-        if message.command_name == ProjectCommand.list_dir:            
+        if message.command_name == ProjectCommand.list_dir:
             result = []
             if 'path' in metadata.keys():
-                result = files.list_dir(metadata['path']) 
-                type = ContentType.DIR_LIST    
+                result = files.list_dir(metadata['path'])
+                type = ContentType.DIR_LIST
         elif message.command_name == ProjectCommand.get_open_files:
             result = projects.get_open_files()
-            type = ContentType.FILE_METADATA   
+            type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.set_working_dir:
             if 'path' in metadata.keys():
                 result = projects.set_working_dir(metadata['path'])
-            type = ContentType.NONE 
+            type = ContentType.NONE
         elif message.command_name == ProjectCommand.set_project_dir:
             if 'path' in metadata.keys():
                 result = projects.set_project_dir(metadata['path'])
-            type = ContentType.NONE   
+            type = ContentType.NONE
         elif message.command_name == ProjectCommand.read_file:
             if 'path' in metadata.keys():
                 timestamp = metadata['timestamp'] if 'timestamp' in metadata else None
@@ -228,7 +256,7 @@ def handle_FileManager_message(message, client_globals=None):
         elif message.command_name == ProjectCommand.save_file:
             if 'path' in metadata.keys():
                 result = files.save_file(metadata['path'], message.content)
-            type = ContentType.FILE_METADATA        
+            type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.close_file:
             result = projects.close_file(metadata['path'])
             type = ContentType.FILE_METADATA
@@ -237,30 +265,31 @@ def handle_FileManager_message(message, client_globals=None):
             type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.get_active_project:
             result = projects.get_active_project()
-            type = ContentType.PROJECT_METADATA    
+            type = ContentType.PROJECT_METADATA
 
         # create reply message
         message.type = type
         message.content = result
         message.error = False
-        send_to_node(message)   
+        send_to_node(message)
 
     except:
         trace = traceback.format_exc()
         log.error("%s" % (trace))
-        error_message = create_error_message(message.webapp_endpoint, trace)          
+        error_message = create_error_message(message.webapp_endpoint, trace)
         send_to_node(error_message)
+
 
 def handle_FileExplorer_message(message, client_globals=None):
     log.info('Handle FileExplorer message: %s' % message)
-    try:    
-        metadata = message.metadata    
+    try:
+        metadata = message.metadata
         output = None
-        if message.command_name == ProjectCommand.list_dir:            
+        if message.command_name == ProjectCommand.list_dir:
             output = []
             if 'path' in metadata.keys():
-                output = files.list_dir(metadata['path']) 
-                type = ContentType.DIR_LIST    
+                output = files.list_dir(metadata['path'])
+                type = ContentType.DIR_LIST
         elif message.command_name == ProjectCommand.create_file:
             if 'path' in metadata.keys():
                 files.create_file(metadata['path'])
@@ -268,70 +297,77 @@ def handle_FileExplorer_message(message, client_globals=None):
             type = ContentType.FILE_METADATA
         elif message.command_name == ProjectCommand.delete:
             if 'path' in metadata.keys():
-                files.delete(metadata['path'], metadata['is_file'])            
-            if ('is_file'in metadata) and metadata['is_file']:
+                files.delete(metadata['path'], metadata['is_file'])
+            if ('is_file' in metadata) and metadata['is_file']:
                 output = projects.close_file(metadata['path'])
-            else: #TODO: handle the case where a dir is deleted and deleted files were opened
+            else:  # TODO: handle the case where a dir is deleted and deleted files were opened
                 output = projects.get_open_files()
             type = ContentType.FILE_METADATA
         # create reply message
         message.type = type
         message.content = output
         message.error = False
-        send_to_node(message)   
+        send_to_node(message)
 
     except:
         trace = traceback.format_exc()
         log.error("%s" % (trace))
-        error_message = create_error_message(message.webapp_endpoint, trace)          
+        error_message = create_error_message(message.webapp_endpoint, trace)
         send_to_node(error_message)
+
 
 def handle_MagicCommandGen_message(message, client_globals=None):
     send_reply = False
     # message execution_mode will always be `eval` for this sender
     log.info('eval... %s' % message)
-    try:        
+    try:
         if message.command_name == DFManagerCommand.get_cardinal:
             df_id = message.metadata['df_id']
             col_name = message.metadata['col_name']
             if 'groupby' in message.metadata:
                 groupby = message.metadata['groupby']
 
-                ## Get stat for groupby x0
+                # Get stat for groupby x0
                 groupby_cols = ''
-                groupby_cols += '"%s",'%groupby[0]
-                command_str = '%s.groupby([%s])["%s"].count()'%(df_id, groupby_cols, col_name)
-                result = {'groupby_x0': eval(command_str, globals()).describe().to_dict()}
-                
-                ## Get stat for groupby all x
+                groupby_cols += '"%s",' % groupby[0]
+                command_str = '%s.groupby([%s])["%s"].count()' % (
+                    df_id, groupby_cols, col_name)
+                result = {'groupby_x0': eval(
+                    command_str, globals()).describe().to_dict()}
+
+                # Get stat for groupby all x
                 groupby_cols = ''
                 for c in groupby:
-                    groupby_cols += '"%s",'%c
-                command_str = '%s.groupby([%s])["%s"].count()'%(df_id, groupby_cols, col_name)
-                result.update({'groupby_all': eval(command_str, globals()).describe().to_dict()})
-                
-                ## Count unique and get monotonic for all x
+                    groupby_cols += '"%s",' % c
+                command_str = '%s.groupby([%s])["%s"].count()' % (
+                    df_id, groupby_cols, col_name)
+                result.update({'groupby_all': eval(
+                    command_str, globals()).describe().to_dict()})
+
+                # Count unique and get monotonic for all x
                 unique_counts = {}
                 monotonics = {}
                 for col_name in groupby:
-                    command_str = 'len(%s["%s"].unique())'%(df_id, col_name)
+                    command_str = 'len(%s["%s"].unique())' % (df_id, col_name)
                     unique_counts[col_name] = eval(command_str, globals())
-                    command_str = '%s["%s"].is_monotonic'%(df_id, col_name)
+                    command_str = '%s["%s"].is_monotonic' % (df_id, col_name)
                     monotonics[col_name] = eval(command_str, globals())
-                result.update({'unique_counts': unique_counts, 'monotonics': monotonics})
+                result.update({'unique_counts': unique_counts,
+                              'monotonics': monotonics})
                 # log.info('Result:  %s' % (result))
             else:
-                ## TODO: consider to remove this because it is not used
-                ## return a describe dict to make it consistent with the groupby case above
-                command_str = '%s["%s"].shape[0]'%(df_id, col_name)
-                result = pandas.DataFrame([eval(command_str, globals())]).describe().to_dict()
+                # TODO: consider to remove this because it is not used
+                # return a describe dict to make it consistent with the groupby case above
+                command_str = '%s["%s"].shape[0]' % (df_id, col_name)
+                result = pandas.DataFrame(
+                    [eval(command_str, globals())]).describe().to_dict()
 
-            if result is not None:                
-                # log.info("get cardinal data: %s"%type(result))                                        
-                log.info("get cardinal data")                                        
-                output = _create_get_cardinal_data(result) 
+            if result is not None:
+                # log.info("get cardinal data: %s"%type(result))
+                log.info("get cardinal data")
+                output = _create_get_cardinal_data(result)
                 type = ContentType.COLUMN_CARDINAL
-                send_reply = True  
+                send_reply = True
 
         if send_reply:
             message.type = type
@@ -341,18 +377,20 @@ def handle_MagicCommandGen_message(message, client_globals=None):
     except:
         trace = traceback.format_exc()
         log.error("%s" % (trace))
-        error_message = create_error_message(message.webapp_endpoint, trace)          
+        error_message = create_error_message(message.webapp_endpoint, trace)
         send_to_node(error_message)
+
 
 def process_active_df_status():
     if DataFrameStatusHook.update_active_df_status(get_global_df_list()):
-        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, 
-                                            "command_name": DFManagerCommand.active_df_status, 
-                                            "seq_number": 1, 
-                                            "type": "dict", 
-                                            "content": DataFrameStatusHook.get_active_df(), 
-                                            "error": False})
+        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
+                                              "command_name": DFManagerCommand.active_df_status,
+                                              "seq_number": 1,
+                                              "type": "dict",
+                                              "content": DataFrameStatusHook.get_active_df(),
+                                              "error": False})
         send_to_node(active_df_status_message)
+
 
 class StdoutHandler:
     def __init__(self):
@@ -362,18 +400,20 @@ class StdoutHandler:
         while self.message != None:
             # if self.message != None:
             # log.info('Getting message on stdout')
-            for output in sys.stdout:    
-                log.info('Got message on stdout: %s'%output)
+            for output in sys.stdout:
+                log.info('Got message on stdout: %s' % output)
                 self.message.type = ContentType.STRING
                 self.message.content = output
                 self.message.error = False
-                send_to_node(self.message)                                 
-        
-if __name__ == "__main__":    
+                send_to_node(self.message)
+
+
+if __name__ == "__main__":
     try:
-        p2n_queue = MessageQueue(config.p2n_comm['host'], config.p2n_comm['p2n_port'])
-        
-        ## TODO: refactor message handler to separate class like ExperimentManager
+        p2n_queue = MessageQueue(
+            config.p2n_comm['host'], config.p2n_comm['p2n_port'])
+
+        # TODO: refactor message handler to separate class like ExperimentManager
         message_handler = {
             WebappEndpoint.CodeEditor: handle_CodeEditor_message,
             WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue).handle_message,
@@ -381,35 +421,41 @@ if __name__ == "__main__":
             WebappEndpoint.MagicCommandGen: handle_MagicCommandGen_message,
             WebappEndpoint.FileExplorer: handle_FileExplorer_message,
             WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue).handle_message,
+            WebappEndpoint.PlotManager: pm.MessageHandler.handle_message
         }
 
     except Exception as error:
-        log.error("Failed to make connection to node server %s - %s" % (error, traceback.format_exc()))          
+        log.error("Failed to make connection to node server %s - %s" %
+                  (error, traceback.format_exc()))
         exit(1)
 
-    while True:            
-        for line in sys.stdin:                  
-            try:                      
+    while True:
+        for line in sys.stdin:
+            try:
                 log.info('Got message %s' % line)
-                message = Message(**json.loads(line))    
-                
-                message_handler[message.webapp_endpoint](message, client_globals=globals());
-                if message.webapp_endpoint == WebappEndpoint.CodeEditor:                     
+                message = Message(**json.loads(line))
+
+                message_handler[message.webapp_endpoint](
+                    message, client_globals=globals())
+                if message.webapp_endpoint == WebappEndpoint.CodeEditor:
                     process_active_df_status()
 
-            except OSError as error: #TODO check if this has to do with buffer error
-                #since this error might be related to the pipe, we do not send this error to nodejs
-                log.error("OSError: %s" % (error))  
+            except OSError as error:  # TODO check if this has to do with buffer error
+                # since this error might be related to the pipe, we do not send this error to nodejs
+                log.error("OSError: %s" % (error))
 
-            except:            
-                log.error("Failed to execute the command %s", traceback.format_exc())
-                message = create_error_message(message.webapp_endpoint, traceback.format_exc())                
+            except:
+                log.error("Failed to execute the command %s",
+                          traceback.format_exc())
+                message = create_error_message(
+                    message.webapp_endpoint, traceback.format_exc())
                 send_to_node(message)
-            
-            try:    
-                sys.stdout.flush()                 
+
+            try:
+                sys.stdout.flush()
             except Exception as error:
-                log.error("Failed to flush stdout %s - %s" % (error, traceback.format_exc()))  
+                log.error("Failed to flush stdout %s - %s" %
+                          (error, traceback.format_exc()))
 
 df = pandas.DataFrame()
 df.drop
