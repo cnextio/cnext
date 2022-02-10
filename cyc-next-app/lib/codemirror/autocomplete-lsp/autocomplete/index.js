@@ -1163,8 +1163,6 @@ backward by the given amount.
 */
 const moveCompletionSelection = (forward, by = 'option') => {
     return (view) => {
-        console.log('moveCompletionSelection', forward);
-
         let cState = view.state.field(completionState, false);
         if (
             !cState ||
@@ -1184,6 +1182,17 @@ const moveCompletionSelection = (forward, by = 'option') => {
         return true;
     };
 };
+
+const changeCompletionSelection = () => {
+    return (view) => {
+        let tooltip = view.dom.querySelector('.cm-tooltip-autocomplete');
+        let moreBtn = tooltip.querySelector('.cm-read-more-btn');
+        moreBtn.onclick(window.event);
+        console.log(tooltip);
+        return true;
+    };
+};
+
 /**
 Accept the current completion.
 */
@@ -1799,6 +1808,8 @@ const completionKeymap = [
     { key: 'Escape', run: closeCompletion },
     { key: 'ArrowDown', run: /*@__PURE__*/ moveCompletionSelection(true) },
     { key: 'ArrowUp', run: /*@__PURE__*/ moveCompletionSelection(false) },
+    { key: 'ArrowRight', run: /*@__PURE__*/ changeCompletionSelection(true) },
+    { key: 'ArrowLeft', run: /*@__PURE__*/ changeCompletionSelection(false) },
     { key: 'PageDown', run: /*@__PURE__*/ moveCompletionSelection(true, 'page') },
     { key: 'PageUp', run: /*@__PURE__*/ moveCompletionSelection(false, 'page') },
     { key: 'Enter', run: acceptCompletion },
