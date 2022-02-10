@@ -2,7 +2,7 @@
 
 ### 1. Install and run web client
 
-Go to the `cyc-next-app` folder, do
+From the main folder, do
 
 ```
 npm install
@@ -14,12 +14,12 @@ npm run dev
 For the server you will need to install both Nodejs packages and Python packages.
 
 1. for Python packages, you will need to:
-    1. clone `cycdataframe`
-    1. install `conda` and create an environment (such as `py39`)
-    1. setup our internal python package for `cycdataframe`
+    1. setup the base python env using conda
+        - install `conda` python environment
+    2. setup our internal python package called `cycdataframe`
         - clone `cycdataframe`
-        - activate above invironment (`py39`) install dependencies follow the instructions in the `cycdataframe/README.md`
-    1. setup other python dependencies with
+        - install dependencies follow the instructions in the `cycdataframe/README.md`
+    3. setup other python dependencies with
         ```
         conda install -c conda-forge pyzmq pyyaml
         ```
