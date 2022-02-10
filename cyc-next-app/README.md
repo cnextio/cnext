@@ -34,14 +34,14 @@ For the server you will need to install both Nodejs packages and Python packages
             n2p_port: 5000
             p2n_port: 5001
 
-        path_to_cycdataframe_lib: "${{ PATH_TO_CYCDATAFRAME_LIB }}"
+        path_to_cycdataframe_lib: '${{ PATH_TO_CYCDATAFRAME_LIB }}'
 
         projects:
             open_projects:
-                - id: "1"
+                - id: '1'
                   name: Skywalker
-                  path: "${{ PATH_TO_SAMPLE_PROJECT }}"
-            active_project: "1"
+                  path: '${{ PATH_TO_SAMPLE_PROJECT }}'
+            active_project: '1'
         ```
 
         modify the field `path_to_cycdataframe_lib` to point to the folder where you clone `cycdataframe` (see 1.2 above)
