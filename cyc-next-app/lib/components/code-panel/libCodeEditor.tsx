@@ -311,7 +311,7 @@ const setHTMLEventHandler = (container, view: EditorView, dispatch) => {
     if (container){                
         container.onmousedown = (event) => onMouseDown(event, view, dispatch);  
         let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;
-        scrollEl.onscroll = ((event) => scrollTimer(dispatch, scrollEl));
+        if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(dispatch, scrollEl);
     }
 }
 
