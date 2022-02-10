@@ -1201,8 +1201,10 @@ const moveCompletionSelection = (forward, by = 'option') => {
 const changeCompletionSelection = () => {
     return (view) => {
         let tooltip = view.dom.querySelector('.cm-tooltip-autocomplete');
-        let moreBtn = tooltip.querySelector('.cm-read-more-btn');
-        moreBtn.onclick(window.event);
+        if (tooltip) {
+            let moreBtn = tooltip.querySelector('.cm-read-more-btn');
+            moreBtn.onclick(window.event);
+        }
         return true;
     };
 };
