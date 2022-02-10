@@ -1188,7 +1188,6 @@ const changeCompletionSelection = () => {
         let tooltip = view.dom.querySelector('.cm-tooltip-autocomplete');
         let moreBtn = tooltip.querySelector('.cm-read-more-btn');
         moreBtn.onclick(window.event);
-        console.log(tooltip);
         return true;
     };
 };
