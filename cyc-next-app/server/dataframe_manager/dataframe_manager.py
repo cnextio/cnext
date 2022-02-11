@@ -2,7 +2,7 @@ import base64
 import traceback
 from libs.message_handler import BaseMessageHandler
 from message import ContentType, DFManagerCommand
-from cycdataframe import CnextMimeType
+from cycdataframe.mime_types import CnextMimeType
 
 import logs
 log = logs.get_logger(__name__)
