@@ -589,45 +589,43 @@ class LanguageServerPlugin {
             }
 
             let result;
-             if (this.transport.connection.readyState != WebSocket.CLOSED) {
-                    this.sendChange({
-                        documentText: context.state.doc.toString(),
-                    });
+            if (this.transport.connection.readyState != WebSocket.CLOSED) {
+                this.sendChange({
+                    documentText: context.state.doc.toString(),
+                });
 
-                    console.log('requestSignatureHelp');
-                    result = await this.requestServer(
-                        'textDocument/signatureHelp',
-                        {
-                            textDocument: { uri: this.documentUri },
-                            position: { line, character },
-                            context: {
-                                triggerKind,
-                                triggerCharacter,
-                            },
+                console.log("requestSignatureHelp")
+                result = await this.requestServer(
+                    'textDocument/signatureHelp',
+                    {
+                        textDocument: { uri: this.documentUri },
+                        position: { line, character },
+                        context: {
+                            triggerKind,
+                            triggerCharacter,
                         },
-                        timeout
-                    );
-                   
-                    if (!result?.signatures[0]?.parameters) return null;
+                    },
+                    timeout
+                );
+                
+                if (!result?.signatures[0]?.parameters) return null;
 
-                    const parameters = result.signatures[0].parameters;
-                    let options = parameters.map(({label,documentation})=>{
-                        return {
-                            label: label + '=',
-                            apply: label + '=',
-                            info: documentation ? formatContents(documentation) : null,
-                            type: 'variable',
-                        };
-                    })
-
-                    const { pos } = context;
+                const parameters = result.signatures[0].parameters;
+                let options = parameters.map(({label,documentation})=>{
                     return {
-                        from: pos,
-                        options,
+                        label: label + '=',
+                        apply: label + '=',
+                        info: documentation ? formatContents(documentation) : null,
+                        type: 'variable',
                     };
+                })
 
-             }
-
+                const { pos } = context;
+                return {
+                    from: pos,
+                    options,
+                };
+            }
         }catch(e){
             console.error('requestSignatureHelp: ', e);
         }
