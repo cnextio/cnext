@@ -17,6 +17,7 @@ from mlflow.tracking.client import MlflowClient
 from project_manager import files, projects
 from experiment_manager import experiment_manager as em
 from dataframe_manager import dataframe_manager as dm
+from code_editor import code_editor as ce
 
 log = logs.get_logger(__name__)
 
@@ -72,73 +73,6 @@ def get_global_df_list():
     log.info('Current global df list: %s' % df_list)
     return df_list
 
-def _plotly_show_match(command):
-    res = re.search(r'^\w+(?=\.show\(\))',command)
-    if res is not None:
-        name = res.group()
-        log.info("Name of the object before .show(): %s" % name)
-        if type(globals()[name]) == plotly.graph_objs._figure.Figure:
-            return True
-        else: 
-            return False
-    else: 
-        return False
-
-def _get_dataframe_id(command):
-    res = re.search(r'^\w+(?=[\.\[])',command)
-    if res is not None:
-        name = res.group()
-        log.info("Name of the dataframe object: %s" % name)
-        return name
-    else: 
-        return None
-
-def _result_is_dataframe(result):
-    return type(result) == pandas.core.frame.DataFrame
-
-def _result_is_plotly_fig(result):
-    return hasattr(plotly.graph_objs, '_figure') and (type(result) == plotly.graph_objs._figure.Figure)
-
-def _create_table_data(df_id, df):
-    tableData = {}
-    tableData['df_id'] = df_id
-    tableData['column_names'] = list(df.columns)
-    
-    ## Convert datetime to string so it can be displayed in the frontend #
-    for i,t in enumerate(df.dtypes):
-        if t.name == 'datetime64[ns]':
-            df[df.columns[i]] = df[df.columns[i]].dt.strftime('%Y-%m-%d %H:%M:%S')
-    tableData['rows'] = df.values.tolist()
-
-    tableData['index'] = {}
-    tableData['index']['name'] = df.index.name
-    tableData['index']['data'] = []
-    if str(df.index.dtype) == 'datetime64[ns]':
-        [tableData['index']['data'].append(str(idx)) for idx in df.index]
-    else:
-        tableData['index']['data'] = df.index.tolist()
-    
-    return tableData
-
-def _create_countna_data(df_id, len, countna_series):
-    countna = {}
-    for k, v in countna_series.to_dict().items():
-        countna[k] = {'na': v, 'len': len}
-    return {'df_id': df_id, 'countna': countna}
-
-def _create_plot_data(result):
-    result = result.replace("'", '"')
-    result = result.replace("True", 'true')
-    result = result.replace("False", 'false')
-    return {'plot': result}
-
-#TODO: unify this with _create_plot_data
-def _create_DFManager_plot_data(df_id, col_name, result):    
-    return {'df_id': df_id, 'col_name': col_name, 'plot': result.to_json()}
-
-def _create_CodeArea_plot_data(result):
-    return {'plot': result.to_json()}       
-
 def _create_get_cardinal_data(result):
      return {'cardinals': result}
 
@@ -158,44 +92,6 @@ def send_to_node(message: Message):
     log.info("Send output to node server...")
     p2n_queue.send(message.toJSON())
     
-def handle_CodeEditor_message(message, client_globals=None):
-    try:
-        assign_exec_mode(message)
-        type = ContentType.NONE
-        output = ''                        
-        if message.execution_mode == 'exec':
-            log.info('exec mode...')
-            exec(message.content, globals())
-            type = ContentType.STRING
-            # output = sys.stdout.getvalue()
-        elif message.execution_mode == 'eval':
-            log.info('eval mode...')
-            result = eval(message.content, globals())
-            if result is not None:            
-                # log.info("eval result: \n%s" % (result))
-                log.info("got eval results")
-                if _result_is_dataframe(result):
-                    df_id = _get_dataframe_id(message.content)
-                    output = _create_table_data(df_id, result)       
-                    type = ContentType.PANDAS_DATAFRAME
-                elif _result_is_plotly_fig(result):
-                    output = _create_CodeArea_plot_data(result)
-                    type = ContentType.PLOTLY_FIG
-                else:
-                    type = ContentType.STRING
-                    output = str(result)        
-        # log.info('Globals: %s' % globals())        
-            
-        message.type = type
-        message.content = output
-        message.error = False
-        send_to_node(message)                                 
-    except:
-        trace = traceback.format_exc()
-        log.error("Exception %s" % (trace))
-        error_message = create_error_message(message.webapp_endpoint, trace, message.metadata)          
-        send_to_node(error_message)
-
 def handle_FileManager_message(message, client_globals=None):
     log.info('Handle FileManager message: %s' % message)
     try:    
@@ -375,12 +271,12 @@ if __name__ == "__main__":
         
         ## TODO: refactor message handler to separate class like ExperimentManager
         message_handler = {
-            WebappEndpoint.CodeEditor: handle_CodeEditor_message,
+            WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue).handle_message,
             WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue).handle_message,
+            WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue).handle_message,
             WebappEndpoint.FileManager: handle_FileManager_message,
             WebappEndpoint.MagicCommandGen: handle_MagicCommandGen_message,
-            WebappEndpoint.FileExplorer: handle_FileExplorer_message,
-            WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue).handle_message,
+            WebappEndpoint.FileExplorer: handle_FileExplorer_message,            
         }
 
     except Exception as error:
@@ -410,6 +306,3 @@ if __name__ == "__main__":
                 sys.stdout.flush()                 
             except Exception as error:
                 log.error("Failed to flush stdout %s - %s" % (error, traceback.format_exc()))  
-
-df = pandas.DataFrame()
-df.drop

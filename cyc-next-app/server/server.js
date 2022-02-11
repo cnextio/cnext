@@ -189,7 +189,7 @@ try {
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
-                content: `pio.renderers.default = "json"')`,
+                content: `pio.renderers.default = "json"`,
             })
         );
         codeExecutor.send2executor(
