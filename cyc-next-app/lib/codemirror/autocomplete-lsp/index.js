@@ -13,6 +13,7 @@ import {
   CompletionItemKind,
   CompletionTriggerKind,
   DiagnosticSeverity,
+  SignatureHelpTriggerKind,
 } from 'vscode-languageserver-protocol';
 import store from '/redux/store';
 import { python } from '../grammar/lang-cnext-python';
@@ -76,85 +77,94 @@ class LanguageServerPlugin {
       });
     }, changesDelay);
   }
+
   destroy() {
     console.log('LanguageServerPlugin destroy');
     this.client.close();
   }
+
   requestServer(method, params, timeout) {
     return this.client.request({ method, params }, timeout);
   }
+
   notifyServer(method, params) {
     return this.client.notify({ method, params });
   }
+
   async initialize({ documentText }) {
     try {
       const { capabilities } = await this.requestServer(
-        'initialize',
-        {
-          capabilities: {
-            textDocument: {
-              hover: {
-                dynamicRegistration: true,
-                contentFormat: ['plaintext', 'markdown'],
+          'initialize',
+          {
+              capabilities: {
+                  textDocument: {
+                      hover: {
+                          dynamicRegistration: true,
+                          contentFormat: ['plaintext', 'markdown'],
+                      },
+                      moniker: {},
+                      synchronization: {
+                          dynamicRegistration: true,
+                          willSave: false,
+                          didSave: false,
+                          willSaveWaitUntil: false,
+                      },
+                      completion: {
+                          dynamicRegistration: true,
+                          completionItem: {
+                              snippetSupport: false,
+                              commitCharactersSupport: true,
+                              documentationFormat: ['plaintext', 'markdown'],
+                              deprecatedSupport: false,
+                              preselectSupport: false,
+                          },
+                          contextSupport: false,
+                      },
+                      signatureHelp: {
+                          dynamicRegistration: true,
+                          signatureInformation: {
+                              documentationFormat: ['plaintext', 'markdown'],
+                              parameterInformation: {
+                                  labelOffsetSupport: true,
+                              },
+                              activeParameterSupport:true,
+                          },
+                          contextSupport: true,
+                      },
+                      declaration: {
+                          dynamicRegistration: true,
+                          linkSupport: true,
+                      },
+                      definition: {
+                          dynamicRegistration: true,
+                          linkSupport: true,
+                      },
+                      typeDefinition: {
+                          dynamicRegistration: true,
+                          linkSupport: true,
+                      },
+                      implementation: {
+                          dynamicRegistration: true,
+                          linkSupport: true,
+                      },
+                  },
+                  workspace: {
+                      didChangeConfiguration: {
+                          dynamicRegistration: true,
+                      },
+                  },
               },
-              moniker: {},
-              synchronization: {
-                dynamicRegistration: true,
-                willSave: false,
-                didSave: false,
-                willSaveWaitUntil: false,
-              },
-              completion: {
-                dynamicRegistration: true,
-                completionItem: {
-                  snippetSupport: false,
-                  commitCharactersSupport: true,
-                  documentationFormat: ['plaintext', 'markdown'],
-                  deprecatedSupport: false,
-                  preselectSupport: false,
-                },
-                contextSupport: false,
-              },
-              signatureHelp: {
-                dynamicRegistration: true,
-                signatureInformation: {
-                  documentationFormat: ['plaintext', 'markdown'],
-                },
-              },
-              declaration: {
-                dynamicRegistration: true,
-                linkSupport: true,
-              },
-              definition: {
-                dynamicRegistration: true,
-                linkSupport: true,
-              },
-              typeDefinition: {
-                dynamicRegistration: true,
-                linkSupport: true,
-              },
-              implementation: {
-                dynamicRegistration: true,
-                linkSupport: true,
-              },
-            },
-            workspace: {
-              didChangeConfiguration: {
-                dynamicRegistration: true,
-              },
-            },
+              initializationOptions: null,
+              processId: null,
+              rootUri: this.rootUri,
+              workspaceFolders: [
+                  {
+                      name: 'root',
+                      uri: this.rootUri,
+                  },
+              ],
           },
-          initializationOptions: null,
-          processId: null,
-          rootUri: this.rootUri,
-          workspaceFolders: [
-            {
-              name: 'root',
-              uri: this.rootUri,
-            },
-          ],
-        },
-        timeout / 5
+          timeout / 5
       );
       this.capabilities = capabilities;
       this.notifyServer('initialized', {});
@@ -171,6 +181,7 @@ class LanguageServerPlugin {
       console.log('LanguageServerPlugin initialize timeout', this);
     }
   }
+
   async sendChange({ documentText }) {
     if (!this.ready) return;
     try {
@@ -193,6 +204,7 @@ class LanguageServerPlugin {
       // this.reconnect();
     }
   }
+
   async requestDiagnostics(view) {
     try {
       if (this.transport.connection.readyState == WebSocket.CLOSED) {
@@ -205,6 +217,7 @@ class LanguageServerPlugin {
       console.error('requestDiagnostics: ', e);
     }
   }
+
   async requestHoverTooltip(view, { line, character }) {
     try {
       if (this.transport.connection.readyState == WebSocket.CLOSED) {
@@ -212,7 +225,6 @@ class LanguageServerPlugin {
         this.setup_connection();
       }
       if (!this.ready || !this.capabilities.hoverProvider) return null;
-      // console.log('textDocument/hover');
       this.sendChange({ documentText: view.state.doc.toString() });
       const result = await this.requestServer(
         'textDocument/hover',
@@ -565,11 +577,66 @@ class LanguageServerPlugin {
    * End support DataFrame-related autocomplete
    */
 
+  async requestSignatureHelp( context,
+    { line, character },
+    { triggerKind, triggerCharacter }){
+        try{
+            if (!this.ready || !this.capabilities.signatureHelpProvider) return null;
+
+            if (this.transport.connection.readyState == WebSocket.CLOSED) {
+                console.log('requestCompletion WebSocket.CLOSED');
+                this.setup_connection();
+            }
+
+            let result;
+            if (this.transport.connection.readyState != WebSocket.CLOSED) {
+                this.sendChange({
+                    documentText: context.state.doc.toString(),
+                });
+
+                console.log("requestSignatureHelp")
+                result = await this.requestServer(
+                    'textDocument/signatureHelp',
+                    {
+                        textDocument: { uri: this.documentUri },
+                        position: { line, character },
+                        context: {
+                            triggerKind,
+                            triggerCharacter,
+                        },
+                    },
+                    timeout
+                );
+                
+                if (!result?.signatures[0]?.parameters) return null;
+
+                const parameters = result.signatures[0].parameters;
+                let options = parameters.map(({label,documentation})=>{
+                    return {
+                        label: label + '=',
+                        apply: label + '=',
+                        info: documentation ? formatContents(documentation) : null,
+                        type: 'variable',
+                    };
+                })
+
+                const { pos } = context;
+                return {
+                    from: pos,
+                    options,
+                };
+            }
+        }catch(e){
+            console.error('requestSignatureHelp: ', e);
+        }
+    }
+
   async requestCompletion_CodeEditor(
     context,
     { line, character },
     { triggerKind, triggerCharacter }
   ) {
+
     try {
       if (!this.ready || !this.capabilities.completionProvider) return null;
 
@@ -813,69 +880,82 @@ class LanguageServerPlugin {
 }
 
 function languageServer(options) {
-  let plugin = null;
-  return [
-    serverUri.of(options.serverUri),
-    rootUri.of(options.rootUri),
-    documentUri.of(options.documentUri),
-    languageId.of(options.languageId),
-    ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view))),
-    hoverTooltip((view, pos) => {
-      var _a;
-      return (_a =
-        plugin === null || plugin === void 0
-          ? void 0
-          : plugin.requestHoverTooltip(
-              view,
-              offsetToPos(view.state.doc, pos)
-            )) !== null && _a !== void 0
-        ? _a
-        : null;
-    }),
-    autocompletion({
-      override: [
-        async (context) => {
-          var _a, _b, _c;
-          if (plugin == null) return null;
-          const { state, pos, explicit } = context;
-          const line = state.doc.lineAt(pos);
-          let trigKind = CompletionTriggerKind.Invoked;
-          let trigChar;
-          if (
-            !explicit &&
-            ((_c =
-              (_b =
-                (_a = plugin.capabilities) === null || _a === void 0
-                  ? void 0
-                  : _a.completionProvider) === null || _b === void 0
-                ? void 0
-                : _b.triggerCharacters) === null || _c === void 0
-              ? void 0
-              : _c.includes(line.text[pos - line.from - 1]))
-          ) {
-            trigKind = CompletionTriggerKind.TriggerCharacter;
-            trigChar = line.text[pos - line.from - 1];
-          }
-          if (
-            trigKind === CompletionTriggerKind.Invoked &&
-            !context.matchBefore(/[\w'"]+$/)
-          ) {
-            //added match for ' and "
-            return null;
-          }
-          return await plugin.requestCompletion_CodeEditor(
-            context,
-            offsetToPos(state.doc, pos),
-            {
-              triggerKind: trigKind,
-              triggerCharacter: trigChar,
-            }
-          );
-        },
-      ],
-    }),
-    baseTheme,
-  ];
+    let plugin = null;
+    return [
+        serverUri.of(options.serverUri),
+        rootUri.of(options.rootUri),
+        documentUri.of(options.documentUri),
+        languageId.of(options.languageId),
+        ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view))),
+        hoverTooltip((view, pos) => {
+            var _a;
+            return (_a =
+                plugin === null || plugin === void 0
+                    ? void 0
+                    : plugin.requestHoverTooltip(view, offsetToPos(view.state.doc, pos))) !==
+                null && _a !== void 0
+                ? _a
+                : null;
+        }),
+        autocompletion({
+            override: [
+                async (context) => {
+                    var _a, _b, _c;
+                    if (plugin == null) return null;
+
+                    const { state, pos, explicit } = context;
+                    const line = state.doc.lineAt(pos);
+                    let trigKind = CompletionTriggerKind.Invoked;
+                    let trigChar;
+                    if (
+                        !explicit &&
+                        ((_c =
+                            (_b =
+                                (_a = plugin.capabilities) === null || _a === void 0
+                                    ? void 0
+                                    : _a.completionProvider) === null || _b === void 0
+                                ? void 0
+                                : _b.triggerCharacters) === null || _c === void 0
+                            ? void 0
+                            : _c.includes(line.text[pos - line.from - 1]))
+                    ) {
+                        trigKind = CompletionTriggerKind.TriggerCharacter;
+                        trigChar = line.text[pos - line.from - 1];
+                    }
+
+                    if (
+                        trigKind === CompletionTriggerKind.Invoked &&
+                        !context.matchBefore(/[\w'"]+$/)
+                    ) {
+                        //added match for ' and "
+                        if (context.matchBefore(/[\(,=]+$/)) {
+                            // go to Signature Help suggestion
+                            trigChar = line.text[pos - line.from - 1];
+                            return await plugin.requestSignatureHelp(
+                                context,
+                                offsetToPos(state.doc, pos),
+                                {
+                                    triggerKind: SignatureHelpTriggerKind.Invoked,
+                                    triggerCharacter: trigChar,
+                                }
+                            );
+                        }
+                        return null;
+                    }
+
+                    return await plugin.requestCompletion_CodeEditor(
+                        context,
+                        offsetToPos(state.doc, pos),
+                        {
+                            triggerKind: trigKind,
+                            triggerCharacter: trigChar,
+                        }
+                    );
+                },
+            ],
+        }),
+        baseTheme,
+    ];
 }
 
 /**
