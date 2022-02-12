@@ -4,6 +4,7 @@ const socketIo = require("socket.io");
 const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
+const path = require("path");
 const { PythonShell } = require("python-shell");
 
 const port = process.env.PORT || 4000;
@@ -69,7 +70,8 @@ class PythonProcess {
         process.env.PYTHONPATH = [
             process.env.PYTHONPATH,
             config.path_to_cycdataframe_lib,
-        ].join(":");
+        ].join(path.delimiter);
+
         let pyshellOpts = {
             stdio: ["pipe", "pipe", "pipe", "pipe"], // stdin, stdout, stderr, custom
             mode: "text",
