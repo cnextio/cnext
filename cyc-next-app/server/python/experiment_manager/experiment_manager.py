@@ -3,7 +3,7 @@ import re
 import traceback
 
 import pandas
-import logs
+from libs import logs
 log = logs.get_logger(__name__)
 import mlflow
 import mlflow.tensorflow
@@ -12,7 +12,7 @@ import plotly.express as px, plotly.io as pio
 import plotly.graph_objects as go
 pio.renderers.default = "json"
 from libs.message_handler import BaseMessageHandler
-from message import CommandType, ExperimentManagerCommand
+from libs.message import CommandType, ExperimentManagerCommand
 
 def get_checkpoints(mlflowClient: MlflowClient, run_id):
     """Get the list of checkpoints from mlFlow repos
@@ -38,8 +38,8 @@ def get_checkpoints(mlflowClient: MlflowClient, run_id):
     return checkpoints
 
 class MessageHandler(BaseMessageHandler):
-    def __init__(self, p2n_queue):
-        super(MessageHandler, self).__init__(p2n_queue)
+    def __init__(self, p2n_queue,  user_space = None):
+        super(MessageHandler, self).__init__(p2n_queue, user_space)
 
     def _add_cnext_metadata(self, object, metadata):
         if type(object) == dict:
