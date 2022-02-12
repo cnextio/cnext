@@ -4,14 +4,16 @@ import traceback
 import pandas
 import plotly
 from libs.message_handler import BaseMessageHandler
-from message import ContentType, Message
+from libs.message import ContentType, Message
 
-import logs
+from libs import logs
+from user_space.user_space import ExecutionMode
+from user_space.user_space import BaseKernel, UserSpace
 log = logs.get_logger(__name__)
 
 class MessageHandler(BaseMessageHandler):
-    def __init__(self, p2n_queue):
-        super(MessageHandler, self).__init__(p2n_queue)
+    def __init__(self, p2n_queue, user_space = None):
+        super(MessageHandler, self).__init__(p2n_queue, user_space)
 
     def _create_plot_data(self, result):
         return {'plot': result.to_json()}       
@@ -47,12 +49,14 @@ class MessageHandler(BaseMessageHandler):
             output = ''                        
             if message.execution_mode == 'exec':
                 log.info('exec mode...')
-                exec(message.content, client_globals)
+                # exec(message.content, client_globals)
+                self.user_space.execute(message.content, ExecutionMode.EXEC)
                 type = ContentType.STRING
                 # output = sys.stdout.getvalue()
             elif message.execution_mode == 'eval':
                 log.info('eval mode...')
-                result = eval(message.content, client_globals)
+                # result = eval(message.content, client_globals)
+                result = self.user_space.execute(message.content, ExecutionMode.EVAL)
                 if result is not None:            
                     # log.info("eval result: \n%s" % (result))
                     log.info("got eval results")

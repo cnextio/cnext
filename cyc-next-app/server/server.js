@@ -56,7 +56,7 @@ class PythonProcess {
     // TODO: using clientMessage is hacky solution to send stdout back to client. won't work if there is multiple message being handled simultaneously
     constructor(io) {
         // this.pyshellOpts.args = [type];
-        this.executor = new PythonShell("server.py", this.pyshellOpts);
+        this.executor = new PythonShell("python/server.py", this.pyshellOpts);
         this.io = io;
         let _this = this;
         this.executor.on("message", function (stdout) {
@@ -185,7 +185,7 @@ try {
                     "import os, sys, pandas as pd, plotly.express as px, plotly.io as pio",
             })
         );
-        // console.log(config.projects.open_projects[0]['path'])
+        console.log(config.projects.open_projects[0]['path'])
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
@@ -195,7 +195,7 @@ try {
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
-                content: `sys.path.append('${config.path_to_cycdataframe_lib}cycdataframe/')`,
+                content: `sys.path.extend(['${config.path_to_cycdataframe_lib}cycdataframe/', 'python/'])`,
             })
         );
         codeExecutor.send2executor(
@@ -216,26 +216,6 @@ try {
                 content: "import mlflow, mlflow.tensorflow",
             })
         );
-
-        // pyshell.send({webapp_endpoint: CodeEditorComponent,
-        //                 content: "df = CycDataFrame('tests/data/machine-simulation/21549286_out.csv')"});
-        // pyshell.send({webapp_endpoint: CodeEditorComponent,
-        //     content: "df.loc[-1] = df.loc[0]"});
-
-        // pyshell.send({webapp_endpoint: CodeEditorComponent,
-        //                 content: "df[:10]"});
-        // pyshell.send({request_originator: CodeEditorComponent, command_type: '', command: 'df = training_df'});
-        // pyshell.send({request_originator: CodePanelOriginator, command_type: 'exec', command: 'fig = px.line(df, x=df.index, y="Fuel Rail Pressure", title="Machine")'});
-        // pyshell.send({request_originator: CodePanelOriginator, command_type: 'exec', command: 'fig.show()'});
-
-        //for testing
-        // pyshell.send({request_originator: CodeEditorComponent, command: 'df = CycDataFrame("data/housing_data/train.csv")'});
-        // pyshell.send({request_originator: CodeEditorComponent, command: 'df.head()'});
-
-        //test plot_count_na
-        // pyshell.send({webapp_endpoint: DFManager,
-        //     command_name: "get_count_na",
-        //     seq_number: 1});
     };
 
     initialize();

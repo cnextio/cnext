@@ -2,13 +2,15 @@ import platform, sys, logging, simplejson as json, io, os
 import pandas 
 import plotly
 import plotly.express as px, plotly.io as pio
+
+from user_space.user_space import BaseKernel, UserSpace
 pio.renderers.default = "json"
 
 import traceback
-import logs
+from libs import logs 
 import re
-from zmq_message import MessageQueue
-from message import CommandType, ExperimentManagerCommand, Message, WebappEndpoint, DFManagerCommand, ContentType, ProjectCommand, CodeEditorCommand
+from libs.zmq_message import MessageQueue
+from libs.message import CommandType, ExperimentManagerCommand, Message, WebappEndpoint, DFManagerCommand, ContentType, ProjectCommand, CodeEditorCommand
 
 import mlflow
 import mlflow.tensorflow
@@ -64,14 +66,14 @@ def assign_exec_mode(message: Message):
     log.info("assigned command type: %s" % message.execution_mode)
 
 # have to do this here. do it in df_status_hook does not work
-def get_global_df_list():
-    names = list(globals())
-    df_list = []
-    for name in names:
-        if type(globals()[name]) == cd.DataFrame:
-            df_list.append((name, id(globals()[name])))
-    log.info('Current global df list: %s' % df_list)
-    return df_list
+# def get_global_df_list():
+#     names = list(globals())
+#     df_list = []
+#     for name in names:
+#         if type(globals()[name]) == cd.DataFrame:
+#             df_list.append((name, id(globals()[name])))
+#     log.info('Current global df list: %s' % df_list)
+#     return df_list
 
 def _create_get_cardinal_data(result):
      return {'cardinals': result}
@@ -240,8 +242,8 @@ def handle_MagicCommandGen_message(message, client_globals=None):
         error_message = create_error_message(message.webapp_endpoint, trace)          
         send_to_node(error_message)
 
-def process_active_df_status():
-    if DataFrameStatusHook.update_active_df_status(get_global_df_list()):
+def process_active_df_status(user_space):
+    if DataFrameStatusHook.update_active_df_status(user_space.get_global_df_list()):
         active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, 
                                             "command_name": DFManagerCommand.active_df_status, 
                                             "seq_number": 1, 
@@ -268,12 +270,12 @@ class StdoutHandler:
 if __name__ == "__main__":    
     try:
         p2n_queue = MessageQueue(config.p2n_comm['host'], config.p2n_comm['p2n_port'])
-        
+        user_space = UserSpace(BaseKernel())
         ## TODO: refactor message handler to separate class like ExperimentManager
         message_handler = {
-            WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue).handle_message,
-            WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue).handle_message,
-            WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue).handle_message,
+            WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space).handle_message,
+            WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space).handle_message,
+            WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space).handle_message,
             WebappEndpoint.FileManager: handle_FileManager_message,
             WebappEndpoint.MagicCommandGen: handle_MagicCommandGen_message,
             WebappEndpoint.FileExplorer: handle_FileExplorer_message,            
@@ -291,7 +293,7 @@ if __name__ == "__main__":
                 
                 message_handler[message.webapp_endpoint](message, client_globals=globals());
                 if message.webapp_endpoint == WebappEndpoint.CodeEditor:                     
-                    process_active_df_status()
+                    process_active_df_status(user_space)
 
             except OSError as error: #TODO check if this has to do with buffer error
                 #since this error might be related to the pipe, we do not send this error to nodejs
