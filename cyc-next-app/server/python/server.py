@@ -42,9 +42,7 @@ except Exception as error:
     exit(1)
 
 #TODO: Point this to the cycdataframe repos folder
-sys.path.append(config.path_to_cycdataframe_lib); 
 from cycdataframe.df_status_hook import DataFrameStatusHook
-import cycdataframe.cycdataframe as cd 
 
 from dataframe_manager import dataframe_manager as dm
 from code_editor import code_editor as ce
