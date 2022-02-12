@@ -1,15 +1,16 @@
 import base64
 import traceback
 from libs.message_handler import BaseMessageHandler
-from message import ContentType, DFManagerCommand
-from cycdataframe import CnextMimeType
+from libs.message import ContentType, DFManagerCommand
+from cycdataframe.mime_types import CnextMimeType
 
-import logs
+from libs import logs
+from user_space.user_space import ExecutionMode
 log = logs.get_logger(__name__)
 
 class MessageHandler(BaseMessageHandler):
-    def __init__(self, p2n_queue):
-        super(MessageHandler, self).__init__(p2n_queue)
+    def __init__(self, p2n_queue,  user_space = None):
+        super(MessageHandler, self).__init__(p2n_queue, user_space)
 
     #TODO: unify this with _create_plot_data
     def _create_plot_data(self, df_id, col_name, result):    
@@ -57,7 +58,7 @@ class MessageHandler(BaseMessageHandler):
             [tableData['index']['data'].append(str(idx)) for idx in df.index]
         else:
             tableData['index']['data'] = df.index.tolist()
-        log.info(tableData)
+        # log.info(tableData)
         return tableData
     
     def _create_countna_data(self, df_id, len, countna_series):
@@ -81,7 +82,8 @@ class MessageHandler(BaseMessageHandler):
         # log.info('Globals: %s' % client_globals)        
         try:        
             if message.command_name == DFManagerCommand.plot_column_histogram:
-                result = eval(message.content, client_globals)
+                # result = eval(message.content, client_globals)
+                result = self.user_space.execute(message.content, ExecutionMode.EVAL)
                 if result is not None:                
                     log.info("get plot data")                                        
                     output = self._create_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
@@ -89,7 +91,8 @@ class MessageHandler(BaseMessageHandler):
                     send_reply = True
 
             if message.command_name == DFManagerCommand.plot_column_quantile:
-                result = eval(message.content, client_globals)
+                # result = eval(message.content, client_globals)
+                result = self.user_space.execute(message.content, ExecutionMode.EVAL)
                 if result is not None:                
                     log.info("get plot data")                                        
                     output = self._create_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
@@ -97,7 +100,8 @@ class MessageHandler(BaseMessageHandler):
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_table_data:    
-                result = eval(message.content, client_globals)        
+                # result = eval(message.content, client_globals)        
+                result = self.user_space.execute(message.content, ExecutionMode.EVAL)
                 if result is not None:                
                     log.info("get table data %s" % result)
                     output = self._create_table_data(message.metadata['df_id'], result)       
@@ -106,8 +110,10 @@ class MessageHandler(BaseMessageHandler):
                                         
             elif message.command_name == DFManagerCommand.get_countna: 
                 df_id = message.metadata['df_id']
-                countna = eval("%s.isna().sum()"%df_id, client_globals)
-                len = eval("%s.shape[0]"%df_id, client_globals)      
+                # countna = eval("%s.isna().sum()"%df_id, client_globals)
+                # len = eval("%s.shape[0]"%df_id, client_globals)      
+                countna = self.user_space.execute("%s.isna().sum()"%df_id, ExecutionMode.EVAL)
+                len = self.user_space.execute("%s.shape[0]"%df_id, ExecutionMode.EVAL)
                 if (countna is not None) and (len is not None):                
                     log.info("get countna data")
                     output = self._create_countna_data(message.metadata['df_id'], len, countna)       
@@ -116,15 +122,20 @@ class MessageHandler(BaseMessageHandler):
             
             elif message.command_name == DFManagerCommand.get_df_metadata: 
                 df_id = message.metadata['df_id']
-                shape = eval("%s.df.shape"%df_id, client_globals)
-                dtypes = eval("%s.df.dtypes"%df_id, client_globals)
-                countna = eval("%s.df.isna().sum()"%df_id, client_globals)                        
-                describe = eval("%s.df.describe(include='all')"%df_id, client_globals)
+                # shape = eval("%s.df.shape"%df_id, client_globals)
+                # dtypes = eval("%s.df.dtypes"%df_id, client_globals)
+                # countna = eval("%s.df.isna().sum()"%df_id, client_globals)                        
+                # describe = eval("%s.df.describe(include='all')"%df_id, client_globals)
+                shape = self.user_space.execute("%s.df.shape"%df_id, ExecutionMode.EVAL)
+                dtypes = self.user_space.execute("%s.df.dtypes"%df_id, ExecutionMode.EVAL)
+                countna = self.user_space.execute("%s.df.isna().sum()"%df_id, ExecutionMode.EVAL)
+                describe = self.user_space.execute("%s.df.describe(include='all')"%df_id, ExecutionMode.EVAL)
                 columns = {}
                 for col_name, ctype in dtypes.items():
                     # print(col_name, ctype)
                     # FIXME: only get at most 100 values here, this is hacky, find a better way
-                    unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), client_globals)[:100]                
+                    # unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), client_globals)[:100]                
+                    unique = self.user_space.execute("%s['%s'].unique().tolist()"%(df_id, col_name), ExecutionMode.EVAL)
                     columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique, 
                                             'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}                
                 output = {'df_id': df_id, 'shape': shape, 'columns': columns}    

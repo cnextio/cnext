@@ -1,6 +1,6 @@
 import yaml
 import traceback 
-import logs
+from libs import logs
 import simplejson as json
 
 log = logs.get_logger(__name__)

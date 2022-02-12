@@ -3,7 +3,7 @@ from os.path import exists
 import simplejson as json
 import traceback
 from project_manager.interfaces import ProjectMetadata
-import logs
+from libs import logs
 from libs.config import read_config, save_config
 from project_manager.interfaces import FileMetadata
 

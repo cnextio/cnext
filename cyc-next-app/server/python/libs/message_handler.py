@@ -1,11 +1,15 @@
-from message import ContentType, Message
-import logs
+from libs.message import ContentType, Message
+from libs import logs
+from user_space.user_space import BaseKernel, UserSpace
 log = logs.get_logger(__name__)
 
 class BaseMessageHandler:
-    def __init__(self, p2n_queue):
+    def __init__(self, p2n_queue, user_space = None):
         self.p2n_queue = p2n_queue
-        pass
+        if user_space == None:
+            self.user_space = UserSpace(BaseKernel())
+        else:
+            self.user_space = user_space
     
     def _create_error_message(self, webapp_endpoint, trace, metadata=None):
         return Message(**{

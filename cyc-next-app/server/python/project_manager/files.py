@@ -2,7 +2,7 @@ import os
 from os.path import isfile, join, exists
 import send2trash
 import simplejson as json
-import logs
+from libs import logs
 from project_manager.interfaces import FileMetadata, DirMetatdata
 from project_manager.interfaces import FileContent
 

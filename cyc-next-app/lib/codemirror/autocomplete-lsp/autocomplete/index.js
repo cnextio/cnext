@@ -382,6 +382,16 @@ function joinClass(a, b) {
 
 const MaxInfoWidth = 300;
 const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
+    '.cm-tooltip-section::-webkit-scrollbar': {
+        width: '5px',
+    },
+    '.cm-tooltip-section::-webkit-scrollbar-thumb': {
+        background: '#ccc',
+        borderRadius: '2px',
+    },
+    '.cm-tooltip-section::-webkit-scrollbar-thumb:hover': {
+        background: '#bbb',
+    },
     '.cm-tooltip.cm-tooltip-autocomplete': {
         '& > ul': {
             fontFamily: 'monospace',
@@ -397,11 +407,11 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
                 cursor: 'pointer',
                 lineHeight: 1.2,
                 margin: 'auto',
-                padding: '4px 1em 1px 3px !important',
+                padding: '4px 5px 1px 4px !important',
             },
             '& > li[aria-selected]': {
                 background_fallback: '#bdf',
-                backgroundColor: 'Highlight',
+                backgroundColor: '#636EFA',
                 color_fallback: 'white',
             },
         },
@@ -462,15 +472,17 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
         float: 'right',
         fontWeight: 'bold',
         fontSize: '116%',
+        marginTop: "-2px"
     },
     '.cm-list-options': {
         float: 'left',
     },
     '.cm-list-options::-webkit-scrollbar': {
-        width: '10px',
+        width: '5px',
     },
     '.cm-list-options::-webkit-scrollbar-thumb': {
         background: '#ccc',
+        borderRadius: '2px',
     },
     '.cm-list-options::-webkit-scrollbar-thumb:hover': {
         background: '#bbb',
@@ -479,19 +491,21 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
         float: 'right',
     },
     '#code-doc-content::-webkit-scrollbar': {
-        width: '10px',
+        width: '5px',
     },
     '#code-doc-content::-webkit-scrollbar-thumb': {
         background: '#ccc',
+        borderRadius: '2px',
     },
     '#code-doc-content::-webkit-scrollbar-thumb:hover': {
         background: '#bbb',
     },
     '#code-doc-content::-webkit-scrollbar:horizontal': {
-        height: '10px',
+        height: '5px',
     },
     '#code-doc-content::-webkit-scrollbar-thumb:horizontal': {
         background: '#ccc',
+        borderRadius: '2px',
     },
     '#code-doc-content::-webkit-scrollbar-thumb:horizontal:hover': {
         background: '#bbb',
@@ -508,9 +522,9 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
         width: '.8em',
         float: 'left',
         textAlign: 'center',
-        paddingRight: '1.0em !important',
         opacity: '0.8',
-        paddingTop: '1px',
+        padding:'1px 1.6em 0 0.3em !important'
+
     },
     '.cm-completionIcon-function, .cm-completionIcon-method': {
         '&:after': { content: "'ƒ'" },
@@ -537,7 +551,8 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
         '&:after': { content: "'□'" },
     },
     '.cm-completionIcon-keyword': {
-        paddingRight: '1.0em !important',
+        paddingRight: '1.8em !important',
+        marginLeft: "-2px",
         '&:after': { content: "'🔑\uFE0E'", fontSize: '90%' }, // Disable emoji rendering
     },
     '.cm-completionIcon-namespace': {
@@ -553,8 +568,8 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
     },
     '.cm-completionIcon-field': {
         '&:after': {
-            content: "'Ab'",
-            fontSize: '80%',
+            content: "'Col'",
+            fontSize: '75%',
             verticalAlign: 'middle',
             fontWeight: 'bold',
         },
@@ -790,9 +805,6 @@ class CompletionTooltip {
                 label: completion.apply,
                 detail: null,
             };
-
-            console.log('completionClone', completionClone);
-            console.log('range', range);
 
             const li = ul.appendChild(document.createElement('li'));
             li.id = id + '-' + i;
@@ -1182,8 +1194,6 @@ const moveCompletionSelection = (forward, by = 'option') => {
 
         //handler for info dialog
         let codeDocContainerDom = tooltip.querySelector('#code-doc-container');
-        console.log('codeDocContainerDom', codeDocContainerDom);
-        console.log('cState', cState);
 
         const option = cState.open.options[selected];
         if (codeDocContainerDom) {
@@ -1200,9 +1210,19 @@ const moveCompletionSelection = (forward, by = 'option') => {
 
 const changeCompletionSelection = () => {
     return (view) => {
+        let cState = view.state.field(completionState, false);
+        if (
+            !cState ||
+            !cState.open ||
+            Date.now() - cState.open.timestamp < CompletionInteractMargin
+        )
+            return false;
+
         let tooltip = view.dom.querySelector('.cm-tooltip-autocomplete');
-        let moreBtn = tooltip.querySelector('.cm-read-more-btn');
-        moreBtn.onclick(window.event);
+        if (tooltip) {
+            let moreBtn = tooltip.querySelector('.cm-read-more-btn');
+            moreBtn.onclick(window.event);
+        }
         return true;
     };
 };
