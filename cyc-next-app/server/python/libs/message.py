@@ -70,11 +70,6 @@ class ExperimentManagerCommand(str, Enum):
     load_artifacts_to_local = "load_artifacts_to_local"
 
 
-class PlotManagerCommand(str, Enum):
-    list_plots = 'list_plots'
-    save_plots = 'save_plots'
-
-
 class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'
     exec_grouped_lines = 'exec_grouped_lines'
