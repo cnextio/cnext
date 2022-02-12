@@ -175,23 +175,28 @@ export const CodeEditorRedux = createSlice({
          * be invoked anytime `codeLines` updated
          */
         addPlotResult: (state, action) => {
-            let resultMessage: ICodeResultMessage = action.payload;  
-            let inViewID = resultMessage.inViewID;          
-            let plotResult: IPlotResult = {plot: JSON.parse(ifElseDict(resultMessage.content, 'plot'))};   
-            let lineRange: ILineRange = ifElseDict(resultMessage.metadata, 'line_range');
-            let result: ICodeResult = {type: resultMessage.type, content: plotResult};            
-            if(lineRange){
+            let resultMessage: ICodeResultMessage = action.payload;
+            let inViewID = resultMessage.inViewID;
+            let plotResult = resultMessage.content;
+            let lineRange = resultMessage.metadata["line_range"];
+            // let plotResult: IPlotResult = {
+            //     plot: JSON.parse(ifElseDict(resultMessage.content, "plot")),
+            // };
+            // console.log("plotResult", plotResult);
+            // let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
+            let result: ICodeResult = { type: resultMessage.type, content: plotResult };
+            if (lineRange) {
                 /** only associate fromLine to result. This is ok because at the moment the group execution is not supposed to output plot
                  * in the backend it is run using exec */
-                let lineNumber = lineRange.fromLine;                
+                let lineNumber = lineRange.fromLine;
                 let codeLine: ICodeLine = state.codeLines[inViewID][lineNumber];
                 codeLine.result = result;
 
                 // let statePlotResults: IStatePlotResults = state.plotResults;
                 // statePlotResults[codeLine.lineID] = plotResult;
                 state.plotResultUpdate += 1;
-            }               
-        },
+            }
+        };,
 
         setActiveLine: (state, action) => {
             let activeLine: ICodeActiveLine = action.payload;

@@ -1,23 +1,16 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import {
     PlotContainer as SinglePlot,
     PlotViewContainer as StyledPlotView,
 } from "../../StyledComponents";
-// import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-
-// redux
-import { useSelector, useDispatch } from "react-redux";
-import { update as vizDataUpdate } from "../../../../redux/reducers/vizDataSlice";
-import { Box, Paper } from "@mui/material";
+import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
+import { useSelector } from "react-redux";
 import { ICodeLine, IPlotResult } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
 import { ContentType } from "../../../interfaces/IApp";
-import { IMetricPlots } from "../../../interfaces/ICodeEditor";
-import MetricPlots from "../shared-components/MetricPlots";
-import { CONSTANT } from "../../../../constants";
 
-// const PlotWithNoSSR = dynamic(() => import("react-plotly.js"), { ssr: false });
+const PlotWithNoSSR = dynamic(() => import("react-plotly.js"), { ssr: false });
 
 const PlotView = (props: any) => {
     // const vizData = useSelector((state) => state.vizData.data);
@@ -28,7 +21,6 @@ const PlotView = (props: any) => {
     // const plotResultUpdate = useSelector((state) => state.codeDoc.plotResultUpdate);
     const activeLine = useSelector((state) => state.codeEditor.activeLine);
     const [containerMounted, setContainerMounted] = useState(false);
-    const [plotMetric, setPlotMetric] = useState<IMetricPlots | null>(null);
 
     const setLayout = (
         plotData: IPlotResult,
@@ -55,10 +47,6 @@ const PlotView = (props: any) => {
         setContainerMounted(true);
     });
 
-    const handleContextMenuSelection = () => {};
-
-    const handleTabClose = () => {};
-
     const plotViewID = "StyledPlotView";
     const renderPlots = () => {
         const state = store.getState();
@@ -66,43 +54,80 @@ const PlotView = (props: any) => {
         if (inViewID) {
             const codeLines: ICodeLine[] = state.codeEditor.codeLines[inViewID];
             const codeWithPlots: ICodeLine[] = codeLines.filter(
-                (code) => code.result && code.result.type == ContentType.PLOTLY_FIG
+                (code) =>
+                    code.result &&
+                    (code.result.type === ContentType.PLOTLY_FIG ||
+                        code.result.type === ContentType.MATPLOTLIB_FIG)
             );
-
-            setPlotMetric({ plots: codeWithPlots });
-
             return (
                 <StyledPlotView id={plotViewID}>
-                    {containerMounted && plotMetric !== null && plotMetric.plots.length > 0 ? (
-                        <MetricPlots
-                            metricPlotData={plotMetric}
-                            handleContextMenuSelection={handleContextMenuSelection}
-                            typePanel={CONSTANT.PLOT_TYPE_PANEL.PLOT}
-                        />
-                    ) : null}
+                    {containerMounted
+                        ? codeWithPlots.map((plot: ICodeLine) =>
+                              plot?.result?.type === ContentType.MATPLOTLIB_FIG ? (
+                                  <SinglePlot
+                                      key={plot.lineID}
+                                      variant='outlined'
+                                      focused={plot.lineID == activeLine}
+                                  >
+                                      <img
+                                          src={"data:image/svg+xml;base64," + plot?.result?.content}
+                                      />
+                                  </SinglePlot>
+                              ) : (
+                                  <ScrollIntoViewIfNeeded
+                                      active={plot.lineID == activeLine}
+                                      options={{
+                                          block: "start",
+                                          inline: "center",
+                                          behavior: "smooth",
+                                          boundary: document.getElementById(plotViewID),
+                                      }}
+                                  >
+                                      <SinglePlot
+                                          key={plot.lineID}
+                                          variant='outlined'
+                                          focused={plot.lineID == activeLine}
+                                      >
+                                          {React.createElement(
+                                              PlotWithNoSSR,
+                                              setLayout(plot?.result?.content, 600, 350)
+                                          )}
+                                          {console.log(
+                                              "Render PlotView: ",
+                                              plot.lineID == activeLine
+                                          )}
+                                      </SinglePlot>
+                                  </ScrollIntoViewIfNeeded>
+                              )
+                          )
+                        : null}
+                    {/* {console.log("Render PlotView", containerMounted)}
+                    {containerMounted
+                        ? codeWithPlots.map((plot: ICodeLine) => (
+                              <ScrollIntoViewIfNeeded
+                                  active={plot.lineID == activeLine}
+                                  options={{
+                                      block: "start",
+                                      inline: "center",
+                                      behavior: "smooth",
+                                      boundary: document.getElementById(plotViewID),
+                                  }}
+                              >
+                                  <SinglePlot
+                                      key={plot.lineID}
+                                      variant='outlined'
+                                      focused={plot.lineID == activeLine}
+                                  >
+                                      {React.createElement(
+                                          PlotWithNoSSR,
+                                          setLayout(plot?.result?.content, 600, 350)
+                                      )}
+                                      {console.log("Render PlotView: ", plot.lineID == activeLine)}
+                                  </SinglePlot>
+                              </ScrollIntoViewIfNeeded>
+                          ))
+                        : null} */}
                 </StyledPlotView>
-                // <StyledPlotView id={plotViewID}>
-                //     {console.log('Render PlotView', containerMounted)}
-                //     {containerMounted ? codeWithPlots.map((plot: ICodeLine) => (
-                //         <ScrollIntoViewIfNeeded
-                //                 active={plot.lineID==activeLine}
-                //                 options={{
-                //                     block: 'start',
-                //                     inline:'center',
-                //                     behavior: 'smooth',
-                //                     boundary: document.getElementById(plotViewID)}}>
-                //             {console.log('Render PlotView', plot.lineID, activeLine)}
-                //             {console.log('plotttttttttt', plot)}
-                //             <SinglePlot
-                //                 key={plot.lineID}
-                //                 variant="outlined"
-                //                 focused={plot.lineID==activeLine}>
-                //                 {React.createElement(PlotWithNoSSR, setLayout(plot.result.content, 600, 350))}
-                //                 {console.log('Render PlotView: ', plot.lineID==activeLine)}
-                //             </SinglePlot>
-                //         </ScrollIntoViewIfNeeded>
-                //     )) : null}
-                // </StyledPlotView>
             );
         } else return null;
     };

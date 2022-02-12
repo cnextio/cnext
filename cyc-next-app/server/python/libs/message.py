@@ -87,6 +87,7 @@ class ContentType(str, Enum):
     BINARY = 'binary'
     PANDAS_DATAFRAME = 'pandas_dataframe'
     PLOTLY_FIG = 'plotly_fig'
+    MATPLOTLIB_FIG = 'matplotlib_fig'
     DIR_LIST = 'dir_list',
     FILE_METADATA = 'file_metadata',
     PROJECT_METADATA = 'project_metadata',

@@ -1,20 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Message, WebAppEndpoint, ContentType, CommandName } from '../../interfaces/IApp';
-import { useSelector, useDispatch } from 'react-redux';
-import { setTableData } from '../../../redux/reducers/DataFramesRedux';
-import store from '../../../redux/store';
-import socket from '../Socket';
-import { basicSetup } from '../../codemirror/basic-setup';
-import { bracketMatching } from '@codemirror/matchbrackets';
-import { defaultHighlightStyle } from '@codemirror/highlight';
-import { python } from '../../codemirror/grammar/lang-cnext-python';
-import { keymap, EditorView, ViewUpdate, DecorationSet, Decoration } from '@codemirror/view';
-import { completionKeymap } from '../../codemirror/autocomplete-lsp/autocomplete';
-import { indentUnit } from '@codemirror/language';
-import { lineNumbers, gutter, GutterMarker } from '@codemirror/gutter';
-import { StyledCodeEditor, StyledCodeMirror } from '../StyledComponents';
+import React, { useEffect, useRef, useState } from "react";
+import { Message, WebAppEndpoint, ContentType, CommandName } from "../../interfaces/IApp";
+import { useSelector, useDispatch } from "react-redux";
+import { setTableData } from "../../../redux/reducers/DataFramesRedux";
+import store from "../../../redux/store";
+import socket from "../Socket";
+import { basicSetup } from "../../codemirror/basic-setup";
+import { bracketMatching } from "@codemirror/matchbrackets";
+import { defaultHighlightStyle } from "@codemirror/highlight";
+import { python } from "../../codemirror/grammar/lang-cnext-python";
+import { keymap, EditorView, ViewUpdate, DecorationSet, Decoration } from "@codemirror/view";
+import { completionKeymap } from "../../codemirror/autocomplete-lsp/autocomplete";
+import { indentUnit } from "@codemirror/language";
+import { lineNumbers, gutter, GutterMarker } from "@codemirror/gutter";
+import { StyledCodeEditor, StyledCodeMirror } from "../StyledComponents";
 // import { languageServer } from "../../codemirror/codemirror-languageserver";
-import { languageServer } from '../../codemirror/autocomplete-lsp/index.js';
+import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
 import {
     addPlotResult,
     updateLines,
@@ -26,7 +26,7 @@ import {
     updateCAssistInfo,
     compeleteRunQueue,
     setCodeToInsert,
-} from '../../../redux/reducers/CodeEditorRedux';
+} from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
     ILineUpdate,
@@ -41,10 +41,10 @@ import {
     ICodeActiveLine,
     IReduxRunQueueMessage,
     ICodeToInsert,
-} from '../../interfaces/ICodeEditor';
-import { EditorState, StateEffect, Transaction, TransactionSpec } from '@codemirror/state';
+} from "../../interfaces/ICodeEditor";
+import { EditorState, StateEffect, Transaction, TransactionSpec } from "@codemirror/state";
 // import { extensions } from './codemirror-extentions/extensions';
-import { useCodeMirror } from '@uiw/react-codemirror';
+import { useCodeMirror } from "@uiw/react-codemirror";
 import {
     ICodeGenResult,
     CodeGenStatus,
@@ -53,16 +53,16 @@ import {
     LINE_SEP,
     CASSIST_STARTER,
     ICAssistInfoRedux,
-} from '../../interfaces/ICAssist';
-import { magicsGetPlotCommand as cassistGetPlotCommand } from '../../cassist/magic-plot-gen';
+} from "../../interfaces/ICAssist";
+import { magicsGetPlotCommand as cassistGetPlotCommand } from "../../cassist/magic-plot-gen";
 import {
     CNextDataFrameExpresion,
     CNextPlotExpression,
     CNextXDimColumnNameExpression,
     CNextYDimColumnNameExpression,
-} from '../../codemirror/grammar/cnext-python.terms';
-import { ifElse } from '../libs';
-import { setFileToSave, setScrollPos } from '../../../redux/reducers/ProjectManagerRedux';
+} from "../../codemirror/grammar/cnext-python.terms";
+import { ifElse } from "../libs";
+import { setFileToSave, setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import {
     editStatusGutter,
     getCodeLine,
@@ -79,19 +79,19 @@ import {
     setHTMLEventHandler,
     setViewCodeText,
     textShouldBeExec as isExpression,
-} from './libCodeEditor';
+} from "./libCodeEditor";
 import {
     cAssistExtraOptsPlugin,
     checkboxPlugin,
     dropdownPlugin,
     parseCAssistText,
-} from './libCAssist';
+} from "./libCAssist";
 
 const ls = languageServer({
-    serverUri: 'ws://localhost:3001/python',
-    rootUri: 'file:///',
-    documentUri: 'file:///',
-    languageId: 'python',
+    serverUri: "ws://localhost:3001/python",
+    rootUri: "file:///",
+    documentUri: "file:///",
+    languageId: "python",
 });
 
 const CodeEditor = ({ id, recvCodeOutput }) => {
@@ -124,20 +124,20 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         python(),
         ls,
         keymap.of([
-            { key: 'Mod-l', run: setRunQueue },
-            { key: 'Mod-k', run: setGroup },
-            { key: 'Mod-j', run: setUnGroup },
+            { key: "Mod-l", run: setRunQueue },
+            { key: "Mod-k", run: setGroup },
+            { key: "Mod-j", run: setUnGroup },
             ...completionKeymap,
         ]),
-        indentUnit.of('    '),
+        indentUnit.of("    "),
     ];
 
     const { view, container, setContainer } = useCodeMirror({
         basicSetup: false,
         container: editorRef.current,
         extensions: extensions,
-        height: '100%',
-        theme: 'light',
+        height: "100%",
+        theme: "light",
         onChange: onCodeMirrorChange,
     });
 
@@ -153,7 +153,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             };
 
             // content['plot'] = JSON.parse(content['plot']);
-            console.log('dispatch plot data');
+            console.log("dispatch plot data");
             dispatch(addPlotResult(result));
         }
     };
@@ -162,9 +162,9 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
      * Init component socket connection. This should be run only once on the first mount.
      */
     function socketInit() {
-        socket.emit('ping', WebAppEndpoint.CodeEditor);
+        socket.emit("ping", WebAppEndpoint.CodeEditor);
         socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
-            console.log('Got results: ', result, '\n');
+            console.log("Got results: ", result, "\n");
             // console.log("CodeEditor got results...");
             try {
                 let codeOutput: Message = JSON.parse(result);
@@ -174,12 +174,15 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                         recvCodeOutput(codeOutput); //TODO: move this to redux
                     } else {
                         if (codeOutput.type == ContentType.PANDAS_DATAFRAME) {
-                            console.log('dispatch tableData');
+                            console.log("dispatch tableData");
                             dispatch(setTableData(codeOutput.content));
-                        } else if (codeOutput.type == ContentType.PLOTLY_FIG) {
+                        } else if (
+                            codeOutput.type === ContentType.PLOTLY_FIG ||
+                            codeOutput.type === ContentType.MATPLOTLIB_FIG
+                        ) {
                             handlePlotData(codeOutput);
                         } else {
-                            console.log('dispatch text output:', codeOutput);
+                            console.log("dispatch text output:", codeOutput);
                             recvCodeOutput(codeOutput);
                         }
                     }
@@ -212,7 +215,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
      * */
 
     useEffect(() => {
-        console.log('CodeEditor useEffect container', container);
+        console.log("CodeEditor useEffect container", container);
         if (container && view) {
             setHTMLEventHandler(container, view, dispatch);
         }
@@ -222,7 +225,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
      * Reset the code editor state when the doc is selected to be in view
      * */
     useEffect(() => {
-        console.log('CodeEditor useEffect inViewID ', inViewID);
+        console.log("CodeEditor useEffect inViewID ", inViewID);
         if (inViewID) {
             resetEditorState(view, extensions);
             setCodeReloading(true);
@@ -235,7 +238,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
      */
     useEffect(() => {
         console.log(
-            'CodeEditor useEffect serverSynced, mustReload, view',
+            "CodeEditor useEffect serverSynced, mustReload, view",
             serverSynced,
             codeReloading,
             view
@@ -254,7 +257,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             //TODO: improve this
             setGroupedLineDeco(store.getState(), view);
             setGenLineDeco(store.getState(), view);
-            console.log('CodeEditor useEffect setGenCodeLineDeco');
+            console.log("CodeEditor useEffect setGenCodeLineDeco");
         } catch {}
     });
 
@@ -263,19 +266,19 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update
      * with line status. This works but might need to find a better performant solution. */
     useEffect(() => {
-        console.log('CodeEditor useEffect codeLines', codeLines !== null);
+        console.log("CodeEditor useEffect codeLines", codeLines !== null);
         if (view) {
             view.dispatch();
         }
     }, [codeLines]);
 
     useEffect(() => {
-        console.log('CodeEditor useEffect magicInfo ', cAssistInfo);
+        console.log("CodeEditor useEffect magicInfo ", cAssistInfo);
         handleCAssistInfoUpdate();
     }, [cAssistInfo]);
 
     useEffect(() => {
-        console.log('CodeEditor useEffect editorRef.current ', editorRef.current);
+        console.log("CodeEditor useEffect editorRef.current ", editorRef.current);
         if (editorRef.current) {
             setContainer(editorRef.current);
         }
@@ -297,7 +300,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             const anchor = state.selection.ranges[0].anchor;
             let fromPos = doc.lineAt(anchor).from;
             let toPos = fromPos;
-            console.log('CodeEditor handleCodeToInsert', codeToInsert, fromPos, toPos);
+            console.log("CodeEditor handleCodeToInsert", codeToInsert, fromPos, toPos);
             insertCodeToView(codeToInsert.code, fromPos, toPos);
             dispatch(setCodeToInsert(null));
         }
@@ -354,7 +357,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 }
 
                 if (lineRange) {
-                    console.log('CodeEditor setRunQueue: ', lineRange);
+                    console.log("CodeEditor setRunQueue: ", lineRange);
                     dispatch(setReduxRunQueue(lineRange));
                 }
             }
@@ -380,14 +383,14 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             } else {
                 rangeToRun = [{ fromLine: runQueue.fromLine, toLine: runQueue.toLine }];
             }
-            console.log('CodeEditor execLines: ', rangeToRun);
+            console.log("CodeEditor execLines: ", rangeToRun);
             for (let lineRange of rangeToRun) {
                 let content: IRunningCommandContent | undefined = getRunningCommandContent(
                     view,
                     lineRange
                 );
                 if (content && inViewID) {
-                    console.log('CodeEditor execLines: ', content, lineRange);
+                    console.log("CodeEditor execLines: ", content, lineRange);
                     // let content: IRunningCommandContent = {lineRange: runQueue.runningLine, content: text};
                     send_message(content);
                     let lineStatus: ICodeLineStatus = {
@@ -414,7 +417,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 range.to
             );
             let inViewID = store.getState().projectManager.inViewID;
-            console.log('CodeEditor setGroup: ', lineRange, range);
+            console.log("CodeEditor setGroup: ", lineRange, range);
             if (inViewID && lineRange && lineRange.toLine > lineRange.fromLine) {
                 let lineStatus: ICodeLineGroupStatus = {
                     inViewID: inViewID,
@@ -440,7 +443,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 let codeLines = reduxState.codeEditor.codeLines[inViewID];
                 /** minus 1 to convert to 0-based */
                 let lineRange = getLineRangeOfGroup(codeLines, lineAtAnchor.number - 1);
-                console.log('CodeEditor setUnGroup: ', lineRange);
+                console.log("CodeEditor setUnGroup: ", lineRange);
                 if (inViewID && lineRange && lineRange.toLine > lineRange.fromLine) {
                     let lineStatus: ICodeLineGroupStatus = {
                         inViewID: inViewID,
@@ -463,7 +466,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
      */
     function onCodeMirrorChange(value: string, viewUpdate: ViewUpdate) {
         try {
-            console.log('CodeEditor onCodeMirrorChange');
+            console.log("CodeEditor onCodeMirrorChange");
             /** do nothing if the update is due to code reloading from external source */
             if (codeReloading) return;
 
@@ -471,7 +474,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             let inViewID = store.getState().projectManager.inViewID;
             let serverSynced = store.getState().projectManager.serverSynced;
             viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
-                console.log('CodeEditor render onCodeMirrorChange', fromA, toA, fromB, toB);
+                console.log("CodeEditor render onCodeMirrorChange", fromA, toA, fromB, toB);
             });
             if (serverSynced && inViewID) {
                 // let startText = viewUpdate.startState.doc.text;
@@ -544,7 +547,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             cAssistInfo: ICAssistInfo,
             codeGenResult: ICodeGenResult
         ) => {
-            console.log('CodeEditor cAssist updateCAssistInfoWithGenCode: ', codeGenResult);
+            console.log("CodeEditor cAssist updateCAssistInfoWithGenCode: ", codeGenResult);
             if (codeGenResult && !codeGenResult.error && cAssistInfo) {
                 let lineCount: number | undefined = codeGenResult.lineCount;
                 cAssistInfo.insertedLinesInfo.toLine =
@@ -552,7 +555,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 cAssistInfo.genCode = codeGenResult.code;
                 cAssistInfo.cAssistExtraOpts = codeGenResult.extraOpts;
                 console.log(
-                    'CodeEditor cAssist updateCAssistInfoWithGenCode cAssistInfo: ',
+                    "CodeEditor cAssist updateCAssistInfoWithGenCode cAssistInfo: ",
                     cAssistInfo
                 );
                 // setCAssistInfo(cAssistInfo);
@@ -587,13 +590,13 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                     cursor.parent();
                     cursor.parent();
                 }
-                console.log('CodeEditor cAssist handleCAsisstTextUpdate tree: ', cursor.toString());
+                console.log("CodeEditor cAssist handleCAsisstTextUpdate tree: ", cursor.toString());
                 if (cursor.type.id === CNextPlotExpression) {
                     let text: string = state.doc.toString();
                     let newMagicText: string = text.substring(cursor.from, cursor.to);
                     let generatedLine = view.state.doc.lineAt(cursor.to);
                     console.log(
-                        'CodeEditor cAssist magicsPreProcess current cAssistInfo: ',
+                        "CodeEditor cAssist magicsPreProcess current cAssistInfo: ",
                         cAssistInfo
                     );
                     /**
@@ -653,7 +656,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                         // console.log('Magics after inserted lineStatus: ', lineStatus);
                         let newCAssistInfo = { ...cAssistInfo };
                         newCAssistInfo.status = CodeGenStatus.INSERTED;
-                        console.log('CodeEditor cAssist after inserted: ', newCAssistInfo);
+                        console.log("CodeEditor cAssist after inserted: ", newCAssistInfo);
                         // setCAssistInfo(newCAssistInfo);
                         let cAssistInfoRedux: ICAssistInfoRedux = {
                             inViewID: inViewID,
@@ -708,7 +711,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                     if (isLineGenerated) {
                         for (let i = lineRange.fromLine; i < lineRange.toLine; i++) {
                             console.log(
-                                'CodeEditor Magic codeText length: ',
+                                "CodeEditor Magic codeText length: ",
                                 codeText[i].length,
                                 insertTo
                             );
@@ -719,7 +722,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                     }
 
                     console.log(
-                        'CodeEditor Magic insert range: ',
+                        "CodeEditor Magic insert range: ",
                         insertFrom,
                         insertTo,
                         lineRange,
@@ -758,7 +761,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         }
     };
 
-    return <StyledCodeEditor ref={editorRef}>{console.log('CodeEditor render')}</StyledCodeEditor>;
+    return <StyledCodeEditor ref={editorRef}>{console.log("CodeEditor render")}</StyledCodeEditor>;
 };
 
 export default CodeEditor;
