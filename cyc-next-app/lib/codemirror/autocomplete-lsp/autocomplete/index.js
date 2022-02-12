@@ -837,6 +837,7 @@ class CompletionTooltip {
         } else {
             this.dom.removeChild(codeDocContainerDom);
         }
+        this.view.focus();
     }
 }
 
