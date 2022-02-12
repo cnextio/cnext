@@ -4,7 +4,6 @@ const socketIo = require("socket.io");
 const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
-require("dotenv").config();
 const { PythonShell } = require("python-shell");
 
 const port = process.env.PORT || 4000;
@@ -39,9 +38,21 @@ const NotCodeExecutor = [ExperimentManager];
 //     NON_CODE_EXECUTOR = 'non_code-executor',
 // }
 
+try {
+    let file;
+    file = fs.readFileSync(".server.yaml", "utf8");
+    config = YAML.parse(file);
+} catch (error) {
+    console.log(error.stack);
+}
+
 class PythonProcess {
     static pyshellOpts = {
-        pythonPath: process.env.PYTHON_PATH,
+        pythonPath: [
+            process.env.PYTHON_PATH,
+            "./python",
+            config.path_to_cycdataframe_lib,
+        ].join(":"),
         stdio: ["pipe", "pipe", "pipe", "pipe"], // stdin, stdout, stderr, custom
         mode: "text",
         env: process.env,
@@ -55,8 +66,16 @@ class PythonProcess {
 
     // TODO: using clientMessage is hacky solution to send stdout back to client. won't work if there is multiple message being handled simultaneously
     constructor(io) {
-        // this.pyshellOpts.args = [type];
-        this.executor = new PythonShell("python/server.py", this.pyshellOpts);
+        process.env.PYTHONPATH = [
+            process.env.PYTHONPATH,
+            config.path_to_cycdataframe_lib,
+        ].join(":");
+        let pyshellOpts = {
+            stdio: ["pipe", "pipe", "pipe", "pipe"], // stdin, stdout, stderr, custom
+            mode: "text",
+            env: process.env,
+        };
+        this.executor = new PythonShell("python/server.py", pyshellOpts);
         this.io = io;
         let _this = this;
         this.executor.on("message", function (stdout) {
@@ -99,9 +118,9 @@ class PythonProcess {
  * Communicate with web client
  */
 try {
-    let file;
-    file = fs.readFileSync(".server.yaml", "utf8");
-    config = YAML.parse(file);
+    // let file;
+    // file = fs.readFileSync(".server.yaml", "utf8");
+    // config = YAML.parse(file);
 
     /** this variable is used to send back stdout to server */
     // let clientMessage;
@@ -185,7 +204,7 @@ try {
                     "import os, sys, pandas as pd, plotly.express as px, plotly.io as pio",
             })
         );
-        console.log(config.projects.open_projects[0]['path'])
+        console.log(config.projects.open_projects[0]["path"]);
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
@@ -195,7 +214,7 @@ try {
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
-                content: `sys.path.extend(['${config.path_to_cycdataframe_lib}cycdataframe/', 'python/'])`,
+                content: `sys.path.extend(['${config.path_to_cycdataframe_lib}/', 'python/'])`,
             })
         );
         codeExecutor.send2executor(

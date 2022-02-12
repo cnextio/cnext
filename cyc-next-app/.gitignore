@@ -1,7 +1,0 @@
-.DS_STORE
-node_modules
-*/node_modules
-server/*.yaml
-package-lock.json
-
-server.log

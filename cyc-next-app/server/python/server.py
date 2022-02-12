@@ -15,11 +15,8 @@ from libs.message import CommandType, ExperimentManagerCommand, Message, WebappE
 import mlflow
 import mlflow.tensorflow
 from mlflow.tracking.client import MlflowClient
-
 from project_manager import files, projects
 from experiment_manager import experiment_manager as em
-from dataframe_manager import dataframe_manager as dm
-from code_editor import code_editor as ce
 
 log = logs.get_logger(__name__)
 
@@ -48,6 +45,9 @@ except Exception as error:
 sys.path.append(config.path_to_cycdataframe_lib); 
 from cycdataframe.df_status_hook import DataFrameStatusHook
 import cycdataframe.cycdataframe as cd 
+
+from dataframe_manager import dataframe_manager as dm
+from code_editor import code_editor as ce
 
 #TODO: need to heavily test this
 def assign_exec_mode(message: Message):
