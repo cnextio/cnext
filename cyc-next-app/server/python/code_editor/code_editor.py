@@ -24,6 +24,13 @@ class MessageHandler(BaseMessageHandler):
         return {'plot': result.to_json()}
 
     @staticmethod
+    def _create_matplotlib_data(result):
+        figfile = io.BytesIO()
+        plt.savefig(figfile, format='svg')
+        figfile.seek(0)  # rewind to beginning of file
+        return base64.b64encode(figfile.getvalue())
+
+    @staticmethod
     def _result_is_dataframe(result) -> bool:
         return type(result) == pandas.core.frame.DataFrame
 
@@ -90,10 +97,7 @@ class MessageHandler(BaseMessageHandler):
                         output = self._create_plot_data(result)
                         type = ContentType.PLOTLY_FIG
                     elif self._result_is_matplotlib_fig(result):
-                        figfile = io.BytesIO()
-                        plt.savefig(figfile, format='svg')
-                        figfile.seek(0)  # rewind to beginning of file
-                        output = base64.b64encode(figfile.getvalue())
+                        output = self._create_matplotlib_data(result)
                         type = ContentType.MATPLOTLIB_FIG
                     else:
                         type = ContentType.STRING

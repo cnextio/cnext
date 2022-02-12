@@ -33,7 +33,6 @@ import { setCodeToInsert } from "../../../../redux/reducers/CodeEditorRedux";
 import { ICodeToInsert } from "../../../interfaces/ICodeEditor";
 import { IMenuItem, MetricPlotContextMenuItems } from "../../../interfaces/IContextMenu";
 import { ifElse } from "../../libs";
-import { CONSTANT } from "../../../../constants";
 
 const ExperimentManager = (props: any) => {
     const [metricPlotData, setMetricPlot] = useState();
@@ -380,7 +379,6 @@ const ExperimentManager = (props: any) => {
                     <MetricPlots
                         metricPlotData={metricPlotData}
                         handleContextMenuSelection={handleContextMenuSelection}
-                        typePanel={CONSTANT.PLOT_TYPE_PANEL.EXPERIMENT}
                     />
                 )}
             </ExperimentRightPanel>
