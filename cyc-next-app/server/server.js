@@ -47,17 +47,8 @@ try {
     console.log(error.stack);
 }
 
+let isRunLsp= false;
 class PythonProcess {
-    static pyshellOpts = {
-        pythonPath: [
-            process.env.PYTHON_PATH,
-            "./python",
-            config.path_to_cycdataframe_lib,
-        ].join(":"),
-        stdio: ["pipe", "pipe", "pipe", "pipe"], // stdin, stdout, stderr, custom
-        mode: "text",
-        env: process.env,
-    };
 
     send2client(message) {
         this.io.emit(message["webapp_endpoint"], JSON.stringify(message));
@@ -70,6 +61,7 @@ class PythonProcess {
         process.env.PYTHONPATH = [
             process.env.PYTHONPATH,
             config.path_to_cycdataframe_lib,
+            config.path_lsp,
         ].join(path.delimiter);
 
         let pyshellOpts = {
@@ -78,6 +70,14 @@ class PythonProcess {
             env: process.env,
         };
         this.executor = new PythonShell("python/server.py", pyshellOpts);
+
+        if(!isRunLsp){
+            let lspShell = new PythonShell('lsp-server/pyls_jsonrpc/app/pyls_server/langserver_ext.py', pyshellOpts);
+            lspShell.on('message', (stdout) => {console.log('lsp-stdout',stdout);});
+            lspShell.on('error', (err)=>{console.log('lsp-err', err);});
+            isRunLsp = true;
+        }
+
         this.io = io;
         let _this = this;
         this.executor.on("message", function (stdout) {

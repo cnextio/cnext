@@ -1,0 +1,21 @@
+version: '3.9'
+
+networks:
+  mydocker:
+    driver: bridge
+
+services:
+  pyls:
+    build: ./pyls_jsonrpc
+    container_name: pyls
+    networks:
+      - mydocker
+    ports:
+      - 3001:3001
+  react:
+    build: ./react_web
+    container_name: react
+    networks:
+      - mydocker
+    ports:
+      - 3002:3002

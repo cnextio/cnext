@@ -9,6 +9,8 @@ p2n_comm:
 #   p2n_port: 5003
 
 path_to_cycdataframe_lib: "../../../"
+# point to app on language server
+path_lsp: ""
 
 projects:
     open_projects:
