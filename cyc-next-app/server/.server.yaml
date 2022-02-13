@@ -10,6 +10,7 @@ p2n_comm:
 
 path_to_cycdataframe_lib: "../../../"
 # point to app on language server
+# path_lsp: 'D:\DEV\CycAI\lsp-server\pyls_jsonrpc\app'
 path_lsp: ""
 
 projects:
