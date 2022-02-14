@@ -35,9 +35,9 @@ class MessageHandler(BaseMessageHandler):
         # It help the code in client: CodeEditorRedux.addPlotResult() keep simplest
         return PlotResult(plot=json.dumps({'data': plot_binary_data})).toJSON()
 
-    @staticmethod
-    def _result_is_dataframe(result) -> bool:
-        return type(result) == pandas.core.frame.DataFrame
+    # @staticmethod
+    # def _result_is_dataframe(result) -> bool:
+    #     return type(result) == pandas.core.frame.DataFrame
 
     @staticmethod
     def _result_is_plotly_fig(result) -> bool:
@@ -92,11 +92,11 @@ class MessageHandler(BaseMessageHandler):
                 if result is not None:
                     # log.info("eval result: \n%s" % (result))
                     log.info("got eval results")
-                    if self._result_is_dataframe(result):
-                        df_id = self._get_dataframe_id(message.content)
-                        output = self._create_table_data(df_id, result)
-                        type = ContentType.PANDAS_DATAFRAME
-                    elif self._result_is_plotly_fig(result):
+                    # if self._result_is_dataframe(result):
+                    #     df_id = self._get_dataframe_id(message.content)
+                    #     output = self._create_table_data(df_id, result)
+                    #     type = ContentType.PANDAS_DATAFRAME
+                    if self._result_is_plotly_fig(result):
                         output = self._create_plot_data(result)
                         type = ContentType.PLOTLY_FIG
                     elif self._result_is_matplotlib_fig(result):
