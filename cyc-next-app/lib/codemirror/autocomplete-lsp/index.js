@@ -226,7 +226,7 @@ class LanguageServerPlugin {
       }
       if (!this.ready || !this.capabilities.hoverProvider) return null;
       this.sendChange({ documentText: view.state.doc.toString() });
-      const result = await this.requestServer(
+      let result = await this.requestServer(
         'textDocument/hover',
         {
           textDocument: { uri: this.documentUri },
@@ -234,8 +234,10 @@ class LanguageServerPlugin {
         },
         timeout
       );
+    
       if (!result) return null;
-      const { contents, range } = result;
+      
+      let { contents, range } = result;
       let pos = posToOffset(view.state.doc, { line, character });
       let end;
       if (range) {
@@ -243,10 +245,34 @@ class LanguageServerPlugin {
         end = posToOffset(view.state.doc, range.end);
       }
 
-      if (pos === null || !contents) return null;
-
       const dom = document.createElement('div');
       dom.classList.add('documentation');
+
+      if (pos === null || !contents){
+        // request more infomation for params
+        let doc = view.state.doc;
+        let lineExcute = doc.lineAt(pos);
+
+        let signatureResult = await this.requestServer(
+            'textDocument/signatureHelp',
+            {
+                textDocument: { uri: this.documentUri },
+                position: { line, character },
+                context: {
+                    triggerKind: SignatureHelpTriggerKind.Invoked,
+                    triggerCharacter: lineExcute.text[pos - line.from - 1],
+                },
+            },
+            timeout
+        );
+        
+        if (!signatureResult?.signatures[0]?.label) return null;
+        else {
+            dom.textContent = formatContents(signatureResult.signatures[0].label);
+            return { pos, end, create: (view) => ({ dom }), above: true };
+        };
+      } 
+
       dom.textContent = formatContents(contents);
 
       return { pos, end, create: (view) => ({ dom }), above: true };
@@ -273,7 +299,7 @@ class LanguageServerPlugin {
      */
     //get column names list
     const state = store.getState();
-    const colNames = Object.keys(state.dataFrames.metadata[df_id].columns);
+    const colNames = state.dataFrames.metadata[df_id] ? Object.keys(state.dataFrames.metadata[df_id].columns) : null;
 
     let items;
     if (colNames) {
@@ -594,7 +620,6 @@ class LanguageServerPlugin {
                     documentText: context.state.doc.toString(),
                 });
 
-                console.log("requestSignatureHelp")
                 result = await this.requestServer(
                     'textDocument/signatureHelp',
                     {
@@ -607,7 +632,7 @@ class LanguageServerPlugin {
                     },
                     timeout
                 );
-                
+
                 if (!result?.signatures[0]?.parameters) return null;
 
                 const parameters = result.signatures[0].parameters;
@@ -1034,7 +1059,7 @@ function offsetToPos(doc, offset) {
 
 function formatContents(contents) {
   if (Array.isArray(contents)) {
-    return contents.map((c) => formatContents(c) + '\n').join('');
+    return contents.map((c) => formatContents(c) + '\n\n').join('');
   } else if (typeof contents === 'string') {
     return contents;
   } else {

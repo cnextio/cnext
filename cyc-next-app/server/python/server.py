@@ -51,11 +51,6 @@ except Exception as error:
     log.error("%s - %s" % (error, traceback.format_exc()))
     exit(1)
 
-# TODO: Point this to the cycdataframe repos folder
-sys.path.append(config.path_to_cycdataframe_lib)
-
-# TODO: need to heavily test this
-
 
 def assign_exec_mode(message: Message):
     message.execution_mode = 'eval'
