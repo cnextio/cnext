@@ -2,8 +2,6 @@ import { Checkbox, FormControlLabel, FormGroup, Typography } from "@mui/material
 import React, { Fragment, useEffect, useState } from "react";
 import Moment from "react-moment";
 import "moment-timezone";
-import { useQuery, QueryCache, QueryClientProvider, QueryClient } from "react-query";
-import { ReactQueryDevtools } from "react-query-devtools";
 import { CommandType, Message, WebAppEndpoint } from "../../../interfaces/IApp";
 import { ExperimentManagerCommand } from "../../../interfaces/IExperimentManager";
 import socket from "../../Socket";
@@ -256,7 +254,12 @@ const ExperimentManager = (props: any) => {
     function handleRunsChange(event: React.SyntheticEvent) {
         console.log("ExperimentView handleRunsChange: ", event.target.checked, event.target.id);
         if (runDict) {
-            dispatch(setRunSelection({ id: event.target.id, selected: event.target.checked }));
+            dispatch(
+                setRunSelection({
+                    id: event.target.id,
+                    selected: event.target.checked,
+                })
+            );
         }
     }
 
