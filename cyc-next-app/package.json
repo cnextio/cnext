@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "debug": "cross-env NODE_OPTIONS='--inspect' next",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -62,6 +63,7 @@
     "@types/ace": "^0.0.47",
     "@types/inline-style-prefixer": "^5.0.0",
     "@types/react": "17.0.27",
+    "@types/react-grid-layout": "^1.3.1",
     "@types/react-helmet": "^6.1.3",
     "@types/shortid": "0.0.29",
     "@types/styled-components": "^5.1.14",
