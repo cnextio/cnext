@@ -9,7 +9,6 @@ import { useSelector } from "react-redux";
 import { ICodeLine, IPlotResult } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
 import { ContentType } from "../../../interfaces/IApp";
-import GridLayout from "react-grid-layout";
 
 const PlotWithNoSSR = dynamic(() => import("react-plotly.js"), { ssr: false });
 
@@ -49,10 +48,6 @@ const PlotView = (props: any) => {
     });
 
     const plotViewID = "StyledPlotView";
-    const gridRef = useRef();
-    const rowHeight = 400; //unit: px
-    const screenSize = 1200; //unit: px;
-    const cols = 2; //unit: grid
     const imageHeight = "350px";
     const renderPlots = () => {
         const state = store.getState();
@@ -67,20 +62,18 @@ const PlotView = (props: any) => {
             );
             return (
                 <StyledPlotView id={plotViewID}>
-                    <GridLayout
-                        ref={gridRef}
-                        measureBeforeMount={false}
-                        className='layout'
-                        rowHeight={rowHeight}
-                        width={screenSize}
-                        cols={cols}
-                        margin={[0, 0]}
-                        isResizable={true}
-                        // onLayoutChange={(layout) => handleLayoutChange(layout)}
-                    >
-                        {containerMounted
-                            ? codeWithPlots.map((plot: ICodeLine) =>
-                                  plot?.result?.type === ContentType.MATPLOTLIB_FIG ? (
+                    {containerMounted
+                        ? codeWithPlots.map((plot: ICodeLine) => (
+                              <ScrollIntoViewIfNeeded
+                                  active={plot.lineID == activeLine}
+                                  options={{
+                                      block: "start",
+                                      inline: "center",
+                                      behavior: "smooth",
+                                      boundary: document.getElementById(plotViewID),
+                                  }}
+                              >
+                                  {plot?.result?.type === ContentType.MATPLOTLIB_FIG ? (
                                       <SinglePlot
                                           key={plot.lineID}
                                           variant='outlined'
@@ -105,10 +98,11 @@ const PlotView = (props: any) => {
                                               setLayout(plot?.result?.content, 600, 350)
                                           )}
                                       </SinglePlot>
-                                  )
-                              )
-                            : null}
-                        {/* {console.log("Render PlotView", containerMounted)}
+                                  )}
+                              </ScrollIntoViewIfNeeded>
+                          ))
+                        : null}
+                    {/* {console.log("Render PlotView", containerMounted)}
                     {containerMounted
                         ? codeWithPlots.map((plot: ICodeLine) => (
                               <ScrollIntoViewIfNeeded
@@ -134,7 +128,6 @@ const PlotView = (props: any) => {
                               </ScrollIntoViewIfNeeded>
                           ))
                         : null} */}
-                    </GridLayout>
                 </StyledPlotView>
             );
         } else return null;
