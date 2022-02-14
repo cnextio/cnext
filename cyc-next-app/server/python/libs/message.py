@@ -17,7 +17,6 @@ class WebappEndpoint(str, Enum):
     MagicCommandGen = 'MagicCommandGen'
     FileExplorer = 'FileExplorer'
     ExperimentManager = 'ExperimentManager'
-    PlotManager = 'PlotManager'
 
     def __str__(self):
         return str(self.value)

@@ -1,6 +1,7 @@
 import io
 import base64
 import traceback
+import simplejson as json
 from xmlrpc.client import boolean
 
 import pandas
@@ -12,6 +13,7 @@ from libs.message import ContentType, Message
 from libs import logs
 from user_space.user_space import ExecutionMode
 from user_space.user_space import BaseKernel, UserSpace
+from code_editor.interfaces import PlotResult
 log = logs.get_logger(__name__)
 
 
@@ -21,14 +23,17 @@ class MessageHandler(BaseMessageHandler):
 
     @staticmethod
     def _create_plot_data(result):
-        return {'plot': result.to_json()}
+        return PlotResult(plot=result.to_json()).toJSON()
 
     @staticmethod
     def _create_matplotlib_data(result):
         figfile = io.BytesIO()
         plt.savefig(figfile, format='svg')
         figfile.seek(0)  # rewind to beginning of file
-        return base64.b64encode(figfile.getvalue())
+        plot_binary_data = base64.b64encode(figfile.getvalue())
+        # make sure the result type is json data same as result of _create_plot_data function.
+        # It help the code in client: CodeEditorRedux.addPlotResult() keep simplest
+        return PlotResult(plot=json.dumps({'data': plot_binary_data})).toJSON()
 
     @staticmethod
     def _result_is_dataframe(result) -> bool:
@@ -65,8 +70,6 @@ class MessageHandler(BaseMessageHandler):
                 return True
         return False
 
-    # @staticmethod
-    # def _create_matplotlib_data(result):
     def handle_message(self, message, client_globals):
         # message execution_mode will always be `eval` for this sender
         log.info('eval... %s' % message)

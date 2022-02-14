@@ -128,8 +128,10 @@ export const CodeEditorRedux = createSlice({
                     //TODO: make this thing like plugin and hook so we can handle different kind of output
                     if (
                         codeLines[updatedStartLineNumber + 1 + i].result &&
-                        codeLines[updatedStartLineNumber + 1 + i].result.type ==
-                            ContentType.PLOTLY_FIG
+                        (codeLines[updatedStartLineNumber + 1 + i].result.type ===
+                            ContentType.PLOTLY_FIG ||
+                            codeLines[updatedStartLineNumber + 1 + i].result.type ===
+                                ContentType.MATPLOTLIB_FIG)
                     ) {
                         state.plotResultUpdate -= 1;
                     }
@@ -214,17 +216,11 @@ export const CodeEditorRedux = createSlice({
         addPlotResult: (state, action) => {
             let resultMessage: ICodeResultMessage = action.payload;
             let inViewID = resultMessage.inViewID;
-            let plotResult: IPlotResult | any;
-            let lineRange: ILineRange | any;
-            if (resultMessage.type === ContentType.MATPLOTLIB_FIG) {
-                plotResult = resultMessage.content;
-                lineRange = resultMessage.metadata["line_range"];
-            } else if (resultMessage.type === ContentType.PLOTLY_FIG) {
-                plotResult = {
-                    plot: JSON.parse(ifElseDict(resultMessage.content, "plot")),
-                };
-                lineRange = ifElseDict(resultMessage.metadata, "line_range");
-            }
+            const resultContent = JSON.parse(resultMessage?.content);
+            let plotResult: IPlotResult = {
+                plot: JSON.parse(ifElseDict(resultContent, "plot")),
+            };
+            let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
             let result: ICodeResult = { type: resultMessage.type, content: plotResult };
             if (lineRange) {
                 /** only associate fromLine to result. This is ok because at the moment the group execution is not supposed to output plot

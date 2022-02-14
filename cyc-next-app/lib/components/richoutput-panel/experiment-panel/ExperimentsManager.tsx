@@ -19,7 +19,7 @@ import {
     RunSelectorLabel,
     RunTimeLabel,
 } from "../../StyledComponents";
-import MetricPlots from "../shared-components/MetricPlots";
+import MetricPlots from "./MetricPlots";
 import {
     setExpDict,
     setRunDict,

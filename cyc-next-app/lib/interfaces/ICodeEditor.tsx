@@ -105,11 +105,6 @@ export interface IPlotResult {
     plot: object;
 }
 
-export interface IMetricPlots {
-    plots: Array<object> | null;
-    layout?: Array<object> | null;
-}
-
 export interface IRunningCommandContent {
     lineRange: ILineRange;
     content: string;
