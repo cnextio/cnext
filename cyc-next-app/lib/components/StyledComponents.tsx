@@ -719,16 +719,16 @@ export const ExperimentRightPanel = styled.div`
     width: 100%;
     font-size: 13px;
 `;
-export const ExperimentMetricPlots = styled.div`
-    background-color: ${(props) => props.theme.palette.background.paper};
-    padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
-    overflow: auto;
-    width: 100%;
-    height: 100%;
-    .react-grid-layout {
-        position: relative !important;
-    }
-`;
+
+export const MetricPlots = styled.div`
+  background-color: ${(props) => props.theme.palette.background.paper};
+  padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+  .react-grid-layout {
+    position: relative !important;
+  }`;
 
 export const CountNAContainer = styled.div`
     background-color: ${(props) =>

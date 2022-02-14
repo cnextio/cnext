@@ -1,9 +1,4 @@
-import {
-    Checkbox,
-    FormControlLabel,
-    FormGroup,
-    Typography,
-} from "@mui/material";
+import { Checkbox, FormControlLabel, FormGroup, Typography } from "@mui/material";
 import React, { Fragment, useEffect, useState } from "react";
 import Moment from "react-moment";
 import "moment-timezone";
@@ -31,18 +26,10 @@ import {
     setSelectedExp,
 } from "../../../../redux/reducers/ExperimentManagerRedux";
 import store from "../../../../redux/store";
-import {
-    DefaultRootState,
-    shallowEqual,
-    useDispatch,
-    useSelector,
-} from "react-redux";
+import { DefaultRootState, shallowEqual, useDispatch, useSelector } from "react-redux";
 import { setCodeToInsert } from "../../../../redux/reducers/CodeEditorRedux";
 import { ICodeToInsert } from "../../../interfaces/ICodeEditor";
-import {
-    IMenuItem,
-    MetricPlotContextMenuItems,
-} from "../../../interfaces/IContextMenu";
+import { IMenuItem, MetricPlotContextMenuItems } from "../../../interfaces/IContextMenu";
 import { ifElse } from "../../libs";
 
 const ExperimentManager = (props: any) => {
@@ -51,25 +38,16 @@ const ExperimentManager = (props: any) => {
     const [timeout, setTimeout] = useState(0);
     let runDict = useSelector((state) => state.experimentManager.runDict);
     let expDict = useSelector((state) => state.experimentManager.expDict);
-    let selectedRunIds = useSelector(
-        (state) => getSelectedRuns(state),
-        shallowEqual
-    );
-    let selectedRunningRunId = useSelector((state) =>
-        getSelectedRunningRun(state)
-    );
+    let selectedRunIds = useSelector((state) => getSelectedRuns(state), shallowEqual);
+    let selectedRunningRunId = useSelector((state) => getSelectedRunningRun(state));
 
     // let runningExpId = useSelector(state => state.experimentManager.runningExpId);
-    let selectedExpId = useSelector(
-        (state) => state.experimentManager.selectedExpId
-    );
+    let selectedExpId = useSelector((state) => state.experimentManager.selectedExpId);
     const dispatch = useDispatch();
 
     function getSelectedRuns(state: DefaultRootState) {
         let runDict = state.experimentManager.runDict;
-        return runDict
-            ? Object.keys(runDict).filter((key) => runDict[key]["selected"])
-            : null;
+        return runDict ? Object.keys(runDict).filter((key) => runDict[key]["selected"]) : null;
     }
 
     // const getRunningRun = (state: DefaultRootState) => {
@@ -86,35 +64,26 @@ const ExperimentManager = (props: any) => {
         /** There should be only one running run so we only get the first item of the list */
         return runDict
             ? Object.keys(runDict).filter(
-                  (key) =>
-                      runDict[key]["_status"] == "RUNNING" &&
-                      runDict[key]["selected"]
+                  (key) => runDict[key]["_status"] == "RUNNING" && runDict[key]["selected"]
               )[0]
             : null;
     }
 
     const refreshData = (expId) => {
-        console.log(
-            "Exp timer refreshData timeout count and running id",
-            timeout,
-            expId
-        );
+        console.log("Exp timer refreshData timeout count and running id", timeout, expId);
         if (expId) {
             let message: Message = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.list_run_infos,
                 type: CommandType.MLFLOW_CLIENT,
                 content: {
-                    tracking_uri:
-                        "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+                    tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
                     experiment_id: expId,
                 },
             };
             sendMessage(message);
 
-            let selectedRuns = Object.keys(runDict).filter(
-                (key) => runDict[key]["selected"]
-            );
+            let selectedRuns = Object.keys(runDict).filter((key) => runDict[key]["selected"]);
             if (selectedRuns.length > 0) {
                 let message: Message = {
                     webapp_endpoint: WebAppEndpoint.ExperimentManager,
@@ -144,10 +113,7 @@ const ExperimentManager = (props: any) => {
      */
     useEffect(() => {
         // let runningExpId = store.getState().experimentManager.runningExpId;
-        console.log(
-            "ExperimentManager selectedRunningRunId: ",
-            selectedRunningRunId
-        );
+        console.log("ExperimentManager selectedRunningRunId: ", selectedRunningRunId);
         if (!timer && selectedRunningRunId) {
             console.log("ExperimentManager setTimer");
             setTimer(
@@ -172,8 +138,7 @@ const ExperimentManager = (props: any) => {
                 command_name: ExperimentManagerCommand.get_metric_plots,
                 type: CommandType.MLFLOW_COMBINE,
                 content: {
-                    tracking_uri:
-                        "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+                    tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
                     experiment_id: selectedExpId,
                     run_ids: selectedRunIds,
                 },
@@ -189,16 +154,8 @@ const ExperimentManager = (props: any) => {
         /**
          * Reset the selectedExp when applicapable
          */
-        if (
-            (!selectedExpId && expDict) ||
-            (selectedExpId && !expDict[selectedExpId])
-        ) {
-            console.log(
-                "Exp setSelectedExp",
-                selectedExpId,
-                expDict[selectedExpId],
-                expDict
-            );
+        if ((!selectedExpId && expDict) || (selectedExpId && !expDict[selectedExpId])) {
+            console.log("Exp setSelectedExp", selectedExpId, expDict[selectedExpId], expDict);
             dispatch(setSelectedExp(Object.keys(expDict)[0]));
         }
     }, [expDict]);
@@ -213,8 +170,7 @@ const ExperimentManager = (props: any) => {
                 command_name: ExperimentManagerCommand.list_run_infos,
                 type: CommandType.MLFLOW_CLIENT,
                 content: {
-                    tracking_uri:
-                        "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+                    tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
                     experiment_id: selectedExpId,
                 },
             };
@@ -232,10 +188,7 @@ const ExperimentManager = (props: any) => {
                 if (!emResult.error) {
                     switch (emResult.command_name) {
                         case ExperimentManagerCommand.list_experiments:
-                            console.log(
-                                "ExperimentView got list experiment: ",
-                                emResult.content
-                            );
+                            console.log("ExperimentView got list experiment: ", emResult.content);
                             let expDict = {};
                             for (let exp of emResult.content["experiments"]) {
                                 expDict[exp["_experiment_id"]] = exp;
@@ -244,10 +197,7 @@ const ExperimentManager = (props: any) => {
                             dispatch(setExpDict(expDict));
                             break;
                         case ExperimentManagerCommand.list_run_infos:
-                            console.log(
-                                "ExperimentView got list run: ",
-                                emResult.content
-                            );
+                            console.log("ExperimentView got list run: ", emResult.content);
                             let runDict = {};
                             let runningRunId;
                             for (let run of emResult.content["runs"]) {
@@ -278,17 +228,13 @@ const ExperimentManager = (props: any) => {
     };
 
     const sendMessage = (message: {}) => {
-        console.log(
-            `Send ${WebAppEndpoint.ExperimentManager} request: `,
-            JSON.stringify(message)
-        );
+        console.log(`Send ${WebAppEndpoint.ExperimentManager} request: `, JSON.stringify(message));
         socket.emit(WebAppEndpoint.ExperimentManager, JSON.stringify(message));
     };
 
     useEffect(() => {
         setup_socket();
-        let tracking_uri =
-            store.getState().projectManager.configs.mlflow_tracking_uri;
+        let tracking_uri = store.getState().projectManager.configs.mlflow_tracking_uri;
         let message: Message = {
             webapp_endpoint: WebAppEndpoint.ExperimentManager,
             command_name: ExperimentManagerCommand.list_experiments,
@@ -306,11 +252,7 @@ const ExperimentManager = (props: any) => {
     }
 
     function handleRunsChange(event: React.SyntheticEvent) {
-        console.log(
-            "ExperimentView handleRunsChange: ",
-            event.target.checked,
-            event.target.id
-        );
+        console.log("ExperimentView handleRunsChange: ", event.target.checked, event.target.id);
         if (runDict) {
             dispatch(
                 setRunSelection({
@@ -327,24 +269,16 @@ const ExperimentManager = (props: any) => {
             switch (item.name) {
                 case MetricPlotContextMenuItems.LOAD_CHECKPOINT:
                     /** first, download the artifacts to local */
-                    let local_dir =
-                        store.getState().projectManager.configs.local_tmp_dir;
-                    let tracking_uri =
-                        store.getState().projectManager.configs
-                            .mlflow_tracking_uri;
+                    let local_dir = store.getState().projectManager.configs.local_tmp_dir;
+                    let tracking_uri = store.getState().projectManager.configs.mlflow_tracking_uri;
                     let artifact_path =
-                        item && item.metadata
-                            ? ifElse(item.metadata, "checkpoint", null)
-                            : null;
+                        item && item.metadata ? ifElse(item.metadata, "checkpoint", null) : null;
                     let run_id =
-                        item && item.metadata
-                            ? ifElse(item.metadata, "run_id", null)
-                            : null;
+                        item && item.metadata ? ifElse(item.metadata, "run_id", null) : null;
                     if (artifact_path) {
                         let message: Message = {
                             webapp_endpoint: WebAppEndpoint.ExperimentManager,
-                            command_name:
-                                ExperimentManagerCommand.load_artifacts_to_local,
+                            command_name: ExperimentManagerCommand.load_artifacts_to_local,
                             type: CommandType.MLFLOW_COMBINE,
                             content: {
                                 tracking_uri: tracking_uri,
@@ -368,15 +302,11 @@ const ExperimentManager = (props: any) => {
     return (
         <ExperimentContainer>
             <ExperimentLeftPanel>
-                <Typography variant="subtitle">Experiments</Typography>
+                <Typography variant='subtitle'>Experiments</Typography>
                 <ExpSelectorForm>
                     <ExpSelector
                         onChange={handleExpChange}
-                        value={
-                            selectedExpId && expDict
-                                ? expDict[selectedExpId]["_name"]
-                                : null
-                        }
+                        value={selectedExpId && expDict ? expDict[selectedExpId]["_name"] : null}
                         // label={dfList.activeDF}
                         IconComponent={DFSelectorIcon}
                         SelectDisplayProps={{
@@ -387,19 +317,15 @@ const ExperimentManager = (props: any) => {
                             return (
                                 <Fragment>
                                     {selectedExpId && expDict ? (
-                                        <Typography
-                                            height="100%"
-                                            variant="caption"
-                                            fontSize="14px"
-                                        >
+                                        <Typography height='100%' variant='caption' fontSize='14px'>
                                             {expDict[selectedExpId]["_name"]}
                                         </Typography>
                                     ) : (
                                         <Typography
-                                            height="100%"
-                                            variant="caption"
-                                            fontSize="12px"
-                                            color="#BFC7CF"
+                                            height='100%'
+                                            variant='caption'
+                                            fontSize='12px'
+                                            color='#BFC7CF'
                                         >
                                             Experiments
                                         </Typography>
@@ -410,22 +336,18 @@ const ExperimentManager = (props: any) => {
                     >
                         {expDict &&
                             Object.keys(expDict).map((key, index) => (
-                                <ExpSelectorMenuItem
-                                    value={expDict[key]["_experiment_id"]}
-                                >
+                                <ExpSelectorMenuItem value={expDict[key]["_experiment_id"]}>
                                     {expDict[key]["_name"]}
                                 </ExpSelectorMenuItem>
                             ))}
                     </ExpSelector>
                 </ExpSelectorForm>
-                <Typography variant="subtitle">Runs</Typography>
+                <Typography variant='subtitle'>Runs</Typography>
                 <RunSelectorForm>
                     {runDict &&
                         Object.keys(runDict)
                             .sort(
-                                (k1, k2) =>
-                                    runDict[k2]["_start_time"] -
-                                    runDict[k1]["_start_time"]
+                                (k1, k2) => runDict[k2]["_start_time"] - runDict[k1]["_start_time"]
                             )
                             .map((key, index) => (
                                 <RunSelectorLabel
@@ -433,27 +355,19 @@ const ExperimentManager = (props: any) => {
                                     control={
                                         <Checkbox
                                             id={key}
-                                            defaultChecked={
-                                                runDict[key]["selected"]
-                                            }
+                                            defaultChecked={runDict[key]["selected"]}
                                         />
                                     }
                                     label={
                                         <Fragment>
-                                            {
-                                                runDict[key]["_cnext_metadata"][
-                                                    "run_name"
-                                                ]
-                                            }
+                                            {runDict[key]["_cnext_metadata"]["run_name"]}
                                             {" - "}
                                             <RunTimeLabel
-                                                variant="caption"
+                                                variant='caption'
                                                 sx={{ fontStyle: "italic" }}
                                             >
                                                 <Moment unix fromNow>
-                                                    {runDict[key][
-                                                        "_start_time"
-                                                    ] / 1000}
+                                                    {runDict[key]["_start_time"] / 1000}
                                                 </Moment>
                                             </RunTimeLabel>
                                         </Fragment>

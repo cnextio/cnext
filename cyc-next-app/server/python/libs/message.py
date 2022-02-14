@@ -1,13 +1,14 @@
 import yaml
 import logging
-import traceback 
+import traceback
 from multipledispatch import dispatch
 import simplejson as json
 from enum import Enum
 
-# logging.basicConfig(filename='./log.txt', filemode='a', format='%(asctime)s,%(msecs)d %(name)s %(funcName)s %(levelname)s %(message)s', 
+# logging.basicConfig(filename='./log.txt', filemode='a', format='%(asctime)s,%(msecs)d %(name)s %(funcName)s %(levelname)s %(message)s',
 #                         datefmt='%H:%M:%S', level=logging.DEBUG)
 # log = logging.getLogger(__name__)
+
 
 class WebappEndpoint(str, Enum):
     DFManager = 'DFManager'
@@ -19,27 +20,30 @@ class WebappEndpoint(str, Enum):
 
     def __str__(self):
         return str(self.value)
-    
+
     def __repr__(self):
-        return str(self.value)    
+        return str(self.value)
+
 
 class DFManagerCommand(str, Enum):
     active_df_status = 'active_df_status'
     plot_column_histogram = 'plot_column_histogram'
     get_countna = 'get_countna'
-    plot_countna = 'plot_countna'  
+    plot_countna = 'plot_countna'
     get_table_data = 'get_table_data'
     get_df_metadata = 'get_df_metadata'
     plot_column_quantile = 'plot_column_quantile'
     get_cardinal = 'get_cardinal'
     get_file_content = 'get_file_content'
+
     def __str__(self):
         return str(self.value)
-    
-    def __repr__(self):
-        return str(self.value)  
 
-class ProjectCommand(str, Enum):  
+    def __repr__(self):
+        return str(self.value)
+
+
+class ProjectCommand(str, Enum):
     list_dir = 'list_dir'
     get_file_metadata = 'get_file_metadata'
     read_file = 'read_file'
@@ -57,24 +61,27 @@ class ProjectCommand(str, Enum):
     set_project_dir = 'set_project_dir'
     get_active_project = 'get_active_project'
 
+
 class ExperimentManagerCommand(str, Enum):
     list_experiments = 'list_experiments'
     list_run_infos = 'list_run_infos'
     get_metric_plots = 'get_metric_plots'
-    load_artifacts_to_local = "load_artifacts_to_local",
+    load_artifacts_to_local = "load_artifacts_to_local"
 
 
-class CodeEditorCommand(str, Enum):  
+class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'
     exec_grouped_lines = 'exec_grouped_lines'
 
-class ContentType(str, Enum):  
+
+class ContentType(str, Enum):
     COMMAND = 'command'
     STRING = 'str'
     DICT = 'dict'
     BINARY = 'binary'
     PANDAS_DATAFRAME = 'pandas_dataframe'
     PLOTLY_FIG = 'plotly_fig'
+    MATPLOTLIB_FIG = 'matplotlib_fig'
     DIR_LIST = 'dir_list',
     FILE_METADATA = 'file_metadata',
     PROJECT_METADATA = 'project_metadata',
@@ -83,24 +90,26 @@ class ContentType(str, Enum):
     NONE = 'none'
 
     def __str__(self):
-        return str(self.value)    
-    
-    def __repr__(self):
-        return str(self.value) 
+        return str(self.value)
 
-class CommandType(str, Enum):  
-    MFLOW = 'mlflow' ## use mlflow object to call the function #
-    MLFLOW_CLIENT = 'mlflow_client' ## use mlflow.client object to call the function #
-    MLFLOW_COMBINE = 'mlflow_combine' ## use combine a set of mlflow functions #
+    def __repr__(self):
+        return str(self.value)
+
+
+class CommandType(str, Enum):
+    MFLOW = 'mlflow'  # use mlflow object to call the function #
+    MLFLOW_CLIENT = 'mlflow_client'  # use mlflow.client object to call the function #
+    MLFLOW_COMBINE = 'mlflow_combine'  # use combine a set of mlflow functions #
 
     def __str__(self):
-        return str(self.value)    
-    
+        return str(self.value)
+
     def __repr__(self):
-        return str(self.value) 
+        return str(self.value)
+
 
 class Message:
-    def __init__(self, **entries): 
+    def __init__(self, **entries):
         self.webapp_endpoint = None
         self.command_name = None
         self.seq_number = None
@@ -109,10 +118,9 @@ class Message:
         self.error = None
         self.metadata = None
         self.__dict__.update(entries)
-        
-    def toJSON(self):        
+
+    def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
-    
+
     def __repr__(self) -> str:
         return self.toJSON()
-

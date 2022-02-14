@@ -203,7 +203,7 @@ try {
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
                 content:
-                    "import os, sys, pandas as pd, plotly.express as px, plotly.io as pio",
+                    "import os, sys, pandas as pd, plotly.express as px, plotly.io as pio, matplotlib.pyplot as plt",
             })
         );
         console.log(config.projects.open_projects[0]["path"]);
