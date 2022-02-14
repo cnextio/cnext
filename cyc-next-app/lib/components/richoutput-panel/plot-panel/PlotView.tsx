@@ -65,10 +65,8 @@ const PlotView = (props: any) => {
                     (code.result.type === ContentType.PLOTLY_FIG ||
                         code.result.type === ContentType.MATPLOTLIB_FIG)
             );
-            console.log(activeLine);
-            console.log(codeWithPlots);
             return (
-                <StyledPlotView id='StyledPlotView'>
+                <StyledPlotView id={plotViewID}>
                     <GridLayout
                         ref={gridRef}
                         measureBeforeMount={false}
