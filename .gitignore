@@ -49,10 +49,12 @@ Thumbs.db
 *.mov
 *.wmv
 
-.next/
-package-lock.json
+# vscode
+.vscode
 
+.next/
+
+package-lock.json
 cyc-next-app/package-lock.json
-cyc-next-app/*/package-lock.json
+cyc-next-app/server/package-lock.json
 cyc-next-app/server/*.yaml
-cyc-next-app/server.log
