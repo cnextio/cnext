@@ -21,15 +21,7 @@ export const MetricPlot = ({ handleContextMenuSelection: parentHandler, metricPl
     const [plotSize, setPlotSize] = useState({ width: 500, height: 300 });
     const [openContextMenu, setOpenContextMenu] = useState(false);
     const [contextMenu, setContextMenu] = useState<IContextMenu | undefined>();
-    // const dispatch = useDispatch();
-
-    useEffect(() => {
-        // When close browser tab, save the plots
-        window.addEventListener("beforeunload", (ev) => {
-            ev.preventDefault();
-            return (ev.returnValue = "Are you sure you want to close?");
-        });
-    });
+    
 
     const setLayout = (
         plotData: IPlotResult,
