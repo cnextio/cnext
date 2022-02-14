@@ -128,10 +128,9 @@ export const CodeEditorRedux = createSlice({
                     //TODO: make this thing like plugin and hook so we can handle different kind of output
                     if (
                         codeLines[updatedStartLineNumber + 1 + i].result &&
-                        (codeLines[updatedStartLineNumber + 1 + i].result.type ===
-                            ContentType.PLOTLY_FIG ||
-                            codeLines[updatedStartLineNumber + 1 + i].result.type ===
-                                ContentType.MATPLOTLIB_FIG)
+                        [ContentType.PLOTLY_FIG, ContentType.MATPLOTLIB_FIG].includes(
+                            codeLines[updatedStartLineNumber + 1 + i].result.type
+                        )
                     ) {
                         state.plotResultUpdate -= 1;
                     }
