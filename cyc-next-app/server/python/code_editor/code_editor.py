@@ -70,7 +70,7 @@ class MessageHandler(BaseMessageHandler):
                 return True
         return False
 
-    def handle_message(self, message, client_globals):
+    def handle_message(self, message):
         # message execution_mode will always be `eval` for this sender
         log.info('eval... %s' % message)
         # log.info('Globals: %s' % client_globals)

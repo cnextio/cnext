@@ -75,7 +75,7 @@ class MessageHandler(BaseMessageHandler):
     #     output = {'file_content': file_content, 'mime_type': message_content.mime_type}
     #     return output, ContentType.BINARY, True
 
-    def handle_message(self, message, client_globals):
+    def handle_message(self, message):
         send_reply = False
         # message execution_mode will always be `eval` for this sender
         log.info('eval... %s' % message)
