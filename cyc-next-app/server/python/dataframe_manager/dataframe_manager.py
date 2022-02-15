@@ -154,5 +154,5 @@ class MessageHandler(BaseMessageHandler):
         except:
             trace = traceback.format_exc()
             log.error("%s" % (trace))
-            error_message = self._create_error_message(message.webapp_endpoint, trace)          
+            error_message = MessageHandler._create_error_message(message.webapp_endpoint, trace)          
             self._send_to_node(error_message)

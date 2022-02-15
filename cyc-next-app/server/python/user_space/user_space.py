@@ -53,7 +53,7 @@ class UserSpace:
     def execute(self, code, exec_mode: ExecutionMode = None):
         return self.executor.execute(code, exec_mode)
 
-    def get_global_df_list(self):
+    def get_df_list(self):
         names = list(globals())
         df_list = []
         for name in names:
