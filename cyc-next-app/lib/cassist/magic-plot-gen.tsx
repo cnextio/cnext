@@ -315,6 +315,11 @@ function _handle_x_multivariate_plot2(df_id: string, x: string[], y: string[], d
 function handleXMultivariatePlot(df_id: string, x: string[], y: string[], allColMetadata, dimStats: IDimStatsResult): ICodeGenResult{
     let result: ICodeGenResult;
     let plot;
+    console.log(
+        `Magic plot gen handleXMultivariatePlot x[0] type: ${
+            allColMetadata[x[0]].type
+        }, y[0] type: allColMetadata[y[0]].type`
+    );
     if(NumericalTypes.includes(allColMetadata[y[0]].type) && NumericalTypes.includes(allColMetadata[x[0]].type)){
         /** Possible plots: Scatter or Line */
         if (dimStats.groupby_x0.max === 1 && dimStats.unique_counts[x[0]] > LINE_MIN_X_UNIQUE && dimStats.monotonics[x[0]]){
@@ -371,7 +376,13 @@ export function magicsGetPlotCommand(plotData: CAssistPlotData): Promise<ICodeGe
             let x = plotData.x;
             let df_id = plotData.df;
             return sendMessage(message).then((dimStats: IDimStatsResult) => {
-                console.log('magicsGetPlotCommand: ', dimStats, allColMetadata, x, y);   
+                console.log(
+                    "magicsGetPlotCommand sendMessage handler: ",
+                    dimStats,
+                    allColMetadata,
+                    x,
+                    y
+                );   
                 // if(x.length == 1){
                 //     return _handle_bivariate_plot(df_id, x, y, dimStats);
                 // } else { 
