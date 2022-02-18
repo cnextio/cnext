@@ -70,6 +70,24 @@ class MessageHandler(BaseMessageHandler):
                 return True
         return False
 
+    def handle_message_v2(self, message):
+        """ Use Ipython Kernel to handle message
+        """
+        log.info('message: {}'.format(message))
+        try:
+            outputs = self.user_space.execute(message.content, None)
+            for output in outputs:
+                message.type = ContentType.STRING
+                message.content = output
+                message.error = False
+                self._send_to_node(message)
+        except:
+            trace = traceback.format_exc()
+            log.error("Exception %s" % (trace))
+            error_message = self._create_error_message(
+                message.webapp_endpoint, trace, message.metadata)
+            self._send_to_node(error_message)
+
     def handle_message(self, message):
         # message execution_mode will always be `eval` for this sender
         log.info('eval... %s' % message)

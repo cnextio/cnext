@@ -15,7 +15,7 @@ from libs.config import read_config
 import sys
 import simplejson as json
 
-from user_space.user_space import BaseKernel, UserSpace
+from user_space.user_space import BaseKernel, IPythonKernel, UserSpace
 
 log = logs.get_logger(__name__)
 
@@ -72,9 +72,11 @@ if __name__ == "__main__":
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
         
         user_space = UserSpace(BaseKernel())
+        user_ipython_space = UserSpace(IPythonKernel())
         
         message_handler = {
-            WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space).handle_message,
+            # WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space).handle_message,
+            WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_ipython_space).handle_message_v2,
             WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space).handle_message,
             WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space).handle_message,
             WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config).handle_message,
