@@ -69,7 +69,7 @@ class LanguageServerPlugin {
     this.initializeLSP({ documentText: this.view.state.doc.toString() });
   }
 
-  sendSocketRequest(method , params, channel){
+  sendSocketRequest(method, params, channel){
       console.log('send_socket_request');
       const RpcMessage = { jsonrpc: '2.0', id: 0, method: method, params: params, };
       return new Promise((resolve, reject) => {
@@ -121,7 +121,7 @@ class LanguageServerPlugin {
 
   destroy() {
     console.log('LanguageServerPlugin destroy');
-    //this.client.close();
+    this.client?.close();
   }
 
   requestServer(method, params, timeout) {

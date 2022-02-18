@@ -111,15 +111,12 @@ class PythonProcess {
 class LSPProcess{
 
     constructor(){
-
         this.ls = spawn('pyls', ['-v']);
-
         this.ls.stdout.on('data', (data) => {
             const reader = new JsonRpcStreamReader();
             const payload = reader.getData(data);
             if (payload) io.emit(LSP_MANAGER_INIT, JSON.stringify(payload));
         });
-      
     }
 
     sendMessageToLsp(message){
@@ -135,11 +132,8 @@ class LSPProcess{
     /** this variable is used to send back stdout to server */
     // let clientMessage;
 try {
-
     let lspExecutor = new LSPProcess();
-
     io.on('connection', (socket) => {
-
         function codeExecutorHandler(strMessage) {
             // clientMessage = strMessage.slice();
             console.log(
@@ -175,7 +169,6 @@ try {
                 lspExecutor.sendMessageToLsp(message);
             }
         });
-
         socket.once("disconnect", () => {});
     });
 
