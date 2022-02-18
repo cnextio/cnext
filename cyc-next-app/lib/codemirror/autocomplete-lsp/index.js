@@ -4,6 +4,8 @@ import { setDiagnostics } from '@codemirror/lint';
 import { Facet } from '@codemirror/state';
 import { hoverTooltip } from '@codemirror/tooltip';
 import { EditorView, ViewPlugin } from '@codemirror/view';
+import socket from '../../components/Socket';
+import { WebAppEndpoint, LspChannel } from '../../interfaces/IApp'
 import {
   WebSocketTransport,
   RequestManager,
@@ -42,11 +44,49 @@ class LanguageServerPlugin {
       this.documentVersion = 0;
       this.changesTimeout = 0;
       this.setup_connection();
+      this.setupLSPSocket();
     } else {
       this.languageId = this.view.state.facet(languageId);
       this.documentVersion = 0;
       this.changesTimeout = 0;
     }
+  }
+
+  setupLSPSocket(){
+    console.log('setupLSPSocket LSP');
+    socket.emit('ping', WebAppEndpoint.LSPManager);
+    socket.on('pong', (message) => {
+        console.log('Get pong from server when init LSP');
+    });
+
+    // listener
+    // socket.on(WebAppEndpoint.LSPManager, (result) => {
+    //     console.log('recieved message from lsp server', result);
+    //     // handler every case
+    // });
+
+    // send initinalize
+    this.initializeLSP({ documentText: this.view.state.doc.toString() });
+  }
+
+  sendSocketRequest(method , params, channel){
+      console.log('send_socket_request');
+      const RpcMessage = { jsonrpc: '2.0', id: 0, method: method, params: params, };
+      return new Promise((resolve, reject) => {
+          console.log('emit LSPManager');
+          socket.emit(WebAppEndpoint.LSPManager, JSON.stringify(RpcMessage));
+
+          socket.once(channel, (result) => {
+              console.log(`${WebAppEndpoint.LSPManager} got results at ${channel}...`, result);
+              try {
+                  let response = JSON.parse(result);
+                  resolve(response);
+              } catch (e) {
+                  console.log('send_socket_request err', e);
+                  resolve(null);
+              }
+          });
+      });
   }
 
   setup_connection() {
@@ -56,6 +96,7 @@ class LanguageServerPlugin {
     this.client = new Client(this.requestManager);
     console.log('LanguageServerPlugin setup_connection');
     this.client.onNotification((data) => {
+      console.log('onNotification', data);
       this.processNotificationFromServer(data);
     });
     this.client.onError((data) => {
@@ -80,7 +121,7 @@ class LanguageServerPlugin {
 
   destroy() {
     console.log('LanguageServerPlugin destroy');
-    this.client.close();
+    //this.client.close();
   }
 
   requestServer(method, params, timeout) {
@@ -89,6 +130,84 @@ class LanguageServerPlugin {
 
   notifyServer(method, params) {
     return this.client.notify({ method, params });
+  }
+  
+  async initializeLSP({documentText}){
+
+    const response = await this.sendSocketRequest(
+        'initialize',
+        {
+            capabilities: {
+                textDocument: {
+                    hover: {
+                        dynamicRegistration: true,
+                        contentFormat: ['plaintext', 'markdown'],
+                    },
+                    moniker: {},
+                    synchronization: {
+                        dynamicRegistration: true,
+                        willSave: false,
+                        didSave: false,
+                        willSaveWaitUntil: false,
+                    },
+                    completion: {
+                        dynamicRegistration: true,
+                        completionItem: {
+                            snippetSupport: false,
+                            commitCharactersSupport: true,
+                            documentationFormat: ['plaintext', 'markdown'],
+                            deprecatedSupport: false,
+                            preselectSupport: false,
+                        },
+                        contextSupport: false,
+                    },
+                    signatureHelp: {
+                        dynamicRegistration: true,
+                        signatureInformation: {
+                            documentationFormat: ['plaintext', 'markdown'],
+                            parameterInformation: {
+                                labelOffsetSupport: true,
+                            },
+                            activeParameterSupport: true,
+                        },
+                        contextSupport: true,
+                    },
+                    declaration: {
+                        dynamicRegistration: true,
+                        linkSupport: true,
+                    },
+                    definition: {
+                        dynamicRegistration: true,
+                        linkSupport: true,
+                    },
+                    typeDefinition: {
+                        dynamicRegistration: true,
+                        linkSupport: true,
+                    },
+                    implementation: {
+                        dynamicRegistration: true,
+                        linkSupport: true,
+                    },
+                },
+                workspace: {
+                    didChangeConfiguration: {
+                        dynamicRegistration: true,
+                    },
+                },
+            },
+            initializationOptions: null,
+            processId: null,
+            rootUri: this.rootUri,
+            workspaceFolders: [
+                {
+                    name: 'root',
+                    uri: this.rootUri,
+                },
+            ],
+        },
+        LspChannel.LSP_MANAGER_INIT
+    );
+    console.log('initializeLSP', response);
   }
 
   async initialize({ documentText }) {
@@ -127,7 +246,7 @@ class LanguageServerPlugin {
                               parameterInformation: {
                                   labelOffsetSupport: true,
                               },
-                              activeParameterSupport:true,
+                              activeParameterSupport: true,
                           },
                           contextSupport: true,
                       },
@@ -205,18 +324,18 @@ class LanguageServerPlugin {
     }
   }
 
-  async requestDiagnostics(view) {
-    try {
-      if (this.transport.connection.readyState == WebSocket.CLOSED) {
-        console.log('requestCompletion WebSocket.CLOSED');
-        this.setup_connection();
-      }
-      // console.log('requestDiagnostics');
-      this.sendChange({ documentText: view.state.doc.toString() });
-    } catch (e) {
-      console.error('requestDiagnostics: ', e);
-    }
-  }
+  // async requestDiagnostics(view) {
+  //   try {
+  //     if (this.transport.connection.readyState == WebSocket.CLOSED) {
+  //       console.log('requestCompletion WebSocket.CLOSED');
+  //       this.setup_connection();
+  //     }
+  //     // console.log('requestDiagnostics');
+  //     this.sendChange({ documentText: view.state.doc.toString() });
+  //   } catch (e) {
+  //     console.error('requestDiagnostics: ', e);
+  //   }
+  // }
 
   async requestHoverTooltip(view, { line, character }) {
     try {

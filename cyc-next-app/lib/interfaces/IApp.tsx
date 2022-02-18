@@ -83,13 +83,18 @@ export enum CommandType {
 }
 
 export enum WebAppEndpoint {
-    DFManager = "DFManager",
-    CodeEditor = "CodeEditor",
-    FileManager = "FileManager",
-    MagicCommandGen = "MagicCommandGen",
-    FileExplorer = "FileExplorer",
-    ExperimentManager = "ExperimentManager",
-    PlotManager = "PlotManager",
+    DFManager = 'DFManager',
+    CodeEditor = 'CodeEditor',
+    FileManager = 'FileManager',
+    MagicCommandGen = 'MagicCommandGen',
+    FileExplorer = 'FileExplorer',
+    ExperimentManager = 'ExperimentManager',
+    PlotManager = 'PlotManager',
+    LSPManager = 'LSPManager',
+}
+
+export enum LspChannel {
+    LSP_MANAGER_INIT = 'LSP_MANAGER_INIT',
 }
 
 export interface ITableData {
