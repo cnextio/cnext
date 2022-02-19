@@ -109,15 +109,6 @@ class LanguageServerPlugin {
 
     destroy() {
         console.log('LanguageServerPlugin destroy');
-        this.client?.close();
-    }
-
-    requestServer(method, params, timeout) {
-        return this.client.request({ method, params }, timeout);
-    }
-
-    notifyServer(method, params) {
-        return this.client.notify({ method, params });
     }
 
     async initializeLSP({ documentText }) {
