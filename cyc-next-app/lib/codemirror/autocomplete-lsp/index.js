@@ -314,7 +314,6 @@ class LanguageServerPlugin {
             );
 
             if (!result) return null;
-            console.log('result', result);
 
             let { contents, range } = result;
             let pos = posToOffset(view.state.doc, { line, character });
