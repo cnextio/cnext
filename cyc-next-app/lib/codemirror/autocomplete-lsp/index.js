@@ -5,19 +5,19 @@ import { Facet } from '@codemirror/state';
 import { hoverTooltip } from '@codemirror/tooltip';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import socket from '../../components/Socket';
-import { WebAppEndpoint } from '../../interfaces/IApp'
+import { WebAppEndpoint } from '../../interfaces/IApp';
 import {
-  CompletionItemKind,
-  CompletionTriggerKind,
-  DiagnosticSeverity,
-  SignatureHelpTriggerKind,
+    CompletionItemKind,
+    CompletionTriggerKind,
+    DiagnosticSeverity,
+    SignatureHelpTriggerKind,
 } from 'vscode-languageserver-protocol';
 import store from '/redux/store';
 import { python } from '../grammar/lang-cnext-python';
 const timeout = 10000;
 const changesDelay = 500;
 const CompletionItemKindMap = Object.fromEntries(
-  Object.entries(CompletionItemKind).map(([key, value]) => [value, key])
+    Object.entries(CompletionItemKind).map(([key, value]) => [value, key])
 );
 const useLast = (values) => values.reduce((_, v) => v, '');
 const serverUri = Facet.define({ combine: useLast });
@@ -55,7 +55,6 @@ class LanguageServerPlugin {
 
         // listener notify from server
         socket.on(WebAppEndpoint.LspNotify, (result) => {
-            console.log('recieved notification from lsp server', result);
             // handler every case
             try {
                 const notification = JSON.parse(result);
@@ -74,15 +73,11 @@ class LanguageServerPlugin {
 
     requestSocketLsp(channel, method, params) {
         const rpcMessage = { jsonrpc: '2.0', id: 0, method: method, params: params };
-        console.log(`send_socket_request to ${channel} have ${JSON.stringify(rpcMessage)}`);
-
         return new Promise((resolve, reject) => {
-            console.log('emit LspManager');
             socket.emit(channel, JSON.stringify(rpcMessage));
 
             if (channel) {
                 socket.once(channel, (result) => {
-                    console.log(`${channel} got results at ${channel}...`, result);
                     try {
                         const response = JSON.parse(result.toString());
                         resolve(response);
@@ -98,10 +93,8 @@ class LanguageServerPlugin {
     update({ docChanged }) {
         if (!docChanged) return;
         if (this.changesTimeout) clearTimeout(this.changesTimeout);
-        // console.log('update');
         this.changesTimeout = self.setTimeout(() => {
-            // console.log('update sendChange');
-            this.sendChange({
+            this.sendEditorChange({
                 documentText: this.view.state.doc.toString(),
             });
         }, changesDelay);
@@ -195,6 +188,7 @@ class LanguageServerPlugin {
                 version: this.documentVersion,
             },
         });
+        this.ready = true;
     }
 
     async initialize({ documentText }) {
@@ -289,7 +283,9 @@ class LanguageServerPlugin {
     }
 
     async sendEditorChange({ documentText }) {
-        if (!this.ready) return;
+        if (!this.ready) {
+            await this.setupLSPSocketConnection();
+        }
 
         await this.requestSocketLsp(WebAppEndpoint.LspManager, 'textDocument/didChange', {
             textDocument: {
@@ -318,6 +314,7 @@ class LanguageServerPlugin {
             );
 
             if (!result) return null;
+            console.log('result', result);
 
             let { contents, range } = result;
             let pos = posToOffset(view.state.doc, { line, character });
@@ -684,43 +681,40 @@ class LanguageServerPlugin {
                 await this.setupLSPSocketConnection();
             }
 
-            let result;
-            if (this.transport.connection.readyState != WebSocket.CLOSED) {
-                this.sendChange({
-                    documentText: context.state.doc.toString(),
-                });
+            this.sendEditorChange({
+                documentText: context.state.doc.toString(),
+            });
 
-                result = await this.requestSocketLsp(
-                    WebAppEndpoint.LspManager,
-                    'textDocument/signatureHelp',
-                    {
-                        textDocument: { uri: this.documentUri },
-                        position: { line, character },
-                        context: {
-                            triggerKind,
-                            triggerCharacter,
-                        },
-                    }
-                );
+            const result = await this.requestSocketLsp(
+                WebAppEndpoint.LspManager,
+                'textDocument/signatureHelp',
+                {
+                    textDocument: { uri: this.documentUri },
+                    position: { line, character },
+                    context: {
+                        triggerKind,
+                        triggerCharacter,
+                    },
+                }
+            );
 
-                if (!result?.signatures[0]?.parameters) return null;
+            if (!result?.signatures[0]?.parameters) return null;
 
-                const parameters = result.signatures[0].parameters;
-                let options = parameters.map(({ label, documentation }) => {
-                    return {
-                        label: label + '=',
-                        apply: label + '=',
-                        info: documentation ? formatContents(documentation) : null,
-                        type: 'variable',
-                    };
-                });
-
-                const { pos } = context;
+            const parameters = result.signatures[0].parameters;
+            let options = parameters.map(({ label, documentation }) => {
                 return {
-                    from: pos,
-                    options,
+                    label: label + '=',
+                    apply: label + '=',
+                    info: documentation ? formatContents(documentation) : null,
+                    type: 'variable',
                 };
-            }
+            });
+
+            const { pos } = context;
+            return {
+                from: pos,
+                options,
+            };
         } catch (e) {
             console.error('requestSignatureHelp: ', e);
         }
@@ -733,8 +727,8 @@ class LanguageServerPlugin {
     ) {
         try {
             if (!this.ready || !this.capabilities.completionProvider) {
-              await this.setupLSPSocketConnection();
-            };
+                await this.setupLSPSocketConnection();
+            }
 
             // get Dataframe-based completion first. This does not require accessing to the lsp
             let dfCompletionItems = this._getDFCompletion_CodeEditor(context, line, character);
@@ -748,16 +742,16 @@ class LanguageServerPlugin {
                     documentText: context.state.doc.toString(),
                 });
                 result = await this.requestSocketLsp(
-                  WebAppEndpoint.LspManager,
-                  'textDocument/completion',
-                  {
-                      textDocument: { uri: this.documentUri },
-                      position: { line, character },
-                      context: {
-                          triggerKind,
-                          triggerCharacter,
-                      },
-                  },
+                    WebAppEndpoint.LspManager,
+                    'textDocument/completion',
+                    {
+                        textDocument: { uri: this.documentUri },
+                        position: { line, character },
+                        context: {
+                            triggerKind,
+                            triggerCharacter,
+                        },
+                    }
                 );
             }
 
@@ -908,19 +902,7 @@ class LanguageServerPlugin {
         }
     }
 
-    processNotificationFromServer(notification) {
-        try {
-            switch (notification.method) {
-                case 'textDocument/publishDiagnostics':
-                    this.processDiagnostics(notification.params);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
     processDiagnostics(params) {
-        console.log('processDiagnostics');
         const diagnostics = params.diagnostics
             .map(({ range, message, severity }) => ({
                 from: posToOffset(this.view.state.doc, range.start),
@@ -1036,119 +1018,117 @@ function languageServer(options) {
  * name when relevant
  */
 function dfFilterLanguageServer(options) {
-  let plugin = null;
-  return [
-    languageId.of(options.languageId),
-    ViewPlugin.define(
-      (view) => (plugin = new LanguageServerPlugin(view, true))
-    ),
-    autocompletion({
-      override: [
-        async (context) => {
-          var _a, _b, _c;
-          if (plugin == null) return null;
-          const { state, pos, explicit } = context;
-          const line = state.doc.lineAt(pos);
-          let trigKind = CompletionTriggerKind.Invoked;
-          let trigChar;
-          if (
-            !explicit &&
-            ((_c =
-              (_b =
-                (_a = plugin.capabilities) === null || _a === void 0
-                  ? void 0
-                  : _a.completionProvider) === null || _b === void 0
-                ? void 0
-                : _b.triggerCharacters) === null || _c === void 0
-              ? void 0
-              : _c.includes(line.text[pos - line.from - 1]))
-          ) {
-            trigKind = CompletionTriggerKind.TriggerCharacter;
-            trigChar = line.text[pos - line.from - 1];
-          }
-          if (
-            trigKind === CompletionTriggerKind.Invoked &&
-            !context.matchBefore(/[\w'"]+$/)
-          ) {
-            //added match for ' and "
-            return null;
-          }
-          return await plugin.requestCompletion_DFFilter(
-            context,
-            offsetToPos(state.doc, pos),
-            {
-              triggerKind: trigKind,
-              triggerCharacter: trigChar,
-            }
-          );
-        },
-      ],
-    }),
-    baseTheme,
-  ];
+    let plugin = null;
+    return [
+        languageId.of(options.languageId),
+        ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view, true))),
+        autocompletion({
+            override: [
+                async (context) => {
+                    var _a, _b, _c;
+                    if (plugin == null) return null;
+                    const { state, pos, explicit } = context;
+                    const line = state.doc.lineAt(pos);
+                    let trigKind = CompletionTriggerKind.Invoked;
+                    let trigChar;
+                    if (
+                        !explicit &&
+                        ((_c =
+                            (_b =
+                                (_a = plugin.capabilities) === null || _a === void 0
+                                    ? void 0
+                                    : _a.completionProvider) === null || _b === void 0
+                                ? void 0
+                                : _b.triggerCharacters) === null || _c === void 0
+                            ? void 0
+                            : _c.includes(line.text[pos - line.from - 1]))
+                    ) {
+                        trigKind = CompletionTriggerKind.TriggerCharacter;
+                        trigChar = line.text[pos - line.from - 1];
+                    }
+                    if (
+                        trigKind === CompletionTriggerKind.Invoked &&
+                        !context.matchBefore(/[\w'"]+$/)
+                    ) {
+                        //added match for ' and "
+                        return null;
+                    }
+                    return await plugin.requestCompletion_DFFilter(
+                        context,
+                        offsetToPos(state.doc, pos),
+                        {
+                            triggerKind: trigKind,
+                            triggerCharacter: trigChar,
+                        }
+                    );
+                },
+            ],
+        }),
+        baseTheme,
+    ];
 }
 
 function posToOffset(doc, pos) {
-  if (pos.line >= doc.lines) return;
-  const offset = doc.line(pos.line + 1).from + pos.character;
-  if (offset > doc.length) return;
-  return offset;
+    if (pos.line >= doc.lines) return;
+    const offset = doc.line(pos.line + 1).from + pos.character;
+    if (offset > doc.length) return;
+    return offset;
 }
 
 function offsetToPos(doc, offset) {
-  const line = doc.lineAt(offset);
-  return {
-    line: line.number - 1,
-    character: offset - line.from,
-  };
+    const line = doc.lineAt(offset);
+    return {
+        line: line.number - 1,
+        character: offset - line.from,
+    };
 }
 
 function formatContents(contents) {
-  if (Array.isArray(contents)) {
-    return contents.map((c) => formatContents(c) + '\n\n').join('');
-  } else if (typeof contents === 'string') {
-    return contents;
-  } else {
-    return contents.value;
-  }
+    if (Array.isArray(contents)) {
+        return contents.map((c) => formatContents(c) + '\n\n').join('');
+    } else if (typeof contents === 'string') {
+        return contents;
+    } else {
+        return contents.value;
+    }
 }
 
 function toSet(chars) {
-  let preamble = '';
-  let flat = Array.from(chars).join('');
-  const words = /\w/.test(flat);
-  if (words) {
-    preamble += '\\w';
-    flat = flat.replace(/\w/g, '');
-  }
-  return `[${preamble}${flat.replace(/[^\w\s]/g, '\\$&')}]`;
+    let preamble = '';
+    let flat = Array.from(chars).join('');
+    const words = /\w/.test(flat);
+    if (words) {
+        preamble += '\\w';
+        flat = flat.replace(/\w/g, '');
+    }
+    return `[${preamble}${flat.replace(/[^\w\s]/g, '\\$&')}]`;
 }
 
 function prefixMatch(options) {
-  const first = new Set();
-  const rest = new Set();
-  for (const { apply } of options) {
-    const [initial, ...restStr] = apply;
-    first.add(initial);
-    for (const char of restStr) {
-      rest.add(char);
+    const first = new Set();
+    const rest = new Set();
+    for (const { apply } of options) {
+        const [initial, ...restStr] = apply;
+        first.add(initial);
+        for (const char of restStr) {
+            rest.add(char);
+        }
     }
-  }
-  const source = toSet(first) + toSet(rest) + '*$';
-  return [new RegExp('^' + source), new RegExp(source)];
+    const source = toSet(first) + toSet(rest) + '*$';
+    return [new RegExp('^' + source), new RegExp(source)];
 }
 
 const baseTheme = EditorView.baseTheme({
-  '.cm-tooltip.documentation': {
-    display: 'block',
-    marginLeft: '0',
-    padding: '3px 6px 3px 8px',
-    borderLeft: '5px solid #999',
-    whiteSpace: 'pre',
-  },
-  '.cm-tooltip.lint': {
-    whiteSpace: 'pre',
-  },
+    '.cm-tooltip.documentation': {
+        display: 'block',
+        marginLeft: '0',
+        padding: '3px 6px 3px 8px',
+        borderLeft: '5px solid #999',
+        whiteSpace: 'pre',
+    },
+    '.cm-tooltip.lint': {
+        whiteSpace: 'pre',
+    },
 });
 
 export { languageServer, dfFilterLanguageServer };
