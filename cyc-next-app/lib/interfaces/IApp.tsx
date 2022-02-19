@@ -90,7 +90,8 @@ export enum WebAppEndpoint {
     FileExplorer = 'FileExplorer',
     ExperimentManager = 'ExperimentManager',
     PlotManager = 'PlotManager',
-    LSPManager = 'LSPManager',
+    LspManager = 'LspManager',
+    LspNotify = 'LspManagerNotify',
 }
 
 export enum LspChannel {

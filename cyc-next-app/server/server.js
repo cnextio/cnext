@@ -6,8 +6,7 @@ const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
 const { PythonShell } = require("python-shell");
-const { spawn } = require("child_process");
-const { JsonRpcStreamReader, JsonRpcStreamWriter } = require('./streams');
+const { LspProcess, LspManager } = require('./lsp_process');
 
 const port = process.env.PORT || 4000;
 const server = http.createServer();
@@ -35,12 +34,7 @@ const CodeExecutor = [
 ];
 const NotCodeExecutor = [ExperimentManager];
 
-const LSPManager = 'LSPManager';
-const LSPExecutor = [LSPManager];
-
-// action channel
-const LSP_MANAGER_INIT = 'LSP_MANAGER_INIT';
-
+const LspExecutor = [LspManager];
 
 try {
     let file;
@@ -108,31 +102,12 @@ class PythonProcess {
     }
 }
 
-class LSPProcess{
-
-    constructor(){
-        this.ls = spawn('pyls', ['-v']);
-        this.ls.stdout.on('data', (data) => {
-            const reader = new JsonRpcStreamReader();
-            const payload = reader.getData(data);
-            if (payload) io.emit(LSP_MANAGER_INIT, JSON.stringify(payload));
-        });
-    }
-
-    sendMessageToLsp(message){
-        const writer = new JsonRpcStreamWriter();
-        const lspPayload = writer.getPayload(message);
-        this.ls.stdin.write(lspPayload);
-    }
-}
-
 /*
  * Communicate with web client
  */
     /** this variable is used to send back stdout to server */
     // let clientMessage;
 try {
-    let lspExecutor = new LSPProcess();
     io.on('connection', (socket) => {
         function codeExecutorHandler(strMessage) {
             // clientMessage = strMessage.slice();
@@ -165,7 +140,7 @@ try {
             } else if (NotCodeExecutor.includes(endpoint)) {
                 nonCodeExecutorHandler(message);
             } else 
-            if (LSPExecutor.includes(endpoint)) {
+            if (LspExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             }
         });
@@ -181,6 +156,7 @@ try {
     console.log('Starting python shell...');
     let codeExecutor = new PythonProcess(io, 'python/server.py');
     let nonCodeExecutor = new PythonProcess(io, 'python/server.py');
+    let lspExecutor = new LspProcess(io);
 
     /**
      * ZMQ communication from python-shell to node server
