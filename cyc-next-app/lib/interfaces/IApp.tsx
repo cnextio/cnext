@@ -94,10 +94,6 @@ export enum WebAppEndpoint {
     LspNotify = 'LspManagerNotify',
 }
 
-export enum LspChannel {
-    LSP_MANAGER_INIT = 'LSP_MANAGER_INIT',
-}
-
 export interface ITableData {
     df_id: string;
     index: { name: string; data: any[] };
