@@ -74,12 +74,17 @@ class LanguageServerPlugin {
     requestSocketLsp(channel, method, params) {
         const rpcMessage = { jsonrpc: '2.0', id: 0, method: method, params: params };
         return new Promise((resolve, reject) => {
+            console.log(`send LSP request to Server at ${new Date().toLocaleString()} `, rpcMessage)
             socket.emit(channel, JSON.stringify(rpcMessage));
 
             if (channel) {
                 socket.once(channel, (result) => {
                     try {
                         const response = JSON.parse(result.toString());
+                        console.log(
+                            `received from LSP server at ${new Date().toLocaleString()} `,
+                            response,
+                        );
                         resolve(response);
                     } catch (e) {
                         console.log('send_socket_request err', e);

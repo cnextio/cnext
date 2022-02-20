@@ -27,6 +27,7 @@ class LspProcess {
     sendMessageToLsp(message) {
         const writer = new JsonRpcStreamWriter();
         const lspPayload = writer.getPayload(message);
+        console.log( `send request to LSP server at ${new Date().toLocaleString()}`,lspPayload);
         this.ls.stdin.write(lspPayload);
     }
 }
