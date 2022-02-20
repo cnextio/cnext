@@ -73,6 +73,7 @@ export enum ContentType {
     FILE_METADATA = "file_metadata",
     FILE_CONTENT = "file_content",
     COLUMN_CARDINAL = "column_cardinal",
+    RICH_OUTPUT = "rich_output",
     NONE = "none",
 }
 

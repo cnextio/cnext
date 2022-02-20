@@ -105,6 +105,10 @@ export interface IPlotResult {
     plot: object;
 }
 
+export interface IRichOutputResult {
+    content: string | object;
+}
+
 export interface IRunningCommandContent {
     lineRange: ILineRange;
     content: string;

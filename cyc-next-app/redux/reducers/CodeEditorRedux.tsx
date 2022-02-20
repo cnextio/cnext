@@ -17,6 +17,7 @@ import {
     IReduxRunQueueMessage,
     ILineRange,
     ICodeToInsert,
+    IRichOutputResult,
 } from "../../lib/interfaces/ICodeEditor";
 import { ifElseDict } from "../../lib/components/libs";
 import { ContentType } from "../../lib/interfaces/IApp";
@@ -128,9 +129,8 @@ export const CodeEditorRedux = createSlice({
                     //TODO: make this thing like plugin and hook so we can handle different kind of output
                     if (
                         codeLines[updatedStartLineNumber + 1 + i].result &&
-                        [ContentType.PLOTLY_FIG, ContentType.MATPLOTLIB_FIG].includes(
-                            codeLines[updatedStartLineNumber + 1 + i].result.type
-                        )
+                        codeLines[updatedStartLineNumber + 1 + i].result.type ===
+                            ContentType.RICH_OUTPUT
                     ) {
                         state.plotResultUpdate -= 1;
                     }
@@ -221,6 +221,28 @@ export const CodeEditorRedux = createSlice({
             };
             let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
             let result: ICodeResult = { type: resultMessage.type, content: plotResult };
+            if (lineRange) {
+                /** only associate fromLine to result. This is ok because at the moment the group execution is not supposed to output plot
+                 * in the backend it is run using exec */
+                let lineNumber = lineRange.fromLine;
+                let codeLine: ICodeLine = state.codeLines[inViewID][lineNumber];
+                codeLine.result = result;
+
+                // let statePlotResults: IStatePlotResults = state.plotResults;
+                // statePlotResults[codeLine.lineID] = plotResult;
+                state.plotResultUpdate += 1;
+            }
+        },
+
+        addRichOutputResult: (state, action) => {
+            let resultMessage: ICodeResultMessage = action.payload;
+            let inViewID = resultMessage.inViewID;
+            const resultContent = JSON.parse(resultMessage?.content);
+            let richOutputResult: IRichOutputResult = {
+                content: resultContent,
+            };
+            let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
+            let result: ICodeResult = { type: resultMessage.type, content: richOutputResult };
             if (lineRange) {
                 /** only associate fromLine to result. This is ok because at the moment the group execution is not supposed to output plot
                  * in the backend it is run using exec */
