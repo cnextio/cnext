@@ -16,7 +16,7 @@ import sys
 import simplejson as json
 
 from user_space.user_space import BaseKernel, UserSpace
-from ipython.kernel import IPythonKernel
+from libs.ipython.kernel import IPythonKernel
 
 log = logs.get_logger(__name__)
 

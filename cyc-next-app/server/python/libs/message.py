@@ -87,6 +87,7 @@ class ContentType(str, Enum):
     PROJECT_METADATA = 'project_metadata',
     FILE_CONTENT = 'file_content',
     COLUMN_CARDINAL = 'column_cardinal',
+    RICH_OUTPUT = 'rich_output'
     NONE = 'none'
 
     def __str__(self):

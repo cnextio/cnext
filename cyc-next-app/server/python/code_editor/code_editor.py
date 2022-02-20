@@ -13,6 +13,7 @@ from libs.message import ContentType, Message
 from libs import logs
 from user_space.user_space import ExecutionMode
 from user_space.user_space import BaseKernel, UserSpace
+from libs.ipython.constants import IPythonKernelConstants as IPythonConstants
 from code_editor.interfaces import PlotResult
 log = logs.get_logger(__name__)
 
@@ -70,6 +71,19 @@ class MessageHandler(BaseMessageHandler):
                 return True
         return False
 
+    @staticmethod
+    def _is_execute_result(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
+
+    @staticmethod
+    def _is_stream_result(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.STREAM
+
+    @staticmethod
+    def _is_display_data_result(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA
+
+
     def handle_message_v2(self, message):
         """ Use Ipython Kernel to handle message
         """
@@ -77,10 +91,24 @@ class MessageHandler(BaseMessageHandler):
         try:
             outputs = self.user_space.execute(message.content, None)
             for output in outputs:
-                message.type = ContentType.STRING
-                message.content = output
+                header = output['header']
+                content = output['content']
                 message.error = False
-                self._send_to_node(message)
+                if self._is_execute_result(header):
+                    message.type = ContentType.STRING
+                    message.content = content['data']
+                    self._send_to_node(message)
+                elif self._is_stream_result(header):
+                    message.type = ContentType.STRING
+                    if 'text' in content:
+                        message.content = content['text']
+                    elif 'data' in content:
+                        message.content = content['data']
+                    self._send_to_node(message)
+                elif self._is_display_data_result(header):
+                    message.content = content
+                    message.type = ContentType.RICH_OUTPUT
+                    self._send_to_node(message)
         except:
             trace = traceback.format_exc()
             log.error("Exception %s" % (trace))
