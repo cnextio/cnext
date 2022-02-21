@@ -19,6 +19,7 @@ class LSPProcess {
             }
             else if (this.isNeedNotify(payload)) {
                 io.emit(LanguageServerNotifier, JSON.stringify(payload));
+                reader.clearCache();
             }
         });
     }

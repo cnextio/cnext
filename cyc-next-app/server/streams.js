@@ -22,20 +22,21 @@ class JsonRpcStreamReader {
                 }
             }
             // add to cache
-            this.cache.push(messages);
+            this.cache.push(...messages);
             return null;
         } else {
             // try get additional response
             // when have one line additional info
             if (!this.cache.includes(messages[0])) {
-                this.cache.push(messages);
+                this.cache.push(messages[0]);
             }
             // get object response from cache
-            let resultObj;
+            //console.log("this.cache", this.cache);
+            let resultObj = '';
             for(let i = 3; i < this.cache.length; i++){
                 resultObj += this.cache[i];
             }
-
+            
             if (this.lastContentLength === resultObj.length) {
                 // have full response with multi lines
                 try {
