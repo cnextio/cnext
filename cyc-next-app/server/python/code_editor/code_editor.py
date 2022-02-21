@@ -7,10 +7,12 @@ from xmlrpc.client import boolean
 import pandas
 import plotly
 import matplotlib.pyplot as plt
+from cycdataframe.df_status_hook import DataFrameStatusHook
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, Message
 
 from libs import logs
+from python.libs.message import DFManagerCommand, WebappEndpoint
 from user_space.user_space import ExecutionMode
 from user_space.user_space import BaseKernel, UserSpace
 from code_editor.interfaces import PlotResult
@@ -70,6 +72,16 @@ class MessageHandler(BaseMessageHandler):
                 return True
         return False
 
+    def _process_active_df_status(self):
+        if DataFrameStatusHook.update_active_df_status(self.user_space.get_df_list()):
+            active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
+                                                "command_name": DFManagerCommand.active_df_status,
+                                                "seq_number": 1,
+                                                "type": "dict",
+                                                "content": DataFrameStatusHook.get_active_df(),
+                                                "error": False})
+            self._send_to_node(active_df_status_message)
+        
     def handle_message(self, message):
         # message execution_mode will always be `eval` for this sender
         log.info('eval... %s' % message)
@@ -112,9 +124,11 @@ class MessageHandler(BaseMessageHandler):
             message.error = False
             self._send_to_node(message)
 
+            self._process_active_df_status()
+
         except:
             trace = traceback.format_exc()
             log.error("Exception %s" % (trace))
-            error_message = self._create_error_message(
+            error_message = MessageHandler._create_error_message(
                 message.webapp_endpoint, trace, message.metadata)
             self._send_to_node(error_message)
