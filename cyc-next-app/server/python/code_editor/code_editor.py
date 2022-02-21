@@ -8,12 +8,13 @@ import pandas
 import plotly
 import matplotlib.pyplot as plt
 from libs.message_handler import BaseMessageHandler
-from libs.message import ContentType, Message
+from libs.message import ContentType, SubContentType, Message
 
 from libs import logs
 from user_space.user_space import ExecutionMode
 from user_space.user_space import BaseKernel, UserSpace
-from libs.ipython.constants import IPythonKernelConstants as IPythonConstants
+from libs.ipython.constants import IPythonKernelConstants as IPythonConstants, MIME_TYPES
+from libs.ipython.kernel import IPythonKernel
 from code_editor.interfaces import PlotResult
 log = logs.get_logger(__name__)
 
@@ -26,23 +27,19 @@ class MessageHandler(BaseMessageHandler):
     def _create_plot_data(result):
         return PlotResult(plot=result.to_json()).toJSON()
 
-    @staticmethod
-    def _create_matplotlib_data(result):
-        figfile = io.BytesIO()
-        plt.savefig(figfile, format='svg')
-        figfile.seek(0)  # rewind to beginning of file
-        plot_binary_data = base64.b64encode(figfile.getvalue())
-        # make sure the result type is json data same as result of _create_plot_data function.
-        # It help the code in client: CodeEditorRedux.addPlotResult() keep simplest
-        return PlotResult(plot=json.dumps({'data': plot_binary_data})).toJSON()
+    # @staticmethod
+    # def _create_matplotlib_data(result):
+    #     figfile = io.BytesIO()
+    #     plt.savefig(figfile, format='svg')
+    #     figfile.seek(0)  # rewind to beginning of file
+    #     plot_binary_data = base64.b64encode(figfile.getvalue())
+    #     # make sure the result type is json data same as result of _create_plot_data function.
+    #     # It help the code in client: CodeEditorRedux.addPlotResult() keep simplest
+    #     return PlotResult(plot=json.dumps({'data': plot_binary_data})).toJSON()
 
     # @staticmethod
     # def _result_is_dataframe(result) -> bool:
     #     return type(result) == pandas.core.frame.DataFrame
-
-    @staticmethod
-    def _result_is_plotly_fig(result) -> bool:
-        return hasattr(plotly.graph_objs, '_figure') and (type(result) == plotly.graph_objs._figure.Figure)
 
     @staticmethod
     def _assign_exec_mode(message: Message):
@@ -83,6 +80,15 @@ class MessageHandler(BaseMessageHandler):
     def _is_display_data_result(header) -> bool:
         return header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA
 
+    @staticmethod
+    def _result_is_plotly_fig(content) -> bool:
+        try:
+            # Because IPython return plotly as json format, have to convert it to figure instance
+            # Use plotly_io (low-level interface for displaying, reading and writing figures)
+            plotly_figure = plotly.io.from_json(json.dumps(content))
+            return hasattr(plotly.graph_objs, '_figure') and (type(plotly_figure) == plotly.graph_objs._figure.Figure)
+        except Exception:
+            return False
 
     def handle_message_v2(self, message):
         """ Use Ipython Kernel to handle message
@@ -106,8 +112,21 @@ class MessageHandler(BaseMessageHandler):
                         message.content = content['data']
                     self._send_to_node(message)
                 elif self._is_display_data_result(header):
-                    message.content = content
                     message.type = ContentType.RICH_OUTPUT
+                    for key, value in content['data'].items():
+                        # All returned rich output in IPython is formatted in mime types
+                        if key in MIME_TYPES:
+                            message.content = value
+                            message.sub_type = key
+                            if key == 'application/json':
+                                message.sub_type = SubContentType.PLOTLY_FIG if self._result_is_plotly_fig(
+                                    value) else key
+
+                    # If message doesn't have sub type, assign content to message.content prevent none value
+                    # This is just a temporary solution to get all response from IPython,
+                    # I need more practice with Ipython result with alot of cases then improve later.
+                    if message.sub_type == None:
+                        message.content = content
                     self._send_to_node(message)
         except:
             trace = traceback.format_exc()
@@ -115,6 +134,8 @@ class MessageHandler(BaseMessageHandler):
             error_message = self._create_error_message(
                 message.webapp_endpoint, trace, message.metadata)
             self._send_to_node(error_message)
+        finally:
+            IPythonKernel().shutdown_kernel()
 
     def handle_message(self, message):
         # message execution_mode will always be `eval` for this sender
@@ -145,9 +166,9 @@ class MessageHandler(BaseMessageHandler):
                     if self._result_is_plotly_fig(result):
                         output = self._create_plot_data(result)
                         type = ContentType.PLOTLY_FIG
-                    elif self._result_is_matplotlib_fig(result):
-                        output = self._create_matplotlib_data(result)
-                        type = ContentType.MATPLOTLIB_FIG
+                    # elif self._result_is_matplotlib_fig(result):
+                    #     output = self._create_matplotlib_data(result)
+                    #     type = ContentType.MATPLOTLIB_FIG
                     else:
                         type = ContentType.STRING
                         output = str(result)

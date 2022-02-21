@@ -77,6 +77,12 @@ export enum ContentType {
     NONE = "none",
 }
 
+
+export enum SubContentType {
+    PLOTLY_FIG = "plotly_fig",
+    NONE = "none",
+}
+
 export enum CommandType {
     MLFLOW = "mlflow",
     MLFLOW_CLIENT = "mlflow_client",

@@ -14,12 +14,10 @@ import {
     RunQueueStatus,
     ICodeActiveLine,
     ICodeText,
-    IReduxRunQueueMessage,
     ILineRange,
     ICodeToInsert,
-    IRichOutputResult,
 } from "../../lib/interfaces/ICodeEditor";
-import { ifElseDict } from "../../lib/components/libs";
+import { ifElseDict, isJsonString } from "../../lib/components/libs";
 import { ContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 
@@ -34,7 +32,8 @@ type CodeEditorState = {
     runQueue: IRunQueue;
     /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of
      * PlotView, which would only be rerendered when this variable is updated */
-    plotResultUpdate: number;
+    // plotResultUpdate: number;
+    resultUpdate: number;
     activeLine: string | null;
     cAssistInfo: ICAssistInfo | undefined;
     runDict: {} | undefined;
@@ -48,7 +47,8 @@ const initialState: CodeEditorState = {
     timestamp: {},
     fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP },
-    plotResultUpdate: 0,
+    // plotResultUpdate: 0,
+    resultUpdate: 0,
     activeLine: null,
     cAssistInfo: undefined,
     runDict: undefined,
@@ -132,7 +132,7 @@ export const CodeEditorRedux = createSlice({
                         codeLines[updatedStartLineNumber + 1 + i].result.type ===
                             ContentType.RICH_OUTPUT
                     ) {
-                        state.plotResultUpdate -= 1;
+                        state.resultUpdate -= 1;
                     }
                 }
                 /** Remove lines from updatedStartLineNumber+1. Keep the ID of lines between 0 and updatedStartLineNumber
@@ -230,19 +230,22 @@ export const CodeEditorRedux = createSlice({
 
                 // let statePlotResults: IStatePlotResults = state.plotResults;
                 // statePlotResults[codeLine.lineID] = plotResult;
-                state.plotResultUpdate += 1;
+                state.resultUpdate += 1;
             }
         },
 
-        addRichOutputResult: (state, action) => {
+        addResult: (state, action) => {
             let resultMessage: ICodeResultMessage = action.payload;
             let inViewID = resultMessage.inViewID;
-            const resultContent = JSON.parse(resultMessage?.content);
-            let richOutputResult: IRichOutputResult = {
-                content: resultContent,
-            };
+            const content = isJsonString(resultMessage?.content)
+                ? JSON.parse(resultMessage?.content)
+                : resultMessage.content;
             let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
-            let result: ICodeResult = { type: resultMessage.type, content: richOutputResult };
+            let result: ICodeResult = {
+                type: resultMessage.type,
+                subType: resultMessage.subType,
+                content: content,
+            };
             if (lineRange) {
                 /** only associate fromLine to result. This is ok because at the moment the group execution is not supposed to output plot
                  * in the backend it is run using exec */
@@ -252,7 +255,7 @@ export const CodeEditorRedux = createSlice({
 
                 // let statePlotResults: IStatePlotResults = state.plotResults;
                 // statePlotResults[codeLine.lineID] = plotResult;
-                state.plotResultUpdate += 1;
+                state.resultUpdate += 1;
             }
         },
 
@@ -333,6 +336,7 @@ export const {
     initCodeText,
     updateLines,
     addPlotResult,
+    addResult,
     setLineStatus,
     setLineGroupStatus,
     setActiveLine,

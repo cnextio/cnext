@@ -80,14 +80,23 @@ class ContentType(str, Enum):
     DICT = 'dict'
     BINARY = 'binary'
     PANDAS_DATAFRAME = 'pandas_dataframe'
-    PLOTLY_FIG = 'plotly_fig'
-    MATPLOTLIB_FIG = 'matplotlib_fig'
     DIR_LIST = 'dir_list',
     FILE_METADATA = 'file_metadata',
     PROJECT_METADATA = 'project_metadata',
     FILE_CONTENT = 'file_content',
     COLUMN_CARDINAL = 'column_cardinal',
     RICH_OUTPUT = 'rich_output'
+    NONE = 'none'
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
+class SubContentType(str, Enum):
+    PLOTLY_FIG = 'plotly_fig'
     NONE = 'none'
 
     def __str__(self):
@@ -115,6 +124,7 @@ class Message:
         self.command_name = None
         self.seq_number = None
         self.type = None
+        self.sub_type = None
         self.content = None
         self.error = None
         self.metadata = None
