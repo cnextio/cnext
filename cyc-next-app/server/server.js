@@ -6,8 +6,7 @@ const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
 const { PythonShell } = require("python-shell");
-const { LspProcess, LspManager } = require('./lsp_process');
-
+const { LSPProcess, LanguageServer } = require('./lsp_process');
 const port = process.env.PORT || 4000;
 const server = http.createServer();
 const options = {
@@ -34,7 +33,7 @@ const CodeExecutor = [
 ];
 const NotCodeExecutor = [ExperimentManager];
 
-const LspExecutor = [LspManager];
+const LSPExecutor = [LanguageServer];
 
 try {
     let file;
@@ -140,7 +139,7 @@ try {
             } else if (NotCodeExecutor.includes(endpoint)) {
                 nonCodeExecutorHandler(message);
             } else 
-            if (LspExecutor.includes(endpoint)) {
+            if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             }
         });
@@ -156,7 +155,7 @@ try {
     console.log('Starting python shell...');
     let codeExecutor = new PythonProcess(io, 'python/server.py');
     let nonCodeExecutor = new PythonProcess(io, 'python/server.py');
-    let lspExecutor = new LspProcess(io);
+    let lspExecutor = new LSPProcess(io);
 
     /**
      * ZMQ communication from python-shell to node server

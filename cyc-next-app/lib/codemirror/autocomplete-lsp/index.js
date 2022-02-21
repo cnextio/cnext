@@ -48,16 +48,20 @@ class LanguageServerPlugin {
     async setupLSPSocketConnection() {
         console.log('setupLSPSocket LSP');
         this.ready = false;
-        socket.emit('ping', WebAppEndpoint.LspManager);
+        socket.emit('ping', WebAppEndpoint.LanguageServer);
         socket.on('pong', (message) => {
             console.log('Get pong from server when init LSP');
         });
 
         // listener notify from server
-        socket.on(WebAppEndpoint.LspNotify, (result) => {
+        socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
             // handler every case
             try {
                 const notification = JSON.parse(result);
+                console.log(
+                    `received notify from LSP server at ${new Date().toLocaleString()} `,
+                    notification
+                );
                 switch (notification.method) {
                     case 'textDocument/publishDiagnostics':
                         this.processDiagnostics(notification.params);
@@ -71,28 +75,31 @@ class LanguageServerPlugin {
         this.initializeLSP({ documentText: this.view.state.doc.toString() });
     }
 
-    requestSocketLsp(channel, method, params) {
+    async requestSocketLSP(channel, method, params, time) {
+        if(!time) time = timeout;
         const rpcMessage = { jsonrpc: '2.0', id: 0, method: method, params: params };
-        return new Promise((resolve, reject) => {
+
+        let promises = new Promise((resolve, reject) => {
             console.log(`send LSP request to Server at ${new Date().toLocaleString()} `, rpcMessage)
             socket.emit(channel, JSON.stringify(rpcMessage));
 
+            setTimeout(()=>{
+                resolve(null);
+            }, time);
+
             if (channel) {
                 socket.once(channel, (result) => {
-                    try {
-                        const response = JSON.parse(result.toString());
-                        console.log(
-                            `received from LSP server at ${new Date().toLocaleString()} `,
-                            response,
-                        );
-                        resolve(response);
-                    } catch (e) {
-                        console.log('send_socket_request err', e);
-                        resolve(null);
-                    }
+                    const response = JSON.parse(result.toString());
+                    console.log(
+                        `received from LSP server at ${new Date().toLocaleString()} `,
+                        response
+                    );
+                    resolve(response);
                 });
             }
         });
+
+        return promises
     }
 
     update({ docChanged }) {
@@ -110,8 +117,8 @@ class LanguageServerPlugin {
     }
 
     async initializeLSP({ documentText }) {
-        const { capabilities } = await this.requestSocketLsp(
-            WebAppEndpoint.LspManager,
+        const result = await this.requestSocketLSP(
+            WebAppEndpoint.LanguageServer,
             'initialize',
             {
                 capabilities: {
@@ -183,97 +190,11 @@ class LanguageServerPlugin {
                 ],
             }
         );
-        this.capabilities = capabilities;
-        this.requestSocketLsp(WebAppEndpoint.LspManager, 'initialized', {});
-        this.requestSocketLsp(WebAppEndpoint.LspManager, 'textDocument/didOpen', {
-            textDocument: {
-                uri: this.documentUri,
-                languageId: this.languageId,
-                text: documentText,
-                version: this.documentVersion,
-            },
-        });
-        this.ready = true;
-    }
 
-    async initialize({ documentText }) {
-        try {
-            const { capabilities } = await this.requestServer(
-                'initialize',
-                {
-                    capabilities: {
-                        textDocument: {
-                            hover: {
-                                dynamicRegistration: true,
-                                contentFormat: ['plaintext', 'markdown'],
-                            },
-                            moniker: {},
-                            synchronization: {
-                                dynamicRegistration: true,
-                                willSave: false,
-                                didSave: false,
-                                willSaveWaitUntil: false,
-                            },
-                            completion: {
-                                dynamicRegistration: true,
-                                completionItem: {
-                                    snippetSupport: false,
-                                    commitCharactersSupport: true,
-                                    documentationFormat: ['plaintext', 'markdown'],
-                                    deprecatedSupport: false,
-                                    preselectSupport: false,
-                                },
-                                contextSupport: false,
-                            },
-                            signatureHelp: {
-                                dynamicRegistration: true,
-                                signatureInformation: {
-                                    documentationFormat: ['plaintext', 'markdown'],
-                                    parameterInformation: {
-                                        labelOffsetSupport: true,
-                                    },
-                                    activeParameterSupport: true,
-                                },
-                                contextSupport: true,
-                            },
-                            declaration: {
-                                dynamicRegistration: true,
-                                linkSupport: true,
-                            },
-                            definition: {
-                                dynamicRegistration: true,
-                                linkSupport: true,
-                            },
-                            typeDefinition: {
-                                dynamicRegistration: true,
-                                linkSupport: true,
-                            },
-                            implementation: {
-                                dynamicRegistration: true,
-                                linkSupport: true,
-                            },
-                        },
-                        workspace: {
-                            didChangeConfiguration: {
-                                dynamicRegistration: true,
-                            },
-                        },
-                    },
-                    initializationOptions: null,
-                    processId: null,
-                    rootUri: this.rootUri,
-                    workspaceFolders: [
-                        {
-                            name: 'root',
-                            uri: this.rootUri,
-                        },
-                    ],
-                },
-                timeout / 5
-            );
-            this.capabilities = capabilities;
-            this.notifyServer('initialized', {});
-            this.notifyServer('textDocument/didOpen', {
+        if (result && result.capabilities) {
+            this.capabilities = result.capabilities;
+            this.requestSocketLSP(WebAppEndpoint.LanguageServer, 'initialized', {});
+            this.requestSocketLSP(WebAppEndpoint.LanguageServer, 'textDocument/didOpen', {
                 textDocument: {
                     uri: this.documentUri,
                     languageId: this.languageId,
@@ -281,36 +202,29 @@ class LanguageServerPlugin {
                     version: this.documentVersion,
                 },
             });
+
             this.ready = true;
-        } catch (error) {
-            console.log('LanguageServerPlugin initialize timeout', this);
         }
     }
 
     async sendEditorChange({ documentText }) {
-        if (!this.ready) {
-            await this.setupLSPSocketConnection();
+        if (this.ready) {
+            this.requestSocketLSP(WebAppEndpoint.LanguageServer, 'textDocument/didChange', {
+                textDocument: {
+                    uri: this.documentUri,
+                    version: this.documentVersion++,
+                },
+                contentChanges: [{ text: documentText }],
+            });
         }
-
-        await this.requestSocketLsp(WebAppEndpoint.LspManager, 'textDocument/didChange', {
-            textDocument: {
-                uri: this.documentUri,
-                version: this.documentVersion++,
-            },
-            contentChanges: [{ text: documentText }],
-        });
     }
 
     async requestSocketHoverTooltip(view, { line, character }) {
         try {
-            if (!this.ready || !this.capabilities.hoverProvider) {
-                await this.setupLSPSocketConnection();
-            }
-
             this.sendEditorChange({ documentText: view.state.doc.toString() });
 
-            let result = await this.requestSocketLsp(
-                WebAppEndpoint.LspManager,
+            let result = await this.requestSocketLSP(
+                WebAppEndpoint.LanguageServer,
                 'textDocument/hover',
                 {
                     textDocument: { uri: this.documentUri },
@@ -336,8 +250,8 @@ class LanguageServerPlugin {
                 let doc = view.state.doc;
                 let lineExcute = doc.lineAt(pos);
 
-                let signatureResult = await this.requestSocketLsp(
-                    WebAppEndpoint.LspManager,
+                let signatureResult = await this.requestSocketLSP(
+                    WebAppEndpoint.LanguageServer,
                     'textDocument/signatureHelp',
                     {
                         textDocument: { uri: this.documentUri },
@@ -348,8 +262,15 @@ class LanguageServerPlugin {
                         },
                     }
                 );
-
-                if (!signatureResult?.signatures[0]?.label) return null;
+                
+                if (
+                    !signatureResult['signatures'] ||
+                    (signatureResult['signatures'] && !signatureResult.signatures[0]) ||
+                    (signatureResult['signatures'] &&
+                        signatureResult.signatures[0] &&
+                        !signatureResult.signatures[0].label)
+                )
+                    return null;
                 else {
                     dom.textContent = formatContents(signatureResult.signatures[0].label);
                     return { pos, end, create: (view) => ({ dom }), above: true };
@@ -681,16 +602,12 @@ class LanguageServerPlugin {
         { triggerKind, triggerCharacter }
     ) {
         try {
-            if (!this.ready || !this.capabilities.signatureHelpProvider) {
-                await this.setupLSPSocketConnection();
-            }
-
             this.sendEditorChange({
                 documentText: context.state.doc.toString(),
             });
 
-            const result = await this.requestSocketLsp(
-                WebAppEndpoint.LspManager,
+            const result = await this.requestSocketLSP(
+                WebAppEndpoint.LanguageServer,
                 'textDocument/signatureHelp',
                 {
                     textDocument: { uri: this.documentUri },
@@ -730,10 +647,6 @@ class LanguageServerPlugin {
         { triggerKind, triggerCharacter }
     ) {
         try {
-            if (!this.ready || !this.capabilities.completionProvider) {
-                await this.setupLSPSocketConnection();
-            }
-
             // get Dataframe-based completion first. This does not require accessing to the lsp
             let dfCompletionItems = this._getDFCompletion_CodeEditor(context, line, character);
 
@@ -745,8 +658,8 @@ class LanguageServerPlugin {
                 this.sendEditorChange({
                     documentText: context.state.doc.toString(),
                 });
-                result = await this.requestSocketLsp(
-                    WebAppEndpoint.LspManager,
+                result = await this.requestSocketLSP(
+                    WebAppEndpoint.LanguageServer,
                     'textDocument/completion',
                     {
                         textDocument: { uri: this.documentUri },

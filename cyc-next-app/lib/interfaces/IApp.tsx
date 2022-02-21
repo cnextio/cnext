@@ -90,8 +90,8 @@ export enum WebAppEndpoint {
     FileExplorer = 'FileExplorer',
     ExperimentManager = 'ExperimentManager',
     PlotManager = 'PlotManager',
-    LspManager = 'LspManager',
-    LspNotify = 'LspManagerNotify',
+    LanguageServer = 'LanguageServer',
+    LanguageServerNotifier = 'LanguageServerNotifier',
 }
 
 export interface ITableData {
