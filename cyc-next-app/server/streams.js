@@ -36,7 +36,7 @@ class JsonRpcStreamReader {
                 resultObj += this.cache[i];
             }
 
-            if (content_length === resultObj.length) {
+            if (this.lastContentLength === resultObj.length) {
                 // have full response with multi lines
                 try {
                     return JSON.parse(resultObj);
