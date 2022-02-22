@@ -122,14 +122,14 @@ class MessageHandler(BaseMessageHandler):
             
             elif message.command_name == DFManagerCommand.get_df_metadata: 
                 df_id = message.metadata['df_id']
-                # shape = eval("%s.df.shape"%df_id, client_globals)
-                # dtypes = eval("%s.df.dtypes"%df_id, client_globals)
-                # countna = eval("%s.df.isna().sum()"%df_id, client_globals)                        
-                # describe = eval("%s.df.describe(include='all')"%df_id, client_globals)
-                shape = self.user_space.execute("%s.df.shape"%df_id, ExecutionMode.EVAL)
-                dtypes = self.user_space.execute("%s.df.dtypes"%df_id, ExecutionMode.EVAL)
-                countna = self.user_space.execute("%s.df.isna().sum()"%df_id, ExecutionMode.EVAL)
-                describe = self.user_space.execute("%s.df.describe(include='all')"%df_id, ExecutionMode.EVAL)
+                # shape = eval("%s.shape"%df_id, client_globals)
+                # dtypes = eval("%s.dtypes"%df_id, client_globals)
+                # countna = eval("%s.isna().sum()"%df_id, client_globals)                        
+                # describe = eval("%s.describe(include='all')"%df_id, client_globals)
+                shape = self.user_space.execute("%s.shape"%df_id, ExecutionMode.EVAL)
+                dtypes = self.user_space.execute("%s.dtypes"%df_id, ExecutionMode.EVAL)
+                countna = self.user_space.execute("%s.isna().sum()"%df_id, ExecutionMode.EVAL)
+                describe = self.user_space.execute("%s.describe(include='all')"%df_id, ExecutionMode.EVAL)
                 columns = {}
                 for col_name, ctype in dtypes.items():
                     # print(col_name, ctype)
