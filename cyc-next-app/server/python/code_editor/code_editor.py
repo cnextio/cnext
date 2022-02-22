@@ -4,10 +4,11 @@ import traceback
 import simplejson as json
 from xmlrpc.client import boolean
 
-import pandas
+import pandas as pd
 import plotly
 import matplotlib.pyplot as plt
 from cycdataframe.df_status_hook import DataFrameStatusHook
+import cycdataframe.cycdataframe as cd
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, Message
 
@@ -73,7 +74,9 @@ class MessageHandler(BaseMessageHandler):
         return False
 
     def _process_active_df_status(self):
-        if DataFrameStatusHook.update_active_df_status(self.user_space.get_df_list()):
+        # DataFrameStatusHook.update_active_df_status(self.user_space.get_df_list())
+        DataFrameStatusHook.update_all()
+        if DataFrameStatusHook.is_updated():
             active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
                                                 "command_name": DFManagerCommand.active_df_status,
                                                 "seq_number": 1,
@@ -81,7 +84,8 @@ class MessageHandler(BaseMessageHandler):
                                                 "content": DataFrameStatusHook.get_active_df(),
                                                 "error": False})
             self._send_to_node(active_df_status_message)
-        
+        DataFrameStatusHook.reset_dfs_status()
+
     def handle_message(self, message):
         # message execution_mode will always be `eval` for this sender
         log.info('eval... %s' % message)

@@ -10,7 +10,8 @@ from project_manager import projects
 from libs.message import Message, WebappEndpoint, DFManagerCommand, ContentType
 from libs.zmq_message import MessageQueue
 import traceback
-from cycdataframe.df_status_hook import DataFrameStatusHook
+import cycdataframe.cycdataframe as cd
+import cycdataframe.df_status_hook as sh
 from libs.config import read_config
 import sys
 import simplejson as json
@@ -29,8 +30,9 @@ if __name__ == "__main__":
         p2n_queue = MessageQueue(
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
         
-        user_space = UserSpace(BaseKernel())
-        
+        user_space = UserSpace(BaseKernel(), [cd.DataFrame])
+        sh.DataFrameStatusHook.set_user_space(user_space)
+
         message_handler = {
             WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
