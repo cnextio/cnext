@@ -71,19 +71,26 @@ class LanguageServerPlugin {
             }
         });
 
+        socket.on('connect', () => {
+            this.initializeLSP({ documentText: this.view.state.doc.toString() });
+        });
+
         // send initinalize
         this.initializeLSP({ documentText: this.view.state.doc.toString() });
     }
 
     async requestSocketLSP(channel, method, params, time) {
-        if(!time) time = timeout;
+        if (!time) time = timeout;
         const rpcMessage = { jsonrpc: '2.0', id: 0, method: method, params: params };
 
         let promises = new Promise((resolve, reject) => {
-            console.log(`send LSP request to Server at ${new Date().toLocaleString()} `, rpcMessage)
+            console.log(
+                `send LSP request to Server at ${new Date().toLocaleString()} `,
+                rpcMessage
+            );
             socket.emit(channel, JSON.stringify(rpcMessage));
 
-            setTimeout(()=>{
+            setTimeout(() => {
                 resolve(null);
             }, time);
 
@@ -99,7 +106,7 @@ class LanguageServerPlugin {
             }
         });
 
-        return promises
+        return promises;
     }
 
     update({ docChanged }) {
@@ -117,79 +124,75 @@ class LanguageServerPlugin {
     }
 
     async initializeLSP({ documentText }) {
-        const result = await this.requestSocketLSP(
-            WebAppEndpoint.LanguageServer,
-            'initialize',
-            {
-                capabilities: {
-                    textDocument: {
-                        hover: {
-                            dynamicRegistration: true,
-                            contentFormat: ['plaintext', 'markdown'],
-                        },
-                        moniker: {},
-                        synchronization: {
-                            dynamicRegistration: true,
-                            willSave: false,
-                            didSave: false,
-                            willSaveWaitUntil: false,
-                        },
-                        completion: {
-                            dynamicRegistration: true,
-                            completionItem: {
-                                snippetSupport: false,
-                                commitCharactersSupport: true,
-                                documentationFormat: ['plaintext', 'markdown'],
-                                deprecatedSupport: false,
-                                preselectSupport: false,
-                            },
-                            contextSupport: false,
-                        },
-                        signatureHelp: {
-                            dynamicRegistration: true,
-                            signatureInformation: {
-                                documentationFormat: ['plaintext', 'markdown'],
-                                parameterInformation: {
-                                    labelOffsetSupport: true,
-                                },
-                                activeParameterSupport: true,
-                            },
-                            contextSupport: true,
-                        },
-                        declaration: {
-                            dynamicRegistration: true,
-                            linkSupport: true,
-                        },
-                        definition: {
-                            dynamicRegistration: true,
-                            linkSupport: true,
-                        },
-                        typeDefinition: {
-                            dynamicRegistration: true,
-                            linkSupport: true,
-                        },
-                        implementation: {
-                            dynamicRegistration: true,
-                            linkSupport: true,
-                        },
+        const result = await this.requestSocketLSP(WebAppEndpoint.LanguageServer, 'initialize', {
+            capabilities: {
+                textDocument: {
+                    hover: {
+                        dynamicRegistration: true,
+                        contentFormat: ['plaintext', 'markdown'],
                     },
-                    workspace: {
-                        didChangeConfiguration: {
-                            dynamicRegistration: true,
+                    moniker: {},
+                    synchronization: {
+                        dynamicRegistration: true,
+                        willSave: false,
+                        didSave: false,
+                        willSaveWaitUntil: false,
+                    },
+                    completion: {
+                        dynamicRegistration: true,
+                        completionItem: {
+                            snippetSupport: false,
+                            commitCharactersSupport: true,
+                            documentationFormat: ['plaintext', 'markdown'],
+                            deprecatedSupport: false,
+                            preselectSupport: false,
                         },
+                        contextSupport: false,
+                    },
+                    signatureHelp: {
+                        dynamicRegistration: true,
+                        signatureInformation: {
+                            documentationFormat: ['plaintext', 'markdown'],
+                            parameterInformation: {
+                                labelOffsetSupport: true,
+                            },
+                            activeParameterSupport: true,
+                        },
+                        contextSupport: true,
+                    },
+                    declaration: {
+                        dynamicRegistration: true,
+                        linkSupport: true,
+                    },
+                    definition: {
+                        dynamicRegistration: true,
+                        linkSupport: true,
+                    },
+                    typeDefinition: {
+                        dynamicRegistration: true,
+                        linkSupport: true,
+                    },
+                    implementation: {
+                        dynamicRegistration: true,
+                        linkSupport: true,
                     },
                 },
-                initializationOptions: null,
-                processId: null,
-                rootUri: this.rootUri,
-                workspaceFolders: [
-                    {
-                        name: 'root',
-                        uri: this.rootUri,
+                workspace: {
+                    didChangeConfiguration: {
+                        dynamicRegistration: true,
                     },
-                ],
-            }
-        );
+                },
+            },
+            initializationOptions: null,
+            processId: null,
+            rootUri: this.rootUri,
+            workspaceFolders: [
+                {
+                    name: 'root',
+                    uri: this.rootUri,
+                },
+            ],
+        });
 
         if (result && result.capabilities) {
             this.capabilities = result.capabilities;
@@ -220,6 +223,7 @@ class LanguageServerPlugin {
     }
 
     async requestSocketHoverTooltip(view, { line, character }) {
+        // this.initializeLSP({ documentText: this.view.state.doc.toString() });
         try {
             this.sendEditorChange({ documentText: view.state.doc.toString() });
 
@@ -262,7 +266,7 @@ class LanguageServerPlugin {
                         },
                     }
                 );
-                
+
                 if (
                     !signatureResult['signatures'] ||
                     (signatureResult['signatures'] && !signatureResult.signatures[0]) ||
@@ -309,9 +313,6 @@ class LanguageServerPlugin {
 
         let items;
         if (colNames) {
-            // console.log(tableData);
-            // const colNames = col_names.column_names;
-            // console.log(colNames);
             if (colNames) {
                 items = colNames.map((item) => {
                     return {
@@ -385,22 +386,17 @@ class LanguageServerPlugin {
         let strContent;
         const state = store.getState();
         const dfList = Object.keys(state.dataFrames.metadata);
-        // console.log('Autocomplete: ', text, tree);
         for (const matchStates of syntaxPattern) {
             let cursor = tree.cursor(pos, 1);
             let matchStep = 0;
             while (true) {
-                // console.log(cursor.name);
                 if (matchStep >= matchStates.length) break;
                 let name = matchStates[matchStep].name;
                 let nextMatch = matchStates[matchStep].nextMatch;
-                // console.log(matchStates, name, nextMatch, cursor.name);
                 if (name == cursor.name) {
                     if (matchStep == 0) {
-                        // console.log(text);
                         strContent = text.substring(cursor.from, cursor.to);
                     }
-                    // console.log(cursor.name, strContent);
                     if (nextMatch == null) {
                         console.log('Autocomplete: got a match');
                         matched = true;
@@ -435,17 +431,10 @@ class LanguageServerPlugin {
      * @returns
      */
     _getDFCompletion_CodeEditor(context, line, character) {
-        // let editor = context.view;
         let state = context.state;
         let text = state.doc.toString();
-        // let parser = state.values[5].context.parser;
         let tree = state.tree;
         let curPos = state.selection.ranges[0].anchor;
-        // let cursor = tree.cursor(curPos, 1);
-        // console.log(tree.toString());
-        // console.log(tree.cursor(curPos, -1).toString());
-        // console.log(tree.cursor(curPos, 0).toString());
-        // console.log(tree.cursor(curPos, 1).toString());
         let result = this._matchColNameExpression_CodeEditor(
             text,
             tree,
@@ -460,11 +449,6 @@ class LanguageServerPlugin {
         return items;
     }
 
-    // colNameSyntaxPattern_DFFilter = [
-    //     //CallExpression(MemberExpression(VariableName,".",PropertyName),ArgList("(",String,")"))
-    //     //make a shortcut in this case, did not go up to CallExpression. Might need to test more
-    //     [{name: 'ColumnNameExpression', nextMatch: null}]
-    // ];
     colNamePattern_DFFilter = [
         { name: ['ColumnValueExpression'], nextMatch: 'parent' },
         { name: ['IndexSelectorExpression'], nextMatch: 'prevSibling' },
@@ -499,9 +483,6 @@ class LanguageServerPlugin {
          * TODO: find a way to support number suggestion
          * Need a special handling of Number case here
          */
-        // if(cursor.name=='Number'){
-        //     cursor.parent();
-        // }
         if (cursor.name == 'ColumnValueExpression') {
             // now search for the column name
             console.log(
@@ -511,7 +492,6 @@ class LanguageServerPlugin {
                 console.log(cursor.name);
                 let name = matchPattern[matchStep].name;
                 let nextMatch = matchPattern[matchStep].nextMatch;
-                // console.log(matchStates, name, nextMatch, cursor.name);
                 if (!name.includes(cursor.name)) {
                     matched = false;
                     break;
@@ -560,7 +540,6 @@ class LanguageServerPlugin {
     }
 
     _getDFCompletion_DFFilter(context, line, character) {
-        // let editor = context.view;
         let state = context.state;
         let text = state.doc.toString();
 
@@ -571,8 +550,6 @@ class LanguageServerPlugin {
         );
         let tree = state.tree;
         let curPos = state.selection.ranges[0].anchor;
-        // let cursor = tree.cursor(curPos, 1);
-        // console.log(cursor.toString());
         let result = this._matchColNameExpression_DFFilter(text, tree, curPos);
         let items = null;
         if (result.matched) {
@@ -684,68 +661,67 @@ class LanguageServerPlugin {
             } else {
                 result = dfCompletionItems;
             }
-            // console.log("requestCompletion result: ", result);
             if (!result) return null;
             const items = 'items' in result ? result.items : result;
-            let options = items.map(
-                ({
-                    detail,
-                    label,
-                    kind,
-                    textEdit,
-                    documentation,
-                    sortText,
-                    filterText,
-                    insertText,
-                }) => {
-                    var _a;
-                    const completion = {
-                        label,
+            if (items) {
+                let options = items.map(
+                    ({
                         detail,
-                        apply:
-                            (_a =
-                                textEdit === null || textEdit === void 0
-                                    ? void 0
-                                    : textEdit.newText) !== null && _a !== void 0
-                                ? _a
-                                : insertText,
-                        type: kind && CompletionItemKindMap[kind].toLowerCase(),
-                        sortText: sortText !== null && sortText !== void 0 ? sortText : label,
-                        filterText:
-                            filterText !== null && filterText !== void 0 ? filterText : label,
-                    };
-                    if (documentation) {
-                        completion.info = formatContents(documentation);
+                        label,
+                        kind,
+                        textEdit,
+                        documentation,
+                        sortText,
+                        filterText,
+                        insertText,
+                    }) => {
+                        var _a;
+                        const completion = {
+                            label,
+                            detail,
+                            apply:
+                                (_a =
+                                    textEdit === null || textEdit === void 0
+                                        ? void 0
+                                        : textEdit.newText) !== null && _a !== void 0
+                                    ? _a
+                                    : insertText,
+                            type: kind && CompletionItemKindMap[kind].toLowerCase(),
+                            sortText: sortText !== null && sortText !== void 0 ? sortText : label,
+                            filterText:
+                                filterText !== null && filterText !== void 0 ? filterText : label,
+                        };
+                        if (documentation) {
+                            completion.info = formatContents(documentation);
+                        }
+                        return completion;
                     }
-                    return completion;
+                );
+                const [span, match] = prefixMatch(options); //find the regrex string
+                const token = context.matchBefore(match);
+                let { pos } = context;
+                if (token) {
+                    pos = token.from;
+                    const word = token.text.toLowerCase();
+                    if (/^\w+$/.test(word)) {
+                        options = options
+                            .filter(({ filterText }) => filterText.toLowerCase().startsWith(word))
+                            .sort(({ apply: a }, { apply: b }) => {
+                                switch (true) {
+                                    case a.startsWith(token.text) && !b.startsWith(token.text):
+                                        return -1;
+                                    case !a.startsWith(token.text) && b.startsWith(token.text):
+                                        return 1;
+                                }
+                                return 0;
+                            });
+                    }
                 }
-            );
-            const [span, match] = prefixMatch(options); //find the regrex string
-            const token = context.matchBefore(match);
-            // console.log(match, options, token);
-            let { pos } = context;
-            if (token) {
-                pos = token.from;
-                const word = token.text.toLowerCase();
-                if (/^\w+$/.test(word)) {
-                    options = options
-                        .filter(({ filterText }) => filterText.toLowerCase().startsWith(word))
-                        .sort(({ apply: a }, { apply: b }) => {
-                            switch (true) {
-                                case a.startsWith(token.text) && !b.startsWith(token.text):
-                                    return -1;
-                                case !a.startsWith(token.text) && b.startsWith(token.text):
-                                    return 1;
-                            }
-                            return 0;
-                        });
-                }
-                // console.log(options);
+                return {
+                    from: pos,
+                    options,
+                };
             }
-            return {
-                from: pos,
-                options,
-            };
         } catch (e) {
             console.error('requestCompletion: ', e);
         }
@@ -761,7 +737,6 @@ class LanguageServerPlugin {
     ) {
         try {
             let result = this._getDFCompletion_DFFilter(context, line, character);
-            // console.log("dfFilterRequestCompletion result: ", result);
             if (!result) return null;
             const items = 'items' in result ? result.items : result;
             let options = items.map(
@@ -790,7 +765,6 @@ class LanguageServerPlugin {
             );
             const [span, match] = prefixMatch(options); //find the regrex string
             const token = context.matchBefore(match);
-            // console.log(match, options, token);
             let { pos } = context;
             if (token) {
                 pos = token.from;
@@ -808,7 +782,6 @@ class LanguageServerPlugin {
                             return 0;
                         });
                 }
-                // console.log(options);
             }
             return {
                 from: pos,
