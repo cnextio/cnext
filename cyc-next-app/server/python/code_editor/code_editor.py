@@ -1,10 +1,6 @@
-import io
-import base64
 import traceback
 import simplejson as json
-from xmlrpc.client import boolean
 
-import pandas
 import plotly
 import matplotlib.pyplot as plt
 from libs.message_handler import BaseMessageHandler
@@ -12,8 +8,7 @@ from libs.message import ContentType, SubContentType, Message
 
 from libs import logs
 from user_space.user_space import ExecutionMode
-from user_space.user_space import BaseKernel, UserSpace
-from libs.ipython.constants import IPythonKernelConstants as IPythonConstants, MIME_TYPES
+from libs.ipython.constants import IPythonKernelConstants as IPythonConstants, MIME_TYPES, IpythonResultMessage
 from libs.ipython.kernel import IPythonKernel
 from code_editor.interfaces import PlotResult
 log = logs.get_logger(__name__)
@@ -26,16 +21,6 @@ class MessageHandler(BaseMessageHandler):
     @staticmethod
     def _create_plot_data(result):
         return PlotResult(plot=result.to_json()).toJSON()
-
-    # @staticmethod
-    # def _create_matplotlib_data(result):
-    #     figfile = io.BytesIO()
-    #     plt.savefig(figfile, format='svg')
-    #     figfile.seek(0)  # rewind to beginning of file
-    #     plot_binary_data = base64.b64encode(figfile.getvalue())
-    #     # make sure the result type is json data same as result of _create_plot_data function.
-    #     # It help the code in client: CodeEditorRedux.addPlotResult() keep simplest
-    #     return PlotResult(plot=json.dumps({'data': plot_binary_data})).toJSON()
 
     # @staticmethod
     # def _result_is_dataframe(result) -> bool:
@@ -57,16 +42,6 @@ class MessageHandler(BaseMessageHandler):
             message.execution_mode = 'exec'
 
         log.info("assigned command type: %s" % message.execution_mode)
-
-    @staticmethod
-    def _result_is_matplotlib_fig(result) -> bool:
-        # because matplotlib return array of objects
-        if isinstance(result, list) and len(result) > 0:
-            matplotlib_object = result[0]
-            result_str_type = str(type(matplotlib_object))
-            if 'matplotlib' in result_str_type and hasattr(matplotlib_object, 'figure') and matplotlib_object.figure.number > 0:
-                return True
-        return False
 
     @staticmethod
     def _is_execute_result(header) -> bool:
@@ -101,31 +76,33 @@ class MessageHandler(BaseMessageHandler):
         try:
             outputs = self.user_space.execute(message.content, None)
             for output in outputs:
-                header = output['header']
-                content = output['content']
-                if self._is_error_message(header):
-                    log.error("Error {}" % (content['traceback']))
+                # Handle error message
+                msg_ipython = IpythonResultMessage(**output)
+                if self._is_error_message(msg_ipython.header):
+                    log.error("Error {}" % (msg_ipython.content['traceback']))
                     error_message = self._create_error_message(
                         message.webapp_endpoint,
-                        content['traceback'],
+                        msg_ipython.content['traceback'],
                         message.metadata
                     )
                     self._send_to_node(error_message)
+
+                # Handle success message
                 message.error = False
-                if self._is_execute_result(header):
+                if self._is_execute_result(msg_ipython.header):
                     message.type = ContentType.STRING
-                    message.content = content['data']
+                    message.content = msg_ipython.content['data']
                     self._send_to_node(message)
-                elif self._is_stream_result(header):
+                if self._is_stream_result(msg_ipython.header):
                     message.type = ContentType.STRING
-                    if 'text' in content:
-                        message.content = content['text']
-                    elif 'data' in content:
-                        message.content = content['data']
+                    if 'text' in msg_ipython.content:
+                        message.content = msg_ipython.content['text']
+                    elif 'data' in msg_ipython.content:
+                        message.content = msg_ipython.content['data']
                     self._send_to_node(message)
-                elif self._is_display_data_result(header):
+                if self._is_display_data_result(msg_ipython.header):
                     message.type = ContentType.RICH_OUTPUT
-                    for key, value in content['data'].items():
+                    for key, value in msg_ipython.content['data'].items():
                         # All returned rich output in IPython is formatted in mime types
                         if key in MIME_TYPES:
                             message.content = value
@@ -138,7 +115,7 @@ class MessageHandler(BaseMessageHandler):
                     # This is just a temporary solution to get all response from IPython,
                     # I need more practice with Ipython result with alot of cases then improve later.
                     if message.sub_type == None:
-                        message.content = content
+                        message.content = msg_ipython.content
                     self._send_to_node(message)
         except:
             trace = traceback.format_exc()
@@ -178,13 +155,9 @@ class MessageHandler(BaseMessageHandler):
                     if self._result_is_plotly_fig(result):
                         output = self._create_plot_data(result)
                         type = ContentType.PLOTLY_FIG
-                    # elif self._result_is_matplotlib_fig(result):
-                    #     output = self._create_matplotlib_data(result)
-                    #     type = ContentType.MATPLOTLIB_FIG
                     else:
                         type = ContentType.STRING
                         output = str(result)
-            # log.info('Globals: %s' % globals())
 
             message.type = type
             message.content = output

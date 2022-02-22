@@ -1,22 +1,16 @@
 from enum import Enum
 
 
-# class IpythonResultMessage:
-#     def __init__(self, **entries):
-#         self.header = None
-#         self.msg_id = None
-#         self.msg_type = None
-#         self.parent_header = None
-#         self.metadata = None
-#         self.content = None
-#         self.buffers = None
-#         self.__dict__.update(entries)
-
-#     def toJSON(self):
-#         return json.dumps(self, indent=4, sort_keys=True, default=str)
-
-#     def __repr__(self) -> str:
-#         return self.toJSON()
+class IpythonResultMessage:
+    def __init__(self, **entries):
+        self.header = None
+        self.msg_id = None
+        self.msg_type = None
+        self.parent_header = None
+        self.metadata = None
+        self.content = None
+        self.buffers = None
+        self.__dict__.update(entries)
 
 class IPythonKernelConstants:
     class MessageType(str, Enum):
