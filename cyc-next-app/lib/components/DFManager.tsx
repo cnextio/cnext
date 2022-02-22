@@ -110,7 +110,7 @@ const DFManager = () => {
     }
 
     const _handleActiveDFStatus = (message: {}) => {
-        console.log("DataFrameManager got df status message: ", message.content);               
+        console.log("DFManager got df status message: ", message.content);               
         const dfStatusContent = message.content;
         // the UI is currently designed to handle only 1 reviewable update at a time 
         // but will still scan through everything here for now
@@ -216,11 +216,11 @@ const DFManager = () => {
 
     useEffect(() => {
         // console.log('DFManager useEffect');
-        socket.emit("ping", "DataFrameManager");
+        socket.emit("ping", "DFManager");
         socket.on(WebAppEndpoint.DFManager, (result: string) => {            
             try {
                 let message: Message = JSON.parse(result);       
-                console.log("DataFrameManager got results for command ", message.command_name);           
+                console.log("DFManager got results for command ", message.command_name);           
                 if(message.error==true){
                     // props.recvCodeOutput(message); //TODO move this to redux
                 } else if (message.command_name == CommandName.active_df_status){
