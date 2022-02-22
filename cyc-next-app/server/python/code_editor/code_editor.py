@@ -81,6 +81,10 @@ class MessageHandler(BaseMessageHandler):
         return header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA
 
     @staticmethod
+    def _is_error_message(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.ERROR
+
+    @staticmethod
     def _result_is_plotly_fig(content) -> bool:
         try:
             # Because IPython return plotly as json format, have to convert it to figure instance
@@ -99,6 +103,14 @@ class MessageHandler(BaseMessageHandler):
             for output in outputs:
                 header = output['header']
                 content = output['content']
+                if self._is_error_message(header):
+                    log.error("Error {}" % (content['traceback']))
+                    error_message = self._create_error_message(
+                        message.webapp_endpoint,
+                        content['traceback'],
+                        message.metadata
+                    )
+                    self._send_to_node(error_message)
                 message.error = False
                 if self._is_execute_result(header):
                     message.type = ContentType.STRING

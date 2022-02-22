@@ -51,7 +51,6 @@ class IPythonKernel(BaseKernel):
             log.info('Shell returned: {}'.format(code))
 
         outputs = list()
-        exec_success = False
         while True:
             # execution state must return message that include idle status before the queue becomes empty.
             # If not, there are some errors.
@@ -63,11 +62,9 @@ class IPythonKernel(BaseKernel):
 
                 if header['msg_type'] == IPythonConstants.MessageType.STATUS:
                     if content['execution_state'] == IPythonConstants.ExecutionState.IDLE:
-                        exec_success = True
                         break
             except queue.Empty:
                 # Break if queue empty
                 break
             outputs.append(msg)
-        if exec_success:
-            return outputs
+        return outputs
