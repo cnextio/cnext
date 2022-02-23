@@ -116,7 +116,11 @@ class MessageHandler(BaseMessageHandler):
             message.content = msg_ipython.content
         return message
 
+<<<<<<< HEAD
     def handle_message(self, message):
+=======
+    def handle_message_v2(self, message):
+>>>>>>> 1013073d297758d92d15029709ee131d5b9b2925
         """ 
             Use Ipython Kernel to handle message
         """
@@ -149,6 +153,7 @@ class MessageHandler(BaseMessageHandler):
             self._send_to_node(active_df_status_message)
         DataFrameStatusHook.reset_dfs_status()
 
+<<<<<<< HEAD
     # def handle_message(self, message):
     #     # message execution_mode will always be `eval` for this sender
     #     log.info('eval... %s' % message)
@@ -195,3 +200,51 @@ class MessageHandler(BaseMessageHandler):
     #         error_message = MessageHandler._create_error_message(
     #             message.webapp_endpoint, trace, message.metadata)
     #         self._send_to_node(error_message)
+=======
+    def handle_message(self, message):
+        # message execution_mode will always be `eval` for this sender
+        log.info('eval... %s' % message)
+        # log.info('Globals: %s' % client_globals)
+        try:
+            self._assign_exec_mode(message)
+            type = ContentType.NONE
+            output = ''
+            if message.execution_mode == 'exec':
+                log.info('exec mode...')
+                # exec(message.content, client_globals)
+                self.user_space.execute(message.content, ExecutionMode.EXEC)
+                type = ContentType.STRING
+                # output = sys.stdout.getvalue()
+            elif message.execution_mode == 'eval':
+                log.info('eval mode...')
+                # result = eval(message.content, client_globals)
+                result = self.user_space.execute(
+                    message.content, ExecutionMode.EVAL)
+                if result is not None:
+                    # log.info("eval result: \n%s" % (result))
+                    log.info("got eval results")
+                    # if self._result_is_dataframe(result):
+                    #     df_id = self._get_dataframe_id(message.content)
+                    #     output = self._create_table_data(df_id, result)
+                    #     type = ContentType.PANDAS_DATAFRAME
+                    if self._result_is_plotly_fig(result):
+                        output = self._create_plot_data(result)
+                        type = ContentType.PLOTLY_FIG
+                    else:
+                        type = ContentType.STRING
+                        output = str(result)
+
+            message.type = type
+            message.content = output
+            message.error = False
+            self._send_to_node(message)
+
+            self._process_active_df_status()
+
+        except:
+            trace = traceback.format_exc()
+            log.error("Exception %s" % (trace))
+            error_message = MessageHandler._create_error_message(
+                message.webapp_endpoint, trace, message.metadata)
+            self._send_to_node(error_message)
+>>>>>>> 1013073d297758d92d15029709ee131d5b9b2925
