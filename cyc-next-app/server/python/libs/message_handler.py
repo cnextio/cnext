@@ -11,7 +11,8 @@ class BaseMessageHandler:
         else:
             self.user_space = user_space
     
-    def _create_error_message(self, webapp_endpoint, trace, metadata=None):
+    @staticmethod
+    def _create_error_message(webapp_endpoint, trace, metadata=None):
         return Message(**{
             "webapp_endpoint": webapp_endpoint, 
             "type": ContentType.STRING,
@@ -25,8 +26,13 @@ class BaseMessageHandler:
         # log.info("Send to node server: %s" % message)
         # log.info("Send output to node server... %s"%message.toJSON())
         log.info("Send output to node server %s", message)
-        self.p2n_queue.send(message.toJSON())
+        # self.p2n_queue.send(message.toJSON())
+        BaseMessageHandler.send_message(self.p2n_queue, message)
 
-    def handle_message(self, message, client_globals):
+    @staticmethod
+    def send_message(channel, message: Message):
+        channel.send(message.toJSON())
+
+    def handle_message(self, message):
         ''' `ext_globals` is the user namespace where the user executes their command'''
         raise "Abstract function must be implemented by subclass"
