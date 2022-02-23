@@ -76,7 +76,6 @@ class MessageHandler(BaseMessageHandler):
             classify it according to the message type then return it to the client
         """
         msg_ipython = IpythonResultMessage(**output)
-
         # Handle error message
         if self._is_error_message(msg_ipython.header):
             log.error("Error {}" % (msg_ipython.content['traceback']))
@@ -99,6 +98,7 @@ class MessageHandler(BaseMessageHandler):
                 message.content = msg_ipython.content['text']
             elif 'data' in msg_ipython.content:
                 message.content = msg_ipython.content['data']
+            return message
         elif self._is_display_data_result(msg_ipython.header):
             message.type = ContentType.RICH_OUTPUT
             for key, value in msg_ipython.content['data'].items():
@@ -109,12 +109,7 @@ class MessageHandler(BaseMessageHandler):
                     if key == 'application/json':
                         message.sub_type = SubContentType.PLOTLY_FIG if self._result_is_plotly_fig(
                             value) else key
-        # If message doesn't have sub type, assign content to message.content prevent none value
-        # This is just a temporary solution to get all response from IPython,
-        # I need more practice with Ipython result with alot of cases then improve later.
-        if message.sub_type == None:
-            message.content = msg_ipython.content
-        return message
+            return message
 
     def handle_message(self, message):
         """ 
@@ -125,7 +120,8 @@ class MessageHandler(BaseMessageHandler):
             outputs = self.user_space.execute(message.content, None)
             for output in outputs:
                 msg = self.build_single_message(output=output, message=message)
-                self._send_to_node(msg)
+                if msg is not None:
+                    self._send_to_node(msg)
                 self._process_active_df_status()
         except:
             trace = traceback.format_exc()
@@ -148,50 +144,3 @@ class MessageHandler(BaseMessageHandler):
                                                   "error": False})
             self._send_to_node(active_df_status_message)
         DataFrameStatusHook.reset_dfs_status()
-
-    # def handle_message(self, message):
-    #     # message execution_mode will always be `eval` for this sender
-    #     log.info('eval... %s' % message)
-    #     # log.info('Globals: %s' % client_globals)
-    #     try:
-    #         self._assign_exec_mode(message)
-    #         type = ContentType.NONE
-    #         output = ''
-    #         if message.execution_mode == 'exec':
-    #             log.info('exec mode...')
-    #             # exec(message.content, client_globals)
-    #             self.user_space.execute(message.content, ExecutionMode.EXEC)
-    #             type = ContentType.STRING
-    #             # output = sys.stdout.getvalue()
-    #         elif message.execution_mode == 'eval':
-    #             log.info('eval mode...')
-    #             # result = eval(message.content, client_globals)
-    #             result = self.user_space.execute(
-    #                 message.content, ExecutionMode.EVAL)
-    #             if result is not None:
-    #                 # log.info("eval result: \n%s" % (result))
-    #                 log.info("got eval results")
-    #                 # if self._result_is_dataframe(result):
-    #                 #     df_id = self._get_dataframe_id(message.content)
-    #                 #     output = self._create_table_data(df_id, result)
-    #                 #     type = ContentType.PANDAS_DATAFRAME
-    #                 if self._result_is_plotly_fig(result):
-    #                     output = self._create_plot_data(result)
-    #                     type = ContentType.PLOTLY_FIG
-    #                 else:
-    #                     type = ContentType.STRING
-    #                     output = str(result)
-
-    #         message.type = type
-    #         message.content = output
-    #         message.error = False
-    #         self._send_to_node(message)
-
-    #         self._process_active_df_status()
-
-    #     except:
-    #         trace = traceback.format_exc()
-    #         log.error("Exception %s" % (trace))
-    #         error_message = MessageHandler._create_error_message(
-    #             message.webapp_endpoint, trace, message.metadata)
-    #         self._send_to_node(error_message)
