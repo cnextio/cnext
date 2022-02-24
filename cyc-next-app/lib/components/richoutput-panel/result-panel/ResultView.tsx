@@ -6,7 +6,7 @@ import {
 } from "../../StyledComponents";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 import { useSelector } from "react-redux";
-import { ICodeLine, IRichOutputResult } from "../../../interfaces/ICodeEditor";
+import { ICodeLine } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
 import { ContentType, SubContentType } from "../../../interfaces/IApp";
 
@@ -17,7 +17,7 @@ const ResultView = (props: any) => {
     const [containerMounted, setContainerMounted] = useState(false);
 
     const setLayout = (
-        data: IRichOutputResult,
+        data: object | string | any,
         width: number | null = null,
         height: number | null = null
     ) => {
@@ -42,7 +42,6 @@ const ResultView = (props: any) => {
     });
 
     const resultViewId = "StyledResultViewID";
-    const imageHeight = "350px";
     const renderResult = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
@@ -73,7 +72,7 @@ const ResultView = (props: any) => {
                                       >
                                           {React.createElement(
                                               ResultWithNoSSR,
-                                              setLayout(codeResult?.result?.content, 600, 350)
+                                              setLayout(codeResult?.result?.content)
                                           )}
                                       </SingleResult>
                                   ) : (
@@ -89,7 +88,6 @@ const ResultView = (props: any) => {
                                                   ";base64," +
                                                   codeResult?.result?.content
                                               }
-                                              height={imageHeight}
                                           />
                                       </SingleResult>
                                   )}
