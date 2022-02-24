@@ -1,4 +1,5 @@
 from libs import logs
+import pandas as pd
 from code_editor import code_editor as ce
 from dataframe_manager import dataframe_manager as dm
 from experiment_manager import experiment_manager as em
@@ -24,13 +25,13 @@ log = logs.get_logger(__name__)
 if __name__ == "__main__":
     try:
         config = read_config('.server.yaml', {'code_executor_comm': {
-                            'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
+            'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
         log.info('Server config: %s' % config)
 
         p2n_queue = MessageQueue(
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
-        
-        user_space = UserSpace(BaseKernel(), [cd.DataFrame])
+
+        user_space = UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
         sh.DataFrameStatusHook.set_user_space(user_space)
 
         message_handler = {
@@ -52,7 +53,8 @@ if __name__ == "__main__":
                 log.info('Got message %s' % line)
                 message = Message(**json.loads(line))
 
-                message_handler[message.webapp_endpoint].handle_message(message)
+                message_handler[message.webapp_endpoint].handle_message(
+                    message)
 
             except OSError as error:  # TODO check if this has to do with buffer error
                 # since this error might be related to the pipe, we do not send this error to nodejs
