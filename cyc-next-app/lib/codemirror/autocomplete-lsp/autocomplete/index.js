@@ -411,7 +411,7 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
             },
             '& > li[aria-selected]': {
                 background_fallback: '#bdf',
-                backgroundColor: '#636EFA',
+                backgroundColor: '#0060C0',
                 color_fallback: 'white',
             },
         },
@@ -472,7 +472,7 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
         float: 'right',
         fontWeight: 'bold',
         fontSize: '116%',
-        marginTop: "-2px"
+        marginTop: '-2px',
     },
     '.cm-list-options': {
         float: 'left',
@@ -523,8 +523,7 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
         float: 'left',
         textAlign: 'center',
         opacity: '0.8',
-        padding:'1px 1.6em 0 0.3em !important'
-
+        padding: '1px 1.6em 0 0.3em !important',
     },
     '.cm-completionIcon-function, .cm-completionIcon-method': {
         '&:after': { content: "'ƒ'" },
@@ -552,7 +551,7 @@ const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
     },
     '.cm-completionIcon-keyword': {
         paddingRight: '1.8em !important',
-        marginLeft: "-2px",
+        marginLeft: '-2px',
         '&:after': { content: "'🔑\uFE0E'", fontSize: '90%' }, // Disable emoji rendering
     },
     '.cm-completionIcon-namespace': {
@@ -654,8 +653,6 @@ function rangeAroundSelected(total, selected, max) {
     return { from: total - (off + 1) * max, to: total - off * max };
 }
 
-let codeDocContentOpen = false;
-
 class CompletionTooltip {
     constructor(view, stateField) {
         this.view = view;
@@ -675,9 +672,8 @@ class CompletionTooltip {
 
         this.dom = document.createElement('div');
         this.dom.className = 'cm-tooltip-autocomplete';
-
+      
         this.list = this.dom.appendChild(this.createListBox(options, cState.id, this.range));
-
         this.list.addEventListener('scroll', () => {
             if (this.info) this.view.requestMeasure(this.placeInfo);
         });

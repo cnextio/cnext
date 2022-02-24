@@ -3,7 +3,7 @@ import store from '../../redux/store';
 import { ifElse } from "../components/libs";
 import { CommandName, ContentType, Message, WebAppEndpoint } from "../interfaces/IApp";
 import socket from "../components/Socket";
-import shortid from "shortid";
+// import shortid from "shortid";
 
 export function socketInit(codeOutputComponent){
     socket.emit("ping", WebAppEndpoint.MagicCommandGen);

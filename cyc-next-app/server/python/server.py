@@ -15,7 +15,7 @@ import cycdataframe.df_status_hook as sh
 from libs.config import read_config
 import sys
 import simplejson as json
-from python.libs.message_handler import BaseMessageHandler
+from libs.message_handler import BaseMessageHandler
 
 from user_space.user_space import BaseKernel, UserSpace
 

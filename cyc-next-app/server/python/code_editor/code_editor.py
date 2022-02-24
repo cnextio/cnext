@@ -13,7 +13,7 @@ from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, Message
 
 from libs import logs
-from python.libs.message import DFManagerCommand, WebappEndpoint
+from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.user_space import ExecutionMode
 from user_space.user_space import BaseKernel, UserSpace
 from code_editor.interfaces import PlotResult
