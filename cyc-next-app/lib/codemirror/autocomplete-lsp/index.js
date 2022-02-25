@@ -31,6 +31,7 @@ const languageId = Facet.define({ combine: useLast });
 class LanguageServerPlugin {
     constructor(view, dfFilter = false) {
         this.view = view;
+        this.dfFilter = dfFilter;
         if (!dfFilter) {
             this.rootUri = this.view.state.facet(rootUri);
             this.documentUri = this.view.state.facet(documentUri);
@@ -107,9 +108,10 @@ class LanguageServerPlugin {
     }
 
     update({ docChanged }) {
-        // console.log('on docChanged', this.ready);
+        console.log('on docChanged', this.ready);
         if (!docChanged) return;
-        if (!this.ready) this.initializeLS({ documentText: this.view.state.doc.toString() });
+        if (!this.ready && !this.dfFilter)
+            this.initializeLS({ documentText: this.view.state.doc.toString() });
 
         if (this.changesTimeout) clearTimeout(this.changesTimeout);
         this.changesTimeout = self.setTimeout(() => {
@@ -212,7 +214,8 @@ class LanguageServerPlugin {
     }
 
     async sendChange({ documentText }) {
-        if (this.ready) {
+        console.log('sendChange', this.dfFilter);
+        if (this.ready && !this.dfFilter) {
             this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/didChange', {
                 textDocument: {
                     uri: this.documentUri,
@@ -569,11 +572,7 @@ class LanguageServerPlugin {
      * End support DataFrame-related autocomplete
      */
 
-    async requestSignatureHelp(
-        context,
-        { line, character },
-        { triggerKind, triggerCharacter }
-    ) {
+    async requestSignatureHelp(context, { line, character }, { triggerKind, triggerCharacter }) {
         try {
             this.sendChange({
                 documentText: context.state.doc.toString(),
