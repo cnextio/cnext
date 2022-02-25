@@ -1,4 +1,3 @@
-
 const { JsonRpcStreamReader, JsonRpcStreamWriter } = require('./streams');
 const { spawn, exec } = require('child_process');
 // action channel
@@ -7,26 +6,28 @@ const LanguageServerNotifier = 'LanguageServerNotifier';
 const NotifyCase = ['textDocument/publishDiagnostics'];
 class LSPProcess {
     constructor(io) {
-
         this.ls = spawn('pyls', ['-v']);
         const reader = new JsonRpcStreamReader(this.ls.stdout);
 
         this.ls.stdout.on('data', (chunk) => {
             const payload = reader.getData(chunk);
-            if (payload && payload.result){ 
-                io.emit(LanguageServer, JSON.stringify(payload.result))
+            if (payload && payload.result) {
+                io.emit(LanguageServer, JSON.stringify(payload.result));
                 reader.clearCache();
-            }
-            else if (this.isNeedNotify(payload)) {
+            } else if (this.isNeedNotify(payload)) {
                 io.emit(LanguageServerNotifier, JSON.stringify(payload));
                 reader.clearCache();
             }
         });
+
+        this.ls.stderr.on('data', (stderr) => {
+            // console.log('stderr', stderr.toString());
+        });
     }
 
-    isNeedNotify(payload){
-        return payload && payload.method && NotifyCase.includes(payload.method)
-    };
+    isNeedNotify(payload) {
+        return payload && payload.method && NotifyCase.includes(payload.method);
+    }
 
     sendMessageToLsp(message) {
         const writer = new JsonRpcStreamWriter();
@@ -38,6 +39,3 @@ module.exports = {
     LSPProcess,
     LanguageServer,
 };
-
-
-
