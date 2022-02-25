@@ -1,7 +1,7 @@
 //using a customized version of autocomplete instead of @codemirror/autocomplete
 import { autocompletion } from './autocomplete';
 import { setDiagnostics } from '@codemirror/lint';
-import { Facet } from '@codemirror/state';
+import { Facet, StateField } from '@codemirror/state';
 import { hoverTooltip } from '@codemirror/tooltip';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import socket from '../../components/Socket';
@@ -37,7 +37,7 @@ class LanguageServerPlugin {
             this.languageId = this.view.state.facet(languageId);
             this.documentVersion = 0;
             this.changesTimeout = 0;
-            this.setupLSPSocketConnection();
+            this.setupLSConnection();
         } else {
             this.languageId = this.view.state.facet(languageId);
             this.documentVersion = 0;
@@ -45,8 +45,8 @@ class LanguageServerPlugin {
         }
     }
 
-    async setupLSPSocketConnection() {
-        console.log('setupLSPSocket LSP');
+    async setupLSConnection() {
+        console.log('setupLSConnection');
         this.ready = false;
         socket.emit('ping', WebAppEndpoint.LanguageServer);
         socket.on('pong', (message) => {
@@ -55,7 +55,6 @@ class LanguageServerPlugin {
 
         // listener notify from server
         socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
-            // handler every case
             try {
                 const notification = JSON.parse(result);
                 console.log(
@@ -72,18 +71,18 @@ class LanguageServerPlugin {
         });
 
         socket.on('connect', () => {
-            this.initializeLSP({ documentText: this.view.state.doc.toString() });
+            this.initializeLS({ documentText: this.view.state.doc.toString() });
         });
 
         // send initinalize
-        this.initializeLSP({ documentText: this.view.state.doc.toString() });
+        this.initializeLS({ documentText: this.view.state.doc.toString() });
     }
 
-    async requestSocketLSP(channel, method, params, time) {
+    async requestLS(channel, method, params, time) {
         if (!time) time = timeout;
         const rpcMessage = { jsonrpc: '2.0', id: 0, method: method, params: params };
 
-        let promises = new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             console.log(
                 `send LSP request to Server at ${new Date().toLocaleString()} `,
                 rpcMessage
@@ -105,15 +104,16 @@ class LanguageServerPlugin {
                 });
             }
         });
-
-        return promises;
     }
 
     update({ docChanged }) {
+        console.log('on docChanged', this.ready);
         if (!docChanged) return;
+        if (!this.ready) this.initializeLS({ documentText: this.view.state.doc.toString() });
+
         if (this.changesTimeout) clearTimeout(this.changesTimeout);
         this.changesTimeout = self.setTimeout(() => {
-            this.sendEditorChange({
+            this.sendChange({
                 documentText: this.view.state.doc.toString(),
             });
         }, changesDelay);
@@ -123,8 +123,8 @@ class LanguageServerPlugin {
         console.log('LanguageServerPlugin destroy');
     }
 
-    async initializeLSP({ documentText }) {
-        const result = await this.requestSocketLSP(WebAppEndpoint.LanguageServer, 'initialize', {
+    async initializeLS({ documentText }) {
+        const result = await this.requestLS(WebAppEndpoint.LanguageServer, 'initialize', {
             capabilities: {
                 textDocument: {
                     hover: {
@@ -196,8 +196,8 @@ class LanguageServerPlugin {
 
         if (result && result.capabilities) {
             this.capabilities = result.capabilities;
-            this.requestSocketLSP(WebAppEndpoint.LanguageServer, 'initialized', {});
-            this.requestSocketLSP(WebAppEndpoint.LanguageServer, 'textDocument/didOpen', {
+            this.requestLS(WebAppEndpoint.LanguageServer, 'initialized', {});
+            this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/didOpen', {
                 textDocument: {
                     uri: this.documentUri,
                     languageId: this.languageId,
@@ -210,9 +210,9 @@ class LanguageServerPlugin {
         }
     }
 
-    async sendEditorChange({ documentText }) {
+    async sendChange({ documentText }) {
         if (this.ready) {
-            this.requestSocketLSP(WebAppEndpoint.LanguageServer, 'textDocument/didChange', {
+            this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/didChange', {
                 textDocument: {
                     uri: this.documentUri,
                     version: this.documentVersion++,
@@ -222,19 +222,14 @@ class LanguageServerPlugin {
         }
     }
 
-    async requestSocketHoverTooltip(view, { line, character }) {
-        // this.initializeLSP({ documentText: this.view.state.doc.toString() });
+    async requestHoverTooltip(view, { line, character }) {
         try {
-            this.sendEditorChange({ documentText: view.state.doc.toString() });
+            this.sendChange({ documentText: view.state.doc.toString() });
 
-            let result = await this.requestSocketLSP(
-                WebAppEndpoint.LanguageServer,
-                'textDocument/hover',
-                {
-                    textDocument: { uri: this.documentUri },
-                    position: { line, character },
-                }
-            );
+            let result = await this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/hover', {
+                textDocument: { uri: this.documentUri },
+                position: { line, character },
+            });
 
             if (!result) return null;
 
@@ -254,7 +249,7 @@ class LanguageServerPlugin {
                 let doc = view.state.doc;
                 let lineExcute = doc.lineAt(pos);
 
-                let signatureResult = await this.requestSocketLSP(
+                let signatureResult = await this.requestLS(
                     WebAppEndpoint.LanguageServer,
                     'textDocument/signatureHelp',
                     {
@@ -285,7 +280,7 @@ class LanguageServerPlugin {
 
             return { pos, end, create: (view) => ({ dom }), above: true };
         } catch (error) {
-            console.error('requestSocketHoverTooltip: ', error);
+            console.error('requestHoverTooltip: ', error);
         }
     }
 
@@ -573,17 +568,17 @@ class LanguageServerPlugin {
      * End support DataFrame-related autocomplete
      */
 
-    async requestSocketSignatureHelp(
+    async requestSignatureHelp(
         context,
         { line, character },
         { triggerKind, triggerCharacter }
     ) {
         try {
-            this.sendEditorChange({
+            this.sendChange({
                 documentText: context.state.doc.toString(),
             });
 
-            const result = await this.requestSocketLSP(
+            const result = await this.requestLS(
                 WebAppEndpoint.LanguageServer,
                 'textDocument/signatureHelp',
                 {
@@ -618,7 +613,7 @@ class LanguageServerPlugin {
         }
     }
 
-    async requestSocketCompletion_CodeEditor(
+    async requestCompletion_CodeEditor(
         context,
         { line, character },
         { triggerKind, triggerCharacter }
@@ -632,10 +627,10 @@ class LanguageServerPlugin {
             // some \w, but in order to allow suggesting column, we will trigger this ' and " match
             // too. Therefore we have to check if it is \w only before sending to the server
             if (context.matchBefore(/[\w]+$/)) {
-                this.sendEditorChange({
+                this.sendChange({
                     documentText: context.state.doc.toString(),
                 });
-                result = await this.requestSocketLSP(
+                result = await this.requestLS(
                     WebAppEndpoint.LanguageServer,
                     'textDocument/completion',
                     {
@@ -822,6 +817,51 @@ class LanguageServerPlugin {
     }
 }
 
+import { showTooltip } from '@codemirror/tooltip';
+
+const cursorTooltipBaseTheme = EditorView.baseTheme({
+    '.cm-tooltip.cm-tooltip-cursor': {
+        padding: '2px 7px',
+    },
+});
+
+const getCursorTooltips = (state) => {
+    console.log('state.selection.ranges', state.selection.ranges);
+    return state.selection.ranges
+        .filter((range) => range.empty)
+        .map((range) => {
+            let line = state.doc.lineAt(range.head);
+            let text = line.number + ':' + (range.head - line.from);
+            return {
+                pos: range.head,
+                above: true,
+                strictSide: true,
+                arrow: true,
+                create: () => {
+                    let dom = document.createElement('div');
+                    dom.className = 'cm-tooltip-cursor';
+                    dom.textContent = text;
+                    return { dom };
+                },
+            };
+        });
+};
+
+const cursorTooltipField = StateField.define({
+    create: getCursorTooltips,
+    update(tooltips, tr) {
+        if (!tr.docChanged && !tr.selection) return tooltips;
+        return getCursorTooltips(tr.state);
+    },
+
+    provide: (tooltipField) =>
+        showTooltip.computeN([tooltipField], (state) => state.field(tooltipField)),
+});
+
+const suggestSignatureInfo = () => {
+    return [cursorTooltipField, cursorTooltipBaseTheme];
+};
+
 function languageServer(options) {
     let plugin = null;
     return [
@@ -835,7 +875,7 @@ function languageServer(options) {
             return (_a =
                 plugin === null || plugin === void 0
                     ? void 0
-                    : plugin.requestSocketHoverTooltip(view, offsetToPos(view.state.doc, pos))) !==
+                    : plugin.requestHoverTooltip(view, offsetToPos(view.state.doc, pos))) !==
                 null && _a !== void 0
                 ? _a
                 : null;
@@ -874,7 +914,7 @@ function languageServer(options) {
                         if (context.matchBefore(/[\(,=]+$/)) {
                             // go to Signature Help suggestion
                             trigChar = line.text[pos - line.from - 1];
-                            return await plugin.requestSocketSignatureHelp(
+                            return await plugin.requestSignatureHelp(
                                 context,
                                 offsetToPos(state.doc, pos),
                                 {
@@ -886,7 +926,7 @@ function languageServer(options) {
                         return null;
                     }
 
-                    return await plugin.requestSocketCompletion_CodeEditor(
+                    return await plugin.requestCompletion_CodeEditor(
                         context,
                         offsetToPos(state.doc, pos),
                         {
@@ -897,6 +937,7 @@ function languageServer(options) {
                 },
             ],
         }),
+        suggestSignatureInfo(),
         baseTheme,
     ];
 }
