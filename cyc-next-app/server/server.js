@@ -1,43 +1,37 @@
-const express = require("express");
-const http = require("http");
-const socketIo = require("socket.io");
-const fs = require("fs");
-const YAML = require("yaml");
-const zmq = require("zeromq");
-const path = require("path");
-const { PythonShell } = require("python-shell");
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const fs = require('fs');
+const YAML = require('yaml');
+const zmq = require('zeromq');
+const path = require('path');
+const { PythonShell } = require('python-shell');
 const { LSPProcess, LanguageServer } = require('./lsp_process');
 const port = process.env.PORT || 4000;
 const server = http.createServer();
 const options = {
     cors: {
-        origin: ["http://localhost:3000"],
-        methods: ["GET", "POST"],
+        origin: ['http://localhost:3000'],
+        methods: ['GET', 'POST'],
     },
 };
 const io = new socketIo.Server(server, options);
 
 // TODO: move to Interfaces.tsx
-const CodeEditor = "CodeEditor";
-const DFManager = "DFManager";
-const FileManager = "FileManager";
-const FileExplorer = "FileExplorer";
-const MagicCommandGen = "MagicCommandGen";
-const ExperimentManager = "ExperimentManager";
-const CodeExecutor = [
-    CodeEditor,
-    DFManager,
-    FileManager,
-    FileExplorer,
-    MagicCommandGen,
-];
+const CodeEditor = 'CodeEditor';
+const DFManager = 'DFManager';
+const FileManager = 'FileManager';
+const FileExplorer = 'FileExplorer';
+const MagicCommandGen = 'MagicCommandGen';
+const ExperimentManager = 'ExperimentManager';
+const CodeExecutor = [CodeEditor, DFManager, FileManager, FileExplorer, MagicCommandGen];
 const NotCodeExecutor = [ExperimentManager];
 
 const LSPExecutor = [LanguageServer];
 
 try {
     let file;
-    file = fs.readFileSync(".server.yaml", "utf8");
+    file = fs.readFileSync('.server.yaml', 'utf8');
     config = YAML.parse(file);
 } catch (error) {
     console.log(error.stack);
@@ -104,25 +98,19 @@ class PythonProcess {
 /*
  * Communicate with web client
  */
-    /** this variable is used to send back stdout to server */
-    // let clientMessage;
+/** this variable is used to send back stdout to server */
+// let clientMessage;
 try {
     io.on('connection', (socket) => {
         function codeExecutorHandler(strMessage) {
             // clientMessage = strMessage.slice();
-            console.log(
-                "Receive msg from client, server will run: ",
-                JSON.parse(strMessage)
-            );
+            console.log('Receive msg from client, server will run: ', JSON.parse(strMessage));
             codeExecutor.send2executor(strMessage);
         }
 
         function nonCodeExecutorHandler(strMessage) {
             // clientMessage = strMessage.slice();
-            console.log(
-                "Receive msg from client, server will run: ",
-                JSON.parse(strMessage)
-            );
+            console.log('Receive msg from client, server will run: ', JSON.parse(strMessage));
             nonCodeExecutor.send2executor(strMessage);
         }
 
@@ -138,12 +126,11 @@ try {
                 codeExecutorHandler(message);
             } else if (NotCodeExecutor.includes(endpoint)) {
                 nonCodeExecutorHandler(message);
-            } else 
-            if (LSPExecutor.includes(endpoint)) {
+            } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             }
         });
-        socket.once("disconnect", () => {});
+        socket.once('disconnect', () => {});
     });
 
     const sendOutput = (message) => {
@@ -183,16 +170,15 @@ try {
     /** */
 
     const initialize = () => {
-
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
                 content:
-                    "import os, sys, pandas as pd, plotly.express as px, plotly.io as pio, matplotlib.pyplot as plt",
+                    'import os, sys, pandas as pd, plotly.express as px, plotly.io as pio, matplotlib.pyplot as plt',
             })
         );
 
-        console.log(config.projects.open_projects[0]["path"]);
+        console.log(config.projects.open_projects[0]['path']);
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
@@ -210,21 +196,21 @@ try {
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
-                content: `os.chdir('${config.projects.open_projects[0]["path"]}')`,
+                content: `os.chdir('${config.projects.open_projects[0]['path']}')`,
             })
         );
 
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
-                content: "import cycdataframe.cycdataframe as cd",
+                content: 'import cycdataframe.cycdataframe as cd',
             })
         );
 
         nonCodeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: ExperimentManager,
-                content: "import mlflow, mlflow.tensorflow",
+                content: 'import mlflow, mlflow.tensorflow',
             })
         );
     };

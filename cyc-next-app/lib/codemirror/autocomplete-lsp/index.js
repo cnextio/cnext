@@ -107,7 +107,7 @@ class LanguageServerPlugin {
     }
 
     update({ docChanged }) {
-        console.log('on docChanged', this.ready);
+        // console.log('on docChanged', this.ready);
         if (!docChanged) return;
         if (!this.ready) this.initializeLS({ documentText: this.view.state.doc.toString() });
 
@@ -124,6 +124,7 @@ class LanguageServerPlugin {
     }
 
     async initializeLS({ documentText }) {
+        console.log('initializeLS');
         const result = await this.requestLS(WebAppEndpoint.LanguageServer, 'initialize', {
             capabilities: {
                 textDocument: {
@@ -937,7 +938,7 @@ function languageServer(options) {
                 },
             ],
         }),
-        suggestSignatureInfo(),
+        // suggestSignatureInfo(),
         baseTheme,
     ];
 }

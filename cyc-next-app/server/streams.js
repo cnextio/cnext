@@ -6,15 +6,16 @@ class JsonRpcStreamReader {
     }
 
     getData(chunk) {
-        const messages = chunk.toString('utf-8').split('\n');
+        const messages = chunk.toString().split('\n');
         console.log(`get chunk at ${new Date().toLocaleString()} `, messages);
 
         if (messages.length > 3) {
             // have full chunk with content-type
             const content_length = this.getContentLength(messages[0]);
             this.lastContentLength = content_length;
-           
-            if (content_length === messages[3].length) { // have full response with multi lines
+
+            if (content_length === messages[3].length) {
+                // have full response with multi lines
                 try {
                     return JSON.parse(messages[messages.length - 1]);
                 } catch (error) {
@@ -33,10 +34,10 @@ class JsonRpcStreamReader {
             // get object response from cache
             //console.log("this.cache", this.cache);
             let resultObj = '';
-            for(let i = 3; i < this.cache.length; i++){
+            for (let i = 3; i < this.cache.length; i++) {
                 resultObj += this.cache[i];
             }
-            
+
             if (this.lastContentLength === resultObj.length) {
                 // have full response with multi lines
                 try {
@@ -56,9 +57,9 @@ class JsonRpcStreamReader {
         return 0;
     }
 
-    clearCache(){
+    clearCache() {
         this.cache = [];
-    };
+    }
 }
 
 class JsonRpcStreamWriter {
