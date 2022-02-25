@@ -22,7 +22,6 @@ const ResultView = (props: any) => {
         height: number | null = null
     ) => {
         try {
-            console.log("dataaaaaaaa", data);
             /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
             let inResultData = JSON.parse(JSON.stringify(data));
             inResultData["data"][0]["hovertemplate"] = "%{x}: %{y}";

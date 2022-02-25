@@ -21,7 +21,6 @@ import { StyledCodeEditor } from "../StyledComponents";
 // import { languageServer } from "../../codemirror/codemirror-languageserver";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
 import {
-    addPlotResult,
     addResult,
     updateLines,
     setLineStatus,
@@ -137,23 +136,6 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         theme: "light",
         onChange: onCodeMirrorChange,
     });
-
-    // const handlePlotData = (message: Message) => {
-    //     console.log(`${WebAppEndpoint.CodeEditor} got plot data`);
-    //     let inViewID = store.getState().projectManager.inViewID;
-    //     if (inViewID) {
-    //         let result: ICodeResultMessage = {
-    //             inViewID: inViewID,
-    //             content: message.content,
-    //             type: message.type,
-    //             metadata: message.metadata,
-    //         };
-
-    //         // content['plot'] = JSON.parse(content['plot']);
-    //         console.log("dispatch plot data");
-    //         dispatch(addPlotResult(result));
-    //     }
-    // };
 
     const handleResultData = (message: Message) => {
         console.log(`${WebAppEndpoint.CodeEditor} got result data`);
@@ -383,21 +365,25 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         let inViewID = store.getState().projectManager.inViewID;
         if (inViewID && view && runQueue.status === RunQueueStatus.RUNNING) {
             const doc = view.state.doc;
-            let rangeToRun: ILineRange[];
+            // let rangeToRun: ILineRange[];
             /** if the last line is an Expression instead of a Statement then separate it out.
              * The server will 'exec' every group of multiple lines. And will either 'exec' or 'eval' single line
              * This is not a perfect solution but working for now */
-            if (isExpression(doc.line(runQueue.toLine).text)) {
-                rangeToRun = [
-                    {
-                        fromLine: runQueue.fromLine,
-                        toLine: runQueue.toLine - 1,
-                    },
-                    { fromLine: runQueue.toLine - 1, toLine: runQueue.toLine },
-                ];
-            } else {
-                rangeToRun = [{ fromLine: runQueue.fromLine, toLine: runQueue.toLine }];
-            }
+            // if (isExpression(doc.line(runQueue.toLine).text)) {
+            //     rangeToRun = [
+            //         {
+            //             fromLine: runQueue.fromLine,
+            //             toLine: runQueue.toLine - 1,
+            //         },
+            //         { fromLine: runQueue.toLine - 1, toLine: runQueue.toLine },
+            //     ];
+            // } else {
+            //     rangeToRun = [{ fromLine: runQueue.fromLine, toLine: runQueue.toLine }];
+            // }
+            /** No need to handle range line, because we use IPython kernel to execute lines. It help us to handle this  */
+            const rangeToRun: ILineRange[] = [
+                { fromLine: runQueue.fromLine, toLine: runQueue.toLine },
+            ];
             console.log("CodeEditor execLines: ", rangeToRun);
             for (let lineRange of rangeToRun) {
                 let content: IRunningCommandContent | undefined = getRunningCommandContent(

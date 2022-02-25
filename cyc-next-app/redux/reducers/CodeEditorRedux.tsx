@@ -212,28 +212,6 @@ export const CodeEditorRedux = createSlice({
          * TODO: implement an optimized version to store result. currently the consumer of the resul will
          * be invoked anytime `codeLines` updated
          */
-        addPlotResult: (state, action) => {
-            let resultMessage: ICodeResultMessage = action.payload;
-            let inViewID = resultMessage.inViewID;
-            const resultContent = JSON.parse(resultMessage?.content);
-            let plotResult: IPlotResult = {
-                plot: JSON.parse(ifElseDict(resultContent, "plot")),
-            };
-            let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
-            let result: ICodeResult = { type: resultMessage.type, content: plotResult };
-            if (lineRange) {
-                /** only associate fromLine to result. This is ok because at the moment the group execution is not supposed to output plot
-                 * in the backend it is run using exec */
-                let lineNumber = lineRange.fromLine;
-                let codeLine: ICodeLine = state.codeLines[inViewID][lineNumber];
-                codeLine.result = result;
-
-                // let statePlotResults: IStatePlotResults = state.plotResults;
-                // statePlotResults[codeLine.lineID] = plotResult;
-                state.resultUpdate += 1;
-            }
-        },
-
         addResult: (state, action) => {
             let resultMessage: ICodeResultMessage = action.payload;
             let inViewID = resultMessage.inViewID;
@@ -335,7 +313,6 @@ export const CodeEditorRedux = createSlice({
 export const {
     initCodeText,
     updateLines,
-    addPlotResult,
     addResult,
     setLineStatus,
     setLineGroupStatus,
