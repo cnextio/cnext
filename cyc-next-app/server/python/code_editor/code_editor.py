@@ -108,10 +108,6 @@ class MessageHandler(BaseMessageHandler):
                 message.sub_type = key
                 if key == 'application/json' and self._result_is_plotly_fig(value):
                     message.sub_type = SubContentType.PLOTLY_FIG
-                # All returned rich output in IPython is formatted in mime types
-                # elif key in MIME_TYPES:
-                #     message.sub_type = key
-            print("message", message)
             return message
 
     def handle_message(self, message):
