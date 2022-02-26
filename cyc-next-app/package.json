@@ -30,6 +30,7 @@
     "@uiw/react-codemirror": "^4.0.7",
     "ace-builds": "^1.4.13",
     "animate.css": "^4.1.1",
+    "ansi-to-react": "^6.1.6",
     "inline-style-prefixer": "^4.0.0",
     "material-ui": "^0.20.2",
     "moment-timezone": "^0.5.34",
