@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node server.js",
+    "start": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -16,5 +16,8 @@
     "socket.io-client": "^4.2.0",
     "yaml": "^1.10.2",
     "zeromq": "^6.0.0-beta.6"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
   }
 }

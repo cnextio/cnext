@@ -1,4 +1,5 @@
 from libs import logs
+import pandas as pd
 from code_editor import code_editor as ce
 from dataframe_manager import dataframe_manager as dm
 from experiment_manager import experiment_manager as em
@@ -15,7 +16,7 @@ import cycdataframe.df_status_hook as sh
 from libs.config import read_config
 import sys
 import simplejson as json
-from python.libs.message_handler import BaseMessageHandler
+from libs.message_handler import BaseMessageHandler
 
 from user_space.user_space import BaseKernel, UserSpace
 from libs.ipython.kernel import IPythonKernel
@@ -31,8 +32,11 @@ if __name__ == "__main__":
         p2n_queue = MessageQueue(
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
 
-        user_space = UserSpace(BaseKernel(), [cd.DataFrame])
-        user_ipython_space = UserSpace(IPythonKernel(), [cd.DataFrame])
+        user_space = UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
+        user_ipython_space = UserSpace(
+            IPythonKernel(),
+            [cd.DataFrame, pd.DataFrame]
+        )
         sh.DataFrameStatusHook.set_user_space(user_space)
 
         message_handler = {

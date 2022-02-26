@@ -90,13 +90,15 @@ export enum CommandType {
 }
 
 export enum WebAppEndpoint {
-    DFManager = "DFManager",
-    CodeEditor = "CodeEditor",
-    FileManager = "FileManager",
-    MagicCommandGen = "MagicCommandGen",
-    FileExplorer = "FileExplorer",
-    ExperimentManager = "ExperimentManager",
-    PlotManager = "PlotManager",
+    DFManager = 'DFManager',
+    CodeEditor = 'CodeEditor',
+    FileManager = 'FileManager',
+    MagicCommandGen = 'MagicCommandGen',
+    FileExplorer = 'FileExplorer',
+    ExperimentManager = 'ExperimentManager',
+    PlotManager = 'PlotManager',
+    LanguageServer = 'LanguageServer',
+    LanguageServerNotifier = 'LanguageServerNotifier',
 }
 
 export interface ITableData {
