@@ -12,6 +12,7 @@ class IpythonResultMessage:
         self.buffers = None
         self.__dict__.update(entries)
 
+
 class IPythonKernelConstants:
     class MessageType(str, Enum):
         EXECUTE_REPLY = 'execute_reply'
@@ -45,14 +46,3 @@ class IPythonKernelConstants:
         STARTING = 'starting'
         BUSY = 'busy'
         IDLE = 'idle'
-
-
-MIME_TYPES = {
-    'image/svg+xml': 'svg',
-    'image/jpeg': 'jpeg',
-    'image/png': 'png',
-    # 'text/plain': 'text',
-    'text/html': 'html',
-    'application/javascript': 'html',
-    'application/json': 'json'
-}

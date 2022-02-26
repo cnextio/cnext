@@ -380,6 +380,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             // } else {
             //     rangeToRun = [{ fromLine: runQueue.fromLine, toLine: runQueue.toLine }];
             // }
+
             /** No need to handle range line, because we use IPython kernel to execute lines. It help us to handle this  */
             const rangeToRun: ILineRange[] = [
                 { fromLine: runQueue.fromLine, toLine: runQueue.toLine },

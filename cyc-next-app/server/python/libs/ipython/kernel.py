@@ -7,18 +7,17 @@ from libs import logs
 log = logs.get_logger(__name__)
 
 
-# MIME_TYPES = {
-#     'image/svg+xml': 'svg',
-#     'image/jpeg': 'jpeg',
-#     'image/png': 'png',
-#     'text/plain': 'text',
-#     'text/html': 'html',
-#     'application/javascript': 'html',
-#     'application/json': 'json'
-# }
+# The following message types will be processed by code editor
+MESSAGE_TYPE_PROCESS = [
+    IPythonConstants.MessageType.DISPLAY_DATA,
+    IPythonConstants.MessageType.ERROR,
+    IPythonConstants.MessageType.EXECUTE_RESULT,
+    IPythonConstants.MessageType.STREAM
+]
 
 
 class IPythonKernel(BaseKernel):
+
     def __init__(self):
         self.km = jupyter_client.KernelManager(
             kernel_name='python3'
@@ -28,13 +27,15 @@ class IPythonKernel(BaseKernel):
         self.wait_for_ready()
 
     def shutdown_kernel(self):
-        self.kc.stop_channels()
-        self.km.shutdown_kernel(now=True)
-        log.info('Shutdown kernel')
+        if self.km.is_alive:
+            self.kc.stop_channels()
+            self.km.interrupt_kernel()
+            self.km.shutdown_kernel(now=True)
+            log.info('Shutdown kernel')
 
     def wait_for_ready(self):
         try:
-            self.kc.wait_for_ready(timeout=60)
+            self.kc.wait_for_ready(timeout=50)
         except RuntimeError:
             self.shutdown_kernel()
 
@@ -66,5 +67,9 @@ class IPythonKernel(BaseKernel):
             except queue.Empty:
                 # Break if queue empty
                 break
-            outputs.append(msg)
+
+            # Depend on message type, only process which one having result execute to display
+            msg_type = header['msg_type']
+            if msg_type in MESSAGE_TYPE_PROCESS:
+                outputs.append(msg)
         return outputs

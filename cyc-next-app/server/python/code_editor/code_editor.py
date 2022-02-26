@@ -7,9 +7,9 @@ from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, SubContentType, Message
 
 from libs import logs
-from python.libs.message import DFManagerCommand, WebappEndpoint
+from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.user_space import ExecutionMode
-from libs.ipython.constants import IPythonKernelConstants as IPythonConstants, MIME_TYPES, IpythonResultMessage
+from libs.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
 from libs.ipython.kernel import IPythonKernel
 from code_editor.interfaces import PlotResult
 log = logs.get_logger(__name__)
@@ -19,30 +19,30 @@ class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
-    @staticmethod
-    def _create_plot_data(result):
-        return PlotResult(plot=result.to_json()).toJSON()
+    # @staticmethod
+    # def _create_plot_data(result):
+    #     return PlotResult(plot=result.to_json()).toJSON()
 
     # @staticmethod
     # def _result_is_dataframe(result) -> bool:
     #     return type(result) == pandas.core.frame.DataFrame
 
-    @staticmethod
-    def _assign_exec_mode(message: Message):
-        message.execution_mode = 'eval'
-        if message.metadata and ('line_range' in message.metadata):
-            line_range = message.metadata['line_range']
-            # always 'exec' if there are more than 1 line in the code
-            if line_range['fromLine'] < line_range['toLine']-1:
-                message.execution_mode = 'exec'
+    # @staticmethod
+    # def _assign_exec_mode(message: Message):
+    #     message.execution_mode = 'eval'
+    #     if message.metadata and ('line_range' in message.metadata):
+    #         line_range = message.metadata['line_range']
+    #         # always 'exec' if there are more than 1 line in the code
+    #         if line_range['fromLine'] < line_range['toLine']-1:
+    #             message.execution_mode = 'exec'
 
-        try:
-            compile(message.content, '<stdin>', 'eval')
-        except SyntaxError as error:
-            log.error(error)
-            message.execution_mode = 'exec'
+    #     try:
+    #         compile(message.content, '<stdin>', 'eval')
+    #     except SyntaxError as error:
+    #         log.error(error)
+    #         message.execution_mode = 'exec'
 
-        log.info("assigned command type: %s" % message.execution_mode)
+    #     log.info("assigned command type: %s" % message.execution_mode)
 
     @staticmethod
     def _is_execute_result(header) -> bool:
@@ -76,6 +76,7 @@ class MessageHandler(BaseMessageHandler):
             classify it according to the message type then return it to the client
         """
         msg_ipython = IpythonResultMessage(**output)
+
         # Handle error message
         if self._is_error_message(msg_ipython.header):
             log.error("Error {}" % (msg_ipython.content['traceback']))
@@ -101,14 +102,16 @@ class MessageHandler(BaseMessageHandler):
             return message
         elif self._is_display_data_result(msg_ipython.header):
             message.type = ContentType.RICH_OUTPUT
+            # Ipython return rich output as mime types
             for key, value in msg_ipython.content['data'].items():
+                message.content = value
+                message.sub_type = key
+                if key == 'application/json' and self._result_is_plotly_fig(value):
+                    message.sub_type = SubContentType.PLOTLY_FIG
                 # All returned rich output in IPython is formatted in mime types
-                if key in MIME_TYPES:
-                    message.content = value
-                    message.sub_type = key
-                    if key == 'application/json':
-                        message.sub_type = SubContentType.PLOTLY_FIG if self._result_is_plotly_fig(
-                            value) else key
+                # elif key in MIME_TYPES:
+                #     message.sub_type = key
+            print("message", message)
             return message
 
     def handle_message(self, message):

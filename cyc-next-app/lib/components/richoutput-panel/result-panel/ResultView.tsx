@@ -74,7 +74,7 @@ const ResultView = (props: any) => {
                                               setLayout(codeResult?.result?.content)
                                           )}
                                       </SingleResult>
-                                  ) : (
+                                  ) : codeResult?.result?.subType.includes("image") ? (
                                       <SingleResult
                                           key={codeResult.lineID}
                                           variant='outlined'
@@ -89,7 +89,7 @@ const ResultView = (props: any) => {
                                               }
                                           />
                                       </SingleResult>
-                                  )}
+                                  ) : null}
                               </ScrollIntoViewIfNeeded>
                           ))
                         : null}
