@@ -63,7 +63,7 @@ const ResultView = (props: any) => {
                                       boundary: document.getElementById(resultViewId),
                                   }}
                               >
-                                  {codeResult?.result?.subType === SubContentType.PLOTLY_FIG ? (
+                                  {codeResult?.result?.subType === SubContentType.PLOTLY_FIG && (
                                       <SingleResult
                                           key={codeResult.lineID}
                                           variant='outlined'
@@ -74,7 +74,8 @@ const ResultView = (props: any) => {
                                               setLayout(codeResult?.result?.content)
                                           )}
                                       </SingleResult>
-                                  ) : codeResult?.result?.subType.includes("image") ? (
+                                  )}
+                                  {codeResult?.result?.subType.includes("image") && (
                                       <SingleResult
                                           key={codeResult.lineID}
                                           variant='outlined'
@@ -89,7 +90,7 @@ const ResultView = (props: any) => {
                                               }
                                           />
                                       </SingleResult>
-                                  ) : null}
+                                  )}
                               </ScrollIntoViewIfNeeded>
                           ))
                         : null}
