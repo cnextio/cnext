@@ -92,6 +92,7 @@ export enum SetLineGroupCommand {
 export interface ICodeResultMessage {
     inViewID: string;
     type: ContentType;
+    subType: string;
     content: string | object;
     metadata: object;
 }
@@ -99,6 +100,7 @@ export interface ICodeResultMessage {
 export interface ICodeResult {
     type: ContentType;
     content: string | object | IPlotResult;
+    subType: string;
 }
 
 export interface IPlotResult {

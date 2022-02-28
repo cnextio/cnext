@@ -1,23 +1,10 @@
-import { Box, Popover } from "@mui/material";
 import React, { Fragment } from "react";
-import { useSelector } from "react-redux";
-import {
-    StyledTableViewHeader,
-    TableShape,
-    RichOuputViewHeaderButton,
-    GridViewBtn,
-} from "../StyledComponents";
+import { StyledTableViewHeader, RichOuputViewHeaderButton, GridViewBtn } from "../StyledComponents";
 import { RichOutputViewHeader } from "../../interfaces/IRichOuputViewer";
-import GridViewIcon from "@mui/icons-material/GridView";
 import { GridViewStatus } from "./data-panel/GridView";
 import GridOnIcon from "@mui/icons-material/GridOn";
 
-const RichOuputViewHeader = ({
-    show,
-    setShow,
-    gridViewStatus,
-    handleGridViewBtn,
-}) => {
+const RichOuputViewHeader = ({ show, setShow, gridViewStatus, handleGridViewBtn }) => {
     // const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     // const dfMetadata = useSelector((state) => state.dataFrames.metadata[activeDataFrame]);
 
@@ -28,8 +15,8 @@ const RichOuputViewHeader = ({
                 {Object.values(RichOutputViewHeader).map((name, index) => (
                     <RichOuputViewHeaderButton
                         selected={show == name ? true : false}
-                        variant="overline"
-                        component="span"
+                        variant='overline'
+                        component='span'
                         onClick={() => setShow(name)}
                     >
                         {name}

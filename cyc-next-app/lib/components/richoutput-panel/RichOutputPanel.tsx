@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { PanelDivider, TablePanel, TableToolbar } from "../StyledComponents";
 import RichOutputView from "./RichOutputView";
 import DFExplorer from "./DFExplorer";
@@ -9,15 +9,13 @@ const RichOutputPanel = (props: any) => {
         <TablePanel>
             {/* {console.log(props)} */}
             <TableToolbar>
-              <DFExplorer></DFExplorer>
-              <DFFilter></DFFilter>
+                <DFExplorer></DFExplorer>
+                <DFFilter></DFFilter>
             </TableToolbar>
-            <PanelDivider/>
-            <RichOutputView {... props}/>
+            <PanelDivider />
+            <RichOutputView {...props} />
         </TablePanel>
     );
-  };
-  
-  export default RichOutputPanel;
+};
 
-
+export default RichOutputPanel;

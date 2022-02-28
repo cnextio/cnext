@@ -10,4 +10,13 @@ export const ifElse = (object: {}, key: string, empty: any) => {
     return ((key in object) ? object[key] : empty);
 }
 
+export const isJsonString = (data: string) => {
+    try {
+        JSON.parse(data);
+    } catch (error) {
+        return false;
+    }
+    return true;
+};
+
 export const emptyString = "";

@@ -49,6 +49,9 @@ Thumbs.db
 *.mov
 *.wmv
 
+# Python compile
+*.pyc
+
 # vscode
 .vscode
 

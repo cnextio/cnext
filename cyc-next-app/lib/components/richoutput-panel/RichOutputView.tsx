@@ -1,36 +1,5 @@
-import {
-    TableBody,
-    TableHead,
-    TableRow,
-    TableCell,
-    Grow,
-    Fade,
-    Paper,
-    Divider,
-} from "@mui/material";
-import React, {
-    useEffect,
-    useRef,
-    useState,
-    useCallback,
-    Fragment,
-} from "react";
-import shortid from "shortid";
-import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-
-import {
-    DataTable,
-    DataTableCell,
-    DataTableHead,
-    DataTableHeadRow,
-    DataTableHeadCell,
-    DataTableIndexCell,
-    DataTableRow,
-    TableContainer,
-    DataTableHeadText,
-} from "../StyledComponents";
-import { IDFUpdatesReview, ReviewType } from "../../interfaces/IApp";
-import ColumnHistogram from "./data-panel/ColumnHistogram";
+import { Divider } from "@mui/material";
+import React, { useEffect, useState, Fragment } from "react";
 
 // import dynamic from 'next/dynamic'
 // const ColumnHistogramComponentWithNoSSR = dynamic(
@@ -39,11 +8,12 @@ import ColumnHistogram from "./data-panel/ColumnHistogram";
 //   )
 
 // redux
-import { useSelector, useDispatch } from "react-redux";
-import { ifElse, ifElseDict } from "../libs";
+import { useSelector } from "react-redux";
+import { ifElse } from "../libs";
 import RichOuputViewHeader from "./RichOuputViewHeader";
 import SummaryView from "./summary-panel/SummaryView";
 import PlotView from "./plot-panel/PlotView";
+import ResultView from "./result-panel/ResultView";
 import { RichOutputViewHeader } from "../../interfaces/IRichOuputViewer";
 import ExperimentManager from "./experiment-panel/ExperimentsManager";
 import ModelView from "./model-panel/ModelView";
@@ -52,34 +22,30 @@ import GridView, { GridViewStatus } from "./data-panel/GridView";
 
 const RichOutputView = (props: any) => {
     const tableData = useSelector((state) => state.dataFrames.tableData);
-    const [gridViewStatus, setGridViewStatus] = useState<GridViewStatus>(
-        GridViewStatus.NONE
-    );
+    const [gridViewStatus, setGridViewStatus] = useState<GridViewStatus>(GridViewStatus.NONE);
 
-    const plotResultUpdate = useSelector(
-        (state) => state.codeEditor.plotResultUpdate
-    );
-    const activeDataFrame = useSelector(
-        (state) => state.dataFrames.activeDataFrame
-    );
+    // const plotResultUpdate = useSelector((state) => state.codeEditor.plotResultUpdate);
+    const resultUpdate = useSelector((state) => state.codeEditor.resultUpdate);
+    const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     const [show, setShow] = useState(RichOutputViewHeader.DATA);
 
     useEffect(() => {
         setShow(RichOutputViewHeader.DATA);
     }, [tableData]);
 
+    // useEffect(() => {
+    //     setShow(RichOutputViewHeader.PLOTS);
+    // }, [plotResultUpdate]);
+
     useEffect(() => {
-        setShow(RichOutputViewHeader.PLOTS);
-    }, [plotResultUpdate]);
+        setShow(RichOutputViewHeader.RESULTS);
+    }, [resultUpdate]);
 
     useEffect(() => {
         if (show != RichOutputViewHeader.DATA) {
             setGridViewStatus(GridViewStatus.NONE);
         }
-        if (
-            show == RichOutputViewHeader.DATA &&
-            ifElse(tableData, activeDataFrame, null)
-        ) {
+        if (show == RichOutputViewHeader.DATA && ifElse(tableData, activeDataFrame, null)) {
             setGridViewStatus(GridViewStatus.UNSELECTED);
         }
     }, [show, tableData, activeDataFrame]);
@@ -101,13 +67,10 @@ const RichOutputView = (props: any) => {
             <Divider />
             {show == RichOutputViewHeader.DATA &&
                 ifElse(tableData, activeDataFrame, null) &&
-                (gridViewStatus == GridViewStatus.SELECTED ? (
-                    <GridView />
-                ) : (
-                    <TableView />
-                ))}
+                (gridViewStatus == GridViewStatus.SELECTED ? <GridView /> : <TableView />)}
             {show == RichOutputViewHeader.SUMMARY && <SummaryView />}
-            {show == RichOutputViewHeader.PLOTS && <PlotView />}
+            {/* {show == RichOutputViewHeader.PLOTS && <PlotView />} */}
+            {show == RichOutputViewHeader.RESULTS && <ResultView />}
             {show == RichOutputViewHeader.EXPERIMENTS && <ExperimentManager />}
             {show == RichOutputViewHeader.MODEL && <ModelView />}
         </Fragment>
