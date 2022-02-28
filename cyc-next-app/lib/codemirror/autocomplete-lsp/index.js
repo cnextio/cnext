@@ -1,7 +1,7 @@
 //using a customized version of autocomplete instead of @codemirror/autocomplete
 import { autocompletion } from './autocomplete';
 import { setDiagnostics } from '@codemirror/lint';
-import { Facet, StateField } from '@codemirror/state';
+import { Facet, StateEffect, StateField } from '@codemirror/state';
 import { hoverTooltip } from '@codemirror/tooltip';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import socket from '../../components/Socket';
@@ -14,6 +14,7 @@ import {
 } from 'vscode-languageserver-protocol';
 import store from '/redux/store';
 import { python } from '../grammar/lang-cnext-python';
+import { CompletionContext } from './autocomplete';
 const timeout = 10000;
 const changesDelay = 500;
 const CompletionItemKindMap = Object.fromEntries(
@@ -108,7 +109,6 @@ class LanguageServerPlugin {
     }
 
     update({ docChanged }) {
-        console.log('on docChanged', this.ready);
         if (!docChanged) return;
         if (!this.ready && !this.dfFilter)
             this.initializeLS({ documentText: this.view.state.doc.toString() });
@@ -226,6 +226,44 @@ class LanguageServerPlugin {
         }
     }
 
+    async requestSignatureTooltip(view, pos, { line, character }) {
+        try {
+            this.sendChange({ documentText: view.state.doc.toString() });
+
+            // request more infomation for params
+
+            let signatureResult = await this.requestLS(
+                WebAppEndpoint.LanguageServer,
+                'textDocument/signatureHelp',
+                {
+                    textDocument: { uri: this.documentUri },
+                    position: { line, character },
+                    context: {
+                        triggerKind: SignatureHelpTriggerKind.Invoked,
+                        triggerCharacter: character,
+                    },
+                }
+            );
+
+            if (
+                !signatureResult['signatures'] ||
+                (signatureResult['signatures'] && !signatureResult.signatures[0]) ||
+                (signatureResult['signatures'] &&
+                    signatureResult.signatures[0] &&
+                    !signatureResult.signatures[0].label)
+            )
+                return null;
+            else {
+                return {
+                    pos,
+                    textContent: formatContents(signatureResult.signatures[0].label),
+                };
+            }
+        } catch (error) {
+            console.error('requestSignatureTooltip: ', error);
+        }
+    }
+
     async requestHoverTooltip(view, { line, character }) {
         try {
             this.sendChange({ documentText: view.state.doc.toString() });
@@ -248,11 +286,8 @@ class LanguageServerPlugin {
             const dom = document.createElement('div');
             dom.classList.add('documentation');
 
-            if (pos === null || !contents) {
+            if (!contents) {
                 // request more infomation for params
-                let doc = view.state.doc;
-                let lineExcute = doc.lineAt(pos);
-
                 let signatureResult = await this.requestLS(
                     WebAppEndpoint.LanguageServer,
                     'textDocument/signatureHelp',
@@ -261,7 +296,7 @@ class LanguageServerPlugin {
                         position: { line, character },
                         context: {
                             triggerKind: SignatureHelpTriggerKind.Invoked,
-                            triggerCharacter: lineExcute.text[pos - line.from - 1],
+                            triggerCharacter: character,
                         },
                     }
                 );
@@ -572,7 +607,7 @@ class LanguageServerPlugin {
      * End support DataFrame-related autocomplete
      */
 
-    async requestSignatureHelp(context, { line, character }, { triggerKind, triggerCharacter }) {
+    async requestSuggestSignature(context, { line, character }, { triggerKind, triggerCharacter }) {
         try {
             this.sendChange({
                 documentText: context.state.doc.toString(),
@@ -819,47 +854,95 @@ class LanguageServerPlugin {
 
 import { showTooltip } from '@codemirror/tooltip';
 
-const cursorTooltipBaseTheme = EditorView.baseTheme({
+const signatureBaseTheme = EditorView.baseTheme({
     '.cm-tooltip.cm-tooltip-cursor': {
         padding: '2px 7px',
     },
 });
 
-const getCursorTooltips = (state) => {
-    console.log('state.selection.ranges', state.selection.ranges);
-    return state.selection.ranges
-        .filter((range) => range.empty)
-        .map((range) => {
-            let line = state.doc.lineAt(range.head);
-            let text = line.number + ':' + (range.head - line.from);
-            return {
-                pos: range.head,
-                above: true,
-                strictSide: true,
-                arrow: true,
-                create: () => {
-                    let dom = document.createElement('div');
-                    dom.className = 'cm-tooltip-cursor';
-                    dom.textContent = text;
-                    return { dom };
-                },
-            };
-        });
-};
+const showSuggestTooltip = /*@__PURE__*/ Facet.define();
+const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
+    [showSuggestTooltip],
+    (state) => {
+        let tooltips = state.facet(showSuggestTooltip).filter((t) => t);
+        if (tooltips.length === 0) return null;
+        let tooltipData = {
+            pos: Math.min(...tooltips.map((t) => t.pos)),
+            above: true,
+            strictSide: true,
+            arrow: true,
+            create: () => {
+                let dom = document.createElement('div');
+                dom.className = 'cm-tooltip-cursor';
+                dom.textContent = tooltips.map((t) => t.textContent);
+                return { dom };
+            },
+        };
 
-const cursorTooltipField = StateField.define({
-    create: getCursorTooltips,
-    update(tooltips, tr) {
-        if (!tr.docChanged && !tr.selection) return tooltips;
-        return getCursorTooltips(tr.state);
-    },
+        return tooltipData;
+    }
+);
 
-    provide: (tooltipField) =>
-        showTooltip.computeN([tooltipField], (state) => state.field(tooltipField)),
-});
+class SignaturePlugin {
+    constructor(view, source, setSignature) {
+        this.view = view;
+        this.source = source;
+        this.setSignature = setSignature;
+        this.restartTimeout = -1;
+        this.curPos = this.view.state.selection.main.head;
+        this.running = false;
+    }
 
-const suggestSignatureInfo = () => {
-    return [cursorTooltipField, cursorTooltipBaseTheme];
+    update(update) {
+        let sState = update.state;
+        let pos = sState.selection.main.head;
+
+        if (pos !== 0 && this.curPos != pos) {
+            this.restartTimeout = setTimeout(() => this.startGetSignature(sState, pos), 20);
+            this.curPos = pos;
+        }
+    }
+
+    async startGetSignature(state, pos) {
+        clearTimeout(this.restartTimeout);
+
+        let context = new CompletionContext(state, pos, true);
+        if (context.matchBefore(/[\(,=]+$/)) {
+            let data = await this.source(this.view, pos);
+            if (data) {
+                this.view.dispatch({
+                    effects: this.setSignature.of(data),
+                });
+            }
+        }
+    }
+
+    destroy() {
+        clearTimeout(this.hoverTimeout);
+    }
+}
+
+const signatureTooltip = (source) => {
+    let setSignature = StateEffect.define();
+    let signatureState = StateField.define({
+        create() {
+            return null;
+        },
+        update(value, tr) {
+            if (value && (tr.docChanged || tr.selection)) return null;
+            for (let effect of tr.effects) {
+                if (effect.is(setSignature)) return effect.value;
+            }
+            return value;
+        },
+        provide: (f) => showSuggestTooltip.from(f),
+    });
+    return [
+        signatureState,
+        ViewPlugin.define((view) => new SignaturePlugin(view, source, setSignature)),
+        showSignatureTooltipHost,
+        signatureBaseTheme,
+    ];
 };
 
 function languageServer(options) {
@@ -870,6 +953,19 @@ function languageServer(options) {
         documentUri.of(options.documentUri),
         languageId.of(options.languageId),
         ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view))),
+        signatureTooltip(async (view, pos) => {
+            var _a;
+            return (_a =
+                plugin === null || plugin === void 0
+                    ? void 0
+                    : await plugin.requestSignatureTooltip(
+                          view,
+                          pos,
+                          offsetToPos(view.state.doc, pos)
+                      )) !== null && _a !== void 0
+                ? _a
+                : null;
+        }),
         hoverTooltip((view, pos) => {
             var _a;
             return (_a =
@@ -914,7 +1010,7 @@ function languageServer(options) {
                         if (context.matchBefore(/[\(,=]+$/)) {
                             // go to Signature Help suggestion
                             trigChar = line.text[pos - line.from - 1];
-                            return await plugin.requestSignatureHelp(
+                            return await plugin.requestSuggestSignature(
                                 context,
                                 offsetToPos(state.doc, pos),
                                 {
@@ -937,7 +1033,6 @@ function languageServer(options) {
                 },
             ],
         }),
-        // suggestSignatureInfo(),
         baseTheme,
     ];
 }

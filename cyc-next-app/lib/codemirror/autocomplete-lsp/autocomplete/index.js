@@ -672,7 +672,7 @@ class CompletionTooltip {
 
         this.dom = document.createElement('div');
         this.dom.className = 'cm-tooltip-autocomplete';
-      
+
         this.list = this.dom.appendChild(this.createListBox(options, cState.id, this.range));
         this.list.addEventListener('scroll', () => {
             if (this.info) this.view.requestMeasure(this.placeInfo);
@@ -980,6 +980,7 @@ class CompletionState {
                 );
             return value.update(tr, conf);
         });
+
         if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
             active = this.active;
         let open =
@@ -1001,6 +1002,10 @@ class CompletionState {
         for (let effect of tr.effects)
             if (effect.is(setSelectedEffect))
                 open = open && open.setSelected(effect.value, this.id);
+
+        console.log('CompletionState active', active);
+        console.log('CompletionState open', open);
+
         return active == this.active && open == this.open
             ? this
             : new CompletionState(active, this.id, open);

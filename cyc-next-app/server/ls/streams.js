@@ -64,7 +64,10 @@ class JsonRpcStreamReader {
 
 class JsonRpcStreamWriter {
     getPayload(message) {
-        //console.log(`getPayload ${new Date().toLocaleString()} `, JSON.parse(message));
+        console.log(
+            `getPayload and send to LSP ${new Date().toLocaleString()} `,
+            JSON.parse(message)
+        );
         const length = message.length;
         return `Content-Length: ${length}\r\n Content-Type: application/vscode-jsonrpc; charset=utf8\r\n\r\n${message}`;
     }
