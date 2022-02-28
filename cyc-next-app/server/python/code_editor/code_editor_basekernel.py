@@ -91,6 +91,7 @@ class MessageHandler(BaseMessageHandler):
         log.info('eval... %s' % message)
         # log.info('Globals: %s' % client_globals)
         try:
+            sub_type = SubContentType.NONE
             self._assign_exec_mode(message)
             type = ContentType.NONE
             output = ''

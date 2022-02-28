@@ -28,7 +28,8 @@ const CodeOutputComponent = ({ codeOutput }) => {
             activeDataFrame in state.dataFrames.dfUpdates
         ) {
             // console.log('Check update: ', state.dataFrames.dfUpdates[activeDataFrame]);
-            const activeDataFrameUpdates = state.dataFrames.dfUpdates[activeDataFrame];
+            const activeDataFrameUpdates =
+                state.dataFrames.dfUpdates[activeDataFrame];
             if ("update_type" in activeDataFrameUpdates) {
                 return activeDataFrameUpdates;
             }
@@ -53,8 +54,8 @@ const CodeOutputComponent = ({ codeOutput }) => {
                     <Fragment>
                         <Typography
                             key={index}
-                            variant='caption'
-                            component='span'
+                            variant="caption"
+                            component="span"
                             style={{ fontWeight: "bold" }}
                         >
                             {elem}
@@ -74,7 +75,9 @@ const CodeOutputComponent = ({ codeOutput }) => {
     ) => {
         return (
             <Fragment>
-                {updateType === UpdateType.new_df && <Fragment>New dataframe created</Fragment>}
+                {updateType === UpdateType.new_df && (
+                    <Fragment>New dataframe created</Fragment>
+                )}
                 {updateType !== UpdateType.new_df &&
                 (updatedItems.length || Object.keys(updatedItems).length) ? (
                     <Box key={key} sx={{ display: "flex" }}>
@@ -123,7 +126,10 @@ const CodeOutputComponent = ({ codeOutput }) => {
                     type: !codeOutput.error ? "text" : "error",
                     content: codeOutput.content,
                 };
-                setOutputContent((outputContent) => [...outputContent, newOutputContent]);
+                setOutputContent((outputContent) => [
+                    ...outputContent,
+                    newOutputContent,
+                ]);
             }
         } catch (error) {
             // TODO: process json error
@@ -138,16 +144,24 @@ const CodeOutputComponent = ({ codeOutput }) => {
         // const activeDataFrame = state.dataFrames.activeDataFrame;
         if (dfUpdates != null) {
             const activeDataFrameUpdates = dfUpdates; //[activeDataFrame];
-            const updateType = ifElse(activeDataFrameUpdates, "update_type", null);
-            const updateContent = ifElse(activeDataFrameUpdates, "update_content", []);
+            const updateType = activeDataFrameUpdates.update_type;
+            const updateContent = activeDataFrameUpdates.update_content
+                ? activeDataFrameUpdates.update_content
+                : [];
 
             let newOutputContent = {
                 type: "df_updates",
-                content: { updateType: updateType, updateContent: updateContent },
+                content: {
+                    updateType: updateType,
+                    updateContent: updateContent,
+                },
             };
             //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
             if (newOutputContent != null) {
-                setOutputContent((outputContent) => [...outputContent, newOutputContent]);
+                setOutputContent((outputContent) => [
+                    ...outputContent,
+                    newOutputContent,
+                ]);
             }
         }
     };
@@ -191,7 +205,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
     return (
         <CodeOutputContainer>
             {console.log("Render CodeOutputAreaComponent")}
-            <CodeOutputHeader variant='overline' component='span'>
+            <CodeOutputHeader variant="overline" component="span">
                 Output
             </CodeOutputHeader>
             <CodeOutputContent ref={codeOutputRef} id={codeOutputContentID}>
@@ -200,8 +214,8 @@ const CodeOutputComponent = ({ codeOutput }) => {
                         {item["type"] === "text" && item["content"] !== "" && (
                             <IndividualCodeOutputContent
                                 key={index}
-                                component='pre'
-                                variant='body2'
+                                component="pre"
+                                variant="body2"
                             >
                                 {item["content"]}
                             </IndividualCodeOutputContent>
@@ -209,8 +223,8 @@ const CodeOutputComponent = ({ codeOutput }) => {
                         {item["type"] === "df_updates" && (
                             <IndividualCodeOutputContent
                                 key={index}
-                                component='pre'
-                                variant='body2'
+                                component="pre"
+                                variant="body2"
                             >
                                 {_buildDFReviewsOutputComponent(
                                     outputContent.length,
@@ -218,7 +232,9 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                     item["content"]["updateContent"],
                                     // only the last item and in the review list can be in active review mode
                                     index === outputContent.length - 1 &&
-                                        updateTypeToReview.includes(item["content"]["updateType"])
+                                        updateTypeToReview.includes(
+                                            item["content"]["updateType"]
+                                        )
                                 )}
                             </IndividualCodeOutputContent>
                         )}
@@ -227,8 +243,8 @@ const CodeOutputComponent = ({ codeOutput }) => {
                             item["content"].map((content) => (
                                 <IndividualCodeOutputContent
                                     key={index}
-                                    component='pre'
-                                    variant='body2'
+                                    component="pre"
+                                    variant="body2"
                                 >
                                     <Ansi>{content.toString()}</Ansi>
                                 </IndividualCodeOutputContent>
@@ -240,7 +256,10 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                     block: "nearest",
                                     inline: "center",
                                     behavior: "smooth",
-                                    boundary: document.getElementById(codeOutputContentID),
+                                    boundary:
+                                        document.getElementById(
+                                            codeOutputContentID
+                                        ),
                                 }}
                             />
                         )}
