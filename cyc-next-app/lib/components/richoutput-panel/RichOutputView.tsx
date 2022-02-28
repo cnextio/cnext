@@ -38,7 +38,7 @@ const RichOutputView = (props: any) => {
     // }, [plotResultUpdate]);
 
     useEffect(() => {
-        setShow(RichOutputViewHeader.RESULT);
+        setShow(RichOutputViewHeader.RESULTS);
     }, [resultUpdate]);
 
     useEffect(() => {
@@ -70,7 +70,7 @@ const RichOutputView = (props: any) => {
                 (gridViewStatus == GridViewStatus.SELECTED ? <GridView /> : <TableView />)}
             {show == RichOutputViewHeader.SUMMARY && <SummaryView />}
             {/* {show == RichOutputViewHeader.PLOTS && <PlotView />} */}
-            {show == RichOutputViewHeader.RESULT && <ResultView />}
+            {show == RichOutputViewHeader.RESULTS && <ResultView />}
             {show == RichOutputViewHeader.EXPERIMENTS && <ExperimentManager />}
             {show == RichOutputViewHeader.MODEL && <ModelView />}
         </Fragment>

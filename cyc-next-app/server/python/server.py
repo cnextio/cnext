@@ -32,15 +32,15 @@ if __name__ == "__main__":
         p2n_queue = MessageQueue(
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
 
-        user_space = UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
-        user_ipython_space = UserSpace(
+        # user_space = UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
+        user_space = UserSpace(
             IPythonKernel(),
             [cd.DataFrame, pd.DataFrame]
         )
         sh.DataFrameStatusHook.set_user_space(user_space)
 
         message_handler = {
-            WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_ipython_space),
+            WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config),

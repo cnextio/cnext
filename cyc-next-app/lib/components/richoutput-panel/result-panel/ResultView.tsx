@@ -63,24 +63,17 @@ const ResultView = (props: any) => {
                                       boundary: document.getElementById(resultViewId),
                                   }}
                               >
-                                  {codeResult?.result?.subType === SubContentType.PLOTLY_FIG && (
-                                      <SingleResult
-                                          key={codeResult.lineID}
-                                          variant='outlined'
-                                          focused={codeResult.lineID == activeLine}
-                                      >
-                                          {React.createElement(
+                                  <SingleResult
+                                      key={codeResult.lineID}
+                                      variant='outlined'
+                                      focused={codeResult.lineID == activeLine}
+                                  >
+                                      {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
+                                          React.createElement(
                                               ResultWithNoSSR,
                                               setLayout(codeResult?.result?.content)
                                           )}
-                                      </SingleResult>
-                                  )}
-                                  {codeResult?.result?.subType.includes("image") && (
-                                      <SingleResult
-                                          key={codeResult.lineID}
-                                          variant='outlined'
-                                          focused={codeResult.lineID == activeLine}
-                                      >
+                                      {codeResult?.result?.subType.includes("image") && (
                                           <img
                                               src={
                                                   "data:" +
@@ -89,8 +82,8 @@ const ResultView = (props: any) => {
                                                   codeResult?.result?.content
                                               }
                                           />
-                                      </SingleResult>
-                                  )}
+                                      )}
+                                  </SingleResult>
                               </ScrollIntoViewIfNeeded>
                           ))
                         : null}
