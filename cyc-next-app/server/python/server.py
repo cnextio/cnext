@@ -19,6 +19,7 @@ import simplejson as json
 from libs.message_handler import BaseMessageHandler
 
 from user_space.user_space import BaseKernel, UserSpace
+from libs.ipython.kernel import IPythonKernel
 
 log = logs.get_logger(__name__)
 
@@ -31,7 +32,11 @@ if __name__ == "__main__":
         p2n_queue = MessageQueue(
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
 
-        user_space = UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
+        # user_space = UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
+        user_space = UserSpace(
+            IPythonKernel(),
+            [cd.DataFrame, pd.DataFrame]
+        )
         sh.DataFrameStatusHook.set_user_space(user_space)
 
         message_handler = {

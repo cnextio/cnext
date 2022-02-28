@@ -1,6 +1,7 @@
 from enum import Enum
 import cycdataframe.user_space as cus
 
+
 from libs import logs
 log = logs.get_logger(__name__)
 
@@ -35,10 +36,6 @@ class BaseKernel:
             return exec(code, globals())
 
 
-class IPythonKernel(BaseKernel):
-    pass
-
-
 class UserSpace(cus.UserSpace):
     ''' 
         Define the space where user code will be executed. 
@@ -49,7 +46,7 @@ class UserSpace(cus.UserSpace):
     def __init__(self, executor: BaseKernel, df_types: list):
         self.executor = executor
         super().__init__(df_types)
-    
+
     def globals(self):
         return globals()
 

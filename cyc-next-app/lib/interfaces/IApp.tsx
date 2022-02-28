@@ -73,6 +73,15 @@ export enum ContentType {
     FILE_METADATA = "file_metadata",
     FILE_CONTENT = "file_content",
     COLUMN_CARDINAL = "column_cardinal",
+    RICH_OUTPUT = "rich_output",
+    NONE = "none",
+}
+
+
+export enum SubContentType {
+    PLOTLY_FIG = "plotly_fig",
+    HTML_STRING = "html_string",
+    APPLICATION_JSON = "application/json",
     NONE = "none",
 }
 
