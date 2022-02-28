@@ -223,6 +223,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
                             </IndividualCodeOutputContent>
                         )}
                         {item["type"] === "error" &&
+                            typeof item["content"] === "object" &&
                             item["content"].map((content) => (
                                 <IndividualCodeOutputContent
                                     key={index}

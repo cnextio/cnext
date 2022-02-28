@@ -5,6 +5,7 @@ import {
     PlotViewContainer as StyledResultView,
 } from "../../StyledComponents";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
+import ReactHtmlParser from "html-react-parser";
 import { useSelector } from "react-redux";
 import { ICodeLine } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
@@ -73,6 +74,9 @@ const ResultView = (props: any) => {
                                               ResultWithNoSSR,
                                               setLayout(codeResult?.result?.content)
                                           )}
+                                      {codeResult?.result?.subType ===
+                                          SubContentType.APPLICATION_JSON &&
+                                          JSON.stringify(codeResult?.result?.content)}
                                       {codeResult?.result?.subType.includes("image") && (
                                           <img
                                               src={
@@ -83,6 +87,9 @@ const ResultView = (props: any) => {
                                               }
                                           />
                                       )}
+                                      {/* Display video/ audio */}
+                                      {codeResult?.result?.subType === SubContentType.HTML_STRING &&
+                                          ReactHtmlParser(codeResult?.result?.content)}
                                   </SingleResult>
                               </ScrollIntoViewIfNeeded>
                           ))

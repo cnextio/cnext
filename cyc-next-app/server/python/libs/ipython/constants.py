@@ -29,7 +29,7 @@ class IPythonKernelConstants:
         DISPLAY_DATA = 'display_data'
         UPDATE_DISPLAY_DATA = 'update_display_data'
         EXECUTE_INPUT = 'execute_input'
-        EXECUTE_RESULT = 'exectue_result'
+        EXECUTE_RESULT = 'execute_result'
         STREAM = 'stream'
         ERROR = 'error'
         STATUS = 'status'

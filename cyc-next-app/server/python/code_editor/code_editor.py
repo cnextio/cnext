@@ -90,8 +90,15 @@ class MessageHandler(BaseMessageHandler):
         # Handle success message
         message.error = False
         if self._is_execute_result(msg_ipython.header):
-            message.type = ContentType.STRING
-            message.content = msg_ipython.content['data']
+            # The case return video/ audio from IPython
+            if type(msg_ipython.content['data']) is dict:
+                if 'text/html' in msg_ipython.content['data']:
+                    message.type = ContentType.RICH_OUTPUT
+                    message.sub_type = SubContentType.HTML_STRING
+                    message.content = msg_ipython.content['data']['text/html']
+            else:
+                message.type = ContentType.STRING
+                message.content = msg_ipython.content['data']
             return message
         elif self._is_stream_result(msg_ipython.header):
             message.type = ContentType.STRING

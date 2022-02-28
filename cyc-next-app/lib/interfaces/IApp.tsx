@@ -80,6 +80,8 @@ export enum ContentType {
 
 export enum SubContentType {
     PLOTLY_FIG = "plotly_fig",
+    HTML_STRING = "html_string",
+    APPLICATION_JSON = "application/json",
     NONE = "none",
 }
 
