@@ -57,7 +57,8 @@ class IPythonKernel(BaseKernel):
             # If not, there are some errors.
             # for more information: https://jupyter-client.readthedocs.io/en/master/messaging.html#messages-on-the-shell-router-dealer-channel
             try:
-                msg = self.kc.get_iopub_msg(timeout=1)
+                # Increase timeout to make sure IPython return all messages
+                msg = self.kc.get_iopub_msg(timeout=10)
                 header = msg['header']
                 content = msg['content']
 
