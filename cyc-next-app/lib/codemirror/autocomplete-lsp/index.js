@@ -2,7 +2,7 @@
 import { autocompletion } from './autocomplete';
 import { setDiagnostics } from '@codemirror/lint';
 import { Facet, StateEffect, StateField } from '@codemirror/state';
-import { hoverTooltip } from '@codemirror/tooltip';
+import { hoverTooltip, showTooltip } from '@codemirror/tooltip';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import socket from '../../components/Socket';
 import { WebAppEndpoint } from '../../interfaces/IApp';
@@ -15,6 +15,7 @@ import {
 import store from '/redux/store';
 import { python } from '../grammar/lang-cnext-python';
 import { CompletionContext } from './autocomplete';
+
 const timeout = 10000;
 const changesDelay = 500;
 const CompletionItemKindMap = Object.fromEntries(
@@ -229,8 +230,6 @@ class LanguageServerPlugin {
     async requestSignatureTooltip(view, pos, { line, character }) {
         try {
             this.sendChange({ documentText: view.state.doc.toString() });
-
-            // request more infomation for params
 
             let signatureResult = await this.requestLS(
                 WebAppEndpoint.LanguageServer,
@@ -851,8 +850,6 @@ class LanguageServerPlugin {
         this.view.dispatch(setDiagnostics(this.view.state, diagnostics));
     }
 }
-
-import { showTooltip } from '@codemirror/tooltip';
 
 const signatureBaseTheme = EditorView.baseTheme({
     '.cm-tooltip.cm-tooltip-cursor': {

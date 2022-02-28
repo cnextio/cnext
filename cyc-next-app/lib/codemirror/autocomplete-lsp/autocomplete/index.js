@@ -1003,9 +1003,6 @@ class CompletionState {
             if (effect.is(setSelectedEffect))
                 open = open && open.setSelected(effect.value, this.id);
 
-        console.log('CompletionState active', active);
-        console.log('CompletionState open', open);
-
         return active == this.active && open == this.open
             ? this
             : new CompletionState(active, this.id, open);
