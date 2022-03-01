@@ -175,6 +175,11 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                             dispatch(setTableData(codeOutput.content));
                         } else if (codeOutput.type === ContentType.RICH_OUTPUT) {
                             handleResultData(codeOutput);
+                        } else if (codeOutput.type === ContentType.NONE) {
+                            console.log(
+                                "CodeEditor - dispatch output with none content type :",
+                                codeOutput
+                            );
                         } else {
                             console.log("dispatch text output:", codeOutput);
                             recvCodeOutput(codeOutput);

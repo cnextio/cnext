@@ -19,7 +19,7 @@ import simplejson as json
 from libs.message_handler import BaseMessageHandler
 
 from user_space.user_space import BaseKernel, UserSpace
-from libs.ipython.kernel import IPythonKernel
+from user_space.ipython.kernel import IPythonKernel
 
 log = logs.get_logger(__name__)
 
