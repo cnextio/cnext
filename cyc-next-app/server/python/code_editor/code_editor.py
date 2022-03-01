@@ -2,16 +2,13 @@ import traceback
 import simplejson as json
 
 import plotly
-from cycdataframe.df_status_hook import DataFrameStatusHook
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, SubContentType, Message
 
 from libs import logs
 from libs.message import DFManagerCommand, WebappEndpoint
-from user_space.user_space import ExecutionMode
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
 from user_space.ipython.kernel import IPythonKernel
-from code_editor.interfaces import PlotResult
 log = logs.get_logger(__name__)
 
 
@@ -137,7 +134,7 @@ class MessageHandler(BaseMessageHandler):
                 msg = self.build_single_message(output=output, message=message)
                 if msg is not None:
                     self._send_to_node(msg)
-                self._process_active_df_status()
+            self._process_active_objects_status()
         except:
             trace = traceback.format_exc()
             log.error("Exception %s" % (trace))
@@ -147,15 +144,13 @@ class MessageHandler(BaseMessageHandler):
         finally:
             IPythonKernel().shutdown_kernel()
 
-    def _process_active_df_status(self):
-        # DataFrameStatusHook.update_active_df_status(self.user_space.get_df_list())
-        DataFrameStatusHook.update_all()
-        if DataFrameStatusHook.is_updated():
+    def _process_active_objects_status(self):
+        active_df_list = self.user_space.get_active_objects()
+        if active_df_list:
             active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
                                                   "command_name": DFManagerCommand.active_df_status,
                                                   "seq_number": 1,
                                                   "type": "dict",
-                                                  "content": DataFrameStatusHook.get_active_df(),
+                                                  "content": active_df_list,
                                                   "error": False})
             self._send_to_node(active_df_status_message)
-        DataFrameStatusHook.reset_dfs_status()

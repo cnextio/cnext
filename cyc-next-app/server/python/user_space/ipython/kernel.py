@@ -1,13 +1,14 @@
 import jupyter_client
 import queue
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
-from user_space.user_space import BaseKernel
+# from user_space.user_space import BaseKernel
+from cycdataframe.df_status_hook import DataFrameStatusHook
 
 from libs import logs
 log = logs.get_logger(__name__)
 
 
-class IPythonKernel(BaseKernel):
+class IPythonKernel():
 
     def __init__(self):
         self.km = jupyter_client.KernelManager()
@@ -68,3 +69,4 @@ class IPythonKernel(BaseKernel):
                 break
             outputs.append(msg)
         return outputs
+
