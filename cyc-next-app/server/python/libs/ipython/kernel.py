@@ -7,15 +7,6 @@ from libs import logs
 log = logs.get_logger(__name__)
 
 
-# The following message types will be processed by code editor
-MESSAGE_TYPE_PROCESS = [
-    IPythonConstants.MessageType.DISPLAY_DATA,
-    IPythonConstants.MessageType.ERROR,
-    IPythonConstants.MessageType.EXECUTE_RESULT,
-    IPythonConstants.MessageType.STREAM
-]
-
-
 class IPythonKernel(BaseKernel):
 
     def __init__(self):
@@ -23,7 +14,15 @@ class IPythonKernel(BaseKernel):
             kernel_name='python3'
         )
         self.km.start_kernel()
-        self.kc = self.km.client()
+        # Set blocking client is important, It execute python line by line then response exactly flow result to client
+        # It also block the response messages from IPython. The IPython messages are only created when execution finish.
+        # Example:
+        # import time
+        # time.sleep(60)
+        # print("Run after sleeping")
+        # Without blocking client, the print command will be executed immediately without waiting 60s.
+        # After command print is executed, Ipython generates the messages and returns it to the client.
+        self.kc = self.km.blocking_client()
         self.wait_for_ready()
 
     def shutdown_kernel(self):
@@ -40,8 +39,9 @@ class IPythonKernel(BaseKernel):
             self.shutdown_kernel()
 
     def execute(self, code, exec_mode=None):
+        outputs = list()
         self.kc.execute(code)
-        reply = self.kc.get_shell_msg(timeout=1)
+        reply = self.kc.get_shell_msg()
         status = reply['content']['status']
 
         # Handle message is returned from shell socket by status
@@ -49,16 +49,17 @@ class IPythonKernel(BaseKernel):
             traceback_text = reply['content']['traceback']
             log.info(traceback_text)
         elif status == IPythonConstants.ShellMessageStatus.OK:
-            log.info('Shell returned: {}'.format(code))
+            # If shell message status is ok, add command code to ouput list to reponse to client
+            reply['content'] = code
+            outputs.append(reply)
+            log.info('Shell returned: {}'.format(reply))
 
-        outputs = list()
         while True:
             # execution state must return message that include idle status before the queue becomes empty.
             # If not, there are some errors.
             # for more information: https://jupyter-client.readthedocs.io/en/master/messaging.html#messages-on-the-shell-router-dealer-channel
             try:
-                # Increase timeout to make sure IPython return all messages
-                msg = self.kc.get_iopub_msg(timeout=10)
+                msg = self.kc.get_iopub_msg()
                 header = msg['header']
                 content = msg['content']
 
@@ -68,9 +69,5 @@ class IPythonKernel(BaseKernel):
             except queue.Empty:
                 # Break if queue empty
                 break
-
-            # Depend on message type, only process which one having result execute to display
-            msg_type = header['msg_type']
-            if msg_type in MESSAGE_TYPE_PROCESS:
-                outputs.append(msg)
+            outputs.append(msg)
         return outputs
