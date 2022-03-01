@@ -17,7 +17,7 @@ import { python } from '../grammar/lang-cnext-python';
 import { CompletionContext } from './autocomplete';
 
 const timeout = 10000;
-const changesDelay = 500;
+const changesDelay = 0;
 const CompletionItemKindMap = Object.fromEntries(
     Object.entries(CompletionItemKind).map(([key, value]) => [value, key])
 );
@@ -229,8 +229,6 @@ class LanguageServerPlugin {
 
     async requestSignatureTooltip(view, pos, { line, character }) {
         try {
-            this.sendChange({ documentText: view.state.doc.toString() });
-
             let signatureResult = await this.requestLS(
                 WebAppEndpoint.LanguageServer,
                 'textDocument/signatureHelp',
@@ -265,8 +263,6 @@ class LanguageServerPlugin {
 
     async requestHoverTooltip(view, { line, character }) {
         try {
-            this.sendChange({ documentText: view.state.doc.toString() });
-
             let result = await this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/hover', {
                 textDocument: { uri: this.documentUri },
                 position: { line, character },
@@ -606,47 +602,6 @@ class LanguageServerPlugin {
      * End support DataFrame-related autocomplete
      */
 
-    async requestSuggestSignature(context, { line, character }, { triggerKind, triggerCharacter }) {
-        try {
-            this.sendChange({
-                documentText: context.state.doc.toString(),
-            });
-
-            const result = await this.requestLS(
-                WebAppEndpoint.LanguageServer,
-                'textDocument/signatureHelp',
-                {
-                    textDocument: { uri: this.documentUri },
-                    position: { line, character },
-                    context: {
-                        triggerKind,
-                        triggerCharacter,
-                    },
-                }
-            );
-
-            if (!result?.signatures[0]?.parameters) return null;
-
-            const parameters = result.signatures[0].parameters;
-            let options = parameters.map(({ label, documentation }) => {
-                return {
-                    label: label + '=',
-                    apply: label + '=',
-                    info: documentation ? formatContents(documentation) : null,
-                    type: 'variable',
-                };
-            });
-
-            const { pos } = context;
-            return {
-                from: pos,
-                options,
-            };
-        } catch (e) {
-            console.error('requestSignatureHelp: ', e);
-        }
-    }
-
     async requestCompletion_CodeEditor(
         context,
         { line, character },
@@ -661,9 +616,6 @@ class LanguageServerPlugin {
             // some \w, but in order to allow suggesting column, we will trigger this ' and " match
             // too. Therefore we have to check if it is \w only before sending to the server
             if (context.matchBefore(/[\w]+$/)) {
-                this.sendChange({
-                    documentText: context.state.doc.toString(),
-                });
                 result = await this.requestLS(
                     WebAppEndpoint.LanguageServer,
                     'textDocument/completion',
@@ -691,9 +643,26 @@ class LanguageServerPlugin {
                 result = dfCompletionItems;
             }
             if (!result) return null;
-            const items = 'items' in result ? result.items : result;
-            if (items) {
-                let options = items.map(
+
+            if ('signatures' in result) {
+                const parameters = result.signatures[0].parameters;
+                let options = parameters.map(({ label, documentation }) => {
+                    return {
+                        label: label + '=',
+                        apply: label + '=',
+                        info: documentation ? formatContents(documentation) : null,
+                        type: 'variable',
+                    };
+                });
+
+                const { pos } = context;
+                return {
+                    from: pos,
+                    options,
+                };
+            } else if ('items' in result) {
+                const items = result.items;
+                let options = items?.map(
                     ({
                         detail,
                         label,
@@ -852,8 +821,12 @@ class LanguageServerPlugin {
 }
 
 const signatureBaseTheme = EditorView.baseTheme({
-    '.cm-tooltip.cm-tooltip-cursor': {
+    '.cm-tooltip.cm-tooltip-signature': {
         padding: '2px 7px',
+    },
+    '.cm-tooltip-signature-element': {
+        color: '#0060C0',
+        fontWeight: 'bold',
     },
 });
 
@@ -861,17 +834,35 @@ const showSuggestTooltip = /*@__PURE__*/ Facet.define();
 const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
     [showSuggestTooltip],
     (state) => {
-        let tooltips = state.facet(showSuggestTooltip).filter((t) => t);
+        const tooltips = state.facet(showSuggestTooltip).filter((t) => t);
         if (tooltips.length === 0) return null;
-        let tooltipData = {
+        const tooltipData = {
             pos: Math.min(...tooltips.map((t) => t.pos)),
             above: true,
             strictSide: true,
             arrow: true,
             create: () => {
-                let dom = document.createElement('div');
-                dom.className = 'cm-tooltip-cursor';
-                dom.textContent = tooltips.map((t) => t.textContent);
+                const paramNum = tooltips.map((t) => t.paramNum).find((t) => true);
+                const content = tooltips.map((t) => t.textContent).find((t) => true);
+                const start = content.indexOf('(') + 1;
+                const end = content.indexOf(')');
+                const paramTexts = content.substring(start, end).split(',');
+
+                const dom = document.createElement('div');
+                dom.className = 'cm-tooltip-signature';
+
+                const commaSpan = document.createElement('span');
+                commaSpan.textContent = ',';
+
+                for (let i = 0; i < paramTexts.length; i++) {
+                    const element = document.createElement('span');
+                    if (paramNum === i) element.className = 'cm-tooltip-signature-element';
+
+                    if (i !== paramTexts.length - 1) element.textContent = paramTexts[i] + ',';
+                    else  element.textContent = paramTexts[i];
+                    dom.append(element);
+                }
+
                 return { dom };
             },
         };
@@ -895,21 +886,34 @@ class SignaturePlugin {
         let pos = sState.selection.main.head;
 
         if (pos !== 0 && this.curPos != pos) {
-            this.restartTimeout = setTimeout(() => this.startGetSignature(sState, pos), 20);
             this.curPos = pos;
+            this.restartTimeout = setTimeout(() => this.startGetSignature(sState, pos), 20);
         }
     }
 
-    async startGetSignature(state, pos) {
+    startGetSignature(state, pos) {
         clearTimeout(this.restartTimeout);
+        let line = state.doc.lineAt(pos);
+        this.excuteSouce(line.text, pos - line.from - 1);
+    }
 
-        let context = new CompletionContext(state, pos, true);
-        if (context.matchBefore(/[\(,=]+$/)) {
-            let data = await this.source(this.view, pos);
-            if (data) {
-                this.view.dispatch({
-                    effects: this.setSignature.of(data),
-                });
+    async excuteSouce(text, pos) {
+        for (let i = pos; i > 0; i--) {
+            if (text[i] === '(') {
+                let subStr = text.substring(i, pos + 1);
+                if (subStr[subStr.length - 1] !== ')') {
+                    // send source request
+                    let data = await this.source(this.view, this.curPos);
+                    if (data) {
+                        this.view.dispatch({
+                            effects: this.setSignature.of({
+                                ...data,
+                                paramNum: subStr.split(',').length - 1,
+                            }),
+                        });
+                    }
+                }
+                return;
             }
         }
     }
@@ -1003,19 +1007,6 @@ function languageServer(options) {
                         trigKind === CompletionTriggerKind.Invoked &&
                         !context.matchBefore(/[\w'"]+$/)
                     ) {
-                        //added match for ' and "
-                        if (context.matchBefore(/[\(,=]+$/)) {
-                            // go to Signature Help suggestion
-                            trigChar = line.text[pos - line.from - 1];
-                            return await plugin.requestSuggestSignature(
-                                context,
-                                offsetToPos(state.doc, pos),
-                                {
-                                    triggerKind: SignatureHelpTriggerKind.Invoked,
-                                    triggerCharacter: trigChar,
-                                }
-                            );
-                        }
                         return null;
                     }
 
