@@ -243,7 +243,7 @@ class LanguageServerPlugin {
             );
 
             if (
-                !signatureResult['signatures'] ||
+                (!signatureResult && !signatureResult['signatures']) ||
                 (signatureResult['signatures'] && !signatureResult.signatures[0]) ||
                 (signatureResult['signatures'] &&
                     signatureResult.signatures[0] &&
@@ -859,7 +859,7 @@ const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
                     if (paramNum === i) element.className = 'cm-tooltip-signature-element';
 
                     if (i !== paramTexts.length - 1) element.textContent = paramTexts[i] + ',';
-                    else  element.textContent = paramTexts[i];
+                    else element.textContent = paramTexts[i];
                     dom.append(element);
                 }
 
