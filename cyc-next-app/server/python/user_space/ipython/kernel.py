@@ -1,6 +1,6 @@
 import jupyter_client
 import queue
-from libs.ipython.constants import IPythonKernelConstants as IPythonConstants
+from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
 from user_space.user_space import BaseKernel
 
 from libs import logs
@@ -48,7 +48,6 @@ class IPythonKernel(BaseKernel):
             log.info(traceback_text)
         elif status == IPythonConstants.ShellMessageStatus.OK:
             # If shell message status is ok, add command code to ouput list to reponse to client
-            reply['content'] = code
             outputs.append(reply)
             log.info('Shell returned: {}'.format(reply))
 

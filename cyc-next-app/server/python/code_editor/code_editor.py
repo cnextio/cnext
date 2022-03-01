@@ -9,8 +9,8 @@ from libs.message import ContentType, SubContentType, Message
 from libs import logs
 from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.user_space import ExecutionMode
-from libs.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
-from libs.ipython.kernel import IPythonKernel
+from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
+from user_space.ipython.kernel import IPythonKernel
 from code_editor.interfaces import PlotResult
 log = logs.get_logger(__name__)
 
@@ -96,7 +96,7 @@ class MessageHandler(BaseMessageHandler):
         if self._is_execute_reply(msg_ipython.header):
             message.type = ContentType.NONE
             message.sub_type = SubContentType.NONE
-            message.content = msg_ipython.content
+            message.content = json.dumps(msg_ipython.content)
             return message
         elif self._is_execute_result(msg_ipython.header):
             # The case return video/ audio from IPython
