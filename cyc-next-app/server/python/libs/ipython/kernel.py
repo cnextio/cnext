@@ -10,9 +10,7 @@ log = logs.get_logger(__name__)
 class IPythonKernel(BaseKernel):
 
     def __init__(self):
-        self.km = jupyter_client.KernelManager(
-            kernel_name='python3'
-        )
+        self.km = jupyter_client.KernelManager()
         self.km.start_kernel()
         # Set blocking client is important, It execute python line by line then response exactly flow result to client
         # It also block the response messages from IPython. The IPython messages are only created when execution finish.
