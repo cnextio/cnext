@@ -73,14 +73,14 @@ class MessageHandler(BaseMessageHandler):
                 return True
         return False
 
-    def _process_active_objects_status(self):
-        active_df_list = self.user_space.get_active_objects()
-        if active_df_list:
+    def _process_active_dfs_status(self):
+        active_dfs_status = self.user_space.get_active_dfs_status()
+        if active_dfs_status:
             active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
                                                   "command_name": DFManagerCommand.active_df_status,
                                                   "seq_number": 1,
                                                   "type": "dict",
-                                                  "content": active_df_list,
+                                                  "content": active_dfs_status,
                                                   "error": False})
             self._send_to_node(active_df_status_message)
 
@@ -130,7 +130,7 @@ class MessageHandler(BaseMessageHandler):
             message.error = False
             self._send_to_node(message)
 
-            self._process_active_objects_status()
+            self._process_active_dfs_status()
 
         except:
             trace = traceback.format_exc()
