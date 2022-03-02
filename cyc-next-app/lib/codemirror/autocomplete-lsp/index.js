@@ -850,15 +850,17 @@ const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
                 const dom = document.createElement('div');
                 dom.className = 'cm-tooltip-signature';
 
-                const commaSpan = document.createElement('span');
-                commaSpan.textContent = ',';
+                const startSpan = document.createElement('span');
+                startSpan.textContent = '(';
+
+                dom.appendChild(startSpan);
 
                 for (let i = 0; i < paramTexts.length; i++) {
                     const element = document.createElement('span');
                     if (paramNum === i) element.className = 'cm-tooltip-signature-element';
 
                     if (i !== paramTexts.length - 1) element.textContent = paramTexts[i] + ',';
-                    else element.textContent = paramTexts[i];
+                    else element.textContent = paramTexts[i] + ')';
                     dom.append(element);
                 }
 
