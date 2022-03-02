@@ -1,7 +1,9 @@
 from enum import Enum
+import json
 import cycdataframe.user_space as _cus
 import cycdataframe.df_status_hook as _sh
 from user_space.ipython.kernel import IPythonKernel
+from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
 
 from libs import logs
 log = logs.get_logger(__name__)
@@ -30,7 +32,7 @@ class BaseKernel:
     def execute(self, code, exec_mode: ExecutionMode = None):
         if exec_mode == None:
             exec_mode = self._assign_exec_mode(code)
-
+        exec_mode = ExecutionMode.EXEC
         if exec_mode == ExecutionMode.EVAL:
             return eval(code, globals())
         elif exec_mode == ExecutionMode.EXEC:
@@ -46,6 +48,7 @@ class _UserSpace(_cus.UserSpace):
 
     def __init__(self, executor, tracking_obj_types: list):
         self.executor = executor
+        print(self.executor)
 
         log.info('Executor %s %s' % (executor, type(executor)))
 
@@ -82,16 +85,35 @@ _sh.DataFrameStatusHook.set_user_space(_user_space)
         return globals()
 
     def get_active_objects(self):
-        if isinstance(self.executor, BaseKernel):        
+        if isinstance(self.executor, BaseKernel):
             _sh.DataFrameStatusHook.update_all()
             if _sh.DataFrameStatusHook.is_updated():
                 return _sh.DataFrameStatusHook.get_active_df()
             return None
         elif isinstance(self.executor, IPythonKernel):
             code = "_user_space.get_active_objects()"
-            ouputs = self.executor.execute(code)
-            log.info("IPythonKernel Outputs: %s" % ouputs)
-            return None
+            outputs = self.executor.execute(code)
+            log.info("IPythonKernel Outputs: %s" % outputs)
+            # Get df data
+            exec_result_outputs = list()
+            if isinstance(outputs, list):
+                for output in outputs:
+                    if output['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
+                        exec_result_str = r'''{}'''.format(
+                            output['content']['data']['text/plain'])
+                        # exec_result_str = exec_result_str.replace(r"\'", '"').replace(
+                        #     '"cycdataframe.cycdataframe.DataFrame">', 'cycdataframe.cycdataframe.DataFrame>').replace("'", '"')
+                        # exec_result_str = exec_result_str.replace(
+                        # )
+                        exec_result_str = exec_result_str.replace(r'\"', '"')
+                        exec_result_str = exec_result_str.replace(r"\'", '"')
+                        exec_result_str = exec_result_str.replace(
+                            '"cycdataframe', 'cycdataframe')
+                        exec_result_str = exec_result_str.replace(
+                            'DataFrame"', 'DataFrame')
+                        log.info('exec_result_str', exec_result_str)
+
+            return exec_result_outputs
 
     def execute(self, code, exec_mode: ExecutionMode = None):
         return self.executor.execute(code, exec_mode)

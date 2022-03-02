@@ -16,30 +16,12 @@ class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
-    # @staticmethod
-    # def _create_plot_data(result):
-    #     return PlotResult(plot=result.to_json()).toJSON()
-
-    # @staticmethod
-    # def _result_is_dataframe(result) -> bool:
-    #     return type(result) == pandas.core.frame.DataFrame
-
-    # @staticmethod
-    # def _assign_exec_mode(message: Message):
-    #     message.execution_mode = 'eval'
-    #     if message.metadata and ('line_range' in message.metadata):
-    #         line_range = message.metadata['line_range']
-    #         # always 'exec' if there are more than 1 line in the code
-    #         if line_range['fromLine'] < line_range['toLine']-1:
-    #             message.execution_mode = 'exec'
-
-    #     try:
-    #         compile(message.content, '<stdin>', 'eval')
-    #     except SyntaxError as error:
-    #         log.error(error)
-    #         message.execution_mode = 'exec'
-
-    #     log.info("assigned command type: %s" % message.execution_mode)
+    @staticmethod
+    def _normalize_df(df_data):
+        for df in df_data:
+            content_data = df['data']
+            if 'text/plain' in content_data:
+                return content_data['text/plain']
 
     @staticmethod
     def _is_execute_result(header) -> bool:
@@ -130,10 +112,14 @@ class MessageHandler(BaseMessageHandler):
         log.info('message: {}'.format(message))
         try:
             outputs = self.user_space.execute(message.content, None)
-            for output in outputs:
-                msg = self.build_single_message(output=output, message=message)
-                if msg is not None:
-                    self._send_to_node(msg)
+            if isinstance(outputs, list):
+                for output in outputs:
+                    msg = self.build_single_message(
+                        output=output, message=message)
+                    if msg is not None:
+                        self._send_to_node(msg)
+
+            # Process active dataframe
             self._process_active_objects_status()
         except:
             trace = traceback.format_exc()
@@ -146,11 +132,13 @@ class MessageHandler(BaseMessageHandler):
 
     def _process_active_objects_status(self):
         active_df_list = self.user_space.get_active_objects()
-        if active_df_list:
-            active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
-                                                  "command_name": DFManagerCommand.active_df_status,
-                                                  "seq_number": 1,
-                                                  "type": "dict",
-                                                  "content": active_df_list,
-                                                  "error": False})
-            self._send_to_node(active_df_status_message)
+        if len(active_df_list) > 0:
+            for active_df in active_df_list:
+                # normalized_df = self._normalize_df(active_df_list)
+                active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
+                                                      "command_name": DFManagerCommand.active_df_status,
+                                                      "seq_number": 1,
+                                                      "type": "dict",
+                                                      "content": active_df,
+                                                      "error": False})
+                self._send_to_node(active_df_status_message)

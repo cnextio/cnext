@@ -127,19 +127,21 @@ class MessageHandler(BaseMessageHandler):
                 # countna = eval("%s.isna().sum()"%df_id, client_globals)                        
                 # describe = eval("%s.describe(include='all')"%df_id, client_globals)
                 shape = self.user_space.execute("%s.shape"%df_id, ExecutionMode.EVAL)
+                print('shape of df', shape)
                 dtypes = self.user_space.execute("%s.dtypes"%df_id, ExecutionMode.EVAL)
+                print('dtypes of df', dtypes)
                 countna = self.user_space.execute("%s.isna().sum()"%df_id, ExecutionMode.EVAL)
                 describe = self.user_space.execute("%s.describe(include='all')"%df_id, ExecutionMode.EVAL)
                 columns = {}
                 for col_name, ctype in dtypes.items():
                     # print(col_name, ctype)
                     # FIXME: only get at most 100 values here, this is hacky, find a better way
-                    # unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), client_globals)[:100]                
-                    unique = self.user_space.execute("%s['%s'].unique().tolist()"%(df_id, col_name), ExecutionMode.EVAL)
-                    columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique, 
-                                            'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}                
-                output = {'df_id': df_id, 'shape': shape, 'columns': columns}    
-                log.info(output)
+                    # unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), client_globals)[:100]
+                    unique = self.user_space.execute(
+                        "%s['%s'].unique().tolist()" % (df_id, col_name), ExecutionMode.EVAL)
+                    columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique,
+                                         'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}
+                output = {'df_id': df_id, 'shape': shape, 'columns': columns}
                 type = ContentType.DICT
                 send_reply = True    
             

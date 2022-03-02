@@ -1,3 +1,4 @@
+import simplejson as json
 from libs.message import ContentType, Message
 from libs import logs
 from user_space.user_space import BaseKernel, _UserSpace
@@ -25,7 +26,7 @@ class BaseMessageHandler:
         # the current way of communicate with node server is through stdout with a json string
         # log.info("Send to node server: %s" % message)
         # log.info("Send output to node server... %s"%message.toJSON())
-        log.info("Send output to node server %s", message)
+        log.info("Send output to node server %s", str(message))
         # self.p2n_queue.send(message.toJSON())
         BaseMessageHandler.send_message(self.p2n_queue, message)
 
