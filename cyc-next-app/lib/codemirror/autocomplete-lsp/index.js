@@ -271,6 +271,7 @@ class LanguageServerPlugin {
                 return {
                     pos,
                     textContent: formatContents(signatureResult.signatures[0].label),
+                    activeParameter: signatureResult.activeParameter,
                 };
             else return null;
         } catch (error) {
@@ -798,6 +799,7 @@ const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
     [showSuggestTooltip],
     (state) => {
         const tooltips = state.facet(showSuggestTooltip).filter((t) => t);
+        console.log('tooltips', tooltips);
         if (tooltips.length === 0) return null;
         const tooltipData = {
             pos: Math.min(...tooltips.map((t) => t.pos)),
@@ -805,7 +807,7 @@ const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
             strictSide: true,
             arrow: true,
             create: () => {
-                const paramNum = tooltips.map((t) => t.paramNum).find((t) => true);
+                const activeParameter = tooltips.map((t) => t.activeParameter).find((t) => true);
                 const content = tooltips.map((t) => t.textContent).find((t) => true);
                 const start = content.indexOf('(') + 1;
                 const end = content.indexOf(')');
@@ -821,13 +823,13 @@ const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
 
                 for (let i = 0; i < paramTexts.length; i++) {
                     const element = document.createElement('span');
-                    if (paramNum === i) element.className = 'cm-tooltip-signature-element';
+                    if (activeParameter === i) element.className = 'cm-tooltip-signature-element';
 
                     if (i !== paramTexts.length - 1) element.textContent = paramTexts[i] + ',';
                     else element.textContent = paramTexts[i] + ')';
                     dom.append(element);
                 }
-
+                
                 return { dom };
             },
         };
@@ -857,30 +859,31 @@ class SignaturePlugin {
 
     startGetSignature(state, pos) {
         clearTimeout(this.restartTimeout);
-        let line = state.doc.lineAt(pos);
-        this.excuteSouce(line.text, pos - line.from - 1);
+        const line = state.doc.lineAt(pos);
+        const context = new CompletionContext(state, pos, true);
+        this.excuteSouce(context, line.text, pos - line.from - 1);
     }
 
-    async excuteSouce(text, pos) {
-        for (let i = pos; i > 0; i--) {
-            if (text[i] === '(') {
-                let subStr = text.substring(i, pos + 1);
-                if (subStr[subStr.length - 1] !== ')') {
-                    // send source request
-                    let data = await this.source(this.view, this.curPos);
-                    console.log('data', data);
-                    if (data) {
-                        this.view.dispatch({
-                            effects: this.setSignature.of({
-                                ...data,
-                                paramNum: subStr.split(',').length - 1,
-                            }),
-                        });
-                    }
-                }
-                return;
+    async excuteSouce(context, text, pos) {
+        if (context.matchBefore(/[(,]+$/)) {
+            let data = await this.source(this.view, this.curPos);
+            console.log('data', data);
+            if (data) {
+                this.view.dispatch({
+                    effects: this.setSignature.of(data),
+                });
             }
         }
+        // for (let i = pos; i > 0; i--) {
+        //     if (text[i] === '(') {
+        //         let subStr = text.substring(i, pos + 1);
+        //         if (subStr[subStr.length - 1] !== ')') {
+        //             // send source request
+
+        //         }
+        //         return;
+        //     }
+        // }
     }
 
     destroy() {
