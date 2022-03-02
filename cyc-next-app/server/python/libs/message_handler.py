@@ -1,13 +1,13 @@
 from libs.message import ContentType, Message
 from libs import logs
-from user_space.user_space import BaseKernel, UserSpace
+from user_space.user_space import BaseKernel, _UserSpace
 log = logs.get_logger(__name__)
 
 class BaseMessageHandler:
     def __init__(self, p2n_queue, user_space = None):
         self.p2n_queue = p2n_queue
         if user_space == None:
-            self.user_space = UserSpace(BaseKernel())
+            self.user_space = _UserSpace(BaseKernel())
         else:
             self.user_space = user_space
     

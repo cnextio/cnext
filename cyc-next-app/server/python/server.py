@@ -1,5 +1,6 @@
 from libs import logs
 import pandas as pd
+from code_editor import code_editor_basekernel as ce_base
 from code_editor import code_editor as ce
 from dataframe_manager import dataframe_manager as dm
 from experiment_manager import experiment_manager as em
@@ -12,13 +13,12 @@ from libs.message import Message, WebappEndpoint, DFManagerCommand, ContentType
 from libs.zmq_message import MessageQueue
 import traceback
 import cycdataframe.cycdataframe as cd
-import cycdataframe.df_status_hook as sh
 from libs.config import read_config
 import sys
 import simplejson as json
 from libs.message_handler import BaseMessageHandler
 
-from user_space.user_space import BaseKernel, UserSpace
+from user_space.user_space import BaseKernel, _UserSpace
 from user_space.ipython.kernel import IPythonKernel
 
 log = logs.get_logger(__name__)
@@ -32,14 +32,14 @@ if __name__ == "__main__":
         p2n_queue = MessageQueue(
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
 
-        # user_space = UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
-        user_space = UserSpace(
+        # user_space = _UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
+        user_space = _UserSpace(
             IPythonKernel(),
             [cd.DataFrame, pd.DataFrame]
         )
-        sh.DataFrameStatusHook.set_user_space(user_space)
 
         message_handler = {
+            # WebappEndpoint.CodeEditor: ce_base.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),

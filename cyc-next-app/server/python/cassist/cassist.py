@@ -13,7 +13,7 @@ from libs.message import ContentType, Message
 from libs import logs
 from libs.message import DFManagerCommand
 from user_space.user_space import ExecutionMode
-from user_space.user_space import BaseKernel, UserSpace
+from user_space.user_space import BaseKernel, _UserSpace
 from code_editor.interfaces import PlotResult
 log = logs.get_logger(__name__)
 
