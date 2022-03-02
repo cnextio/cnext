@@ -17,7 +17,7 @@ import { python } from '../grammar/lang-cnext-python';
 import { CompletionContext } from './autocomplete';
 
 const timeout = 10000;
-const changesDelay = 0;
+const changesDelay = 3000;
 const CompletionItemKindMap = Object.fromEntries(
     Object.entries(CompletionItemKind).map(([key, value]) => [value, key])
 );
@@ -229,6 +229,10 @@ class LanguageServerPlugin {
 
     async requestSignatureTooltip(view, pos, { line, character }) {
         try {
+            this.sendChange({
+                documentText: this.view.state.doc.toString(),
+            });
+
             let signatureResult = await this.requestLS(
                 WebAppEndpoint.LanguageServer,
                 'textDocument/signatureHelp',
@@ -241,21 +245,14 @@ class LanguageServerPlugin {
                     },
                 }
             );
+            if (!signatureResult) return null;
 
-            if (
-                (!signatureResult && !signatureResult['signatures']) ||
-                (signatureResult['signatures'] && !signatureResult.signatures[0]) ||
-                (signatureResult['signatures'] &&
-                    signatureResult.signatures[0] &&
-                    !signatureResult.signatures[0].label)
-            )
-                return null;
-            else {
+            if ('signatures' in signatureResult)
                 return {
                     pos,
                     textContent: formatContents(signatureResult.signatures[0].label),
                 };
-            }
+            else return null;
         } catch (error) {
             console.error('requestSignatureTooltip: ', error);
         }
@@ -263,6 +260,10 @@ class LanguageServerPlugin {
 
     async requestHoverTooltip(view, { line, character }) {
         try {
+            this.sendChange({
+                documentText: this.view.state.doc.toString(),
+            });
+
             let result = await this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/hover', {
                 textDocument: { uri: this.documentUri },
                 position: { line, character },
@@ -295,19 +296,12 @@ class LanguageServerPlugin {
                         },
                     }
                 );
+                if (!signatureResult) return null;
 
-                if (
-                    !signatureResult['signatures'] ||
-                    (signatureResult['signatures'] && !signatureResult.signatures[0]) ||
-                    (signatureResult['signatures'] &&
-                        signatureResult.signatures[0] &&
-                        !signatureResult.signatures[0].label)
-                )
-                    return null;
-                else {
+                if ('signatures' in signatureResult) {
                     dom.textContent = formatContents(signatureResult.signatures[0].label);
                     return { pos, end, create: (view) => ({ dom }), above: true };
-                }
+                } else return null;
             }
 
             dom.textContent = formatContents(contents);
@@ -608,14 +602,19 @@ class LanguageServerPlugin {
         { triggerKind, triggerCharacter }
     ) {
         try {
-            // get Dataframe-based completion first. This does not require accessing to the lsp
-            let dfCompletionItems = this._getDFCompletion_CodeEditor(context, line, character);
+            // get Dataframe's columns completion.
+            let dfCompletionItems;
+            if (context.matchBefore(/['"]+$/)) {
+                dfCompletionItems = this._getDFCompletion_CodeEditor(context, line, character);
+            }
 
+            // get completion for code.
             let result;
-            // in the original version requestCompletion will only be triggered when matchBefore is
-            // some \w, but in order to allow suggesting column, we will trigger this ' and " match
-            // too. Therefore we have to check if it is \w only before sending to the server
             if (context.matchBefore(/[\w]+$/)) {
+                this.sendChange({
+                    documentText: this.view.state.doc.toString(),
+                });
+
                 result = await this.requestLS(
                     WebAppEndpoint.LanguageServer,
                     'textDocument/completion',
@@ -1001,13 +1000,6 @@ function languageServer(options) {
                     ) {
                         trigKind = CompletionTriggerKind.TriggerCharacter;
                         trigChar = line.text[pos - line.from - 1];
-                    }
-
-                    if (
-                        trigKind === CompletionTriggerKind.Invoked &&
-                        !context.matchBefore(/[\w'"]+$/)
-                    ) {
-                        return null;
                     }
 
                     return await plugin.requestCompletion_CodeEditor(
