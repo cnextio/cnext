@@ -87,7 +87,7 @@ class LanguageServerPlugin {
 
         return new Promise((resolve, reject) => {
             console.log(
-                `send LSP request to Server at ${new Date().toLocaleString()} `,
+                `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
                 rpcMessage
             );
             socket.emit(channel, JSON.stringify(rpcMessage));
@@ -100,7 +100,7 @@ class LanguageServerPlugin {
                 socket.once(channel, (result) => {
                     const response = JSON.parse(result.toString());
                     console.log(
-                        `received from LSP server at ${new Date().toLocaleString()} `,
+                        `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,
                         response
                     );
                     resolve(response);
@@ -214,15 +214,33 @@ class LanguageServerPlugin {
         }
     }
 
+    replaceVN(doc) {
+        let output = doc.replace(/[à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ]/g, 'a');
+        output = output.replace(/[è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ]/g, 'e');
+        output = output.replace(/[ì|í|ị|ỉ|ĩ]/g, 'i');
+        output = output.replace(/[ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ]/g, 'o');
+        output = output.replace(/[ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ]/g, 'u');
+        output = output.replace(/[ỳ|ý|ỵ|ỷ|ỹ]/g, 'y');
+        output = output.replace(/[đ]/g, 'd');
+
+        output = output.replace(/[À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ]/g, 'A');
+        output = output.replace(/[È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ]/g, 'E');
+        output = output.replace(/[Ì|Í|Ị|Ỉ|Ĩ]/g, 'O');
+        output = output.replace(/[Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ]/g, 'U');
+        output = output.replace(/[Ỳ|Ý|Ỵ|Ỷ|Ỹ]/g, 'Y');
+        output = output.replace(/[Đ]/g, 'D');
+        return output;
+    }
+
     async sendChange({ documentText }) {
-        console.log('sendChange', this.dfFilter);
+        let replaceText = this.replaceVN(documentText);
         if (this.ready && !this.dfFilter) {
             this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/didChange', {
                 textDocument: {
                     uri: this.documentUri,
                     version: this.documentVersion++,
                 },
-                contentChanges: [{ text: documentText }],
+                contentChanges: [{ text: replaceText }],
             });
         }
     }
@@ -234,7 +252,7 @@ class LanguageServerPlugin {
             });
 
             let signatureResult = await this.requestLS(
-                WebAppEndpoint.LanguageServer,
+                WebAppEndpoint.LanguageServerSignature,
                 'textDocument/signatureHelp',
                 {
                     textDocument: { uri: this.documentUri },
@@ -245,6 +263,8 @@ class LanguageServerPlugin {
                     },
                 }
             );
+
+            console.log('signatureResult', signatureResult);
             if (!signatureResult) return null;
 
             if ('signatures' in signatureResult)
@@ -264,10 +284,14 @@ class LanguageServerPlugin {
                 documentText: this.view.state.doc.toString(),
             });
 
-            let result = await this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/hover', {
-                textDocument: { uri: this.documentUri },
-                position: { line, character },
-            });
+            let result = await this.requestLS(
+                WebAppEndpoint.LanguageServerHover,
+                'textDocument/hover',
+                {
+                    textDocument: { uri: this.documentUri },
+                    position: { line, character },
+                }
+            );
 
             if (!result) return null;
 
@@ -285,7 +309,7 @@ class LanguageServerPlugin {
             if (!contents) {
                 // request more infomation for params
                 let signatureResult = await this.requestLS(
-                    WebAppEndpoint.LanguageServer,
+                    WebAppEndpoint.LanguageServerSignature,
                     'textDocument/signatureHelp',
                     {
                         textDocument: { uri: this.documentUri },
@@ -596,6 +620,65 @@ class LanguageServerPlugin {
      * End support DataFrame-related autocomplete
      */
 
+    sortResults(context, items) {
+        let options = items?.map(
+            ({
+                detail,
+                label,
+                kind,
+                textEdit,
+                documentation,
+                sortText,
+                filterText,
+                insertText,
+            }) => {
+                var _a;
+                const completion = {
+                    label,
+                    detail,
+                    apply:
+                        (_a =
+                            textEdit === null || textEdit === void 0
+                                ? void 0
+                                : textEdit.newText) !== null && _a !== void 0
+                            ? _a
+                            : insertText,
+                    type: kind && CompletionItemKindMap[kind].toLowerCase(),
+                    sortText: sortText !== null && sortText !== void 0 ? sortText : label,
+                    filterText: filterText !== null && filterText !== void 0 ? filterText : label,
+                };
+                if (documentation) {
+                    completion.info = formatContents(documentation);
+                }
+                return completion;
+            }
+        );
+        const [span, match] = prefixMatch(options); //find the regrex string
+        const token = context.matchBefore(match);
+        let { pos } = context;
+        if (token) {
+            pos = token.from;
+            const word = token.text.toLowerCase();
+            if (/^\w+$/.test(word)) {
+                options = options
+                    .filter(({ filterText }) => filterText.toLowerCase().startsWith(word))
+                    .sort(({ apply: a }, { apply: b }) => {
+                        switch (true) {
+                            case a.startsWith(token.text) && !b.startsWith(token.text):
+                                return -1;
+                            case !a.startsWith(token.text) && b.startsWith(token.text):
+                                return 1;
+                        }
+                        return 0;
+                    });
+            }
+        }
+        return {
+            from: pos,
+            options,
+        };
+    }
+
     async requestCompletion_CodeEditor(
         context,
         { line, character },
@@ -616,7 +699,7 @@ class LanguageServerPlugin {
                 });
 
                 result = await this.requestLS(
-                    WebAppEndpoint.LanguageServer,
+                    WebAppEndpoint.LanguageServerCompletion,
                     'textDocument/completion',
                     {
                         textDocument: { uri: this.documentUri },
@@ -643,81 +726,9 @@ class LanguageServerPlugin {
             }
             if (!result) return null;
 
-            if ('signatures' in result) {
-                const parameters = result.signatures[0].parameters;
-                let options = parameters.map(({ label, documentation }) => {
-                    return {
-                        label: label + '=',
-                        apply: label + '=',
-                        info: documentation ? formatContents(documentation) : null,
-                        type: 'variable',
-                    };
-                });
-
-                const { pos } = context;
-                return {
-                    from: pos,
-                    options,
-                };
-            } else if ('items' in result) {
+            if ('items' in result) {
                 const items = result.items;
-                let options = items?.map(
-                    ({
-                        detail,
-                        label,
-                        kind,
-                        textEdit,
-                        documentation,
-                        sortText,
-                        filterText,
-                        insertText,
-                    }) => {
-                        var _a;
-                        const completion = {
-                            label,
-                            detail,
-                            apply:
-                                (_a =
-                                    textEdit === null || textEdit === void 0
-                                        ? void 0
-                                        : textEdit.newText) !== null && _a !== void 0
-                                    ? _a
-                                    : insertText,
-                            type: kind && CompletionItemKindMap[kind].toLowerCase(),
-                            sortText: sortText !== null && sortText !== void 0 ? sortText : label,
-                            filterText:
-                                filterText !== null && filterText !== void 0 ? filterText : label,
-                        };
-                        if (documentation) {
-                            completion.info = formatContents(documentation);
-                        }
-                        return completion;
-                    }
-                );
-                const [span, match] = prefixMatch(options); //find the regrex string
-                const token = context.matchBefore(match);
-                let { pos } = context;
-                if (token) {
-                    pos = token.from;
-                    const word = token.text.toLowerCase();
-                    if (/^\w+$/.test(word)) {
-                        options = options
-                            .filter(({ filterText }) => filterText.toLowerCase().startsWith(word))
-                            .sort(({ apply: a }, { apply: b }) => {
-                                switch (true) {
-                                    case a.startsWith(token.text) && !b.startsWith(token.text):
-                                        return -1;
-                                    case !a.startsWith(token.text) && b.startsWith(token.text):
-                                        return 1;
-                                }
-                                return 0;
-                            });
-                    }
-                }
-                return {
-                    from: pos,
-                    options,
-                };
+                return this.sortResults(context, items);
             }
         } catch (e) {
             console.error('requestCompletion: ', e);
@@ -736,54 +747,7 @@ class LanguageServerPlugin {
             let result = this._getDFCompletion_DFFilter(context, line, character);
             if (!result) return null;
             const items = 'items' in result ? result.items : result;
-            let options = items.map(
-                ({ detail, label, kind, textEdit, documentation, sortText, filterText }) => {
-                    var _a;
-                    const completion = {
-                        label,
-                        detail,
-                        apply:
-                            (_a =
-                                textEdit === null || textEdit === void 0
-                                    ? void 0
-                                    : textEdit.newText) !== null && _a !== void 0
-                                ? _a
-                                : label,
-                        type: kind && CompletionItemKindMap[kind].toLowerCase(),
-                        sortText: sortText !== null && sortText !== void 0 ? sortText : label,
-                        filterText:
-                            filterText !== null && filterText !== void 0 ? filterText : label,
-                    };
-                    if (documentation) {
-                        completion.info = formatContents(documentation);
-                    }
-                    return completion;
-                }
-            );
-            const [span, match] = prefixMatch(options); //find the regrex string
-            const token = context.matchBefore(match);
-            let { pos } = context;
-            if (token) {
-                pos = token.from;
-                const word = token.text.toLowerCase();
-                if (/^\w+$/.test(word)) {
-                    options = options
-                        .filter(({ filterText }) => filterText.toLowerCase().startsWith(word))
-                        .sort(({ apply: a }, { apply: b }) => {
-                            switch (true) {
-                                case a.startsWith(token.text) && !b.startsWith(token.text):
-                                    return -1;
-                                case !a.startsWith(token.text) && b.startsWith(token.text):
-                                    return 1;
-                            }
-                            return 0;
-                        });
-                }
-            }
-            return {
-                from: pos,
-                options,
-            };
+            return this.sortResults(context, items);
         } catch (e) {
             console.error('requestCompletion: ', e);
         }
@@ -867,7 +831,6 @@ const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
                 return { dom };
             },
         };
-
         return tooltipData;
     }
 );
@@ -905,6 +868,7 @@ class SignaturePlugin {
                 if (subStr[subStr.length - 1] !== ')') {
                     // send source request
                     let data = await this.source(this.view, this.curPos);
+                    console.log('data', data);
                     if (data) {
                         this.view.dispatch({
                             effects: this.setSignature.of({

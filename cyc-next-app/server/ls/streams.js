@@ -6,7 +6,7 @@ class JsonRpcStreamReader {
     }
 
     getData(chunk) {
-        const messages = chunk.toString().split('\n');
+        const messages = chunk.toString('utf-8').split('\n');
         console.log(`get chunk at ${new Date().toLocaleString()} `, messages);
 
         if (messages.length > 3) {

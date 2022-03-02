@@ -6,7 +6,13 @@ const YAML = require('yaml');
 const zmq = require('zeromq');
 const path = require('path');
 const { PythonShell } = require('python-shell');
-const { LSPProcess, LanguageServer } = require('./ls/lsp_process');
+const {
+    LSPProcess,
+    LanguageServer,
+    LanguageServerHover,
+    LanguageServerSignature,
+    LanguageServerCompletion,
+} = require('./ls/lsp_process');
 const port = process.env.PORT || 4000;
 const server = http.createServer();
 const options = {
@@ -27,7 +33,12 @@ const ExperimentManager = 'ExperimentManager';
 const CodeExecutor = [CodeEditor, DFManager, FileManager, FileExplorer, MagicCommandGen];
 const NotCodeExecutor = [ExperimentManager];
 
-const LSPExecutor = [LanguageServer];
+const LSPExecutor = [
+    LanguageServer,
+    LanguageServerHover,
+    LanguageServerSignature,
+    LanguageServerCompletion,
+];
 
 try {
     let file;
@@ -174,7 +185,7 @@ try {
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
                 content:
-                    "import os, sys, pandas as pd, plotly.express as px, plotly.io as pio, matplotlib.pyplot as plt, numpy as np",
+                    'import os, sys, pandas as pd, plotly.express as px, plotly.io as pio, matplotlib.pyplot as plt, numpy as np',
             })
         );
 

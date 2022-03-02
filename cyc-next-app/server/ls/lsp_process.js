@@ -3,6 +3,10 @@ const { spawn, exec } = require('child_process');
 // action channel
 const LanguageServer = 'LanguageServer';
 const LanguageServerNotifier = 'LanguageServerNotifier';
+const LanguageServerHover = 'LanguageServerHover';
+const LanguageServerCompletion = 'LanguageServerCompletion';
+const LanguageServerSignature = 'LanguageServerSignature';
+
 const NotifyCase = ['textDocument/publishDiagnostics'];
 class LSPProcess {
     constructor(io) {
@@ -12,7 +16,9 @@ class LSPProcess {
         this.ls.stdout.on('data', (chunk) => {
             const payload = reader.getData(chunk);
             if (payload && payload.result) {
-                io.emit(LanguageServer, JSON.stringify(payload.result));
+                const channel = this.getChannel(payload.result);
+                console.log('channel', channel);
+                io.emit(channel, JSON.stringify(payload.result));
                 reader.clearCache();
             } else if (this.isNeedNotify(payload)) {
                 io.emit(LanguageServerNotifier, JSON.stringify(payload));
@@ -29,13 +35,29 @@ class LSPProcess {
         return payload && payload.method && NotifyCase.includes(payload.method);
     }
 
+    getChannel(result) {
+        if ('signatures' in result) {
+            return LanguageServerSignature;
+        } else if ('contents' in result) {
+            return LanguageServerHover;
+        } else if ('isIncomplete' in result) {
+            return LanguageServerCompletion;
+        } else {
+            return LanguageServer;
+        }
+    }
+
     sendMessageToLsp(message) {
         const writer = new JsonRpcStreamWriter();
         const lspPayload = writer.getPayload(message);
+        this.ls.stdin.setDefaultEncoding('utf-8');
         this.ls.stdin.write(lspPayload);
     }
 }
 module.exports = {
     LSPProcess,
     LanguageServer,
+    LanguageServerHover,
+    LanguageServerSignature,
+    LanguageServerCompletion,
 };
