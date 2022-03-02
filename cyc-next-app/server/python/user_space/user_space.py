@@ -111,7 +111,9 @@ _sh.DataFrameStatusHook.set_user_space(_user_space)
                             '"cycdataframe', 'cycdataframe')
                         exec_result_str = exec_result_str.replace(
                             'DataFrame"', 'DataFrame')
-                        log.info('exec_result_str', exec_result_str)
+                        exec_result = json.loads(exec_result_str)
+                        exec_result_outputs.append(exec_result)
+                        # log.info('exec_result_str', exec_result_str)
 
             return exec_result_outputs
 
