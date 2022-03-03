@@ -1,7 +1,7 @@
 //using a customized version of autocomplete instead of @codemirror/autocomplete
 import { autocompletion } from './autocomplete';
 import { setDiagnostics } from '@codemirror/lint';
-import { Facet, StateEffect, StateField } from '@codemirror/state';
+import { Facet, StateEffect, StateField, MapMode } from '@codemirror/state';
 import { hoverTooltip, showTooltip } from '@codemirror/tooltip';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import socket from '../../components/Socket';
@@ -214,33 +214,14 @@ class LanguageServerPlugin {
         }
     }
 
-    replaceVN(doc) {
-        let output = doc.replace(/[à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ]/g, 'a');
-        output = output.replace(/[è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ]/g, 'e');
-        output = output.replace(/[ì|í|ị|ỉ|ĩ]/g, 'i');
-        output = output.replace(/[ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ]/g, 'o');
-        output = output.replace(/[ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ]/g, 'u');
-        output = output.replace(/[ỳ|ý|ỵ|ỷ|ỹ]/g, 'y');
-        output = output.replace(/[đ]/g, 'd');
-
-        output = output.replace(/[À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ]/g, 'A');
-        output = output.replace(/[È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ]/g, 'E');
-        output = output.replace(/[Ì|Í|Ị|Ỉ|Ĩ]/g, 'O');
-        output = output.replace(/[Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ]/g, 'U');
-        output = output.replace(/[Ỳ|Ý|Ỵ|Ỷ|Ỹ]/g, 'Y');
-        output = output.replace(/[Đ]/g, 'D');
-        return output;
-    }
-
     async sendChange({ documentText }) {
-        let replaceText = this.replaceVN(documentText);
         if (this.ready && !this.dfFilter) {
             this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/didChange', {
                 textDocument: {
                     uri: this.documentUri,
                     version: this.documentVersion++,
                 },
-                contentChanges: [{ text: replaceText }],
+                contentChanges: [{ text: documentText }],
             });
         }
     }
@@ -323,8 +304,10 @@ class LanguageServerPlugin {
                 );
                 if (!signatureResult) return null;
 
-                if ('signatures' in signatureResult) {
-                    dom.textContent = formatContents(signatureResult.signatures[0].label);
+                if ('signatures' in signatureResult && signatureResult.signatures.length !== 0) {
+                    dom.textContent = formatContents(
+                        signatureResult.signatures.map((item) => item.label).find((v) => true)
+                    );
                     return { pos, end, create: (view) => ({ dom }), above: true };
                 } else return null;
             }
@@ -829,7 +812,7 @@ const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
                     else element.textContent = paramTexts[i] + ')';
                     dom.append(element);
                 }
-                
+
                 return { dom };
             },
         };
@@ -902,6 +885,19 @@ const signatureTooltip = (source) => {
             for (let effect of tr.effects) {
                 if (effect.is(setSignature)) return effect.value;
             }
+
+            if (value && tr.docChanged) {
+                let newPos = tr.changes.mapPos(value.pos, -1, MapMode.TrackDel);
+                if (newPos == null) return null;
+                let copy = Object.assign(Object.create(null), value);
+                copy.pos = newPos;
+                if (value.end != null) copy.end = tr.changes.mapPos(value.end);
+
+                console.log('signatureTooltip', copy);
+
+                // return copy;
+            }
+
             return value;
         },
         provide: (f) => showSuggestTooltip.from(f),

@@ -50,8 +50,7 @@ class LSPProcess {
     sendMessageToLsp(message) {
         const writer = new JsonRpcStreamWriter();
         const lspPayload = writer.getPayload(message);
-        this.ls.stdin.setDefaultEncoding('utf-8');
-        this.ls.stdin.write(lspPayload);
+        this.ls.stdin.write(Buffer.from(lspPayload, 'utf-8'));
     }
 }
 module.exports = {
