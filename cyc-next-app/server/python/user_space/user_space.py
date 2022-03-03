@@ -60,6 +60,7 @@ import cycdataframe.user_space as _cus
 import cycdataframe.df_status_hook as _sh
 import cycdataframe.cycdataframe as _cd
 import pandas as _pd
+import simplejson as json
 
 class _UserSpace(_cus.UserSpace):
     def __init__(self, df_types: list):
@@ -68,10 +69,10 @@ class _UserSpace(_cus.UserSpace):
     def globals(self):
         return globals()
 
-    def get_active_objects(self):
+    def get_active_dfs_status(self):
         _sh.DataFrameStatusHook.update_all()
         if _sh.DataFrameStatusHook.is_updated():
-            return _sh.DataFrameStatusHook.get_active_df()
+            return _sh.DataFrameStatusHook.get_active_dfs_status()
         return None
 
 _user_space = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
@@ -84,38 +85,17 @@ _sh.DataFrameStatusHook.set_user_space(_user_space)
     def globals(self):
         return globals()
 
-    def get_active_objects(self):
+    def get_active_dfs_status(self):
         if isinstance(self.executor, BaseKernel):
             _sh.DataFrameStatusHook.update_all()
             if _sh.DataFrameStatusHook.is_updated():
-                return _sh.DataFrameStatusHook.get_active_df()
+                return _sh.DataFrameStatusHook.get_active_dfs_status()
             return None
         elif isinstance(self.executor, IPythonKernel):
-            code = "_user_space.get_active_objects()"
-            outputs = self.executor.execute(code)
-            log.info("IPythonKernel Outputs: %s" % outputs)
-            # Get df data
-            exec_result_outputs = list()
-            if isinstance(outputs, list):
-                for output in outputs:
-                    if output['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
-                        exec_result_str = r'''{}'''.format(
-                            output['content']['data']['text/plain'])
-                        # exec_result_str = exec_result_str.replace(r"\'", '"').replace(
-                        #     '"cycdataframe.cycdataframe.DataFrame">', 'cycdataframe.cycdataframe.DataFrame>').replace("'", '"')
-                        # exec_result_str = exec_result_str.replace(
-                        # )
-                        exec_result_str = exec_result_str.replace(r'\"', '"')
-                        exec_result_str = exec_result_str.replace(r"\'", '"')
-                        exec_result_str = exec_result_str.replace(
-                            '"cycdataframe', 'cycdataframe')
-                        exec_result_str = exec_result_str.replace(
-                            'DataFrame"', 'DataFrame')
-                        exec_result = json.loads(exec_result_str)
-                        exec_result_outputs.append(exec_result)
-                        # log.info('exec_result_str', exec_result_str)
-
-            return exec_result_outputs
+            code = "_user_space.get_active_dfs_status()"
+            ouputs = self.executor.execute(code)
+            log.info("IPythonKernel Outputs: %s" % ouputs)
+            return None
 
     def execute(self, code, exec_mode: ExecutionMode = None):
         return self.executor.execute(code, exec_mode)

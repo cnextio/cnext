@@ -1,7 +1,7 @@
 import base64
 import traceback
 from libs.message_handler import BaseMessageHandler
-from libs.message import ContentType, DFManagerCommand
+from libs.message import ContentType, DFManagerCommand, SubContentType
 from cycdataframe.mime_types import CnextMimeType
 
 from libs import logs
@@ -79,7 +79,7 @@ class MessageHandler(BaseMessageHandler):
         send_reply = False
         # message execution_mode will always be `eval` for this sender
         log.info('eval... %s' % message)
-        # log.info('Globals: %s' % client_globals)        
+        # log.info('Globals: %s' % client_globals)                
         try:        
             if message.command_name == DFManagerCommand.plot_column_histogram:
                 # result = eval(message.content, client_globals)
@@ -87,16 +87,20 @@ class MessageHandler(BaseMessageHandler):
                 if result is not None:                
                     log.info("get plot data")                                        
                     output = self._create_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
-                    type = ContentType.PLOTLY_FIG
+                    # type = ContentType.PLOTLY_FIG
+                    type = ContentType.RICH_OUTPUT
+                    sub_type = SubContentType.PLOTLY_FIG
                     send_reply = True
 
-            if message.command_name == DFManagerCommand.plot_column_quantile:
+            elif message.command_name == DFManagerCommand.plot_column_quantile:
                 # result = eval(message.content, client_globals)
                 result = self.user_space.execute(message.content, ExecutionMode.EVAL)
                 if result is not None:                
                     log.info("get plot data")                                        
                     output = self._create_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
-                    type = ContentType.PLOTLY_FIG
+                    # type = ContentType.PLOTLY_FIG
+                    type = ContentType.RICH_OUTPUT
+                    sub_type = SubContentType.PLOTLY_FIG
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_table_data:    
@@ -106,6 +110,7 @@ class MessageHandler(BaseMessageHandler):
                     log.info("get table data %s" % result)
                     output = self._create_table_data(message.metadata['df_id'], result)       
                     type = ContentType.PANDAS_DATAFRAME
+                    sub_type = SubContentType.NONE
                     send_reply = True
                                         
             elif message.command_name == DFManagerCommand.get_countna: 
@@ -118,6 +123,7 @@ class MessageHandler(BaseMessageHandler):
                     log.info("get countna data")
                     output = self._create_countna_data(message.metadata['df_id'], len, countna)       
                     type = ContentType.DICT
+                    sub_type = SubContentType.NONE
                     send_reply = True                            
             
             elif message.command_name == DFManagerCommand.get_df_metadata: 
@@ -143,6 +149,7 @@ class MessageHandler(BaseMessageHandler):
                                          'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}
                 output = {'df_id': df_id, 'shape': shape, 'columns': columns}
                 type = ContentType.DICT
+                sub_type = SubContentType.NONE
                 send_reply = True    
             
             # elif message.command_name == DFManagerCommand.get_file_content:
@@ -150,6 +157,7 @@ class MessageHandler(BaseMessageHandler):
 
             if send_reply:
                 message.type = type
+                message.sub_type = sub_type
                 message.content = output
                 message.error = False
                 self._send_to_node(message)
