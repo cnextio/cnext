@@ -226,7 +226,7 @@ class LanguageServerPlugin {
         }
     }
 
-    async requestSignatureTooltip(view, pos, { line, character }) {
+    async requestSignatureTooltip({ line, character }) {
         try {
             this.sendChange({
                 documentText: this.view.state.doc.toString(),
@@ -244,14 +244,11 @@ class LanguageServerPlugin {
                     },
                 }
             );
-
-            console.log('signatureResult', signatureResult);
-            if (!signatureResult) return null;
-
-            if ('signatures' in signatureResult)
+            if ('signatures' in signatureResult && signatureResult.signatures.length !== 0)
                 return {
-                    pos,
-                    textContent: formatContents(signatureResult.signatures[0].label),
+                    textContent: formatContents(
+                        signatureResult.signatures.map((item) => item.label).find((v) => true)
+                    ),
                     activeParameter: signatureResult.activeParameter,
                 };
             else return null;
@@ -776,64 +773,21 @@ const signatureBaseTheme = EditorView.baseTheme({
         fontWeight: 'bold',
     },
 });
-
-const showSuggestTooltip = /*@__PURE__*/ Facet.define();
-const showSignatureTooltipHost = /*@__PURE__*/ showTooltip.compute(
-    [showSuggestTooltip],
-    (state) => {
-        const tooltips = state.facet(showSuggestTooltip).filter((t) => t);
-        console.log('tooltips', tooltips);
-        if (tooltips.length === 0) return null;
-        const tooltipData = {
-            pos: Math.min(...tooltips.map((t) => t.pos)),
-            above: true,
-            strictSide: true,
-            arrow: true,
-            create: () => {
-                const activeParameter = tooltips.map((t) => t.activeParameter).find((t) => true);
-                const content = tooltips.map((t) => t.textContent).find((t) => true);
-                const start = content.indexOf('(') + 1;
-                const end = content.indexOf(')');
-                const paramTexts = content.substring(start, end).split(',');
-
-                const dom = document.createElement('div');
-                dom.className = 'cm-tooltip-signature';
-
-                const startSpan = document.createElement('span');
-                startSpan.textContent = '(';
-
-                dom.appendChild(startSpan);
-
-                for (let i = 0; i < paramTexts.length; i++) {
-                    const element = document.createElement('span');
-                    if (activeParameter === i) element.className = 'cm-tooltip-signature-element';
-
-                    if (i !== paramTexts.length - 1) element.textContent = paramTexts[i] + ',';
-                    else element.textContent = paramTexts[i] + ')';
-                    dom.append(element);
-                }
-
-                return { dom };
-            },
-        };
-        return tooltipData;
-    }
-);
-
 class SignaturePlugin {
-    constructor(view, source, setSignature) {
+    constructor(view, source, setSignature, countDocChanges) {
         this.view = view;
         this.source = source;
         this.setSignature = setSignature;
         this.restartTimeout = -1;
         this.curPos = this.view.state.selection.main.head;
         this.running = false;
+        this.countDocChanges = countDocChanges;
+        this.currentData = null;
     }
 
     update(update) {
         let sState = update.state;
         let pos = sState.selection.main.head;
-
         if (pos !== 0 && this.curPos != pos) {
             this.curPos = pos;
             this.restartTimeout = setTimeout(() => this.startGetSignature(sState, pos), 20);
@@ -844,29 +798,49 @@ class SignaturePlugin {
         clearTimeout(this.restartTimeout);
         const line = state.doc.lineAt(pos);
         const context = new CompletionContext(state, pos, true);
-        this.excuteSouce(context, line.text, pos - line.from - 1);
+        this.excuteSource(context, line.text, pos - line.from - 1);
     }
 
-    async excuteSouce(context, text, pos) {
-        if (context.matchBefore(/[(,]+$/)) {
-            let data = await this.source(this.view, this.curPos);
-            console.log('data', data);
-            if (data) {
+    async excuteSource(context, text, cursorIndexInLine) {
+        for (let i = cursorIndexInLine; i > 0; i--) {
+            if (text[i] === '(') {
+                const subStr = text.substring(i, cursorIndexInLine + 1);
+                const closeIndex = subStr.indexOf(')');
+
+                // detect out side of ')'
+                if (closeIndex !== -1 && closeIndex + i <= cursorIndexInLine) {
+                    this.view.dispatch({
+                        effects: this.setSignature.of({ close: true }),
+                    });
+                    return;
+                }
+
+                // send source request when needed
+                if (context.matchBefore(/[(,]+$/)) {
+                    let data = await this.source(this.view, this.curPos);
+                    if (data) {
+                        this.currentData = {
+                            ...data,
+                            pos: context.pos,
+                        };
+                        this.view.dispatch({ effects: this.setSignature.of(this.currentData) });
+                    }
+                } else if (this.currentData) {
+                    this.view.dispatch({
+                        effects: this.setSignature.of({
+                            ...this.currentData,
+                            pos: context.pos,
+                            activeParameter: subStr.split(',').length - 1,
+                        }),
+                    });
+                }
+                return;
+            } else {
                 this.view.dispatch({
-                    effects: this.setSignature.of(data),
+                    effects: this.setSignature.of({ close: true }),
                 });
             }
         }
-        // for (let i = pos; i > 0; i--) {
-        //     if (text[i] === '(') {
-        //         let subStr = text.substring(i, pos + 1);
-        //         if (subStr[subStr.length - 1] !== ')') {
-        //             // send source request
-
-        //         }
-        //         return;
-        //     }
-        // }
     }
 
     destroy() {
@@ -881,31 +855,58 @@ const signatureTooltip = (source) => {
             return null;
         },
         update(value, tr) {
-            if (value && (tr.docChanged || tr.selection)) return null;
+            let tooltip;
             for (let effect of tr.effects) {
-                if (effect.is(setSignature)) return effect.value;
+                if (effect.is(setSignature)) {
+                    tooltip = effect.value;
+                }
             }
 
-            if (value && tr.docChanged) {
-                let newPos = tr.changes.mapPos(value.pos, -1, MapMode.TrackDel);
-                if (newPos == null) return null;
-                let copy = Object.assign(Object.create(null), value);
-                copy.pos = newPos;
-                if (value.end != null) copy.end = tr.changes.mapPos(value.end);
+            if (tooltip) {
+                console.log('tooltip', tooltip);
+                if ('close' in tooltip) return null;
+                return {
+                    pos: tooltip.pos,
+                    above: true,
+                    strictSide: true,
+                    create: () => {
+                        const activeParameter = tooltip.activeParameter;
+                        const content = tooltip.textContent;
+                        const start = content.indexOf('(') + 1;
+                        const end = content.indexOf(')');
+                        const paramTexts = content.substring(start, end).split(',');
 
-                console.log('signatureTooltip', copy);
+                        const dom = document.createElement('div');
+                        dom.className = 'cm-tooltip-signature';
 
-                // return copy;
+                        const startSpan = document.createElement('span');
+                        startSpan.textContent = '(';
+
+                        dom.appendChild(startSpan);
+
+                        for (let i = 0; i < paramTexts.length; i++) {
+                            const element = document.createElement('span');
+                            if (activeParameter === i)
+                                element.className = 'cm-tooltip-signature-element';
+
+                            if (i !== paramTexts.length - 1)
+                                element.textContent = paramTexts[i] + ',';
+                            else element.textContent = paramTexts[i] + ')';
+                            dom.append(element);
+                        }
+
+                        return { dom };
+                    },
+                };
             }
 
             return value;
         },
-        provide: (f) => showSuggestTooltip.from(f),
+        provide: (f) => showTooltip.from(f),
     });
     return [
         signatureState,
         ViewPlugin.define((view) => new SignaturePlugin(view, source, setSignature)),
-        showSignatureTooltipHost,
         signatureBaseTheme,
     ];
 };
@@ -923,11 +924,8 @@ function languageServer(options) {
             return (_a =
                 plugin === null || plugin === void 0
                     ? void 0
-                    : await plugin.requestSignatureTooltip(
-                          view,
-                          pos,
-                          offsetToPos(view.state.doc, pos)
-                      )) !== null && _a !== void 0
+                    : await plugin.requestSignatureTooltip(offsetToPos(view.state.doc, pos))) !==
+                null && _a !== void 0
                 ? _a
                 : null;
         }),
