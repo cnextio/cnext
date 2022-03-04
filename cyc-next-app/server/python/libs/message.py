@@ -80,12 +80,13 @@ class ContentType(str, Enum):
     DICT = 'dict'
     BINARY = 'binary'
     PANDAS_DATAFRAME = 'pandas_dataframe'
-    DIR_LIST = 'dir_list',
-    FILE_METADATA = 'file_metadata',
-    PROJECT_METADATA = 'project_metadata',
-    FILE_CONTENT = 'file_content',
-    COLUMN_CARDINAL = 'column_cardinal',
+    DIR_LIST = 'dir_list'
+    FILE_METADATA = 'file_metadata'
+    PROJECT_METADATA = 'project_metadata'
+    FILE_CONTENT = 'file_content'
+    COLUMN_CARDINAL = 'column_cardinal'
     RICH_OUTPUT = 'rich_output'
+    PLOTLY_FIG = 'plotly_fig'  # It is used for code editor basekernel
     NONE = 'none'
 
     def __str__(self):
