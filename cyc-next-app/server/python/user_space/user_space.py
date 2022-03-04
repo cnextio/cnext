@@ -1,5 +1,4 @@
 from enum import Enum
-import json
 import cycdataframe.user_space as _cus
 import cycdataframe.df_status_hook as _sh
 from user_space.ipython.kernel import IPythonKernel
@@ -32,7 +31,6 @@ class BaseKernel:
     def execute(self, code, exec_mode: ExecutionMode = None):
         if exec_mode == None:
             exec_mode = self._assign_exec_mode(code)
-        exec_mode = ExecutionMode.EXEC
         if exec_mode == ExecutionMode.EVAL:
             return eval(code, globals())
         elif exec_mode == ExecutionMode.EXEC:
