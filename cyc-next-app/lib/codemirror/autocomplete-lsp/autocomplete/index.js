@@ -653,6 +653,7 @@ function rangeAroundSelected(total, selected, max) {
     return { from: total - (off + 1) * max, to: total - off * max };
 }
 
+let isShowMoreInfo = false;
 class CompletionTooltip {
     constructor(view, stateField) {
         this.view = view;
@@ -739,6 +740,9 @@ class CompletionTooltip {
                             this._showMoreClick(option);
                         };
                         opt.appendChild(moreBtn);
+                        if (isShowMoreInfo) {
+                            this.showMoreInfo(option);
+                        }
                     }
 
                     if (matchText) {
@@ -826,14 +830,26 @@ class CompletionTooltip {
     _showMoreClick(option) {
         let codeDocContainerDom = this.dom.querySelector('#code-doc-container');
         if (!codeDocContainerDom) {
+            showMoreInfo(codeDocContainerDom, option);
+            isShowMoreInfo = true;
+        } else {
+            hideInfo(codeDocContainerDom);
+            isShowMoreInfo = false;
+        }
+        this.view.focus();
+    }
+
+    showMoreInfo(codeDocContainerDom, option) {
+        if (!codeDocContainerDom) {
             codeDocContainerDom = this.dom.appendChild(document.createElement('div'));
             codeDocContainerDom.id = 'code-doc-container';
             let { info } = option.completion;
             if (info) codeDocContainerDom.appendChild(createDocContentDom(option));
-        } else {
-            this.dom.removeChild(codeDocContainerDom);
         }
-        this.view.focus();
+    }
+
+    hideInfo(codeDocContainerDom) {
+        this.dom.removeChild(codeDocContainerDom);
     }
 }
 
@@ -1154,6 +1170,14 @@ const setActiveEffect = /*@__PURE__*/ StateEffect.define({
     },
 });
 const setSelectedEffect = /*@__PURE__*/ StateEffect.define();
+const infoCompletionState = /*@__PURE__*/ StateField.define({
+    create() {
+        return null;
+    },
+    update(value) {
+        return value;
+    },
+});
 const completionState = /*@__PURE__*/ StateField.define({
     create() {
         return CompletionState.start();
@@ -1248,9 +1272,13 @@ const startCompletion = (view) => {
 /**
 Close the currently active completion.
 */
+import { closeSignatureEffect } from '../index';
 const closeCompletion = (view) => {
     let cState = view.state.field(completionState, false);
-    if (!cState || !cState.active.some((a) => a.state != 0 /* Inactive */)) return false;
+    if (!cState || !cState.active.some((a) => a.state != 0 /* Inactive */)) {
+        view.dispatch({ effects: closeSignatureEffect.of(null) });
+        return false;
+    }
     view.dispatch({ effects: closeCompletionEffect.of(null) });
     return true;
 };

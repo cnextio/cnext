@@ -34,6 +34,7 @@ class LanguageServerPlugin {
     constructor(view, dfFilter = false) {
         this.view = view;
         this.dfFilter = dfFilter;
+        this.signatureData = null;
         if (!dfFilter) {
             this.rootUri = this.view.state.facet(rootUri);
             this.documentUri = this.view.state.facet(documentUri);
@@ -244,14 +245,20 @@ class LanguageServerPlugin {
                     },
                 }
             );
-            if ('signatures' in signatureResult && signatureResult.signatures.length !== 0)
+            if ('signatures' in signatureResult && signatureResult.signatures.length !== 0) {
+                this.signatureData = signatureResult;
                 return {
                     textContent: formatContents(
                         signatureResult.signatures.map((item) => item.label).find((v) => true)
                     ),
+                    documentText: formatContents(
+                        signatureResult.signatures
+                            .map((item) => item.documentation)
+                            .find((v) => true)
+                    ),
                     activeParameter: signatureResult.activeParameter,
                 };
-            else return null;
+            } else return null;
         } catch (error) {
             console.error('requestSignatureTooltip: ', error);
         }
@@ -672,6 +679,11 @@ class LanguageServerPlugin {
                 dfCompletionItems = this._getDFCompletion_CodeEditor(context, line, character);
             }
 
+            // handler case for ()
+            if (context.matchBefore(/[\(]+$/)) {
+                // console.log('test', this.signatureData);
+            }
+
             // get completion for code.
             let result;
             if (context.matchBefore(/[\w]+$/)) {
@@ -772,7 +784,24 @@ const signatureBaseTheme = EditorView.baseTheme({
         color: '#0060C0',
         fontWeight: 'bold',
     },
+    '.cm-tooltip-signature-doc': {
+        overflow: 'auto !important',
+        maxHeight: '100px',
+        whiteSpace: 'pre-wrap',
+    },
+    '.cm-tooltip-signature-doc::-webkit-scrollbar': {
+        width: '5px',
+    },
+    '.cm-tooltip-signature-doc::-webkit-scrollbar-thumb': {
+        background: '#ccc',
+        borderRadius: '2px',
+    },
+    '.cm-tooltip-signature-doc::-webkit-scrollbar-thumb:hover': {
+        background: '#bbb',
+    },
 });
+
+const closeSignatureEffect = /*@__PURE__*/ StateEffect.define();
 class SignaturePlugin {
     constructor(view, source, setSignature, countDocChanges) {
         this.view = view;
@@ -810,7 +839,7 @@ class SignaturePlugin {
                 // detect out side of ')'
                 if (closeIndex !== -1 && closeIndex + i <= cursorIndexInLine) {
                     this.view.dispatch({
-                        effects: this.setSignature.of({ close: true }),
+                        effects: closeSignatureEffect.of(null),
                     });
                     return;
                 }
@@ -837,7 +866,7 @@ class SignaturePlugin {
                 return;
             } else {
                 this.view.dispatch({
-                    effects: this.setSignature.of({ close: true }),
+                    effects: closeSignatureEffect.of(null),
                 });
             }
         }
@@ -859,12 +888,12 @@ const signatureTooltip = (source) => {
             for (let effect of tr.effects) {
                 if (effect.is(setSignature)) {
                     tooltip = effect.value;
+                } else if (effect.is(closeSignatureEffect)) {
+                    return null;
                 }
             }
 
             if (tooltip) {
-                console.log('tooltip', tooltip);
-                if ('close' in tooltip) return null;
                 return {
                     pos: tooltip.pos,
                     above: true,
@@ -882,8 +911,9 @@ const signatureTooltip = (source) => {
                         const startSpan = document.createElement('span');
                         startSpan.textContent = '(';
 
-                        dom.appendChild(startSpan);
-
+                        // header
+                        const header = document.createElement('div');
+                        header.appendChild(startSpan);
                         for (let i = 0; i < paramTexts.length; i++) {
                             const element = document.createElement('span');
                             if (activeParameter === i)
@@ -892,8 +922,17 @@ const signatureTooltip = (source) => {
                             if (i !== paramTexts.length - 1)
                                 element.textContent = paramTexts[i] + ',';
                             else element.textContent = paramTexts[i] + ')';
-                            dom.append(element);
+                            header.append(element);
                         }
+                        dom.appendChild(header);
+
+                        // content
+                        const container = document.createElement('div');
+                        const textSpan = document.createElement('span');
+                        container.textContent = tooltip.documentText;
+                        container.className = 'cm-tooltip-signature-doc';
+                        container.appendChild(textSpan);
+                        dom.appendChild(container);
 
                         return { dom };
                     },
@@ -1100,4 +1139,4 @@ const baseTheme = EditorView.baseTheme({
     },
 });
 
-export { languageServer, dfFilterLanguageServer };
+export { languageServer, dfFilterLanguageServer, closeSignatureEffect };
