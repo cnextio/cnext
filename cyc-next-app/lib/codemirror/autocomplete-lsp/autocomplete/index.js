@@ -19,6 +19,7 @@ import {
 import { showTooltip } from '@codemirror/tooltip';
 import { syntaxTree, indentUnit } from '@codemirror/language';
 import { codePointAt, codePointSize, fromCodePoint } from '@codemirror/text';
+import { updateCustomEffect, closeSignatureEffect } from '../index';
 
 /**
 An instance of this is passed to completion source functions.
@@ -741,7 +742,8 @@ class CompletionTooltip {
                         };
                         opt.appendChild(moreBtn);
                         if (isShowMoreInfo) {
-                            this.showMoreInfo(option);
+                            let codeDocContainerDom = this.dom.querySelector('#code-doc-container');
+                            this.showMoreInfo(codeDocContainerDom, option);
                         }
                     }
 
@@ -830,11 +832,11 @@ class CompletionTooltip {
     _showMoreClick(option) {
         let codeDocContainerDom = this.dom.querySelector('#code-doc-container');
         if (!codeDocContainerDom) {
-            showMoreInfo(codeDocContainerDom, option);
+            this.showMoreInfo(codeDocContainerDom, option);
             isShowMoreInfo = true;
         } else {
             hideInfo(codeDocContainerDom);
-            isShowMoreInfo = false;
+            this.isShowMoreInfo = false;
         }
         this.view.focus();
     }
@@ -895,8 +897,15 @@ function sortOptions(active, state) {
                         options.push(new Option(option, a, match));
                     }
             }
+
+            // add more data for completion
+            if (paramsOption.length !== 0) {
+                for (let option of paramsOption) {
+                    options.unshift(new Option(option, a, [1e10 - i++]));
+                }
+            }
         }
-    options.sort(cmpOption);
+
     let result = [],
         prev = null;
     for (let opt of options.sort(cmpOption)) {
@@ -906,6 +915,7 @@ function sortOptions(active, state) {
         else if (score(opt.completion) > score(prev)) result[result.length - 1] = opt;
         prev = opt.completion;
     }
+
     return result;
 }
 
@@ -999,11 +1009,14 @@ class CompletionState {
 
         if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
             active = this.active;
+        let sortConfig;
+        for (let effect of tr.effects) if (effect.is(updateCustomEffect)) sortConfig = effect.value;
+
         let open =
             tr.selection ||
             active.some((a) => a.hasResult() && tr.changes.touchesRange(a.from, a.to)) ||
             !sameResults(active, this.active)
-                ? CompletionDialog.build(active, state, this.id, this.open)
+                ? CompletionDialog.build(active, state, this.id, this.open, sortConfig)
                 : this.open && tr.docChanged
                 ? this.open.map(tr.changes)
                 : this.open;
@@ -1088,7 +1101,7 @@ class ActiveSource {
         else if (tr.docChanged) value = value.handleChange(tr);
         else if (tr.selection && value.state != 0 /* Inactive */)
             value = new ActiveSource(value.source, 0 /* Inactive */);
-        for (let effect of tr.effects) {
+        for (let effect of tr.effects)
             if (effect.is(startCompletionEffect))
                 value = new ActiveSource(
                     value.source,
@@ -1099,7 +1112,6 @@ class ActiveSource {
                 value = new ActiveSource(value.source, 0 /* Inactive */);
             else if (effect.is(setActiveEffect))
                 for (let active of effect.value) if (active.source == value.source) value = active;
-        }
         return value;
     }
     handleUserEvent(tr, type, conf) {
@@ -1170,14 +1182,6 @@ const setActiveEffect = /*@__PURE__*/ StateEffect.define({
     },
 });
 const setSelectedEffect = /*@__PURE__*/ StateEffect.define();
-const infoCompletionState = /*@__PURE__*/ StateField.define({
-    create() {
-        return null;
-    },
-    update(value) {
-        return value;
-    },
-});
 const completionState = /*@__PURE__*/ StateField.define({
     create() {
         return CompletionState.start();
@@ -1272,7 +1276,6 @@ const startCompletion = (view) => {
 /**
 Close the currently active completion.
 */
-import { closeSignatureEffect } from '../index';
 const closeCompletion = (view) => {
     let cState = view.state.field(completionState, false);
     if (!cState || !cState.active.some((a) => a.state != 0 /* Inactive */)) {
@@ -1298,6 +1301,10 @@ class RunningQuery {
 const DebounceTime = 50,
     MaxUpdateCount = 50,
     MinAbortTime = 1000;
+let paramsOption = [];
+function setParamOptions(data) {
+    paramsOption = data;
+}
 
 const completionPlugin = /*@__PURE__*/ ViewPlugin.fromClass(
     class {
@@ -1925,4 +1932,5 @@ export {
     snippet,
     snippetCompletion,
     snippetKeymap,
+    setParamOptions,
 };

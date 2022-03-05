@@ -14,7 +14,7 @@ import {
 } from 'vscode-languageserver-protocol';
 import store from '/redux/store';
 import { python } from '../grammar/lang-cnext-python';
-import { CompletionContext } from './autocomplete';
+import { CompletionContext, setParamOptions } from './autocomplete';
 
 const timeout = 10000;
 const changesDelay = 3000;
@@ -619,16 +619,19 @@ class LanguageServerPlugin {
                 sortText,
                 filterText,
                 insertText,
+                apply,
             }) => {
                 var _a;
                 const completion = {
                     label,
                     detail,
                     apply:
-                        (_a =
+                        apply ||
+                        ((_a =
                             textEdit === null || textEdit === void 0
                                 ? void 0
-                                : textEdit.newText) !== null && _a !== void 0
+                                : textEdit.newText) !== null &&
+                            _a !== void 0)
                             ? _a
                             : insertText,
                     type: kind && CompletionItemKindMap[kind].toLowerCase(),
@@ -661,6 +664,7 @@ class LanguageServerPlugin {
                     });
             }
         }
+
         return {
             from: pos,
             options,
@@ -679,13 +683,55 @@ class LanguageServerPlugin {
                 dfCompletionItems = this._getDFCompletion_CodeEditor(context, line, character);
             }
 
+            let result;
             // handler case for ()
-            if (context.matchBefore(/[\(]+$/)) {
-                // console.log('test', this.signatureData);
+            let paramsItem;
+            if (context.matchBefore(/[\(]+$/) && context.explicit) {
+                // invoke by command -> need to build mix data for suggestion
+                if (
+                    'signatures' in this.signatureData &&
+                    this.signatureData.signatures.length !== 0
+                ) {
+                    this.sendChange({
+                        documentText: this.view.state.doc.toString(),
+                    });
+
+                    result = await this.requestLS(
+                        WebAppEndpoint.LanguageServerCompletion,
+                        'textDocument/completion',
+                        {
+                            textDocument: { uri: this.documentUri },
+                            position: { line, character },
+                            context: {
+                                triggerKind,
+                                triggerCharacter,
+                            },
+                        }
+                    );
+
+                    const parameters = this.signatureData.signatures[0].parameters;
+                    paramsItem = parameters.map(({ label, documentation }) => {
+                        return {
+                            label: label + '=',
+                            apply: label + '=',
+                            info: documentation ? formatContents(documentation) : null,
+                            type: 'variable',
+                            filterText: label,
+                            sortText: label,
+                            detail: documentation ? formatContents(documentation) : null,
+                        };
+                    });
+                }
+            }
+
+            // add option for suggest params
+            if (paramsItem) {
+                setParamOptions(paramsItem);
+            } else {
+                setParamOptions([]);
             }
 
             // get completion for code.
-            let result;
             if (context.matchBefore(/[\w]+$/)) {
                 this.sendChange({
                     documentText: this.view.state.doc.toString(),
