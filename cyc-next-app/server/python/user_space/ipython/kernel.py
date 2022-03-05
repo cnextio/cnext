@@ -1,5 +1,6 @@
 import jupyter_client
 import queue
+import simplejson as json
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
 # from user_space.user_space import BaseKernel
 from cycdataframe.df_status_hook import DataFrameStatusHook
@@ -70,3 +71,19 @@ class IPythonKernel():
             outputs.append(msg)
         return outputs
 
+    @staticmethod
+    def get_execute_result_text_plain(messages):
+        """
+            Get execute result with text plain from list of messages are responsed by IPython kernel
+        """
+        result = []
+        # messages = json.loads(messages)
+        print('messages lalalalalala', messages)
+        for message in messages:
+            if message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
+                result.append(message['content']['data']['text/plain'])
+            elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
+                if 'text' in message['content']:
+                    result.append(message['content']['text'])
+        # print('RESULTTTTTTTTTTT', result, type(result))
+        return result

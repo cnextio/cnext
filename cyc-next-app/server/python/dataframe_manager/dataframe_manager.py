@@ -3,6 +3,8 @@ import traceback
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
 from cycdataframe.mime_types import CnextMimeType
+from user_space.ipython.kernel import IPythonKernel
+import simplejson as json
 
 from libs import logs
 from user_space.user_space import ExecutionMode
@@ -29,6 +31,7 @@ class MessageHandler(BaseMessageHandler):
             binary data in the frontend for this special case'''
         tableData = {}
         tableData['df_id'] = df_id
+        log.info('DF Columns', df.columns)
         tableData['column_names'] = list(df.columns)
         
         ## Convert datetime to string so it can be displayed in the frontend #
@@ -83,7 +86,10 @@ class MessageHandler(BaseMessageHandler):
         try:        
             if message.command_name == DFManagerCommand.plot_column_histogram:
                 # result = eval(message.content, client_globals)
-                result = self.user_space.execute(message.content, ExecutionMode.EVAL)
+                output_messages = self.user_space.executor.execute(
+                    message.content, ExecutionMode.EVAL)
+                result = IPythonKernel.get_execute_result_text_plain(
+                    output_messages)
                 if result is not None:                
                     log.info("get plot data")                                        
                     output = self._create_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
@@ -94,7 +100,10 @@ class MessageHandler(BaseMessageHandler):
 
             elif message.command_name == DFManagerCommand.plot_column_quantile:
                 # result = eval(message.content, client_globals)
-                result = self.user_space.execute(message.content, ExecutionMode.EVAL)
+                output_messages = self.user_space.executor.execute(
+                    message.content, ExecutionMode.EVAL)
+                result = IPythonKernel.get_execute_result_text_plain(
+                    output_messages)
                 if result is not None:                
                     log.info("get plot data")                                        
                     output = self._create_plot_data(message.metadata['df_id'], message.metadata['col_name'], result) 
@@ -103,12 +112,24 @@ class MessageHandler(BaseMessageHandler):
                     sub_type = SubContentType.PLOTLY_FIG
                     send_reply = True
 
-            elif message.command_name == DFManagerCommand.get_table_data:    
+            elif message.command_name == DFManagerCommand.get_table_data:
                 # result = eval(message.content, client_globals)        
-                result = self.user_space.execute(message.content, ExecutionMode.EVAL)
+                # output_messages = self.user_space.execute(
+                #     message.content, ExecutionMode.EVAL)
+                # result = json.loads(IPythonKernel.get_execute_result_text_plain(
+                #     output_messages))
+                # code = "_user_space.get_df_table_data({})".format(
+                #     message.content)
+                # output_messages = self.user_space.executor.execute(code)
+                # result = IPythonKernel.get_execute_result_text_plain(
+                #     output_messages)
+                result = self.user_space.get_df_table_data(message.content)
                 if result is not None:                
                     log.info("get table data %s" % result)
-                    output = self._create_table_data(message.metadata['df_id'], result)       
+                    output_messages = self._create_table_data(
+                        message.metadata['df_id'], result)
+                    output = IPythonKernel.get_execute_result_text_plain(
+                        output_messages)
                     type = ContentType.PANDAS_DATAFRAME
                     sub_type = SubContentType.NONE
                     send_reply = True
@@ -117,11 +138,20 @@ class MessageHandler(BaseMessageHandler):
                 df_id = message.metadata['df_id']
                 # countna = eval("%s.isna().sum()"%df_id, client_globals)
                 # len = eval("%s.shape[0]"%df_id, client_globals)      
-                countna = self.user_space.execute("%s.isna().sum()"%df_id, ExecutionMode.EVAL)
-                len = self.user_space.execute("%s.shape[0]"%df_id, ExecutionMode.EVAL)
+                countna_messages = self.user_space.executor.execute(
+                    "%s.isna().sum()" % df_id, ExecutionMode.EVAL)
+                countna = IPythonKernel.get_execute_result_text_plain(
+                    countna_messages)
+                len_messages = self.user_space.executor.execute(
+                    "%s.shape[0]" % df_id, ExecutionMode.EVAL)
+                len = IPythonKernel.get_execute_result_text_plain(
+                    len_messages)
                 if (countna is not None) and (len is not None):                
                     log.info("get countna data")
-                    output = self._create_countna_data(message.metadata['df_id'], len, countna)       
+                    output_messages = self._create_countna_data(
+                        message.metadata['df_id'], len, countna)
+                    output = IPythonKernel.get_execute_result_text_plain(
+                        output_messages)
                     type = ContentType.DICT
                     sub_type = SubContentType.NONE
                     send_reply = True                            
@@ -132,18 +162,59 @@ class MessageHandler(BaseMessageHandler):
                 # dtypes = eval("%s.dtypes"%df_id, client_globals)
                 # countna = eval("%s.isna().sum()"%df_id, client_globals)                        
                 # describe = eval("%s.describe(include='all')"%df_id, client_globals)
-                shape = self.user_space.execute("%s.shape"%df_id, ExecutionMode.EVAL)
-                print('shape of df', shape)
-                dtypes = self.user_space.execute("%s.dtypes"%df_id, ExecutionMode.EVAL)
-                print('dtypes of df', dtypes)
-                countna = self.user_space.execute("%s.isna().sum()"%df_id, ExecutionMode.EVAL)
-                describe = self.user_space.execute("%s.describe(include='all')"%df_id, ExecutionMode.EVAL)
+
+                # shape_outputs = self.user_space.execute(
+                #     "%s.shape" % df_id, ExecutionMode.EVAL)
+                # shape = IPythonKernel.get_execute_result_text_plain(
+                #     shape_outputs)
+                # shape_code = """
+                #     {}.shape
+                # """.format(df_id)
+                # shape_code = "_user_space.get_df_metadata_shape({})".format(
+                #     df_id)
+                # outputs = self.executor.execute(code)
+                # shape_outputs = self.user_space.executor.execute(
+                #     shape_code)
+                # shape = IPythonKernel.get_execute_result_text_plain(
+                #     shape_outputs)
+                shape = self.user_space.get_df_metadata_shape(df_id)[0]
+                print('SHAPEEEEEE', shape)
+                dtypes = self.user_space.get_df_metadata_dtypes(df_id)[0]
+                print('dtypes', dtypes)
+                countna = self.user_space.get_df_metadata_countna(df_id)[0]
+                print('countna', countna)
+                describe = self.user_space.get_df_metadata_describe(df_id)[0]
+                print('describe', describe)
+                # dtypes_outputs = self.user_space.execute(
+                #     "%s.dtypes" % df_id, ExecutionMode.EVAL)
+                # dtypes_code = "_user_space.get_df_metadata_dtypes({})".format(
+                #     df_id)
+                # dtypes_outputs = self.user_space.executor.execute(
+                #     dtypes_code)
+                # dtypes = IPythonKernel.get_execute_result_text_plain(
+                #     dtypes_outputs)
+                # countna_outputs = self.user_space.execute(
+                #     "%s.isna().sum()" % df_id, ExecutionMode.EVAL)
+                # countna_code = "_user_space.get_df_metadata_countna({})".format(
+                #     df_id)
+                # countna_outputs = self.user_space.executor.execute(
+                #     countna_code)
+                # countna = IPythonKernel.get_execute_result_text_plain(
+                #     countna_outputs)
+                # describe_outputs = self.user_space.execute(
+                #     "%s.describe(include='all')" % df_id, ExecutionMode.EVAL)
+                # describe_code = "_user_space.get_df_metadata_describe({})".format(
+                #     df_id)
+                # describe_outputs = self.user_space.executor.execute(
+                #     describe_code)
+                # describe = IPythonKernel.get_execute_result_text_plain(
+                #     describe_outputs)
                 columns = {}
                 for col_name, ctype in dtypes.items():
                     # print(col_name, ctype)
                     # FIXME: only get at most 100 values here, this is hacky, find a better way
                     # unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), client_globals)[:100]
-                    unique = self.user_space.execute(
+                    unique = self.user_space.executor.execute(
                         "%s['%s'].unique().tolist()" % (df_id, col_name), ExecutionMode.EVAL)
                     columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique,
                                          'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}

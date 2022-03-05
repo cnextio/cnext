@@ -136,7 +136,6 @@ const DFManager = () => {
     const _handleActiveDFStatus = (message: {}) => {
         console.log("DFManager got df status message: ", message.content);
         const dfStatusContent = JSON.parse(message.content);
-        console.log("dfStatusContent type", typeof dfStatusContent);
 
         // console.log(dfStatusContent);
         // the UI is currently designed to handle only 1 reviewable update at a time
@@ -149,10 +148,6 @@ const DFManager = () => {
                 let dfUpdates = ifElseDict(lastUpdate, "updates");
                 let updateType = ifElse(dfUpdates, "update_type", null);
                 let updateContent = ifElse(dfUpdates, "update_content", null);
-                console.log(lastUpdate);
-                console.log(dfUpdates);
-                console.log(updateType);
-                console.log(updateContent);
                 console.log("DFManager: active df updates: ", dfUpdates);
                 _sendGetDFMetadata(df_id);
                 if (updateType == UpdateType.add_rows) {

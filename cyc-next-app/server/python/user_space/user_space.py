@@ -46,7 +46,6 @@ class _UserSpace(_cus.UserSpace):
 
     def __init__(self, executor, tracking_obj_types: list):
         self.executor = executor
-        print(self.executor)
 
         log.info('Executor %s %s' % (executor, type(executor)))
 
@@ -73,6 +72,25 @@ class _UserSpace(_cus.UserSpace):
             return _sh.DataFrameStatusHook.get_active_dfs_status()
         return None
 
+    def get_df_metadata_shape(self, df_id):
+        code = '{}.shape'.format(df_id)
+        return eval(code, self.globals())
+
+    def get_df_metadata_dtypes(self, df_id):
+        code = '{}.dtypes'.format(df_id)
+        return eval(code, self.globals())
+
+    def get_df_metadata_countna(self, df_id):
+        code = '{}.isna().sum(df_id)'.format(df_id)
+        return eval(code, self.globals())
+
+    def get_df_metadata_describe(self, df_id):
+        code = "{}.describe(include='all')".format(df_id)
+        return eval(code, self.globals())
+
+    def get_df_table_data(self, content):
+        return eval(content, self.globals())
+
 _user_space = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
 _sh.DataFrameStatusHook.set_user_space(_user_space)
 """
@@ -91,9 +109,56 @@ _sh.DataFrameStatusHook.set_user_space(_user_space)
             return None
         elif isinstance(self.executor, IPythonKernel):
             code = "_user_space.get_active_dfs_status()"
-            ouputs = self.executor.execute(code)
-            log.info("IPythonKernel Outputs: %s" % ouputs)
-            return None
+            outputs = self.executor.execute(code)
+            log.info("IPythonKernel Outputs: %s" % outputs)
+            result = [output['content']['data']['text/plain'] for output in outputs if output['header']
+                      ['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT]
+            return result
+
+    def get_df_metadata_shape(self, df_id):
+        if isinstance(self.executor, IPythonKernel):
+            code = "_user_space.get_df_metadata_shape({})".format(
+                df_id)
+            shape_outputs = self.executor.execute(code)
+            shape = IPythonKernel.get_execute_result_text_plain(shape_outputs)
+            return shape
+
+    def get_df_metadata_dtypes(self, df_id):
+        if isinstance(self.executor, IPythonKernel):
+            code = "_user_space.get_df_metadata_dtypes({})".format(
+                df_id)
+            dtypes_outputs = self.executor.execute(code)
+            dtypes = IPythonKernel.get_execute_result_text_plain(
+                dtypes_outputs)
+            return dtypes
+
+    def get_df_metadata_countna(self, df_id):
+        if isinstance(self.executor, IPythonKernel):
+            code = "_user_space.get_df_metadata_countna({})".format(
+                df_id)
+            countna_outputs = self.executor.execute(code)
+            countna = IPythonKernel.get_execute_result_text_plain(
+                countna_outputs)
+            return countna
+
+    def get_df_metadata_describe(self, df_id):
+        if isinstance(self.executor, IPythonKernel):
+            code = "_user_space.get_df_metadata_describe({})".format(
+                df_id)
+            describe_outputs = self.executor.execute(code)
+            describe = IPythonKernel.get_execute_result_text_plain(
+                describe_outputs)
+            return describe
+
+    def get_df_table_data(self, content):
+        if isinstance(self.executor, IPythonKernel):
+            code = "_user_space.get_df_table_data({})".format(
+                content)
+            outputs = self.executor.execute(code)
+            result = IPythonKernel.get_execute_result_text_plain(outputs)
+            return result
+
+
 
     def execute(self, code, exec_mode: ExecutionMode = None):
         return self.executor.execute(code, exec_mode)

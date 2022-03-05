@@ -17,13 +17,6 @@ class MessageHandler(BaseMessageHandler):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
     @staticmethod
-    def _normalize_df(df_data):
-        for df in df_data:
-            content_data = df['data']
-            if 'text/plain' in content_data:
-                return content_data['text/plain']
-
-    @staticmethod
     def _is_execute_result(header) -> bool:
         return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
 
@@ -128,11 +121,12 @@ class MessageHandler(BaseMessageHandler):
 
     def _process_active_dfs_status(self):
         active_df_status = self.user_space.get_active_dfs_status()
-        if active_df_status:
-            active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
-                                                  "command_name": DFManagerCommand.active_df_status,
-                                                  "seq_number": 1,
-                                                  "type": "dict",
-                                                  "content": active_df_status,
-                                                  "error": False})
-            self._send_to_node(active_df_status_message)
+        if len(active_df_status) > 0:
+            for active_df in active_df_status:
+                active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
+                                                      "command_name": DFManagerCommand.active_df_status,
+                                                      "seq_number": 1,
+                                                      "type": "dict",
+                                                      "content": active_df,
+                                                      "error": False})
+                self._send_to_node(active_df_status_message)
