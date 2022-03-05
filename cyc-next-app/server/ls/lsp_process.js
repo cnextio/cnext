@@ -17,7 +17,6 @@ class LSPProcess {
             const payload = reader.getData(chunk);
             if (payload && payload.result) {
                 const channel = this.getChannel(payload.result);
-                console.log('channel', channel);
                 io.emit(channel, JSON.stringify(payload.result));
                 reader.clearCache();
             } else if (this.isNeedNotify(payload)) {
