@@ -19,7 +19,7 @@ import {
 import { showTooltip } from '@codemirror/tooltip';
 import { syntaxTree, indentUnit } from '@codemirror/language';
 import { codePointAt, codePointSize, fromCodePoint } from '@codemirror/text';
-import { updateCustomEffect, closeSignatureEffect } from '../index';
+import { closeSignatureEffect } from '../index';
 
 /**
 An instance of this is passed to completion source functions.
@@ -1009,14 +1009,12 @@ class CompletionState {
 
         if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
             active = this.active;
-        let sortConfig;
-        for (let effect of tr.effects) if (effect.is(updateCustomEffect)) sortConfig = effect.value;
 
         let open =
             tr.selection ||
             active.some((a) => a.hasResult() && tr.changes.touchesRange(a.from, a.to)) ||
             !sameResults(active, this.active)
-                ? CompletionDialog.build(active, state, this.id, this.open, sortConfig)
+                ? CompletionDialog.build(active, state, this.id, this.open)
                 : this.open && tr.docChanged
                 ? this.open.map(tr.changes)
                 : this.open;

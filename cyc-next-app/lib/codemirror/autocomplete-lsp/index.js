@@ -686,7 +686,7 @@ class LanguageServerPlugin {
             let result;
             // handler case for ()
             let paramsItem;
-            if (context.matchBefore(/[\(]+$/) && context.explicit) {
+            if (context.matchBefore(/[\(=,]+$/) && context.explicit) {
                 // invoke by command -> need to build mix data for suggestion
                 if (
                     'signatures' in this.signatureData &&
