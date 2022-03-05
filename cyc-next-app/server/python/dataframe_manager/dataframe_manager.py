@@ -132,10 +132,10 @@ class MessageHandler(BaseMessageHandler):
                 # dtypes = eval("%s.dtypes"%df_id, client_globals)
                 # countna = eval("%s.isna().sum()"%df_id, client_globals)                        
                 # describe = eval("%s.describe(include='all')"%df_id, client_globals)
-                shape = self.user_space.execute("%s.shape"%df_id, ExecutionMode.EVAL)
-                print('shape of df', shape)
-                dtypes = self.user_space.execute("%s.dtypes"%df_id, ExecutionMode.EVAL)
-                print('dtypes of df', dtypes)
+                shape = self.user_space.execute(
+                    "%s.shape" % df_id, ExecutionMode.EVAL)
+                dtypes = self.user_space.execute(
+                    "%s.dtypes" % df_id, ExecutionMode.EVAL)
                 countna = self.user_space.execute("%s.isna().sum()"%df_id, ExecutionMode.EVAL)
                 describe = self.user_space.execute("%s.describe(include='all')"%df_id, ExecutionMode.EVAL)
                 columns = {}

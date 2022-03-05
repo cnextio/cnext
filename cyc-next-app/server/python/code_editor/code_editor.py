@@ -17,13 +17,6 @@ class MessageHandler(BaseMessageHandler):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
     @staticmethod
-    def _normalize_df(df_data):
-        for df in df_data:
-            content_data = df['data']
-            if 'text/plain' in content_data:
-                return content_data['text/plain']
-
-    @staticmethod
     def _is_execute_result(header) -> bool:
         return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
 

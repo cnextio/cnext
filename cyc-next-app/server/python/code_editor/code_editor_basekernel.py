@@ -22,8 +22,6 @@ class MessageHandler(BaseMessageHandler):
     @staticmethod
     def _create_plot_data(result):
         return result.to_json()
-        # return {'plot': result.to_json()}
-        # return (result.to_json()).toJSON()
 
     @staticmethod
     def _create_matplotlib_data(result):

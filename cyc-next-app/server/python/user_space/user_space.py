@@ -46,7 +46,6 @@ class _UserSpace(_cus.UserSpace):
 
     def __init__(self, executor, tracking_obj_types: list):
         self.executor = executor
-        print(self.executor)
 
         log.info('Executor %s %s' % (executor, type(executor)))
 

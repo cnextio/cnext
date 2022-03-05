@@ -23,7 +23,7 @@ import {
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import store from "../../redux/store";
-import { ifElse, ifElseDict, isJsonString } from "./libs";
+import { ifElse, ifElseDict } from "./libs";
 
 const DFManager = () => {
     const dispatch = useDispatch();
@@ -135,8 +135,7 @@ const DFManager = () => {
 
     const _handleActiveDFStatus = (message: {}) => {
         console.log("DFManager got df status message: ", message.content);
-        const dfStatusContent = JSON.parse(message.content);
-        console.log("dfStatusContent type", typeof dfStatusContent);
+        const dfStatusContent = message.content;
 
         // console.log(dfStatusContent);
         // the UI is currently designed to handle only 1 reviewable update at a time

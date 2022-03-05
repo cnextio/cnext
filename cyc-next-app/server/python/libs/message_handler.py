@@ -26,7 +26,7 @@ class BaseMessageHandler:
         # the current way of communicate with node server is through stdout with a json string
         # log.info("Send to node server: %s" % message)
         # log.info("Send output to node server... %s"%message.toJSON())
-        log.info("Send output to node server %s", str(message))
+        log.info("Send output to node server %s", message)
         # self.p2n_queue.send(message.toJSON())
         BaseMessageHandler.send_message(self.p2n_queue, message)
 
