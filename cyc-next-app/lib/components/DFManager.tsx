@@ -134,7 +134,7 @@ const DFManager = () => {
     };
 
     const _handleActiveDFStatus = (message: {}) => {
-        console.log("DFManager got df status message: ", message.content);
+        console.log("DFManager got active df status message: ", message.content);
         const dfStatusContent = message.content;
 
         // console.log(dfStatusContent);

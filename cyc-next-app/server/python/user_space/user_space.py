@@ -72,6 +72,9 @@ class _UserSpace(_cus.UserSpace):
             return _sh.DataFrameStatusHook.get_active_dfs_status()
         return None
 
+    def reset_active_dfs_status(self):
+        _sh.DataFrameStatusHook.reset_active_df_status()        
+
 _user_space = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
 _sh.DataFrameStatusHook.set_user_space(_user_space)
 """
@@ -94,5 +97,13 @@ _sh.DataFrameStatusHook.set_user_space(_user_space)
             log.info("IPythonKernel Outputs: %s" % ouputs)
             return None
 
+    def reset_active_dfs_status(self):
+        if isinstance(self.executor, BaseKernel):
+            _sh.DataFrameStatusHook.reset_active_dfs_status()
+        elif isinstance(self.executor, IPythonKernel):
+            code = "_user_space.reset_active_dfs_status()"
+            self.executor.execute(code)                    
+
     def execute(self, code, exec_mode: ExecutionMode = None):
+        self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode)
