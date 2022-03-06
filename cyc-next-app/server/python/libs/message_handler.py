@@ -1,3 +1,4 @@
+import simplejson as json
 from libs.message import ContentType, Message
 from libs import logs
 from user_space.user_space import BaseKernel, _UserSpace

@@ -16,31 +16,6 @@ class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
-    # @staticmethod
-    # def _create_plot_data(result):
-    #     return PlotResult(plot=result.to_json()).toJSON()
-
-    # @staticmethod
-    # def _result_is_dataframe(result) -> bool:
-    #     return type(result) == pandas.core.frame.DataFrame
-
-    # @staticmethod
-    # def _assign_exec_mode(message: Message):
-    #     message.execution_mode = 'eval'
-    #     if message.metadata and ('line_range' in message.metadata):
-    #         line_range = message.metadata['line_range']
-    #         # always 'exec' if there are more than 1 line in the code
-    #         if line_range['fromLine'] < line_range['toLine']-1:
-    #             message.execution_mode = 'exec'
-
-    #     try:
-    #         compile(message.content, '<stdin>', 'eval')
-    #     except SyntaxError as error:
-    #         log.error(error)
-    #         message.execution_mode = 'exec'
-
-    #     log.info("assigned command type: %s" % message.execution_mode)
-
     @staticmethod
     def _is_execute_result(header) -> bool:
         return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
@@ -145,7 +120,7 @@ class MessageHandler(BaseMessageHandler):
             IPythonKernel().shutdown_kernel()
 
     def _process_active_dfs_status(self):
-        active_df_status = self.user_space.get_active_dfs_status()        
+        active_df_status = self.user_space.get_active_dfs_status()
         if active_df_status:
             active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
                                                   "command_name": DFManagerCommand.active_df_status,

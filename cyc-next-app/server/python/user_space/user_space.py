@@ -2,6 +2,7 @@ from enum import Enum
 import cycdataframe.user_space as _cus
 import cycdataframe.df_status_hook as _sh
 from user_space.ipython.kernel import IPythonKernel
+from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
 
 from libs import logs
 log = logs.get_logger(__name__)
@@ -30,7 +31,6 @@ class BaseKernel:
     def execute(self, code, exec_mode: ExecutionMode = None):
         if exec_mode == None:
             exec_mode = self._assign_exec_mode(code)
-
         if exec_mode == ExecutionMode.EVAL:
             return eval(code, globals())
         elif exec_mode == ExecutionMode.EXEC:
@@ -72,6 +72,9 @@ class _UserSpace(_cus.UserSpace):
             return _sh.DataFrameStatusHook.get_active_dfs_status()
         return None
 
+    def reset_active_dfs_status(self):
+        _sh.DataFrameStatusHook.reset_active_df_status()        
+
 _user_space = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
 _sh.DataFrameStatusHook.set_user_space(_user_space)
 """
@@ -83,7 +86,7 @@ _sh.DataFrameStatusHook.set_user_space(_user_space)
         return globals()
 
     def get_active_dfs_status(self):
-        if isinstance(self.executor, BaseKernel):        
+        if isinstance(self.executor, BaseKernel):
             _sh.DataFrameStatusHook.update_all()
             if _sh.DataFrameStatusHook.is_updated():
                 return _sh.DataFrameStatusHook.get_active_dfs_status()
@@ -94,5 +97,13 @@ _sh.DataFrameStatusHook.set_user_space(_user_space)
             log.info("IPythonKernel Outputs: %s" % ouputs)
             return None
 
+    def reset_active_dfs_status(self):
+        if isinstance(self.executor, BaseKernel):
+            _sh.DataFrameStatusHook.reset_active_dfs_status()
+        elif isinstance(self.executor, IPythonKernel):
+            code = "_user_space.reset_active_dfs_status()"
+            self.executor.execute(code)                    
+
     def execute(self, code, exec_mode: ExecutionMode = None):
+        self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode)

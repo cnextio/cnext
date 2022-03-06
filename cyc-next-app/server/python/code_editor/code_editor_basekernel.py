@@ -1,10 +1,6 @@
 import io
 import base64
 import traceback
-import simplejson as json
-from xmlrpc.client import boolean
-
-import pandas as pd
 import plotly
 import matplotlib.pyplot as plt
 from cycdataframe.df_status_hook import DataFrameStatusHook
@@ -16,7 +12,6 @@ from libs import logs
 from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.user_space import ExecutionMode
 from user_space.user_space import BaseKernel, _UserSpace
-from code_editor.interfaces import PlotResult
 log = logs.get_logger(__name__)
 
 
@@ -26,7 +21,7 @@ class MessageHandler(BaseMessageHandler):
 
     @staticmethod
     def _create_plot_data(result):
-        return PlotResult(plot=result.to_json()).toJSON()
+        return result.to_json()
 
     @staticmethod
     def _create_matplotlib_data(result):
@@ -34,13 +29,7 @@ class MessageHandler(BaseMessageHandler):
         plt.savefig(figfile, format='svg')
         figfile.seek(0)  # rewind to beginning of file
         plot_binary_data = base64.b64encode(figfile.getvalue())
-        # make sure the result type is json data same as result of _create_plot_data function.
-        # It help the code in client: CodeEditorRedux.addPlotResult() keep simplest
-        return PlotResult(plot=json.dumps({'data': plot_binary_data})).toJSON()
-
-    # @staticmethod
-    # def _result_is_dataframe(result) -> bool:
-    #     return type(result) == pandas.core.frame.DataFrame
+        return plot_binary_data
 
     @staticmethod
     def _result_is_plotly_fig(result) -> bool:
@@ -95,13 +84,13 @@ class MessageHandler(BaseMessageHandler):
             output = ''
             if message.execution_mode == 'exec':
                 log.info('exec mode...')
-                # exec(message.content, client_globals)
+                # exec(message.content, globals())
                 self.user_space.execute(message.content, ExecutionMode.EXEC)
                 type = ContentType.STRING
                 # output = sys.stdout.getvalue()
             elif message.execution_mode == 'eval':
                 log.info('eval mode...')
-                # result = eval(message.content, client_globals)
+                # result = eval(message.content, globals())
                 result = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
                 if result is not None:

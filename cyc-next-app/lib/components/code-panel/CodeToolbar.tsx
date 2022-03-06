@@ -66,42 +66,45 @@ const CodeToolbar = () => {
     const _getFileNameComponent = (id: string, name: string) => {
         return (
             <Fragment>
-                {console.log('CodeToolbar: ', id, name, displayState, fileSaved)}
-                <FileNameTab 
-                    selected = {id==inViewID}
-                    component = "span" 
-                    key = {id}
-                    onClick = {() => onClick(id)}
-                    fileSaved = {id!=inViewID || fileSaved}
-                    onMouseEnter={event => {
+                <FileNameTab
+                    selected={id == inViewID}
+                    component='span'
+                    key={id}
+                    onClick={() => onClick(id)}
+                    fileSaved={id != inViewID || fileSaved}
+                    onMouseEnter={(event) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
-                        let newDisplay = {...displayState};
-                        newDisplay[id] = {display: 'inline-block'};
+                        let newDisplay = { ...displayState };
+                        newDisplay[id] = { display: "inline-block" };
                         /** need to do the following to avoid race condition */
-                        Object.keys(newDisplay).map((key)=>{
-                            key !== id ? newDisplay[key] = {display: 'none'} : null;
+                        Object.keys(newDisplay).map((key) => {
+                            key !== id ? (newDisplay[key] = { display: "none" }) : null;
                         });
                         setDisplayState(newDisplay);
                     }}
-                    onMouseLeave={event => {
+                    onMouseLeave={(event) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
-                        let newDisplay = {...displayState};
-                        newDisplay[id] = {display: 'none'};
+                        let newDisplay = { ...displayState };
+                        newDisplay[id] = { display: "none" };
                         setDisplayState(newDisplay);
                     }}
                 >
                     {name}
-                    {(id===executorID) && <ExecutorIcon/>}                    
+                    {id === executorID && <ExecutorIcon />}
                     <FileNameTabContainer>
-                        <FileCloseIcon 
-                            style = {(id in displayState) && (id!==executorID) ? displayState[id] : {display: 'none'}}
-                            onClick = {(event) => onClose(event, id)}
+                        <FileCloseIcon
+                            style={
+                                id in displayState && id !== executorID
+                                    ? displayState[id]
+                                    : { display: "none" }
+                            }
+                            onClick={(event) => onClose(event, id)}
                         />
                     </FileNameTabContainer>
                 </FileNameTab>
-                <PanelDivider orientation='vertical' color='light'/>
+                <PanelDivider orientation='vertical' color='light' />
             </Fragment>
-        )
+        );
     }
 
     return (        
