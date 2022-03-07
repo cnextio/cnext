@@ -46,3 +46,8 @@ class IPythonKernelConstants:
         STARTING = 'starting'
         BUSY = 'busy'
         IDLE = 'idle'
+
+
+class IPythonInteral(Enum):
+    DF_MANAGER = '_df_manager'
+    USER_SPACE = '_user_space'

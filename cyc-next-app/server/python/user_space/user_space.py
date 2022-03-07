@@ -3,7 +3,7 @@ import simplejson as json
 import cycdataframe.user_space as _cus
 import cycdataframe.df_status_hook as _sh
 from user_space.ipython.kernel import IPythonKernel
-from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
+from user_space.ipython.constants import IPythonInteral, IPythonKernelConstants as IPythonConstants
 
 from libs import logs
 log = logs.get_logger(__name__)
@@ -83,10 +83,11 @@ class _UserSpace(_cus.UserSpace):
         elif exec_mode == ExecutionMode.EXEC:    
             return exec(code)
     
-_user_space = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
-_df_manager = _dm.MessageHandler(None, _user_space)
-_sh.DataFrameStatusHook.set_user_space(_user_space)
-"""
+{us} = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
+{dm} = _dm.MessageHandler(None, {us})
+_sh.DataFrameStatusHook.set_user_space({us})
+""".format(us=IPythonInteral.USER_SPACE.value, dm=IPythonInteral.DF_MANAGER.value)
+
             self.executor.execute(code)
 
         super().__init__(tracking_obj_types)
@@ -101,11 +102,12 @@ _sh.DataFrameStatusHook.set_user_space(_user_space)
                 return _sh.DataFrameStatusHook.get_active_dfs_status()
             return None
         elif isinstance(self.executor, IPythonKernel):
-            code = "_user_space.get_active_dfs_status()"
+            code = "{}.get_active_dfs_status()".format(IPythonInteral.USER_SPACE.value)
+            log.info('Code %s'%code)
             outputs = self.executor.execute(code)
             log.info("IPythonKernel Outputs: %s" % outputs)
             result = [json.loads(output['content']['data']['text/plain']) for output in outputs if output['header']
-                      ['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT]                
+                      ['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT]
             # print(result)
             return result
 

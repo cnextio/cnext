@@ -6,6 +6,7 @@ from libs.message import ContentType, DFManagerCommand, SubContentType
 from cycdataframe.mime_types import CnextMimeType
 
 from libs import logs
+from user_space.ipython.constants import IPythonInteral
 from user_space.user_space import ExecutionMode
 log = logs.get_logger(__name__)
 
@@ -143,18 +144,18 @@ class MessageHandler(BaseMessageHandler):
 
             elif message.command_name == DFManagerCommand.get_table_data:
                 # TODO: turn _df_manager to variable
-                output = self.user_space.execute(
-                    "_df_manager._get_table_data('{}', '{}')".format(message.metadata['df_id'], message.content))
+                output = self.user_space.execute("{}._get_table_data('{}', '{}')".format(
+                    IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content))                    
                 if output is not None:
-                    log.info("get table data")
-                    # log.info('DFManagerCommand.get_table_data: %s' % output)
+                    # log.info("get table data")
+                    log.info('DFManagerCommand.get_table_data: %s' % output)
                     type = ContentType.PANDAS_DATAFRAME
                     sub_type = SubContentType.NONE
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_countna:
                 output = self.user_space.execute(
-                    "_df_manager._get_count_na('{}')".format(message.metadata['df_id']))
+                    "{}._get_count_na('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
                 if output is not None:
                     log.info("get countna data")
                     # log.info('DFManagerCommand.get_countna: %s' % output)
@@ -164,9 +165,9 @@ class MessageHandler(BaseMessageHandler):
 
             elif message.command_name == DFManagerCommand.get_df_metadata:
                 output = self.user_space.execute(
-                    "_df_manager._get_metadata('{}')".format(message.metadata['df_id']))
-                log.info("get df metadata")
-                # log.info('DFManagerCommand.get_df_metadata: %s' % output)
+                    "{}._get_metadata('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
+                # log.info("get df metadata")
+                log.info('DFManagerCommand.get_df_metadata: %s' % output)
                 type = ContentType.DICT
                 sub_type = SubContentType.NONE
                 send_reply = True
