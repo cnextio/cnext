@@ -93,7 +93,9 @@ class MessageHandler(BaseMessageHandler):
             output = MessageHandler._create_table_data(df_id, result)
         return json.dumps(output, ignore_nan=True)
 
-    def _get_metadata(self, df_id):
+    @staticmethod
+    def _get_metadata(df_id):
+        print(1111111111111)
         shape = eval("%s.shape" % df_id)
         dtypes = eval("%s.dtypes" % df_id)
         countna = eval("%s.isna().sum()" % df_id)
@@ -159,8 +161,11 @@ class MessageHandler(BaseMessageHandler):
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_df_metadata:
+                # output = self.user_space.execute(
+                #     "_dm.MessageHandler._get_metadata('{}')".format(message.metadata['df_id']))
                 output = self.user_space.execute(
-                    "_dm.MessageHandler._get_metadata('{}')".format(message.metadata['df_id']))
+                    "print('something')")
+                print('OUTPUTTTTTTTT', output)
                 type = ContentType.DICT
                 sub_type = SubContentType.NONE
                 send_reply = True

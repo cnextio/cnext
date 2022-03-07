@@ -3,6 +3,7 @@ import pandas as pd
 from code_editor import code_editor_basekernel as ce_base
 from code_editor import code_editor as ce
 from dataframe_manager import dataframe_manager as dm
+from dataframe_manager import dataframe_manager_ipython as _dmi
 from experiment_manager import experiment_manager as em
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
@@ -41,7 +42,8 @@ if __name__ == "__main__":
         message_handler = {
             WebappEndpoint.CodeEditor: ce_base.MessageHandler(p2n_queue, user_space),
             # WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
-            WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
+            # WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
+            WebappEndpoint.DFManager: _dmi.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config),
             WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space),
