@@ -33,11 +33,11 @@ if __name__ == "__main__":
         p2n_queue = MessageQueue(
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
 
-        user_space = _UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
-        # user_space = _UserSpace(
-        #     IPythonKernel(),
-        #     [cd.DataFrame, pd.DataFrame]
-        # )
+        # user_space = _UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
+        user_space = _UserSpace(
+            IPythonKernel(),
+            [cd.DataFrame, pd.DataFrame]
+        )
 
         message_handler = {
             WebappEndpoint.CodeEditor: ce_base.MessageHandler(p2n_queue, user_space),

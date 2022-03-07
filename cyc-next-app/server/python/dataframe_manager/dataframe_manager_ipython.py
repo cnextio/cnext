@@ -4,6 +4,7 @@ import simplejson as json
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
 from cycdataframe.mime_types import CnextMimeType
+from user_space.ipython.kernel import IPythonKernel
 
 from libs import logs
 from user_space.user_space import ExecutionMode
@@ -95,11 +96,28 @@ class MessageHandler(BaseMessageHandler):
 
     @staticmethod
     def _get_metadata(df_id):
-        print(1111111111111)
         shape = eval("%s.shape" % df_id)
         dtypes = eval("%s.dtypes" % df_id)
         countna = eval("%s.isna().sum()" % df_id)
         describe = eval("%s.describe(include='all')" % df_id)
+        # shape_ouputs = self.user_space.execute("{}.shape".format(df_id))
+        # shape = IPythonKernel.get_execute_result_text_plain(
+        #     shape_ouputs)[0]
+        # dtypes_outputs = self.user_space.execute(
+        #     "{}.dtypes".format(df_id)
+        # )
+        # dtypes = IPythonKernel.get_execute_result_text_plain(
+        #     dtypes_outputs)[0]
+        # log.info('DTYPES RESULT', dtypes)
+        # # dtypes = json.loads(dtypes_result)
+        # countna_outputs = self.user_space.execute(
+        #     "{}.isna().sum()".format(df_id))
+        # countna = IPythonKernel.get_execute_result_text_plain(
+        #     countna_outputs)[0]
+        # describe_outputs = self.user_space.execute(
+        #     "{}.describe(include='all')".format(df_id))
+        # describe = IPythonKernel.get_execute_result_text_plain(
+        #     describe_outputs)[0]
         columns = {}
         for col_name, ctype in dtypes.items():
             # print(col_name, ctype)
@@ -161,11 +179,24 @@ class MessageHandler(BaseMessageHandler):
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_df_metadata:
-                # output = self.user_space.execute(
-                #     "_dm.MessageHandler._get_metadata('{}')".format(message.metadata['df_id']))
                 output = self.user_space.execute(
-                    "print('something')")
-                print('OUTPUTTTTTTTT', output)
+                    "_dm.MessageHandler._get_metadata('{}')".format(message.metadata['df_id']))
+
+                # shape_ouputs = self.user_space.execute(
+                #     "{}.shape".format(df_id)
+                # )
+                # log.info('Output metadata', shape_ouputs)
+                # shape = IPythonKernel.get_execute_result_text_plain(
+                #     shape_ouputs)
+
+                # dtypes_outputs = self.user_space.execute(
+                #     "{}.dtypes".format(df_id)
+                # )
+                # log.info('DTYPES OUTPUTS', dtypes_outputs)
+                # output = IPythonKernel.get_execute_result_text_plain(
+                #     dtypes_outputs)
+                # df_id = message.metadata['df_id']
+                # output = self._get_metadata(df_id)
                 type = ContentType.DICT
                 sub_type = SubContentType.NONE
                 send_reply = True

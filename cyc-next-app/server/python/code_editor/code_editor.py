@@ -116,8 +116,8 @@ class MessageHandler(BaseMessageHandler):
             error_message = self._create_error_message(
                 message.webapp_endpoint, trace, message.metadata)
             self._send_to_node(error_message)
-        finally:
-            IPythonKernel().shutdown_kernel()
+        # finally:
+        #     IPythonKernel().shutdown_kernel()
 
     def _process_active_dfs_status(self):
         active_df_status = self.user_space.get_active_dfs_status()
@@ -127,6 +127,6 @@ class MessageHandler(BaseMessageHandler):
                                                       "command_name": DFManagerCommand.active_df_status,
                                                       "seq_number": 1,
                                                       "type": "dict",
-                                                      "content": active_df,
+                                                      "content": active_df[0],
                                                       "error": False})
                 self._send_to_node(active_df_status_message)

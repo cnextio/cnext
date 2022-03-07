@@ -77,13 +77,10 @@ class IPythonKernel():
             Get execute result with text plain from list of messages are responsed by IPython kernel
         """
         result = []
-        # messages = json.loads(messages)
-        print('messages lalalalalala', messages)
         for message in messages:
             if message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
                 result.append(message['content']['data']['text/plain'])
             elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
                 if 'text' in message['content']:
                     result.append(message['content']['text'])
-        # print('RESULTTTTTTTTTTT', result, type(result))
         return result
