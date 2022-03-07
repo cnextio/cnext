@@ -2,8 +2,8 @@ from libs import logs
 import pandas as pd
 from code_editor import code_editor_basekernel as ce_base
 from code_editor import code_editor as ce
+from dataframe_manager import dataframe_manager_basekernel as dm_base
 from dataframe_manager import dataframe_manager as dm
-from dataframe_manager import dataframe_manager_ipython as _dmi
 from experiment_manager import experiment_manager as em
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
@@ -33,17 +33,17 @@ if __name__ == "__main__":
         p2n_queue = MessageQueue(
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
 
-        user_space = _UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
-        # user_space = _UserSpace(
-        #     IPythonKernel(),
-        #     [cd.DataFrame, pd.DataFrame]
-        # )
+        # user_space = _UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
+        user_space = _UserSpace(
+            IPythonKernel(),
+            [cd.DataFrame, pd.DataFrame]
+        )
 
         message_handler = {
-            WebappEndpoint.CodeEditor: ce_base.MessageHandler(p2n_queue, user_space),
-            # WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
-            # WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
-            WebappEndpoint.DFManager: _dmi.MessageHandler(p2n_queue, user_space),
+            # WebappEndpoint.CodeEditor: ce_base.MessageHandler(p2n_queue, user_space),
+            WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
+            # WebappEndpoint.DFManager: dm_base.MessageHandler(p2n_queue, user_space),
+            WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config),
             WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space),

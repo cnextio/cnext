@@ -58,7 +58,7 @@ import cycdataframe.user_space as _cus
 import cycdataframe.df_status_hook as _sh
 import cycdataframe.cycdataframe as _cd
 import pandas as _pd
-from dataframe_manager import dataframe_manager_ipython as _dm
+from dataframe_manager import dataframe_manager as _dm
 from user_space.user_space import ExecutionMode
 
 class _UserSpace(_cus.UserSpace):
@@ -83,10 +83,10 @@ class _UserSpace(_cus.UserSpace):
         elif exec_mode == ExecutionMode.EXEC:    
             return exec(code)
     
-{us} = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
-{dm} = _dm.MessageHandler(None, {us})
-_sh.DataFrameStatusHook.set_user_space({us})
-""".format(us=IPythonInteral.USER_SPACE.value, dm=IPythonInteral.DF_MANAGER.value)
+{user_space} = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
+{df_manager} = _dm.MessageHandler(None, {user_space})
+_sh.DataFrameStatusHook.set_user_space({user_space})
+""".format(user_space=IPythonInteral.USER_SPACE.value, df_manager=IPythonInteral.DF_MANAGER.value)
 
             self.executor.execute(code)
 
@@ -102,7 +102,8 @@ _sh.DataFrameStatusHook.set_user_space({us})
                 return _sh.DataFrameStatusHook.get_active_dfs_status()
             return None
         elif isinstance(self.executor, IPythonKernel):
-            code = "{}.get_active_dfs_status()".format(IPythonInteral.USER_SPACE.value)
+            code = "{user_space}.get_active_dfs_status()".format(
+                user_space=IPythonInteral.USER_SPACE.value)
             log.info('Code %s'%code)
             outputs = self.executor.execute(code)
             log.info("IPythonKernel Outputs: %s" % outputs)
