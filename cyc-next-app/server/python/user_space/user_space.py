@@ -72,24 +72,8 @@ class _UserSpace(_cus.UserSpace):
             return _sh.DataFrameStatusHook.get_active_dfs_status()
         return None
 
-    def get_df_metadata_shape(self, df_id):
-        code = '{}.shape'.format(df_id)
-        return eval(code, self.globals())
-
-    def get_df_metadata_dtypes(self, df_id):
-        code = '{}.dtypes'.format(df_id)
-        return eval(code, self.globals())
-
-    def get_df_metadata_countna(self, df_id):
-        code = '{}.isna().sum(df_id)'.format(df_id)
-        return eval(code, self.globals())
-
-    def get_df_metadata_describe(self, df_id):
-        code = "{}.describe(include='all')".format(df_id)
-        return eval(code, self.globals())
-
-    def get_df_table_data(self, content):
-        return eval(content, self.globals())
+    def reset_active_dfs_status(self):
+        _sh.DataFrameStatusHook.reset_active_df_status()        
 
 _user_space = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
 _sh.DataFrameStatusHook.set_user_space(_user_space)
@@ -158,7 +142,13 @@ _sh.DataFrameStatusHook.set_user_space(_user_space)
             result = IPythonKernel.get_execute_result_text_plain(outputs)
             return result
 
-
+    def reset_active_dfs_status(self):
+        if isinstance(self.executor, BaseKernel):
+            _sh.DataFrameStatusHook.reset_active_dfs_status()
+        elif isinstance(self.executor, IPythonKernel):
+            code = "_user_space.reset_active_dfs_status()"
+            self.executor.execute(code)
 
     def execute(self, code, exec_mode: ExecutionMode = None):
+        self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode)
