@@ -75,6 +75,46 @@ class MessageHandler(BaseMessageHandler):
     #     output = {'file_content': file_content, 'mime_type': message_content.mime_type}
     #     return output, ContentType.BINARY, True
 
+    def _get_count_na(self, df_id):
+        output = None        
+        countna = self.user_space.execute(
+            "%s.isna().sum()" % df_id, ExecutionMode.EVAL)
+        len = self.user_space.execute(
+            "%s.shape[0]" % df_id, ExecutionMode.EVAL)
+        if (countna is not None) and (len is not None):
+            log.info("get countna data")
+            output = self._create_countna_data(df_id, len, countna)
+        return output  
+
+    def _get_table_data(self, df_id, code):
+        output = None
+        result = self.user_space.execute(code, ExecutionMode.EVAL)
+        if result is not None:
+            log.info("get table data %s" % result)
+            output = self._create_table_data(df_id, result)
+        return output
+
+    def _get_metadata(self, df_id):
+        shape = self.user_space.execute(
+            "%s.shape" % df_id, ExecutionMode.EVAL)
+        dtypes = self.user_space.execute(
+            "%s.dtypes" % df_id, ExecutionMode.EVAL)
+        countna = self.user_space.execute(
+            "%s.isna().sum()" % df_id, ExecutionMode.EVAL)
+        describe = self.user_space.execute(
+            "%s.describe(include='all')" % df_id, ExecutionMode.EVAL)
+        columns = {}
+        for col_name, ctype in dtypes.items():
+            # print(col_name, ctype)
+            # FIXME: only get at most 100 values here, this is hacky, find a better way
+            # unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), client_globals)[:100]
+            unique = self.user_space.execute(
+                "%s['%s'].unique().tolist()" % (df_id, col_name), ExecutionMode.EVAL)
+            columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique,
+                                    'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}
+        output = {'df_id': df_id, 'shape': shape, 'columns': columns}
+        return output
+
     def handle_message(self, message):
         send_reply = False
         # message execution_mode will always be `eval` for this sender
@@ -104,50 +144,22 @@ class MessageHandler(BaseMessageHandler):
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_table_data:    
-                # result = eval(message.content, client_globals)        
-                result = self.user_space.execute(message.content, ExecutionMode.EVAL)
-                if result is not None:                
-                    log.info("get table data %s" % result)
-                    output = self._create_table_data(message.metadata['df_id'], result)       
+                output = self._get_table_data(message.metadata['df_id'], message.content)                
+                if output is not None:                
                     type = ContentType.PANDAS_DATAFRAME
                     sub_type = SubContentType.NONE
                     send_reply = True
                                         
             elif message.command_name == DFManagerCommand.get_countna: 
-                df_id = message.metadata['df_id']
-                # countna = eval("%s.isna().sum()"%df_id, client_globals)
-                # len = eval("%s.shape[0]"%df_id, client_globals)      
-                countna = self.user_space.execute("%s.isna().sum()"%df_id, ExecutionMode.EVAL)
-                len = self.user_space.execute("%s.shape[0]"%df_id, ExecutionMode.EVAL)
-                if (countna is not None) and (len is not None):                
+                output = self._get_count_na(message.metadata['df_id'])
+                if output is not None:                
                     log.info("get countna data")
-                    output = self._create_countna_data(message.metadata['df_id'], len, countna)       
                     type = ContentType.DICT
                     sub_type = SubContentType.NONE
                     send_reply = True                            
             
             elif message.command_name == DFManagerCommand.get_df_metadata: 
-                df_id = message.metadata['df_id']
-                # shape = eval("%s.shape"%df_id, client_globals)
-                # dtypes = eval("%s.dtypes"%df_id, client_globals)
-                # countna = eval("%s.isna().sum()"%df_id, client_globals)                        
-                # describe = eval("%s.describe(include='all')"%df_id, client_globals)
-                shape = self.user_space.execute(
-                    "%s.shape" % df_id, ExecutionMode.EVAL)
-                dtypes = self.user_space.execute(
-                    "%s.dtypes" % df_id, ExecutionMode.EVAL)
-                countna = self.user_space.execute("%s.isna().sum()"%df_id, ExecutionMode.EVAL)
-                describe = self.user_space.execute("%s.describe(include='all')"%df_id, ExecutionMode.EVAL)
-                columns = {}
-                for col_name, ctype in dtypes.items():
-                    # print(col_name, ctype)
-                    # FIXME: only get at most 100 values here, this is hacky, find a better way
-                    # unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), client_globals)[:100]
-                    unique = self.user_space.execute(
-                        "%s['%s'].unique().tolist()" % (df_id, col_name), ExecutionMode.EVAL)
-                    columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique,
-                                         'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}
-                output = {'df_id': df_id, 'shape': shape, 'columns': columns}
+                output = self._get_metadata(message.metadata['df_id'])
                 type = ContentType.DICT
                 sub_type = SubContentType.NONE
                 send_reply = True    
