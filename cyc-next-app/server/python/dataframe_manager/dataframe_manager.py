@@ -15,6 +15,15 @@ class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue,  user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
+    def ipython_internal(func):
+        '''
+        Wrapper to return json string instead of original object when running inside ipython
+        '''
+        def json_output(*args, **kwargs):
+            output = func(*args, **kwargs)
+            return json.dumps(output, ignore_nan=True)
+        return json_output
+
     # TODO: unify this with _create_plot_data
     def _create_plot_data(self, df_id, col_name, result):
         return {'df_id': df_id, 'col_name': col_name, 'plot': result.to_json()}
@@ -72,6 +81,7 @@ class MessageHandler(BaseMessageHandler):
             countna[k] = {'na': v, 'len': len}
         return {'df_id': df_id, 'countna': countna}
 
+    @ipython_internal
     def _get_count_na(self, df_id):
         output = None
         countna = self.user_space.execute(
@@ -81,8 +91,9 @@ class MessageHandler(BaseMessageHandler):
         if (countna is not None) and (len is not None):
             log.info("get countna data")
             output = self._create_countna_data(df_id, len, countna)
-        return json.dumps(output, ignore_nan=True)
+        return output 
 
+    @ipython_internal
     def _get_table_data(self, df_id, code):
         output = None
         result = self.user_space.execute(code, ExecutionMode.EVAL)
@@ -91,8 +102,9 @@ class MessageHandler(BaseMessageHandler):
         if result is not None:
             # log.info("get table data %s" % result)
             output = self._create_table_data(df_id, result)
-        return json.dumps(output, ignore_nan=True)
+        return output 
 
+    @ipython_internal
     def _get_metadata(self, df_id):
         shape = self.user_space.execute("%s.shape" % df_id, ExecutionMode.EVAL)
         dtypes = self.user_space.execute(
@@ -110,7 +122,7 @@ class MessageHandler(BaseMessageHandler):
             columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique,
                                  'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}
         output = {'df_id': df_id, 'shape': shape, 'columns': columns}
-        return json.dumps(output, ignore_nan=True)
+        return output 
 
     def handle_message(self, message):
         send_reply = False
