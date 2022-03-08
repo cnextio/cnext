@@ -9,7 +9,7 @@ import { DiagnosticSeverity, SignatureHelpTriggerKind } from 'vscode-languageser
 
 import { rootUri, documentUri, languageId } from './source';
 import { formatContents, sortResults } from './helper';
-import DFFilterPlugin from './df-plugin';
+import DFFilterPlugin from './dffilter-plugin';
 
 /**
  * `dfFilter` option is added to support dfFilter component.
@@ -26,7 +26,7 @@ class LanguageServerPlugin {
         this.changesTimeout = 0;
         this.setupLSConnection();
 
-        this.dfPlugin = new DFFilterPlugin();
+        this.dfFilterPlugin = new DFFilterPlugin();
     }
 
     async setupLSConnection() {
@@ -312,7 +312,7 @@ class LanguageServerPlugin {
             // get Dataframe's columns completion.
             let dfCompletionItems;
             if (context.matchBefore(/['"]+$/)) {
-                dfCompletionItems = this.dfPlugin.getDFCompletion_CodeEditor(
+                dfCompletionItems = this.dfFilterPlugin.getDFCompletion_CodeEditor(
                     context,
                     line,
                     character
