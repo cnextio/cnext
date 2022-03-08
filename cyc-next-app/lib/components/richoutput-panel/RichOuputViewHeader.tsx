@@ -14,6 +14,7 @@ const RichOuputViewHeader = ({ show, setShow, gridViewStatus, handleGridViewBtn 
             <StyledTableViewHeader>
                 {Object.values(RichOutputViewHeader).map((name, index) => (
                     <RichOuputViewHeaderButton
+                        key={index}
                         selected={show == name ? true : false}
                         variant='overline'
                         component='span'
