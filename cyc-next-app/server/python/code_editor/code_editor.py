@@ -127,6 +127,6 @@ class MessageHandler(BaseMessageHandler):
                                                       "command_name": DFManagerCommand.active_df_status,
                                                       "seq_number": 1,
                                                       "type": "dict",
-                                                      "content": active_df[0],
+                                                      "content": active_df,
                                                       "error": False})
                 self._send_to_node(active_df_status_message)

@@ -72,15 +72,18 @@ class IPythonKernel():
         return outputs
 
     @staticmethod
-    def get_execute_result_text_plain(messages):
+    def get_execute_result_from_ipython(messages):
         """
             Get execute result with text plain from list of messages are responsed by IPython kernel
         """
-        result = []
+        result = None
         for message in messages:
             if message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
-                result.append(message['content']['data']['text/plain'])
+                result = message['content']['data']['text/plain']
             elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
                 if 'text' in message['content']:
-                    result.append(message['content']['text'])
+                    result = message['content']['text']
+            elif message['header']['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA:
+                if 'application/json' in message['content']['data']:
+                    result = message['content']['data']['application/json']
         return result
