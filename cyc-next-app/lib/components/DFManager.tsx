@@ -167,8 +167,7 @@ const DFManager = () => {
     const showHistogram = true;
     const _handleGetTableData = (message: {}) => {
         const df_id = message.metadata["df_id"];
-        const formattedContent = message.content.replace(/'/g, "");
-        const jsonContent = JSON.parse(formattedContent);
+        const jsonContent = JSON.parse(message.content);
         console.log("DFManager: dispatch to tableData (DataFrame) ", jsonContent);
         dispatch(setTableData(jsonContent));
         dispatch(setActiveDF(df_id));
@@ -217,8 +216,7 @@ const DFManager = () => {
 
     const _handleGetDFMetadata = (message: {}) => {
         console.log(`${WebAppEndpoint.DFManager} got metadata for "${message.metadata["df_id"]}"`);
-        let contentFormatted = message.content.replace(/'/g, '');
-        let content = JSON.parse(contentFormatted);
+        let content = JSON.parse(message.content);
         let columns: string[] = Object.keys(content.columns);
         let df_id = message.metadata["df_id"];
         console.log('Metadata', columns);

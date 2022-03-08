@@ -3,6 +3,7 @@ import traceback
 import simplejson as json
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
+from libs.json_serializable import ipython_internal_output
 from cycdataframe.mime_types import CnextMimeType
 
 from libs import logs
@@ -15,15 +16,6 @@ log = logs.get_logger(__name__)
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue,  user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
-
-    def ipython_internal(func):
-        '''
-        Wrapper to return json string instead of original object when running inside ipython
-        '''
-        def json_output(*args, **kwargs):
-            output = func(*args, **kwargs)
-            return json.dumps(output, ignore_nan=True)
-        return json_output
 
     # TODO: unify this with _create_plot_data
     def _create_plot_data(self, df_id, col_name, result):
@@ -83,7 +75,7 @@ class MessageHandler(BaseMessageHandler):
             countna[k] = {'na': v, 'len': len}
         return {'df_id': df_id, 'countna': countna}
 
-    @ipython_internal
+    @ipython_internal_output
     def _get_count_na(self, df_id):
         output = None
         countna = self.user_space.execute(
@@ -95,7 +87,7 @@ class MessageHandler(BaseMessageHandler):
             output = self._create_countna_data(df_id, len, countna)
         return output
 
-    @ipython_internal
+    @ipython_internal_output
     def _get_table_data(self, df_id, code):
         output = None
         result = self.user_space.execute(code, ExecutionMode.EVAL)
@@ -106,7 +98,7 @@ class MessageHandler(BaseMessageHandler):
             output = self._create_table_data(df_id, result)
         return output
 
-    @ipython_internal
+    @ipython_internal_output
     def _get_metadata(self, df_id):
         shape = self.user_space.execute("%s.shape" % df_id, ExecutionMode.EVAL)
         dtypes = self.user_space.execute(
@@ -137,7 +129,7 @@ class MessageHandler(BaseMessageHandler):
                 result_messages = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
                 # log.info("PLOT DATA", result_messages)
-                result = IPythonKernel.get_execute_result_from_ipython(
+                result = IPythonKernel.get_execute_result(
                     result_messages)
                 if result is not None:
                     output = self._create_plot_data(
@@ -152,7 +144,7 @@ class MessageHandler(BaseMessageHandler):
                 result_messages = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
                 # log.info("Plot Column Quantile", result_messages)
-                result = IPythonKernel.get_execute_result_from_ipython(
+                result = IPythonKernel.get_execute_result(
                     result_messages)
                 if result is not None:
                     log.info("get plot data")
@@ -166,7 +158,7 @@ class MessageHandler(BaseMessageHandler):
                 # TODO: turn _df_manager to variable
                 output_messages = self.user_space.execute("{}._get_table_data('{}', '{}')".format(
                     IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content))
-                output = IPythonKernel.get_execute_result_from_ipython(
+                output = IPythonKernel.get_execute_result(
                     output_messages)
                 if output is not None:
                     # log.info("get table data")
@@ -178,7 +170,7 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == DFManagerCommand.get_countna:
                 output_messages = self.user_space.execute(
                     "{}._get_count_na('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
-                output = IPythonKernel.get_execute_result_from_ipython(
+                output = IPythonKernel.get_execute_result(
                     output_messages)
                 if output is not None:
                     log.info("get countna data")
@@ -190,7 +182,7 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == DFManagerCommand.get_df_metadata:
                 output_messages = self.user_space.execute(
                     "{}._get_metadata('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
-                output = IPythonKernel.get_execute_result_from_ipython(
+                output = IPythonKernel.get_execute_result(
                     output_messages)
                 # log.info("get df metadata")
                 log.info('DFManagerCommand.get_df_metadata: %s' % output)

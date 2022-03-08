@@ -96,6 +96,13 @@ _sh.DataFrameStatusHook.set_user_space({user_space})
         return globals()
 
     def get_active_dfs_status(self):
+        """Generate the list of dfs status from execution
+        Note: there might be multiple updates happened to a dataframe during multiline execution, 
+        therefore the `result` will be a list.
+
+        Returns:
+            _type_: _description_
+        """
         if isinstance(self.executor, BaseKernel):
             _sh.DataFrameStatusHook.update_all()
             if _sh.DataFrameStatusHook.is_updated():
@@ -109,7 +116,6 @@ _sh.DataFrameStatusHook.set_user_space({user_space})
             log.info("IPythonKernel Outputs: %s" % outputs)
             result = [json.loads(output['content']['data']['text/plain']) for output in outputs if output['header']
                       ['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT]
-            # print(result)
             return result
 
     def reset_active_dfs_status(self):
