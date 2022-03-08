@@ -1,12 +1,12 @@
 import base64
 import traceback
+import simplejson as json
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
 from cycdataframe.mime_types import CnextMimeType
-from user_space.ipython.kernel import IPythonKernel
-import simplejson as json
 
 from libs import logs
+from user_space.ipython.constants import IPythonInteral
 from user_space.user_space import ExecutionMode
 log = logs.get_logger(__name__)
 
@@ -15,7 +15,16 @@ class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue,  user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
-    #TODO: unify this with _create_plot_data
+    def ipython_internal(func):
+        '''
+        Wrapper to return json string instead of original object when running inside ipython
+        '''
+        def json_output(*args, **kwargs):
+            output = func(*args, **kwargs)
+            return json.dumps(output, ignore_nan=True)
+        return json_output
+
+    # TODO: unify this with _create_plot_data
     def _create_plot_data(self, df_id, col_name, result):
         return {'df_id': df_id, 'col_name': col_name, 'plot': result.to_json()}
 
@@ -32,7 +41,6 @@ class MessageHandler(BaseMessageHandler):
             binary data in the frontend for this special case'''
         tableData = {}
         tableData['df_id'] = df_id
-        log.info('DF Columns', df.columns)
         tableData['column_names'] = list(df.columns)
 
         ## Convert datetime to string so it can be displayed in the frontend #
@@ -42,7 +50,7 @@ class MessageHandler(BaseMessageHandler):
                                        ].dt.strftime('%Y-%m-%d %H:%M:%S')
 
         tableData['rows'] = df.values.tolist()
-        ## Modify data field of column with mime type of file/*. See note above
+        # Modify data field of column with mime type of file/*. See note above
         # We chose to do this outside of the dataframe, but it can also be done with a dataframe
         # see https://stackoverflow.com/questions/41710501/is-there-a-way-to-have-a-dictionary-as-an-entry-of-a-pandas-dataframe-in-python #
         for i, t in enumerate(df.dtypes):
@@ -73,14 +81,7 @@ class MessageHandler(BaseMessageHandler):
             countna[k] = {'na': v, 'len': len}
         return {'df_id': df_id, 'countna': countna}
 
-    # def _get_file_content(self, message, client_globals):
-    #     message_content: LoadFileMessageContent = LoadFileMessageContent(message.content)
-    #     file_content = None
-    #     with open(message_content.file_path, 'rb') as file:
-    #         file_content = file.read()
-    #     output = {'file_content': file_content, 'mime_type': message_content.mime_type}
-    #     return output, ContentType.BINARY, True
-
+    @ipython_internal
     def _get_count_na(self, df_id):
         output = None
         countna = self.user_space.execute(
@@ -90,19 +91,22 @@ class MessageHandler(BaseMessageHandler):
         if (countna is not None) and (len is not None):
             log.info("get countna data")
             output = self._create_countna_data(df_id, len, countna)
-        return output
+        return output 
 
+    @ipython_internal
     def _get_table_data(self, df_id, code):
         output = None
         result = self.user_space.execute(code, ExecutionMode.EVAL)
+        # print("get table data %s" % result)
+        # log.info("get table data %s" % result)
         if result is not None:
-            log.info("get table data %s" % result)
+            # log.info("get table data %s" % result)
             output = self._create_table_data(df_id, result)
-        return output
+        return output 
 
+    @ipython_internal
     def _get_metadata(self, df_id):
-        shape = self.user_space.execute(
-            "%s.shape" % df_id, ExecutionMode.EVAL)
+        shape = self.user_space.execute("%s.shape" % df_id, ExecutionMode.EVAL)
         dtypes = self.user_space.execute(
             "%s.dtypes" % df_id, ExecutionMode.EVAL)
         countna = self.user_space.execute(
@@ -111,7 +115,6 @@ class MessageHandler(BaseMessageHandler):
             "%s.describe(include='all')" % df_id, ExecutionMode.EVAL)
         columns = {}
         for col_name, ctype in dtypes.items():
-            # print(col_name, ctype)
             # FIXME: only get at most 100 values here, this is hacky, find a better way
             # unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), client_globals)[:100]
             unique = self.user_space.execute(
@@ -119,7 +122,7 @@ class MessageHandler(BaseMessageHandler):
             columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique,
                                  'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}
         output = {'df_id': df_id, 'shape': shape, 'columns': columns}
-        return output
+        return output 
 
     def handle_message(self, message):
         send_reply = False
@@ -129,52 +132,54 @@ class MessageHandler(BaseMessageHandler):
         try:
             if message.command_name == DFManagerCommand.plot_column_histogram:
                 # result = eval(message.content, client_globals)
-                output_messages = self.user_space.executor.execute(
+                result = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
-                result = IPythonKernel.get_execute_result_text_plain(
-                    output_messages)
                 if result is not None:
                     log.info("get plot data")
                     output = self._create_plot_data(
                         message.metadata['df_id'], message.metadata['col_name'], result)
-                    # type = ContentType.PLOTLY_FIG
                     type = ContentType.RICH_OUTPUT
                     sub_type = SubContentType.PLOTLY_FIG
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.plot_column_quantile:
                 # result = eval(message.content, client_globals)
-                output_messages = self.user_space.executor.execute(
+                result = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
-                result = IPythonKernel.get_execute_result_text_plain(
-                    output_messages)
                 if result is not None:
                     log.info("get plot data")
                     output = self._create_plot_data(
                         message.metadata['df_id'], message.metadata['col_name'], result)
-                    # type = ContentType.PLOTLY_FIG
                     type = ContentType.RICH_OUTPUT
                     sub_type = SubContentType.PLOTLY_FIG
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_table_data:
-                output = self._get_table_data(
-                    message.metadata['df_id'], message.content)
+                # TODO: turn _df_manager to variable
+                output = self.user_space.execute("{}._get_table_data('{}', '{}')".format(
+                    IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content))                    
                 if output is not None:
+                    # log.info("get table data")
+                    log.info('DFManagerCommand.get_table_data: %s' % output)
                     type = ContentType.PANDAS_DATAFRAME
                     sub_type = SubContentType.NONE
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_countna:
-                output = self._get_count_na(message.metadata['df_id'])
+                output = self.user_space.execute(
+                    "{}._get_count_na('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
                 if output is not None:
                     log.info("get countna data")
+                    # log.info('DFManagerCommand.get_countna: %s' % output)
                     type = ContentType.DICT
                     sub_type = SubContentType.NONE
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_df_metadata:
-                output = self._get_metadata(message.metadata['df_id'])
+                output = self.user_space.execute(
+                    "{}._get_metadata('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
+                # log.info("get df metadata")
+                log.info('DFManagerCommand.get_df_metadata: %s' % output)
                 type = ContentType.DICT
                 sub_type = SubContentType.NONE
                 send_reply = True

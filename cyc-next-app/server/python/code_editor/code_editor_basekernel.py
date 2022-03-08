@@ -11,7 +11,7 @@ from libs.message import ContentType, Message, SubContentType
 from libs import logs
 from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.user_space import ExecutionMode
-from user_space.user_space import BaseKernel, _UserSpace
+from user_space.user_space import BaseKernel, UserSpace
 log = logs.get_logger(__name__)
 
 
