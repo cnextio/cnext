@@ -9,5 +9,5 @@ declare function languageServer(
     options: LanguageServerOptions
 ): import('@codemirror/state').Extension[];
 
-declare function dfFilterLanguageServer(options): import('@codemirror/state').Extension[];
+declare function dfFilterLanguageServer(): import('@codemirror/state').Extension[];
 export { languageServer, dfFilterLanguageServer };

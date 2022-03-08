@@ -1,4 +1,3 @@
-// import { python } from "@codemirror/lang-python";
 import { cnextQuery } from '../../codemirror/grammar/lang-cnext-query';
 import React, { useRef } from 'react';
 import { useDispatch } from 'react-redux';
@@ -6,16 +5,11 @@ import { DFFilterForm, DFFilterInput, StyledFilterCodeMirror } from '../StyledCo
 import { bracketMatching } from '@codemirror/matchbrackets';
 import { closeBrackets } from '@codemirror/closebrackets';
 import { defaultHighlightStyle } from '@codemirror/highlight';
-
-// import { dfFilterLanguageServer } from "codemirror-languageserver";
-// import { dfFilterLanguageServer } from "../../codemirror/codemirror-languageserver";
 import { dfFilterLanguageServer } from '../../codemirror/autocomplete-lsp/index.js';
 import { setDFFilter } from '../../../redux/reducers/DataFramesRedux';
 import store from '../../../redux/store';
 
-const ls = dfFilterLanguageServer({
-    languageId: 'cnextquery',
-});
+const ls = dfFilterLanguageServer();
 
 const DFExplorer = () => {
     // const dfList = useSelector((state) => _checkDFList(state));
