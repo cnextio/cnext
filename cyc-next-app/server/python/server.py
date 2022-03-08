@@ -19,7 +19,7 @@ import sys
 import simplejson as json
 from libs.message_handler import BaseMessageHandler
 
-from user_space.user_space import BaseKernel, _UserSpace
+from user_space.user_space import BaseKernel, UserSpace
 from user_space.ipython.kernel import IPythonKernel
 
 log = logs.get_logger(__name__)
@@ -34,7 +34,7 @@ if __name__ == "__main__":
             config.p2n_comm['host'], config.p2n_comm['p2n_port'])
 
         # user_space = _UserSpace(BaseKernel(), [cd.DataFrame, pd.DataFrame])
-        user_space = _UserSpace(
+        user_space = UserSpace(
             IPythonKernel(),
             [cd.DataFrame, pd.DataFrame]
         )

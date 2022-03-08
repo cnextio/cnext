@@ -38,7 +38,7 @@ class BaseKernel:
             return exec(code, globals())
 
 
-class _UserSpace(_cus.UserSpace):
+class UserSpace(_cus.UserSpace):
     ''' 
         Define the space where user code will be executed. 
         This is encapsulated in a python module so all the imports and variables are separated out from the rest.
