@@ -2,8 +2,8 @@
 import { autocompletion } from './autocomplete';
 import { hoverTooltip } from '@codemirror/tooltip';
 import { ViewPlugin } from '@codemirror/view';
-
 import LanguageServerPlugin from './ls-plugin';
+import DFFilterPlugin from './df-plugin';
 import { rootUri, documentUri, languageId, serverUri } from './source';
 import { CompletionTriggerKind } from 'vscode-languageserver-protocol';
 import { signatureTooltip } from './signature';
@@ -88,11 +88,10 @@ function getTrigger(plugin, line, explicit, pos) {
  * This won't connect to the real language server, only autocomplete column
  * name when relevant
  */
-function dfFilterLanguageServer(options) {
+function dfFilterLanguageServer() {
     let plugin = null;
     return [
-        languageId.of(options.languageId),
-        ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view, true))),
+        ViewPlugin.define((view) => (plugin = new DFFilterPlugin())),
         autocompletion({
             override: [
                 async (context) => {
@@ -109,11 +108,7 @@ function dfFilterLanguageServer(options) {
 
                     return await plugin.requestCompletion_DFFilter(
                         context,
-                        offsetToPos(state.doc, pos),
-                        {
-                            triggerKind: trigKind,
-                            triggerCharacter: trigChar,
-                        }
+                        offsetToPos(state.doc, pos)
                     );
                 },
             ],
