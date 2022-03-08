@@ -320,7 +320,7 @@ class LanguageServerPlugin {
      * This part is added to support DataFrame-related autocomplete
      *
      */
-    _createColNameAutocompleItems(df_id, strContent) {
+    createColNameAutocompleItems(df_id, strContent) {
         /**
          * Example of an item
          * {
@@ -356,7 +356,7 @@ class LanguageServerPlugin {
         return items;
     }
 
-    _createColValueAutocompleItems(df_id, col_name) {
+    createColValueAutocompleItems(df_id, col_name) {
         //get column names list
         const reduxState = store.getState();
         const values = reduxState.dataFrames.metadata[df_id].columns[col_name].unique;
@@ -457,7 +457,7 @@ class LanguageServerPlugin {
      * @param {*} character
      * @returns
      */
-    _getDFCompletion_CodeEditor(context, line, character) {
+    getDFCompletion_CodeEditor(context, line, character) {
         let state = context.state;
         let text = state.doc.toString();
         let tree = state.tree;
@@ -470,7 +470,7 @@ class LanguageServerPlugin {
         );
         let items = null;
         if (result.matched) {
-            items = this._createColNameAutocompleItems(result.df_name, result.str_content);
+            items = this.createColNameAutocompleItems(result.df_name, result.str_content);
         }
         console.log('Items: ', items);
         return items;
@@ -580,7 +580,7 @@ class LanguageServerPlugin {
         let result = this._matchColNameExpression_DFFilter(text, tree, curPos);
         let items = null;
         if (result.matched) {
-            items = this._createColNameAutocompleItems(result.df_name, result.str_content);
+            items = this.createColNameAutocompleItems(result.df_name, result.str_content);
         } else {
             result = this._matchColValueExpression_DFFilter(
                 text,
@@ -590,7 +590,7 @@ class LanguageServerPlugin {
             );
             if (result.matched) {
                 console.log(result);
-                items = this._createColValueAutocompleItems(result.df_name, result.col_name);
+                items = this.createColValueAutocompleItems(result.df_name, result.col_name);
             }
         }
         console.log('Items: ', items);
@@ -672,7 +672,7 @@ class LanguageServerPlugin {
             // get Dataframe's columns completion.
             let dfCompletionItems;
             if (context.matchBefore(/['"]+$/)) {
-                dfCompletionItems = this._getDFCompletion_CodeEditor(context, line, character);
+                dfCompletionItems = this.getDFCompletion_CodeEditor(context, line, character);
             }
 
             let result;
@@ -755,12 +755,11 @@ class LanguageServerPlugin {
             } else {
                 result = dfCompletionItems;
             }
+
             if (!result) return null;
 
-            if ('items' in result) {
-                const items = result.items;
-                return this.sortResults(context, items);
-            }
+            const items = 'items' in result ? result.items : result;
+            return this.sortResults(context, items);
         } catch (e) {
             console.error('requestCompletion: ', e);
         }
