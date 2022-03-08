@@ -79,7 +79,10 @@ class IPythonKernel():
         result = None
         for message in messages:
             if message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
-                result = message['content']['data']['text/plain']
+                if message['content']['data']['text/plain'] is not None:
+                    # result = message['content']['data']['text/plain']
+                    result = json.loads(
+                        message['content']['data']['text/plain'])
             elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
                 if 'text' in message['content']:
                     result = message['content']['text']
