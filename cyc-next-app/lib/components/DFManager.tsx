@@ -167,10 +167,10 @@ const DFManager = () => {
     const showHistogram = true;
     const _handleGetTableData = (message: {}) => {
         const df_id = message.metadata["df_id"];
-        const contentFormatted = message.content.replace(/'/g, '');
-        const contentJson = JSON.parse(contentFormatted);
-        console.log("DFManager: dispatch to tableData (DataFrame) ", contentJson);
-        dispatch(setTableData(contentJson));
+        const formattedContent = message.content.replace(/'/g, "");
+        const jsonContent = JSON.parse(formattedContent);
+        console.log("DFManager: dispatch to tableData (DataFrame) ", jsonContent);
+        dispatch(setTableData(jsonContent));
         dispatch(setActiveDF(df_id));
         // const tableData = message.content;
 
