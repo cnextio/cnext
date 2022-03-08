@@ -70,7 +70,8 @@ const MiniSidebar = () => {
 			<Sidebar variant="permanent" >        
 				<SidebarList>
 				{iconList.map((icon, index) => (
-					<SidebarItem 
+					<SidebarItem
+						key={index} 
 						icon={icon} 
 						selectedIcon={selectedIcon} 
 						handleClick={handleClick}

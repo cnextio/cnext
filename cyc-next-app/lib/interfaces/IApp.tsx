@@ -1,7 +1,7 @@
-import React from "react";
-import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from "./IFileManager";
-import { IGetCardinalResult } from "./ICAssist";
-import { ExperimentManagerCommand } from "./IExperimentManager";
+import React from 'react';
+import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from './IFileManager';
+import { IGetCardinalResult } from './ICAssist';
+import { ExperimentManagerCommand } from './IExperimentManager';
 
 export type RecvCodeOutput = (output: Message) => void;
 
@@ -33,14 +33,14 @@ export interface Message {
 }
 
 export enum UpdateType {
-    add_cols = "add_cols",
-    del_cols = "del_cols",
-    add_rows = "add_rows",
-    del_rows = "del_rows",
-    update_cells = "update_cells",
-    new_index = "update_index",
-    new_df = "new_df",
-    no_update = "no_update",
+    add_cols = 'add_cols',
+    del_cols = 'del_cols',
+    add_rows = 'add_rows',
+    del_rows = 'del_rows',
+    update_cells = 'update_cells',
+    new_index = 'update_index',
+    new_df = 'new_df',
+    no_update = 'no_update',
 }
 
 // export interface DataTableContent {
@@ -50,45 +50,44 @@ export enum UpdateType {
 // };
 
 export enum CommandName {
-    exec_line = "exec_line",
-    exec_grouped_lines = "exec_grouped_lines",
-    active_df_status = "active_df_status",
-    plot_column_histogram = "plot_column_histogram",
-    get_countna = "get_countna",
-    plot_countna = "plot_countna",
-    get_table_data = "get_table_data",
-    get_df_metadata = "get_df_metadata",
-    plot_column_quantile = "plot_column_quantile",
-    get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
+    exec_line = 'exec_line',
+    exec_grouped_lines = 'exec_grouped_lines',
+    active_df_status = 'active_df_status',
+    plot_column_histogram = 'plot_column_histogram',
+    get_countna = 'get_countna',
+    plot_countna = 'plot_countna',
+    get_table_data = 'get_table_data',
+    get_df_metadata = 'get_df_metadata',
+    plot_column_quantile = 'plot_column_quantile',
+    get_cardinal = 'get_cardinal' /** get number of elements of a column given some filters */,
 }
 
 export enum ContentType {
-    COMMAND = "command",
-    STRING = "str",
-    DICT = "dict",
-    PANDAS_DATAFRAME = "pandas_dataframe",
-    PLOTLY_FIG = "plotly_fig",
-    MATPLOTLIB_FIG = "matplotlib_fig",
-    DIR_LIST = "dir_list",
-    FILE_METADATA = "file_metadata",
-    FILE_CONTENT = "file_content",
-    COLUMN_CARDINAL = "column_cardinal",
-    RICH_OUTPUT = "rich_output",
-    NONE = "none",
+    COMMAND = 'command',
+    STRING = 'str',
+    DICT = 'dict',
+    PANDAS_DATAFRAME = 'pandas_dataframe',
+    PLOTLY_FIG = 'plotly_fig',
+    MATPLOTLIB_FIG = 'matplotlib_fig',
+    DIR_LIST = 'dir_list',
+    FILE_METADATA = 'file_metadata',
+    FILE_CONTENT = 'file_content',
+    COLUMN_CARDINAL = 'column_cardinal',
+    RICH_OUTPUT = 'rich_output',
+    NONE = 'none',
 }
 
-
 export enum SubContentType {
-    PLOTLY_FIG = "plotly_fig",
-    HTML_STRING = "html_string",
-    APPLICATION_JSON = "application/json",
-    NONE = "none",
+    PLOTLY_FIG = 'plotly_fig',
+    HTML_STRING = 'html_string',
+    APPLICATION_JSON = 'application/json',
+    NONE = 'none',
 }
 
 export enum CommandType {
-    MLFLOW = "mlflow",
-    MLFLOW_CLIENT = "mlflow_client",
-    MLFLOW_COMBINE = "mlflow_combine",
+    MLFLOW = 'mlflow',
+    MLFLOW_CLIENT = 'mlflow_client',
+    MLFLOW_COMBINE = 'mlflow_combine',
 }
 
 export enum WebAppEndpoint {
@@ -101,6 +100,9 @@ export enum WebAppEndpoint {
     PlotManager = 'PlotManager',
     LanguageServer = 'LanguageServer',
     LanguageServerNotifier = 'LanguageServerNotifier',
+    LanguageServerHover = 'LanguageServerHover',
+    LanguageServerCompletion = 'LanguageServerCompletion',
+    LanguageServerSignature = 'LanguageServerSignature',
 }
 
 export interface ITableData {
@@ -111,32 +113,32 @@ export interface ITableData {
 }
 
 export enum ReviewType {
-    col = "col",
-    row = "row",
-    cell = "cell",
+    col = 'col',
+    row = 'row',
+    cell = 'cell',
 }
 
 export enum ReviewRequestType {
-    repeat = "repeat",
-    next = "next",
-    prev = "prev",
-    index = "index",
+    repeat = 'repeat',
+    next = 'next',
+    prev = 'prev',
+    index = 'index',
 }
 
 export enum FilterType {
-    loc = "loc",
-    iloc = "iloc",
-    col = "col",
+    loc = 'loc',
+    iloc = 'iloc',
+    col = 'col',
 }
 
 export enum FileMimeType {
-    FILEPNG = "file/png",
-    FILEJPG = "file/jpg",
+    FILEPNG = 'file/png',
+    FILEJPG = 'file/jpg',
 }
 
 export enum BinaryMimeType {
-    IMAGEPNG = "img/png",
-    IMAGEJPG = "img/jpg",
+    IMAGEPNG = 'img/png',
+    IMAGEJPG = 'img/jpg',
 }
 export const CNextMimeType = { ...FileMimeType, ...BinaryMimeType };
 export type CNextMimeType = FileMimeType | BinaryMimeType;

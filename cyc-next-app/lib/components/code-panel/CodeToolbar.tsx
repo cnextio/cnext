@@ -1,53 +1,50 @@
-import React, { FC, Fragment, useEffect, useState } from "react";
-import { 
-    CodeToolbar as StyledCodeToolbar, 
-    FileNameTab, 
-    PanelDivider, 
+import React, { FC, Fragment, useEffect, useState } from 'react';
+import {
+    CodeToolbar as StyledCodeToolbar,
+    FileNameTab,
+    PanelDivider,
     ExecutorIcon as StyledExecutorIcon,
-    FileCloseIcon as StyledFileCloseIcon, 
-    FileNameTabContainer} from "../StyledComponents";
-import { IconButton, stepConnectorClasses } from "@mui/material";  
+    FileCloseIcon as StyledFileCloseIcon,
+    FileNameTabContainer,
+} from '../StyledComponents';
+import { IconButton, stepConnectorClasses } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { useDispatch, useSelector } from "react-redux";
-import { setFileToClose, setInView } from "../../../redux/reducers/ProjectManagerRedux";
-import store from "../../../redux/store";
+import { useDispatch, useSelector } from 'react-redux';
+import { setFileToClose, setInView } from '../../../redux/reducers/ProjectManagerRedux';
+import store from '../../../redux/store';
 
 const FileMenu = () => {
     return (
-        <IconButton size="large" color='default'>
-            <MenuIcon style={{width: '18px', height: '18px'}}/>
+        <IconButton size='large' color='default'>
+            <MenuIcon style={{ width: '18px', height: '18px' }} />
         </IconButton>
-    )
-}
+    );
+};
 
 const ExecutorIcon = () => {
-    return (
-        <StyledExecutorIcon color='primary' fontSize="small" />
-    )
-}
+    return <StyledExecutorIcon color='primary' fontSize='small' />;
+};
 
 const FileCloseIcon = (props) => {
-    return (
-        <StyledFileCloseIcon fontSize="small" {...props}/>
-    )
-}
+    return <StyledFileCloseIcon fontSize='small' {...props} />;
+};
 
 const CodeToolbar = () => {
-    const openFiles = useSelector(state => state.projectManager.openFiles);
-    const executorID = useSelector(state => state.projectManager.executorID);
-    const inViewID = useSelector(state => state.projectManager.inViewID);
-    const fileSaved = useSelector(state => state.codeEditor.fileSaved);
-    const [displayState, setDisplayState] = useState<{[id: string]: {}}>({});
-    const dispatch = useDispatch()
+    const openFiles = useSelector((state) => state.projectManager.openFiles);
+    const executorID = useSelector((state) => state.projectManager.executorID);
+    const inViewID = useSelector((state) => state.projectManager.inViewID);
+    const fileSaved = useSelector((state) => state.codeEditor.fileSaved);
+    const [displayState, setDisplayState] = useState<{ [id: string]: {} }>({});
+    const dispatch = useDispatch();
 
     const onClick = (id: string) => {
         dispatch(setInView(id));
-    }
-    
+    };
+
     const onClose = (event, id: string) => {
         event.stopPropagation();
         dispatch(setFileToClose(openFiles[id].path));
-    }
+    };
 
     /** Set inViewID whenever there is a new openFiles */
     useEffect(() => {
@@ -59,33 +56,32 @@ const CodeToolbar = () => {
                 dispatch(setInView(executorID));
             } else if (keys.length > 0) {
                 dispatch(setInView(openFiles[keys[0]]));
-            }                
+            }
         }
-    },[openFiles])
+    }, [openFiles]);
 
     const _getFileNameComponent = (id: string, name: string) => {
         return (
-            <Fragment>
+            <Fragment key={id}>
                 <FileNameTab
                     selected={id == inViewID}
                     component='span'
-                    key={id}
                     onClick={() => onClick(id)}
                     fileSaved={id != inViewID || fileSaved}
                     onMouseEnter={(event) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
                         let newDisplay = { ...displayState };
-                        newDisplay[id] = { display: "inline-block" };
+                        newDisplay[id] = { display: 'inline-block' };
                         /** need to do the following to avoid race condition */
                         Object.keys(newDisplay).map((key) => {
-                            key !== id ? (newDisplay[key] = { display: "none" }) : null;
+                            key !== id ? (newDisplay[key] = { display: 'none' }) : null;
                         });
                         setDisplayState(newDisplay);
                     }}
                     onMouseLeave={(event) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
                         let newDisplay = { ...displayState };
-                        newDisplay[id] = { display: "none" };
+                        newDisplay[id] = { display: 'none' };
                         setDisplayState(newDisplay);
                     }}
                 >
@@ -96,7 +92,7 @@ const CodeToolbar = () => {
                             style={
                                 id in displayState && id !== executorID
                                     ? displayState[id]
-                                    : { display: "none" }
+                                    : { display: 'none' }
                             }
                             onClick={(event) => onClose(event, id)}
                         />
@@ -105,22 +101,20 @@ const CodeToolbar = () => {
                 <PanelDivider orientation='vertical' color='light' />
             </Fragment>
         );
-    }
+    };
 
-    return (        
+    return (
         <StyledCodeToolbar>
             {/* always display executor first */}
-            {executorID && _getFileNameComponent(executorID, openFiles[executorID].name)}                
+            {executorID && _getFileNameComponent(executorID, openFiles[executorID].name)}
             {Object.keys(openFiles).map((id: string) => {
                 // {console.log(key, openFiles[key].name)}
-                if(id !== executorID){
+                if (id !== executorID) {
                     return _getFileNameComponent(id, openFiles[id].name);
                 }
-            })}             
+            })}
         </StyledCodeToolbar>
     );
 };
-  
+
 export default CodeToolbar;
-
-
