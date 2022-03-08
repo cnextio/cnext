@@ -9,10 +9,6 @@ import { CompletionTriggerKind } from 'vscode-languageserver-protocol';
 import { signatureTooltip } from './signature';
 import { baseTheme } from './theme';
 
-/**
- * `dfFilter` option is added to support dfFilter component.
- * if `dfFilter=true`, no connection to server is needed.
- */
 function languageServer(options) {
     let plugin = null;
     return [

@@ -18,6 +18,10 @@ import store from '/redux/store';
 import { python } from '../grammar/lang-cnext-python';
 import { rootUri, documentUri, languageId } from './source';
 
+/**
+ * `dfFilter` option is added to support dfFilter component.
+ * if `dfFilter=true`, no connection to server is needed.
+ */
 class LanguageServerPlugin {
     constructor(view, dfFilter = false) {
         this.view = view;
