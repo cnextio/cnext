@@ -161,8 +161,7 @@ class MessageHandler(BaseMessageHandler):
                 result_messages = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
                 # log.info("Plot Column Quantile", result_messages)
-                result = IPythonKernel.get_execute_result(
-                    result_messages)
+                result = self.get_execute_result(result_messages)
                 if result is not None:
                     log.info("get plot data")
                     output = self._create_plot_data(
