@@ -7,7 +7,7 @@ from libs.json_serializable import ipython_internal_output
 from cycdataframe.mime_types import CnextMimeType
 
 from libs import logs
-from user_space.ipython.constants import IPythonInteral
+from user_space.ipython.constants import IPythonInteral, IPythonKernelConstants as IPythonConstants
 from user_space.ipython.kernel import IPythonKernel
 from user_space.user_space import ExecutionMode
 log = logs.get_logger(__name__)
@@ -16,6 +16,24 @@ log = logs.get_logger(__name__)
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue,  user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
+
+    @staticmethod
+    def get_execute_result(messages):
+        """
+            Get result from list of messages are responsed by IPython kernel
+        """
+        result = None
+        for message in messages:
+            if message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
+                if message['content']['data']['text/plain'] is not None:
+                    result = message['content']['data']['text/plain']
+            elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
+                if 'text' in message['content']:
+                    result = message['content']['text']
+            elif message['header']['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA:
+                if 'application/json' in message['content']['data']:
+                    result = message['content']['data']['application/json']
+        return result
 
     # TODO: unify this with _create_plot_data
     def _create_plot_data(self, df_id, col_name, result):
@@ -129,8 +147,7 @@ class MessageHandler(BaseMessageHandler):
                 result_messages = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
                 # log.info("PLOT DATA", result_messages)
-                result = IPythonKernel.get_execute_result(
-                    result_messages)
+                result = self.get_execute_result(result_messages)
                 if result is not None:
                     output = self._create_plot_data(
                         message.metadata['df_id'], message.metadata['col_name'], result)
@@ -158,8 +175,7 @@ class MessageHandler(BaseMessageHandler):
                 # TODO: turn _df_manager to variable
                 output_messages = self.user_space.execute("{}._get_table_data('{}', '{}')".format(
                     IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content))
-                output = IPythonKernel.get_execute_result(
-                    output_messages)
+                output = self.get_execute_result(output_messages)
                 if output is not None:
                     # log.info("get table data")
                     log.info('DFManagerCommand.get_table_data: %s' % output)
@@ -170,8 +186,7 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == DFManagerCommand.get_countna:
                 output_messages = self.user_space.execute(
                     "{}._get_count_na('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
-                output = IPythonKernel.get_execute_result(
-                    output_messages)
+                output = self.get_execute_result(output_messages)
                 if output is not None:
                     log.info("get countna data")
                     # log.info('DFManagerCommand.get_countna: %s' % output)
@@ -182,8 +197,7 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == DFManagerCommand.get_df_metadata:
                 output_messages = self.user_space.execute(
                     "{}._get_metadata('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
-                output = IPythonKernel.get_execute_result(
-                    output_messages)
+                output = self.get_execute_result(output_messages)
                 # log.info("get df metadata")
                 log.info('DFManagerCommand.get_df_metadata: %s' % output)
                 type = ContentType.DICT
