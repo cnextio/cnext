@@ -284,23 +284,23 @@ const scrollTimer = (dispatch, scrollEl: HTMLElement) => {
 
 function onMouseDown(event, view: EditorView, dispatch){
     try {
-        console.log('CodeEditor onMouseDown', view, event, dispatch);
-        if(view){
+        // console.log('CodeEditor onMouseDown', view, event, dispatch);
+        if (view) {
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
-            let pos = view.posAtDOM(event.target);                
+            let pos = view.posAtDOM(event.target);
             //convert to 0-based
-            let lineNumber = doc.lineAt(pos).number-1;     
-            let inViewID = store.getState().projectManager.inViewID;   
-            if(inViewID){
+            let lineNumber = doc.lineAt(pos).number - 1;
+            let inViewID = store.getState().projectManager.inViewID;
+            if (inViewID) {
                 let activeLine: ICodeActiveLine = {
                     inViewID: inViewID,
                     lineNumber: lineNumber,
-                }
+                };
                 dispatch(setActiveLine(activeLine));
-                console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
+                // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
             }
-        }                    
+        }
     } catch(error) {
         console.log(error);
         console.trace();

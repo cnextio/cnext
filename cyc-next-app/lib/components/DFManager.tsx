@@ -148,10 +148,6 @@ const DFManager = () => {
                 let dfUpdates = ifElseDict(lastUpdate, "updates");
                 let updateType = ifElse(dfUpdates, "update_type", null);
                 let updateContent = ifElse(dfUpdates, "update_content", null);
-                console.log(lastUpdate);
-                console.log(dfUpdates);
-                console.log(updateType);
-                console.log(updateContent);
                 console.log("DFManager: active df updates: ", dfUpdates);
                 _sendGetDFMetadata(df_id);
                 if (updateType == UpdateType.add_rows) {
@@ -171,10 +167,12 @@ const DFManager = () => {
     const showHistogram = true;
     const _handleGetTableData = (message: {}) => {
         const df_id = message.metadata["df_id"];
-        console.log("DFManager: dispatch to tableData (DataFrame) ", message.content);
-        dispatch(setTableData(message.content));
-        dispatch(setActiveDF(df_id));
+        // const tableData = JSON.parse(message.content);
         const tableData = message.content;
+        console.log("DFManager: dispatch to tableData (DataFrame) ", tableData);
+        dispatch(setTableData(tableData));
+        dispatch(setActiveDF(df_id));
+        // const tableData = message.content;
 
         /**
          *  check to see if column histogram need to be reload
@@ -204,7 +202,7 @@ const DFManager = () => {
             `${WebAppEndpoint.DFManager} get plot data for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`
         );
         let content = message.content;
-        content["plot"] = JSON.parse(content["plot"]);
+        // content["plot"] = JSON.parse(content["plot"]);
         dispatch(setColumnHistogramPlot(content));
     };
 
@@ -213,23 +211,23 @@ const DFManager = () => {
             `${WebAppEndpoint.DFManager} get quantile plot for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`
         );
         let content = message.content;
-        content["plot"] = JSON.parse(content["plot"]);
+        // content["plot"] = JSON.parse(content["plot"]);
         dispatch(setColumnQuantilePlot(content));
     };
 
     const _handleGetDFMetadata = (message: {}) => {
         console.log(`${WebAppEndpoint.DFManager} got metadata for "${message.metadata["df_id"]}"`);
-        let content = message.content;
-        let columns: string[] = Object.keys(content.columns);
+        let dfMetadata = message.content;
+        let columns: string[] = Object.keys(dfMetadata.columns);
         let df_id = message.metadata["df_id"];
-        // console.log('Metadata', columns);
-        dispatch(setMetaData(content));
+        console.log('Metadata', columns);
+        dispatch(setMetaData(dfMetadata));
 
         //TODO: consider move this to handleActiveDFStatus
         const state = store.getState();
         const dfUpdates = ifElseDict(state.dataFrames.dfUpdates, df_id);
         if (showHistogram) {
-            if (dfUpdates["update_type"] == UpdateType.add_cols) {
+            if (dfUpdates["update_type"] === UpdateType.add_cols) {
                 //only update histogram of columns that has been updated
                 let newColumns = dfUpdates["update_content"];
                 console.log(
@@ -242,10 +240,10 @@ const DFManager = () => {
                 _getHistogramPlot(df_id, columns);
                 _sendGetCountna(df_id);
             } else if (
-                dfUpdates["update_type"] == UpdateType.add_rows ||
-                dfUpdates["update_type"] == UpdateType.del_rows ||
-                dfUpdates["update_type"] == UpdateType.new_df ||
-                dfUpdates["update_type"] == UpdateType.update_cells
+                dfUpdates["update_type"] === UpdateType.add_rows ||
+                dfUpdates["update_type"] === UpdateType.del_rows ||
+                dfUpdates["update_type"] === UpdateType.new_df ||
+                dfUpdates["update_type"] === UpdateType.update_cells
             ) {
                 //TODO: be more targeted with updated_cell
                 console.log("DFManager: send request for column histograms");
@@ -298,6 +296,6 @@ const DFManager = () => {
         }
     }, [dfFilter]);
     return null;
-};
+};;
 
 export default DFManager;

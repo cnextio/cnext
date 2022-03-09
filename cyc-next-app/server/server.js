@@ -53,7 +53,7 @@ class PythonProcess {
 
     // TODO: using clientMessage is hacky solution to send stdout back to client. won't work if there is multiple message being handled simultaneously
     constructor(io, commandStr) {
-        process.env.PYTHONPATH = [process.env.PYTHONPATH, config.path_to_cycdataframe_lib].join(
+        process.env.PYTHONPATH = [process.env.PYTHONPATH, config.path_to_cycdataframe_lib, './python/'].join(
             path.delimiter
         );
         let pyshellOpts = {

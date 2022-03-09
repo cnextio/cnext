@@ -17,27 +17,32 @@ export function ColumnHistogram({df_id, col_name, width=80, height=50}) {
     function _getColumHistogram(state) {
         let dfMetaData = state.dataFrames.metadata[df_id];
         // console.log('ColumnHistogram: ', df_id, dfMetaData);
-        if (dfMetaData){
+        if (dfMetaData) {
             let colMetadata = dfMetaData.columns[col_name];
-            if (colMetadata)
-                return colMetadata.histogram_plot;
+            if (colMetadata) return colMetadata.histogram_plot;
         }
-        return null;        
+        return null;
     }
 
     function setLayout(width: number = 80, height: number = 50) {
         try {
             /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
             let plotData = JSON.parse(JSON.stringify(columnHistogram));
-            plotData['data'][0]['hovertemplate'] = "%{x}: %{y}";    
-            plotData['layout'] = {width: width, height: height, 
-                                            margin: {b: 0, l: 0, r: 0, t: 0},
-                                            xaxis: {showticklabels: false}, yaxis: {showticklabels: false},
-                                            hoverlabel: {bgcolor: 'rgba(0,0,0,0.04)', 
-                                                        bordercolor: 'rgba(0,0,0,0.04)',
-                                                        font: {color: 'rgba(0,0,0,0.6)',
-                                                        size: 12}}};
-            plotData['config'] = {displayModeBar: false};
+            console.log("columnHistogram", columnHistogram);
+            plotData["data"][0]["hovertemplate"] = "%{x}: %{y}";
+            plotData["layout"] = {
+                width: width,
+                height: height,
+                margin: { b: 0, l: 0, r: 0, t: 0 },
+                xaxis: { showticklabels: false },
+                yaxis: { showticklabels: false },
+                hoverlabel: {
+                    bgcolor: "rgba(0,0,0,0.04)",
+                    bordercolor: "rgba(0,0,0,0.04)",
+                    font: { color: "rgba(0,0,0,0.6)", size: 12 },
+                },
+            };
+            plotData["config"] = { displayModeBar: false };
             return plotData;
         } catch {
             return null;
