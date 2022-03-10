@@ -1,5 +1,6 @@
 import jupyter_client
 import queue
+import simplejson as json
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
 # from user_space.user_space import BaseKernel
 from cycdataframe.df_status_hook import DataFrameStatusHook
@@ -69,4 +70,3 @@ class IPythonKernel():
                 break
             outputs.append(msg)
         return outputs
-
