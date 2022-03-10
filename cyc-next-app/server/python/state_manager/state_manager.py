@@ -20,12 +20,13 @@ class MessageHandler(BaseMessageHandler):
 
     def save_state_data(self, data):
         data_formatted = json.dumps(data) if type(data) is dict else data
-        with open(STATE_JSON_PATH, 'w') as outfile:
-            json.dump(data_formatted, outfile)
-            log.info("Write state: {}".format(STATE_JSON_PATH))
+        if data_formatted is not None:
+            with open(STATE_JSON_PATH, 'w') as outfile:
+                json.dump(data_formatted, outfile)
+                log.info("Write state: {}".format(STATE_JSON_PATH))
 
     def handle_message(self, message):
-        if message.command_name == StateManagerCommand.get_state:
+        if message.command_name == StateManagerCommand.load_state:
             self.load_state_data()
         elif message.command_name == StateManagerCommand.save_state:
             self.save_state_data(data=message.content)

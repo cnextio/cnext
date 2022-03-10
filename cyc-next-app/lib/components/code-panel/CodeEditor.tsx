@@ -3,7 +3,7 @@ import {
     Message,
     WebAppEndpoint,
     ContentType,
-    StateManagerCommandType,
+    StateManagerCommand,
     CommandName,
 } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
@@ -180,7 +180,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                                 "CodeEditor - dispatch output with none content type :",
                                 codeOutput
                             );
-                        } else if (codeOutput.type === StateManagerCommandType.LOAD_STATE) {
+                        } else if (codeOutput.type === StateManagerCommand.LOAD_STATE) {
                             console.log("load state", codeOutput);
                         } else {
                             console.log("dispatch text output:", codeOutput);
@@ -327,10 +327,10 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     const createSaveStateMessage = (content: object) => {
         let message: Message = {
             webapp_endpoint: WebAppEndpoint.StateManager,
-            command_name: StateManagerCommandType.SAVE_STATE,
+            command_name: StateManagerCommand.SAVE_STATE,
             seq_number: 1,
             content: content,
-            type: ContentType.STRING,
+            type: ContentType.FILE_CONTENT,
             error: false,
             metadata: {},
         };

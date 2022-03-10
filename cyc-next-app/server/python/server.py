@@ -5,10 +5,11 @@ from code_editor import code_editor as ce
 from dataframe_manager import dataframe_manager_basekernel as dm_base
 from dataframe_manager import dataframe_manager as dm
 from experiment_manager import experiment_manager as em
-from state_manager import state_manager as sm
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
+from state_manager import state_manager as sm
+
 
 from libs.message import Message, WebappEndpoint
 from libs.zmq_message import MessageQueue

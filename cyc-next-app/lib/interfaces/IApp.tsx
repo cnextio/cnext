@@ -13,7 +13,7 @@ export type RecvCodeOutput = (output: Message) => void;
 export interface Message {
     webapp_endpoint: string; // the web client component which sends
     // and/or receives this message
-    command_name: CommandName | ProjectCommand | ExperimentManagerCommand; // 'code_area_command'|'updated_dataframe_list'|
+    command_name: CommandName | ProjectCommand | ExperimentManagerCommand | StateManagerCommand; // 'code_area_command'|'updated_dataframe_list'|
     // 'plot_column_histogram'|'plot_count_na'|
     // 'query_data'|'row_difference'|'column_difference'
     seq_number?: number; // sequence number of the command. This is needed
@@ -33,14 +33,14 @@ export interface Message {
 }
 
 export enum UpdateType {
-    add_cols = 'add_cols',
-    del_cols = 'del_cols',
-    add_rows = 'add_rows',
-    del_rows = 'del_rows',
-    update_cells = 'update_cells',
-    new_index = 'update_index',
-    new_df = 'new_df',
-    no_update = 'no_update',
+    add_cols = "add_cols",
+    del_cols = "del_cols",
+    add_rows = "add_rows",
+    del_rows = "del_rows",
+    update_cells = "update_cells",
+    new_index = "update_index",
+    new_df = "new_df",
+    no_update = "no_update",
 }
 
 // export interface DataTableContent {
@@ -80,7 +80,7 @@ export enum ContentType {
     NONE = "none",
 }
 
-export enum StateManagerCommandType {
+export enum StateManagerCommand {
     LOAD_STATE = "load_state",
     SAVE_STATE = "save_state",
 }
