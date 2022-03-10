@@ -8,7 +8,6 @@ from libs.message import ContentType, SubContentType, Message
 from libs import logs
 from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
-from user_space.ipython.kernel import IPythonKernel
 log = logs.get_logger(__name__)
 
 
@@ -116,8 +115,6 @@ class MessageHandler(BaseMessageHandler):
             error_message = self._create_error_message(
                 message.webapp_endpoint, trace, message.metadata)
             self._send_to_node(error_message)
-        # finally:
-        #     IPythonKernel().shutdown_kernel()
 
     def _process_active_dfs_status(self):
         active_df_status = self.user_space.get_active_dfs_status()
@@ -130,3 +127,13 @@ class MessageHandler(BaseMessageHandler):
                                                       "content": active_df,
                                                       "error": False})
                 self._send_to_node(active_df_status_message)
+
+    def load_state_data(self):
+        with open('state_data.json') as json_file:
+            data = json.load(json_file)
+            return data
+
+    def save_state_data(self, data):
+        data_formatted = json.dumps(data) if type(data) is dict else data
+        with open('state_data.json', 'w') as outfile:
+            json.dump(data_formatted, outfile)

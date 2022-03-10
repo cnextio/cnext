@@ -74,6 +74,11 @@ class CodeEditorCommand(str, Enum):
     exec_grouped_lines = 'exec_grouped_lines'
 
 
+class StateCommand(str, Enum):
+    save_state = 'save_state'
+    get_state = 'get_state'
+
+
 class ContentType(str, Enum):
     COMMAND = 'command'
     STRING = 'str'
