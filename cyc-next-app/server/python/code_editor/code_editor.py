@@ -105,7 +105,8 @@ class MessageHandler(BaseMessageHandler):
         try:
             outputs = self.user_space.execute(message.content, None)
             for output in outputs:
-                msg = self.build_single_message(output=output, message=message)
+                msg = self.build_single_message(
+                    output=output, message=message)
                 if msg is not None:
                     self._send_to_node(msg)
             self._process_active_dfs_status()
@@ -127,13 +128,3 @@ class MessageHandler(BaseMessageHandler):
                                                       "content": active_df,
                                                       "error": False})
                 self._send_to_node(active_df_status_message)
-
-    def load_state_data(self):
-        with open('state_data.json') as json_file:
-            data = json.load(json_file)
-            return data
-
-    def save_state_data(self, data):
-        data_formatted = json.dumps(data) if type(data) is dict else data
-        with open('state_data.json', 'w') as outfile:
-            json.dump(data_formatted, outfile)

@@ -50,59 +50,68 @@ export enum UpdateType {
 // };
 
 export enum CommandName {
-    exec_line = 'exec_line',
-    exec_grouped_lines = 'exec_grouped_lines',
-    active_df_status = 'active_df_status',
-    plot_column_histogram = 'plot_column_histogram',
-    get_countna = 'get_countna',
-    plot_countna = 'plot_countna',
-    get_table_data = 'get_table_data',
-    get_df_metadata = 'get_df_metadata',
-    plot_column_quantile = 'plot_column_quantile',
-    get_cardinal = 'get_cardinal' /** get number of elements of a column given some filters */,
+    exec_line = "exec_line",
+    exec_grouped_lines = "exec_grouped_lines",
+    active_df_status = "active_df_status",
+    plot_column_histogram = "plot_column_histogram",
+    get_countna = "get_countna",
+    plot_countna = "plot_countna",
+    get_table_data = "get_table_data",
+    get_df_metadata = "get_df_metadata",
+    plot_column_quantile = "plot_column_quantile",
+    get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
+    save_state = "save_state",
+    load_state = "load_state",
 }
 
 export enum ContentType {
-    COMMAND = 'command',
-    STRING = 'str',
-    DICT = 'dict',
-    PANDAS_DATAFRAME = 'pandas_dataframe',
-    PLOTLY_FIG = 'plotly_fig',
-    MATPLOTLIB_FIG = 'matplotlib_fig',
-    DIR_LIST = 'dir_list',
-    FILE_METADATA = 'file_metadata',
-    FILE_CONTENT = 'file_content',
-    COLUMN_CARDINAL = 'column_cardinal',
-    RICH_OUTPUT = 'rich_output',
-    NONE = 'none',
+    COMMAND = "command",
+    STRING = "str",
+    DICT = "dict",
+    PANDAS_DATAFRAME = "pandas_dataframe",
+    PLOTLY_FIG = "plotly_fig",
+    MATPLOTLIB_FIG = "matplotlib_fig",
+    DIR_LIST = "dir_list",
+    FILE_METADATA = "file_metadata",
+    FILE_CONTENT = "file_content",
+    COLUMN_CARDINAL = "column_cardinal",
+    RICH_OUTPUT = "rich_output",
+    LOAD_STATE = "load_state",
+    NONE = "none",
+}
+
+export enum StateManagerCommandType {
+    LOAD_STATE = "load_state",
+    SAVE_STATE = "save_state",
 }
 
 export enum SubContentType {
-    PLOTLY_FIG = 'plotly_fig',
-    HTML_STRING = 'html_string',
-    APPLICATION_JSON = 'application/json',
-    NONE = 'none',
+    PLOTLY_FIG = "plotly_fig",
+    HTML_STRING = "html_string",
+    APPLICATION_JSON = "application/json",
+    NONE = "none",
 }
 
 export enum CommandType {
-    MLFLOW = 'mlflow',
-    MLFLOW_CLIENT = 'mlflow_client',
-    MLFLOW_COMBINE = 'mlflow_combine',
+    MLFLOW = "mlflow",
+    MLFLOW_CLIENT = "mlflow_client",
+    MLFLOW_COMBINE = "mlflow_combine",
 }
 
 export enum WebAppEndpoint {
-    DFManager = 'DFManager',
-    CodeEditor = 'CodeEditor',
-    FileManager = 'FileManager',
-    MagicCommandGen = 'MagicCommandGen',
-    FileExplorer = 'FileExplorer',
-    ExperimentManager = 'ExperimentManager',
-    PlotManager = 'PlotManager',
-    LanguageServer = 'LanguageServer',
-    LanguageServerNotifier = 'LanguageServerNotifier',
-    LanguageServerHover = 'LanguageServerHover',
-    LanguageServerCompletion = 'LanguageServerCompletion',
-    LanguageServerSignature = 'LanguageServerSignature',
+    DFManager = "DFManager",
+    CodeEditor = "CodeEditor",
+    StateManager = "StateManager",
+    FileManager = "FileManager",
+    MagicCommandGen = "MagicCommandGen",
+    FileExplorer = "FileExplorer",
+    ExperimentManager = "ExperimentManager",
+    PlotManager = "PlotManager",
+    LanguageServer = "LanguageServer",
+    LanguageServerNotifier = "LanguageServerNotifier",
+    LanguageServerHover = "LanguageServerHover",
+    LanguageServerCompletion = "LanguageServerCompletion",
+    LanguageServerSignature = "LanguageServerSignature",
 }
 
 export interface ITableData {

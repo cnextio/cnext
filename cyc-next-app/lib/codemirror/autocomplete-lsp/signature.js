@@ -57,6 +57,11 @@ class SignaturePlugin {
                         };
                         this.view.dispatch({ effects: this.setSignature.of(this.currentData) });
                     }
+                } else if (context.matchBefore(/['"]+$/)) {
+                    // escape case for dfFilter
+                    this.view.dispatch({
+                        effects: closeSignatureEffect.of(null),
+                    });
                 } else if (this.currentData) {
                     this.view.dispatch({
                         effects: this.setSignature.of({

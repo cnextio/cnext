@@ -3,6 +3,7 @@ import {
     Message,
     WebAppEndpoint,
     ContentType,
+    StateManagerCommandType,
     CommandName,
 } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
@@ -18,7 +19,6 @@ import { completionKeymap } from "../../codemirror/autocomplete-lsp/autocomplete
 import { indentUnit } from "@codemirror/language";
 import { lineNumbers } from "@codemirror/gutter";
 import { StyledCodeEditor } from "../StyledComponents";
-// import { languageServer } from "../../codemirror/codemirror-languageserver";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
 import {
     addResult,
@@ -180,6 +180,8 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                                 "CodeEditor - dispatch output with none content type :",
                                 codeOutput
                             );
+                        } else if (codeOutput.type === StateManagerCommandType.LOAD_STATE) {
+                            console.log("load state", codeOutput);
                         } else {
                             console.log("dispatch text output:", codeOutput);
                             recvCodeOutput(codeOutput);
@@ -268,6 +270,8 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         console.log("CodeEditor useEffect codeLines", codeLines !== null);
         if (view) {
             view.dispatch();
+            // Save state when codeLines update.
+            sendStateMessage(codeLines);
         }
     }, [codeLines]);
 
@@ -305,7 +309,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         }
     };
 
-    const create_message = (content: IRunningCommandContent) => {
+    const createMessage = (content: IRunningCommandContent) => {
         let message: Message = {
             webapp_endpoint: WebAppEndpoint.CodeEditor,
             // command_name: content.runAllAtOnce?CommandName.exec_grouped_lines:CommandName.exec_line,
@@ -320,10 +324,29 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         return message;
     };
 
-    const send_message = (content: IRunningCommandContent) => {
-        let message = create_message(content);
+    const createSaveStateMessage = (content: object) => {
+        let message: Message = {
+            webapp_endpoint: WebAppEndpoint.StateManager,
+            command_name: StateManagerCommandType.SAVE_STATE,
+            seq_number: 1,
+            content: content,
+            type: ContentType.STRING,
+            error: false,
+            metadata: {},
+        };
+        return message;
+    };
+
+    const sendMessage = (content: IRunningCommandContent) => {
+        let message = createMessage(content);
         console.log(`${message.webapp_endpoint} send message: `, message);
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
+    };
+
+    const sendStateMessage = (content: any) => {
+        let message = createSaveStateMessage(content);
+        socket.emit(message.webapp_endpoint, JSON.stringify(message));
+        console.log(`${message.webapp_endpoint} send message: `, message);
     };
 
     function setRunQueue(): boolean {
@@ -390,7 +413,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 /** No need to handle range line, because we use IPython kernel to execute lines. It help us to handle this  */
                 rangeToRun = [{ fromLine: runQueue.fromLine, toLine: runQueue.toLine }];
             }
-            
+
             console.log("CodeEditor execLines: ", rangeToRun);
             for (let lineRange of rangeToRun) {
                 let content: IRunningCommandContent | undefined = getRunningCommandContent(
@@ -400,7 +423,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 if (content && inViewID) {
                     console.log("CodeEditor execLines: ", content, lineRange);
                     // let content: IRunningCommandContent = {lineRange: runQueue.runningLine, content: text};
-                    send_message(content);
+                    sendMessage(content);
                     let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
                         lineRange: content.lineRange,
