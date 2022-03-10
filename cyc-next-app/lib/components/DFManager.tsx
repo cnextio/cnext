@@ -167,9 +167,10 @@ const DFManager = () => {
     const showHistogram = true;
     const _handleGetTableData = (message: {}) => {
         const df_id = message.metadata["df_id"];
-        const jsonContent = JSON.parse(message.content);
-        console.log("DFManager: dispatch to tableData (DataFrame) ", jsonContent);
-        dispatch(setTableData(jsonContent));
+        // const tableData = JSON.parse(message.content);
+        const tableData = message.content;
+        console.log("DFManager: dispatch to tableData (DataFrame) ", tableData);
+        dispatch(setTableData(tableData));
         dispatch(setActiveDF(df_id));
         // const tableData = message.content;
 
@@ -216,11 +217,11 @@ const DFManager = () => {
 
     const _handleGetDFMetadata = (message: {}) => {
         console.log(`${WebAppEndpoint.DFManager} got metadata for "${message.metadata["df_id"]}"`);
-        let content = JSON.parse(message.content);
-        let columns: string[] = Object.keys(content.columns);
+        let dfMetadata = message.content;
+        let columns: string[] = Object.keys(dfMetadata.columns);
         let df_id = message.metadata["df_id"];
         console.log('Metadata', columns);
-        dispatch(setMetaData(content));
+        dispatch(setMetaData(dfMetadata));
 
         //TODO: consider move this to handleActiveDFStatus
         const state = store.getState();
