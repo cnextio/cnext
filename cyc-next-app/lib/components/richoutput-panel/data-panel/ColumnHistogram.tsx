@@ -28,7 +28,6 @@ export function ColumnHistogram({df_id, col_name, width=80, height=50}) {
         try {
             /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
             let plotData = JSON.parse(JSON.stringify(columnHistogram));
-            console.log("columnHistogram", columnHistogram);
             plotData["data"][0]["hovertemplate"] = "%{x}: %{y}";
             plotData["layout"] = {
                 width: width,

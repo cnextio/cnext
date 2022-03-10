@@ -5,7 +5,6 @@ import {
     ICodeResultMessage,
     ICodeLine,
     ILineUpdate,
-    IPlotResult,
     LineStatus,
     ICodeLineStatus,
     ICodeLineGroupStatus,
