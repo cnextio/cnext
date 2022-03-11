@@ -170,38 +170,6 @@ const FileManager = () => {
 
     const saveFile = () => {
         // console.log('FileManager save file', codeTextUpdated);
-        if(codeText){
-            console.log('FileManager save file');
-            setCodeTextUpdated(false);
-            let state = store.getState();
-            let file: IFileMetadata = state.projectManager.openFiles[inViewID];
-            let message: Message = _createMessage(
-                ProjectCommand.save_file, 
-                codeText.join('\n'), 
-                1, 
-                {path: file.path}
-            );
-            console.log('FileManager send:', message.command_name);        
-            // console.log('FileManager send:', message);        
-            _sendMessage(message);
-            setSaveTimeout(false);
-        }
-    }
-    useEffect(() => {
-        if(saveTimeout && codeTextUpdated){
-            saveFile();
-        }            
-    }, [saveTimeout, codeTextUpdated])
-
-    // useEffect(() => {
-    //     if(codeTextInit==1){
-    //         console.log('FileManager codeText update', codeTextUpdated, saveTimeout);
-    //         setCodeTextUpdated(true);
-    //     }
-    // }, [codeText])
-
-    const saveFile2 = () => {
-        // console.log('FileManager save file', codeTextUpdated);
         if(saveTimeout && fileToSave.length>0 && codeText){
             console.log('FileManager save file');
             for (let filePath of fileToSave){
@@ -224,7 +192,7 @@ const FileManager = () => {
         }
     }
     useEffect(() => {
-        saveFile2();
+        saveFile();
     }, [saveTimeout, fileToSave])
 
     
