@@ -78,7 +78,10 @@ const FileManager = () => {
                                 fmResult
                             );
                             if (fmResult.type === ContentType.FILE_METADATA) {
+                                //TODO: remove fileSaved variable, use fileToSave only
+                                // fileSaved is current needed only in CodeToolbar
                                 dispatch(setFileSaved(null));
+                                dispatch(setFileToSave(null));
 
                                 /** update file timestamp */
                                 if (inViewID) {
@@ -257,8 +260,7 @@ const FileManager = () => {
                 // console.log('FileManager send:', message);
                 _sendMessage(message);
                 setSaveTimeout(false);
-            }
-            dispatch(setFileToSave(null));
+            }            
         }
     };
     useEffect(() => {
