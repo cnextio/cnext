@@ -18,7 +18,7 @@ export interface Message {
     // 'query_data'|'row_difference'|'column_difference'
     seq_number?: number; // sequence number of the command. This is needed
     // for commands that requires more than one command
-    type: ContentType | CommandType; // the object type of the output content
+    type: ContentType | CommandType | StateManagerContentType; // the object type of the output content
     content:
         | string
         | object
@@ -60,8 +60,6 @@ export enum CommandName {
     get_df_metadata = "get_df_metadata",
     plot_column_quantile = "plot_column_quantile",
     get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
-    save_state = "save_state",
-    load_state = "load_state",
 }
 
 export enum ContentType {
@@ -76,13 +74,16 @@ export enum ContentType {
     FILE_CONTENT = "file_content",
     COLUMN_CARDINAL = "column_cardinal",
     RICH_OUTPUT = "rich_output",
-    LOAD_STATE = "load_state",
     NONE = "none",
 }
 
 export enum StateManagerCommand {
-    LOAD_STATE = "load_state",
-    SAVE_STATE = "save_state",
+    EXECUTE_LOAD_STATE = "execute_load_state",
+    EXECUTE_SAVE_STATE = "execute_save_state",
+}
+
+export enum StateManagerContentType {
+    REPLY_LOAD_STATE = "reply_load_state",
 }
 
 export enum SubContentType {

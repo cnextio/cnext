@@ -76,9 +76,12 @@ class CodeEditorCommand(str, Enum):
 
 
 class StateManagerCommand(str, Enum):
-    save_state = 'save_state'
-    load_state = 'load_state'
+    execute_save_state = 'execute_save_state'
+    execute_load_state = 'execute_load_state'
 
+
+class StateManagerContentType(str, Enum):
+    reply_load_state = 'reply_load_state'
 
 class ContentType(str, Enum):
     COMMAND = 'command'

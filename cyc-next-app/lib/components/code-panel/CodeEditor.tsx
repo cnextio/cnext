@@ -5,6 +5,8 @@ import {
     ContentType,
     StateManagerCommand,
     CommandName,
+    StateManagerContentType,
+    CommandType,
 } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
@@ -156,12 +158,43 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     };
 
     /**
-     * Init component socket connection. This should be run only once on the first mount.
+     * Init StateManager socket connection. This should be run only once on the first mount.
+     */
+    function socketStateManagerInit() {
+        socket.emit("ping", WebAppEndpoint.StateManager);
+
+        // Execute load state
+        const message: Message = createMessage(
+            WebAppEndpoint.StateManager,
+            StateManagerCommand.EXECUTE_LOAD_STATE,
+            "",
+            ContentType.NONE,
+            {}
+        );
+        sendMessage(message);
+
+        socket.on(WebAppEndpoint.StateManager, (result: string) => {
+            console.log("Got StateManager results: ", result, "\n");
+            try {
+                let stateOutput: Message = JSON.parse(result);
+                let inViewID = store.getState().projectManager.inViewID;
+                if (inViewID) {
+                    if (stateOutput.type === StateManagerContentType.REPLY_LOAD_STATE) {
+                        dispatch(updateLines(stateOutput.content));
+                        // dispatch(u)
+                    }
+                }
+            } catch {}
+        });
+    }
+
+    /**
+     * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     function socketInit() {
         socket.emit("ping", WebAppEndpoint.CodeEditor);
         socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
-            console.log("Got results: ", result, "\n");
+            console.log("Got CodeEditor results: ", result, "\n");
             // console.log("CodeEditor got results...");
             try {
                 let codeOutput: Message = JSON.parse(result);
@@ -180,8 +213,6 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                                 "CodeEditor - dispatch output with none content type :",
                                 codeOutput
                             );
-                        } else if (codeOutput.type === StateManagerCommand.LOAD_STATE) {
-                            console.log("load state", codeOutput);
                         } else {
                             console.log("dispatch text output:", codeOutput);
                             recvCodeOutput(codeOutput);
@@ -206,8 +237,10 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             } catch {}
         });
     }
+
     useEffect(() => {
         socketInit();
+        socketStateManagerInit();
     }, []);
 
     /**
@@ -271,7 +304,14 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         if (view) {
             view.dispatch();
             // Save state when codeLines update.
-            sendStateMessage(codeLines);
+            const message: Message = createMessage(
+                WebAppEndpoint.StateManager,
+                StateManagerCommand.EXECUTE_SAVE_STATE,
+                codeLines,
+                ContentType.FILE_CONTENT,
+                {}
+            );
+            sendMessage(message);
         }
     }, [codeLines]);
 
@@ -309,44 +349,29 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         }
     };
 
-    const createMessage = (content: IRunningCommandContent) => {
+    const createMessage = (
+        endpoint: string,
+        commandName: CommandName | StateManagerCommand,
+        content: IRunningCommandContent | any,
+        type: ContentType | CommandType | StateManagerContentType,
+        metadata?: object
+    ) => {
         let message: Message = {
-            webapp_endpoint: WebAppEndpoint.CodeEditor,
-            // command_name: content.runAllAtOnce?CommandName.exec_grouped_lines:CommandName.exec_line,
-            command_name: CommandName.exec_line,
-            seq_number: 1,
-            content: content.content,
-            type: ContentType.STRING,
-            error: false,
-            metadata: { line_range: content.lineRange },
-        };
-
-        return message;
-    };
-
-    const createSaveStateMessage = (content: object) => {
-        let message: Message = {
-            webapp_endpoint: WebAppEndpoint.StateManager,
-            command_name: StateManagerCommand.SAVE_STATE,
+            webapp_endpoint: endpoint,
+            command_name: commandName,
             seq_number: 1,
             content: content,
-            type: ContentType.FILE_CONTENT,
+            type: type,
             error: false,
-            metadata: {},
+            metadata: metadata,
         };
+
         return message;
     };
 
-    const sendMessage = (content: IRunningCommandContent) => {
-        let message = createMessage(content);
+    const sendMessage = (message: Message) => {
         console.log(`${message.webapp_endpoint} send message: `, message);
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
-    };
-
-    const sendStateMessage = (content: any) => {
-        let message = createSaveStateMessage(content);
-        socket.emit(message.webapp_endpoint, JSON.stringify(message));
-        console.log(`${message.webapp_endpoint} send message: `, message);
     };
 
     function setRunQueue(): boolean {
@@ -423,7 +448,14 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 if (content && inViewID) {
                     console.log("CodeEditor execLines: ", content, lineRange);
                     // let content: IRunningCommandContent = {lineRange: runQueue.runningLine, content: text};
-                    sendMessage(content);
+                    const message: Message = createMessage(
+                        WebAppEndpoint.CodeEditor,
+                        CommandName.exec_line,
+                        content.content,
+                        ContentType.STRING,
+                        { line_range: content.lineRange }
+                    );
+                    sendMessage(message);
                     let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
                         lineRange: content.lineRange,
