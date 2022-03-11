@@ -533,7 +533,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                     };
                     dispatch(setLineStatus(lineStatus));
                 }
-                dispatch(setFileToSave(inViewID));
+                // dispatch(setFileToSave(inViewID));
                 handleCAsisstTextUpdate();
             }
         } catch (error) {

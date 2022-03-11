@@ -1,9 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { initCodeText, setFileSaved } from "../../../redux/reducers/CodeEditorRedux";
-import { setActiveProject, setFileMetaData, setFileToClose, setFileToOpen, setFileToSave, setInView, setOpenFiles, setServerSynced } from "../../../redux/reducers/ProjectManagerRedux";
-import store from '../../../redux/store';
-import { CommandName, ContentType, Message, WebAppEndpoint } from "../../interfaces/IApp";
+import {
+    initCodeText,
+    setFileSaved,
+} from "../../../redux/reducers/CodeEditorRedux";
+import {
+    setActiveProject,
+    setFileMetaData,
+    setFileToClose,
+    setFileToOpen,
+    setFileToSave,
+    setFileToSaveState,
+    setInView,
+    setOpenFiles,
+    setServerSynced,
+} from "../../../redux/reducers/ProjectManagerRedux";
+import store from "../../../redux/store";
+import {
+    CommandName,
+    ContentType,
+    Message,
+    WebAppEndpoint,
+} from "../../interfaces/IApp";
 import { ICodeText } from "../../interfaces/ICodeEditor";
 import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
 import { ifElse } from "../libs";
@@ -17,7 +35,9 @@ const FileManager = () => {
     );
     const fileToOpen = useSelector((state) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state) => state.projectManager.fileToSave);
-    const codeText = useSelector((state) => getCodeTextRedux(state));
+    const fileToSaveState = useSelector((state) => state.projectManager.fileToSaveState);
+    const codeText = useSelector((state) => getCodeText(state));
+    const codeLines = useSelector((state) => getCodeLines(state));
     const [codeTextUpdated, setCodeTextUpdated] = useState(false);
     // using this to avoid saving the file when we load code doc for the first time
     const [codeTextInit, setcodeTextInit] = useState(0);
@@ -140,10 +160,18 @@ const FileManager = () => {
         });
     };
 
-    function getCodeTextRedux(state) {
+    function getCodeText(state) {
         let inViewID = state.projectManager.inViewID;
         if (inViewID) {
             return ifElse(state.codeEditor.codeText, inViewID, null);
+        }
+        return null;
+    }
+
+    function getCodeLines(state) {
+        let inViewID = state.projectManager.inViewID;
+        if (inViewID) {
+            return ifElse(state.codeEditor.codeLines, inViewID, null);
         }
         return null;
     }
@@ -238,8 +266,8 @@ const FileManager = () => {
      */
     const saveFile = () => {
         // console.log('FileManager save file', codeTextUpdated);
-        if (saveTimeout && fileToSave.length > 0 && codeText) {
-            console.log("FileManager save file");
+        if (saveTimeout && fileToSave.length > 0 && codeText !== null) {
+            console.log("FileManager: save file");
             for (let filePath of fileToSave) {
                 let state = store.getState();
                 let file: IFileMetadata =
@@ -260,12 +288,35 @@ const FileManager = () => {
                 // console.log('FileManager send:', message);
                 _sendMessage(message);
                 setSaveTimeout(false);
-            }            
+            }
         }
     };
     useEffect(() => {
         saveFile();
     }, [saveTimeout, fileToSave]);
+
+    const saveState = () => {
+        if (saveTimeout && fileToSaveState.length > 0 && codeLines !== null) {
+            console.log("FileManager: save state");
+            // add more code here
+        }
+    }
+    useEffect(() => {
+        saveState();
+    }, [saveTimeout, fileToSaveState]);
+    
+    /** 
+     * Use fileToSave and fileToSaveState instead of codeText to trigger saveFile and saveState so we can control 
+     * the situation where saving might fail and need to be retried. This is better
+     * that messing up directly with codeText
+     * */
+    useEffect(() => {
+        dispatch(setFileToSave(inViewID));
+    }, [codeText]);
+
+    useEffect(() => {
+        dispatch(setFileToSaveState(inViewID));
+    }, [codeLines]);
 
     useEffect(() => {
         _setup_socket();
@@ -281,6 +332,6 @@ const FileManager = () => {
     }, []); //run this only once - not on rerender
 
     return null;
-}
+};
 
-export default FileManager
+export default FileManager;
