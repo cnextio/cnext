@@ -306,27 +306,22 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         }
     };
 
-    const createMessage = (
-        endpoint: string,
-        commandName: CommandName,
-        content: IRunningCommandContent | any,
-        type: ContentType | CommandType,
-        metadata?: object
-    ) => {
+    const createMessage = (content: IRunningCommandContent) => {
         let message: Message = {
-            webapp_endpoint: endpoint,
-            command_name: commandName,
+            webapp_endpoint: WebAppEndpoint.CodeEditor,
+            command_name: CommandName.exec_line,
             seq_number: 1,
-            content: content,
-            type: type,
+            content: content.content,
+            type: ContentType.STRING,
             error: false,
-            metadata: metadata,
+            metadata: { line_range: content.lineRange },
         };
 
         return message;
     };
 
-    const sendMessage = (message: Message) => {
+    const sendMessage = (content: IRunningCommandContent) => {
+        const message = createMessage(content);
         console.log(`${message.webapp_endpoint} send message: `, message);
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
@@ -405,14 +400,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 if (content && inViewID) {
                     console.log("CodeEditor execLines: ", content, lineRange);
                     // let content: IRunningCommandContent = {lineRange: runQueue.runningLine, content: text};
-                    const message: Message = createMessage(
-                        WebAppEndpoint.CodeEditor,
-                        CommandName.exec_line,
-                        content.content,
-                        ContentType.STRING,
-                        { line_range: content.lineRange }
-                    );
-                    sendMessage(message);
+                    sendMessage(content);
                     let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
                         lineRange: content.lineRange,
