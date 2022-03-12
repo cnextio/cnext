@@ -15,7 +15,7 @@ const ResultWithNoSSR = dynamic(() => import("react-plotly.js"), { ssr: false })
 
 const ResultView = (props: any) => {
     const activeLine = useSelector((state) => state.codeEditor.activeLine);
-    const [containerMounted, setContainerMounted] = useState(false);
+    // const [containerMounted, setContainerMounted] = useState(false);
 
     const setLayout = (
         data: object | string | any,
@@ -38,7 +38,7 @@ const ResultView = (props: any) => {
 
     //FIXME: this still not work as expected
     useEffect(() => {
-        setContainerMounted(true);
+        // setContainerMounted(true);
     });
 
     const resultViewId = "StyledResultViewID";
@@ -53,7 +53,7 @@ const ResultView = (props: any) => {
             console.log("codeWithResult", codeWithResult);
             return (
                 <StyledResultView id={resultViewId}>
-                    {containerMounted
+                    {codeWithResult.length > 0
                         ? codeWithResult.map((codeResult: ICodeLine) => (
                               <ScrollIntoViewIfNeeded
                                   active={codeResult.lineID == activeLine}

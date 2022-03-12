@@ -3,9 +3,7 @@ import {
     Message,
     WebAppEndpoint,
     ContentType,
-    StateManagerCommand,
     CommandName,
-    StateManagerContentType,
     CommandType,
 } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
@@ -158,37 +156,6 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     };
 
     /**
-     * Init StateManager socket connection. This should be run only once on the first mount.
-     */
-    function socketStateManagerInit() {
-        socket.emit("ping", WebAppEndpoint.StateManager);
-
-        // Execute load state
-        const message: Message = createMessage(
-            WebAppEndpoint.StateManager,
-            StateManagerCommand.EXECUTE_LOAD_STATE,
-            "",
-            ContentType.NONE,
-            {}
-        );
-        sendMessage(message);
-
-        socket.on(WebAppEndpoint.StateManager, (result: string) => {
-            console.log("Got StateManager results: ", result, "\n");
-            try {
-                let stateOutput: Message = JSON.parse(result);
-                let inViewID = store.getState().projectManager.inViewID;
-                if (inViewID) {
-                    if (stateOutput.type === StateManagerContentType.REPLY_LOAD_STATE) {
-                        dispatch(updateLines(stateOutput.content));
-                        // dispatch(u)
-                    }
-                }
-            } catch {}
-        });
-    }
-
-    /**
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     function socketInit() {
@@ -240,7 +207,6 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
 
     useEffect(() => {
         socketInit();
-        socketStateManagerInit();
     }, []);
 
     /**
@@ -303,15 +269,6 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         console.log("CodeEditor useEffect codeLines", codeLines !== null);
         if (view) {
             view.dispatch();
-            // Save state when codeLines update.
-            const message: Message = createMessage(
-                WebAppEndpoint.StateManager,
-                StateManagerCommand.EXECUTE_SAVE_STATE,
-                codeLines,
-                ContentType.FILE_CONTENT,
-                {}
-            );
-            sendMessage(message);
         }
     }, [codeLines]);
 
@@ -351,9 +308,9 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
 
     const createMessage = (
         endpoint: string,
-        commandName: CommandName | StateManagerCommand,
+        commandName: CommandName,
         content: IRunningCommandContent | any,
-        type: ContentType | CommandType | StateManagerContentType,
+        type: ContentType | CommandType,
         metadata?: object
     ) => {
         let message: Message = {

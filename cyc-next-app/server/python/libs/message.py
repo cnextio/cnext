@@ -17,7 +17,6 @@ class WebappEndpoint(str, Enum):
     MagicCommandGen = 'MagicCommandGen'
     FileExplorer = 'FileExplorer'
     ExperimentManager = 'ExperimentManager'
-    StateManager = 'StateManager'
 
     def __str__(self):
         return str(self.value)
@@ -61,6 +60,7 @@ class ProjectCommand(str, Enum):
     set_working_dir = 'set_working_dir'
     set_project_dir = 'set_project_dir'
     get_active_project = 'get_active_project'
+    save_state = 'save_state'
 
 
 class ExperimentManagerCommand(str, Enum):
@@ -74,14 +74,6 @@ class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'
     exec_grouped_lines = 'exec_grouped_lines'
 
-
-class StateManagerCommand(str, Enum):
-    execute_save_state = 'execute_save_state'
-    execute_load_state = 'execute_load_state'
-
-
-class StateManagerContentType(str, Enum):
-    reply_load_state = 'reply_load_state'
 
 class ContentType(str, Enum):
     COMMAND = 'command'

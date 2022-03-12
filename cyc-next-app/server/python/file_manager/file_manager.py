@@ -59,6 +59,11 @@ class MessageHandler(BaseMessageHandler):
                 if 'path' in metadata.keys():
                     result = files.save_file(metadata['path'], message.content)
                 type = ContentType.FILE_METADATA
+            elif message.command_name == ProjectCommand.save_state:
+                if 'path' in metadata.keys():
+                    result = files.save_state(
+                        metadata['path'], message.content)
+                type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.close_file:
                 result = projects.close_file(metadata['path'])
                 type = ContentType.FILE_METADATA

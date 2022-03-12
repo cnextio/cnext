@@ -80,6 +80,7 @@ export interface ICodeActiveLine {
 export interface ICodeText {
     reduxFileID: string;
     codeText: string[];
+    codeLines: ICodeLine[]; // Add codeLines attribute to handle the state management
     // timestamp: number;
 }
 

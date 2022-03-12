@@ -65,14 +65,14 @@ const RichOutputView = (props: any) => {
                 handleGridViewBtn={handleGridViewBtn}
             />
             <Divider />
-            {show == RichOutputViewHeader.DATA &&
+            {show === RichOutputViewHeader.DATA &&
                 ifElse(tableData, activeDataFrame, null) &&
-                (gridViewStatus == GridViewStatus.SELECTED ? <GridView /> : <TableView />)}
+                (gridViewStatus === GridViewStatus.SELECTED ? <GridView /> : <TableView />)}
             {show == RichOutputViewHeader.SUMMARY && <SummaryView />}
             {/* {show == RichOutputViewHeader.PLOTS && <PlotView />} */}
-            {show == RichOutputViewHeader.RESULTS && <ResultView />}
-            {show == RichOutputViewHeader.EXPERIMENTS && <ExperimentManager />}
-            {show == RichOutputViewHeader.MODEL && <ModelView />}
+            {show === RichOutputViewHeader.RESULTS && <ResultView />}
+            {show === RichOutputViewHeader.EXPERIMENTS && <ExperimentManager />}
+            {show === RichOutputViewHeader.MODEL && <ModelView />}
         </Fragment>
     );
 };

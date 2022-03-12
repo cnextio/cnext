@@ -64,18 +64,16 @@ export const CodeEditorRedux = createSlice({
             let codeTextData: ICodeText = action.payload;
             let reduxFileID = codeTextData.reduxFileID;
             state.codeText[reduxFileID] = codeTextData.codeText;
-            let codeLines: ICodeLine[] = [];
-            /** create at least 1 empty line when code text is empty */
-            if (state.codeText[reduxFileID].length == 0) {
-                let codeLine: ICodeLine = {
-                    lineID: shortid(),
-                    status: LineStatus.EDITED,
-                    result: null,
-                    generated: false,
-                };
-                codeLines.push(codeLine);
-            } else {
-                for (let i = 0; i < state.codeText[reduxFileID].length; i++) {
+
+            let codeLines: ICodeLine[] = codeTextData.codeLines;
+
+            console.log("codeLines", codeLines);
+            /** If codeLines doesn't have data,
+             *  read codeText from file data then create codeLines line by line from codeText */
+            if (!codeLines || codeLines.length === 0) {
+                codeLines = [];
+                /** create at least 1 empty line when code text is empty */
+                if (state.codeText[reduxFileID].length == 0) {
                     let codeLine: ICodeLine = {
                         lineID: shortid(),
                         status: LineStatus.EDITED,
@@ -83,13 +81,25 @@ export const CodeEditorRedux = createSlice({
                         generated: false,
                     };
                     codeLines.push(codeLine);
+                } else {
+                    for (let i = 0; i < state.codeText[reduxFileID].length; i++) {
+                        let codeLine: ICodeLine = {
+                            lineID: shortid(),
+                            status: LineStatus.EDITED,
+                            result: null,
+                            generated: false,
+                        };
+                        codeLines.push(codeLine);
+                    }
                 }
+            } else {
+                /** If codeLines have data, that mean the state data already was saved,
+                 *  increase the resultUpdate to display richoutput result */
+                state.resultUpdate += 1;
             }
+
             state.codeLines[reduxFileID] = codeLines;
             // state.timestamp[reduxFileID] = codeTextData.timestamp;
-        },
-
-        initCodeState: (state, action) => {
         },
 
         updateLines: (state, action) => {
