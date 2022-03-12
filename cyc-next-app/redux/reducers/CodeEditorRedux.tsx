@@ -89,6 +89,9 @@ export const CodeEditorRedux = createSlice({
             // state.timestamp[reduxFileID] = codeTextData.timestamp;
         },
 
+        initCodeState: (state, action) => {
+        },
+
         updateLines: (state, action) => {
             let lineUpdate: ILineUpdate = action.payload;
             let inViewID = lineUpdate.inViewID;

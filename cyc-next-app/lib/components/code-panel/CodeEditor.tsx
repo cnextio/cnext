@@ -567,15 +567,13 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                     // Convert it to 0-indexed by -1.
                     // Note 2: the lines being added are lines above currentLine.
                     // If there is new text in the current line then current line is `edited` not `added`
-                    dispatch(updateLines(updatedLineInfo));
-                    dispatch(setFileToSave(inViewID));
+                    dispatch(updateLines(updatedLineInfo));                    
                 } else if (updatedLineCount < 0) {
                     // Note 1: _getCurrentLineNumber returns line number indexed starting from 1.
                     // Convert it to 0-indexed by -1.
                     // Note 2: the lines being deleted are lines above currentLine.
                     // If there is new text in the current line then current line is `edited`
                     dispatch(updateLines(updatedLineInfo));
-                    dispatch(setFileToSave(inViewID));
                 } else {
                     let lineStatus: ICodeLineStatus;
                     lineStatus = {
@@ -589,9 +587,8 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                         generated: false,
                     };
                     dispatch(setLineStatus(lineStatus));
-                    dispatch(setFileToSave(inViewID));
                 }
-
+                // dispatch(setFileToSave(inViewID));
                 handleCAsisstTextUpdate();
             }
         } catch (error) {
