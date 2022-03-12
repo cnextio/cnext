@@ -85,7 +85,6 @@ const FileManager = () => {
                             console.log("FileManager got save_state result: ", fmResult);
                             if (fmResult.type === ContentType.FILE_METADATA) {
                                 //TODO: remove stateSaved variable, use fileToSaveState only
-                                // dispatch(setFileSaved(null));
                                 dispatch(setFileToSaveState(null));
                             }
                         case ProjectCommand.save_file:
@@ -275,7 +274,7 @@ const FileManager = () => {
                     path: filePath,
                     timestamp: timestamp,
                 });
-                console.log("FileManager send:", message.command_name, message.metadata);
+                console.log("FileManager State send:", message.command_name, message.metadata);
                 _sendMessage(message);
                 setSaveTimeout(false);
             }
