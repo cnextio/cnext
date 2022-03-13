@@ -17,7 +17,7 @@ import {
     ICodeToInsert,
 } from "../../lib/interfaces/ICodeEditor";
 import { ifElseDict, isJsonString } from "../../lib/components/libs";
-import { ContentType } from "../../lib/interfaces/IApp";
+import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 
 type CodeEditorState = {
@@ -227,18 +227,32 @@ export const CodeEditorRedux = createSlice({
         addResult: (state, action) => {
             let resultMessage: ICodeResultMessage = action.payload;
             let inViewID = resultMessage.inViewID;
-            const content = isJsonString(resultMessage?.content)
-                ? JSON.parse(resultMessage?.content)
-                : resultMessage.content;
+            let content: object|string = '';
+
+            if ([SubContentType.APPLICATION_JSON].includes(resultMessage?.subType)){
+                try {
+                    content = JSON.parse(resultMessage.content);
+                } catch (error) {
+                    console.log(
+                        "CodeEditorRedux: result is not a json string ",
+                        resultMessage.content
+                    );
+                    // content = resultMessage.content;
+                }
+            } else {
+                content = resultMessage.content;
+            }
+            // const content = isJsonString(resultMessage?.content)
+            //     ? JSON.parse(resultMessage?.content)
+            //     : resultMessage.content;
             let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
             let result: ICodeResult = {
                 type: resultMessage.type,
                 subType: resultMessage.subType,
                 content: content,
             };
-            if (lineRange) {
-                /** only associate fromLine to result. This is ok because at the moment the group execution is not supposed to output plot
-                 * in the backend it is run using exec */
+            if (lineRange != null) {
+                /** TODO: double check this for now only associate fromLine to result */
                 let lineNumber = lineRange.fromLine;
                 let codeLine: ICodeLine = state.codeLines[inViewID][lineNumber];
                 codeLine.result = result;
