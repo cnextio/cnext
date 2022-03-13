@@ -27,7 +27,8 @@ class MessageHandler(BaseMessageHandler):
             projects.set_active_project(active_project)
 
     def handle_message(self, message):
-        log.info('Handle FileManager message: %s' % message)
+        log.info('FileManager handle message: %s %s %s' %
+                 (message.command_name, message.type, message.sub_type))
         try:
             metadata = message.metadata
             result = None
