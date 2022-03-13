@@ -82,6 +82,7 @@ import {
     textShouldBeExec as isExpression,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
+import CypressIds from '../tests/CypressIds'
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -773,7 +774,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         }
     };
 
-    return <StyledCodeEditor ref={editorRef}>{console.log("CodeEditor render")}</StyledCodeEditor>;
+    return <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>{console.log("CodeEditor render")}</StyledCodeEditor>;
 };
 
 export default CodeEditor;
