@@ -162,7 +162,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         socket.emit("ping", WebAppEndpoint.CodeEditor);
         socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
             console.log("Got CodeEditor results: ", result, "\n");
-            // console.log("CodeEditor got results...");
+            // console.log("CodeEditor: got results...");
             try {
                 let codeOutput: Message = JSON.parse(result);
                 let inViewID = store.getState().projectManager.inViewID;
@@ -171,17 +171,20 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                         recvCodeOutput(codeOutput); //TODO: move this to redux
                     } else {
                         if (codeOutput.type == ContentType.PANDAS_DATAFRAME) {
-                            console.log("dispatch tableData");
+                            console.log("CodeEditor: dispatch tableData");
                             dispatch(setTableData(codeOutput.content));
                         } else if (codeOutput.type === ContentType.RICH_OUTPUT) {
                             handleResultData(codeOutput);
                         } else if (codeOutput.type === ContentType.NONE) {
                             console.log(
-                                "CodeEditor - dispatch output with none content type :",
+                                "CodeEditor: dispatch output with none content type :",
                                 codeOutput
                             );
                         } else {
-                            console.log("dispatch text output:", codeOutput);
+                            console.log(
+                                "CodeEditor: dispatch text output:",
+                                codeOutput
+                            );
                             recvCodeOutput(codeOutput);
                         }
                     }

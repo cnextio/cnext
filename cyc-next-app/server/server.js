@@ -115,7 +115,7 @@ try {
     io.on('connection', (socket) => {
         function codeExecutorHandler(strMessage) {
             // clientMessage = strMessage.slice();
-            console.log('Receive msg from client, server will run: ', JSON.parse(strMessage));
+            console.log('Receive msg from client, server will run: ', JSON.parse(strMessage)['command_name']);
             codeExecutor.send2executor(strMessage);
         }
 

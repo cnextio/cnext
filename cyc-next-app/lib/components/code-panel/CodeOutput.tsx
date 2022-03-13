@@ -15,11 +15,8 @@ import Ansi from "ansi-to-react";
 const CodeOutputComponent = ({ codeOutput }) => {
     const dfUpdates = useSelector((state) => _checkDFUpdates(state));
     let [outputContent, setOutputContent] = useState<{}[]>([]);
-    let [outputType, setOutputType] = useState("");
-    const endPointRef = useRef(null);
     const codeOutputRef = useRef(null);
-    const dispatch = useDispatch();
-
+    
     function _checkDFUpdates(state) {
         const activeDataFrame = state.dataFrames.activeDataFrame;
         if (

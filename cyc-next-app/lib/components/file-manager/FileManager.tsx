@@ -191,7 +191,8 @@ const FileManager = () => {
     };
 
     // called when the in-view file changed
-    const SAVE_FILE_DURATION = 1000;
+    const SAVE_FILE_DURATION = 30000;
+    // const SAVE_STATE_DURATION = 30000;
     useEffect(() => {
         clearSaveConditions();
         let state = store.getState();

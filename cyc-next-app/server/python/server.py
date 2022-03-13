@@ -56,9 +56,9 @@ if __name__ == "__main__":
     while True:
         for line in sys.stdin:
             try:
-                log.info('Got message %s' % line)
+                # log.info('Got message %s' % line)
                 message = Message(**json.loads(line))
-
+                log.info('Got message from %s command %s' % (message.webapp_endpoint, message.command_name))
                 message_handler[message.webapp_endpoint].handle_message(
                     message)
 
