@@ -99,7 +99,8 @@ class ContentType(str, Enum):
 
 class SubContentType(str, Enum):
     PLOTLY_FIG = 'plotly_fig'
-    HTML_STRING = 'html_string'
+    TEXT_HTML = 'text/html'
+    APPLICATION_JSON = 'application/json'
     NONE = 'none'
 
     def __str__(self):

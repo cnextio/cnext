@@ -36,7 +36,8 @@ export enum LineStatus {
 export interface ICodeLine {
     lineID: string;
     status: LineStatus;
-    result: ICodeResult | null;
+    result?: ICodeResult;
+    textOuput?: ICodeResult;
     generated: boolean;
     groupID?: string;
     cAssistInfo?: ICAssistInfo;
@@ -102,6 +103,8 @@ export interface ICodeResult {
     type: ContentType;
     content: string | object | IPlotResult;
     subType: string;
+    msg_id?: string;
+    session_id?: string;
 }
 
 export interface IPlotResult {

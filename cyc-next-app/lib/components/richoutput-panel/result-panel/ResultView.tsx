@@ -11,7 +11,9 @@ import { ICodeLine } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
 import { ContentType, SubContentType } from "../../../interfaces/IApp";
 
-const ResultWithNoSSR = dynamic(() => import("react-plotly.js"), { ssr: false });
+const ResultWithNoSSR = dynamic(() => import("react-plotly.js"), {
+    ssr: false,
+});
 
 const ResultView = (props: any) => {
     const activeLine = useSelector((state) => state.codeEditor.activeLine);
@@ -26,8 +28,12 @@ const ResultView = (props: any) => {
             /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
             let inResultData = JSON.parse(JSON.stringify(data));
             inResultData["data"][0]["hovertemplate"] = "%{x}: %{y}";
-            inResultData.layout.width = width ? width : inResultData.layout.width;
-            inResultData.layout.height = height ? height : inResultData.layout.height;
+            inResultData.layout.width = width
+                ? width
+                : inResultData.layout.width;
+            inResultData.layout.height = height
+                ? height
+                : inResultData.layout.height;
             inResultData.layout.margin = { b: 10, l: 80, r: 30, t: 30 };
             inResultData["config"] = { displayModeBar: false };
             return inResultData;
@@ -48,36 +54,44 @@ const ResultView = (props: any) => {
         if (inViewID) {
             const codeLines: ICodeLine[] = state.codeEditor.codeLines[inViewID];
             const codeWithResult: ICodeLine[] = codeLines.filter(
-                (code) => code.result && code.result.type === ContentType.RICH_OUTPUT
+                (code) => code.result?.type === ContentType.RICH_OUTPUT
             );
             console.log("codeWithResult", codeWithResult);
             return (
                 <StyledResultView id={resultViewId}>
                     {codeWithResult.length > 0
                         ? codeWithResult.map((codeResult: ICodeLine) => (
-                              <ScrollIntoViewIfNeeded
-                                  active={codeResult.lineID == activeLine}
-                                  options={{
-                                      block: "start",
-                                      inline: "center",
-                                      behavior: "smooth",
-                                      boundary: document.getElementById(resultViewId),
-                                  }}
-                              >
+                            //   <ScrollIntoViewIfNeeded
+                            //       active={codeResult.lineID == activeLine}
+                            //       options={{
+                            //           block: "start",
+                            //           inline: "center",
+                            //           behavior: "smooth",
+                            //           boundary:
+                            //               document.getElementById(resultViewId),
+                            //       }}
+                            //   >
                                   <SingleResult
                                       key={codeResult.lineID}
-                                      variant='outlined'
+                                      variant="outlined"
                                       focused={codeResult.lineID == activeLine}
                                   >
-                                      {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
+                                      {codeResult?.result?.subType ===
+                                          SubContentType.PLOTLY_FIG &&
                                           React.createElement(
                                               ResultWithNoSSR,
-                                              setLayout(codeResult?.result?.content)
+                                              setLayout(
+                                                  codeResult?.result?.content
+                                              )
                                           )}
                                       {codeResult?.result?.subType ===
                                           SubContentType.APPLICATION_JSON &&
-                                          JSON.stringify(codeResult?.result?.content)}
-                                      {codeResult?.result?.subType.includes("image") && (
+                                          JSON.stringify(
+                                              codeResult?.result?.content
+                                          )}
+                                      {codeResult?.result?.subType.includes(
+                                          "image"
+                                      ) && (
                                           <img
                                               src={
                                                   "data:" +
@@ -88,10 +102,13 @@ const ResultView = (props: any) => {
                                           />
                                       )}
                                       {/* Display video/ audio */}
-                                      {codeResult?.result?.subType === SubContentType.HTML_STRING &&
-                                          ReactHtmlParser(codeResult?.result?.content)}
+                                      {codeResult?.result?.subType ===
+                                          SubContentType.TEXT_HTML &&
+                                          ReactHtmlParser(
+                                              codeResult?.result?.content
+                                          )}
                                   </SingleResult>
-                              </ScrollIntoViewIfNeeded>
+                            //   </ScrollIntoViewIfNeeded>
                           ))
                         : null}
                 </StyledResultView>

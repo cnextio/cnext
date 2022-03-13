@@ -77,7 +77,7 @@ export const CodeEditorRedux = createSlice({
                     let codeLine: ICodeLine = {
                         lineID: shortid(),
                         status: LineStatus.EDITED,
-                        result: null,
+                        // result: null,
                         generated: false,
                     };
                     codeLines.push(codeLine);
@@ -86,7 +86,7 @@ export const CodeEditorRedux = createSlice({
                         let codeLine: ICodeLine = {
                             lineID: shortid(),
                             status: LineStatus.EDITED,
-                            result: null,
+                            // result: null,
                             generated: false,
                         };
                         codeLines.push(codeLine);

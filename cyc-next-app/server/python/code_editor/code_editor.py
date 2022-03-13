@@ -74,7 +74,7 @@ class MessageHandler(BaseMessageHandler):
             if type(msg_ipython.content['data']) is dict:
                 if 'text/html' in msg_ipython.content['data']:
                     message.type = ContentType.RICH_OUTPUT
-                    message.sub_type = SubContentType.HTML_STRING
+                    message.sub_type = SubContentType.TEXT_HTML
                     message.content = msg_ipython.content['data']['text/html']
             else:
                 message.type = ContentType.STRING
