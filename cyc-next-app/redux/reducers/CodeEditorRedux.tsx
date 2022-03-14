@@ -16,7 +16,7 @@ import {
     ILineRange,
     ICodeToInsert,
 } from "../../lib/interfaces/ICodeEditor";
-import { ifElseDict, isJsonString } from "../../lib/components/libs";
+import { ifElseDict } from "../../lib/components/libs";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 
@@ -29,9 +29,8 @@ type CodeEditorState = {
     timestamp: { [id: string]: number };
     fileSaved: boolean;
     runQueue: IRunQueue;
-    /** plotResultUpdate indicates whether a plot is added or removed. This is to optimize for the performance of
-     * PlotView, which would only be rerendered when this variable is updated */
-    // plotResultUpdate: number;
+    /** resultUpdate indicates whether a result is added or removed. This is to optimize for the performance of
+     * ResultView, which would only be rerendered when this variable is updated */
     resultUpdate: number;
     activeLine: string | null;
     cAssistInfo: ICAssistInfo | undefined;
@@ -46,7 +45,6 @@ const initialState: CodeEditorState = {
     timestamp: {},
     fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP },
-    // plotResultUpdate: 0,
     resultUpdate: 0,
     activeLine: null,
     cAssistInfo: undefined,
@@ -67,7 +65,6 @@ export const CodeEditorRedux = createSlice({
 
             let codeLines: ICodeLine[] = codeTextData.codeLines;
 
-            console.log("codeLines", codeLines);
             /** If codeLines doesn't have data,
              *  read codeText from file data then create codeLines line by line from codeText */
             if (!codeLines || codeLines.length === 0) {
@@ -94,8 +91,11 @@ export const CodeEditorRedux = createSlice({
                 }
             } else {
                 /** If codeLines have data, that mean the state data already was saved,
-                 *  increase the resultUpdate to display richoutput result */
-                state.resultUpdate += 1;
+                 *  assign the resultUpdate to display richoutput result */
+                let resultData = codeLines.filter(
+                    (codeLine) => codeLine.hasOwnProperty("result") && codeLine.result !== null
+                );
+                state.resultUpdate = resultData.length;
             }
 
             state.codeLines[reduxFileID] = codeLines;
@@ -227,9 +227,9 @@ export const CodeEditorRedux = createSlice({
         addResult: (state, action) => {
             let resultMessage: ICodeResultMessage = action.payload;
             let inViewID = resultMessage.inViewID;
-            let content: object|string = '';
+            let content: object | string = "";
 
-            if ([SubContentType.APPLICATION_JSON].includes(resultMessage?.subType)){
+            if ([SubContentType.APPLICATION_JSON].includes(resultMessage?.subType)) {
                 try {
                     content = JSON.parse(resultMessage.content);
                 } catch (error) {

@@ -12,7 +12,6 @@ import { useSelector } from "react-redux";
 import { ifElse } from "../libs";
 import RichOuputViewHeader from "./RichOuputViewHeader";
 import SummaryView from "./summary-panel/SummaryView";
-import PlotView from "./plot-panel/PlotView";
 import ResultView from "./result-panel/ResultView";
 import { RichOutputViewHeader } from "../../interfaces/IRichOuputViewer";
 import ExperimentManager from "./experiment-panel/ExperimentsManager";

@@ -1,8 +1,12 @@
-import shortid from "shortid";
-import { createSlice } from '@reduxjs/toolkit'
-import { IDirectoryMetadata, IDirListResult, IFileMetadata, IProjectMetadata } from "../../lib/interfaces/IFileManager";
+import { createSlice } from "@reduxjs/toolkit";
+import {
+    IDirectoryMetadata,
+    IDirListResult,
+    IFileMetadata,
+    IProjectMetadata,
+} from "../../lib/interfaces/IFileManager";
+import { addItemToList } from "../../lib/components/libs";
 import { IConfigs } from "../../lib/interfaces/IApp";
-
 
 type ProjectManagerState = {
     openFiles: { [id: string]: IFileMetadata };
@@ -20,23 +24,21 @@ type ProjectManagerState = {
 };
 
 const initialState: ProjectManagerState = {
-  openFiles: {},
-  activeProject: null,
-  executorID: null,
-  inViewID: null,
-  openDirs: {},
-  fileToClose: null,
-  fileToOpen: null,
-  fileToSave: [],
-  fileToSaveState: [],
-  showProjectExplore: false,
-  serverSynced: false,
-  configs: {
-    local_tmp_dir:
-      "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.tmp",
-    mlflow_tracking_uri:
-      "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
-  },
+    openFiles: {},
+    activeProject: null,
+    executorID: null,
+    inViewID: null,
+    openDirs: {},
+    fileToClose: null,
+    fileToOpen: null,
+    fileToSave: [],
+    fileToSaveState: [],
+    showProjectExplore: false,
+    serverSynced: false,
+    configs: {
+        local_tmp_dir: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.tmp",
+        mlflow_tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+    },
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -89,10 +91,7 @@ export const ProjectManagerRedux = createSlice({
         setFileToOpen: (state, action) => {
             let path = action.payload;
             if (Object.keys(state.openFiles).includes(path)) {
-                console.log(
-                    "ProjectManagerRedux setFileToOpen file already open: ",
-                    path
-                );
+                console.log("ProjectManagerRedux setFileToOpen file already open: ", path);
                 state.inViewID = path;
                 state.serverSynced = false;
             } else {
@@ -102,7 +101,7 @@ export const ProjectManagerRedux = createSlice({
 
         setFileToSave: (state, action) => {
             if (action.payload) {
-                state.fileToSave.push(action.payload);
+                state.fileToSave = addItemToList(action.payload, state.fileToSave);
             } else {
                 state.fileToSave = [];
             }
@@ -110,7 +109,7 @@ export const ProjectManagerRedux = createSlice({
 
         setFileToSaveState: (state, action) => {
             if (action.payload) {
-                state.fileToSaveState.push(action.payload);
+                state.fileToSaveState = addItemToList(action.payload, state.fileToSaveState);
             } else {
                 state.fileToSaveState = [];
             }
@@ -121,8 +120,7 @@ export const ProjectManagerRedux = createSlice({
         },
 
         setScrollPos: (state, action) => {
-            if (state.inViewID)
-                state.openFiles[state.inViewID].scroll_pos = action.payload;
+            if (state.inViewID) state.openFiles[state.inViewID].scroll_pos = action.payload;
         },
     },
 });
@@ -143,4 +141,4 @@ export const {
     setScrollPos,
 } = ProjectManagerRedux.actions;
 
-export default ProjectManagerRedux.reducer
+export default ProjectManagerRedux.reducer;

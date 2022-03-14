@@ -1,11 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-    Message,
-    WebAppEndpoint,
-    ContentType,
-    CommandName,
-    CommandType,
-} from "../../interfaces/IApp";
+import { Message, WebAppEndpoint, ContentType, CommandName } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
 import store from "../../../redux/store";
@@ -46,7 +40,6 @@ import {
     ICodeToInsert,
 } from "../../interfaces/ICodeEditor";
 import { EditorState, Transaction, TransactionSpec } from "@codemirror/state";
-// import { extensions } from './codemirror-extentions/extensions';
 import { useCodeMirror } from "@uiw/react-codemirror";
 import {
     ICodeGenResult,
@@ -63,7 +56,6 @@ import {
     CNextXDimColumnNameExpression,
     CNextYDimColumnNameExpression,
 } from "../../codemirror/grammar/cnext-python.terms";
-import { setFileToSave } from "../../../redux/reducers/ProjectManagerRedux";
 import {
     editStatusGutter,
     getCodeLine,
@@ -181,10 +173,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                                 codeOutput
                             );
                         } else {
-                            console.log(
-                                "CodeEditor: dispatch text output:",
-                                codeOutput
-                            );
+                            console.log("CodeEditor: dispatch text output:", codeOutput);
                             recvCodeOutput(codeOutput);
                         }
                     }
@@ -263,8 +252,6 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             console.log("CodeEditor useEffect setGenCodeLineDeco");
         } catch {}
     });
-
-    /** */
 
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update
      * with line status. This works but might need to find a better performant solution. */
@@ -515,7 +502,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                     // Convert it to 0-indexed by -1.
                     // Note 2: the lines being added are lines above currentLine.
                     // If there is new text in the current line then current line is `edited` not `added`
-                    dispatch(updateLines(updatedLineInfo));                    
+                    dispatch(updateLines(updatedLineInfo));
                 } else if (updatedLineCount < 0) {
                     // Note 1: _getCurrentLineNumber returns line number indexed starting from 1.
                     // Convert it to 0-indexed by -1.
@@ -536,7 +523,6 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                     };
                     dispatch(setLineStatus(lineStatus));
                 }
-                // dispatch(setFileToSave(inViewID));
                 handleCAsisstTextUpdate();
             }
         } catch (error) {
