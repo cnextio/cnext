@@ -1,7 +1,7 @@
 import { codeTestOutput, codeTestDF, codeTestEditor } from '../data/code-text';
 const WAIT_TIME_OUT = 2000;
 describe('Check UI of all Element on Cyc web app', () => {
-    it('Check state of Editor is ok?', () => {
+    it('Check state of Editor', () => {
         cy.visit('/').wait(WAIT_TIME_OUT);
         let lines = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
