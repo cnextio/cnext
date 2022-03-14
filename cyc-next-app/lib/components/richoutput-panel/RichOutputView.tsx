@@ -22,8 +22,6 @@ import GridView, { GridViewStatus } from "./data-panel/GridView";
 const RichOutputView = (props: any) => {
     const tableData = useSelector((state) => state.dataFrames.tableData);
     const [gridViewStatus, setGridViewStatus] = useState<GridViewStatus>(GridViewStatus.NONE);
-
-    // const plotResultUpdate = useSelector((state) => state.codeEditor.plotResultUpdate);
     const resultUpdate = useSelector((state) => state.codeEditor.resultUpdate);
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
     const [show, setShow] = useState(RichOutputViewHeader.DATA);
@@ -31,10 +29,6 @@ const RichOutputView = (props: any) => {
     useEffect(() => {
         setShow(RichOutputViewHeader.DATA);
     }, [tableData]);
-
-    // useEffect(() => {
-    //     setShow(RichOutputViewHeader.PLOTS);
-    // }, [plotResultUpdate]);
 
     useEffect(() => {
         setShow(RichOutputViewHeader.RESULTS);
@@ -68,7 +62,6 @@ const RichOutputView = (props: any) => {
                 ifElse(tableData, activeDataFrame, null) &&
                 (gridViewStatus === GridViewStatus.SELECTED ? <GridView /> : <TableView />)}
             {show == RichOutputViewHeader.SUMMARY && <SummaryView />}
-            {/* {show == RichOutputViewHeader.PLOTS && <PlotView />} */}
             {show === RichOutputViewHeader.RESULTS && <ResultView />}
             {show === RichOutputViewHeader.EXPERIMENTS && <ExperimentManager />}
             {show === RichOutputViewHeader.MODEL && <ModelView />}
