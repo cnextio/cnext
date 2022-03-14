@@ -227,7 +227,7 @@ export const CodeEditorRedux = createSlice({
         addResult: (state, action) => {
             let resultMessage: ICodeResultMessage = action.payload;
             let inViewID = resultMessage.inViewID;
-            let content: object|string = '';
+            let content: object|string|null = null;
 
             if ([SubContentType.APPLICATION_JSON].includes(resultMessage?.subType)){
                 try {
@@ -237,30 +237,31 @@ export const CodeEditorRedux = createSlice({
                         "CodeEditorRedux: result is not a json string ",
                         resultMessage.content
                     );
-                    // content = resultMessage.content;
                 }
             } else {
                 content = resultMessage.content;
             }
-            // const content = isJsonString(resultMessage?.content)
-            //     ? JSON.parse(resultMessage?.content)
-            //     : resultMessage.content;
-            let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
-            let result: ICodeResult = {
-                type: resultMessage.type,
-                subType: resultMessage.subType,
-                content: content,
-            };
-            if (lineRange != null) {
-                /** TODO: double check this for now only associate fromLine to result */
-                let lineNumber = lineRange.fromLine;
-                let codeLine: ICodeLine = state.codeLines[inViewID][lineNumber];
-                codeLine.result = result;
 
-                // let statePlotResults: IStatePlotResults = state.plotResults;
-                // statePlotResults[codeLine.lineID] = plotResult;
-                state.resultUpdate += 1;
-            }
+            let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
+            /* only create result when content has something */
+            if (content != null && content !== '') {
+                let result: ICodeResult = {
+                    type: resultMessage.type,
+                    subType: resultMessage.subType,
+                    content: content,
+                };
+                if (lineRange != null) {
+                    /** TODO: double check this for now only associate fromLine to result */
+                    let lineNumber = lineRange.fromLine;
+                    let codeLine: ICodeLine =
+                        state.codeLines[inViewID][lineNumber];
+                    codeLine.result = result;
+
+                    // let statePlotResults: IStatePlotResults = state.plotResults;
+                    // statePlotResults[codeLine.lineID] = plotResult;
+                    state.resultUpdate += 1;
+                }
+            }            
         },
 
         setActiveLine: (state, action) => {
