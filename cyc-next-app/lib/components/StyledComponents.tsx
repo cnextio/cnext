@@ -654,9 +654,9 @@ export const PlotContainer = styled(Paper)`
     margin: 1px;
     overflow: hidden;
     width: fit-content;
-    border-color: ${(props) =>
-        props.focused ? props.theme.palette.primary.light : null};
+    border-color: ${(props) => (props.focused ? props.theme.palette.primary.light : null)};
     border-width: ${(props) => (props.focused ? "2px" : null)};
+    margin-bottom: 8px;
 `;
 
 export const SmallVizContainer = styled(MuiTableContainer)`

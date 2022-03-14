@@ -16,12 +16,7 @@ import {
     setServerSynced,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store from "../../../redux/store";
-import {
-    CommandName,
-    ContentType,
-    Message,
-    WebAppEndpoint,
-} from "../../interfaces/IApp";
+import { ContentType, Message, WebAppEndpoint } from "../../interfaces/IApp";
 import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
 import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
 import { ifElse } from "../libs";
@@ -34,6 +29,7 @@ const FileManager = () => {
     const fileToOpen = useSelector((state) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state) => state.projectManager.fileToSaveState);
+    const resultUpdate = useSelector((state) => state.codeEditor.resultUpdate);
     const codeText = useSelector((state) => getCodeText(state));
     const codeLines = useSelector((state) => getCodeLines(state));
     const [codeTextUpdated, setCodeTextUpdated] = useState(false);
@@ -69,6 +65,7 @@ const FileManager = () => {
                                         // timestamp: fmResult.content['timestamp']
                                     };
                                     dispatch(initCodeText(reduxCodeText));
+                                    dispatch(setFileToSaveState(null));
 
                                     /** update file timestamp */
                                     let fileMetadata = {
@@ -239,7 +236,6 @@ const FileManager = () => {
      * sent out at most once every SAVE_FILE_DURATION
      */
     const saveFile = () => {
-        // console.log('FileManager save file', codeTextUpdated);
         if (saveTimeout && fileToSave.length > 0 && codeText !== null) {
             console.log("FileManager: save file");
             for (let filePath of fileToSave) {
@@ -254,7 +250,6 @@ const FileManager = () => {
                     { path: file.path, timestamp: timestamp }
                 );
                 console.log("FileManager send:", message.command_name, message.metadata);
-                // console.log('FileManager send:', message);
                 _sendMessage(message);
                 setSaveTimeout(false);
             }
@@ -264,9 +259,13 @@ const FileManager = () => {
         saveFile();
     }, [saveTimeout, fileToSave]);
 
+    /**
+     * This function will be called whenever display new results or group execute lines.
+     * However, state will only be saved if there is state to be saved
+     */
     const saveState = () => {
-        if (saveTimeout && fileToSaveState.length > 0 && codeLines !== null) {
-            console.log("FileManager: save state");
+        console.log("FileManager: save state");
+        if (fileToSaveState.length > 0 && (codeLines !== null || resultUpdate > 0)) {
             for (let filePath of fileToSaveState) {
                 const state = store.getState();
                 const codeLines = state.codeEditor.codeLines[filePath];
@@ -277,13 +276,12 @@ const FileManager = () => {
                 });
                 console.log("FileManager State send:", message.command_name, message.metadata);
                 _sendMessage(message);
-                setSaveTimeout(false);
             }
         }
     };
     useEffect(() => {
         saveState();
-    }, [saveTimeout, fileToSaveState]);
+    }, [fileToSaveState, resultUpdate]);
 
     /**
      * Use fileToSave and fileToSaveState instead of codeText to trigger saveFile and saveState so we can control
