@@ -64,6 +64,13 @@ class MessageHandler(BaseMessageHandler):
 
         # Handle success message
         message.error = False
+
+        # Add header message from ipython to message 's metadata
+        message.metadata = {
+            'message_id': msg_ipython.header['msg_id'],
+            'message_type': msg_ipython.header['msg_type'],
+            'session': msg_ipython.header['session']
+        }
         if self._is_execute_reply(msg_ipython.header):
             message.type = ContentType.NONE
             message.sub_type = SubContentType.NONE
