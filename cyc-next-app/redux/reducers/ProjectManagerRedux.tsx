@@ -5,7 +5,6 @@ import {
     IFileMetadata,
     IProjectMetadata,
 } from "../../lib/interfaces/IFileManager";
-import { addItemToList } from "../../lib/components/libs";
 import { IConfigs } from "../../lib/interfaces/IApp";
 
 type ProjectManagerState = {
@@ -101,7 +100,8 @@ export const ProjectManagerRedux = createSlice({
 
         setFileToSave: (state, action) => {
             if (action.payload) {
-                state.fileToSave = addItemToList(action.payload, state.fileToSave);
+                state.fileToSave.push(action.payload);
+                state.fileToSave = [...new Set(state.fileToSave)];
             } else {
                 state.fileToSave = [];
             }
@@ -109,7 +109,8 @@ export const ProjectManagerRedux = createSlice({
 
         setFileToSaveState: (state, action) => {
             if (action.payload) {
-                state.fileToSaveState = addItemToList(action.payload, state.fileToSaveState);
+                state.fileToSaveState.push(action.payload);
+                state.fileToSaveState = [...new Set(state.fileToSaveState)];
             } else {
                 state.fileToSaveState = [];
             }

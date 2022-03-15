@@ -51,7 +51,10 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.read_file:
                 if 'path' in metadata.keys():
                     timestamp = metadata['timestamp'] if 'timestamp' in metadata else None
-                    result = files.read_file(metadata['path'], timestamp)
+                    result = files.read_file(
+                        path=metadata['path'],
+                        project_path=metadata["projectPath"],
+                        timestamp=timestamp)
                     if result == None:
                         type = ContentType.NONE
                     else:
@@ -63,7 +66,9 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.save_state:
                 if 'path' in metadata.keys():
                     result = files.save_state(
-                        metadata['path'], message.content)
+                        path=metadata['path'],
+                        project_path=metadata['projectPath'],
+                        content=message.content)
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.close_file:
                 result = projects.close_file(metadata['path'])

@@ -19,14 +19,4 @@ export const isJsonString = (data: string) => {
     return true;
 };
 
-/** Add string to list
- * If item is already exists in list, not push item to list
- */
-export const addItemToList = (newItem: string, listItem: Array<string>) => {
-    if (!listItem.includes(newItem)) {
-        listItem.push(newItem);
-    }
-    return listItem;
-};
-
 export const emptyString = "";

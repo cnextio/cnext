@@ -8,7 +8,8 @@ from project_manager.interfaces import FileContent
 
 log = logs.get_logger(__name__)
 
-CNEXT_FOLDER_PATH = 'cnext/'  # The folder that consist the state, configuration files
+# The folder that consist the state, configuration files
+CNEXT_FOLDER_PATH = '.cnext/'
 
 
 def list_dir(path):
@@ -33,7 +34,8 @@ def set_name(path):
     except Exception:
         raise Exception
 
-def read_file(path, timestamp = None):
+
+def read_file(path, project_path, timestamp=None):
     try:
         result: FileContent = None
         log.info('Read file %s, old timestamp %s' % (path, timestamp))
@@ -48,7 +50,7 @@ def read_file(path, timestamp = None):
 
             # If state file path is exists that mean, the state already saved.
             # Read data from state file path.
-            state_path = get_state_path(path)
+            state_path = get_state_path(path, project_path)
             if os.path.exists(state_path):
                 with open(state_path) as state_file:
                     data = json.load(state_file)
@@ -93,13 +95,13 @@ def save_file(path, content):
         raise Exception
 
 
-def save_state(path, content):
+def save_state(path, project_path, content):
     """
         Save state and return file metadata
     """
     try:
         log.info('Save state {}'.format(path))
-        state_path = get_state_path(path)
+        state_path = get_state_path(path, project_path)
         state_file_name = state_path.split('/')[-1]
         os.makedirs(os.path.dirname(state_path), exist_ok=True)
         with open(state_path, 'w') as outfile:
@@ -110,13 +112,21 @@ def save_state(path, content):
         raise Exception
 
 
-def get_state_path(path):
+def get_state_path(path, project_path):
     """
         Get state path from file path
     """
-    file_name = path.split('/')[-1]
-    folder_path = os.path.dirname(path)
+    if project_path not in path:
+        err = "Project path is not match with file path: {project_path} path: {path}".format(
+            project_path=project_path, path=path)
+        log.error(err)
+        raise Exception(err)
+    sub_path = path.replace(project_path, "")
+    # If the first character is slash, must remove this to make the os.path.join function work properly
+    # If It start with a slash, then python is considered an "absolute path" and everything before it is discarded
+    if sub_path[0] == '/':
+        sub_path = sub_path[1::]  # Remove the first character is slash
     file_path = os.path.join(
-        folder_path, CNEXT_FOLDER_PATH, 'states', file_name)
+        project_path, CNEXT_FOLDER_PATH, 'states', sub_path)
     state_path = os.path.splitext(file_path)[0] + '.json'
     return state_path

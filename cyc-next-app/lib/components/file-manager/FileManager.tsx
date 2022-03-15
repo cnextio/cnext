@@ -194,9 +194,11 @@ const FileManager = () => {
         clearSaveConditions();
         let state = store.getState();
         if (inViewID) {
-            let file: IFileMetadata = state.projectManager.openFiles[inViewID];
-            let message: Message = _createMessage(ProjectCommand.read_file, "", 1, {
+            const file: IFileMetadata = state.projectManager.openFiles[inViewID];
+            const projectPath = state.projectManager.activeProject?.path;
+            const message: Message = _createMessage(ProjectCommand.read_file, "", 1, {
                 path: file.path,
+                projectPath: projectPath,
                 timestamp: file.timestamp,
             });
             _sendMessage(message);
@@ -270,8 +272,10 @@ const FileManager = () => {
                 const state = store.getState();
                 const codeLines = state.codeEditor.codeLines[filePath];
                 const timestamp = state.codeEditor.timestamp[filePath];
+                const projectPath = state.projectManager.activeProject?.path;
                 const message: Message = _createMessage(ProjectCommand.save_state, codeLines, 1, {
                     path: filePath,
+                    projectPath: projectPath,
                     timestamp: timestamp,
                 });
                 console.log("FileManager State send:", message.command_name, message.metadata);
