@@ -267,7 +267,7 @@ const FileManager = () => {
      */
     const saveState = () => {
         console.log("FileManager: save state");
-        if (fileToSaveState.length > 0 && (codeLines !== null || resultUpdate > 0)) {
+        if (fileToSaveState.length > 0 && (codeLines != null || resultUpdate > 0)) {
             for (let filePath of fileToSaveState) {
                 const state = store.getState();
                 const codeLines = state.codeEditor.codeLines[filePath];
@@ -290,12 +290,13 @@ const FileManager = () => {
                 );
                 console.log("FileManager State send:", message.command_name, message.metadata);
                 _sendMessage(message);
+                setSaveTimeout(false);
             }
         }
     };
     useEffect(() => {
         saveState();
-    }, [fileToSaveState, resultUpdate]);
+    }, [saveTimeout, fileToSaveState, resultUpdate]);
 
     /**
      * Use fileToSave and fileToSaveState instead of codeText to trigger saveFile and saveState so we can control
