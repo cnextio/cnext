@@ -349,6 +349,7 @@ const FileManager = () => {
                     message.metadata
                 );
                 _sendMessage(message);
+                setSaveTimeout(false);
             }
         }
     };
