@@ -5,7 +5,7 @@ import ProjectManagerRedux from '../reducers/ProjectManagerRedux'
 import ExperimentManagerRedux from '../reducers/ExperimentManagerRedux'
 // import dfUpdatesReducer from '../reducers/dfUpdates'
 
-export default configureStore({
+const store = configureStore({
   reducer: {
     dataFrames: dataFrameReducer,
     codeEditor: codeEditorReducer,
@@ -13,3 +13,7 @@ export default configureStore({
     experimentManager: ExperimentManagerRedux,
   },
 })
+
+export default store;
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
