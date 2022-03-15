@@ -16,7 +16,7 @@ import {
     setServerSynced,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store from "../../../redux/store";
-import { ContentType, Message, WebAppEndpoint } from "../../interfaces/IApp";
+import { ContentType, Message, SubContentType, WebAppEndpoint } from "../../interfaces/IApp";
 import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
 import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
 import { ifElse } from "../libs";
@@ -271,13 +271,23 @@ const FileManager = () => {
             for (let filePath of fileToSaveState) {
                 const state = store.getState();
                 const codeLines = state.codeEditor.codeLines[filePath];
+                // Avoid to save the text/html result because maybe it's audio/video files.
+                // Save these files make bad performance.
+                const codeLinesSaveState = codeLines.filter(
+                    (codeLine) => codeLine.result?.subType !== SubContentType.TEXT_HTML
+                );
                 const timestamp = state.codeEditor.timestamp[filePath];
                 const projectPath = state.projectManager.activeProject?.path;
-                const message: Message = _createMessage(ProjectCommand.save_state, codeLines, 1, {
-                    path: filePath,
-                    projectPath: projectPath,
-                    timestamp: timestamp,
-                });
+                const message: Message = _createMessage(
+                    ProjectCommand.save_state,
+                    codeLinesSaveState,
+                    1,
+                    {
+                        path: filePath,
+                        projectPath: projectPath,
+                        timestamp: timestamp,
+                    }
+                );
                 console.log("FileManager State send:", message.command_name, message.metadata);
                 _sendMessage(message);
             }
