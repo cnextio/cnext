@@ -15,7 +15,7 @@ import {
     setOpenFiles,
     setServerSynced,
 } from "../../../redux/reducers/ProjectManagerRedux";
-import store from "../../../redux/store";
+import store, { RootState } from "../../../redux/store";
 import { ContentType, Message, SubContentType, WebAppEndpoint } from "../../interfaces/IApp";
 import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
 import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
@@ -24,18 +24,22 @@ import socket from "../Socket";
 
 const FileManager = () => {
     const dispatch = useDispatch();
-    const inViewID = useSelector((state) => state.projectManager.inViewID);
+    const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     const fileToClose = useSelector(
-        (state) => state.projectManager.fileToClose
+        (state: RootState) => state.projectManager.fileToClose
     );
-    const fileToOpen = useSelector((state) => state.projectManager.fileToOpen);
-    const fileToSave = useSelector((state) => state.projectManager.fileToSave);
+    const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
+    const fileToSave = useSelector(
+        (state: RootState) => state.projectManager.fileToSave
+    );
     const fileToSaveState = useSelector(
-        (state) => state.projectManager.fileToSaveState
+        (state: RootState) => state.projectManager.fileToSaveState
     );
-    const resultUpdate = useSelector((state) => state.codeEditor.resultUpdate);
-    const codeText = useSelector((state) => getCodeText(state));
-    const codeLines = useSelector((state) => getCodeLines(state));
+    const resultUpdate = useSelector(
+        (state: RootState) => state.codeEditor.resultUpdate
+    );
+    const codeText = useSelector((state: RootState) => getCodeText(state));
+    const codeLines = useSelector((state: RootState) => getCodeLines(state));
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
     // using this to avoid saving the file when we load code doc for the first time
     // const [codeTextInit, setcodeTextInit] = useState(0);
@@ -89,6 +93,8 @@ const FileManager = () => {
                                         fmResult.content["timestamp"];
                                     dispatch(setFileMetaData(fileMetadata));
                                 }
+                                /** make sure that this is only set to true after redux state has been updated.
+                                 * Otherwise the save action will be triggered */
                                 dispatch(setServerSynced(true));
                                 // setcodeTextInit(1);
                             }
@@ -170,7 +176,7 @@ const FileManager = () => {
         });
     };
 
-    function getCodeText(state) {
+    function getCodeText(state: RootState) {
         let inViewID = state.projectManager.inViewID;
         if (inViewID) {
             return ifElse(state.codeEditor.codeText, inViewID, null);
@@ -178,7 +184,7 @@ const FileManager = () => {
         return null;
     }
 
-    function getCodeLines(state) {
+    function getCodeLines(state: RootState) {
         let inViewID = state.projectManager.inViewID;
         if (inViewID) {
             return ifElse(state.codeEditor.codeLines, inViewID, null);
@@ -355,7 +361,7 @@ const FileManager = () => {
     };
     useEffect(() => {
         saveState();
-    }, [saveTimeout, fileToSaveState, resultUpdate]);
+    }, [saveTimeout, fileToSaveState]);
 
     /**
      * Use fileToSave and fileToSaveState instead of codeText to trigger saveFile and saveState so we can control

@@ -113,7 +113,7 @@ export interface ICodeResult {
     subType: string;
     msg_id?: string;
     session_id?: string;
-    resultOrder?: number;
+    order?: number;
 }
 
 export interface IPlotResult {

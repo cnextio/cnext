@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Message, WebAppEndpoint, ContentType, CommandName } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
-import store from "../../../redux/store";
+import store, { RootState } from "../../../redux/store";
 import socket from "../Socket";
 import { basicSetup } from "../../codemirror/basic-setup";
 import { bracketMatching } from "@codemirror/matchbrackets";
@@ -24,6 +24,7 @@ import {
     updateCAssistInfo,
     compeleteRunQueue,
     setCodeToInsert,
+    clearRunQueueTextOutput,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -82,18 +83,28 @@ const ls = languageServer({
     languageId: "python",
 });
 
-const CodeEditor = ({ id, recvCodeOutput }) => {
+const CodeEditor = () => {
     // const CodeEditor = (props: any) => {
     /** This state is used to indicate server sync status. Code doc need to be resynced only
      * when it is first opened or being selected to be in view */
     // const [serverSynced, setServerSynced] = useState(false);
-    const serverSynced = useSelector((state) => state.projectManager.serverSynced);
-    const inViewID = useSelector((state) => state.projectManager.inViewID);
-    const codeLines: ICodeLine[] | null = useSelector((state) => getCodeLine(state));
+    const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
+    const inViewID = useSelector(
+        (state: RootState) => state.projectManager.inViewID
+    );
+    const codeLines: ICodeLine[] | null = useSelector((state: RootState) =>
+        getCodeLine(state)
+    );
     // const codeText: string[] = useSelector(state => getCodeTextRedux(state));
-    const runQueue = useSelector((state) => state.codeEditor.runQueue);
-    const cAssistInfo = useSelector((state) => state.codeEditor.cAssistInfo);
-    const codeToInsert = useSelector((state) => state.codeEditor.codeToInsert);
+    const runQueue = useSelector(
+        (state: RootState) => state.codeEditor.runQueue
+    );
+    const cAssistInfo = useSelector(
+        (state: RootState) => state.codeEditor.cAssistInfo
+    );
+    const codeToInsert = useSelector(
+        (state: RootState) => state.codeEditor.codeToInsert
+    );
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
     const editorRef = useRef();
@@ -278,6 +289,9 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     }, [editorRef.current]);
 
     useEffect(() => {
+        let state = store.getState();
+        let inViewID = state.projectManager.inViewID;
+        dispatch(clearRunQueueTextOutput(inViewID));
         execLines();
     }, [runQueue]);
 

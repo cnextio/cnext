@@ -14,13 +14,15 @@ import Ansi from "ansi-to-react";
 import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
 import store, { RootState } from "../../../redux/store";
 
-const CodeOutputComponent = ({ codeOutput }) => {
+const CodeOutputComponent = () => {
     const dfUpdates = useSelector((state: RootState) => checkDFUpdates(state));
     // const textOutput = useSelector((state: RootState) => getTextOuput(state));
     const textOutputCount = useSelector(
         (state: RootState) => state.codeEditor.textOutputCount
     );
-    let [outputContent, setOutputContent] = useState<{}[]>([]);
+    let [outputContent, setOutputContent] = useState<
+        (ICodeResultContent | undefined)[]
+    >([]);
     const codeOutputRef = useRef(null);
 
     function getTextOuput(state: RootState): (ICodeResultContent | undefined)[] {
@@ -32,12 +34,12 @@ const CodeOutputComponent = ({ codeOutput }) => {
                 })
                 .sort((item1: ICodeLine, item2: ICodeLine) => {
                     if (
-                        item1.textOutput?.resultOrder != null &&
-                        item2.textOutput?.resultOrder != null
+                        item1.textOutput?.order != null &&
+                        item2.textOutput?.order != null
                     ) {
                         return (
-                            item1.textOutput?.resultOrder -
-                            item2.textOutput?.resultOrder
+                            item1.textOutput?.order -
+                            item2.textOutput?.order
                         );
                     } else {
                         return -1;
@@ -50,14 +52,6 @@ const CodeOutputComponent = ({ codeOutput }) => {
                         content: item.textOutput?.content,
                     };
                 });
-            console.log(
-                "CodeOutput: ",
-                state.codeEditor.codeLines[inViewID]?.filter(
-                    (item: ICodeLine) => {
-                        return item.textOutput != null;
-                    }
-                )
-            );
             return textOutputs;
         } else {
             return [];
@@ -182,11 +176,10 @@ const CodeOutputComponent = ({ codeOutput }) => {
     // };
     // useEffect(handleNormalCodeOutput, [codeOutput]);
 
-    const handleNormalCodeOutput = () => {
-        const state: RootState = store.getState();        
+    const handleNormalCodeOutput = () => {        
         try {
-            let textOutputs = getTextOuput(state);
-            console.log("CodeOutput: ", textOutputs);
+            const state: RootState = store.getState();        
+            let textOutputs = getTextOuput(state);            
             setOutputContent(textOutputs);
         } catch (error) {
             // TODO: process json error
@@ -295,17 +288,6 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                 )}
                             </IndividualCodeOutputContent>
                         )}
-                        {/* {item["type"] === "error" &&
-                            typeof item["content"] === "object" &&
-                            item["content"].map((content) => (
-                                <IndividualCodeOutputContent
-                                    key={index}
-                                    component="pre"
-                                    variant="body2"
-                                >
-                                    <Ansi>{content.toString()}</Ansi>
-                                </IndividualCodeOutputContent>
-                            ))} */}
                         {index === outputContent.length - 1 && (
                             <ScrollIntoViewIfNeeded
                                 options={{
