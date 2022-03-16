@@ -102,6 +102,7 @@ export const ProjectManagerRedux = createSlice({
             if (action.payload) {
                 state.fileToSave.push(action.payload);
                 state.fileToSave = [...new Set(state.fileToSave)];
+                // console.log("ProjectManagerRedux: ", state.fileToSave);
             } else {
                 state.fileToSave = [];
             }
@@ -111,6 +112,7 @@ export const ProjectManagerRedux = createSlice({
             if (action.payload) {
                 state.fileToSaveState.push(action.payload);
                 state.fileToSaveState = [...new Set(state.fileToSaveState)];
+                // console.log("ProjectManagerRedux: ", state.fileToSaveState);
             } else {
                 state.fileToSaveState = [];
             }
