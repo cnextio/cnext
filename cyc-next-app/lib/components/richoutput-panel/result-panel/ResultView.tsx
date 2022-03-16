@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 import { ICodeLine } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
 import { ContentType, SubContentType } from "../../../interfaces/IApp";
+import { HTMLManager } from "@jupyter-widgets/html-manager";
 
 const ResultWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
@@ -28,12 +29,8 @@ const ResultView = (props: any) => {
             /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
             let inResultData = JSON.parse(JSON.stringify(data));
             inResultData["data"][0]["hovertemplate"] = "%{x}: %{y}";
-            inResultData.layout.width = width
-                ? width
-                : inResultData.layout.width;
-            inResultData.layout.height = height
-                ? height
-                : inResultData.layout.height;
+            inResultData.layout.width = width ? width : inResultData.layout.width;
+            inResultData.layout.height = height ? height : inResultData.layout.height;
             inResultData.layout.margin = { b: 10, l: 80, r: 30, t: 30 };
             inResultData["config"] = { displayModeBar: false };
             return inResultData;
@@ -57,58 +54,67 @@ const ResultView = (props: any) => {
                 (code) => code.result?.type === ContentType.RICH_OUTPUT
             );
             console.log("codeWithResult", codeWithResult);
+            for (let i = 0; i < codeWithResult.length; i++) {
+                if (
+                    codeWithResult[i].result?.subType == "application/vnd.jupyter.widget-view+json"
+                ) {
+                    // Create the widget area and widget manager
+                    const widgetarea = document.getElementsByClassName(
+                        "widgetarea"
+                    )[0] as HTMLElement;
+                    const manager = new HTMLManager();
+                    const model = manager.get_model(codeWithResult[i].result?.content["model_id"]);
+                    manager.display_view(manager.create_view(model), widgetarea);
+                }
+            }
             return (
                 <StyledResultView id={resultViewId}>
                     {codeWithResult.length > 0
                         ? codeWithResult.map((codeResult: ICodeLine) => (
-                            //   <ScrollIntoViewIfNeeded
-                            //       active={codeResult.lineID == activeLine}
-                            //       options={{
-                            //           block: "start",
-                            //           inline: "center",
-                            //           behavior: "smooth",
-                            //           boundary:
-                            //               document.getElementById(resultViewId),
-                            //       }}
-                            //   >
-                                  <SingleResult
-                                      key={codeResult.lineID}
-                                      variant="outlined"
-                                      focused={codeResult.lineID == activeLine}
-                                  >
-                                      {codeResult?.result?.subType ===
-                                          SubContentType.PLOTLY_FIG &&
-                                          React.createElement(
-                                              ResultWithNoSSR,
-                                              setLayout(
-                                                  codeResult?.result?.content
-                                              )
-                                          )}
-                                      {codeResult?.result?.subType ===
-                                          SubContentType.APPLICATION_JSON &&
-                                          JSON.stringify(
-                                              codeResult?.result?.content
-                                          )}
-                                      {codeResult?.result?.subType.includes(
-                                          "image"
-                                      ) && (
-                                          <img
-                                              src={
-                                                  "data:" +
-                                                  codeResult?.result?.subType +
-                                                  ";base64," +
-                                                  codeResult?.result?.content
-                                              }
-                                          />
+                              //   <ScrollIntoViewIfNeeded
+                              //       active={codeResult.lineID == activeLine}
+                              //       options={{
+                              //           block: "start",
+                              //           inline: "center",
+                              //           behavior: "smooth",
+                              //           boundary:
+                              //               document.getElementById(resultViewId),
+                              //       }}
+                              //   >
+                              <SingleResult
+                                  key={codeResult.lineID}
+                                  variant='outlined'
+                                  focused={codeResult.lineID == activeLine}
+                              >
+                                  {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
+                                      React.createElement(
+                                          ResultWithNoSSR,
+                                          setLayout(codeResult?.result?.content)
                                       )}
-                                      {/* Display video/ audio */}
-                                      {codeResult?.result?.subType ===
-                                          SubContentType.TEXT_HTML &&
-                                          ReactHtmlParser(
+                                  {codeResult?.result?.subType ===
+                                      SubContentType.APPLICATION_JSON &&
+                                      JSON.stringify(codeResult?.result?.content)}
+                                  {codeResult?.result?.subType.includes("image") && (
+                                      <img
+                                          src={
+                                              "data:" +
+                                              codeResult?.result?.subType +
+                                              ";base64," +
                                               codeResult?.result?.content
-                                          )}
-                                  </SingleResult>
-                            //   </ScrollIntoViewIfNeeded>
+                                          }
+                                      />
+                                  )}
+                                  {/* Display video/ audio */}
+                                  {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
+                                      ReactHtmlParser(codeResult?.result?.content)}
+                                  Display leaflet
+                                  {codeResult?.result?.subType ===
+                                      "application/vnd.jupyter.widget-view+json" && (
+                                      <div className='widgetarea'></div>
+                                  )}
+                              </SingleResult>
+
+                              //   </ScrollIntoViewIfNeeded>
                           ))
                         : null}
                 </StyledResultView>
