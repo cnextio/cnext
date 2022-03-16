@@ -66,23 +66,30 @@ class MessageHandler(BaseMessageHandler):
         """
         msg_ipython = IpythonResultMessage(**output)
 
+        # Add header message from ipython to message metadata
+        if message.metadata is None:
+            message.metadata = {}
+
+        message.metadata['msg_id'] = msg_ipython.header['msg_id']
+        message.metadata['msg_type'] = msg_ipython.header['msg_type']
+        message.metadata['session'] = msg_ipython.header['session']
+
         # Handle error message
         if self._is_error_message(msg_ipython.header):
-            log.error("Error {}" % (msg_ipython.content['traceback']))
+            log.error("Error %s" % (msg_ipython.content['traceback']))
+            if isinstance(msg_ipython.content['traceback'], list):
+                content = '\n'.join(msg_ipython.content['traceback'])
+            else:
+                content = msg_ipython.content['traceback']
             error_message = self._create_error_message(
                 message.webapp_endpoint,
-                msg_ipython.content['traceback'],
+                content,
                 message.metadata
             )
             return error_message
 
         # Handle success message
         message.error = False
-
-        # Add header message from ipython to message metadata
-        message.metadata['message_id'] = msg_ipython.header['msg_id']
-        message.metadata['message_type'] = msg_ipython.header['msg_type']
-        message.metadata['session'] = msg_ipython.header['session']
 
         if self._is_execute_reply(msg_ipython.header):
             message.type = ContentType.NONE
@@ -112,6 +119,7 @@ class MessageHandler(BaseMessageHandler):
             # message.content, message.sub_type = self._get_display_data(
             #     msg_ipython.content['data'])
             # Ipython return rich output as mime types
+            # FIXME: is there situation where there are more than one item. if so what should we do?
             for key, value in msg_ipython.content['data'].items():
                 if key == 'application/json' and self._result_is_plotly_fig(value):
                     message.sub_type = SubContentType.PLOTLY_FIG

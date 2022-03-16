@@ -11,13 +11,60 @@ import { UpdateType } from "../../interfaces/IApp";
 import { useDispatch, useSelector } from "react-redux";
 import ReviewComponent from "./DFReview";
 import Ansi from "ansi-to-react";
+import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
+import store, { RootState } from "../../../redux/store";
 
 const CodeOutputComponent = ({ codeOutput }) => {
-    const dfUpdates = useSelector((state) => _checkDFUpdates(state));
+    const dfUpdates = useSelector((state: RootState) => checkDFUpdates(state));
+    // const textOutput = useSelector((state: RootState) => getTextOuput(state));
+    const textOutputCount = useSelector(
+        (state: RootState) => state.codeEditor.textOutputCount
+    );
     let [outputContent, setOutputContent] = useState<{}[]>([]);
     const codeOutputRef = useRef(null);
-    
-    function _checkDFUpdates(state) {
+
+    function getTextOuput(state: RootState): (ICodeResultContent | undefined)[] {
+        const inViewID = state.projectManager.inViewID;
+        if (inViewID != null) {
+            let textOutputs = state.codeEditor.codeLines[inViewID]
+                ?.filter((item: ICodeLine) => {
+                    return item.textOutput != null;
+                })
+                .sort((item1: ICodeLine, item2: ICodeLine) => {
+                    if (
+                        item1.textOutput?.resultOrder != null &&
+                        item2.textOutput?.resultOrder != null
+                    ) {
+                        return (
+                            item1.textOutput?.resultOrder -
+                            item2.textOutput?.resultOrder
+                        );
+                    } else {
+                        return -1;
+                    }
+                })
+                .map((item: ICodeLine) => {
+                    // return item.textOutput?.content;
+                    return {
+                        type: "text",
+                        content: item.textOutput?.content,
+                    };
+                });
+            console.log(
+                "CodeOutput: ",
+                state.codeEditor.codeLines[inViewID]?.filter(
+                    (item: ICodeLine) => {
+                        return item.textOutput != null;
+                    }
+                )
+            );
+            return textOutputs;
+        } else {
+            return [];
+        }
+    }
+
+    function checkDFUpdates(state: RootState) {
         const activeDataFrame = state.dataFrames.activeDataFrame;
         if (
             activeDataFrame &&
@@ -44,7 +91,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
 
     const updateTypeToReview = ["add_cols", "add_rows", "update_cells"];
 
-    const _buildUpdatedItemsComponent = (updatedItems: Array<any>) => {
+    const buildUpdatedItemsComponent = (updatedItems: Array<any>) => {
         return (
             <Fragment>
                 {updatedItems.map((elem, index) => (
@@ -64,7 +111,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
         );
     };
 
-    const _buildDFReviewsOutputComponent = (
+    const buildDFReviewsOutputComponent = (
         key: number,
         updateType: UpdateType,
         updatedItems: Array<any>,
@@ -84,7 +131,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                 updateType == UpdateType.del_cols) && (
                                 <Fragment>
                                     Column{updatedItems.length > 1 ? "s" : ""}{" "}
-                                    {_buildUpdatedItemsComponent(updatedItems)}{" "}
+                                    {buildUpdatedItemsComponent(updatedItems)}{" "}
                                     {activityText[updateType]}
                                 </Fragment>
                             )}
@@ -92,7 +139,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                 updateType == UpdateType.del_rows) && (
                                 <Fragment>
                                     Row{updatedItems.length > 1 ? "s" : ""}{" "}
-                                    {_buildUpdatedItemsComponent(updatedItems)}{" "}
+                                    {buildUpdatedItemsComponent(updatedItems)}{" "}
                                     {activityText[updateType]}
                                 </Fragment>
                             )}
@@ -116,24 +163,37 @@ const CodeOutputComponent = ({ codeOutput }) => {
         );
     };
 
+    // const handleNormalCodeOutput = () => {
+    //     try {
+    //         if (codeOutput.content !== null && codeOutput.content !== "") {
+    //             let newOutputContent = {
+    //                 type: !codeOutput.error ? "text" : "error",
+    //                 content: codeOutput.content,
+    //             };
+    //             setOutputContent((outputContent) => [
+    //                 ...outputContent,
+    //                 newOutputContent,
+    //             ]);
+    //         }
+    //     } catch (error) {
+    //         // TODO: process json error
+    //         console.error(error);
+    //     }
+    // };
+    // useEffect(handleNormalCodeOutput, [codeOutput]);
+
     const handleNormalCodeOutput = () => {
+        const state: RootState = store.getState();        
         try {
-            if (codeOutput.content !== null && codeOutput.content !== "") {
-                let newOutputContent = {
-                    type: !codeOutput.error ? "text" : "error",
-                    content: codeOutput.content,
-                };
-                setOutputContent((outputContent) => [
-                    ...outputContent,
-                    newOutputContent,
-                ]);
-            }
+            let textOutputs = getTextOuput(state);
+            console.log("CodeOutput: ", textOutputs);
+            setOutputContent(textOutputs);
         } catch (error) {
             // TODO: process json error
             console.error(error);
         }
     };
-    useEffect(handleNormalCodeOutput, [codeOutput]);
+    useEffect(handleNormalCodeOutput, [textOutputCount]);
 
     const handleDFUpdates = () => {
         //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
@@ -214,7 +274,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                 component="pre"
                                 variant="body2"
                             >
-                                {item["content"]}
+                                <Ansi>{item["content"]}</Ansi>
                             </IndividualCodeOutputContent>
                         )}
                         {item["type"] === "df_updates" && (
@@ -223,7 +283,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                 component="pre"
                                 variant="body2"
                             >
-                                {_buildDFReviewsOutputComponent(
+                                {buildDFReviewsOutputComponent(
                                     outputContent.length,
                                     item["content"]["updateType"],
                                     item["content"]["updateContent"],
@@ -235,7 +295,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                 )}
                             </IndividualCodeOutputContent>
                         )}
-                        {item["type"] === "error" &&
+                        {/* {item["type"] === "error" &&
                             typeof item["content"] === "object" &&
                             item["content"].map((content) => (
                                 <IndividualCodeOutputContent
@@ -245,7 +305,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                 >
                                     <Ansi>{content.toString()}</Ansi>
                                 </IndividualCodeOutputContent>
-                            ))}
+                            ))} */}
                         {index === outputContent.length - 1 && (
                             <ScrollIntoViewIfNeeded
                                 options={{

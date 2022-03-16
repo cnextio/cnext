@@ -107,7 +107,7 @@ const scrollToPrevPos = (state) => {
 }
 
 const setViewCodeText = (state, view) => {
-    console.log('CodeEditor loadCodeText');
+    console.log("CodeEditor setViewCodeText");
     let codeText = getJoinedCodeText(state);
     if (view) {
         let transactionSpec: TransactionSpec = {

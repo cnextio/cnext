@@ -153,30 +153,33 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     function socketInit() {
         socket.emit("ping", WebAppEndpoint.CodeEditor);
         socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
-            console.log("Got CodeEditor results: ", result, "\n");
+            console.log("CodeEditor: got  results: ", result, "\n");
             // console.log("CodeEditor: got results...");
             try {
                 let codeOutput: Message = JSON.parse(result);
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
-                    if (codeOutput.type === ContentType.STRING || codeOutput.error === true) {
-                        recvCodeOutput(codeOutput); //TODO: move this to redux
-                    } else {
-                        if (codeOutput.type == ContentType.PANDAS_DATAFRAME) {
-                            console.log("CodeEditor: dispatch tableData");
-                            dispatch(setTableData(codeOutput.content));
-                        } else if (codeOutput.type === ContentType.RICH_OUTPUT) {
-                            handleResultData(codeOutput);
-                        } else if (codeOutput.type === ContentType.NONE) {
-                            console.log(
-                                "CodeEditor: dispatch output with none content type :",
-                                codeOutput
-                            );
-                        } else {
-                            console.log("CodeEditor: dispatch text output:", codeOutput);
-                            recvCodeOutput(codeOutput);
-                        }
-                    }
+                    handleResultData(codeOutput);
+                    // if (codeOutput.type === ContentType.STRING || codeOutput.error === true) {
+                    //     // recvCodeOutput(codeOutput); //TODO: move this to redux
+                    //     handleResultData(codeOutput);
+                    // } else {
+                    //     if (codeOutput.type === ContentType.PANDAS_DATAFRAME) {
+                    //         // console.log("CodeEditor: dispatch tableData");
+                    //         // dispatch(setTableData(codeOutput.content));
+                    //     } else if (codeOutput.type === ContentType.RICH_OUTPUT) {
+                    //         handleResultData(codeOutput);
+                    //     } else if (codeOutput.type === ContentType.NONE) {
+                    //         console.log(
+                    //             "CodeEditor: dispatch output with none content type :",
+                    //             codeOutput
+                    //         );
+                    //     } else {
+                    //         console.log("CodeEditor: dispatch text output:", codeOutput);
+                    //         // recvCodeOutput(codeOutput);
+                    //         handleResultData(codeOutput);
+                    //     }
+                    // }
                     let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
                         lineRange: codeOutput.metadata.line_range,
@@ -465,6 +468,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     function onCodeMirrorChange(value: string, viewUpdate: ViewUpdate) {
         try {
             console.log("CodeEditor onCodeMirrorChange");
+            
             /** do nothing if the update is due to code reloading from external source */
             if (codeReloading) return;
 

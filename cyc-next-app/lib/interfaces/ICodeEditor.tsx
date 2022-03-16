@@ -37,7 +37,7 @@ export interface ICodeLine {
     lineID: string;
     status: LineStatus;
     result?: ICodeResult;
-    textOuput?: ICodeResult;
+    textOutput?: ICodeResult;
     generated: boolean;
     groupID?: string;
     cAssistInfo?: ICAssistInfo;
@@ -91,20 +91,29 @@ export enum SetLineGroupCommand {
     UNDEF /** set groupID to undefined */,
 }
 
+export interface CodeResultMessageMetaData {
+    df_id?: string;
+    msg_id?: string;
+    session_id?: string;
+}
+
 export interface ICodeResultMessage {
     inViewID: string;
     type: ContentType;
     subType: string;
-    content: string | object;
-    metadata: object;
+    content: ICodeResultContent;
+    metadata: CodeResultMessageMetaData;
 }
+
+export type ICodeResultContent = string | object | IPlotResult;
 
 export interface ICodeResult {
     type: ContentType;
-    content: string | object | IPlotResult;
+    content: ICodeResultContent;
     subType: string;
     msg_id?: string;
     session_id?: string;
+    resultOrder?: number;
 }
 
 export interface IPlotResult {
