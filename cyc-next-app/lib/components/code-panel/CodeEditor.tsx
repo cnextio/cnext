@@ -289,10 +289,12 @@ const CodeEditor = () => {
     }, [editorRef.current]);
 
     useEffect(() => {
-        let state = store.getState();
-        let inViewID = state.projectManager.inViewID;
-        dispatch(clearRunQueueTextOutput(inViewID));
-        execLines();
+        if(runQueue.status !== RunQueueStatus.STOP){
+            let state = store.getState();
+            let inViewID = state.projectManager.inViewID;
+            dispatch(clearRunQueueTextOutput(inViewID));
+            execLines();
+        }        
     }, [runQueue]);
 
     useEffect(() => {

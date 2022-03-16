@@ -317,6 +317,7 @@ const FileManager = () => {
         }
     };
     useEffect(() => {
+        console.log("FileManager useEffect: ", fileToSave);
         saveFile();
     }, [saveTimeout, fileToSave]);
 
@@ -324,9 +325,9 @@ const FileManager = () => {
      * This function will be called whenever display new results or group execute lines.
      * However, state will only be saved if there is state to be saved
      */
-    const saveState = () => {
-        console.log("FileManager: save state");
-        if (fileToSaveState.length > 0) {
+    const saveState = () => {        
+        if (saveTimeout && fileToSaveState.length > 0) {
+            console.log("FileManager: save state");
             for (let filePath of fileToSaveState) {
                 const state = store.getState();
                 // console.log("FileManager: ", filePath);
@@ -360,6 +361,7 @@ const FileManager = () => {
         }
     };
     useEffect(() => {
+        console.log("FileManager useEffect: ", fileToSaveState);
         saveState();
     }, [saveTimeout, fileToSaveState]);
 
