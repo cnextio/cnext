@@ -10,7 +10,11 @@ import { useSelector } from "react-redux";
 import { ICodeLine } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
 import { ContentType, SubContentType } from "../../../interfaces/IApp";
+<<<<<<< HEAD
 import GridLayout from "react-grid-layout";
+=======
+import { HTMLManager } from "@jupyter-widgets/html-manager";
+>>>>>>> 0f8fd1b0272c0181bd5b343f96603a18e76724ca
 
 const ResultWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
@@ -29,12 +33,8 @@ const ResultView = (props: any) => {
             /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
             let inResultData = JSON.parse(JSON.stringify(data));
             inResultData["data"][0]["hovertemplate"] = "%{x}: %{y}";
-            inResultData.layout.width = width
-                ? width
-                : inResultData.layout.width;
-            inResultData.layout.height = height
-                ? height
-                : inResultData.layout.height;
+            inResultData.layout.width = width ? width : inResultData.layout.width;
+            inResultData.layout.height = height ? height : inResultData.layout.height;
             inResultData.layout.margin = { b: 10, l: 80, r: 30, t: 30 };
             inResultData["config"] = { displayModeBar: false };
             return inResultData;
@@ -61,6 +61,19 @@ const ResultView = (props: any) => {
                 (code) => code.result?.type === ContentType.RICH_OUTPUT
             );
             console.log("codeWithResult", codeWithResult);
+            for (let i = 0; i < codeWithResult.length; i++) {
+                if (
+                    codeWithResult[i].result?.subType == "application/vnd.jupyter.widget-view+json"
+                ) {
+                    // Create the widget area and widget manager
+                    const widgetarea = document.getElementsByClassName(
+                        "widgetarea"
+                    )[0] as HTMLElement;
+                    const manager = new HTMLManager();
+                    const model = manager.get_model(codeWithResult[i].result?.content["model_id"]);
+                    manager.display_view(manager.create_view(model), widgetarea);
+                }
+            }
             return (
                 <StyledResultView id={resultViewId}>
                     {/* <GridLayout
