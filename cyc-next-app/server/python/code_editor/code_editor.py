@@ -45,6 +45,20 @@ class MessageHandler(BaseMessageHandler):
         except Exception:
             return False
 
+    def _get_display_data(self, data):
+        sub_type = None
+        content = None
+        if 'application/json' in data and self._result_is_plotly_fig(data['application/json']):
+            sub_type = SubContentType.PLOTLY_FIG
+            content = data['application/json']
+        elif 'application/vnd.jupyter.widget-view+json' in data:
+            sub_type = SubContentType.JUPYTER_WIDGET_VIEW
+            content = data['text/plain']
+        else:
+            sub_type = None
+            content = data
+        return content, sub_type
+
     def build_single_message(self, output, message):
         """
             Get single message from IPython,
@@ -95,12 +109,19 @@ class MessageHandler(BaseMessageHandler):
             return message
         elif self._is_display_data_result(msg_ipython.header):
             message.type = ContentType.RICH_OUTPUT
+            # message.content, message.sub_type = self._get_display_data(
+            #     msg_ipython.content['data'])
             # Ipython return rich output as mime types
             for key, value in msg_ipython.content['data'].items():
-                message.content = value
-                message.sub_type = key
                 if key == 'application/json' and self._result_is_plotly_fig(value):
                     message.sub_type = SubContentType.PLOTLY_FIG
+                    message.content = value
+                # elif key == 'application/vnd.jupyter.widget-view+json':
+                #     message.sub_type = SubContentType.JUPYTER_WIDGET_VIEW
+                    # message.content =
+                else:
+                    message.content = value
+                    message.sub_type = key
             return message
 
     def handle_message(self, message):
