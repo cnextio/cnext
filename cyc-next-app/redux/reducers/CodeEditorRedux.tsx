@@ -66,7 +66,7 @@ export const CodeEditorRedux = createSlice({
             state.codeText[reduxFileID] = codeTextData.codeText;
 
             let codeLines: ICodeLine[] = codeTextData.codeLines;
-
+            let maxOutputCount = 0;
             /** If codeLines doesn't have data,
              *  read codeText from file data then create codeLines line by line from codeText */
             if (codeLines == null || codeLines.length === 0) {
@@ -103,7 +103,6 @@ export const CodeEditorRedux = createSlice({
                 );
                 state.resultUpdate = resultData.length;
 
-                let maxOutputCount = 0;
                 codeLines
                     .filter(
                         (codeLine) =>
@@ -112,15 +111,14 @@ export const CodeEditorRedux = createSlice({
                     )
                     .map((item) => {
                         maxOutputCount =
-                            item.textOutput?.resultOrder == null ||
-                            maxOutputCount > item.textOutput?.resultOrder
+                            item.textOutput?.order == null ||
+                            maxOutputCount > item.textOutput?.order
                                 ? maxOutputCount
-                                : item.textOutput?.resultOrder;
-                    });
-                /** init the textOutputCount with the maxOutputCount from the saved state */
-                state.textOutputCount = maxOutputCount;
+                                : item.textOutput?.order;
+                    });                
             }
-
+            /** init the textOutputCount with the maxOutputCount from the saved state */
+            state.textOutputCount = maxOutputCount+1;
             state.codeLines[reduxFileID] = codeLines;
             // console.log("CodeEditorRedux complete init: ", reduxFileID);
             // state.timestamp[reduxFileID] = codeTextData.timestamp;
@@ -277,30 +275,23 @@ export const CodeEditorRedux = createSlice({
                     let lineNumber = lineRange.fromLine;
                     let codeLine: ICodeLine =
                         state.codeLines[inViewID][lineNumber];
-                    // console.log(
-                    //     "CodeEditorRedux: ",
-                    //     resultMessage.metadata.msg_id
-                    // );
+                    /** text result will be appended with in each execution. The output will be cleared at the
+                     * beginning of each execution */
                     if (resultMessage.type === ContentType.STRING) {
-                        /** if result is from the same msg_id, the textOutput will be concatenate */
-                        if (
-                            codeLine.textOutput != null &&
-                            codeLine.textOutput?.msg_id ===
-                                resultMessage.metadata.msg_id
-                        ) {
+                        if (codeLine.textOutput != null){
                             codeLine.textOutput.content = [
                                 codeLine.textOutput.content,
                                 content,
-                            ].join("\n");
+                            ].join("");
                         } else {
                             codeLine.textOutput = {
                                 type: resultMessage.type,
                                 subType: resultMessage.subType,
                                 content: content,
-                                msg_id: resultMessage.metadata.msg_id,
+                                // msg_id: resultMessage.metadata.msg_id,
                             };
                         }
-                        codeLine.textOutput.resultOrder = state.textOutputCount;
+                        codeLine.textOutput.order = state.textOutputCount;
                         state.textOutputCount += 1;
                     } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
                         let content = resultMessage.content;
@@ -329,6 +320,16 @@ export const CodeEditorRedux = createSlice({
             }
         },
 
+        clearRunQueueTextOutput: (state, action) => {
+            let inViewID = action.payload;
+            let codeLines = state.codeLines[inViewID];
+            if(state.runQueue.fromLine != null && state.runQueue.toLine != null){
+                for (let l=state.runQueue.fromLine; l<state.runQueue.toLine; l++){
+                    codeLines[l].textOutput = undefined;
+                }
+            }                
+        },
+
         setActiveLine: (state, action) => {
             let activeLine: ICodeActiveLine = action.payload;
             let lineNumber = activeLine.lineNumber;
@@ -353,12 +354,12 @@ export const CodeEditorRedux = createSlice({
                 state.runQueue.status
             );
             if (state.runQueue.status === RunQueueStatus.STOP) {
-                let data: ILineRange = action.payload;
+                let range: ILineRange = action.payload;
                 state.runQueue = {
                     status: RunQueueStatus.RUNNING,
-                    fromLine: data.fromLine,
-                    toLine: data.toLine,
-                    runningLine: data.fromLine,
+                    fromLine: range.fromLine,
+                    toLine: range.toLine,
+                    runningLine: range.fromLine,
                     // runAllAtOnce: data.runAllAtOnce,
                 };
                 // return true;
@@ -419,6 +420,7 @@ export const {
     updateCAssistInfo,
     compeleteRunQueue,
     setCodeToInsert,
+    clearRunQueueTextOutput,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;
