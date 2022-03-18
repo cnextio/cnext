@@ -1,3 +1,4 @@
+from ipywidgets import IntSlider, jslink
 import traceback
 import simplejson as json
 
@@ -53,8 +54,20 @@ class MessageHandler(BaseMessageHandler):
             sub_type = SubContentType.PLOTLY_FIG
             content = data['application/json']
         elif 'application/vnd.jupyter.widget-view+json' in data:
+            from ipywidgets.embed import embed_minimal_html, embed_data
+            from ipyleaflet import Map, basemaps, WidgetControl
+            m = Map(center=(46.01, 6.16), zoom=12,
+                    basemap=basemaps.Stamen.Terrain)
+            zoom_slider = IntSlider(
+                description="Zoom level:", min=0, max=15, value=7)
+            data = embed_data(views=[m, zoom_slider])
+            manager_state = json.dumps(data["manager_state"])
+            widget_views = [json.dumps(view) for view in data["view_specs"]]
+            print("manager_state", manager_state)
+            print("widget views", widget_views)
             sub_type = 'application/vnd.jupyter.widget-view+json'
             content = data['application/vnd.jupyter.widget-view+json']
+
         else:
             sub_type = None
             content = data
@@ -142,6 +155,7 @@ class MessageHandler(BaseMessageHandler):
         try:
             outputs = self.user_space.execute(message.content, None)
             for output in outputs:
+                print("MESSAGE", output)
                 msg = self.build_single_message(
                     output=output, message=message)
                 if msg is not None:

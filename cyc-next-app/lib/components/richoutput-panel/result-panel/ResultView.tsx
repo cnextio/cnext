@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import { ICodeLine } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
 import { ContentType, SubContentType } from "../../../interfaces/IApp";
-import { HTMLManager } from "@jupyter-widgets/html-manager";
+// import { HTMLManager } from "@jupyter-widgets/html-manager";
 
 const ResultWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
@@ -54,19 +54,19 @@ const ResultView = (props: any) => {
                 (code) => code.result?.type === ContentType.RICH_OUTPUT
             );
             console.log("codeWithResult", codeWithResult);
-            for (let i = 0; i < codeWithResult.length; i++) {
-                if (
-                    codeWithResult[i].result?.subType == "application/vnd.jupyter.widget-view+json"
-                ) {
-                    // Create the widget area and widget manager
-                    const widgetarea = document.getElementsByClassName(
-                        "widgetarea"
-                    )[0] as HTMLElement;
-                    const manager = new HTMLManager();
-                    const model = manager.get_model(codeWithResult[i].result?.content["model_id"]);
-                    manager.display_view(manager.create_view(model), widgetarea);
-                }
-            }
+            // for (let i = 0; i < codeWithResult.length; i++) {
+            //     if (
+            //         codeWithResult[i].result?.subType == "application/vnd.jupyter.widget-view+json"
+            //     ) {
+            //         // Create the widget area and widget manager
+            //         const widgetarea = document.getElementsByClassName(
+            //             "widgetarea"
+            //         )[0] as HTMLElement;
+            //         const manager = new HTMLManager();
+            //         const model = manager.get_model(codeWithResult[i].result?.content["model_id"]);
+            //         manager.display_view(manager.create_view(model), widgetarea);
+            //     }
+            // }
             return (
                 <StyledResultView id={resultViewId}>
                     {codeWithResult.length > 0
