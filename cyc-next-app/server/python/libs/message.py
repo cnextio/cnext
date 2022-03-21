@@ -61,6 +61,7 @@ class ProjectCommand(str, Enum):
     set_project_dir = 'set_project_dir'
     get_active_project = 'get_active_project'
     save_state = 'save_state'
+    clear_state = 'clear_state'
 
 
 class ExperimentManagerCommand(str, Enum):

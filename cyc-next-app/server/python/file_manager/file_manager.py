@@ -63,13 +63,6 @@ class MessageHandler(BaseMessageHandler):
                 if 'path' in metadata.keys():
                     result = files.save_file(metadata['path'], message.content)
                 type = ContentType.FILE_METADATA
-            elif message.command_name == ProjectCommand.save_state:
-                if 'path' in metadata.keys():
-                    result = files.save_state(
-                        path=metadata['path'],
-                        project_path=metadata['projectPath'],
-                        content=message.content)
-                type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.close_file:
                 result = projects.close_file(metadata['path'])
                 type = ContentType.FILE_METADATA
@@ -79,6 +72,19 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.get_active_project:
                 result = projects.get_active_project()
                 type = ContentType.PROJECT_METADATA
+            elif message.command_name == ProjectCommand.save_state:
+                if 'path' in metadata.keys():
+                    result = files.save_state(
+                        path=metadata['path'],
+                        project_path=metadata['projectPath'],
+                        content=message.content)
+                type = ContentType.FILE_METADATA
+            elif message.command_name == ProjectCommand.clear_state:
+                result = files.clear_state(
+                    path=metadata['path'],
+                    project_path=metadata['projectPath']
+                )
+                type = ContentType.NONE
 
             # create reply message
             message.type = type

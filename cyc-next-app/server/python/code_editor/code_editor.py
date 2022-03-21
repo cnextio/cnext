@@ -10,6 +10,16 @@ from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
 log = logs.get_logger(__name__)
 
+MIME_TYPES = [
+    'text/html',
+    'text/javascript',
+    'text/plain',
+    'image/gif',
+    'image/png',
+    'image/webp',
+    'image/svg+xml',
+    'image/jpeg'
+]
 
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):

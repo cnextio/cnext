@@ -20,6 +20,7 @@ type ProjectManagerState = {
     showProjectExplore: boolean;
     serverSynced: boolean;
     configs: IConfigs;
+    isClearState: boolean;
 };
 
 const initialState: ProjectManagerState = {
@@ -38,6 +39,7 @@ const initialState: ProjectManagerState = {
         local_tmp_dir: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.tmp",
         mlflow_tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
     },
+    isClearState: false,
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -125,6 +127,10 @@ export const ProjectManagerRedux = createSlice({
         setScrollPos: (state, action) => {
             if (state.inViewID) state.openFiles[state.inViewID].scroll_pos = action.payload;
         },
+
+        setIsClearState: (state, action) => {
+            state.isClearState = action.payload;
+        },
     },
 });
 
@@ -142,6 +148,7 @@ export const {
     setFileMetaData,
     setServerSynced,
     setScrollPos,
+    setIsClearState,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;

@@ -130,3 +130,16 @@ def get_state_path(path, project_path):
         project_path, CNEXT_FOLDER_PATH, 'states', sub_path)
     state_path = os.path.splitext(file_path)[0] + '.json'
     return state_path
+
+
+def clear_state(path, project_path):
+    """
+        Clear state of file. Delete state file in .cnext/state folder 
+    """
+    log.info('Clear state {}'.format(path))
+    state_path = get_state_path(path, project_path)
+    state_file_name = state_path.split('/')[-1]
+    if (os.path.exists(path)):
+        os.remove(state_path)
+        return FileMetadata(state_path, name=state_file_name, timestamp=os.path.getmtime(path))
+    return None
