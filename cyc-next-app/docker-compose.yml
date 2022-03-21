@@ -1,0 +1,10 @@
+version: '1'
+
+services:
+    web:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: web
+        ports:
+            - '3000:80'
