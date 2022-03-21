@@ -1,4 +1,3 @@
-from ipywidgets import IntSlider, jslink
 import traceback
 import simplejson as json
 
