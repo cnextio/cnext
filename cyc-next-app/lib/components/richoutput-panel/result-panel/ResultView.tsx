@@ -11,12 +11,6 @@ import { ICodeLine } from "../../../interfaces/ICodeEditor";
 import store from "../../../../redux/store";
 import { ContentType, SubContentType } from "../../../interfaces/IApp";
 import GridLayout from "react-grid-layout";
-import { WidgetManager } from "../../../ipywidget/manager";
-import { KernelManager, ServerConnection, KernelMessage } from "@jupyterlab/services";
-const { HTMLManager } = dynamic(() => import("../../../@jupyter-widgets/html-manager"), {
-    ssr: false,
-});
-
 const ResultWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
 });
@@ -49,20 +43,6 @@ const ResultView = (props: any) => {
         // setContainerMounted(true);
     });
 
-    const handleWidget = async (codeWithResult: ICodeLine[]) => {
-        const kernelManager = new KernelManager();
-        const kernel = await kernelManager.startNew();
-        for (let i = 0; i < codeWithResult.length; i++) {
-            if (codeWithResult[i].result?.subType == "application/vnd.jupyter.widget-view+json") {
-                // Create the widget area and widget manager
-                const widgetarea = document.getElementsByClassName("widgetarea")[0] as HTMLElement;
-                const manager = new WidgetManager(kernel);
-                const model = manager.get_model(codeWithResult[i].result?.content["model_id"]);
-                manager.display_view(manager.create_view(model), widgetarea);
-            }
-        }
-    };
-
     const rowHeight = 50; //unit: px
     const screenSize = 2000; //unit: px;
     const resultViewId = "StyledResultViewID";
@@ -75,7 +55,6 @@ const ResultView = (props: any) => {
             const codeWithResult: ICodeLine[] = codeLines.filter(
                 (code) => code.result?.type === ContentType.RICH_OUTPUT
             );
-            console.log("codeWithResult", codeWithResult);
             return (
                 <StyledResultView id={resultViewId}>
                     {/* <GridLayout
@@ -125,10 +104,6 @@ const ResultView = (props: any) => {
                                       {/* Display video/ audio */}
                                       {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
                                           ReactHtmlParser(codeResult?.result?.content)}
-                                      {codeResult?.result?.subType ===
-                                          "application/vnd.jupyter.widget-view+json" && (
-                                          <div className='widgetarea'></div>
-                                      )}
                                   </SingleResult>
                               </ScrollIntoViewIfNeeded>
                           ))

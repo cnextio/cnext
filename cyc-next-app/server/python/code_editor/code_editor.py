@@ -46,33 +46,6 @@ class MessageHandler(BaseMessageHandler):
         except Exception:
             return False
 
-    def _get_display_data(self, data):
-        print("DISPLAY DATA", data)
-        sub_type = None
-        content = None
-        if 'application/json' in data and self._result_is_plotly_fig(data['application/json']):
-            sub_type = SubContentType.PLOTLY_FIG
-            content = data['application/json']
-        elif 'application/vnd.jupyter.widget-view+json' in data:
-            from ipywidgets.embed import embed_minimal_html, embed_data
-            from ipyleaflet import Map, basemaps, WidgetControl
-            m = Map(center=(46.01, 6.16), zoom=12,
-                    basemap=basemaps.Stamen.Terrain)
-            zoom_slider = IntSlider(
-                description="Zoom level:", min=0, max=15, value=7)
-            data = embed_data(views=[m, zoom_slider])
-            manager_state = json.dumps(data["manager_state"])
-            widget_views = [json.dumps(view) for view in data["view_specs"]]
-            print("manager_state", manager_state)
-            print("widget views", widget_views)
-            sub_type = 'application/vnd.jupyter.widget-view+json'
-            content = data['application/vnd.jupyter.widget-view+json']
-
-        else:
-            sub_type = None
-            content = data
-        return content, sub_type
-
     def build_single_message(self, output, message):
         """
             Get single message from IPython,
@@ -130,21 +103,13 @@ class MessageHandler(BaseMessageHandler):
             return message
         elif self._is_display_data_result(msg_ipython.header):
             message.type = ContentType.RICH_OUTPUT
-            message.content, message.sub_type = self._get_display_data(
-                msg_ipython.content['data'])
             # Ipython return rich output as mime types
             # FIXME: is there situation where there are more than one item. if so what should we do?
-            # for key, value in msg_ipython.content['data'].items():
-            #     if key == 'application/json' and self._result_is_plotly_fig(value):
-            #         message.sub_type = SubContentType.PLOTLY_FIG
-            #         message.content = value
-            #     elif key == 'application/vnd.jupyter.widget-view+json':
-            #         print("VALUE", value)
-            #         message.sub_type = key
-            #         message.content = value
-            #     else:
-            #         message.content = value
-            #         message.sub_type = key
+            for key, value in msg_ipython.content['data'].items():
+                message.content = value
+                message.sub_type = key
+                if key == 'application/json' and self._result_is_plotly_fig(value):
+                    message.sub_type = SubContentType.PLOTLY_FIG
             return message
 
     def handle_message(self, message):
@@ -155,7 +120,6 @@ class MessageHandler(BaseMessageHandler):
         try:
             outputs = self.user_space.execute(message.content, None)
             for output in outputs:
-                print("MESSAGE", output)
                 msg = self.build_single_message(
                     output=output, message=message)
                 if msg is not None:
