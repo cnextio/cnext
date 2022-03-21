@@ -263,22 +263,20 @@ export const CodeEditorRedux = createSlice({
             let resultMessage: ICodeResultMessage = action.payload;
             let inViewID = resultMessage.inViewID;
             let content: object | string | null = resultMessage.content;
-
-            let lineRange: ILineRange = ifElseDict(
-                resultMessage.metadata,
-                "line_range"
-            );
+            let lineRange: ILineRange = ifElseDict(resultMessage.metadata, "line_range");
             /* only create result when content has something */
             if (content != null && content !== "") {
                 if (lineRange != null) {
                     /** TODO: double check this. for now only associate fromLine to result */
                     let lineNumber = lineRange.fromLine;
-                    let codeLine: ICodeLine =
-                        state.codeLines[inViewID][lineNumber];
+                    let codeLine: ICodeLine = state.codeLines[inViewID][lineNumber];
                     /** text result will be appended with in each execution. The output will be cleared at the
                      * beginning of each execution */
                     if (resultMessage.type === ContentType.STRING) {
-                        if (codeLine.textOutput != null){
+                        /** When content type of result is string, clear the rich output result belong to this codeline number */
+                        codeLine.result = undefined;
+
+                        if (codeLine.textOutput != null) {
                             codeLine.textOutput.content = [
                                 codeLine.textOutput.content,
                                 content,
@@ -294,11 +292,11 @@ export const CodeEditorRedux = createSlice({
                         codeLine.textOutput.order = state.textOutputCount;
                         state.textOutputCount += 1;
                     } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
+                        /** When content type of result is rich output, clear the string result belong to this codeline number */
+                        codeLine.textOutput = undefined;
+
                         let content = resultMessage.content;
-                        if (
-                            resultMessage?.subType ===
-                            SubContentType.APPLICATION_JSON
-                        ) {
+                        if (resultMessage?.subType === SubContentType.APPLICATION_JSON) {
                             try {
                                 content = JSON.parse(content);
                             } catch (error) {
