@@ -273,10 +273,6 @@ export const CodeEditorRedux = createSlice({
                     /** text result will be appended with in each execution. The output will be cleared at the
                      * beginning of each execution */
                     if (resultMessage.type === ContentType.STRING) {
-                        /** When content type of result is string,
-                         * clear the rich output result belong to this codeline number to make sure only one result to assign to it */
-                        codeLine.result = undefined;
-
                         if (codeLine.textOutput != null) {
                             codeLine.textOutput.content = [
                                 codeLine.textOutput.content,
@@ -293,10 +289,6 @@ export const CodeEditorRedux = createSlice({
                         codeLine.textOutput.order = state.textOutputCount;
                         state.textOutputCount += 1;
                     } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
-                        /** When content type of result is rich output,
-                         * clear the string result belong to this codeline number to make sure only one result to assign to it */
-                        codeLine.textOutput = undefined;
-
                         let content = resultMessage.content;
                         if (resultMessage?.subType === SubContentType.APPLICATION_JSON) {
                             try {
