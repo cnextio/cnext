@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import {
     PlotContainer as SingleResult,
-    PlotViewContainer as StyledResultView,
+    ResultViewContainer as StyledResultView,
 } from "../../StyledComponents";
-import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
+// import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 import ReactHtmlParser from "html-react-parser";
 import { useSelector } from "react-redux";
 import { ICodeLine } from "../../../interfaces/ICodeEditor";
@@ -69,43 +69,43 @@ const ResultView = (props: any) => {
                     > */}
                     {state.codeEditor.resultUpdate > 0
                         ? codeWithResult.map((codeResult: ICodeLine) => (
-                              <ScrollIntoViewIfNeeded
-                                  active={codeResult.lineID == activeLine}
-                                  options={{
-                                      block: "start",
-                                      inline: "center",
-                                      behavior: "smooth",
-                                      boundary: document.getElementById(resultViewId),
-                                  }}
+                              //   <ScrollIntoViewIfNeeded
+                              //       active={codeResult.lineID == activeLine}
+                              //       options={{
+                              //           block: "start",
+                              //           inline: "center",
+                              //           behavior: "smooth",
+                              //           boundary: document.getElementById(resultViewId),
+                              //       }}
+                              //   >
+                              <SingleResult
+                                  key={codeResult.lineID}
+                                  variant='outlined'
+                                  focused={codeResult.lineID == activeLine}
                               >
-                                  <SingleResult
-                                      key={codeResult.lineID}
-                                      variant='outlined'
-                                      focused={codeResult.lineID == activeLine}
-                                  >
-                                      {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
-                                          React.createElement(
-                                              ResultWithNoSSR,
-                                              setLayout(codeResult?.result?.content)
-                                          )}
-                                      {codeResult?.result?.subType ===
-                                          SubContentType.APPLICATION_JSON &&
-                                          JSON.stringify(codeResult?.result?.content)}
-                                      {codeResult?.result?.subType?.includes("image") && (
-                                          <img
-                                              src={
-                                                  "data:" +
-                                                  codeResult?.result?.subType +
-                                                  ";base64," +
-                                                  codeResult?.result?.content
-                                              }
-                                          />
+                                  {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
+                                      React.createElement(
+                                          ResultWithNoSSR,
+                                          setLayout(codeResult?.result?.content)
                                       )}
-                                      {/* Display video/ audio */}
-                                      {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
-                                          ReactHtmlParser(codeResult?.result?.content)}
-                                  </SingleResult>
-                              </ScrollIntoViewIfNeeded>
+                                  {codeResult?.result?.subType ===
+                                      SubContentType.APPLICATION_JSON &&
+                                      JSON.stringify(codeResult?.result?.content)}
+                                  {codeResult?.result?.subType?.includes("image") && (
+                                      <img
+                                          src={
+                                              "data:" +
+                                              codeResult?.result?.subType +
+                                              ";base64," +
+                                              codeResult?.result?.content
+                                          }
+                                      />
+                                  )}
+                                  {/* Display video/ audio */}
+                                  {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
+                                      ReactHtmlParser(codeResult?.result?.content)}
+                              </SingleResult>
+                              //   </ScrollIntoViewIfNeeded>
                           ))
                         : null}
                     {/* </GridLayout> */}
