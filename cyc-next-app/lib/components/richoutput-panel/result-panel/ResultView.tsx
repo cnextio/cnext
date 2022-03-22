@@ -18,7 +18,7 @@ const {HTMLManager} = dynamic(
 );
 
 
-const ResultWithNoSSR = dynamic(() => import("react-plotly.js"), {
+const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
 });
 
@@ -118,7 +118,7 @@ const ResultView = (props: any) => {
                                       {codeResult?.result?.subType ===
                                           SubContentType.PLOTLY_FIG &&
                                           React.createElement(
-                                              ResultWithNoSSR,
+                                              PlotlyWithNoSSR,
                                               setLayout(
                                                   codeResult?.result?.content
                                               )
