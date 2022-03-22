@@ -131,6 +131,11 @@ export const ProjectManagerRedux = createSlice({
         setIsClearState: (state, action) => {
             state.isClearState = action.payload;
         },
+
+        setClearStateProjectManager: (state, action) => {
+            state.fileToSave = [];
+            state.fileToSaveState = [];
+        },
     },
 });
 
@@ -149,6 +154,7 @@ export const {
     setServerSynced,
     setScrollPos,
     setIsClearState,
+    setClearStateProjectManager,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;

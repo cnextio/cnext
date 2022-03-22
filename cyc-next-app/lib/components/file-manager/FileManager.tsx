@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { initCodeText, setFileSaved } from "../../../redux/reducers/CodeEditorRedux";
+import {
+    initCodeText,
+    setFileSaved,
+    setClearStateCodeEditor,
+} from "../../../redux/reducers/CodeEditorRedux";
 import {
     setActiveProject,
     setFileMetaData,
@@ -12,6 +16,7 @@ import {
     setOpenFiles,
     setServerSynced,
     setIsClearState,
+    setClearStateProjectManager,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import { ContentType, Message, SubContentType, WebAppEndpoint } from "../../interfaces/IApp";
@@ -334,6 +339,8 @@ const FileManager = () => {
         console.log("FileManager State send:", message.command_name, message.metadata);
         _sendMessage(message);
         dispatch(setIsClearState(false));
+        dispatch(setClearStateCodeEditor(null));
+        dispatch(setClearStateProjectManager(null));
     };
     useEffect(() => {
         if (isClearState) {

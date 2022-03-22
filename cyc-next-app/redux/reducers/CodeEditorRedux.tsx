@@ -1,7 +1,6 @@
 import shortid from "shortid";
 import { createSlice } from "@reduxjs/toolkit";
 import {
-    ICodeResult,
     ICodeResultMessage,
     ICodeLine,
     ILineUpdate,
@@ -48,6 +47,7 @@ const initialState: CodeEditorState = {
     fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP },
     resultUpdate: 0,
+    textOutputCount: 0,
     activeLine: null,
     cAssistInfo: undefined,
     runDict: undefined,
@@ -70,7 +70,6 @@ export const CodeEditorRedux = createSlice({
             /** If codeLines doesn't have data,
              *  read codeText from file data then create codeLines line by line from codeText */
             if (codeLines == null || codeLines.length === 0) {
-                state.resultUpdate = 0;
                 codeLines = [];
                 /** create at least 1 empty line when code text is empty */
                 if (state.codeText[reduxFileID].length == 0) {
@@ -110,12 +109,10 @@ export const CodeEditorRedux = createSlice({
                                 ? maxOutputCount
                                 : item.textOutput?.order;
                     });
+                /** init the textOutputCount with the maxOutputCount from the saved state */
+                state.textOutputCount = maxOutputCount + 1;
             }
-            /** init the textOutputCount with the maxOutputCount from the saved state */
-            state.textOutputCount = maxOutputCount + 1;
             state.codeLines[reduxFileID] = codeLines;
-            // console.log("CodeEditorRedux complete init: ", reduxFileID);
-            // state.timestamp[reduxFileID] = codeTextData.timestamp;
         },
 
         updateLines: (state, action) => {
@@ -372,6 +369,21 @@ export const CodeEditorRedux = createSlice({
         setCodeToInsert: (state, action) => {
             state.codeToInsert = action.payload;
         },
+
+        setClearStateCodeEditor: (state, action) => {
+            const inViewID = action.payload;
+            state.resultUpdate = 0;
+            state.textOutputCount = 0;
+            state.activeLine = null;
+            state.codeLines[inViewID] = [];
+            state.timestamp = {};
+            state.activeLine = null;
+            state.activeLine = null;
+            state.cAssistInfo = undefined;
+            state.runDict = undefined;
+            state.runningId = undefined;
+            state.codeToInsert = undefined;
+        },
     },
 });
 
@@ -390,6 +402,7 @@ export const {
     compeleteRunQueue,
     setCodeToInsert,
     clearRunQueueTextOutput,
+    setClearStateCodeEditor,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

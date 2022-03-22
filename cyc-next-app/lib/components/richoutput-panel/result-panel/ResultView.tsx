@@ -67,7 +67,7 @@ const ResultView = (props: any) => {
                         margin={[5, 5]}
                         isResizable={true}
                     > */}
-                    {codeWithResult.length > 0
+                    {state.codeEditor.resultUpdate > 0
                         ? codeWithResult.map((codeResult: ICodeLine) => (
                               <ScrollIntoViewIfNeeded
                                   active={codeResult.lineID == activeLine}
