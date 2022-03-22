@@ -10,6 +10,16 @@ from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
 log = logs.get_logger(__name__)
 
+MIME_TYPES = [
+    'text/html',
+    'text/javascript',
+    'text/plain',
+    'image/gif',
+    'image/png',
+    'image/webp',
+    'image/svg+xml',
+    'image/jpeg'
+]
 
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
@@ -44,21 +54,6 @@ class MessageHandler(BaseMessageHandler):
             return hasattr(plotly.graph_objs, '_figure') and (type(plotly_figure) == plotly.graph_objs._figure.Figure)
         except Exception:
             return False
-
-    def _get_display_data(self, data):
-        print("DISPLAY DATA", data)
-        sub_type = None
-        content = None
-        if 'application/json' in data and self._result_is_plotly_fig(data['application/json']):
-            sub_type = SubContentType.PLOTLY_FIG
-            content = data['application/json']
-        elif 'application/vnd.jupyter.widget-view+json' in data:
-            sub_type = 'application/vnd.jupyter.widget-view+json'
-            content = data['application/vnd.jupyter.widget-view+json']
-        else:
-            sub_type = None
-            content = data
-        return content, sub_type
 
     def build_single_message(self, output, message):
         """
@@ -117,21 +112,13 @@ class MessageHandler(BaseMessageHandler):
             return message
         elif self._is_display_data_result(msg_ipython.header):
             message.type = ContentType.RICH_OUTPUT
-            message.content, message.sub_type = self._get_display_data(
-                msg_ipython.content['data'])
             # Ipython return rich output as mime types
             # FIXME: is there situation where there are more than one item. if so what should we do?
-            # for key, value in msg_ipython.content['data'].items():
-            #     if key == 'application/json' and self._result_is_plotly_fig(value):
-            #         message.sub_type = SubContentType.PLOTLY_FIG
-            #         message.content = value
-            #     elif key == 'application/vnd.jupyter.widget-view+json':
-            #         print("VALUE", value)
-            #         message.sub_type = key
-            #         message.content = value
-            #     else:
-            #         message.content = value
-            #         message.sub_type = key
+            for key, value in msg_ipython.content['data'].items():
+                message.content = value
+                message.sub_type = key
+                if key == 'application/json' and self._result_is_plotly_fig(value):
+                    message.sub_type = SubContentType.PLOTLY_FIG
             return message
 
     def handle_message(self, message):
