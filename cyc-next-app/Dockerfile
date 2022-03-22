@@ -1,16 +1,13 @@
-# syntax=docker/dockerfile:1
-
-FROM node:17.7.1
+FROM node:16.13.1
 
 ENV NODE_ENV=production
 ENV PORT 80
 
-WORKDIR /app
+WORKDIR /apps
 
 COPY . /app
 
-RUN npm install --production
+RUN npm i --force
 RUN npm run build
-RUN npm run start
 
-
+CMD ["npm", "start"]

@@ -12,7 +12,8 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "lib/components/CodeAreaComponent.js", "server/server.tsx", "server/tests/test_servers/test_pyshell.jss", "lib/components/richoutput-panel/experiment-panel/WindowDims.js"],
   "exclude": ["node_modules"]
