@@ -70,6 +70,7 @@ export const CodeEditorRedux = createSlice({
             /** If codeLines doesn't have data,
              *  read codeText from file data then create codeLines line by line from codeText */
             if (codeLines == null || codeLines.length === 0) {
+                state.resultUpdate = 0;
                 codeLines = [];
                 /** create at least 1 empty line when code text is empty */
                 if (state.codeText[reduxFileID].length == 0) {
