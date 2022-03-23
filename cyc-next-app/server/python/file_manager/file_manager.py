@@ -79,12 +79,6 @@ class MessageHandler(BaseMessageHandler):
                         project_path=metadata['projectPath'],
                         content=message.content)
                 type = ContentType.FILE_METADATA
-            elif message.command_name == ProjectCommand.clear_state:
-                result = files.clear_state(
-                    path=metadata['path'],
-                    project_path=metadata['projectPath']
-                )
-                type = ContentType.NONE
 
             # create reply message
             message.type = type

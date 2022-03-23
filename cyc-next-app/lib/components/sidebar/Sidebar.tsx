@@ -13,10 +13,9 @@ import {
 import LogoComponent from "../Logo";
 import { useDispatch } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
-import {
-    setShowProjectExplorer,
-    setIsClearState,
-} from "../../../redux/reducers/ProjectManagerRedux";
+import { setShowProjectExplorer } from "../../../redux/reducers/ProjectManagerRedux";
+import { setClearSavedState } from "../../../redux/reducers/CodeEditorRedux";
+import store from "../../../redux/store";
 
 // const drawerWidth = 240;
 
@@ -70,7 +69,9 @@ const MiniSidebar = () => {
             dispatch(setShowProjectExplorer(true));
         } else {
             if (selectedIcon === "ClearState") {
-                dispatch(setIsClearState(true));
+                const state = store.getState();
+                const inViewID = state.projectManager.inViewID;
+                dispatch(setClearSavedState(inViewID));
             }
             dispatch(setShowProjectExplorer(false));
         }

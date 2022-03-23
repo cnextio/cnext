@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     initCodeText,
     setFileSaved,
-    setClearStateCodeEditor,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     setActiveProject,
@@ -15,8 +14,6 @@ import {
     setInView,
     setOpenFiles,
     setServerSynced,
-    setIsClearState,
-    setClearStateProjectManager,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import { ContentType, Message, SubContentType, WebAppEndpoint } from "../../interfaces/IApp";
@@ -35,7 +32,6 @@ const FileManager = () => {
     const resultUpdate = useSelector((state: RootState) => state.codeEditor.resultUpdate);
     const codeText = useSelector((state: RootState) => getCodeText(state));
     const codeLines = useSelector((state: RootState) => getCodeLines(state));
-    const isClearState = useSelector((state: RootState) => state.projectManager.isClearState);
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
     // using this to avoid saving the file when we load code doc for the first time
     // const [codeTextInit, setcodeTextInit] = useState(0);
@@ -122,21 +118,6 @@ const FileManager = () => {
                             if (fmResult.type === ContentType.FILE_METADATA) {
                                 //TODO: remove stateSaved variable, use fileToSaveState only
                                 dispatch(setFileToSaveState(null));
-                            }
-                            break;
-                        case ProjectCommand.clear_state:
-                            if (inViewID) {
-                                console.log("FileManager got clear_state result: ", fmResult);
-                                if (fmResult.type === ContentType.NONE) {
-                                    //TODO: remove stateSaved variable, use fileToSaveState only
-                                    let reduxCodeText: ICodeText = {
-                                        reduxFileID: inViewID,
-                                        codeText: state.codeEditor.codeText[inViewID],
-                                        codeLines: [], // Set codeLines is empty array to reload code lines by code text
-                                    };
-                                    dispatch(initCodeText(reduxCodeText));
-                                    dispatch(setFileToSaveState(null));
-                                }
                             }
                             break;
                         case ProjectCommand.get_active_project:
@@ -324,31 +305,6 @@ const FileManager = () => {
     }, [saveTimeout, fileToSaveState]);
 
     /**
-     * This function will be called whenever the clear state is triggered.
-     * State of current file will be cleared
-     */
-    const clearState = () => {
-        const state = store.getState();
-        console.log("FileManager: clear state");
-        const projectPath = state.projectManager.activeProject?.path;
-        const filePath = state.projectManager.inViewID;
-        const message: Message = _createMessage(ProjectCommand.clear_state, null, 1, {
-            path: filePath,
-            projectPath: projectPath,
-        });
-        console.log("FileManager State send:", message.command_name, message.metadata);
-        _sendMessage(message);
-        dispatch(setIsClearState(false));
-        dispatch(setClearStateCodeEditor(null));
-        dispatch(setClearStateProjectManager(null));
-    };
-    useEffect(() => {
-        if (isClearState) {
-            clearState();
-        }
-    }, [isClearState]);
-
-    /**
      * Use fileToSave and fileToSaveState instead of codeText to trigger saveFile and saveState so we can control
      * the situation where saving might fail and need to be retried. This is better
      * that messing up directly with codeText.
@@ -374,11 +330,12 @@ const FileManager = () => {
         let message: Message = _createMessage(ProjectCommand.get_active_project, "", 1);
         // let message: Message = _createMessage(ProjectCommandName.get_open_files, '', 1);
         _sendMessage(message);
+
         // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
         // return () => clearInterval(saveFileTimer);
     }, []); //run this only once - not on rerender
 
     return null;
-};
+};;
 
 export default FileManager;

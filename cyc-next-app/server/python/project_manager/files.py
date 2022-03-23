@@ -17,16 +17,19 @@ def list_dir(path):
     try:
         for f in os.listdir(path):
             fpath = join(path, f)
-            dir_list.append(DirMetatdata(fpath, name=f, is_file = isfile(fpath), timestamp = os.path.getmtime(path)))
+            dir_list.append(DirMetatdata(fpath, name=f, is_file=isfile(
+                fpath), timestamp=os.path.getmtime(path)))
     except Exception:
         raise Exception
     return dir_list
+
 
 def get_file_metadata(path):
     try:
         pass
     except Exception:
         raise Exception
+
 
 def set_name(path):
     try:
@@ -56,22 +59,25 @@ def read_file(path, project_path, timestamp=None):
                     data = json.load(state_file)
                     result.code_lines = data
         else:
-            log.info('Read file have the same timestamp %s, %s' % (path, timestamp))
+            log.info('Read file have the same timestamp %s, %s' %
+                     (path, timestamp))
         return result
     except Exception:
         raise Exception
 
+
 def create_file(path):
     try:
         log.info('Create file %s' % path)
-        if exists(path): #TODO return error here
+        if exists(path):  # TODO return error here
             log.info('File already exists %s' % path)
         else:
             with open(path, 'w') as file:
                 pass
-        return FileMetadata(path, name = path.split('/')[-1], timestamp = os.path.getmtime(path))
+        return FileMetadata(path, name=path.split('/')[-1], timestamp=os.path.getmtime(path))
     except Exception:
         raise Exception
+
 
 def delete(path, is_file):
     try:
@@ -80,6 +86,7 @@ def delete(path, is_file):
         return True
     except Exception:
         raise Exception
+
 
 def save_file(path, content):
     """
@@ -90,7 +97,7 @@ def save_file(path, content):
         with open(path, 'w') as file:
             file.write(content)
         # return FileMetadata(**{'path': path, 'name': path.split('/')[-1], 'timestamp': os.path.getmtime(path) })
-        return FileMetadata(path, name = path.split('/')[-1], timestamp = os.path.getmtime(path))
+        return FileMetadata(path, name=path.split('/')[-1], timestamp=os.path.getmtime(path))
     except Exception:
         raise Exception
 
@@ -130,16 +137,3 @@ def get_state_path(path, project_path):
         project_path, CNEXT_FOLDER_PATH, 'states', sub_path)
     state_path = os.path.splitext(file_path)[0] + '.json'
     return state_path
-
-
-def clear_state(path, project_path):
-    """
-        Clear state of file. Delete state file in .cnext/state folder 
-    """
-    log.info('Clear state {}'.format(path))
-    state_path = get_state_path(path, project_path)
-    state_file_name = state_path.split('/')[-1]
-    if (os.path.exists(path)):
-        os.remove(state_path)
-        return FileMetadata(state_path, name=state_file_name, timestamp=os.path.getmtime(path))
-    return None

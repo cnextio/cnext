@@ -370,19 +370,16 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = action.payload;
         },
 
-        setClearStateCodeEditor: (state, action) => {
+        setClearSavedState: (state, action) => {
             const inViewID = action.payload;
             state.resultUpdate = 0;
             state.textOutputCount = 0;
-            state.activeLine = null;
-            state.codeLines[inViewID] = [];
-            state.timestamp = {};
-            state.activeLine = null;
-            state.activeLine = null;
-            state.cAssistInfo = undefined;
-            state.runDict = undefined;
-            state.runningId = undefined;
-            state.codeToInsert = undefined;
+
+            // remove all result & textOutput in state code lines
+            for (let codeLine of state.codeLines[inViewID]) {
+                codeLine.result = undefined;
+                codeLine.textOutput = undefined;
+            }
         },
     },
 });
@@ -402,7 +399,7 @@ export const {
     compeleteRunQueue,
     setCodeToInsert,
     clearRunQueueTextOutput,
-    setClearStateCodeEditor,
+    setClearSavedState,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;
