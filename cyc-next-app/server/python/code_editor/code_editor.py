@@ -10,16 +10,6 @@ from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
 log = logs.get_logger(__name__)
 
-MIME_TYPES = [
-    'text/html',
-    'text/javascript',
-    'text/plain',
-    'image/gif',
-    'image/png',
-    'image/webp',
-    'image/svg+xml',
-    'image/jpeg'
-]
 
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
@@ -115,10 +105,12 @@ class MessageHandler(BaseMessageHandler):
             # Ipython return rich output as mime types
             # FIXME: is there situation where there are more than one item. if so what should we do?
             for key, value in msg_ipython.content['data'].items():
-                message.content = value
-                message.sub_type = key
                 if key == 'application/json' and self._result_is_plotly_fig(value):
                     message.sub_type = SubContentType.PLOTLY_FIG
+                    message.content = value
+                else:
+                    message.content = value
+                    message.sub_type = key
             return message
 
     def handle_message(self, message):
@@ -129,6 +121,7 @@ class MessageHandler(BaseMessageHandler):
         try:
             outputs = self.user_space.execute(message.content, None)
             for output in outputs:
+                print("MESSAGE", output)
                 msg = self.build_single_message(
                     output=output, message=message)
                 if msg is not None:

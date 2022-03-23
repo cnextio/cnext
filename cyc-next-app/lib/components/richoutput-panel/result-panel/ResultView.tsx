@@ -39,9 +39,9 @@ const ResultView = (props: any) => {
     };
 
     //FIXME: this still not work as expected
-    useEffect(() => {
-        // setContainerMounted(true);
-    });
+    // useEffect(() => {
+    // setContainerMounted(true);
+    // });
 
     const rowHeight = 50; //unit: px
     const screenSize = 2000; //unit: px;
@@ -51,11 +51,11 @@ const ResultView = (props: any) => {
         const state: RootState = store.getState();
         const inViewID = state.projectManager.inViewID;
         if (inViewID && state.codeEditor?.codeLines != null) {
-            const codeLines: ICodeLine[] =
-                state.codeEditor?.codeLines[inViewID];
+            const codeLines: ICodeLine[] = state.codeEditor?.codeLines[inViewID];
             const codeWithResult: ICodeLine[] = codeLines.filter(
                 (code) => code.result?.type === ContentType.RICH_OUTPUT
             );
+            console.log("codeWithResult", codeWithResult);
             return (
                 <StyledResultView id={resultViewId}>
                     {/* <GridLayout
@@ -81,23 +81,18 @@ const ResultView = (props: any) => {
                               //   >
                               <SingleResult
                                   key={codeResult.lineID}
-                                  variant="outlined"
+                                  variant='outlined'
                                   focused={codeResult.lineID == activeLine}
                               >
-                                  {codeResult?.result?.subType ===
-                                      SubContentType.PLOTLY_FIG &&
+                                  {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
                                       React.createElement(
                                           PlotlyWithNoSSR,
                                           setLayout(codeResult?.result?.content)
                                       )}
                                   {codeResult?.result?.subType ===
                                       SubContentType.APPLICATION_JSON &&
-                                      JSON.stringify(
-                                          codeResult?.result?.content
-                                      )}
-                                  {codeResult?.result?.subType?.includes(
-                                      "image"
-                                  ) && (
+                                      JSON.stringify(codeResult?.result?.content)}
+                                  {codeResult?.result?.subType?.includes("image") && (
                                       <img
                                           src={
                                               "data:" +
@@ -108,11 +103,8 @@ const ResultView = (props: any) => {
                                       />
                                   )}
                                   {/* Display video/ audio */}
-                                  {codeResult?.result?.subType ===
-                                      SubContentType.TEXT_HTML &&
-                                      ReactHtmlParser(
-                                          codeResult?.result?.content
-                                      )}
+                                  {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
+                                      ReactHtmlParser(codeResult?.result?.content)}
                               </SingleResult>
                               //   </ScrollIntoViewIfNeeded>
                           ))
