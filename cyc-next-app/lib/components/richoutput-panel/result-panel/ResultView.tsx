@@ -8,15 +8,15 @@ import {
 import ReactHtmlParser from "html-react-parser";
 import { useSelector } from "react-redux";
 import { ICodeLine } from "../../../interfaces/ICodeEditor";
-import store from "../../../../redux/store";
+import store, { RootState } from "../../../../redux/store";
 import { ContentType, SubContentType } from "../../../interfaces/IApp";
 import GridLayout from "react-grid-layout";
-const ResultWithNoSSR = dynamic(() => import("react-plotly.js"), {
+const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
 });
 
 const ResultView = (props: any) => {
-    const activeLine = useSelector((state) => state.codeEditor.activeLine);
+    const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
     // const [containerMounted, setContainerMounted] = useState(false);
 
     const setLayout = (
@@ -48,10 +48,11 @@ const ResultView = (props: any) => {
     const resultViewId = "StyledResultViewID";
     const cols = 10; //unit: grid
     const renderResult = () => {
-        const state = store.getState();
+        const state: RootState = store.getState();
         const inViewID = state.projectManager.inViewID;
-        if (inViewID) {
-            const codeLines: ICodeLine[] = state.codeEditor.codeLines[inViewID];
+        if (inViewID && state.codeEditor?.codeLines != null) {
+            const codeLines: ICodeLine[] =
+                state.codeEditor?.codeLines[inViewID];
             const codeWithResult: ICodeLine[] = codeLines.filter(
                 (code) => code.result?.type === ContentType.RICH_OUTPUT
             );
@@ -80,18 +81,23 @@ const ResultView = (props: any) => {
                               //   >
                               <SingleResult
                                   key={codeResult.lineID}
-                                  variant='outlined'
+                                  variant="outlined"
                                   focused={codeResult.lineID == activeLine}
                               >
-                                  {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
+                                  {codeResult?.result?.subType ===
+                                      SubContentType.PLOTLY_FIG &&
                                       React.createElement(
-                                          ResultWithNoSSR,
+                                          PlotlyWithNoSSR,
                                           setLayout(codeResult?.result?.content)
                                       )}
                                   {codeResult?.result?.subType ===
                                       SubContentType.APPLICATION_JSON &&
-                                      JSON.stringify(codeResult?.result?.content)}
-                                  {codeResult?.result?.subType?.includes("image") && (
+                                      JSON.stringify(
+                                          codeResult?.result?.content
+                                      )}
+                                  {codeResult?.result?.subType?.includes(
+                                      "image"
+                                  ) && (
                                       <img
                                           src={
                                               "data:" +
@@ -102,8 +108,11 @@ const ResultView = (props: any) => {
                                       />
                                   )}
                                   {/* Display video/ audio */}
-                                  {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
-                                      ReactHtmlParser(codeResult?.result?.content)}
+                                  {codeResult?.result?.subType ===
+                                      SubContentType.TEXT_HTML &&
+                                      ReactHtmlParser(
+                                          codeResult?.result?.content
+                                      )}
                               </SingleResult>
                               //   </ScrollIntoViewIfNeeded>
                           ))
