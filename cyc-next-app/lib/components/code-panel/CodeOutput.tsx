@@ -11,16 +11,44 @@ import { UpdateType } from "../../interfaces/IApp";
 import { useDispatch, useSelector } from "react-redux";
 import ReviewComponent from "./DFReview";
 import Ansi from "ansi-to-react";
+import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
+import store, { RootState } from "../../../redux/store";
 
-const CodeOutputComponent = ({ codeOutput }) => {
-    const dfUpdates = useSelector((state) => _checkDFUpdates(state));
-    let [outputContent, setOutputContent] = useState<{}[]>([]);
-    let [outputType, setOutputType] = useState("");
-    const endPointRef = useRef(null);
+const CodeOutputComponent = () => {
+    const dfUpdates = useSelector((state: RootState) => checkDFUpdates(state));
+    // const textOutput = useSelector((state: RootState) => getTextOuput(state));
+    const textOutputCount = useSelector((state: RootState) => state.codeEditor.maxTextOutputOrder);
+    let [outputContent, setOutputContent] = useState<(ICodeResultContent | undefined)[]>([]);
     const codeOutputRef = useRef(null);
-    const dispatch = useDispatch();
 
-    function _checkDFUpdates(state) {
+    function getTextOuput(state: RootState): (ICodeResultContent | undefined)[] {
+        const inViewID = state.projectManager.inViewID;
+        if (inViewID != null) {
+            let textOutputs = state.codeEditor.codeLines[inViewID]
+                ?.filter((item: ICodeLine) => {
+                    return item.textOutput != null;
+                })
+                .sort((item1: ICodeLine, item2: ICodeLine) => {
+                    if (item1.textOutput?.order != null && item2.textOutput?.order != null) {
+                        return item1.textOutput?.order - item2.textOutput?.order;
+                    } else {
+                        return -1;
+                    }
+                })
+                .map((item: ICodeLine) => {
+                    // return item.textOutput?.content;
+                    return {
+                        type: "text",
+                        content: item.textOutput?.content,
+                    };
+                });
+            return textOutputs;
+        } else {
+            return [];
+        }
+    }
+
+    function checkDFUpdates(state: RootState) {
         const activeDataFrame = state.dataFrames.activeDataFrame;
         if (
             activeDataFrame &&
@@ -28,8 +56,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
             activeDataFrame in state.dataFrames.dfUpdates
         ) {
             // console.log('Check update: ', state.dataFrames.dfUpdates[activeDataFrame]);
-            const activeDataFrameUpdates =
-                state.dataFrames.dfUpdates[activeDataFrame];
+            const activeDataFrameUpdates = state.dataFrames.dfUpdates[activeDataFrame];
             if ("update_type" in activeDataFrameUpdates) {
                 return activeDataFrameUpdates;
             }
@@ -47,15 +74,15 @@ const CodeOutputComponent = ({ codeOutput }) => {
 
     const updateTypeToReview = ["add_cols", "add_rows", "update_cells"];
 
-    const _buildUpdatedItemsComponent = (updatedItems: Array<any>) => {
+    const buildUpdatedItemsComponent = (updatedItems: Array<any>) => {
         return (
             <Fragment>
                 {updatedItems.map((elem, index) => (
                     <Fragment>
                         <Typography
                             key={index}
-                            variant="caption"
-                            component="span"
+                            variant='caption'
+                            component='span'
                             style={{ fontWeight: "bold" }}
                         >
                             {elem}
@@ -67,7 +94,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
         );
     };
 
-    const _buildDFReviewsOutputComponent = (
+    const buildDFReviewsOutputComponent = (
         key: number,
         updateType: UpdateType,
         updatedItems: Array<any>,
@@ -75,9 +102,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
     ) => {
         return (
             <Fragment>
-                {updateType === UpdateType.new_df && (
-                    <Fragment>New dataframe created</Fragment>
-                )}
+                {updateType === UpdateType.new_df && <Fragment>New dataframe created</Fragment>}
                 {updateType !== UpdateType.new_df &&
                 (updatedItems.length || Object.keys(updatedItems).length) ? (
                     <Box key={key} sx={{ display: "flex" }}>
@@ -87,7 +112,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                 updateType == UpdateType.del_cols) && (
                                 <Fragment>
                                     Column{updatedItems.length > 1 ? "s" : ""}{" "}
-                                    {_buildUpdatedItemsComponent(updatedItems)}{" "}
+                                    {buildUpdatedItemsComponent(updatedItems)}{" "}
                                     {activityText[updateType]}
                                 </Fragment>
                             )}
@@ -95,7 +120,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
                                 updateType == UpdateType.del_rows) && (
                                 <Fragment>
                                     Row{updatedItems.length > 1 ? "s" : ""}{" "}
-                                    {_buildUpdatedItemsComponent(updatedItems)}{" "}
+                                    {buildUpdatedItemsComponent(updatedItems)}{" "}
                                     {activityText[updateType]}
                                 </Fragment>
                             )}
@@ -119,24 +144,36 @@ const CodeOutputComponent = ({ codeOutput }) => {
         );
     };
 
+    // const handleNormalCodeOutput = () => {
+    //     try {
+    //         if (codeOutput.content !== null && codeOutput.content !== "") {
+    //             let newOutputContent = {
+    //                 type: !codeOutput.error ? "text" : "error",
+    //                 content: codeOutput.content,
+    //             };
+    //             setOutputContent((outputContent) => [
+    //                 ...outputContent,
+    //                 newOutputContent,
+    //             ]);
+    //         }
+    //     } catch (error) {
+    //         // TODO: process json error
+    //         console.error(error);
+    //     }
+    // };
+    // useEffect(handleNormalCodeOutput, [codeOutput]);
+
     const handleNormalCodeOutput = () => {
         try {
-            if (codeOutput.content !== null && codeOutput.content !== "") {
-                let newOutputContent = {
-                    type: !codeOutput.error ? "text" : "error",
-                    content: codeOutput.content,
-                };
-                setOutputContent((outputContent) => [
-                    ...outputContent,
-                    newOutputContent,
-                ]);
-            }
+            const state: RootState = store.getState();
+            let textOutputs = getTextOuput(state);
+            setOutputContent(textOutputs);
         } catch (error) {
             // TODO: process json error
             console.error(error);
         }
     };
-    useEffect(handleNormalCodeOutput, [codeOutput]);
+    useEffect(handleNormalCodeOutput, [textOutputCount]);
 
     const handleDFUpdates = () => {
         //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
@@ -158,10 +195,7 @@ const CodeOutputComponent = ({ codeOutput }) => {
             };
             //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
             if (newOutputContent != null) {
-                setOutputContent((outputContent) => [
-                    ...outputContent,
-                    newOutputContent,
-                ]);
+                setOutputContent((outputContent) => [...outputContent, newOutputContent]);
             }
         }
     };
@@ -205,66 +239,53 @@ const CodeOutputComponent = ({ codeOutput }) => {
     return (
         <CodeOutputContainer>
             {console.log("Render CodeOutputAreaComponent")}
-            <CodeOutputHeader variant="overline" component="span">
+            <CodeOutputHeader variant='overline' component='span'>
                 Output
             </CodeOutputHeader>
             <CodeOutputContent ref={codeOutputRef} id={codeOutputContentID}>
-                {outputContent.map((item, index) => (
-                    <Fragment>
-                        {item["type"] === "text" && item["content"] !== "" && (
-                            <IndividualCodeOutputContent
-                                key={index}
-                                component="pre"
-                                variant="body2"
-                            >
-                                {item["content"]}
-                            </IndividualCodeOutputContent>
-                        )}
-                        {item["type"] === "df_updates" && (
-                            <IndividualCodeOutputContent
-                                key={index}
-                                component="pre"
-                                variant="body2"
-                            >
-                                {_buildDFReviewsOutputComponent(
-                                    outputContent.length,
-                                    item["content"]["updateType"],
-                                    item["content"]["updateContent"],
-                                    // only the last item and in the review list can be in active review mode
-                                    index === outputContent.length - 1 &&
-                                        updateTypeToReview.includes(
-                                            item["content"]["updateType"]
-                                        )
-                                )}
-                            </IndividualCodeOutputContent>
-                        )}
-                        {item["type"] === "error" &&
-                            typeof item["content"] === "object" &&
-                            item["content"].map((content) => (
+                {textOutputCount > 0 &&
+                    outputContent.map((item, index) => (
+                        <Fragment>
+                            {item["type"] === "text" && item["content"] !== "" && (
                                 <IndividualCodeOutputContent
                                     key={index}
-                                    component="pre"
-                                    variant="body2"
+                                    component='pre'
+                                    variant='body2'
                                 >
-                                    <Ansi>{content.toString()}</Ansi>
+                                    <Ansi>{item["content"]}</Ansi>
                                 </IndividualCodeOutputContent>
-                            ))}
-                        {index === outputContent.length - 1 && (
-                            <ScrollIntoViewIfNeeded
-                                options={{
-                                    active: true,
-                                    block: "nearest",
-                                    inline: "center",
-                                    behavior: "smooth",
-                                    boundary:
-                                        document.getElementById(
-                                            codeOutputContentID
-                                        ),
-                                }}
-                            />
-                        )}
-                    </Fragment>
-                ))}
+                            )}
+                            {item["type"] === "df_updates" && (
+                                <IndividualCodeOutputContent
+                                    key={index}
+                                    component='pre'
+                                    variant='body2'
+                                >
+                                    {buildDFReviewsOutputComponent(
+                                        outputContent.length,
+                                        item["content"]["updateType"],
+                                        item["content"]["updateContent"],
+                                        // only the last item and in the review list can be in active review mode
+                                        index === outputContent.length - 1 &&
+                                            updateTypeToReview.includes(
+                                                item["content"]["updateType"]
+                                            )
+                                    )}
+                                </IndividualCodeOutputContent>
+                            )}
+                            {index === outputContent.length - 1 && (
+                                <ScrollIntoViewIfNeeded
+                                    options={{
+                                        active: true,
+                                        block: "nearest",
+                                        inline: "center",
+                                        behavior: "smooth",
+                                        boundary: document.getElementById(codeOutputContentID),
+                                    }}
+                                />
+                            )}
+                        </Fragment>
+                    ))}
             </CodeOutputContent>
         </CodeOutputContainer>
     );

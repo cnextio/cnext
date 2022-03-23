@@ -8,7 +8,6 @@ from libs.message import ContentType, SubContentType, Message
 from libs import logs
 from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
-from user_space.ipython.kernel import IPythonKernel
 log = logs.get_logger(__name__)
 
 
@@ -53,18 +52,31 @@ class MessageHandler(BaseMessageHandler):
         """
         msg_ipython = IpythonResultMessage(**output)
 
+        # Add header message from ipython to message metadata
+        if message.metadata is None:
+            message.metadata = {}
+
+        message.metadata['msg_id'] = msg_ipython.header['msg_id']
+        message.metadata['msg_type'] = msg_ipython.header['msg_type']
+        message.metadata['session'] = msg_ipython.header['session']
+
         # Handle error message
         if self._is_error_message(msg_ipython.header):
-            log.error("Error {}" % (msg_ipython.content['traceback']))
+            log.error("Error %s" % (msg_ipython.content['traceback']))
+            if isinstance(msg_ipython.content['traceback'], list):
+                content = '\n'.join(msg_ipython.content['traceback'])
+            else:
+                content = msg_ipython.content['traceback']
             error_message = self._create_error_message(
                 message.webapp_endpoint,
-                msg_ipython.content['traceback'],
+                content,
                 message.metadata
             )
             return error_message
 
         # Handle success message
         message.error = False
+
         if self._is_execute_reply(msg_ipython.header):
             message.type = ContentType.NONE
             message.sub_type = SubContentType.NONE
@@ -75,7 +87,7 @@ class MessageHandler(BaseMessageHandler):
             if type(msg_ipython.content['data']) is dict:
                 if 'text/html' in msg_ipython.content['data']:
                     message.type = ContentType.RICH_OUTPUT
-                    message.sub_type = SubContentType.HTML_STRING
+                    message.sub_type = SubContentType.TEXT_HTML
                     message.content = msg_ipython.content['data']['text/html']
             else:
                 message.type = ContentType.STRING
@@ -91,11 +103,14 @@ class MessageHandler(BaseMessageHandler):
         elif self._is_display_data_result(msg_ipython.header):
             message.type = ContentType.RICH_OUTPUT
             # Ipython return rich output as mime types
+            # FIXME: is there situation where there are more than one item. if so what should we do?
             for key, value in msg_ipython.content['data'].items():
-                message.content = value
-                message.sub_type = key
                 if key == 'application/json' and self._result_is_plotly_fig(value):
                     message.sub_type = SubContentType.PLOTLY_FIG
+                    message.content = value
+                else:
+                    message.content = value
+                    message.sub_type = key
             return message
 
     def handle_message(self, message):
@@ -106,7 +121,9 @@ class MessageHandler(BaseMessageHandler):
         try:
             outputs = self.user_space.execute(message.content, None)
             for output in outputs:
-                msg = self.build_single_message(output=output, message=message)
+                # print("MESSAGE", output)
+                msg = self.build_single_message(
+                    output=output, message=message)
                 if msg is not None:
                     self._send_to_node(msg)
             self._process_active_dfs_status()
@@ -116,8 +133,6 @@ class MessageHandler(BaseMessageHandler):
             error_message = self._create_error_message(
                 message.webapp_endpoint, trace, message.metadata)
             self._send_to_node(error_message)
-        # finally:
-        #     IPythonKernel().shutdown_kernel()
 
     def _process_active_dfs_status(self):
         active_df_status = self.user_space.get_active_dfs_status()

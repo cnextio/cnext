@@ -7,7 +7,7 @@ class JsonRpcStreamReader {
 
     getData(chunk) {
         const messages = chunk.toString('utf-8').split('\n');
-        console.log(`get chunk at ${new Date().toLocaleString()} `, messages);
+        // console.log(`get chunk at ${new Date().toLocaleString()} `, messages);
 
         if (messages.length > 3) {
             // have full chunk with content-type
@@ -64,10 +64,10 @@ class JsonRpcStreamReader {
 
 class JsonRpcStreamWriter {
     getPayload(message) {
-        console.log(
-            `getPayload and send to LSP ${new Date().toLocaleString()} `,
-            JSON.parse(message)
-        );
+        // console.log(
+        //     `getPayload and send to LSP ${new Date().toLocaleString()} `,
+        //     JSON.parse(message)
+        // );
         const encodedMessage = Buffer.from(message, 'utf-8');
         const length = encodedMessage.length;
         return `Content-Length: ${length}\r\n Content-Type: application/vscode-jsonrpc; charset=utf8\r\n\r\n${encodedMessage}`;

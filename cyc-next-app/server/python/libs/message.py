@@ -60,6 +60,7 @@ class ProjectCommand(str, Enum):
     set_working_dir = 'set_working_dir'
     set_project_dir = 'set_project_dir'
     get_active_project = 'get_active_project'
+    save_state = 'save_state'
 
 
 class ExperimentManagerCommand(str, Enum):
@@ -98,7 +99,8 @@ class ContentType(str, Enum):
 
 class SubContentType(str, Enum):
     PLOTLY_FIG = 'plotly_fig'
-    HTML_STRING = 'html_string'
+    TEXT_HTML = 'text/html'
+    APPLICATION_JSON = 'application/json'
     NONE = 'none'
 
     def __str__(self):

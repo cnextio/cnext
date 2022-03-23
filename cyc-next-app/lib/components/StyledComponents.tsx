@@ -628,7 +628,7 @@ export const DataTableCell = styled(TableCell)`
         1s linear 0s;
 `;
 
-export const PlotViewContainer = styled.div`
+export const ResultViewContainer = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
     padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
     // max-height: 100%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
@@ -654,9 +654,9 @@ export const PlotContainer = styled(Paper)`
     margin: 1px;
     overflow: hidden;
     width: fit-content;
-    border-color: ${(props) =>
-        props.focused ? props.theme.palette.primary.light : null};
+    border-color: ${(props) => (props.focused ? props.theme.palette.primary.light : null)};
     border-width: ${(props) => (props.focused ? "2px" : null)};
+    margin-bottom: 8px;
 `;
 
 export const SmallVizContainer = styled(MuiTableContainer)`

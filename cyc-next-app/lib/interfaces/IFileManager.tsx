@@ -9,21 +9,22 @@ export enum FileStatus {
     saved = 'saved'
 }
 
-export enum ProjectCommand {  
-    list_dir = 'list_dir',
-    get_file_metadata = 'get_file_metadata',
-    read_file = 'read_file',
-    save_file = 'save_file',
-    create_file = 'create_file',
-    close_file = 'close_file',
-    open_file = 'open_file',
-    delete = 'delete',
-    set_name = 'set_name',
-    get_open_files = 'get_open_files',    
-    create_folder = 'create_folder',    
-    remove_folder = 'remove_folder',
-    set_working_dir = 'set_working_dir',
-    get_active_project = 'get_active_project'
+export enum ProjectCommand {
+    list_dir = "list_dir",
+    get_file_metadata = "get_file_metadata",
+    read_file = "read_file",
+    save_file = "save_file",
+    create_file = "create_file",
+    close_file = "close_file",
+    open_file = "open_file",
+    delete = "delete",
+    set_name = "set_name",
+    get_open_files = "get_open_files",
+    create_folder = "create_folder",
+    remove_folder = "remove_folder",
+    set_working_dir = "set_working_dir",
+    get_active_project = "get_active_project",
+    save_state = "save_state",
 };
 
 export interface IFileMetadata {

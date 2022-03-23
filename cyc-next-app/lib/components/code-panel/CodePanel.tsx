@@ -34,8 +34,8 @@ const CodePanel = () => {
                 <SplitPane split="horizontal" defaultSize="70%" pane2Style={{height: "30%"}}>  
                             {/* panel2 height is the must for the scrolling to work */}
                     {/* {codeEditor} */}
-                    <CodeEditor recvCodeOutput={recvCodeOutput} id='code-editor'/>
-                    <CodeOutput codeOutput={codeOutput} />
+                    <CodeEditor />
+                    <CodeOutput />
                 </SplitPane>            
             </CodeContainer>
         </StyledCodePanel>

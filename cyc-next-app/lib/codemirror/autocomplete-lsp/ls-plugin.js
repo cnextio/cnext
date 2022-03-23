@@ -41,10 +41,10 @@ class LanguageServerPlugin {
         socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
             try {
                 const notification = JSON.parse(result);
-                console.log(
-                    `received notify from LSP server at ${new Date().toLocaleString()} `,
-                    notification
-                );
+                // console.log(
+                //     `received notify from LSP server at ${new Date().toLocaleString()} `,
+                //     notification
+                // );
                 switch (notification.method) {
                     case 'textDocument/publishDiagnostics':
                         this.processDiagnostics(notification.params);
@@ -67,10 +67,10 @@ class LanguageServerPlugin {
         const rpcMessage = { jsonrpc: '2.0', id: 0, method: method, params: params };
 
         return new Promise((resolve, reject) => {
-            console.log(
-                `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
-                rpcMessage
-            );
+            // console.log(
+            //     `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
+            //     rpcMessage
+            // );
             socket.emit(channel, JSON.stringify(rpcMessage));
 
             setTimeout(() => {
@@ -80,10 +80,10 @@ class LanguageServerPlugin {
             if (channel) {
                 socket.once(channel, (result) => {
                     const response = JSON.parse(result.toString());
-                    console.log(
-                        `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,
-                        response
-                    );
+                    // console.log(
+                    //     `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,
+                    //     response
+                    // );
                     resolve(response);
                 });
             }
