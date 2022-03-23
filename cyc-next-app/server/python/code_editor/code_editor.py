@@ -121,7 +121,7 @@ class MessageHandler(BaseMessageHandler):
         try:
             outputs = self.user_space.execute(message.content, None)
             for output in outputs:
-                print("MESSAGE", output)
+                # print("MESSAGE", output)
                 msg = self.build_single_message(
                     output=output, message=message)
                 if msg is not None:

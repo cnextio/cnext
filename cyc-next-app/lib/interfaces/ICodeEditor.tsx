@@ -113,6 +113,8 @@ export interface ICodeResult {
     subType: string;
     msg_id?: string;
     session_id?: string;
+    /** Order in which this result is generated. 
+     * Currently only use this for text output result where output will be displayed in the order of generation. */
     order?: number;
 }
 

@@ -17,7 +17,7 @@ import store, { RootState } from "../../../redux/store";
 const CodeOutputComponent = () => {
     const dfUpdates = useSelector((state: RootState) => checkDFUpdates(state));
     // const textOutput = useSelector((state: RootState) => getTextOuput(state));
-    const textOutputCount = useSelector((state: RootState) => state.codeEditor.textOutputCount);
+    const textOutputCount = useSelector((state: RootState) => state.codeEditor.maxTextOutputOrder);
     let [outputContent, setOutputContent] = useState<(ICodeResultContent | undefined)[]>([]);
     const codeOutputRef = useRef(null);
 

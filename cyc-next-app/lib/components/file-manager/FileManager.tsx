@@ -29,7 +29,7 @@ const FileManager = () => {
     const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
-    const resultUpdate = useSelector((state: RootState) => state.codeEditor.resultUpdate);
+    const resultUpdate = useSelector((state: RootState) => state.codeEditor.resultCount);
     const codeText = useSelector((state: RootState) => getCodeText(state));
     const codeLines = useSelector((state: RootState) => getCodeLines(state));
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
@@ -275,27 +275,36 @@ const FileManager = () => {
             for (let filePath of fileToSaveState) {
                 const state = store.getState();
                 // console.log("FileManager: ", filePath);
-                const codeLines = state.codeEditor.codeLines[filePath];
-                // Avoid to save the text/html result because maybe it's audio/video files.
-                // Save these files make bad performance.
-                const codeLinesSaveState = codeLines.filter(
-                    (codeLine) => codeLine.result?.subType !== SubContentType.TEXT_HTML
-                );
-                const timestamp = state.codeEditor.timestamp[filePath];
-                const projectPath = state.projectManager.activeProject?.path;
-                const message: Message = _createMessage(
-                    ProjectCommand.save_state,
-                    codeLinesSaveState,
-                    1,
-                    {
-                        path: filePath,
-                        projectPath: projectPath,
-                        timestamp: timestamp,
-                    }
-                );
-                console.log("FileManager State send:", message.command_name, message.metadata);
-                _sendMessage(message);
-                setSaveTimeout(false);
+                if (state.codeEditor.codeLines != null){
+                    const codeLines = state.codeEditor.codeLines[filePath];
+                    // Avoid to save the text/html result because maybe it's audio/video files.
+                    // Save these files make bad performance.
+                    const codeLinesSaveState = codeLines.filter(
+                        (codeLine) =>
+                            codeLine.result?.subType !==
+                            SubContentType.TEXT_HTML
+                    );
+                    const timestamp = state.codeEditor.timestamp[filePath];
+                    const projectPath =
+                        state.projectManager.activeProject?.path;
+                    const message: Message = _createMessage(
+                        ProjectCommand.save_state,
+                        codeLinesSaveState,
+                        1,
+                        {
+                            path: filePath,
+                            projectPath: projectPath,
+                            timestamp: timestamp,
+                        }
+                    );
+                    console.log(
+                        "FileManager State send:",
+                        message.command_name,
+                        message.metadata
+                    );
+                    _sendMessage(message);
+                    setSaveTimeout(false);
+                }
             }
         }
     };
@@ -307,7 +316,7 @@ const FileManager = () => {
     /**
      * Use fileToSave and fileToSaveState instead of codeText to trigger saveFile and saveState so we can control
      * the situation where saving might fail and need to be retried. This is better
-     * that messing up directly with codeText.
+     * than messing up directly with codeText.
      * Also, save condition will only be triggered after file has been loaded suscessfully into to redux codeLines and codeText
      * indicated by state.projectManager.serverSynced
      * */
