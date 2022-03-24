@@ -123,4 +123,5 @@ dependencies:
     - zeromq=4.3.4
     - zipp=3.7.0
     - zlib=1.2.11
+    - mlflow=1.24.0
     # - zmq=0.0.0
