@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -13,8 +17,19 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "incremental": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "lib/components/CodeAreaComponent.js", "server/server.tsx", "server/tests/test_servers/test_pyshell.jss", "lib/components/richoutput-panel/experiment-panel/WindowDims.js"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "lib/components/CodeAreaComponent.js",
+    "server/server.tsx",
+    "server/tests/test_servers/test_pyshell.jss",
+    "lib/components/richoutput-panel/experiment-panel/WindowDims.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
