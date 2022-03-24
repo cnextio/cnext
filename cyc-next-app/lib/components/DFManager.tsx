@@ -109,10 +109,10 @@ const DFManager = () => {
         df_id: string,
         around_index: number = 0
     ) => {
-        let content: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
+        let queryStr: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
                                 if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
-                                :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;
-        let message = _createMessage(CommandName.get_table_data, content, 1, {
+                                :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;        
+        let message = _createMessage(CommandName.get_table_data, queryStr, 1, {
             df_id: df_id,
         });
         // console.log("Send get table: ", message);
@@ -120,13 +120,13 @@ const DFManager = () => {
     };
 
     const _sendGetTableData = (df_id: string, filter: string | null = null) => {
-        let content: string;
+        let queryStr: string;
         if (filter) {
-            content = `${df_id}${filter}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
+            queryStr = `${df_id}${filter}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
         } else {
-            content = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
+            queryStr = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
         }
-        let message = _createMessage(CommandName.get_table_data, content, 1, {
+        let message = _createMessage(CommandName.get_table_data, queryStr, 1, {
             df_id: df_id,
         });
         // console.log("_send_get_table_data message: ", message);
