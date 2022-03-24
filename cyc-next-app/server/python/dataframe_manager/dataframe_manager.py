@@ -113,7 +113,7 @@ class MessageHandler(BaseMessageHandler):
 
     @ipython_internal_output
     def _get_table_data(self, df_id, code):
-        output = None
+        output = None        
         result = self.user_space.execute(code, ExecutionMode.EVAL)
         # print("get table data %s" % result)
         # log.info("get table data %s" % result)
@@ -178,8 +178,10 @@ class MessageHandler(BaseMessageHandler):
 
             elif message.command_name == DFManagerCommand.get_table_data:
                 # TODO: turn _df_manager to variable
-                output_messages = self.user_space.execute("{}._get_table_data('{}', '{}')".format(
+                log.info("_get_table_data: %s" % "{}._get_table_data('{}', '{}')".format(
                     IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content))
+                output_messages = self.user_space.execute("{}._get_table_data('{}', '{}')".format(
+                    IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content))                
                 output = self.get_execute_result(output_messages)
                 if output is not None:
                     # log.info("get table data")

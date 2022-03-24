@@ -8,7 +8,12 @@
  * */
 
 import React, { useEffect } from "react";
-import { Message, WebAppEndpoint, CommandName, UpdateType } from "../interfaces/IApp";
+import {
+    Message,
+    WebAppEndpoint,
+    CommandName,
+    UpdateType,
+} from "../interfaces/IApp";
 import socket from "./Socket";
 import {
     setTableData,
@@ -27,11 +32,16 @@ import { ifElse, ifElseDict } from "./libs";
 
 const DFManager = () => {
     const dispatch = useDispatch();
-    const loadDataRequest = useSelector((state) => state.dataFrames.loadDataRequest);
+    const loadDataRequest = useSelector(
+        (state) => state.dataFrames.loadDataRequest
+    );
     const dfFilter = useSelector((state) => state.dataFrames.dfFilter);
 
     const _sendMessage = (message: {}) => {
-        console.log(`Send ${WebAppEndpoint.DFManager} request: `, JSON.stringify(message));
+        console.log(
+            `Send ${WebAppEndpoint.DFManager} request: `,
+            JSON.stringify(message)
+        );
         socket.emit(WebAppEndpoint.DFManager, JSON.stringify(message));
     };
 
@@ -50,21 +60,37 @@ const DFManager = () => {
         return message;
     };
 
-    const _sendColumnHistogramPlotRequest = (df_id: string, col_name: string) => {
+    const _sendColumnHistogramPlotRequest = (
+        df_id: string,
+        col_name: string
+    ) => {
         let content: string = `px.histogram(${df_id}, x="${col_name}")`;
-        let message = _createMessage(CommandName.plot_column_histogram, content, 1, {
-            df_id: df_id,
-            col_name: col_name,
-        });
+        let message = _createMessage(
+            CommandName.plot_column_histogram,
+            content,
+            1,
+            {
+                df_id: df_id,
+                col_name: col_name,
+            }
+        );
         _sendMessage(message);
     };
 
-    const _sendColumnQuantilesPlotRequest = (df_id: string, col_name: string) => {
+    const _sendColumnQuantilesPlotRequest = (
+        df_id: string,
+        col_name: string
+    ) => {
         let content: string = `px.box(${df_id}, x="${col_name}")`;
-        let message = _createMessage(CommandName.plot_column_quantile, content, 1, {
-            df_id: df_id,
-            col_name: col_name,
-        });
+        let message = _createMessage(
+            CommandName.plot_column_quantile,
+            content,
+            1,
+            {
+                df_id: df_id,
+                col_name: col_name,
+            }
+        );
         console.log("here", JSON.stringify(message));
         _sendMessage(message);
     };
@@ -79,7 +105,10 @@ const DFManager = () => {
     };
 
     const DF_DISPLAY_HALF_LENGTH = 15;
-    const _sendGetTableDataAroundRowIndex = (df_id: string, around_index: number = 0) => {
+    const _sendGetTableDataAroundRowIndex = (
+        df_id: string,
+        around_index: number = 0
+    ) => {
         let content: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
                                 if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
                                 :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;
@@ -134,7 +163,10 @@ const DFManager = () => {
     };
 
     const _handleActiveDFStatus = (message: {}) => {
-        console.log("DFManager got active df status message: ", message.content);
+        console.log(
+            "DFManager got active df status message: ",
+            message.content
+        );
         const dfStatusContent = message.content;
 
         // console.log(dfStatusContent);
@@ -143,7 +175,10 @@ const DFManager = () => {
         Object.keys(dfStatusContent).forEach(function (df_id) {
             if (dfStatusContent[df_id]["is_updated"] == true) {
                 // console.log(df_id, dfStatusContent[df_id]);
-                let status_list = ifElseDict(dfStatusContent[df_id], "_status_list");
+                let status_list = ifElseDict(
+                    dfStatusContent[df_id],
+                    "_status_list"
+                );
                 let lastUpdate = status_list[status_list.length - 1];
                 let dfUpdates = ifElseDict(lastUpdate, "updates");
                 let updateType = ifElse(dfUpdates, "update_type", null);
@@ -216,11 +251,13 @@ const DFManager = () => {
     };
 
     const _handleGetDFMetadata = (message: {}) => {
-        console.log(`${WebAppEndpoint.DFManager} got metadata for "${message.metadata["df_id"]}"`);
+        console.log(
+            `${WebAppEndpoint.DFManager} got metadata for "${message.metadata["df_id"]}"`
+        );
         let dfMetadata = message.content;
         let columns: string[] = Object.keys(dfMetadata.columns);
         let df_id = message.metadata["df_id"];
-        console.log('Metadata', columns);
+        console.log("Metadata", columns);
         dispatch(setMetaData(dfMetadata));
 
         //TODO: consider move this to handleActiveDFStatus
@@ -260,20 +297,31 @@ const DFManager = () => {
         socket.on(WebAppEndpoint.DFManager, (result: string) => {
             try {
                 let message: Message = JSON.parse(result);
-                console.log("DFManager got results for command ", message.command_name);
+                console.log(
+                    "DFManager got results for command ",
+                    message.command_name
+                );
                 if (message.error == true) {
                     // props.recvCodeOutput(message); //TODO move this to redux
-                } else if (message.command_name == CommandName.active_df_status) {
+                } else if (
+                    message.command_name == CommandName.active_df_status
+                ) {
                     _handleActiveDFStatus(message);
                 } else if (message.command_name == CommandName.get_table_data) {
                     _handleGetTableData(message);
-                } else if (message.command_name == CommandName.plot_column_histogram) {
+                } else if (
+                    message.command_name == CommandName.plot_column_histogram
+                ) {
                     _handlePlotColumnHistogram(message);
-                } else if (message.command_name == CommandName.plot_column_quantile) {
+                } else if (
+                    message.command_name == CommandName.plot_column_quantile
+                ) {
                     _handlePlotColumnQuantile(message);
                 } else if (message.command_name == CommandName.get_countna) {
                     _handleGetCountna(message);
-                } else if (message.command_name == CommandName.get_df_metadata) {
+                } else if (
+                    message.command_name == CommandName.get_df_metadata
+                ) {
                     _handleGetDFMetadata(message);
                 } else {
                     console.log("dispatch text output");
@@ -286,7 +334,10 @@ const DFManager = () => {
 
     useEffect(() => {
         if (loadDataRequest.df_id) {
-            _sendGetTableDataAroundRowIndex(loadDataRequest.df_id, loadDataRequest.row_index);
+            _sendGetTableDataAroundRowIndex(
+                loadDataRequest.df_id,
+                loadDataRequest.row_index
+            );
         }
     }, [loadDataRequest]);
 
@@ -296,6 +347,6 @@ const DFManager = () => {
         }
     }, [dfFilter]);
     return null;
-};;
+};
 
 export default DFManager;
