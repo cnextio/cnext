@@ -17,10 +17,10 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 
 const ResultView = (props: any) => {
     const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
+    /** this is used to trigger the rerender of this component whenever there is a new result update */
     const resultUpdateCount = useSelector(
         (state: RootState) => state.codeEditor.resultUpdateCount
     );
-    // const [containerMounted, setContainerMounted] = useState(false);
 
     const setLayout = (
         data: object | string | any,
@@ -40,11 +40,6 @@ const ResultView = (props: any) => {
             return null;
         }
     };
-
-    //FIXME: this still not work as expected
-    // useEffect(() => {
-    // setContainerMounted(true);
-    // });
 
     const rowHeight = 50; //unit: px
     const screenSize = 2000; //unit: px;
