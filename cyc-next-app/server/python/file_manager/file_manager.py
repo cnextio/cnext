@@ -27,7 +27,8 @@ class MessageHandler(BaseMessageHandler):
             projects.set_active_project(active_project)
 
     def handle_message(self, message):
-        log.info('Handle FileManager message: %s' % message)
+        log.info('FileManager handle message: %s %s %s' %
+                 (message.command_name, message.type, message.sub_type))
         try:
             metadata = message.metadata
             result = None
@@ -50,7 +51,10 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.read_file:
                 if 'path' in metadata.keys():
                     timestamp = metadata['timestamp'] if 'timestamp' in metadata else None
-                    result = files.read_file(metadata['path'], timestamp)
+                    result = files.read_file(
+                        path=metadata['path'],
+                        project_path=metadata["projectPath"],
+                        timestamp=timestamp)
                     if result == None:
                         type = ContentType.NONE
                     else:
@@ -68,6 +72,13 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.get_active_project:
                 result = projects.get_active_project()
                 type = ContentType.PROJECT_METADATA
+            elif message.command_name == ProjectCommand.save_state:
+                if 'path' in metadata.keys():
+                    result = files.save_state(
+                        path=metadata['path'],
+                        project_path=metadata['projectPath'],
+                        content=message.content)
+                type = ContentType.FILE_METADATA
 
             # create reply message
             message.type = type

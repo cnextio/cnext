@@ -43,9 +43,10 @@ class FileMetadata:
         return self.toJSON()
 
 class FileContent:
-    def __init__(self, content, timestamp=None): 
+    def __init__(self, content, code_lines=None, timestamp=None):
         # self.__dict__.update(locals())
         self.content = content
+        self.code_lines = code_lines
         self.timestamp = timestamp
 
     def toJSON(self):

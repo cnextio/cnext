@@ -3,7 +3,6 @@ import traceback
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
 from cycdataframe.mime_types import CnextMimeType
-from user_space.ipython.kernel import IPythonKernel
 import simplejson as json
 
 from libs import logs
@@ -129,10 +128,8 @@ class MessageHandler(BaseMessageHandler):
         try:
             if message.command_name == DFManagerCommand.plot_column_histogram:
                 # result = eval(message.content, client_globals)
-                output_messages = self.user_space.executor.execute(
+                result = self.user_space.executor.execute(
                     message.content, ExecutionMode.EVAL)
-                result = IPythonKernel.get_execute_result_text_plain(
-                    output_messages)
                 if result is not None:
                     log.info("get plot data")
                     output = self._create_plot_data(
@@ -144,10 +141,8 @@ class MessageHandler(BaseMessageHandler):
 
             elif message.command_name == DFManagerCommand.plot_column_quantile:
                 # result = eval(message.content, client_globals)
-                output_messages = self.user_space.executor.execute(
+                result = self.user_space.executor.execute(
                     message.content, ExecutionMode.EVAL)
-                result = IPythonKernel.get_execute_result_text_plain(
-                    output_messages)
                 if result is not None:
                     log.info("get plot data")
                     output = self._create_plot_data(

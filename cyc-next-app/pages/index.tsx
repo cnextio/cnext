@@ -1,6 +1,12 @@
 import '../node_modules/react-grid-layout/css/styles.css';
 import '../node_modules/react-resizable/css/styles.css';
 
+// import "font-awesome/css/font-awesome.css";
+// import "@lumino/widgets/style/index.css";
+// import "../lib/@jupyter-widgets/controls/css/widgets-base.css";
+// import "@jupyter-widgets/controls/css/labvariables.css";
+// import "@jupyter-widgets/html-manager/css/output.css";
+
 import { createTheme, StyledEngineProvider, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import type { NextPage } from 'next';
 import React from "react";

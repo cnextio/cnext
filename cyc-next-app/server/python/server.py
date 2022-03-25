@@ -8,9 +8,8 @@ from experiment_manager import experiment_manager as em
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
-from project_manager import projects
 
-from libs.message import Message, WebappEndpoint, DFManagerCommand, ContentType
+from libs.message import Message, WebappEndpoint
 from libs.zmq_message import MessageQueue
 import traceback
 import cycdataframe.cycdataframe as cd
@@ -57,9 +56,9 @@ if __name__ == "__main__":
     while True:
         for line in sys.stdin:
             try:
-                log.info('Got message %s' % line)
+                # log.info('Got message %s' % line)
                 message = Message(**json.loads(line))
-
+                log.info('Got message from %s command %s' % (message.webapp_endpoint, message.command_name))
                 message_handler[message.webapp_endpoint].handle_message(
                     message)
 

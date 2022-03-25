@@ -1,13 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-    Message,
-    WebAppEndpoint,
-    ContentType,
-    CommandName,
-} from "../../interfaces/IApp";
+import { Message, WebAppEndpoint, ContentType, CommandName } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
-import store from "../../../redux/store";
+import store, { RootState } from "../../../redux/store";
 import socket from "../Socket";
 import { basicSetup } from "../../codemirror/basic-setup";
 import { bracketMatching } from "@codemirror/matchbrackets";
@@ -18,7 +13,6 @@ import { completionKeymap } from "../../codemirror/autocomplete-lsp/autocomplete
 import { indentUnit } from "@codemirror/language";
 import { lineNumbers } from "@codemirror/gutter";
 import { StyledCodeEditor } from "../StyledComponents";
-// import { languageServer } from "../../codemirror/codemirror-languageserver";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
 import {
     addResult,
@@ -30,6 +24,7 @@ import {
     updateCAssistInfo,
     compeleteRunQueue,
     setCodeToInsert,
+    clearRunQueueTextOutput,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -46,7 +41,6 @@ import {
     ICodeToInsert,
 } from "../../interfaces/ICodeEditor";
 import { EditorState, Transaction, TransactionSpec } from "@codemirror/state";
-// import { extensions } from './codemirror-extentions/extensions';
 import { useCodeMirror } from "@uiw/react-codemirror";
 import {
     ICodeGenResult,
@@ -63,7 +57,6 @@ import {
     CNextXDimColumnNameExpression,
     CNextYDimColumnNameExpression,
 } from "../../codemirror/grammar/cnext-python.terms";
-import { setFileToSave } from "../../../redux/reducers/ProjectManagerRedux";
 import {
     editStatusGutter,
     getCodeLine,
@@ -91,18 +84,28 @@ const ls = languageServer({
     languageId: "python",
 });
 
-const CodeEditor = ({ id, recvCodeOutput }) => {
+const CodeEditor = () => {
     // const CodeEditor = (props: any) => {
     /** This state is used to indicate server sync status. Code doc need to be resynced only
      * when it is first opened or being selected to be in view */
     // const [serverSynced, setServerSynced] = useState(false);
-    const serverSynced = useSelector((state) => state.projectManager.serverSynced);
-    const inViewID = useSelector((state) => state.projectManager.inViewID);
-    const codeLines: ICodeLine[] | null = useSelector((state) => getCodeLine(state));
+    const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
+    const inViewID = useSelector(
+        (state: RootState) => state.projectManager.inViewID
+    );
+    const codeLines: ICodeLine[] | null = useSelector((state: RootState) =>
+        getCodeLine(state)
+    );
     // const codeText: string[] = useSelector(state => getCodeTextRedux(state));
-    const runQueue = useSelector((state) => state.codeEditor.runQueue);
-    const cAssistInfo = useSelector((state) => state.codeEditor.cAssistInfo);
-    const codeToInsert = useSelector((state) => state.codeEditor.codeToInsert);
+    const runQueue = useSelector(
+        (state: RootState) => state.codeEditor.runQueue
+    );
+    const cAssistInfo = useSelector(
+        (state: RootState) => state.codeEditor.cAssistInfo
+    );
+    const codeToInsert = useSelector(
+        (state: RootState) => state.codeEditor.codeToInsert
+    );
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
     const editorRef = useRef();
@@ -157,35 +160,38 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     };
 
     /**
-     * Init component socket connection. This should be run only once on the first mount.
+     * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     function socketInit() {
         socket.emit("ping", WebAppEndpoint.CodeEditor);
         socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
-            console.log("Got results: ", result, "\n");
-            // console.log("CodeEditor got results...");
+            console.log("CodeEditor: got  results: ", result, "\n");
+            // console.log("CodeEditor: got results...");
             try {
                 let codeOutput: Message = JSON.parse(result);
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
-                    if (codeOutput.type === ContentType.STRING || codeOutput.error === true) {
-                        recvCodeOutput(codeOutput); //TODO: move this to redux
-                    } else {
-                        if (codeOutput.type == ContentType.PANDAS_DATAFRAME) {
-                            console.log("dispatch tableData");
-                            dispatch(setTableData(codeOutput.content));
-                        } else if (codeOutput.type === ContentType.RICH_OUTPUT) {
-                            handleResultData(codeOutput);
-                        } else if (codeOutput.type === ContentType.NONE) {
-                            console.log(
-                                "CodeEditor - dispatch output with none content type :",
-                                codeOutput
-                            );
-                        } else {
-                            console.log("dispatch text output:", codeOutput);
-                            recvCodeOutput(codeOutput);
-                        }
-                    }
+                    handleResultData(codeOutput);
+                    // if (codeOutput.type === ContentType.STRING || codeOutput.error === true) {
+                    //     // recvCodeOutput(codeOutput); //TODO: move this to redux
+                    //     handleResultData(codeOutput);
+                    // } else {
+                    //     if (codeOutput.type === ContentType.PANDAS_DATAFRAME) {
+                    //         // console.log("CodeEditor: dispatch tableData");
+                    //         // dispatch(setTableData(codeOutput.content));
+                    //     } else if (codeOutput.type === ContentType.RICH_OUTPUT) {
+                    //         handleResultData(codeOutput);
+                    //     } else if (codeOutput.type === ContentType.NONE) {
+                    //         console.log(
+                    //             "CodeEditor: dispatch output with none content type :",
+                    //             codeOutput
+                    //         );
+                    //     } else {
+                    //         console.log("CodeEditor: dispatch text output:", codeOutput);
+                    //         // recvCodeOutput(codeOutput);
+                    //         handleResultData(codeOutput);
+                    //     }
+                    // }
                     let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
                         lineRange: codeOutput.metadata.line_range,
@@ -205,6 +211,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
             } catch {}
         });
     }
+
     useEffect(() => {
         socketInit();
     }, []);
@@ -261,8 +268,6 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         } catch {}
     });
 
-    /** */
-
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update
      * with line status. This works but might need to find a better performant solution. */
     useEffect(() => {
@@ -285,7 +290,12 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     }, [editorRef.current]);
 
     useEffect(() => {
-        execLines();
+        if(runQueue.status !== RunQueueStatus.STOP){
+            let state = store.getState();
+            let inViewID = state.projectManager.inViewID;
+            dispatch(clearRunQueueTextOutput(inViewID));
+            execLines();
+        }        
     }, [runQueue]);
 
     useEffect(() => {
@@ -306,10 +316,9 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         }
     };
 
-    const create_message = (content: IRunningCommandContent) => {
+    const createMessage = (content: IRunningCommandContent) => {
         let message: Message = {
             webapp_endpoint: WebAppEndpoint.CodeEditor,
-            // command_name: content.runAllAtOnce?CommandName.exec_grouped_lines:CommandName.exec_line,
             command_name: CommandName.exec_line,
             seq_number: 1,
             content: content.content,
@@ -321,8 +330,8 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
         return message;
     };
 
-    const send_message = (content: IRunningCommandContent) => {
-        let message = create_message(content);
+    const sendMessage = (content: IRunningCommandContent) => {
+        const message = createMessage(content);
         console.log(`${message.webapp_endpoint} send message: `, message);
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
@@ -391,7 +400,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 /** No need to handle range line, because we use IPython kernel to execute lines. It help us to handle this  */
                 rangeToRun = [{ fromLine: runQueue.fromLine, toLine: runQueue.toLine }];
             }
-            
+
             console.log("CodeEditor execLines: ", rangeToRun);
             for (let lineRange of rangeToRun) {
                 let content: IRunningCommandContent | undefined = getRunningCommandContent(
@@ -401,7 +410,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                 if (content && inViewID) {
                     console.log("CodeEditor execLines: ", content, lineRange);
                     // let content: IRunningCommandContent = {lineRange: runQueue.runningLine, content: text};
-                    send_message(content);
+                    sendMessage(content);
                     let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
                         lineRange: content.lineRange,
@@ -476,6 +485,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
     function onCodeMirrorChange(value: string, viewUpdate: ViewUpdate) {
         try {
             console.log("CodeEditor onCodeMirrorChange");
+            
             /** do nothing if the update is due to code reloading from external source */
             if (codeReloading) return;
 
@@ -513,7 +523,7 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                     // Convert it to 0-indexed by -1.
                     // Note 2: the lines being added are lines above currentLine.
                     // If there is new text in the current line then current line is `edited` not `added`
-                    dispatch(updateLines(updatedLineInfo));                    
+                    dispatch(updateLines(updatedLineInfo));
                 } else if (updatedLineCount < 0) {
                     // Note 1: _getCurrentLineNumber returns line number indexed starting from 1.
                     // Convert it to 0-indexed by -1.
@@ -534,7 +544,6 @@ const CodeEditor = ({ id, recvCodeOutput }) => {
                     };
                     dispatch(setLineStatus(lineStatus));
                 }
-                // dispatch(setFileToSave(inViewID));
                 handleCAsisstTextUpdate();
             }
         } catch (error) {

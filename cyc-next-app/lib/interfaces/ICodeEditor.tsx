@@ -36,7 +36,8 @@ export enum LineStatus {
 export interface ICodeLine {
     lineID: string;
     status: LineStatus;
-    result: ICodeResult | null;
+    result?: ICodeResult;
+    textOutput?: ICodeResult;
     generated: boolean;
     groupID?: string;
     cAssistInfo?: ICAssistInfo;
@@ -80,6 +81,7 @@ export interface ICodeActiveLine {
 export interface ICodeText {
     reduxFileID: string;
     codeText: string[];
+    codeLines: ICodeLine[]; // Add codeLines attribute to handle the state management
     // timestamp: number;
 }
 
@@ -89,18 +91,31 @@ export enum SetLineGroupCommand {
     UNDEF /** set groupID to undefined */,
 }
 
+export interface CodeResultMessageMetaData {
+    df_id?: string;
+    msg_id?: string;
+    session_id?: string;
+}
+
 export interface ICodeResultMessage {
     inViewID: string;
     type: ContentType;
     subType: string;
-    content: string | object;
-    metadata: object;
+    content: ICodeResultContent;
+    metadata: CodeResultMessageMetaData;
 }
+
+export type ICodeResultContent = string | object | IPlotResult;
 
 export interface ICodeResult {
     type: ContentType;
-    content: string | object | IPlotResult;
+    content: ICodeResultContent;
     subType: string;
+    msg_id?: string;
+    session_id?: string;
+    /** Order in which this result is generated. 
+     * Currently only use this for text output result where output will be displayed in the order of generation. */
+    order?: number;
 }
 
 export interface IPlotResult {
