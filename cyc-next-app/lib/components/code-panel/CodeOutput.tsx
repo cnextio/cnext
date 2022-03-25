@@ -17,7 +17,9 @@ import store, { RootState } from "../../../redux/store";
 const CodeOutputComponent = () => {
     const dfUpdates = useSelector((state: RootState) => checkDFUpdates(state));
     // const textOutput = useSelector((state: RootState) => getTextOuput(state));
-    const textOutputCount = useSelector((state: RootState) => state.codeEditor.maxTextOutputOrder);
+    const textOutputUpdateCount = useSelector(
+        (state: RootState) => state.codeEditor.textOutputUpdateCount
+    );
     let [outputContent, setOutputContent] = useState<(ICodeResultContent | undefined)[]>([]);
     const codeOutputRef = useRef(null);
 
@@ -173,7 +175,7 @@ const CodeOutputComponent = () => {
             console.error(error);
         }
     };
-    useEffect(handleNormalCodeOutput, [textOutputCount]);
+    useEffect(handleNormalCodeOutput, [textOutputUpdateCount]);
 
     const handleDFUpdates = () => {
         //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
@@ -243,7 +245,7 @@ const CodeOutputComponent = () => {
                 Output
             </CodeOutputHeader>
             <CodeOutputContent ref={codeOutputRef} id={codeOutputContentID}>
-                {textOutputCount > 0 &&
+                {textOutputUpdateCount > 0 &&
                     outputContent.map((item, index) => (
                         <Fragment>
                             {item["type"] === "text" && item["content"] !== "" && (

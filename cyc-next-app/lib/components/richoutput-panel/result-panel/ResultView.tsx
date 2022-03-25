@@ -17,6 +17,9 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 
 const ResultView = (props: any) => {
     const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
+    const resultUpdateCount = useSelector(
+        (state: RootState) => state.codeEditor.resultUpdateCount
+    );
     // const [containerMounted, setContainerMounted] = useState(false);
 
     const setLayout = (
@@ -68,47 +71,45 @@ const ResultView = (props: any) => {
                         margin={[5, 5]}
                         isResizable={true}
                     > */}
-                    {state.codeEditor.resultCount > 0
-                        ? codeWithResult.map((codeResult: ICodeLine) => (
-                              //   <ScrollIntoViewIfNeeded
-                              //       active={codeResult.lineID == activeLine}
-                              //       options={{
-                              //           block: "start",
-                              //           inline: "center",
-                              //           behavior: "smooth",
-                              //           boundary: document.getElementById(resultViewId),
-                              //       }}
-                              //   >
-                              <SingleResult
-                                  key={codeResult.lineID}
-                                  variant='outlined'
-                                  focused={codeResult.lineID == activeLine}
-                              >
-                                  {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
-                                      React.createElement(
-                                          PlotlyWithNoSSR,
-                                          setLayout(codeResult?.result?.content)
-                                      )}
-                                  {codeResult?.result?.subType ===
-                                      SubContentType.APPLICATION_JSON &&
-                                      JSON.stringify(codeResult?.result?.content)}
-                                  {codeResult?.result?.subType?.includes("image") && (
-                                      <img
-                                          src={
-                                              "data:" +
-                                              codeResult?.result?.subType +
-                                              ";base64," +
-                                              codeResult?.result?.content
-                                          }
-                                      />
-                                  )}
-                                  {/* Display video/ audio */}
-                                  {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
-                                      ReactHtmlParser(codeResult?.result?.content)}
-                              </SingleResult>
-                              //   </ScrollIntoViewIfNeeded>
-                          ))
-                        : null}
+                    {codeWithResult.map((codeResult: ICodeLine) => (
+                        //   <ScrollIntoViewIfNeeded
+                        //       active={codeResult.lineID == activeLine}
+                        //       options={{
+                        //           block: "start",
+                        //           inline: "center",
+                        //           behavior: "smooth",
+                        //           boundary: document.getElementById(resultViewId),
+                        //       }}
+                        //   >
+                        <SingleResult
+                            key={codeResult.lineID}
+                            variant='outlined'
+                            focused={codeResult.lineID == activeLine}
+                        >
+                            {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
+                                React.createElement(
+                                    PlotlyWithNoSSR,
+                                    setLayout(codeResult?.result?.content)
+                                )}
+                            {codeResult?.result?.subType ===
+                                SubContentType.APPLICATION_JSON &&
+                                JSON.stringify(codeResult?.result?.content)}
+                            {codeResult?.result?.subType?.includes("image") && (
+                                <img
+                                    src={
+                                        "data:" +
+                                        codeResult?.result?.subType +
+                                        ";base64," +
+                                        codeResult?.result?.content
+                                    }
+                                />
+                            )}
+                            {/* Display video/ audio */}
+                            {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
+                                ReactHtmlParser(codeResult?.result?.content)}
+                        </SingleResult>
+                        //   </ScrollIntoViewIfNeeded>
+                    ))}
                     {/* </GridLayout> */}
                 </StyledResultView>
             );
