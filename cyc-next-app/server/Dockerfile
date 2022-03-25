@@ -31,7 +31,7 @@ RUN conda install -c conda-forge/label/cf202003 nodejs
 # Install git
 RUN conda install -c anaconda git
 RUN git clone https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cycdataframe.git
-RUN git clone https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cnext_sample_projects.git
+RUN git clone -b deploy --single-branch https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cnext_sample_projects.git
 
 RUN npm install
 
