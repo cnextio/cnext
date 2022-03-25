@@ -8,3 +8,12 @@ services:
         container_name: web
         ports:
             - '3000:80'
+
+    server:
+        build:
+            context: /server
+            dockerfile: Dockerfile
+        container_name: server
+        ports:
+            - '4000:80'
+
