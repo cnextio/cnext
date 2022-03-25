@@ -311,7 +311,7 @@ class LanguageServerPlugin {
         try {
             // get Dataframe's columns completion.
             let dfCompletionItems;
-            if (context.matchBefore(/['"]+$/)) {
+            if (context.matchBefore(/['"]+$/) || context.matchBefore(/[\w]+$/)) {
                 dfCompletionItems = this.dfPlugin.getDFCompletion_CodeEditor(
                     context,
                     line,
