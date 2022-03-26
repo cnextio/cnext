@@ -135,8 +135,8 @@ const CodeOutputComponent = () => {
                         </Box>
                         <Box sx={{ flexGrow: 1, textAlign: "right" }}>
                             <ReviewComponent
-                                key={key}
-                                content={updatedItems}
+                                // key={key}
+                                // content={updatedItems}
                                 activeReview={activeReview}
                             />
                         </Box>

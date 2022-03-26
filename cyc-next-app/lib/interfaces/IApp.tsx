@@ -151,7 +151,7 @@ export interface DFFilter {
 
 export interface IDFUpdates {
     update_type: UpdateType;
-    update_content: string[] | number[] | {};
+    update_content: string[] | number[] | {[id: string]: []};
 }
 
 export interface IReviewRequest {
@@ -176,7 +176,7 @@ export interface IDFUpdatesReview {
     enable: boolean;
     // 'index' represents the position of the review in the review list.
     index: number;
-    // 'name' represents the row index or column name or [column name, row index] tuple.
+    // 'name' represents the column name or row index or [column name, row index] tuple.
     name: string | number | [string, number];
     // 'count' is used to support 'repeat' review. when 'repeat', no other variable changed except for 'count'.
     count: number;
@@ -188,13 +188,13 @@ export interface IDFUpdatesReview {
      * this will be used together with the 'index' above.
      * */
     // col_index, row_index are the position currently reviewed column in the col_names list.
-    updates_col_index: number;
-    updates_row_index: number;
+    updates_col_index?: number;
+    updates_row_index?: number;
     // col_names is the the name of list of columns with updated cell.
-    col_names: string[];
+    col_names?: string[];
     // col_end_index is the running end index corresponding to a column.
     // it is the sum of the length of the this and previous columns.
-    col_end_index: number[];
+    col_end_index?: number[];
 }
 
 export interface IColumnMetaData {
