@@ -28,13 +28,19 @@ type CodeEditorState = {
     timestamp: { [id: string]: number };
     fileSaved: boolean;
     runQueue: IRunQueue;
-    /** This counts the number of the current displayed results. 
-     * This is used to trigger the result display in ResultView. */
-    resultCount: number;
+
+    /** This count is used to trigger the update of ResultView view.
+     * It will increase whenever there is an update to results*/
+    resultUpdateCount: number;
+
     /** This stores the current max text output order.
-     * This is used to trigger the text output display in CodeOutput
-     *  and to set the order of the next output. */
+     * This is used to set the order of the text output. */
     maxTextOutputOrder: number;
+
+    /** This count is used to trigger the update of CodeOutput view.
+     * It will increase whenever there is an update to text output results*/
+    textOutputUpdateCount: number;
+
     activeLine: string | null;
     cAssistInfo: ICAssistInfo | undefined;
     runDict: {} | undefined;
@@ -48,14 +54,36 @@ const initialState: CodeEditorState = {
     timestamp: {},
     fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP },
-    resultCount: 0,
+    resultUpdateCount: 0,
     maxTextOutputOrder: 0,
+    textOutputUpdateCount: 0,
     activeLine: null,
     cAssistInfo: undefined,
     runDict: undefined,
     runningId: undefined,
     codeToInsert: undefined,
 };
+
+/**
+ * Return the max text ouput order from the list
+ */
+function getMaxTextOutputOrder(codeLines: ICodeLine[]) {
+    let maxTextOutputOrder: number = 0;
+    codeLines
+        .filter(
+            (codeLine) =>
+                codeLine.hasOwnProperty("textOutput") &&
+                codeLine.textOutput !== null
+        )
+        .map((item) => {
+            maxTextOutputOrder =
+                item.textOutput?.order == null ||
+                maxTextOutputOrder > item.textOutput?.order
+                    ? maxTextOutputOrder
+                    : item.textOutput?.order;
+        });
+    return maxTextOutputOrder;
+}
 
 export const CodeEditorRedux = createSlice({
     name: "codeEditor",
@@ -68,7 +96,7 @@ export const CodeEditorRedux = createSlice({
             state.codeText[reduxFileID] = codeTextData.codeText;
 
             let codeLines: ICodeLine[] = codeTextData.codeLines;
-            let maxOutputCount = 0;
+            // let maxTextOutputOrder = 0;
             /** If codeLines doesn't have data,
              *  read codeText from file data then create codeLines line by line from codeText */
             if (codeLines == null || codeLines.length === 0) {
@@ -103,23 +131,25 @@ export const CodeEditorRedux = createSlice({
                         codeLine.hasOwnProperty("result") &&
                         codeLine.result !== null
                 );
-                state.resultCount = resultData.length;
-
-                codeLines
-                    .filter(
-                        (codeLine) =>
-                            codeLine.hasOwnProperty("textOutput") &&
-                            codeLine.textOutput !== null
-                    )
-                    .map((item) => {
-                        maxOutputCount =
-                            item.textOutput?.order == null ||
-                            maxOutputCount > item.textOutput?.order
-                                ? maxOutputCount
-                                : item.textOutput?.order;
-                    });
+                state.resultUpdateCount += 1;
+                
+                state.maxTextOutputOrder = getMaxTextOutputOrder(codeLines);
+                state.textOutputUpdateCount += 1;
+                // codeLines
+                //     .filter(
+                //         (codeLine) =>
+                //             codeLine.hasOwnProperty("textOutput") &&
+                //             codeLine.textOutput !== null
+                //     )
+                //     .map((item) => {
+                //         maxTextOutputOrder =
+                //             item.textOutput?.order == null ||
+                //             maxTextOutputOrder > item.textOutput?.order
+                //                 ? maxTextOutputOrder
+                //                 : item.textOutput?.order;
+                //     });
                 /** init the textOutputCount with the maxOutputCount from the saved state */
-                state.maxTextOutputOrder = maxOutputCount + 1;
+                // state.maxTextOutputOrder = maxTextOutputOrder + 1;
             }
             state.codeLines[reduxFileID] = codeLines;
         },
@@ -148,7 +178,7 @@ export const CodeEditorRedux = createSlice({
                         status: LineStatus.EDITED,
                         result: null,
                         generated: false,
-                        groupID: codeLines[updatedStartLineNumber].groupID,
+                        groupID: codeLines[updatedStartLineNumber]?.groupID,
                     };
                     addedLines.push(codeLine);
                 }
@@ -170,7 +200,12 @@ export const CodeEditorRedux = createSlice({
                         codeLines[updatedStartLineNumber + 1 + i].result
                             ?.type === ContentType.RICH_OUTPUT
                     ) {
-                        state.resultCount -= 1;
+                        state.resultUpdateCount += 1;
+                    }
+                    if (
+                        codeLines[updatedStartLineNumber + 1 + i].textOutput 
+                    ) {
+                        state.textOutputUpdateCount += 1;
                     }
                 }
                 /** Remove lines from updatedStartLineNumber+1. Keep the ID of lines between 0 and updatedStartLineNumber
@@ -274,7 +309,7 @@ export const CodeEditorRedux = createSlice({
                     let lineNumber = lineRange.fromLine;
                     let codeLine: ICodeLine =
                         state.codeLines[inViewID][lineNumber];
-                    /** text result will be appended with in each execution. The output will be cleared at the
+                    /** text result will be appended within each execution. The output will be cleared at the
                      * beginning of each execution */
                     if (resultMessage.type === ContentType.STRING) {
                         if (codeLine.textOutput != null) {
@@ -290,8 +325,9 @@ export const CodeEditorRedux = createSlice({
                                 // msg_id: resultMessage.metadata.msg_id,
                             };
                         }
-                        codeLine.textOutput.order = state.maxTextOutputOrder;
-                        state.maxTextOutputOrder += 1;
+                        state.maxTextOutputOrder += 1;                        
+                        codeLine.textOutput.order = state.maxTextOutputOrder;                        
+                        state.textOutputUpdateCount += 1;
                     } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
                         let content = resultMessage.content;
                         if (
@@ -313,7 +349,7 @@ export const CodeEditorRedux = createSlice({
                             content: content,
                             msg_id: resultMessage.metadata.msg_id,
                         };
-                        state.resultCount += 1;
+                        state.resultUpdateCount += 1;
                     }
                 }
             }
@@ -332,6 +368,7 @@ export const CodeEditorRedux = createSlice({
                     l++
                 ) {
                     codeLines[l].textOutput = undefined;
+                    state.textOutputUpdateCount += 1;
                 }
             }
         },
@@ -410,15 +447,16 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = action.payload;
         },
 
-        clearOutputs: (state, action) => {
+        clearTextOutputs: (state, action) => {
             const inViewID = action.payload;
-            state.resultCount = 0;
             state.maxTextOutputOrder = 0;
 
             // remove all result & textOutput in state code lines
             for (let codeLine of state.codeLines[inViewID]) {
                 codeLine.result = undefined;
                 codeLine.textOutput = undefined;
+                state.textOutputUpdateCount += 1;
+                state.resultUpdateCount += 1;
             }
         },
     },
@@ -439,7 +477,7 @@ export const {
     compeleteRunQueue,
     setCodeToInsert,
     clearRunQueueTextOutput,
-    clearOutputs,
+    clearTextOutputs,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

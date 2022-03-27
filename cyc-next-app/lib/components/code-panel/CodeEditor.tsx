@@ -50,7 +50,7 @@ import {
     CASSIST_STARTER,
     ICAssistInfoRedux,
 } from "../../interfaces/ICAssist";
-import { magicsGetPlotCommand as cassistGetPlotCommand } from "../../cassist/magic-plot-gen";
+import { cAssistGetPlotCommand } from "../../cassist/CAssistPlotGen";
 import {
     CNextDataFrameExpresion,
     CNextPlotExpression,
@@ -612,7 +612,8 @@ const CodeEditor = () => {
                     let generatedLine = view.state.doc.lineAt(cursor.to);
                     console.log(
                         `CodeEditor cAssist magicsPreProcess current cAssistInfo: `,
-                        cAssistInfo
+                        cAssistInfo,
+                        newMagicText
                     );
                     // console.log(
                     //     `CodeEditor cAssist magicsPreProcess new magic text: `,
@@ -643,7 +644,7 @@ const CodeEditor = () => {
                         };
 
                         let result: Promise<ICodeGenResult> | ICodeGenResult =
-                            cassistGetPlotCommand(parsedCAText);
+                            cAssistGetPlotCommand(parsedCAText);
                         if (isPromise(result)) {
                             result.then((codeGenResult: ICodeGenResult) => {
                                 updateCAssistInfoWithGenCode(

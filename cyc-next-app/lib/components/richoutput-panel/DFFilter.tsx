@@ -145,8 +145,6 @@ const DFExplorer = () => {
                                 );
                             }
                         }
-                        /** this step is important to make sure the query work properly in the backend */
-                        queryStr = queryStr.replaceAll("'", '"');
                         // console.log(
                         //     "DFFilter index and column",
                         //     indexStr,

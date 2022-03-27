@@ -18,12 +18,17 @@ import ExperimentManager from "./experiment-panel/ExperimentsManager";
 import ModelView from "./model-panel/ModelView";
 import TableView from "./data-panel/TableView";
 import GridView, { GridViewStatus } from "./data-panel/GridView";
+import { RootState } from "../../../redux/store";
 
 const RichOutputView = (props: any) => {
-    const tableData = useSelector((state) => state.dataFrames.tableData);
+    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
     const [gridViewStatus, setGridViewStatus] = useState<GridViewStatus>(GridViewStatus.NONE);
-    const resultUpdate = useSelector((state) => state.codeEditor.resultUpdate);
-    const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
+    const resultUpdateCount = useSelector(
+        (state: RootState) => state.codeEditor.resultUpdateCount
+    );
+    const activeDataFrame = useSelector(
+        (state: RootState) => state.dataFrames.activeDataFrame
+    );
     const [show, setShow] = useState(RichOutputViewHeader.DATA);
 
     useEffect(() => {
@@ -32,7 +37,7 @@ const RichOutputView = (props: any) => {
 
     useEffect(() => {
         setShow(RichOutputViewHeader.RESULTS);
-    }, [resultUpdate]);
+    }, [resultUpdateCount]);
 
     useEffect(() => {
         if (show != RichOutputViewHeader.DATA) {

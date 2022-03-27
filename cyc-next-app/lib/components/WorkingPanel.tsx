@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { WorkingPanel as StyledWorkingPanel, WorkingPanelSplitPanel } from "./StyledComponents";
 import CodePanel from "./code-panel/CodePanel";
 import RichOutputPanel from "./richoutput-panel/RichOutputPanel";
-import DFManager from "./DFManager";
+import DFManager from "./dataframe-manager/DFManager";
 import FileManager from "./file-manager/FileManager";
 import FileExplorer from "./file-manager/FileExplorer";
 import { useSelector } from "react-redux";
