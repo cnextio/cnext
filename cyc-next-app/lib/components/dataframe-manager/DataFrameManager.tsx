@@ -19,6 +19,7 @@ import {
     DataFrameUpdateType,
     IDataFrameStatusList,
     IAllDataFrameStatus,
+    IDataFrameStatus,
 } from "../../interfaces/IDataFrameStatus";
 import socket from "../Socket";
 import {
@@ -296,6 +297,11 @@ const DFManager = () => {
         dispatch(setColumnQuantilePlot(content));
     };
 
+    function getLastUpdate(status: IDataFrameStatus){
+        const lastStatus = status._status_list[status._status_list.length - 1];
+        return lastStatus.updates;
+    }
+    
     const showDefinedStats = true;
     const handleGetDFMetadata = (message: IMessage) => {
         console.log(
@@ -309,8 +315,7 @@ const DFManager = () => {
         let df_id = message.metadata["df_id"];
         const state = store.getState();
         const status = state.dataFrames.dfUpdates[df_id];
-        const lastStatus = status._status_list[status._status_list.length-1];
-        const update = lastStatus.updates;
+        const update =  getLastUpdate(status);
         if (status.is_updated && showDefinedStats) {
             getDefinedStatsOnUpdate(df_id, columns, update);
         }

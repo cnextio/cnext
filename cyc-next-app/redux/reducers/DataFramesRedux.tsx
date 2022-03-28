@@ -55,6 +55,11 @@ const initialState: DataFrameState = {
     dfFilter: null,
 };
 
+function getLastUpdate(status: IDataFrameStatus) {
+    const lastStatus = status._status_list[status._status_list.length - 1];
+    return lastStatus.updates;
+}
+
 export const dataFrameSlice = createSlice({
     name: "dataFrames",
     initialState: initialState,
@@ -145,49 +150,47 @@ export const dataFrameSlice = createSlice({
         setDFUpdates: (state, action) => {
             const df_id = action.payload["df_id"];
             if (df_id) {
-                let status = action.payload as IDataFrameStatus;
-                let lastStatus =
-                    status._status_list[status._status_list.length - 1];
-                let updates: IDataFrameUpdate = lastStatus.updates;
+                const status = action.payload as IDataFrameStatus;
+                const update = getLastUpdate(status);
                 // console.log("Update type: ", updates.update_type);
 
                 // reset this everytime there is an update
                 delete state.dfUpdatesReview[df_id];
                 if (status.is_updated) {
                     if (
-                        updates.update_type == DataFrameUpdateType.add_cols &&
-                        Array.isArray(updates.update_content)
+                        update.update_type == DataFrameUpdateType.add_cols &&
+                        Array.isArray(update.update_content)
                     ) {
                         state.dfUpdatesReview[df_id] = {
                             enable: false,
                             index: 0,
-                            name: updates.update_content[0],
+                            name: update.update_content[0],
                             count: 0,
                             type: ReviewType.col,
-                            length: updates.update_content.length,
+                            length: update.update_content.length,
                         };
                         state.loadColumnHistogram = true;
                     } else if (
-                        updates.update_type == DataFrameUpdateType.add_rows &&
-                        Array.isArray(updates.update_content)
+                        update.update_type == DataFrameUpdateType.add_rows &&
+                        Array.isArray(update.update_content)
                     ) {
                         state.dfUpdatesReview[df_id] = {
                             enable: false,
                             index: 0,
-                            name: updates.update_content[0],
+                            name: update.update_content[0],
                             count: 0,
                             type: ReviewType.row,
-                            length: updates.update_content.length,
+                            length: update.update_content.length,
                         };
                         state.loadColumnHistogram = true;
                     } else if (
-                        updates.update_type == DataFrameUpdateType.update_cells
+                        update.update_type == DataFrameUpdateType.update_cells
                     ) {
                         // console.log('Update content: ', Object.keys(updates.update_content));
-                        let colNames = Object.keys(updates.update_content);
+                        let colNames = Object.keys(update.update_content);
                         let colEndIndex = [];
                         let endIndex = 0;
-                        let update_content = updates.update_content as {
+                        let update_content = update.update_content as {
                             [id: string]: number[];
                         };
                         for (let col of colNames) {
@@ -211,12 +214,12 @@ export const dataFrameSlice = createSlice({
                             state.loadColumnHistogram = true;
                             console.log(
                                 "DataFramesRedux: ",
-                                updates.update_content,
+                                update.update_content,
                                 state.dfUpdatesReview["df"]
                             );
                         }
                     } else if (
-                        updates.update_type == DataFrameUpdateType.new_df
+                        update.update_type == DataFrameUpdateType.new_df
                     ) {
                         // state.columnHistogram = {};
                         state.columnDataSummary[df_id] = {};
@@ -233,9 +236,8 @@ export const dataFrameSlice = createSlice({
 
             // let updates = updates.update_content;
             if (dfUpdatesReview != null) {
-                let status = state.dfUpdates[state.activeDataFrame];
-                let lastStatus = status._status_list[status._status_list.length-1];
-                let updates = lastStatus.updates;
+                const status = state.dfUpdates[state.activeDataFrame];
+                const update = getLastUpdate(status);
                 if (reviewRequest.type == ReviewRequestType.repeat) {
                     dfUpdatesReview.count += 1;
                 } else if (
@@ -245,7 +247,7 @@ export const dataFrameSlice = createSlice({
                     dfUpdatesReview.count += 1;
                     dfUpdatesReview.index += 1;
                     if (
-                        updates.update_type == DataFrameUpdateType.update_cells
+                        update.update_type == DataFrameUpdateType.update_cells
                     ) {
                         if (
                             dfUpdatesReview.col_end_index != null &&
@@ -268,7 +270,7 @@ export const dataFrameSlice = createSlice({
                     dfUpdatesReview.count += 1;
                     dfUpdatesReview.index -= 1;
                     if (
-                        updates.update_type == DataFrameUpdateType.update_cells
+                        update.update_type == DataFrameUpdateType.update_cells
                     ) {
                         if (
                             dfUpdatesReview.col_end_index != null &&
@@ -291,10 +293,10 @@ export const dataFrameSlice = createSlice({
                 }
                 let tableData: ITableData =
                     state.tableData[state.activeDataFrame];
-                let update_content = updates.update_content;
+                let update_content = update.update_content;
 
                 if (
-                    updates.update_type == DataFrameUpdateType.add_cols &&
+                    update.update_type == DataFrameUpdateType.add_cols &&
                     Array.isArray(update_content)
                 ) {
                     dfUpdatesReview.name =
@@ -304,14 +306,14 @@ export const dataFrameSlice = createSlice({
                     let reviewingDFRowIndex;
                     let colName;
                     if (
-                        updates.update_type == DataFrameUpdateType.add_rows &&
+                        update.update_type == DataFrameUpdateType.add_rows &&
                         Array.isArray(update_content)
                     ) {
                         reviewingDFRowIndex =
                             update_content[dfUpdatesReview.index];
                         dfUpdatesReview.name = reviewingDFRowIndex;
                     } else if (
-                        updates.update_type ==
+                        update.update_type ==
                             DataFrameUpdateType.update_cells &&
                         dfUpdatesReview.col_names &&
                         dfUpdatesReview.updates_col_index != null &&

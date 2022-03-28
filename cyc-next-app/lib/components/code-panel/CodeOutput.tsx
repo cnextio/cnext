@@ -7,7 +7,7 @@ import {
     IndividualCodeOutputContent,
 } from "../StyledComponents";
 import { Box, Typography } from "@mui/material";
-import { DataFrameUpdateType } from "../../interfaces/IDataFrameStatus";
+import { DataFrameUpdateType, IDataFrameStatus } from "../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
 import ReviewComponent from "./DFReview";
 import Ansi from "ansi-to-react";
@@ -15,7 +15,7 @@ import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
 import store, { RootState } from "../../../redux/store";
 
 const CodeOutputComponent = () => {
-    const dfUpdates = useSelector((state: RootState) => checkDFUpdates(state));
+    const dataFrameStatus = useSelector((state: RootState) => getDataFrameStatus(state));
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
     const serverSynced = useSelector(
@@ -63,7 +63,7 @@ const CodeOutputComponent = () => {
         }
     }
 
-    function checkDFUpdates(state: RootState) {
+    function getDataFrameStatus(state: RootState) {
         const activeDataFrame = state.dataFrames.activeDataFrame;
         if (
             activeDataFrame &&
@@ -71,12 +71,10 @@ const CodeOutputComponent = () => {
             activeDataFrame in state.dataFrames.dfUpdates
         ) {
             // console.log('Check update: ', state.dataFrames.dfUpdates[activeDataFrame]);
-            const activeDataFrameUpdates =
+            const activeDataFrameStatus =
                 state.dataFrames.dfUpdates[activeDataFrame];
-            if (activeDataFrameUpdates.is_updated) {
-                // if ("update_type" in activeDataFrameUpdates) {
-                return activeDataFrameUpdates;
-                // }
+            if (activeDataFrameStatus.is_updated) {
+                return activeDataFrameStatus;
             }
         }
         return null;
@@ -179,15 +177,20 @@ const CodeOutputComponent = () => {
     };
     useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced]);
 
+    function getLastUpdate(status: IDataFrameStatus) {
+        const lastStatus = status._status_list[status._status_list.length - 1];
+        return lastStatus.updates;
+    }
+
     /** Get an df update messages */
     const handleDFUpdates = () => {
         //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
-        if (dfUpdates != null) {
-            const lastStatus =
-                dfUpdates._status_list[dfUpdates._status_list.length-1].updates;
-            const updateType = lastStatus.update_type;
-            const updateContent = lastStatus.update_content
-                ? lastStatus.update_content
+        if (dataFrameStatus != null) {
+            const update = getLastUpdate(dataFrameStatus);
+                // dfUpdates._status_list[dfUpdates._status_list.length-1].updates;
+            const updateType = update.update_type;
+            const updateContent = update.update_content
+                ? update.update_content
                 : [];
 
             let newOutputContent = {
@@ -206,7 +209,7 @@ const CodeOutputComponent = () => {
             }
         }
     };
-    useEffect(handleDFUpdates, [dfUpdates]);
+    useEffect(handleDFUpdates, [dataFrameStatus]);
 
     const codeOutputContentID = "CodeOutputContent";
     return (
