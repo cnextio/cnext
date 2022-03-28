@@ -12,9 +12,9 @@ from libs.message import ContentType, Message
 
 from libs import logs
 from libs.message import DFManagerCommand
-from python.libs.json_serializable import ipython_internal_output
-from python.libs.message import SubContentType
-from python.user_space.ipython.constants import IPythonInteral
+from libs.json_serializable import ipython_internal_output
+from libs.message import SubContentType
+from user_space.ipython.constants import IPythonInteral
 from user_space.user_space import ExecutionMode
 
 log = logs.get_logger(__name__)

@@ -1,33 +1,43 @@
 version: '3.9'
 
 services:
-    server:
-        build:
-            context: /server
-            dockerfile: Dockerfile
-        container_name: server
-        working_dir: /server
-        ports:
-            - '4000:80'
+  server:
+    build:
+      context: /server
+      dockerfile: Dockerfile
 
-    web:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        container_name: web
-        ports:
-            - '3000:80'
-        depends_on:
-            - server
+    container_name: server
+    ports:
+      - '4000:80'
 
-    cypress:
-        image: 'cypress/included:9.5.2'
-        container_name: cypress
-        depends_on:
-            - web
-        environment:
-            - CYPRESS_baseUrl=http://web:80
-            - CYPRESS_VIDEO=false
-        working_dir: /cypress
-        volumes:
-            - ./:/cypress
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: web
+    ports:
+      - '3000:80'
+    depends_on:
+      - server
+
+  cypress:
+    # build:
+    #   context: /cypress
+    #   dockerfile: Dockerfile
+    # container_name: cypress
+    # ports:
+    #   - '4000:80'
+    # depends_on:
+    #   - web
+    image: 'cypress/included:9.5.2'
+    container_name: cypress
+    depends_on:
+      - web
+      - server
+    environment:
+      - CYPRESS_baseUrl=http://web:80
+      - CYPRESS_VIDEO=false
+    working_dir: /cypress
+    volumes:
+      - ./:/cypress
