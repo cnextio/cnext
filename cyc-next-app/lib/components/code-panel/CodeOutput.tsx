@@ -7,7 +7,7 @@ import {
     IndividualCodeOutputContent,
 } from "../StyledComponents";
 import { Box, Typography } from "@mui/material";
-import { UpdateType } from "../../interfaces/IApp";
+import { DataFrameUpdateType } from "../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
 import ReviewComponent from "./DFReview";
 import Ansi from "ansi-to-react";
@@ -67,14 +67,16 @@ const CodeOutputComponent = () => {
         const activeDataFrame = state.dataFrames.activeDataFrame;
         if (
             activeDataFrame &&
-            state.dataFrames.dfUpdates != {} &&
+            state.dataFrames.dfUpdates != null &&
             activeDataFrame in state.dataFrames.dfUpdates
         ) {
             // console.log('Check update: ', state.dataFrames.dfUpdates[activeDataFrame]);
             const activeDataFrameUpdates =
                 state.dataFrames.dfUpdates[activeDataFrame];
-            if ("update_type" in activeDataFrameUpdates) {
+            if (activeDataFrameUpdates.is_updated) {
+                // if ("update_type" in activeDataFrameUpdates) {
                 return activeDataFrameUpdates;
+                // }
             }
         }
         return null;
@@ -112,37 +114,37 @@ const CodeOutputComponent = () => {
 
     const buildDFReviewsOutputComponent = (
         key: number,
-        updateType: UpdateType,
+        updateType: DataFrameUpdateType,
         updatedItems: Array<any>,
         activeReview: boolean
     ) => {
         return (
             <Fragment>
-                {updateType === UpdateType.new_df && (
+                {updateType === DataFrameUpdateType.new_df && (
                     <Fragment>New dataframe created</Fragment>
                 )}
-                {updateType !== UpdateType.new_df &&
+                {updateType !== DataFrameUpdateType.new_df &&
                 (updatedItems.length || Object.keys(updatedItems).length) ? (
                     <Box key={key} sx={{ display: "flex" }}>
                         <Box>
                             {/* {console.log('Show ouput:', updateType, updatedItems, activeReview)} */}
-                            {(updateType == UpdateType.add_cols ||
-                                updateType == UpdateType.del_cols) && (
+                            {(updateType == DataFrameUpdateType.add_cols ||
+                                updateType == DataFrameUpdateType.del_cols) && (
                                 <Fragment>
                                     Column{updatedItems.length > 1 ? "s" : ""}{" "}
                                     {buildUpdatedItemsComponent(updatedItems)}{" "}
                                     {activityText[updateType]}
                                 </Fragment>
                             )}
-                            {(updateType == UpdateType.add_rows ||
-                                updateType == UpdateType.del_rows) && (
+                            {(updateType == DataFrameUpdateType.add_rows ||
+                                updateType == DataFrameUpdateType.del_rows) && (
                                 <Fragment>
                                     Row{updatedItems.length > 1 ? "s" : ""}{" "}
                                     {buildUpdatedItemsComponent(updatedItems)}{" "}
                                     {activityText[updateType]}
                                 </Fragment>
                             )}
-                            {updateType == UpdateType.update_cells && (
+                            {updateType == DataFrameUpdateType.update_cells && (
                                 <Fragment>
                                     {/* {updatedItems.length} cell{updatedItems.length>1 ? 's' : ''} {activityText[updateType]}  */}
                                     Cell(s) {activityText[updateType]}
@@ -180,13 +182,12 @@ const CodeOutputComponent = () => {
     /** Get an df update messages */
     const handleDFUpdates = () => {
         //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
-        // const state = store.getState();
-        // const activeDataFrame = state.dataFrames.activeDataFrame;
         if (dfUpdates != null) {
-            const activeDataFrameUpdates = dfUpdates; //[activeDataFrame];
-            const updateType = activeDataFrameUpdates.update_type;
-            const updateContent = activeDataFrameUpdates.update_content
-                ? activeDataFrameUpdates.update_content
+            const lastStatus =
+                dfUpdates._status_list[dfUpdates._status_list.length-1].updates;
+            const updateType = lastStatus.update_type;
+            const updateContent = lastStatus.update_content
+                ? lastStatus.update_content
                 : [];
 
             let newOutputContent = {

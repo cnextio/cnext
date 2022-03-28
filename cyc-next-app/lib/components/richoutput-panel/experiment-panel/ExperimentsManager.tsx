@@ -2,7 +2,7 @@ import { Checkbox, FormControlLabel, FormGroup, Typography } from "@mui/material
 import React, { Fragment, useEffect, useState } from "react";
 import Moment from "react-moment";
 import "moment-timezone";
-import { CommandType, Message, WebAppEndpoint } from "../../../interfaces/IApp";
+import { CommandType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { ExperimentManagerCommand } from "../../../interfaces/IExperimentManager";
 import socket from "../../Socket";
 import {
@@ -72,7 +72,7 @@ const ExperimentManager = (props: any) => {
     const refreshData = (expId) => {
         console.log("Exp timer refreshData timeout count and running id", timeout, expId);
         if (expId) {
-            let message: Message = {
+            let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.list_run_infos,
                 type: CommandType.MLFLOW_CLIENT,
@@ -85,7 +85,7 @@ const ExperimentManager = (props: any) => {
 
             let selectedRuns = Object.keys(runDict).filter((key) => runDict[key]["selected"]);
             if (selectedRuns.length > 0) {
-                let message: Message = {
+                let message: IMessage = {
                     webapp_endpoint: WebAppEndpoint.ExperimentManager,
                     command_name: ExperimentManagerCommand.get_metric_plots,
                     type: CommandType.MLFLOW_COMBINE,
@@ -133,7 +133,7 @@ const ExperimentManager = (props: any) => {
      */
     useEffect(() => {
         if (selectedRunIds && selectedRunIds.length > 0) {
-            let message: Message = {
+            let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.get_metric_plots,
                 type: CommandType.MLFLOW_COMBINE,
@@ -165,7 +165,7 @@ const ExperimentManager = (props: any) => {
      */
     useEffect(() => {
         if (selectedExpId) {
-            let message: Message = {
+            let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.list_run_infos,
                 type: CommandType.MLFLOW_CLIENT,
@@ -184,7 +184,7 @@ const ExperimentManager = (props: any) => {
         socket.on(WebAppEndpoint.ExperimentManager, (result: string) => {
             console.log("ExperimentManager got results...", result);
             try {
-                let emResult: Message = JSON.parse(result);
+                let emResult: IMessage = JSON.parse(result);
                 if (!emResult.error) {
                     switch (emResult.command_name) {
                         case ExperimentManagerCommand.list_experiments:
@@ -235,7 +235,7 @@ const ExperimentManager = (props: any) => {
     useEffect(() => {
         setup_socket();
         let tracking_uri = store.getState().projectManager.configs.mlflow_tracking_uri;
-        let message: Message = {
+        let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.ExperimentManager,
             command_name: ExperimentManagerCommand.list_experiments,
             type: CommandType.MLFLOW_CLIENT,
@@ -276,7 +276,7 @@ const ExperimentManager = (props: any) => {
                     let run_id =
                         item && item.metadata ? ifElse(item.metadata, "run_id", null) : null;
                     if (artifact_path) {
-                        let message: Message = {
+                        let message: IMessage = {
                             webapp_endpoint: WebAppEndpoint.ExperimentManager,
                             command_name: ExperimentManagerCommand.load_artifacts_to_local,
                             type: CommandType.MLFLOW_COMBINE,

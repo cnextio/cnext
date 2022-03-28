@@ -16,7 +16,7 @@ import { ifElse } from "../components/libs";
 import {
     CommandName,
     ContentType,
-    Message,
+    IMessage,
     WebAppEndpoint,
 } from "../interfaces/IApp";
 import socket from "../components/Socket";
@@ -27,7 +27,7 @@ export function socketInit(codeOutputComponent) {
     socket.on(WebAppEndpoint.MagicCommandGen, (result: string) => {
         console.log(`${WebAppEndpoint.MagicCommandGen} got results...`);
         try {
-            let codeOutput: Message = JSON.parse(result);
+            let codeOutput: IMessage = JSON.parse(result);
             if (
                 codeOutput.type == ContentType.STRING ||
                 codeOutput.error == true
@@ -213,7 +213,7 @@ function createGetDimStatsMessage(
     col_name: string,
     groupby: string[] | undefined = undefined
 ) {
-    let message: Message = {
+    let message: IMessage = {
         webapp_endpoint: WebAppEndpoint.MagicCommandGen,
         command_name: CommandName.get_cardinal,
         seq_number: 1,
@@ -227,7 +227,7 @@ function createGetDimStatsMessage(
     return message;
 }
 
-function sendMessage(message: Message, timeout = 10000) {
+function sendMessage(message: IMessage, timeout = 10000) {
     return new Promise((resolve, reject) => {
         console.log(
             `send ${WebAppEndpoint.MagicCommandGen} message: `,
@@ -240,7 +240,7 @@ function sendMessage(message: Message, timeout = 10000) {
         socket.once(WebAppEndpoint.MagicCommandGen, (result: string) => {
             console.log(`${WebAppEndpoint.MagicCommandGen} got results...`);
             try {
-                let codeOutput: Message = JSON.parse(result);
+                let codeOutput: IMessage = JSON.parse(result);
                 if (
                     codeOutput.type == ContentType.STRING ||
                     codeOutput.error == true

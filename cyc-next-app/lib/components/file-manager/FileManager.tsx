@@ -16,7 +16,7 @@ import {
     setServerSynced,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
-import { ContentType, Message, SubContentType, WebAppEndpoint } from "../../interfaces/IApp";
+import { ContentType, IMessage, SubContentType, WebAppEndpoint } from "../../interfaces/IApp";
 import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
 import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
 import { ifElse } from "../libs";
@@ -43,7 +43,7 @@ const FileManager = () => {
         socket.on(WebAppEndpoint.FileManager, (result: string) => {
             console.log("FileManager got results...", result);
             try {
-                let fmResult: Message = JSON.parse(result);
+                let fmResult: IMessage = JSON.parse(result);
                 let state = store.getState();
                 /** can't use inViewID from useSelector because this function is defined only once */
                 let inViewID = state.projectManager.inViewID;
@@ -77,7 +77,6 @@ const FileManager = () => {
                                 /** make sure that this is only set to true after redux state has been updated.
                                  * Otherwise the save action will be triggered */
                                 dispatch(setServerSynced(true));
-                                // setcodeTextInit(1);
                             }
                             break;
                         case ProjectCommand.save_file:
@@ -122,7 +121,7 @@ const FileManager = () => {
                             break;
                         case ProjectCommand.get_active_project:
                             console.log("FileManager got active project result: ", fmResult);
-                            let message: Message = _createMessage(
+                            let message: IMessage = _createMessage(
                                 ProjectCommand.get_open_files,
                                 "",
                                 1
@@ -157,7 +156,7 @@ const FileManager = () => {
         return null;
     }
 
-    const sendMessage = (message: Message) => {
+    const sendMessage = (message: IMessage) => {
         console.log(
             `FileManager ${message.webapp_endpoint} send  message: `,
             JSON.stringify(message)
@@ -170,8 +169,8 @@ const FileManager = () => {
         content: string | ICodeLine[] | null,
         seq_number: number,
         metadata: {} = {}
-    ): Message => {
-        let message: Message = {
+    ): IMessage => {
+        let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.FileManager,
             command_name: command_name,
             type: ContentType.COMMAND,
@@ -199,7 +198,7 @@ const FileManager = () => {
         if (inViewID) {
             const file: IFileMetadata = state.projectManager.openFiles[inViewID];
             const projectPath = state.projectManager.activeProject?.path;
-            const message: Message = _createMessage(ProjectCommand.read_file, "", 1, {
+            const message: IMessage = _createMessage(ProjectCommand.read_file, "", 1, {
                 path: file.path,
                 projectPath: projectPath,
                 timestamp: file.timestamp,
@@ -216,7 +215,7 @@ const FileManager = () => {
     useEffect(() => {
         if (fileToClose) {
             // TODO: make sure the file is saved before being closed
-            let message: Message = _createMessage(ProjectCommand.close_file, "", 1, {
+            let message: IMessage = _createMessage(ProjectCommand.close_file, "", 1, {
                 path: fileToClose,
             });
             sendMessage(message);
@@ -226,7 +225,7 @@ const FileManager = () => {
     useEffect(() => {
         if (fileToOpen) {
             // TODO: make sure the file is saved before being closed
-            let message: Message = _createMessage(ProjectCommand.open_file, "", 1, {
+            let message: IMessage = _createMessage(ProjectCommand.open_file, "", 1, {
                 path: fileToOpen,
             });
             sendMessage(message);
@@ -248,7 +247,7 @@ const FileManager = () => {
                 let file: IFileMetadata = state.projectManager.openFiles[filePath];
                 let codeText = state.codeEditor.codeText[filePath];
                 let timestamp = state.codeEditor.timestamp[filePath];
-                let message: Message = _createMessage(
+                let message: IMessage = _createMessage(
                     ProjectCommand.save_file,
                     codeText.join("\n"),
                     1,
@@ -287,7 +286,7 @@ const FileManager = () => {
                     const timestamp = state.codeEditor.timestamp[filePath];
                     const projectPath =
                         state.projectManager.activeProject?.path;
-                    const message: Message = _createMessage(
+                    const message: IMessage = _createMessage(
                         ProjectCommand.save_state,
                         codeLinesSaveState,
                         1,
@@ -336,7 +335,7 @@ const FileManager = () => {
 
     useEffect(() => {
         _setup_socket();
-        let message: Message = _createMessage(ProjectCommand.get_active_project, "", 1);
+        let message: IMessage = _createMessage(ProjectCommand.get_active_project, "", 1);
         // let message: Message = _createMessage(ProjectCommandName.get_open_files, '', 1);
         sendMessage(message);
 

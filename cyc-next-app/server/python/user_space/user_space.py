@@ -71,9 +71,9 @@ class _UserSpace(_cus.UserSpace):
 
     def get_active_dfs_status(self):
         _sh.DataFrameStatusHook.update_all()
-        if _sh.DataFrameStatusHook.is_updated():
-            return _sh.DataFrameStatusHook.get_active_dfs_status()
-        return None
+        # if _sh.DataFrameStatusHook.is_updated():
+        return _sh.DataFrameStatusHook.get_active_dfs_status()
+        # return None
 
     def reset_active_dfs_status(self):
         _sh.DataFrameStatusHook.reset_active_dfs_status()        
@@ -109,17 +109,19 @@ _sh.DataFrameStatusHook.set_user_space({_user_space})
         """
         if isinstance(self.executor, BaseKernel):
             _sh.DataFrameStatusHook.update_all()
-            if _sh.DataFrameStatusHook.is_updated():
-                return _sh.DataFrameStatusHook.get_active_dfs_status()
-            return None
+            # if _sh.DataFrameStatusHook.is_updated():
+            return _sh.DataFrameStatusHook.get_active_dfs_status()
+            # return None
         elif isinstance(self.executor, IPythonKernel):
             code = "{user_space}.get_active_dfs_status()".format(
                 user_space=IPythonInteral.USER_SPACE.value)
             log.info('Code %s' % code)
             outputs = self.executor.execute(code)
-            log.info("IPythonKernel Outputs: %s" % outputs)
-            result = [json.loads(output['content']['data']['text/plain']) for output in outputs if output['header']
-                      ['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT]
+            # log.info("IPythonKernel Outputs: %s" % outputs)
+            for output in outputs:
+                if output['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
+                    result = json.loads(output['content']['data']['text/plain'])
+            log.info("Results: %s" % result)
             return result
 
     def reset_active_dfs_status(self):

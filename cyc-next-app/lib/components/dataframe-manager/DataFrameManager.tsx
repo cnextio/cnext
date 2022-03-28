@@ -9,11 +9,17 @@
 
 import React, { useEffect } from "react";
 import {
-    Message,
+    IMessage,
     WebAppEndpoint,
     CommandName,
-    UpdateType,
+    ContentType,
+    IDFUpdates,
 } from "../../interfaces/IApp";
+import {
+    DataFrameUpdateType,
+    IDataFrameStatusList,
+    IAllDataFrameStatus,
+} from "../../interfaces/IDataFrameStatus";
 import socket from "../Socket";
 import {
     setTableData,
@@ -35,9 +41,11 @@ const DFManager = () => {
     const loadDataRequest = useSelector(
         (state: RootState) => state.dataFrames.loadDataRequest
     );
-    const dfFilter = useSelector((state: RootState) => state.dataFrames.dfFilter);
+    const dfFilter = useSelector(
+        (state: RootState) => state.dataFrames.dfFilter
+    );
 
-    const sendMessage = (message: {}) => {
+    const sendMessage = (message: IMessage) => {
         console.log(
             `Send ${WebAppEndpoint.DFManager} request: `,
             JSON.stringify(message)
@@ -46,17 +54,20 @@ const DFManager = () => {
     };
 
     const createMessage = (
-        command_name: string,
-        content: string,
-        seq_number: number,
+        command_name: CommandName,
+        content: string | null = null,
+        seq_number: number = 1,
         metadata: {}
-    ) => {
-        let message = {};
-        message["webapp_endpoint"] = WebAppEndpoint.DFManager;
-        message["command_name"] = command_name;
-        message["seq_number"] = seq_number;
-        message["content"] = content;
-        message["metadata"] = metadata;
+    ): IMessage => {
+        let message: IMessage = {
+            webapp_endpoint: WebAppEndpoint.DFManager,
+            command_name: command_name,
+            seq_number: seq_number,
+            content: content,
+            metadata: metadata,
+            type: ContentType.COMMAND,
+        };
+
         return message;
     };
 
@@ -111,7 +122,7 @@ const DFManager = () => {
     ) => {
         let queryStr: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
                                 if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
-                                :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;        
+                                :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;
         let message = createMessage(CommandName.get_table_data, queryStr, 1, {
             df_id: df_id,
         });
@@ -142,7 +153,7 @@ const DFManager = () => {
         sendMessage(message);
     };
 
-    const handleGetCountna = (message: {}) => {
+    const handleGetCountna = (message: IMessage) => {
         const content = message.content;
         // content['df_id'] = message.metadata['df_id'];
         // console.log("Dispatch ", message.content);
@@ -162,45 +173,80 @@ const DFManager = () => {
         }
     };
 
-    const handleActiveDFStatus = (message: {}) => {
+    const getDefinedStatsOnUpdate = (
+        df_id: string,
+        columns: string[],
+        update: IDFUpdates
+    ) => {
+        if (update.update_type === DataFrameUpdateType.add_cols) {
+            //only update histogram of columns that has been updated
+            let newColumns = update.update_content;
+            console.log(
+                "DFManager: send request for column histograms for columns: ",
+                newColumns
+            );
+            getQuantilesPlot(df_id, columns);
+            getHistogramPlot(df_id, columns);
+            // sendGetCountna(df_id);
+        } else if (
+            update.update_type === DataFrameUpdateType.add_rows ||
+            update.update_type === DataFrameUpdateType.del_rows ||
+            update.update_type === DataFrameUpdateType.new_df ||
+            update.update_type === DataFrameUpdateType.update_cells
+        ) {
+            //TODO: be more targeted with updated_cell
+            console.log("DFManager: send request for column histograms");
+            getQuantilesPlot(df_id, columns);
+            getHistogramPlot(df_id, columns);
+            // sendGetCountna(df_id);
+        } //TODO: implement other cases
+    };
+
+    const handleActiveDFStatus = (
+        message: IMessage,
+        reload: boolean = false
+    ) => {
         console.log(
-            "DFManager got active df status message: ",
-            message.content
+            "DataFrameManager got active df status message: ",
+            message.content,
+            reload
         );
-        const dfStatusContent = message.content;
+        const allDFStatus = message.content as IAllDataFrameStatus;
 
         // console.log(dfStatusContent);
         // the UI is currently designed to handle only 1 reviewable update at a time
         // but will still scan through everything here for now
-        Object.keys(dfStatusContent).forEach(function (df_id) {
-            if (dfStatusContent[df_id]["is_updated"] == true) {
+        Object.keys(allDFStatus).forEach(function (df_id) {
+            // console.log("DataFrameManager reload: ", df_id, allDFStatus[df_id].is_updated, reload);
+            let is_updated = allDFStatus[df_id].is_updated;
+            if (is_updated == true || reload == true) {
                 // console.log(df_id, dfStatusContent[df_id]);
-                let status_list = ifElseDict(
-                    dfStatusContent[df_id],
-                    "_status_list"
-                );
-                let lastUpdate = status_list[status_list.length - 1];
-                let dfUpdates = ifElseDict(lastUpdate, "updates");
-                let updateType = ifElse(dfUpdates, "update_type", null);
-                let updateContent = ifElse(dfUpdates, "update_content", null);
-                console.log("DFManager: active df updates: ", dfUpdates);
-                sendGetDFMetadata(df_id);
-                if (updateType == UpdateType.add_rows) {
-                    // show data around added rows
-                    sendGetTableDataAroundRowIndex(df_id, updateContent[0]);
-                } else {
-                    sendGetTableData(df_id);
+                let statusList = allDFStatus[df_id]["_status_list"];
+                let lastUpdate = statusList[statusList.length - 1];
+                let update = lastUpdate["updates"];
+                if (update != null) {
+                    let updateType = update["update_type"];
+                    let updateContent = update["update_content"];
+                    console.log("DataFrameManager active df updates: ", update);
+                    sendGetDFMetadata(df_id);
+                    if (updateType == DataFrameUpdateType.add_rows) {
+                        // show data around added rows
+                        sendGetTableDataAroundRowIndex(df_id, updateContent[0]);
+                    } else {
+                        sendGetTableData(df_id);
+                    }
                 }
-                // make redux object conform to our standard
-                let dfUpdateMessage = { df_id: df_id, ...lastUpdate };
-                dispatch(setDFUpdates(dfUpdateMessage));
-                // dispatch(setDFUpdates(dataFrameUpdateMessage));
             }
+            // make redux object conform to our standard
+            let dfUpdateMessage = {
+                df_id: df_id,
+                ...allDFStatus[df_id],
+            };
+            dispatch(setDFUpdates(dfUpdateMessage));
         });
     };
 
-    const showHistogram = true;
-    const handleGetTableData = (message: {}) => {
+    const handleGetTableData = (message: IMessage) => {
         const df_id = message.metadata["df_id"];
         // const tableData = JSON.parse(message.content);
         const tableData = message.content;
@@ -232,7 +278,7 @@ const DFManager = () => {
         // }
     };
 
-    const handlePlotColumnHistogram = (message: {}) => {
+    const handlePlotColumnHistogram = (message: IMessage) => {
         console.log(
             `${WebAppEndpoint.DFManager} get plot data for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`
         );
@@ -241,7 +287,7 @@ const DFManager = () => {
         dispatch(setColumnHistogramPlot(content));
     };
 
-    const handlePlotColumnQuantile = (message: {}) => {
+    const handlePlotColumnQuantile = (message: IMessage) => {
         console.log(
             `${WebAppEndpoint.DFManager} get quantile plot for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`
         );
@@ -250,44 +296,23 @@ const DFManager = () => {
         dispatch(setColumnQuantilePlot(content));
     };
 
-    const handleGetDFMetadata = (message: {}) => {
+    const showDefinedStats = true;
+    const handleGetDFMetadata = (message: IMessage) => {
         console.log(
-            `${WebAppEndpoint.DFManager} got metadata for "${message.metadata["df_id"]}"`
+            `${WebAppEndpoint.DFManager} got metadata for "${message.metadata["df_id"]}": `,
+            message.content
         );
         let dfMetadata = message.content;
-        let columns: string[] = Object.keys(dfMetadata.columns);
-        let df_id = message.metadata["df_id"];
-        console.log("Metadata", columns);
         dispatch(setMetaData(dfMetadata));
 
-        //TODO: consider move this to handleActiveDFStatus
+        let columns: string[] = Object.keys(dfMetadata.columns);
+        let df_id = message.metadata["df_id"];
         const state = store.getState();
-        const dfUpdates = ifElseDict(state.dataFrames.dfUpdates, df_id);
-        if (showHistogram) {
-            if (dfUpdates["update_type"] === UpdateType.add_cols) {
-                //only update histogram of columns that has been updated
-                let newColumns = dfUpdates["update_content"];
-                console.log(
-                    "DFManager: send request for column histograms for columns: ",
-                    newColumns
-                );
-                // _getQuantilesPlot(df_id, newColumns);
-                // _getHistogramPlot(df_id, newColumns);
-                getQuantilesPlot(df_id, columns);
-                getHistogramPlot(df_id, columns);
-                sendGetCountna(df_id);
-            } else if (
-                dfUpdates["update_type"] === UpdateType.add_rows ||
-                dfUpdates["update_type"] === UpdateType.del_rows ||
-                dfUpdates["update_type"] === UpdateType.new_df ||
-                dfUpdates["update_type"] === UpdateType.update_cells
-            ) {
-                //TODO: be more targeted with updated_cell
-                console.log("DFManager: send request for column histograms");
-                getQuantilesPlot(df_id, columns);
-                getHistogramPlot(df_id, columns);
-                sendGetCountna(df_id);
-            } //TODO: implement other cases
+        const status = state.dataFrames.dfUpdates[df_id];
+        const lastStatus = status._status_list[status._status_list.length-1];
+        const update = lastStatus.updates;
+        if (status.is_updated && showDefinedStats) {
+            getDefinedStatsOnUpdate(df_id, columns, update);
         }
     };
 
@@ -296,7 +321,7 @@ const DFManager = () => {
         socket.emit("ping", "DFManager");
         socket.on(WebAppEndpoint.DFManager, (result: string) => {
             try {
-                let message: Message = JSON.parse(result);
+                let message: IMessage = JSON.parse(result);
                 console.log(
                     "DFManager got results for command ",
                     message.command_name
@@ -304,9 +329,14 @@ const DFManager = () => {
                 if (message.error == true) {
                     // props.recvCodeOutput(message); //TODO move this to redux
                 } else if (
-                    message.command_name == CommandName.active_df_status
+                    message.command_name == CommandName.update_df_status
                 ) {
                     handleActiveDFStatus(message);
+                } else if (
+                    message.command_name == CommandName.reload_df_status
+                ) {
+                    console.log("DFManager reload_df_status:", message);
+                    handleActiveDFStatus(message, true);
                 } else if (message.command_name == CommandName.get_table_data) {
                     handleGetTableData(message);
                 } else if (
@@ -329,7 +359,9 @@ const DFManager = () => {
                 }
             } catch {}
         });
-        // editorRef;
+        /** Load dataframe status */
+        let message = createMessage(CommandName.reload_df_status, null, 1, {});
+        sendMessage(message);
     }, []); //TODO: run this only once - not on rerender
 
     useEffect(() => {
@@ -346,7 +378,7 @@ const DFManager = () => {
             sendGetTableData(dfFilter.df_id, dfFilter.query);
         }
     }, [dfFilter]);
-    
+
     return null;
 };
 
