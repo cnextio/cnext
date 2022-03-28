@@ -1,4 +1,4 @@
-version: '3.9'
+version: '3'
 
 services:
   server:
@@ -7,8 +7,8 @@ services:
       dockerfile: Dockerfile
 
     container_name: server
-    ports:
-      - '4000:80'
+    networks:
+      - my-network
 
   web:
     build:
@@ -16,22 +16,18 @@ services:
       dockerfile: Dockerfile
 
     container_name: web
+    networks:
+      - my-network
     ports:
       - '3000:80'
     depends_on:
       - server
 
   cypress:
-    # build:
-    #   context: /cypress
-    #   dockerfile: Dockerfile
-    # container_name: cypress
-    # ports:
-    #   - '4000:80'
-    # depends_on:
-    #   - web
     image: 'cypress/included:9.5.2'
     container_name: cypress
+    networks:
+      - my-network
     depends_on:
       - web
       - server
@@ -41,3 +37,5 @@ services:
     working_dir: /cypress
     volumes:
       - ./:/cypress
+networks:
+  my-network:
