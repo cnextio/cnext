@@ -127,7 +127,7 @@ const FileManager = () => {
                                 "",
                                 1
                             );
-                            _sendMessage(message);
+                            sendMessage(message);
                             dispatch(setActiveProject(fmResult.content));
                             break;
                     }
@@ -157,7 +157,7 @@ const FileManager = () => {
         return null;
     }
 
-    const _sendMessage = (message: Message) => {
+    const sendMessage = (message: Message) => {
         console.log(
             `FileManager ${message.webapp_endpoint} send  message: `,
             JSON.stringify(message)
@@ -204,7 +204,7 @@ const FileManager = () => {
                 projectPath: projectPath,
                 timestamp: file.timestamp,
             });
-            _sendMessage(message);
+            sendMessage(message);
             setSaveTimer(
                 setInterval(() => {
                     setSaveTimeout(true);
@@ -219,7 +219,7 @@ const FileManager = () => {
             let message: Message = _createMessage(ProjectCommand.close_file, "", 1, {
                 path: fileToClose,
             });
-            _sendMessage(message);
+            sendMessage(message);
         }
     }, [fileToClose]);
 
@@ -229,7 +229,7 @@ const FileManager = () => {
             let message: Message = _createMessage(ProjectCommand.open_file, "", 1, {
                 path: fileToOpen,
             });
-            _sendMessage(message);
+            sendMessage(message);
         }
     }, [fileToOpen]);
 
@@ -255,7 +255,7 @@ const FileManager = () => {
                     { path: file.path, timestamp: timestamp }
                 );
                 console.log("FileManager send:", message.command_name, message.metadata);
-                _sendMessage(message);
+                sendMessage(message);
                 setSaveTimeout(false);
             }
         }
@@ -302,7 +302,7 @@ const FileManager = () => {
                         message.command_name,
                         message.metadata
                     );
-                    _sendMessage(message);
+                    sendMessage(message);
                     setSaveTimeout(false);
                 }
             }
@@ -338,7 +338,7 @@ const FileManager = () => {
         _setup_socket();
         let message: Message = _createMessage(ProjectCommand.get_active_project, "", 1);
         // let message: Message = _createMessage(ProjectCommandName.get_open_files, '', 1);
-        _sendMessage(message);
+        sendMessage(message);
 
         // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
         // return () => clearInterval(saveFileTimer);

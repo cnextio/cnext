@@ -135,21 +135,6 @@ export const CodeEditorRedux = createSlice({
                 
                 state.maxTextOutputOrder = getMaxTextOutputOrder(codeLines);
                 state.textOutputUpdateCount += 1;
-                // codeLines
-                //     .filter(
-                //         (codeLine) =>
-                //             codeLine.hasOwnProperty("textOutput") &&
-                //             codeLine.textOutput !== null
-                //     )
-                //     .map((item) => {
-                //         maxTextOutputOrder =
-                //             item.textOutput?.order == null ||
-                //             maxTextOutputOrder > item.textOutput?.order
-                //                 ? maxTextOutputOrder
-                //                 : item.textOutput?.order;
-                //     });
-                /** init the textOutputCount with the maxOutputCount from the saved state */
-                // state.maxTextOutputOrder = maxTextOutputOrder + 1;
             }
             state.codeLines[reduxFileID] = codeLines;
         },

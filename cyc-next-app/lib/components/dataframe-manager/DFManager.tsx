@@ -145,7 +145,7 @@ const DFManager = () => {
     const handleGetCountna = (message: {}) => {
         const content = message.content;
         // content['df_id'] = message.metadata['df_id'];
-        console.log("Dispatch ", message.content);
+        // console.log("Dispatch ", message.content);
         dispatch(setCountNA(content));
     };
 
@@ -346,6 +346,7 @@ const DFManager = () => {
             sendGetTableData(dfFilter.df_id, dfFilter.query);
         }
     }, [dfFilter]);
+    
     return null;
 };
 
