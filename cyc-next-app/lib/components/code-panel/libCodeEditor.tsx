@@ -8,6 +8,7 @@ import { ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
 import { python } from "../../codemirror/grammar/lang-cnext-python";
 import store from "../../../redux/store";
+import { RootState } from "../../../redux/store";
 
 const markerDiv = () => {
     let statusDiv = document.createElement('div');
@@ -141,7 +142,7 @@ const genLineSolidCSS = Decoration.line({attributes: {class: "cm-genline-solid"}
  * Implement the flashing effect after line is inserted.
  * This function also reset magicInfo after the animation completes. 
  * */
-const setFlashingEffect = (reduxState, view: EditorView, cAssistInfo: ICAssistInfo) => {
+const setFlashingEffect = (reduxState: RootState, view: EditorView, cAssistInfo: ICAssistInfo) => {
     console.log('CodeEditor cAssist _setFlashingEffect', cAssistInfo, view);    
     if(cAssistInfo && view){
         view.dispatch({effects: [StateEffect.appendConfig.of([genLineDeco(reduxState, view)])]});
@@ -153,7 +154,7 @@ const setFlashingEffect = (reduxState, view: EditorView, cAssistInfo: ICAssistIn
 
 /** note that this lineNumber is 1-based */
 const GenLineStateEffect = StateEffect.define<{lineInfo?: IInsertLinesInfo, type: GenLineEffectType}>()
-const genLineDeco = (reduxState, view: EditorView) => StateField.define<DecorationSet>({
+const genLineDeco = (reduxState: RootState, view: EditorView) => StateField.define<DecorationSet>({
     create() {
         return Decoration.none;
     },
@@ -200,7 +201,7 @@ const genLineDeco = (reduxState, view: EditorView) => StateField.define<Decorati
     },
     provide: f => EditorView.decorations.from(f)
 });
-const setGenLineDeco = (reduxState, view: EditorView|undefined) => {
+const setGenLineDeco = (reduxState: RootState, view: EditorView|undefined) => {
     if (view) {
         // console.log('CodeEditor set gencode solid')
         view.dispatch({effects: [StateEffect.appendConfig.of([genLineDeco(reduxState, view)])]});

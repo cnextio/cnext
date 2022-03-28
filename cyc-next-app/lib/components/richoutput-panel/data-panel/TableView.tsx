@@ -24,19 +24,22 @@ import { useSelector } from "react-redux";
 import { ifElse, ifElseDict } from "../../libs";
 import CountNA from "./CountNA";
 import store from "../../../../redux/store";
+import { RootState } from "../../../../redux/store";
 
 const TableView = (props: any) => {
-    const tableData = useSelector((state) => state.dataFrames.tableData);
-
-    const activeDataFrame = useSelector(
-        (state) => state.dataFrames.activeDataFrame
+    const tableData = useSelector(
+        (state: RootState) => state.dataFrames.tableData
     );
 
-    const dfReview: IDFUpdatesReview = useSelector((state) =>
+    const activeDataFrame = useSelector(
+        (state: RootState) => state.dataFrames.activeDataFrame
+    );
+
+    const dfReview: IDFUpdatesReview = useSelector((state: RootState) =>
         getReviewRequest(state)
     );
 
-    function getReviewRequest(state): IDFUpdatesReview {
+    function getReviewRequest(state: RootState): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
     }
 
@@ -48,21 +51,24 @@ const TableView = (props: any) => {
         indexCell: boolean = false
     ) => {
         let review: boolean = false;
-        const metadata = ifElse(
-            store.getState().dataFrames.metadata,
-            activeDataFrame,
-            null
-        );
+        let state = store.getState();
+        let activeDataFrame = state.dataFrames.activeDataFrame;
+        let dfReview =
+            state.dataFrames.dfUpdatesReview[activeDataFrame];
+        console.log("TableView: ", dfReview);
+
+        const metadata = state.dataFrames.metadata[activeDataFrame];
 
         if (dfReview) {
-            if (dfReview.type == ReviewType.col) {
+            if (dfReview.type === ReviewType.col) {
                 review = dfReview.name == colName;
-            } else if (dfReview.type == ReviewType.row) {
+            } else if (dfReview.type === ReviewType.row) {
                 review = dfReview.name == rowIndex;
-            } else if (dfReview.type == ReviewType.cell) {
-                // console.log(dfReview.name);
+            } else if (dfReview.type === ReviewType.cell) {
+                // console.log(dfReview.name);                
                 let name = dfReview.name as [string, number];
                 review = name[0] == colName && name[1] == rowIndex;
+                console.log("TableView: ", name, colName, rowIndex);
             }
         }
         // if (review){

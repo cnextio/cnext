@@ -59,6 +59,7 @@ import cycdataframe.df_status_hook as _sh
 import cycdataframe.cycdataframe as _cd
 import pandas as _pd
 from dataframe_manager import dataframe_manager as _dm
+from cassist import cassist as _ca
 from user_space.user_space import ExecutionMode
 
 class _UserSpace(_cus.UserSpace):
@@ -83,10 +84,13 @@ class _UserSpace(_cus.UserSpace):
         elif exec_mode == ExecutionMode.EXEC:    
             return exec(code)
     
-{user_space} = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
-{df_manager} = _dm.MessageHandler(None, {user_space})
-_sh.DataFrameStatusHook.set_user_space({user_space})
-""".format(user_space=IPythonInteral.USER_SPACE.value, df_manager=IPythonInteral.DF_MANAGER.value)
+{_user_space} = _UserSpace([_cd.DataFrame, _pd.DataFrame])  
+{_df_manager} = _dm.MessageHandler(None, {_user_space})
+{_cassist} = _ca.MessageHandler(None, {_user_space})
+_sh.DataFrameStatusHook.set_user_space({_user_space})
+""".format(_user_space=IPythonInteral.USER_SPACE.value,
+                _df_manager=IPythonInteral.DF_MANAGER.value,
+                _cassist=IPythonInteral.CASSIST.value)
 
             self.executor.execute(code)
 

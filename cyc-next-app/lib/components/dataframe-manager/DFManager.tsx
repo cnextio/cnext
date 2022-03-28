@@ -13,8 +13,8 @@ import {
     WebAppEndpoint,
     CommandName,
     UpdateType,
-} from "../interfaces/IApp";
-import socket from "./Socket";
+} from "../../interfaces/IApp";
+import socket from "../Socket";
 import {
     setTableData,
     setColumnHistogramPlot,
@@ -23,21 +23,21 @@ import {
     setDFUpdates,
     setActiveDF,
     setColumnQuantilePlot,
-} from "../../redux/reducers/DataFramesRedux";
+} from "../../../redux/reducers/DataFramesRedux";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
-import store from "../../redux/store";
-import { ifElse, ifElseDict } from "./libs";
+import store, { RootState } from "../../../redux/store";
+import { ifElse, ifElseDict } from "../libs";
 
 const DFManager = () => {
     const dispatch = useDispatch();
     const loadDataRequest = useSelector(
-        (state) => state.dataFrames.loadDataRequest
+        (state: RootState) => state.dataFrames.loadDataRequest
     );
-    const dfFilter = useSelector((state) => state.dataFrames.dfFilter);
+    const dfFilter = useSelector((state: RootState) => state.dataFrames.dfFilter);
 
-    const _sendMessage = (message: {}) => {
+    const sendMessage = (message: {}) => {
         console.log(
             `Send ${WebAppEndpoint.DFManager} request: `,
             JSON.stringify(message)
@@ -45,7 +45,7 @@ const DFManager = () => {
         socket.emit(WebAppEndpoint.DFManager, JSON.stringify(message));
     };
 
-    const _createMessage = (
+    const createMessage = (
         command_name: string,
         content: string,
         seq_number: number,
@@ -60,12 +60,12 @@ const DFManager = () => {
         return message;
     };
 
-    const _sendColumnHistogramPlotRequest = (
+    const sendColumnHistogramPlotRequest = (
         df_id: string,
         col_name: string
     ) => {
         let content: string = `px.histogram(${df_id}, x="${col_name}")`;
-        let message = _createMessage(
+        let message = createMessage(
             CommandName.plot_column_histogram,
             content,
             1,
@@ -74,15 +74,15 @@ const DFManager = () => {
                 col_name: col_name,
             }
         );
-        _sendMessage(message);
+        sendMessage(message);
     };
 
-    const _sendColumnQuantilesPlotRequest = (
+    const sendColumnQuantilesPlotRequest = (
         df_id: string,
         col_name: string
     ) => {
         let content: string = `px.box(${df_id}, x="${col_name}")`;
-        let message = _createMessage(
+        let message = createMessage(
             CommandName.plot_column_quantile,
             content,
             1,
@@ -92,77 +92,77 @@ const DFManager = () => {
             }
         );
         console.log("here", JSON.stringify(message));
-        _sendMessage(message);
+        sendMessage(message);
     };
 
-    const _sendGetCountna = (df_id: string) => {
+    const sendGetCountna = (df_id: string) => {
         // FIXME: the content is actually not important because python server will generate the python command itself based on CommandName
         let content: string = `${df_id}.isna().sum()`;
-        let message = _createMessage(CommandName.get_countna, content, 1, {
+        let message = createMessage(CommandName.get_countna, content, 1, {
             df_id: df_id,
         });
-        _sendMessage(message);
+        sendMessage(message);
     };
 
     const DF_DISPLAY_HALF_LENGTH = 15;
-    const _sendGetTableDataAroundRowIndex = (
+    const sendGetTableDataAroundRowIndex = (
         df_id: string,
         around_index: number = 0
     ) => {
-        let content: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
+        let queryStr: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
                                 if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
-                                :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;
-        let message = _createMessage(CommandName.get_table_data, content, 1, {
+                                :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;        
+        let message = createMessage(CommandName.get_table_data, queryStr, 1, {
             df_id: df_id,
         });
         // console.log("Send get table: ", message);
-        _sendMessage(message);
+        sendMessage(message);
     };
 
-    const _sendGetTableData = (df_id: string, filter: string | null = null) => {
-        let content: string;
+    const sendGetTableData = (df_id: string, filter: string | null = null) => {
+        let queryStr: string;
         if (filter) {
-            content = `${df_id}${filter}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
+            queryStr = `${df_id}${filter}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
         } else {
-            content = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
+            queryStr = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
         }
-        let message = _createMessage(CommandName.get_table_data, content, 1, {
+        let message = createMessage(CommandName.get_table_data, queryStr, 1, {
             df_id: df_id,
         });
         // console.log("_send_get_table_data message: ", message);
-        _sendMessage(message);
+        sendMessage(message);
     };
 
     //TODO: create a targeted column function
-    const _sendGetDFMetadata = (df_id: string) => {
-        let message = _createMessage(CommandName.get_df_metadata, "", 1, {
+    const sendGetDFMetadata = (df_id: string) => {
+        let message = createMessage(CommandName.get_df_metadata, "", 1, {
             df_id: df_id,
         });
         // console.log("_send_get_table_data message: ", message);
-        _sendMessage(message);
+        sendMessage(message);
     };
 
-    const _handleGetCountna = (message: {}) => {
+    const handleGetCountna = (message: {}) => {
         const content = message.content;
         // content['df_id'] = message.metadata['df_id'];
-        console.log("Dispatch ", message.content);
+        // console.log("Dispatch ", message.content);
         dispatch(setCountNA(content));
     };
 
-    const _getHistogramPlot = (df_id: string, col_list: string[]) => {
+    const getHistogramPlot = (df_id: string, col_list: string[]) => {
         for (var i = 0; i < col_list.length; i++) {
             const col_name = col_list[i];
-            _sendColumnHistogramPlotRequest(df_id, col_name);
+            sendColumnHistogramPlotRequest(df_id, col_name);
         }
     };
 
-    const _getQuantilesPlot = (df_id: string, col_list: string[]) => {
+    const getQuantilesPlot = (df_id: string, col_list: string[]) => {
         for (var col_name of col_list) {
-            _sendColumnQuantilesPlotRequest(df_id, col_name);
+            sendColumnQuantilesPlotRequest(df_id, col_name);
         }
     };
 
-    const _handleActiveDFStatus = (message: {}) => {
+    const handleActiveDFStatus = (message: {}) => {
         console.log(
             "DFManager got active df status message: ",
             message.content
@@ -184,12 +184,12 @@ const DFManager = () => {
                 let updateType = ifElse(dfUpdates, "update_type", null);
                 let updateContent = ifElse(dfUpdates, "update_content", null);
                 console.log("DFManager: active df updates: ", dfUpdates);
-                _sendGetDFMetadata(df_id);
+                sendGetDFMetadata(df_id);
                 if (updateType == UpdateType.add_rows) {
                     // show data around added rows
-                    _sendGetTableDataAroundRowIndex(df_id, updateContent[0]);
+                    sendGetTableDataAroundRowIndex(df_id, updateContent[0]);
                 } else {
-                    _sendGetTableData(df_id);
+                    sendGetTableData(df_id);
                 }
                 // make redux object conform to our standard
                 let dfUpdateMessage = { df_id: df_id, ...lastUpdate };
@@ -200,7 +200,7 @@ const DFManager = () => {
     };
 
     const showHistogram = true;
-    const _handleGetTableData = (message: {}) => {
+    const handleGetTableData = (message: {}) => {
         const df_id = message.metadata["df_id"];
         // const tableData = JSON.parse(message.content);
         const tableData = message.content;
@@ -232,7 +232,7 @@ const DFManager = () => {
         // }
     };
 
-    const _handlePlotColumnHistogram = (message: {}) => {
+    const handlePlotColumnHistogram = (message: {}) => {
         console.log(
             `${WebAppEndpoint.DFManager} get plot data for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`
         );
@@ -241,7 +241,7 @@ const DFManager = () => {
         dispatch(setColumnHistogramPlot(content));
     };
 
-    const _handlePlotColumnQuantile = (message: {}) => {
+    const handlePlotColumnQuantile = (message: {}) => {
         console.log(
             `${WebAppEndpoint.DFManager} get quantile plot for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`
         );
@@ -250,7 +250,7 @@ const DFManager = () => {
         dispatch(setColumnQuantilePlot(content));
     };
 
-    const _handleGetDFMetadata = (message: {}) => {
+    const handleGetDFMetadata = (message: {}) => {
         console.log(
             `${WebAppEndpoint.DFManager} got metadata for "${message.metadata["df_id"]}"`
         );
@@ -273,9 +273,9 @@ const DFManager = () => {
                 );
                 // _getQuantilesPlot(df_id, newColumns);
                 // _getHistogramPlot(df_id, newColumns);
-                _getQuantilesPlot(df_id, columns);
-                _getHistogramPlot(df_id, columns);
-                _sendGetCountna(df_id);
+                getQuantilesPlot(df_id, columns);
+                getHistogramPlot(df_id, columns);
+                sendGetCountna(df_id);
             } else if (
                 dfUpdates["update_type"] === UpdateType.add_rows ||
                 dfUpdates["update_type"] === UpdateType.del_rows ||
@@ -284,9 +284,9 @@ const DFManager = () => {
             ) {
                 //TODO: be more targeted with updated_cell
                 console.log("DFManager: send request for column histograms");
-                _getQuantilesPlot(df_id, columns);
-                _getHistogramPlot(df_id, columns);
-                _sendGetCountna(df_id);
+                getQuantilesPlot(df_id, columns);
+                getHistogramPlot(df_id, columns);
+                sendGetCountna(df_id);
             } //TODO: implement other cases
         }
     };
@@ -306,23 +306,23 @@ const DFManager = () => {
                 } else if (
                     message.command_name == CommandName.active_df_status
                 ) {
-                    _handleActiveDFStatus(message);
+                    handleActiveDFStatus(message);
                 } else if (message.command_name == CommandName.get_table_data) {
-                    _handleGetTableData(message);
+                    handleGetTableData(message);
                 } else if (
                     message.command_name == CommandName.plot_column_histogram
                 ) {
-                    _handlePlotColumnHistogram(message);
+                    handlePlotColumnHistogram(message);
                 } else if (
                     message.command_name == CommandName.plot_column_quantile
                 ) {
-                    _handlePlotColumnQuantile(message);
+                    handlePlotColumnQuantile(message);
                 } else if (message.command_name == CommandName.get_countna) {
-                    _handleGetCountna(message);
+                    handleGetCountna(message);
                 } else if (
                     message.command_name == CommandName.get_df_metadata
                 ) {
-                    _handleGetDFMetadata(message);
+                    handleGetDFMetadata(message);
                 } else {
                     console.log("dispatch text output");
                     // props.recvCodeOutput(codeOutput);
@@ -334,7 +334,7 @@ const DFManager = () => {
 
     useEffect(() => {
         if (loadDataRequest.df_id) {
-            _sendGetTableDataAroundRowIndex(
+            sendGetTableDataAroundRowIndex(
                 loadDataRequest.df_id,
                 loadDataRequest.row_index
             );
@@ -343,9 +343,10 @@ const DFManager = () => {
 
     useEffect(() => {
         if (dfFilter) {
-            _sendGetTableData(dfFilter.df_id, dfFilter.query);
+            sendGetTableData(dfFilter.df_id, dfFilter.query);
         }
     }, [dfFilter]);
+    
     return null;
 };
 

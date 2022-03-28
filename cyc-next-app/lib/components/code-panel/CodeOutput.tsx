@@ -16,12 +16,22 @@ import store, { RootState } from "../../../redux/store";
 
 const CodeOutputComponent = () => {
     const dfUpdates = useSelector((state: RootState) => checkDFUpdates(state));
-    // const textOutput = useSelector((state: RootState) => getTextOuput(state));
-    const textOutputCount = useSelector((state: RootState) => state.codeEditor.maxTextOutputOrder);
-    let [outputContent, setOutputContent] = useState<(ICodeResultContent | undefined)[]>([]);
+    /** this will make sure that the output will be updated each time
+     * the output is updated from server such as when inViewID changed */
+    const serverSynced = useSelector(
+        (state: RootState) => state.projectManager.serverSynced
+    );
+    const textOutputUpdateCount = useSelector(
+        (state: RootState) => state.codeEditor.textOutputUpdateCount
+    );
+    let [outputContent, setOutputContent] = useState<
+        (ICodeResultContent | undefined)[]
+    >([]);
     const codeOutputRef = useRef(null);
 
-    function getTextOuput(state: RootState): (ICodeResultContent | undefined)[] {
+    function getOrderedTextOuput(
+        state: RootState
+    ): (ICodeResultContent | undefined)[] {
         const inViewID = state.projectManager.inViewID;
         if (inViewID != null) {
             let textOutputs = state.codeEditor.codeLines[inViewID]
@@ -29,8 +39,13 @@ const CodeOutputComponent = () => {
                     return item.textOutput != null;
                 })
                 .sort((item1: ICodeLine, item2: ICodeLine) => {
-                    if (item1.textOutput?.order != null && item2.textOutput?.order != null) {
-                        return item1.textOutput?.order - item2.textOutput?.order;
+                    if (
+                        item1.textOutput?.order != null &&
+                        item2.textOutput?.order != null
+                    ) {
+                        return (
+                            item1.textOutput?.order - item2.textOutput?.order
+                        );
                     } else {
                         return -1;
                     }
@@ -56,7 +71,8 @@ const CodeOutputComponent = () => {
             activeDataFrame in state.dataFrames.dfUpdates
         ) {
             // console.log('Check update: ', state.dataFrames.dfUpdates[activeDataFrame]);
-            const activeDataFrameUpdates = state.dataFrames.dfUpdates[activeDataFrame];
+            const activeDataFrameUpdates =
+                state.dataFrames.dfUpdates[activeDataFrame];
             if ("update_type" in activeDataFrameUpdates) {
                 return activeDataFrameUpdates;
             }
@@ -81,8 +97,8 @@ const CodeOutputComponent = () => {
                     <Fragment>
                         <Typography
                             key={index}
-                            variant='caption'
-                            component='span'
+                            variant="caption"
+                            component="span"
                             style={{ fontWeight: "bold" }}
                         >
                             {elem}
@@ -102,7 +118,9 @@ const CodeOutputComponent = () => {
     ) => {
         return (
             <Fragment>
-                {updateType === UpdateType.new_df && <Fragment>New dataframe created</Fragment>}
+                {updateType === UpdateType.new_df && (
+                    <Fragment>New dataframe created</Fragment>
+                )}
                 {updateType !== UpdateType.new_df &&
                 (updatedItems.length || Object.keys(updatedItems).length) ? (
                     <Box key={key} sx={{ display: "flex" }}>
@@ -133,8 +151,8 @@ const CodeOutputComponent = () => {
                         </Box>
                         <Box sx={{ flexGrow: 1, textAlign: "right" }}>
                             <ReviewComponent
-                                key={key}
-                                content={updatedItems}
+                                // key={key}
+                                // content={updatedItems}
                                 activeReview={activeReview}
                             />
                         </Box>
@@ -144,37 +162,22 @@ const CodeOutputComponent = () => {
         );
     };
 
-    // const handleNormalCodeOutput = () => {
-    //     try {
-    //         if (codeOutput.content !== null && codeOutput.content !== "") {
-    //             let newOutputContent = {
-    //                 type: !codeOutput.error ? "text" : "error",
-    //                 content: codeOutput.content,
-    //             };
-    //             setOutputContent((outputContent) => [
-    //                 ...outputContent,
-    //                 newOutputContent,
-    //             ]);
-    //         }
-    //     } catch (error) {
-    //         // TODO: process json error
-    //         console.error(error);
-    //     }
-    // };
-    // useEffect(handleNormalCodeOutput, [codeOutput]);
-
-    const handleNormalCodeOutput = () => {
-        try {
-            const state: RootState = store.getState();
-            let textOutputs = getTextOuput(state);
-            setOutputContent(textOutputs);
-        } catch (error) {
-            // TODO: process json error
-            console.error(error);
+    /** Get an ordered code execution text outputs and set the state */
+    const handleTextOutput = () => {
+        if (serverSynced) {
+            try {
+                const state: RootState = store.getState();
+                let textOutputs = getOrderedTextOuput(state);
+                setOutputContent(textOutputs);
+            } catch (error) {
+                // TODO: process json error
+                console.error(error);
+            }
         }
     };
-    useEffect(handleNormalCodeOutput, [textOutputCount]);
+    useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced]);
 
+    /** Get an df update messages */
     const handleDFUpdates = () => {
         //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
         // const state = store.getState();
@@ -195,62 +198,31 @@ const CodeOutputComponent = () => {
             };
             //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
             if (newOutputContent != null) {
-                setOutputContent((outputContent) => [...outputContent, newOutputContent]);
+                setOutputContent((outputContent) => [
+                    ...outputContent,
+                    newOutputContent,
+                ]);
             }
         }
     };
     useEffect(handleDFUpdates, [dfUpdates]);
 
-    // const _setTimeoutToUnlockScroll = () => {
-    //     /*
-    //     * We use this scroll lock and timeout to make sure this and TableComponent can scroll to view
-    //     * at the same time. This is very ugly solution for this problem. The current assumption is this will
-    //     * scroll first.
-    //     * https://stackoverflow.com/questions/49318497/google-chrome-simultaneously-smooth-scrollintoview-with-more-elements-doesn
-    //     */
-    //     if (codeOutputRef.current){
-    //         let scrollTimeout;
-    //         codeOutputRef.current.addEventListener('scroll', function(e) {
-    //             clearTimeout(scrollTimeout);
-    //             scrollTimeout = setTimeout(function() {
-    //                 dispatch(scrollUnlock());
-    //             }, 50);
-    //         });
-    //         // have to set this outside as well to handle the case where there is no scroll
-    //         scrollTimeout = setTimeout(function() {
-    //             dispatch(scrollUnlock());
-    //         }, 200); //TODO: the latency here is pretty high, but it does not work with lower number.
-    //                  // need to figure out a better way to handle this no scroll event.
-    //     }
-    // }
-
-    // const scrollToBottom = () => {
-    //     // need block and inline property because of this
-    //     // https://stackoverflow.com/questions/11039885/scrollintoview-causing-the-whole-page-to-move/11041376
-    //     if(endPointRef.current){
-    //         // see: https://stackoverflow.com/questions/46795955/how-to-know-scroll-to-element-is-done-in-javascript
-    //         dispatch(scrollLock());
-    //         endPointRef.current.scrollIntoView({behavior: "smooth", block: 'nearest', inline: 'start' });
-    //         _setTimeoutToUnlockScroll();
-    //     }
-    // }
-    // useEffect(scrollToBottom, [outputContent]);
     const codeOutputContentID = "CodeOutputContent";
     return (
         <CodeOutputContainer>
             {console.log("Render CodeOutputAreaComponent")}
-            <CodeOutputHeader variant='overline' component='span'>
+            <CodeOutputHeader variant="overline" component="span">
                 Output
             </CodeOutputHeader>
             <CodeOutputContent ref={codeOutputRef} id={codeOutputContentID}>
-                {textOutputCount > 0 &&
-                    outputContent.map((item, index) => (
+                {textOutputUpdateCount > 0 &&
+                    outputContent?.map((item, index) => (
                         <Fragment>
                             {item["type"] === "text" && item["content"] !== "" && (
                                 <IndividualCodeOutputContent
                                     key={index}
-                                    component='pre'
-                                    variant='body2'
+                                    component="pre"
+                                    variant="body2"
                                 >
                                     <Ansi>{item["content"]}</Ansi>
                                 </IndividualCodeOutputContent>
@@ -258,8 +230,8 @@ const CodeOutputComponent = () => {
                             {item["type"] === "df_updates" && (
                                 <IndividualCodeOutputContent
                                     key={index}
-                                    component='pre'
-                                    variant='body2'
+                                    component="pre"
+                                    variant="body2"
                                 >
                                     {buildDFReviewsOutputComponent(
                                         outputContent.length,
@@ -280,7 +252,10 @@ const CodeOutputComponent = () => {
                                         block: "nearest",
                                         inline: "center",
                                         behavior: "smooth",
-                                        boundary: document.getElementById(codeOutputContentID),
+                                        boundary:
+                                            document.getElementById(
+                                                codeOutputContentID
+                                            ),
                                     }}
                                 />
                             )}
