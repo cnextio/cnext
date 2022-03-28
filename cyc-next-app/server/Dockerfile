@@ -1,25 +1,7 @@
-# # #CONDA
-# FROM conda as conda
-# ENV PORT 80
-# WORKDIR /home/conda
-# COPY . .
-
-# FROM node:16.13.1
-# WORKDIR /home/conda
-# COPY --from=conda /home/conda /home/conda
-# COPY . .
-# ENV PATH /opt/conda/envs/py39/bin:$PATH
-# RUN /bin/bash -c "source activate py39"
-# RUN npm install
-# # Run python script
-# # CMD ["npm", "start"]
-# CMD ["python", "test.py"]
-
-# #CONDA
 FROM continuumio/anaconda3
 ENV PORT 80
-WORKDIR /app
-COPY . .
+WORKDIR /server
+COPY . /server
 
 # Create conda environment
 RUN conda env create -f environment.yml
