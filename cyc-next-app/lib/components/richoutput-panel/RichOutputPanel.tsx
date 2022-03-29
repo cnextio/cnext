@@ -1,8 +1,8 @@
 import React from "react";
 import { PanelDivider, TablePanel, TableToolbar } from "../StyledComponents";
 import RichOutputView from "./RichOutputView";
-import DFExplorer from "./DFExplorer";
-import DFFilter from "./DFFilter";
+import DFExplorer from "./data-panel/DFExplorer";
+import DFFilter from "./data-panel/DFFilter";
 
 const RichOutputPanel = (props: any) => {
     return (

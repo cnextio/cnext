@@ -5,26 +5,27 @@ import {
     IReviewRequest,
     ReviewRequestType,
     IDFUpdatesReview,
-    IDFUpdates,
+    IMetaData,
 } from "../../lib/interfaces/IApp";
 
 import {
     DataFrameUpdateType,
     IDataFrameStatus,
-    IDataFrameUpdate,
 } from "../../lib/interfaces/IDataFrameStatus";
 import { ifElse, ifElseDict } from "../../lib/components/libs";
+import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
 
+// import {getLastUpdate} from 
 interface ILoadDataRequest {
     df_id: string | null;
     count: number;
     row_index: number;
 }
 
-type DataFrameState = {
-    metadata: { [id: string]: {} };
+export type DataFrameState = {
+    metadata: { [id: string]: IMetaData };
     tableData: { [id: string]: ITableData };
-    columnDataSummary: { [id: string]: {} };
+    // columnDataSummary: { [id: string]: {} };
     dfUpdates: { [id: string]: IDataFrameStatus };
     dfUpdatesReview: { [id: string]: IDFUpdatesReview };
     activeDataFrame: string;
@@ -41,7 +42,7 @@ type DataFrameState = {
 const initialState: DataFrameState = {
     metadata: {},
     tableData: {},
-    columnDataSummary: {},
+    // columnDataSummary: {},
     dfUpdates: {},
     dfUpdatesReview: {},
     activeDataFrame: "",
@@ -54,11 +55,6 @@ const initialState: DataFrameState = {
     loadColumnHistogram: false,
     dfFilter: null,
 };
-
-function getLastUpdate(status: IDataFrameStatus) {
-    const lastStatus = status._status_list[status._status_list.length - 1];
-    return lastStatus.updates;
-}
 
 export const dataFrameSlice = createSlice({
     name: "dataFrames",
@@ -75,9 +71,9 @@ export const dataFrameSlice = createSlice({
             // state.activeDataFrame = df_id;
 
             //TODO do the same for columnHistogram
-            if (!(df_id in state.columnDataSummary)) {
-                state.columnDataSummary[df_id] = {};
-            }
+            // if (!(df_id in state.columnDataSummary)) {
+            //     state.columnDataSummary[df_id] = {};
+            // }
             // state.dataFrameUpdates[df_id] = ifElseDict(action.payload, 'updates');
             // action.payload['updates']?action.payload['updates']:{}
         },
@@ -126,22 +122,22 @@ export const dataFrameSlice = createSlice({
             );
         },
 
-        setCountNA: (state, action) => {
-            // for testing
-            // state.data = testTableData
-            const df_id = action.payload["df_id"];
-            if (!(df_id in state.columnDataSummary)) {
-                state.columnDataSummary[df_id] = {};
-            }
-            // if ('countna' in action.payload){
-            //     state.columnDataSummary[df_id]['countna'] = action.payload['countna'];
-            // }
-            state.columnDataSummary[df_id]["countna"] = ifElseDict(
-                action.payload,
-                "countna"
-            );
-            //TODO: might need to set state.loadColumnHistogram = false here too
-        },
+        // setCountNA: (state, action) => {
+        //     // for testing
+        //     // state.data = testTableData
+        //     const df_id = action.payload["df_id"];
+        //     if (!(df_id in state.columnDataSummary)) {
+        //         state.columnDataSummary[df_id] = {};
+        //     }
+        //     // if ('countna' in action.payload){
+        //     //     state.columnDataSummary[df_id]['countna'] = action.payload['countna'];
+        //     // }
+        //     state.columnDataSummary[df_id]["countna"] = ifElseDict(
+        //         action.payload,
+        //         "countna"
+        //     );
+        //     //TODO: might need to set state.loadColumnHistogram = false here too
+        // },
 
         /**
          * Process the df updage message.
@@ -222,7 +218,7 @@ export const dataFrameSlice = createSlice({
                         update.update_type == DataFrameUpdateType.new_df
                     ) {
                         // state.columnHistogram = {};
-                        state.columnDataSummary[df_id] = {};
+                        // state.columnDataSummary[df_id] = {};
                         state.loadColumnHistogram = true;
                     }
                 }
@@ -360,7 +356,6 @@ export const {
     setMetaData,
     setColumnHistogramPlot,
     setDFUpdates,
-    setCountNA,
     setReview,
     setActiveDF,
     setDFFilter,
