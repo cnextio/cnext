@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-    initCodeText,
-    setFileSaved,
-} from "../../../redux/reducers/CodeEditorRedux";
+import { initCodeText, setFileSaved } from "../../../redux/reducers/CodeEditorRedux";
 import {
     setActiveProject,
     setFileMetaData,
@@ -21,15 +18,16 @@ import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
 import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
 import { ifElse } from "../libs";
 import socket from "../Socket";
+import { useRouter } from "next/router";
 
 const FileManager = () => {
+    const router = useRouter();
     const dispatch = useDispatch();
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     const fileToClose = useSelector((state: RootState) => state.projectManager.fileToClose);
     const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
-    const resultUpdate = useSelector((state: RootState) => state.codeEditor.resultCount);
     const codeText = useSelector((state: RootState) => getCodeText(state));
     const codeLines = useSelector((state: RootState) => getCodeLines(state));
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
@@ -158,11 +156,11 @@ const FileManager = () => {
     }
 
     const sendMessage = (message: Message) => {
+        socket.emit(message.webapp_endpoint, JSON.stringify(message));
         console.log(
             `FileManager ${message.webapp_endpoint} send  message: `,
             JSON.stringify(message)
         );
-        socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
     const _createMessage = (
@@ -183,16 +181,32 @@ const FileManager = () => {
         return message;
     };
 
+    /**
+     * Set timeout = true to save file & state immediately
+     */
+    const saveStateFileImmediate = () => {
+        const state = store.getState();
+        const fileToSave = state.projectManager.fileToSave;
+        const fileToSaveState = state.projectManager.fileToSaveState;
+        if (fileToSave.length > 0 || fileToSaveState.length > 0) {
+            setSaveTimeout(true);
+        }
+    };
+
     const clearSaveConditions = () => {
-        if (saveTimer) clearInterval(saveTimer);
+        if (saveTimer) {
+            clearInterval(saveTimer);
+        }
+
         // TODO: the following line means if the previous code has not been saved it won't be saved
         // need to handle the on going saving before inViewID changed
         // setCodeTextUpdated(false);
+        // Set timeout = true to save file & state immediately
+        saveStateFileImmediate();
     };
 
     // called when the in-view file changed
     const SAVE_FILE_DURATION = 10000;
-    // const SAVE_STATE_DURATION = 30000;
     useEffect(() => {
         clearSaveConditions();
         let state = store.getState();
@@ -220,6 +234,7 @@ const FileManager = () => {
                 path: fileToClose,
             });
             sendMessage(message);
+            saveStateFileImmediate();
         }
     }, [fileToClose]);
 
@@ -271,22 +286,18 @@ const FileManager = () => {
      */
     const saveState = () => {
         if (saveTimeout && fileToSaveState.length > 0) {
-            console.log("FileManager: save state");
             for (let filePath of fileToSaveState) {
                 const state = store.getState();
                 // console.log("FileManager: ", filePath);
-                if (state.codeEditor.codeLines != null){
+                if (state.codeEditor.codeLines != null) {
                     const codeLines = state.codeEditor.codeLines[filePath];
                     // Avoid to save the text/html result because maybe it's audio/video files.
                     // Save these files make bad performance.
                     const codeLinesSaveState = codeLines.filter(
-                        (codeLine) =>
-                            codeLine.result?.subType !==
-                            SubContentType.TEXT_HTML
+                        (codeLine) => codeLine.result?.subType !== SubContentType.TEXT_HTML
                     );
                     const timestamp = state.codeEditor.timestamp[filePath];
-                    const projectPath =
-                        state.projectManager.activeProject?.path;
+                    const projectPath = state.projectManager.activeProject?.path;
                     const message: Message = _createMessage(
                         ProjectCommand.save_state,
                         codeLinesSaveState,
@@ -296,11 +307,6 @@ const FileManager = () => {
                             projectPath: projectPath,
                             timestamp: timestamp,
                         }
-                    );
-                    console.log(
-                        "FileManager State send:",
-                        message.command_name,
-                        message.metadata
                     );
                     sendMessage(message);
                     setSaveTimeout(false);
@@ -343,6 +349,26 @@ const FileManager = () => {
         // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
         // return () => clearInterval(saveFileTimer);
     }, []); //run this only once - not on rerender
+
+    /**
+     * Save state & file immediately when refresh page or leave out the page
+     * Use beforeunload event to detect it
+     */
+    useEffect(() => {
+        const handleWindowClose = (e: any) => {
+            e.preventDefault();
+            saveStateFileImmediate();
+            return (e.returnValue = "");
+        };
+
+        if (process.browser) {
+            window.addEventListener("beforeunload", handleWindowClose);
+
+            return () => {
+                window.removeEventListener("beforeunload", handleWindowClose);
+            };
+        }
+    }, []);
 
     return null;
 };;
