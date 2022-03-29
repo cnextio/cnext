@@ -5,7 +5,7 @@ import "animate.css/animate.min.css";
 // import 'animate.css'
 import "react-toastify/dist/ReactToastify.css";
 import { useSelector } from "react-redux";
-import { UpdateType } from "../interfaces/IApp";
+import { DataFrameUpdateType } from "../interfaces/IDataFrameStatus";
 import { Fragment, useEffect } from "react";
 import store, { RootState } from "../../redux/store";
 import { StyledDFStatusNotification as DFStatusNotificationContainer } from "./StyledComponents";
@@ -40,7 +40,7 @@ export default function DFStatusNotification() {
     };
 
     const getMessageComponent = (
-        updateType: UpdateType,
+        updateType: DataFrameUpdateType,
         updateElements: Array<any>
     ) => {
         let message = null;

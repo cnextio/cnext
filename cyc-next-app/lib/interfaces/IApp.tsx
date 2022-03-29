@@ -2,15 +2,16 @@ import React from 'react';
 import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from './IFileManager';
 import { IGetCardinalResult } from './ICAssist';
 import { ExperimentManagerCommand } from './IExperimentManager';
+import { DataFrameUpdateType } from './IDataFrameStatus';
 
-export type RecvCodeOutput = (output: Message) => void;
+export type RecvCodeOutput = (output: IMessage) => void;
 
 // export interface CodeOutput {
 //     type: string;
 //     content: string;
 // };
 
-export interface Message {
+export interface IMessage {
     webapp_endpoint: string; // the web client component which sends
     // and/or receives this message
     command_name: CommandName | ProjectCommand | ExperimentManagerCommand; // 'code_area_command'|'updated_dataframe_list'|
@@ -32,16 +33,16 @@ export interface Message {
     // related to this command
 }
 
-export enum UpdateType {
-    add_cols = "add_cols",
-    del_cols = "del_cols",
-    add_rows = "add_rows",
-    del_rows = "del_rows",
-    update_cells = "update_cells",
-    new_index = "update_index",
-    new_df = "new_df",
-    no_update = "no_update",
-}
+// export enum UpdateType {
+//     add_cols = "add_cols",
+//     del_cols = "del_cols",
+//     add_rows = "add_rows",
+//     del_rows = "del_rows",
+//     update_cells = "update_cells",
+//     new_index = "update_index",
+//     new_df = "new_df",
+//     no_update = "no_update",
+// }
 
 // export interface DataTableContent {
 //     name: string;
@@ -52,7 +53,12 @@ export enum UpdateType {
 export enum CommandName {
     exec_line = "exec_line",
     exec_grouped_lines = "exec_grouped_lines",
-    active_df_status = "active_df_status",
+    /** this command contained the updated information of the dataframe status. It is used
+     * for the server to inform client about changes in the status */
+    update_df_status = "update_df_status",
+    /** this command contained the information of the dataframe status. It is used 
+     * when we need to reload the all active data status e.g. when reloading the page */
+    reload_df_status = "reload_df_status",
     plot_column_histogram = "plot_column_histogram",
     get_countna = "get_countna",
     plot_countna = "plot_countna",
@@ -149,10 +155,10 @@ export interface DFFilter {
     cols: string[];
 }
 
-export interface IDFUpdates {
-    update_type: UpdateType;
-    update_content: string[] | number[] | {[id: string]: []};
-}
+// export interface IDFUpdates {
+//     update_type: DataFrameUpdateType;
+//     update_content: string[] | number[] | {[id: string]: []};
+// }
 
 export interface IReviewRequest {
     type: ReviewRequestType;

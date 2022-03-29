@@ -9,7 +9,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useDispatch, useSelector } from "react-redux";
 import { FileContextMenuItem, IDirectoryMetadata, IDirListResult, IProjectMetadata, ProjectCommand } from "../../interfaces/IFileManager";
-import { ContentType, Message, WebAppEndpoint } from "../../interfaces/IApp";
+import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 import { setFileToOpen, setInView, setOpenDir, setOpenFiles } from "../../../redux/reducers/ProjectManagerRedux";
 import FileContextMenu from "./FileContextMenu";
@@ -38,7 +38,7 @@ const FileExplorer = (props: any) => {
         socket.on(WebAppEndpoint.FileExplorer, (result: string) => {
             console.log("FileExplorer got results...", result);
             try {
-                let fmResult: Message = JSON.parse(result);                
+                let fmResult: IMessage = JSON.parse(result);                
                 switch(fmResult.command_name) {
                     case ProjectCommand.list_dir: 
                         console.log('FileExplorer got list dir: ', fmResult.content);
@@ -71,8 +71,8 @@ const FileExplorer = (props: any) => {
         _setup_socket();
     }, []);
 
-    const _create_message = (command: ProjectCommand, metadata: {}): Message => {
-        let message: Message = {
+    const _create_message = (command: ProjectCommand, metadata: {}): IMessage => {
+        let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.FileExplorer,
             command_name: command,
             seq_number: 1,
@@ -84,12 +84,12 @@ const FileExplorer = (props: any) => {
         return message;
     }
 
-    const _send_message = (message: Message) => {
+    const _send_message = (message: IMessage) => {
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     }
 
     const fetchChildNodes = (id: string) => {
-        let message: Message = _create_message(ProjectCommand.list_dir, {path: id});
+        let message: IMessage = _create_message(ProjectCommand.list_dir, {path: id});
         _send_message(message);
     };
 

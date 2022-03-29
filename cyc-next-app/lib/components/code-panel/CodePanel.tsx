@@ -5,19 +5,19 @@ import CodeEditor from "./CodeEditor";
 // import CodeEditor from "./zzz-CodeEditor";
 // import WorkingPanelDivider from "../obs-WorkingPanelDivider";
 import { Typography } from "@mui/material";  
-import {Message} from "../../interfaces/IApp";
+import {IMessage} from "../../interfaces/IApp";
 import CodeOutput from "./CodeOutput";
 import CodeToolbar from "./CodeToolbar";
 // import { pure } from 'recompose';
 import shortid from "shortid";
 
 const CodePanel = () => {
-    const [codeOutput, setCodeOutput] = useState<Message>({commandType: "", contentType: "", content: "", error: false});
+    const [codeOutput, setCodeOutput] = useState<IMessage>({commandType: "", contentType: "", content: "", error: false});
 
     // use useCallback to avoid rerender CodeEditorComponent when this is rerendered
     // see this https://felixgerschau.com/react-performance-react-memo/
     const recvCodeOutput = React.useCallback(
-        (output: Message) => {            
+        (output: IMessage) => {            
         setCodeOutput(output);
     }, []);
 
