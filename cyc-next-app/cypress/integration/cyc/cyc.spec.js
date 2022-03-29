@@ -43,9 +43,9 @@ describe('Check Console', () => {
         removeText(editor);
         editor.type(codeCheckConsole);
         if (isMacOSPlatform()) {
-            editor.type('{ctrl}l');
-        } else {
             editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}l');
         }
         cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
         cy.wait(WAIT_TIME_OUT);
@@ -96,9 +96,9 @@ describe('Check Completion of Editor', () => {
         removeText(editor);
         editor.type(codeTestDF);
         if (isMacOSPlatform()) {
-            editor.type('{ctrl}l');
-        } else {
             editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}l');
         }
         editor.type('{enter}');
         editor.type('df.drop("');
@@ -216,9 +216,9 @@ describe('Check data in Redux store', () => {
         removeText(editor);
         editor.type(codeTestDF);
         if (isMacOSPlatform()) {
-            editor.type('{ctrl}l');
-        } else {
             editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}l');
         }
 
         cy.wait(3000);
@@ -255,11 +255,11 @@ describe('Check Matplotlib simple result', () => {
         editor = cy.get('@editor');
         editor.type('{selectall}');
         if (isMacOSPlatform()) {
-            editor.type('{ctrl}k');
-            editor.type('{ctrl}l');
-        } else {
             editor.type('{command}k');
             editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
         }
 
         cy.wait(1000);
@@ -282,11 +282,11 @@ describe('Check Matplotlib the coherence of two signals', () => {
         editor = cy.get('@editor');
         editor.type('{selectall}');
         if (isMacOSPlatform()) {
-            editor.type('{ctrl}k');
-            editor.type('{ctrl}l');
-        } else {
             editor.type('{command}k');
             editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
         }
 
         cy.wait(1000);
@@ -308,11 +308,11 @@ describe('Check Plotly', () => {
         editor = cy.get('@editor');
         editor.type('{selectall}');
         if (isMacOSPlatform()) {
-            editor.type('{ctrl}k');
-            editor.type('{ctrl}l');
-        } else {
             editor.type('{command}k');
             editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
         }
 
         cy.wait(1000);
@@ -335,11 +335,11 @@ describe('Check Audio', () => {
         editor = cy.get('@editor');
         editor.type('{selectall}');
         if (isMacOSPlatform()) {
-            editor.type('{ctrl}k');
-            editor.type('{ctrl}l');
-        } else {
             editor.type('{command}k');
             editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
         }
 
         cy.wait(3000);
@@ -363,11 +363,11 @@ describe('Check Video', () => {
         editor = cy.get('@editor');
         editor.type('{selectall}');
         if (isMacOSPlatform()) {
-            editor.type('{ctrl}k');
-            editor.type('{ctrl}l');
-        } else {
             editor.type('{command}k');
             editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
         }
 
         cy.wait(3000);
@@ -391,11 +391,11 @@ describe('Check Save State', () => {
         editor = cy.get('@editor');
         editor.type('{selectall}');
         if (isMacOSPlatform()) {
-            editor.type('{ctrl}k');
-            editor.type('{ctrl}l');
-        } else {
             editor.type('{command}k');
             editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
         }
 
         cy.wait(SAVE_STATE_DURATION);
