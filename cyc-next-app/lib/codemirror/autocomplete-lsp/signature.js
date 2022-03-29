@@ -103,7 +103,6 @@ export const signatureTooltip = (source) => {
             }
 
             if (tooltip) {
-                console.log('tooltip.line', tooltip.line);
                 return {
                     pos: tooltip.pos,
                     above: tooltip.lineNumber > 5,

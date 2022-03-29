@@ -9,13 +9,13 @@ import {
     codeTestPlotly,
     codeTestAudio,
     codeTestVideo,
-    codeTestSaveState
+    codeTestSaveState,
 } from '../data/code-text';
 const WAIT_TIME_OUT = 1000;
 const SAVE_STATE_DURATION = 12000;
 
-function isMacOS () {
-    return Cypress.platform.includes("win");
+function isWinPlatform() {
+    return Cypress.platform.includes('win');
 }
 
 describe('Check Code Editor', () => {
@@ -42,10 +42,10 @@ describe('Check Console', () => {
         editor.focus();
         removeText(editor);
         editor.type(codeCheckConsole);
-        if (isMacOS) {
-            editor.type('{command}l');
-        } else {
+        if (isWinPlatform()) {
             editor.type('{ctrl}l');
+        } else {
+            editor.type('{command}l');
         }
         cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
         cy.wait(WAIT_TIME_OUT);
@@ -95,10 +95,10 @@ describe('Check Completion of Editor', () => {
         editor = cy.get('@editor');
         removeText(editor);
         editor.type(codeTestDF);
-        if (isMacOS) {
-            editor.type('{command}l');
-        } else {
+        if (isWinPlatform()) {
             editor.type('{ctrl}l');
+        } else {
+            editor.type('{command}l');
         }
         editor.type('{enter}');
         editor.type('df.drop("');
@@ -215,12 +215,12 @@ describe('Check data in Redux store', () => {
         editor.focus();
         removeText(editor);
         editor.type(codeTestDF);
-        if (isMacOS) {
-            editor.type('{command}l');
-        } else {
+        if (isWinPlatform()) {
             editor.type('{ctrl}l');
+        } else {
+            editor.type('{command}l');
         }
-        
+
         cy.wait(3000);
         cy.window()
             .its('store')
@@ -254,14 +254,14 @@ describe('Check Matplotlib simple result', () => {
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isMacOS) {
-            editor.type('{command}k');
-            editor.type('{command}l');
-        } else {
+        if (isWinPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
+        } else {
+            editor.type('{command}k');
+            editor.type('{command}l');
         }
-        
+
         cy.wait(1000);
         cy.get('.MuiPaper-root > img').should('be.visible');
 
@@ -281,14 +281,14 @@ describe('Check Matplotlib the coherence of two signals', () => {
         editor.type(codeTestMatplotlibTheCoherenceOfTwoSignals);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isMacOS) {
-            editor.type('{command}k');
-            editor.type('{command}l');
-        } else {
+        if (isWinPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
+        } else {
+            editor.type('{command}k');
+            editor.type('{command}l');
         }
-        
+
         cy.wait(1000);
         cy.get('.MuiPaper-root > img').should('be.visible');
         cy.wait(WAIT_TIME_OUT);
@@ -307,20 +307,19 @@ describe('Check Plotly', () => {
         editor.type(codeTestPlotly);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isMacOS) {
-            editor.type('{command}k');
-            editor.type('{command}l');
-        } else {
+        if (isWinPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
+        } else {
+            editor.type('{command}k');
+            editor.type('{command}l');
         }
-        
+
         cy.wait(1000);
         cy.get('.MuiPaper-root > .js-plotly-plot').should('be.visible');
         cy.wait(WAIT_TIME_OUT);
     });
 });
-
 
 describe('Check Audio', () => {
     it('still render Audio', () => {
@@ -335,17 +334,17 @@ describe('Check Audio', () => {
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isMacOS) {
-            editor.type('{command}k');
-            editor.type('{command}l');
-        } else {
+        if (isWinPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
+        } else {
+            editor.type('{command}k');
+            editor.type('{command}l');
         }
 
         cy.wait(3000);
         cy.get('.MuiPaper-root > audio').should('be.visible');
-        
+
         cy.wait(WAIT_TIME_OUT);
     });
 });
@@ -363,23 +362,23 @@ describe('Check Video', () => {
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isMacOS) {
-            editor.type('{command}k');
-            editor.type('{command}l');
-        } else {
+        if (isWinPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
+        } else {
+            editor.type('{command}k');
+            editor.type('{command}l');
         }
 
         cy.wait(3000);
         cy.get('.MuiPaper-root > video').should('be.visible');
-        
+
         cy.wait(WAIT_TIME_OUT);
     });
 });
 
 describe('Check Save State', () => {
-it('still save state', () => {
+    it('still save state', () => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
@@ -391,23 +390,23 @@ it('still save state', () => {
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isMacOS) {
-            editor.type('{command}k');
-            editor.type('{command}l');
-        } else {
+        if (isWinPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
+        } else {
+            editor.type('{command}k');
+            editor.type('{command}l');
         }
 
         cy.wait(SAVE_STATE_DURATION);
         cy.reload();
-        cy.wait(1000)
+        cy.wait(1000);
         cy.get('.MuiPaper-root > img').should('be.visible');
         cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
-        
+
         cy.wait(WAIT_TIME_OUT);
     });
-})
+});
 
 const removeText = (editor) => {
     editor.type('{selectall}');
