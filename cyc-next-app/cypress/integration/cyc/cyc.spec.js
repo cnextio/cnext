@@ -14,8 +14,8 @@ import {
 const WAIT_TIME_OUT = 1000;
 const SAVE_STATE_DURATION = 12000;
 
-function isWinPlatform() {
-    return Cypress.platform.includes('win');
+function isMacOSPlatform() {
+    return Cypress.platform.includes('darwin');
 }
 
 describe('Check Code Editor', () => {
@@ -42,7 +42,7 @@ describe('Check Console', () => {
         editor.focus();
         removeText(editor);
         editor.type(codeCheckConsole);
-        if (isWinPlatform()) {
+        if (isMacOSPlatform()) {
             editor.type('{ctrl}l');
         } else {
             editor.type('{command}l');
@@ -95,7 +95,7 @@ describe('Check Completion of Editor', () => {
         editor = cy.get('@editor');
         removeText(editor);
         editor.type(codeTestDF);
-        if (isWinPlatform()) {
+        if (isMacOSPlatform()) {
             editor.type('{ctrl}l');
         } else {
             editor.type('{command}l');
@@ -215,7 +215,7 @@ describe('Check data in Redux store', () => {
         editor.focus();
         removeText(editor);
         editor.type(codeTestDF);
-        if (isWinPlatform()) {
+        if (isMacOSPlatform()) {
             editor.type('{ctrl}l');
         } else {
             editor.type('{command}l');
@@ -254,7 +254,7 @@ describe('Check Matplotlib simple result', () => {
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isWinPlatform()) {
+        if (isMacOSPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
         } else {
@@ -281,7 +281,7 @@ describe('Check Matplotlib the coherence of two signals', () => {
         editor.type(codeTestMatplotlibTheCoherenceOfTwoSignals);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isWinPlatform()) {
+        if (isMacOSPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
         } else {
@@ -307,7 +307,7 @@ describe('Check Plotly', () => {
         editor.type(codeTestPlotly);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isWinPlatform()) {
+        if (isMacOSPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
         } else {
@@ -334,7 +334,7 @@ describe('Check Audio', () => {
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isWinPlatform()) {
+        if (isMacOSPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
         } else {
@@ -362,7 +362,7 @@ describe('Check Video', () => {
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isWinPlatform()) {
+        if (isMacOSPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
         } else {
@@ -390,7 +390,7 @@ describe('Check Save State', () => {
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
-        if (isWinPlatform()) {
+        if (isMacOSPlatform()) {
             editor.type('{ctrl}k');
             editor.type('{ctrl}l');
         } else {
