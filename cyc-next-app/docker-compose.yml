@@ -38,14 +38,13 @@ services:
     # image: 'cypress/included:9.5.2'
 
     # container_name: cypress
+    # depends_on:
+    #   - web
+    #   - server
 
-    # ports:
-    #   - 5000:5000
-    # networks:
-    #   - my-network
+    # environment:
+    #   - CYPRESS_baseUrl=http://web:3000
 
     # working_dir: /cypress
     # volumes:
     #   - ./:/cypress
-# networks:
-#   my-network:
