@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -15,6 +16,7 @@ const {
 } = require('./ls/lsp_process');
 const port = process.env.PORT || 4000;
 const server = http.createServer();
+console.log('process.env.CLIENT_URL', process.env.CLIENT_URL);
 const options = {
     cors: {
         origin: [process.env.CLIENT_URL],

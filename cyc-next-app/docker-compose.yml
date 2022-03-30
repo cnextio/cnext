@@ -22,6 +22,9 @@ services:
             - server
         ports:
             - 3000:3000
+        environment:
+            - CODE_SERVER_SOCKET_ENDPOINT = http://server:4000
+
 
     cypress:
         image: cypress
