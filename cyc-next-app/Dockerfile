@@ -4,7 +4,7 @@ ENV NODE_ENV=production
 
 WORKDIR /web
 
-COPY . /web
+COPY . .
 
 RUN npm i --force
 RUN npm run build
