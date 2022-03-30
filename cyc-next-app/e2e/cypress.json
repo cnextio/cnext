@@ -1,9 +1,9 @@
 {
-  "baseUrl": "http://localhost:3000",
-  "defaultCommandTimeout": 10000,
-  "video": false,
-  "reporter": "junit",
-  "reporterOptions": {
-    "mochaFile": "cypress/results/output.xml"
-  }
+    "baseUrl": "http://localhost:3000",
+    "defaultCommandTimeout": 10000,
+    "video": false,
+    "reporter": "junit",
+    "reporterOptions": {
+        "mochaFile": "cypress/results/output.xml"
+    }
 }

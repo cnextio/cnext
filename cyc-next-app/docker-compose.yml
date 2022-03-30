@@ -1,50 +1,50 @@
 version: '3'
 
 services:
-  server:
-    build:
-      context: /server
-      dockerfile: Dockerfile
+    server:
+        build:
+            context: /server
+            dockerfile: Dockerfile
 
-    container_name: server
-    ports:
-      - 4000:4000
+        container_name: server
+        ports:
+            - 4000:4000
 
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    web:
+        build:
+            context: .
+            dockerfile: Dockerfile
 
-    container_name: web
-    depends_on:
-      - server
-    ports:
-      - 3000:3000
+        container_name: web
+        depends_on:
+            - server
+        ports:
+            - 3000:3000
 
-  cypress:
-    image: cypress
-    build: ./e2e
-    container_name: cypress
-    depends_on:
-      - web
-      - server
-    environment:
-      - CYPRESS_baseUrl=http://web:3000
-    command: npx cypress run
-    volumes:
-      - ./e2e/cypress:/app/cypress
-      - ./e2e/cypress.json:/app/cypress.json
+    cypress:
+        image: cypress
+        build: ./e2e
+        container_name: cypress
+        depends_on:
+            - web
+            - server
+        environment:
+            - CYPRESS_baseUrl=http://web:3000
+        command: npx cypress run
+        volumes:
+            - ./e2e/cypress:/app/cypress
+            - ./e2e/cypress.json:/app/cypress.json
 
-    # image: 'cypress/included:9.5.2'
+        # image: 'cypress/included:9.5.2'
 
-    # container_name: cypress
-    # depends_on:
-    #   - web
-    #   - server
+        # container_name: cypress
+        # depends_on:
+        #   - web
+        #   - server
 
-    # environment:
-    #   - CYPRESS_baseUrl=http://web:3000
+        # environment:
+        #   - CYPRESS_baseUrl=http://web:3000
 
-    # working_dir: /cypress
-    # volumes:
-    #   - ./:/cypress
+        # working_dir: /cypress
+        # volumes:
+        #   - ./:/cypress
