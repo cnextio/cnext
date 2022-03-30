@@ -17,7 +17,7 @@ const port = process.env.PORT || 4000;
 const server = http.createServer();
 const options = {
     cors: {
-        origin: ['http://localhost:3000', 'http://web:3000'],
+        origin: [process.env.CLIENT_URL],
         methods: ['GET', 'POST'],
     },
 };

@@ -9,6 +9,8 @@ services:
         container_name: server
         ports:
             - 4000:4000
+        environment:
+            - CLIENT_URL = http://web:3000
 
     web:
         build:
