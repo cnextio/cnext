@@ -60,7 +60,7 @@ const ReviewComponent = ({ activeReview }) => {
     function onClick(type: ReviewRequestType) {
         let review: IReviewRequest = { type: type, index: UndefReviewIndex };
         let state = store.getState();
-        console.log('ReviewComponent: ', state.dataFrames.dfUpdatesReview['df']);
+        console.log('ReviewComponent: ', state.dataFrames.dfUpdatesReview[state.dataFrames.activeDataFrame]);
         dispatch(setReview(review));
     }
 

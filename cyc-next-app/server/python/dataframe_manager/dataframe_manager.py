@@ -147,8 +147,11 @@ class MessageHandler(BaseMessageHandler):
         # message execution_mode will always be `eval` for this sender
         log.info('eval... %s' % message)
         # log.info('Globals: %s' % client_globals)
+        
         ## this step is important to make sure the query work properly in the backend #
-        message.content = message.content.replace("'", '"')
+        if (isinstance(message.content, str)):
+            message.content = message.content.replace("'", '"')
+
         try:
             if message.command_name == DFManagerCommand.plot_column_histogram:
                 # result = eval(message.content, client_globals)
@@ -209,6 +212,13 @@ class MessageHandler(BaseMessageHandler):
                 output = self.get_execute_result(output_messages)
                 # log.info("get df metadata")
                 log.info('DFManagerCommand.get_df_metadata: %s' % output)
+                type = ContentType.DICT
+                sub_type = SubContentType.NONE
+                send_reply = True
+
+            elif message.command_name == DFManagerCommand.reload_df_status:
+                output = self.user_space.get_active_dfs_status()
+                log.info('DFManagerCommand.reload_df_status: %s' % output)
                 type = ContentType.DICT
                 sub_type = SubContentType.NONE
                 send_reply = True

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Message, WebAppEndpoint, ContentType, CommandName } from "../../interfaces/IApp";
+import { IMessage, WebAppEndpoint, ContentType, CommandName } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
 import store, { RootState } from "../../../redux/store";
@@ -141,7 +141,7 @@ const CodeEditor = () => {
         onChange: onCodeMirrorChange,
     });
 
-    const handleResultData = (message: Message) => {
+    const handleResultData = (message: IMessage) => {
         console.log(`${WebAppEndpoint.CodeEditor} got result data`);
         let inViewID = store.getState().projectManager.inViewID;
         if (inViewID) {
@@ -168,7 +168,7 @@ const CodeEditor = () => {
             console.log("CodeEditor: got  results: ", result, "\n");
             // console.log("CodeEditor: got results...");
             try {
-                let codeOutput: Message = JSON.parse(result);
+                let codeOutput: IMessage = JSON.parse(result);
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
                     handleResultData(codeOutput);
@@ -317,7 +317,7 @@ const CodeEditor = () => {
     };
 
     const createMessage = (content: IRunningCommandContent) => {
-        let message: Message = {
+        let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.CodeEditor,
             command_name: CommandName.exec_line,
             seq_number: 1,

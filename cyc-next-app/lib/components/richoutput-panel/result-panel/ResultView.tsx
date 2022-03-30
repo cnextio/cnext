@@ -16,12 +16,18 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 });
 
 const ResultView = (props: any) => {
-    const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
+    const activeLine = useSelector(
+        (state: RootState) => state.codeEditor.activeLine
+    );
     /** this is used to trigger the rerender of this component whenever there is a new result update */
     const resultUpdateCount = useSelector(
         (state: RootState) => state.codeEditor.resultUpdateCount
     );
-
+    /** this will make sure that the output will be updated each time
+     * the output is updated from server such as when inViewID changed */
+    const serverSynced = useSelector(
+        (state: RootState) => state.projectManager.serverSynced
+    );
     const setLayout = (
         data: object | string | any,
         width: number | null = null,
@@ -31,8 +37,12 @@ const ResultView = (props: any) => {
             /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
             let inResultData = JSON.parse(JSON.stringify(data));
             inResultData["data"][0]["hovertemplate"] = "%{x}: %{y}";
-            inResultData.layout.width = width ? width : inResultData.layout.width;
-            inResultData.layout.height = height ? height : inResultData.layout.height;
+            inResultData.layout.width = width
+                ? width
+                : inResultData.layout.width;
+            inResultData.layout.height = height
+                ? height
+                : inResultData.layout.height;
             inResultData.layout.margin = { b: 10, l: 80, r: 30, t: 30 };
             inResultData["config"] = { displayModeBar: false };
             return inResultData;
@@ -49,8 +59,9 @@ const ResultView = (props: any) => {
         const state: RootState = store.getState();
         const inViewID = state.projectManager.inViewID;
         if (inViewID && state.codeEditor?.codeLines != null) {
-            const codeLines: ICodeLine[] = state.codeEditor?.codeLines[inViewID];
-            const codeWithResult: ICodeLine[] = codeLines.filter(
+            const codeLines: ICodeLine[] =
+                state.codeEditor?.codeLines[inViewID];
+            const codeWithResult: ICodeLine[] = codeLines?.filter(
                 (code) => code.result?.type === ContentType.RICH_OUTPUT
             );
             console.log("codeWithResult", codeWithResult);
@@ -66,7 +77,7 @@ const ResultView = (props: any) => {
                         margin={[5, 5]}
                         isResizable={true}
                     > */}
-                    {codeWithResult.map((codeResult: ICodeLine) => (
+                    {codeWithResult?.map((codeResult: ICodeLine) => (
                         //   <ScrollIntoViewIfNeeded
                         //       active={codeResult.lineID == activeLine}
                         //       options={{
@@ -78,10 +89,11 @@ const ResultView = (props: any) => {
                         //   >
                         <SingleResult
                             key={codeResult.lineID}
-                            variant='outlined'
+                            variant="outlined"
                             focused={codeResult.lineID == activeLine}
                         >
-                            {codeResult?.result?.subType === SubContentType.PLOTLY_FIG &&
+                            {codeResult?.result?.subType ===
+                                SubContentType.PLOTLY_FIG &&
                                 React.createElement(
                                     PlotlyWithNoSSR,
                                     setLayout(codeResult?.result?.content)
@@ -100,7 +112,8 @@ const ResultView = (props: any) => {
                                 />
                             )}
                             {/* Display video/ audio */}
-                            {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
+                            {codeResult?.result?.subType ===
+                                SubContentType.TEXT_HTML &&
                                 ReactHtmlParser(codeResult?.result?.content)}
                         </SingleResult>
                         //   </ScrollIntoViewIfNeeded>
