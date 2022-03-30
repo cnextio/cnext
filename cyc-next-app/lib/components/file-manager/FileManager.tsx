@@ -154,12 +154,20 @@ const FileManager = () => {
         return null;
     }
 
-    const sendMessage = (message: IMessage) => {
-        socket.emit(message.webapp_endpoint, JSON.stringify(message));
-        console.log(
-            `FileManager ${message.webapp_endpoint} send  message: `,
-            JSON.stringify(message)
-        );
+    const sendMessage = async (message: IMessage) => {
+        await socket.emit(message.webapp_endpoint, JSON.stringify(message));
+        return new Promise((resolve) => {
+            socket.once(message.webapp_endpoint, (result: string) => {
+                try {
+                    const output = JSON.parse(result);
+                    if (output.type === ContentType.FILE_METADATA && output.error == false) {
+                        resolve(output);
+                    }
+                } catch {
+                    resolve(null);
+                }
+            });
+        });
     };
 
     const _createMessage = (
@@ -196,17 +204,16 @@ const FileManager = () => {
         if (saveTimer) {
             clearInterval(saveTimer);
         }
-
         // TODO: the following line means if the previous code has not been saved it won't be saved
         // need to handle the on going saving before inViewID changed
         // setCodeTextUpdated(false);
-        // Set timeout = true to save file & state immediately
-        saveStateFileImmediate();
     };
 
     // called when the in-view file changed
     const SAVE_FILE_DURATION = 10000;
     useEffect(() => {
+        // Set timeout = true to save file & state immediately
+        saveStateFileImmediate();
         clearSaveConditions();
         let state = store.getState();
         if (inViewID) {
@@ -228,12 +235,12 @@ const FileManager = () => {
 
     useEffect(() => {
         if (fileToClose) {
+            saveStateFileImmediate();
             // TODO: make sure the file is saved before being closed
             let message: IMessage = _createMessage(ProjectCommand.close_file, "", 1, {
                 path: fileToClose,
             });
             sendMessage(message);
-            saveStateFileImmediate();
         }
     }, [fileToClose]);
 
@@ -283,11 +290,11 @@ const FileManager = () => {
      * This function will be called whenever display new results or group execute lines.
      * However, state will only be saved if there is state to be saved
      */
-    const saveState = () => {
-        if (saveTimeout && fileToSaveState.length > 0) {
+    const saveState = async (useTimeOut: boolean = true) => {
+        const state = store.getState();
+        const fileToSaveState = state.projectManager.fileToSaveState;
+        if ((saveTimeout || !useTimeOut) && fileToSaveState.length > 0) {
             for (let filePath of fileToSaveState) {
-                const state = store.getState();
-                // console.log("FileManager: ", filePath);
                 if (state.codeEditor.codeLines != null) {
                     const codeLines = state.codeEditor.codeLines[filePath];
                     // Avoid to save the text/html result because maybe it's audio/video files.
@@ -307,8 +314,9 @@ const FileManager = () => {
                             timestamp: timestamp,
                         }
                     );
-                    sendMessage(message);
+                    const result = await sendMessage(message);
                     setSaveTimeout(false);
+                    return result;
                 }
             }
         }
@@ -354,17 +362,22 @@ const FileManager = () => {
      * Use beforeunload event to detect it
      */
     useEffect(() => {
-        const handleWindowClose = (e: any) => {
+        const handleBeforeUnload = async (e: any) => {
             e.preventDefault();
-            saveStateFileImmediate();
-            return (e.returnValue = "");
+            // Have to trigger saveState() function directly because react hook is blocked in beforeunload event
+            const result = await saveState(false);
+            if (result == null) {
+                alert("The State was not saved successfully, would you like to try again?");
+                // Trigger the save state again here
+            }
+            return true;
         };
 
         if (process.browser) {
-            window.addEventListener("beforeunload", handleWindowClose);
+            window.addEventListener("beforeunload", handleBeforeUnload);
 
             return () => {
-                window.removeEventListener("beforeunload", handleWindowClose);
+                window.removeEventListener("beforeunload", handleBeforeUnload);
             };
         }
     }, []);
