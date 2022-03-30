@@ -1,5 +1,5 @@
 FROM continuumio/anaconda3
-ENV PORT 80
+
 WORKDIR /server
 COPY . /server
 
@@ -24,3 +24,5 @@ RUN /bin/bash -c "source activate py39"
 CMD ["npm", "start"]
 # Run python script 
 # CMD ["python", "test.py"]
+
+EXPOSE 4000

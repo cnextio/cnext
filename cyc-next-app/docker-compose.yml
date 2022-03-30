@@ -7,8 +7,8 @@ services:
       dockerfile: Dockerfile
 
     container_name: server
-    networks:
-      - my-network
+    ports:
+      - 4000:4000
 
   web:
     build:
@@ -16,26 +16,36 @@ services:
       dockerfile: Dockerfile
 
     container_name: web
-    networks:
-      - my-network
-    ports:
-      - '3000:80'
     depends_on:
       - server
+    ports:
+      - 3000:3000
 
   cypress:
-    image: 'cypress/included:9.5.2'
+    image: cypress
+    build: ./e2e
     container_name: cypress
-    networks:
-      - my-network
     depends_on:
       - web
       - server
     environment:
-      - CYPRESS_baseUrl=http://web:80
-      - CYPRESS_VIDEO=false
-    working_dir: /cypress
+      - CYPRESS_baseUrl=http://web:3000
+    command: npx cypress run
     volumes:
-      - ./:/cypress
-networks:
-  my-network:
+      - ./e2e/cypress:/app/cypress
+      - ./e2e/cypress.json:/app/cypress.json
+
+    # image: 'cypress/included:9.5.2'
+
+    # container_name: cypress
+
+    # ports:
+    #   - 5000:5000
+    # networks:
+    #   - my-network
+
+    # working_dir: /cypress
+    # volumes:
+    #   - ./:/cypress
+# networks:
+#   my-network:
