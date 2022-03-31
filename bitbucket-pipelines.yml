@@ -10,17 +10,18 @@ options:
     size: 2x
 
 pipelines:
-    default:
-        - step:
-              size: 2x
-              name: 'Build and Test'
-              script:
-                  - echo "Your build and test goes here..."
-                  - docker-compose up
-                  - docker-compose down
-                  - docker --help
-              services:
-                  - docker
+    pull-requests:
+        master: #this runs as default for any branch not elsewhere defined
+            - step:
+                  size: 2x
+                  name: 'Build and Test'
+                  script:
+                      - echo "Your build and test goes here..."
+                      - docker-compose up
+                      - docker-compose down
+                      - docker --help
+                  services:
+                      - docker
 
 definitions:
     services:
