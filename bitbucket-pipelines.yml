@@ -5,8 +5,10 @@
 
 image: docker/compose
 
-options:
-    docker: true
+definitions:
+    services:
+        docker:
+            memory: 2048
 
 pipelines:
     default:
@@ -14,6 +16,6 @@ pipelines:
               name: 'Build and Test'
               script:
                   - echo "Your build and test goes here..."
-                  - docker-compose up 
+                  - docker-compose up
                   - docker-compose down
                   - docker --help
