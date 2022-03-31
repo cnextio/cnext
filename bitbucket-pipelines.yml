@@ -18,6 +18,7 @@ pipelines:
                   - docker-compose down
                   - docker --help
 definitions:
-    services:
-        cyc:
-            memory: 2048
+    service:
+        docker:
+            # Memory docker-in-docker
+            memory: 7128
