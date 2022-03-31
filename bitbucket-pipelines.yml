@@ -7,7 +7,6 @@ image: docker/compose
 
 options:
     docker: true
-    size: 2x
 
 pipelines:
     cyc:
