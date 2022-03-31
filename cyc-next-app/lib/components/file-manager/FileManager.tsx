@@ -18,10 +18,8 @@ import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
 import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
 import { ifElse } from "../libs";
 import socket from "../Socket";
-import { useRouter } from "next/router";
 
 const FileManager = () => {
-    const router = useRouter();
     const dispatch = useDispatch();
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     const fileToClose = useSelector((state: RootState) => state.projectManager.fileToClose);
@@ -37,7 +35,7 @@ const FileManager = () => {
     const [saveTimeout, setSaveTimeout] = useState(false);
 
     const _setup_socket = () => {
-        socket.emit("ping", "FileManager");
+        socket.emit("ping", WebAppEndpoint.FileManager);
         socket.on(WebAppEndpoint.FileManager, (result: string) => {
             console.log("FileManager got results...", result);
             try {
@@ -156,18 +154,7 @@ const FileManager = () => {
 
     const sendMessage = async (message: IMessage) => {
         await socket.emit(message.webapp_endpoint, JSON.stringify(message));
-        return new Promise((resolve) => {
-            socket.once(message.webapp_endpoint, (result: string) => {
-                try {
-                    const output = JSON.parse(result);
-                    if (output.type === ContentType.FILE_METADATA && output.error == false) {
-                        resolve(output);
-                    }
-                } catch {
-                    resolve(null);
-                }
-            });
-        });
+        console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
     };
 
     const _createMessage = (
@@ -314,9 +301,25 @@ const FileManager = () => {
                             timestamp: timestamp,
                         }
                     );
-                    const result = await sendMessage(message);
+                    await sendMessage(message);
                     setSaveTimeout(false);
-                    return result;
+                    return new Promise((resolve) => {
+                        socket.once(message.webapp_endpoint, (result: string) => {
+                            try {
+                                const output = JSON.parse(result);
+                                if (
+                                    output.command === ProjectCommand.save_state &&
+                                    output.type === ContentType.FILE_METADATA &&
+                                    output.error == false
+                                ) {
+                                    resolve(output);
+                                }
+                                resolve(null);
+                            } catch {
+                                resolve(null);
+                            }
+                        });
+                    });
                 }
             }
         }
@@ -353,6 +356,12 @@ const FileManager = () => {
         // let message: Message = _createMessage(ProjectCommandName.get_open_files, '', 1);
         sendMessage(message);
 
+        saveStateOnUnload();
+
+        return () => {
+            socket.off(WebAppEndpoint.FileManager);
+        };
+
         // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
         // return () => clearInterval(saveFileTimer);
     }, []); //run this only once - not on rerender
@@ -361,16 +370,14 @@ const FileManager = () => {
      * Save state & file immediately when refresh page or leave out the page
      * Use beforeunload event to detect it
      */
-    useEffect(() => {
+    const saveStateOnUnload = () => {
         const handleBeforeUnload = async (e: any) => {
             e.preventDefault();
             // Have to trigger saveState() function directly because react hook is blocked in beforeunload event
             const result = await saveState(false);
             if (result == null) {
-                alert("The State was not saved successfully, would you like to try again?");
-                // Trigger the save state again here
+                return (e.returnValue = "");
             }
-            return true;
         };
 
         if (process.browser) {
@@ -380,7 +387,7 @@ const FileManager = () => {
                 window.removeEventListener("beforeunload", handleBeforeUnload);
             };
         }
-    }, []);
+    };
 
     return null;
 };
