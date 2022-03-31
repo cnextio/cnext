@@ -13,4 +13,10 @@ pipelines:
                   - docker
               script:
                   - echo "Your build and test goes here..."
+                  - export DOCKER_COMPOSE_VERSION=2.3.4
+                  - export DOCKER_COMPOSE_URL=https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)
+                  - curl -L $DOCKER_COMPOSE_URL > docker-compose
+                  - chmod +x docker-compose
+                  - mv docker-compose /usr/local/bin
+                  - docker-compose build --force-rm --no-cache --pull
                   - docker compose up --force-recreate --build
