@@ -13,6 +13,7 @@ import ReviewComponent from "./DFReview";
 import Ansi from "ansi-to-react";
 import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
 import store, { RootState } from "../../../redux/store";
+import { getLastUpdate } from "../dataframe-manager/libDataFrameManager";
 
 const CodeOutputComponent = () => {
     const dataFrameStatus = useSelector((state: RootState) => getDataFrameStatus(state));
@@ -176,11 +177,6 @@ const CodeOutputComponent = () => {
         }
     };
     useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced]);
-
-    function getLastUpdate(status: IDataFrameStatus) {
-        const lastStatus = status._status_list[status._status_list.length - 1];
-        return lastStatus.updates;
-    }
 
     /** Get an df update messages */
     const handleDFUpdates = () => {

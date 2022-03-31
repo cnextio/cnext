@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -15,9 +16,10 @@ const {
 } = require('./ls/lsp_process');
 const port = process.env.PORT || 4000;
 const server = http.createServer();
+console.log('process.env.CLIENT_URL', process.env.CLIENT_URL);
 const options = {
     cors: {
-        origin: ['http://localhost:3000'],
+        origin: [process.env.CLIENT_URL],
         methods: ['GET', 'POST'],
     },
 };
@@ -53,9 +55,11 @@ class PythonProcess {
 
     // TODO: using clientMessage is hacky solution to send stdout back to client. won't work if there is multiple message being handled simultaneously
     constructor(io, commandStr) {
-        process.env.PYTHONPATH = [process.env.PYTHONPATH, config.path_to_cycdataframe_lib, './python/'].join(
-            path.delimiter
-        );
+        process.env.PYTHONPATH = [
+            process.env.PYTHONPATH,
+            config.path_to_cycdataframe_lib,
+            './python/',
+        ].join(path.delimiter);
         let pyshellOpts = {
             stdio: ['pipe', 'pipe', 'pipe', 'pipe'], // stdin, stdout, stderr, custom
             mode: 'text',
@@ -115,7 +119,10 @@ try {
     io.on('connection', (socket) => {
         function codeExecutorHandler(strMessage) {
             // clientMessage = strMessage.slice();
-            console.log('Receive msg from client, server will run: ', JSON.parse(strMessage)['command_name']);
+            console.log(
+                'Receive msg from client, server will run: ',
+                JSON.parse(strMessage)['command_name']
+            );
             codeExecutor.send2executor(strMessage);
         }
 

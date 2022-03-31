@@ -1,17 +1,17 @@
-import { cnextQuery } from "../../codemirror/grammar/lang-cnext-query";
+import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
 import React, { useRef } from "react";
 import { useDispatch } from "react-redux";
 import {
     DFFilterForm,
     DFFilterInput,
     StyledFilterCodeMirror,
-} from "../StyledComponents";
+} from "../../StyledComponents";
 import { bracketMatching } from "@codemirror/matchbrackets";
 import { closeBrackets } from "@codemirror/closebrackets";
 import { defaultHighlightStyle } from "@codemirror/highlight";
-import { dfFilterLanguageServer } from "../../codemirror/autocomplete-lsp/index.js";
-import { setDFFilter } from "../../../redux/reducers/DataFramesRedux";
-import store from "../../../redux/store";
+import { dfFilterLanguageServer } from "../../../codemirror/autocomplete-lsp/index.js";
+import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
+import store from "../../../../redux/store";
 
 const ls = dfFilterLanguageServer();
 

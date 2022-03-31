@@ -1,8 +1,12 @@
-import React from 'react';
-import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from './IFileManager';
-import { IGetCardinalResult } from './ICAssist';
-import { ExperimentManagerCommand } from './IExperimentManager';
-import { DataFrameUpdateType } from './IDataFrameStatus';
+import React from "react";
+import {
+    ProjectCommand,
+    IFileMetadata,
+    IDirectoryMetadata,
+} from "./IFileManager";
+import { IGetCardinalResult } from "./ICAssist";
+import { ExperimentManagerCommand } from "./IExperimentManager";
+import { DataFrameUpdateType } from "./IDataFrameStatus";
 
 export type RecvCodeOutput = (output: IMessage) => void;
 
@@ -56,7 +60,7 @@ export enum CommandName {
     /** this command contained the updated information of the dataframe status. It is used
      * for the server to inform client about changes in the status */
     update_df_status = "update_df_status",
-    /** this command contained the information of the dataframe status. It is used 
+    /** this command contained the information of the dataframe status. It is used
      * when we need to reload the all active data status e.g. when reloading the page */
     reload_df_status = "reload_df_status",
     plot_column_histogram = "plot_column_histogram",
@@ -118,33 +122,49 @@ export interface ITableData {
     rows: [][];
 }
 
+export interface IColumnMetaData {
+    name: string;
+    type: string;
+    unique: number[];
+    describe: {};
+    countna: number;
+    quantile_plot: {};
+    histogram_plot: {};
+}
+
+export interface IMetaData {
+    df_id: string;
+    shape: number[];
+    columns: { [id: string]: IColumnMetaData[] };
+}
+
 export enum ReviewType {
-    col = 'col',
-    row = 'row',
-    cell = 'cell',
+    col = "col",
+    row = "row",
+    cell = "cell",
 }
 
 export enum ReviewRequestType {
-    repeat = 'repeat',
-    next = 'next',
-    prev = 'prev',
-    index = 'index',
+    repeat = "repeat",
+    next = "next",
+    prev = "prev",
+    index = "index",
 }
 
 export enum FilterType {
-    loc = 'loc',
-    iloc = 'iloc',
-    col = 'col',
+    loc = "loc",
+    iloc = "iloc",
+    col = "col",
 }
 
 export enum FileMimeType {
-    FILEPNG = 'file/png',
-    FILEJPG = 'file/jpg',
+    FILEPNG = "file/png",
+    FILEJPG = "file/jpg",
 }
 
 export enum BinaryMimeType {
-    IMAGEPNG = 'img/png',
-    IMAGEJPG = 'img/jpg',
+    IMAGEPNG = "img/png",
+    IMAGEJPG = "img/jpg",
 }
 export const CNextMimeType = { ...FileMimeType, ...BinaryMimeType };
 export type CNextMimeType = FileMimeType | BinaryMimeType;
