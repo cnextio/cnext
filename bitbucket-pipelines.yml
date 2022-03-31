@@ -9,7 +9,8 @@ pipelines:
     default:
         - step:
               name: 'Build and Test'
+              services:
+                  - docker
               script:
                   - echo "Your build and test goes here..."
                   - docker compose up --force-recreate --build
-
