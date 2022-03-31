@@ -5,13 +5,11 @@
 
 image: docker/compose
 
-definitions:
-    services:
-        docker:
-            memory: 2048
+options:
+    docker: true
 
 pipelines:
-    default:
+    cyc:
         - step:
               name: 'Build and Test'
               script:
@@ -19,3 +17,7 @@ pipelines:
                   - docker-compose up
                   - docker-compose down
                   - docker --help
+definitions:
+    services:
+        cyc:
+            memory: 2048
