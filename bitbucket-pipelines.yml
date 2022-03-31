@@ -7,11 +7,11 @@ image: docker/compose
 
 options:
     docker: true
-    size:2x
 
 pipelines:
     default:
         - step:
+              size: 2x
               name: 'Build and Test'
               script:
                   - echo "Your build and test goes here..."
