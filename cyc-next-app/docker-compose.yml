@@ -25,10 +25,9 @@ services:
         environment:
             - CODE_SERVER_SOCKET_ENDPOINT = http://server:4000
 
-
     cypress:
         image: cypress
-        build: ./tests
+        build: ./tests/intergration
         container_name: cypress
         depends_on:
             - web
@@ -37,8 +36,8 @@ services:
             - CYPRESS_baseUrl=http://web:3000
         command: npx cypress run
         volumes:
-            - ./tests/cypress:/app/cypress
-            - ./tests/cypress.json:/app/cypress.json
+            - ./tests/intergration/cypress:/app/cypress
+            - ./tests/intergration/cypress.json:/app/cypress.json
 
         # image: 'cypress/included:9.5.2'
 
