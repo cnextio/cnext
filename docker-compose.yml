@@ -3,7 +3,7 @@ version: '3'
 services:
     server:
         build:
-            context: /cyc-next-app/server
+            context: ./cyc-next-app/server
             dockerfile: Dockerfile
 
         container_name: server
@@ -12,7 +12,7 @@ services:
 
     web:
         build:
-            context: /cyc-next-app
+            context: ./cyc-next-app
             dockerfile: Dockerfile
 
         container_name: web
