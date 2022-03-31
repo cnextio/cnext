@@ -317,7 +317,6 @@ const FileManager = () => {
                                     resolve(output);
                                 }
                                 resolve(null);
-                                
                             } catch {
                                 resolve(null);
                             }
@@ -353,27 +352,11 @@ const FileManager = () => {
         }
     }, [codeLines]);
 
-    useEffect(() => {
-        _setup_socket();
-        let message: IMessage = _createMessage(ProjectCommand.get_active_project, "", 1);
-        // let message: Message = _createMessage(ProjectCommandName.get_open_files, '', 1);
-        sendMessage(message);
-
-        saveStateOnUnload();
-
-        return () => {
-            socket.off(WebAppEndpoint.FileManager);
-        };
-
-        // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
-        // return () => clearInterval(saveFileTimer);
-    }, []); //run this only once - not on rerender
-
     /**
      * Save state & file immediately when refresh page or leave out the page
      * Use beforeunload event to detect it
      */
-    const saveStateOnUnload = () => {
+    const saveStateBeforeUnload = () => {
         const handleBeforeUnload = async (e: any) => {
             e.preventDefault();
             // Have to trigger saveState() function directly because react hook is blocked in beforeunload event
@@ -392,7 +375,23 @@ const FileManager = () => {
         }
     };
 
+    useEffect(() => {
+        _setup_socket();
+        let message: IMessage = _createMessage(ProjectCommand.get_active_project, "", 1);
+        // let message: Message = _createMessage(ProjectCommandName.get_open_files, '', 1);
+        sendMessage(message);
+
+        saveStateBeforeUnload();
+
+        return () => {
+            socket.off(WebAppEndpoint.FileManager);
+        };
+
+        // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
+        // return () => clearInterval(saveFileTimer);
+    }, []); //run this only once - not on rerender
+
     return null;
-};
+};;
 
 export default FileManager;
