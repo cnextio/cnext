@@ -10,7 +10,7 @@ const LanguageServerSignature = 'LanguageServerSignature';
 const NotifyCase = ['textDocument/publishDiagnostics'];
 class LSPProcess {
     constructor(io) {
-        this.ls = spawn('pyls', ['-v']);
+        this.ls = spawn('pyls', ['-v'], { shell: true });
         const reader = new JsonRpcStreamReader(this.ls.stdout);
 
         this.ls.stdout.on('data', (chunk) => {
