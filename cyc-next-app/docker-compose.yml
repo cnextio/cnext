@@ -28,7 +28,7 @@ services:
 
     cypress:
         image: cypress
-        build: ./e2e
+        build: ./tests
         container_name: cypress
         depends_on:
             - web
@@ -37,8 +37,8 @@ services:
             - CYPRESS_baseUrl=http://web:3000
         command: npx cypress run
         volumes:
-            - ./e2e/cypress:/app/cypress
-            - ./e2e/cypress.json:/app/cypress.json
+            - ./tests/cypress:/app/cypress
+            - ./tests/cypress.json:/app/cypress.json
 
         # image: 'cypress/included:9.5.2'
 
