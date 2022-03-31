@@ -7,9 +7,10 @@ image: docker/compose
 
 options:
     docker: true
+    size:2x
 
 pipelines:
-    cyc:
+    default:
         - step:
               name: 'Build and Test'
               script:
