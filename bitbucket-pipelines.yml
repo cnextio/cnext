@@ -9,8 +9,6 @@ pipelines:
     default:
         - step:
               name: 'Build and Test'
-              services:
-                  - docker
               script:
                   - echo "Your build and test goes here..."
                   - export DOCKER_COMPOSE_VERSION=2.3.4
