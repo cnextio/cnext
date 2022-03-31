@@ -7,6 +7,7 @@ image: docker/compose
 
 options:
     docker: true
+    size: 2x
 
 pipelines:
     cyc:
@@ -17,8 +18,3 @@ pipelines:
                   - docker-compose up
                   - docker-compose down
                   - docker --help
-definitions:
-    service:
-        docker:
-            # Memory docker-in-docker
-            memory: 7128
