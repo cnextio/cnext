@@ -108,13 +108,13 @@ const FileManager = () => {
                             dispatch(setOpenFiles(fmResult.content));
                             dispatch(setInView(fmResult.metadata["path"]));
                             break;
-                        case ProjectCommand.save_state:
-                            console.log("FileManager got save_state result: ", fmResult);
-                            if (fmResult.type === ContentType.FILE_METADATA) {
-                                //TODO: remove stateSaved variable, use fileToSaveState only
-                                dispatch(setFileToSaveState(null));
-                            }
-                            break;
+                        // case ProjectCommand.save_state:
+                        //     console.log("FileManager got save_state result: ", fmResult);
+                        //     if (fmResult.type === ContentType.FILE_METADATA) {
+                        //         //TODO: remove stateSaved variable, use fileToSaveState only
+                        //         dispatch(setFileToSaveState(null));
+                        //     }
+                        //     break;
                         case ProjectCommand.get_active_project:
                             console.log("FileManager got active project result: ", fmResult);
                             let message: IMessage = _createMessage(
@@ -312,9 +312,12 @@ const FileManager = () => {
                                     output.type === ContentType.FILE_METADATA &&
                                     output.error == false
                                 ) {
+                                    //TODO: remove stateSaved variable, use fileToSaveState only
+                                    dispatch(setFileToSaveState(null));
                                     resolve(output);
                                 }
                                 resolve(null);
+                                
                             } catch {
                                 resolve(null);
                             }
