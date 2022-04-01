@@ -17,7 +17,7 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 
 const ResultView = (props: any) => {
     const activeLine = useSelector(
-        (state: RootState) => state.codeEditor.activeLine
+        (state: RootState) => null//state.codeEditor.activeLine
     );
     /** this is used to trigger the rerender of this component whenever there is a new result update */
     const resultUpdateCount = useSelector(
@@ -93,7 +93,7 @@ const ResultView = (props: any) => {
                             focused={codeResult.lineID == activeLine}
                         >
                             {codeResult?.result?.subType ===
-                                SubContentType.PLOTLY_FIG &&
+                                SubContentType.IMAGE_PLOTLY &&
                                 React.createElement(
                                     PlotlyWithNoSSR,
                                     setLayout(codeResult?.result?.content)
@@ -101,16 +101,20 @@ const ResultView = (props: any) => {
                             {codeResult?.result?.subType ===
                                 SubContentType.APPLICATION_JSON &&
                                 JSON.stringify(codeResult?.result?.content)}
-                            {codeResult?.result?.subType?.includes("image") && (
-                                <img
-                                    src={
-                                        "data:" +
-                                        codeResult?.result?.subType +
-                                        ";base64," +
-                                        codeResult?.result?.content
-                                    }
-                                />
-                            )}
+                            {codeResult?.result?.subType !=
+                                SubContentType.IMAGE_PLOTLY &&
+                                codeResult?.result?.subType?.includes(
+                                    "image"
+                                ) && (
+                                    <img
+                                        src={
+                                            "data:" +
+                                            codeResult?.result?.subType +
+                                            ";base64," +
+                                            codeResult?.result?.content
+                                        }
+                                    />
+                                )}
                             {/* Display video/ audio */}
                             {codeResult?.result?.subType ===
                                 SubContentType.TEXT_HTML &&
