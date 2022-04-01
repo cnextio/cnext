@@ -8,6 +8,7 @@ image: docker/compose
 options:
     docker: true
     size: 2x
+    max-time: 20
 
 pipelines:
     pull-requests:
