@@ -12,7 +12,7 @@ options:
 
 pipelines:
     pull-requests:
-        master: #this runs as default for any branch not elsewhere defined
+        '**': #this runs as default for any branch not elsewhere defined
             - step:
                   size: 2x
                   name: 'Build and Test'
