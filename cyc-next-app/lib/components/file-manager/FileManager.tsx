@@ -75,24 +75,24 @@ const FileManager = () => {
                                 dispatch(setServerSynced(true));
                             }
                             break;
-                        case ProjectCommand.save_file:
-                            console.log("FileManager got save_file result: ", fmResult);
-                            if (fmResult.type === ContentType.FILE_METADATA) {
-                                //TODO: remove fileSaved variable, use fileToSave only
-                                // fileSaved is current needed only in CodeToolbar
-                                dispatch(setFileSaved(null));
-                                dispatch(setFileToSave(null));
+                        // case ProjectCommand.save_file:
+                        //     console.log("FileManager got save_file result: ", fmResult);
+                        //     if (fmResult.type === ContentType.FILE_METADATA) {
+                        //         //TODO: remove fileSaved variable, use fileToSave only
+                        //         // fileSaved is current needed only in CodeToolbar
+                        //         dispatch(setFileSaved(null));
+                        //         dispatch(setFileToSave(null));
 
-                                /** update file timestamp */
-                                if (inViewID) {
-                                    let fileMetadata = {
-                                        ...store.getState().projectManager.openFiles[inViewID],
-                                    };
-                                    fileMetadata.timestamp = fmResult.content["timestamp"];
-                                    dispatch(setFileMetaData(fileMetadata));
-                                }
-                            }
-                            break;
+                        //         /** update file timestamp */
+                        //         if (inViewID) {
+                        //             let fileMetadata = {
+                        //                 ...store.getState().projectManager.openFiles[inViewID],
+                        //             };
+                        //             fileMetadata.timestamp = fmResult.content["timestamp"];
+                        //             dispatch(setFileMetaData(fileMetadata));
+                        //         }
+                        //     }
+                        //     break;
                         case ProjectCommand.close_file:
                             console.log("FileManager got close_file result: ", fmResult);
                             dispatch(setFileToClose(null));
@@ -152,9 +152,9 @@ const FileManager = () => {
         return null;
     }
 
-    const sendMessage = (message: IMessage) => {
+    const sendMessage = async (message: IMessage) => {
         console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
-        socket.emit(message.webapp_endpoint, JSON.stringify(message));
+        await socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
     const _createMessage = (
@@ -248,11 +248,12 @@ const FileManager = () => {
      * be saved when saveTimeout is true, the saving message will only be
      * sent out at most once every SAVE_FILE_DURATION
      */
-    const saveFile = () => {
-        if (saveTimeout && fileToSave.length > 0) {
+    const saveFile = async (useTimeOut: boolean = true) => {
+        const state = store.getState();
+        const fileToSave = state.projectManager.fileToSave;
+        if ((saveTimeout || !useTimeOut) && fileToSave.length > 0) {
             console.log("FileManager: save file");
             for (let filePath of fileToSave) {
-                let state = store.getState();
                 let file: IFileMetadata = state.projectManager.openFiles[filePath];
                 let codeText = state.codeEditor.codeText[filePath];
                 let timestamp = state.codeEditor.timestamp[filePath];
@@ -263,8 +264,40 @@ const FileManager = () => {
                     { path: file.path, timestamp: timestamp }
                 );
                 console.log("FileManager send:", message.command_name, message.metadata);
-                sendMessage(message);
+                await sendMessage(message);
                 setSaveTimeout(false);
+
+                return new Promise((resolve) => {
+                    socket.once(message.webapp_endpoint, (result: string) => {
+                        try {
+                            const output = JSON.parse(result);
+                            if (
+                                output.command === ProjectCommand.save_file &&
+                                output.type === ContentType.FILE_METADATA &&
+                                output.error == false
+                            ) {
+                                //TODO: remove stateSaved variable, use fileToSaveState only
+                                dispatch(setFileSaved(null));
+                                dispatch(setFileToSave(null));
+                                let inViewID = store.getState().projectManager.inViewID;
+
+                                /** update file timestamp */
+                                if (inViewID) {
+                                    let fileMetadata = {
+                                        ...store.getState().projectManager.openFiles[inViewID],
+                                    };
+                                    fileMetadata.timestamp = output.content["timestamp"];
+                                    dispatch(setFileMetaData(fileMetadata));
+                                }
+
+                                resolve(output);
+                            }
+                            resolve(null);
+                        } catch {
+                            resolve(null);
+                        }
+                    });
+                });
             }
         }
     };
@@ -301,9 +334,9 @@ const FileManager = () => {
                             timestamp: timestamp,
                         }
                     );
-                    sendMessage(message);
+                    await sendMessage(message);
                     setSaveTimeout(false);
-                    return await new Promise((resolve) => {
+                    return new Promise((resolve) => {
                         socket.once(message.webapp_endpoint, (result: string) => {
                             try {
                                 const output = JSON.parse(result);
@@ -356,12 +389,17 @@ const FileManager = () => {
      * Save state & file immediately when refresh page or leave out the page
      * Use beforeunload event to detect it
      */
-    const saveStateBeforeUnload = () => {
+    const saveEventBeforeUnload = () => {
         const handleBeforeUnload = async (e: any) => {
             e.preventDefault();
-            // Have to trigger saveState() function directly because react hook is blocked in beforeunload event
-            const result = await saveState(false);
-            if (result == null) {
+            // Have to trigger saveState() & saveFile() function directly because react hook is blocked in beforeunload event
+            const resultSaveFile = await saveFile(false);
+            const resultSaveState = await saveState(false);
+
+            // Have to use triple equals to handle return result of saveState & saveFile function.
+            // In case it doesn't satisfy the condition in top of saveState & saveFile, the result will be undefined
+            // Other case it satisfy the condition then execute the send message, if have any error with socket, the result is returend as null
+            if (resultSaveState === null || resultSaveFile === null) {
                 return (e.returnValue = "");
             }
         };
@@ -381,11 +419,7 @@ const FileManager = () => {
         // let message: Message = _createMessage(ProjectCommandName.get_open_files, '', 1);
         sendMessage(message);
 
-        saveStateBeforeUnload();
-
-        return () => {
-            socket.off(WebAppEndpoint.FileManager);
-        };
+        saveEventBeforeUnload();
 
         // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
         // return () => clearInterval(saveFileTimer);
