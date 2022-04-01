@@ -18,9 +18,7 @@ pipelines:
                   name: 'Build and Test'
                   script:
                       - echo "Your build and test goes here..."
-                      - docker-compose up
-                      - docker-compose down
-                      - docker --help
+                      - docker-compose up --exit-code-from cypress
                   services:
                       - docker
 
