@@ -152,9 +152,9 @@ const FileManager = () => {
         return null;
     }
 
-    const sendMessage = async (message: IMessage) => {
-        await socket.emit(message.webapp_endpoint, JSON.stringify(message));
+    const sendMessage = (message: IMessage) => {
         console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
+        socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
     const _createMessage = (
@@ -301,9 +301,9 @@ const FileManager = () => {
                             timestamp: timestamp,
                         }
                     );
-                    await sendMessage(message);
+                    sendMessage(message);
                     setSaveTimeout(false);
-                    return new Promise((resolve) => {
+                    return await new Promise((resolve) => {
                         socket.once(message.webapp_endpoint, (result: string) => {
                             try {
                                 const output = JSON.parse(result);
