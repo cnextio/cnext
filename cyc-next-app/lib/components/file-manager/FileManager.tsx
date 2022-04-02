@@ -152,9 +152,9 @@ const FileManager = () => {
         return null;
     }
 
-    const sendMessage = async (message: IMessage) => {
+    const sendMessage = (message: IMessage) => {
         console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
-        await socket.emit(message.webapp_endpoint, JSON.stringify(message));
+        socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
     const _createMessage = (
@@ -175,18 +175,6 @@ const FileManager = () => {
         return message;
     };
 
-    /**
-     * Set timeout = true to save file & state immediately
-     */
-    const saveStateFileImmediate = () => {
-        const state = store.getState();
-        const fileToSave = state.projectManager.fileToSave;
-        const fileToSaveState = state.projectManager.fileToSaveState;
-        if (fileToSave.length > 0 || fileToSaveState.length > 0) {
-            setSaveTimeout(true);
-        }
-    };
-
     const clearSaveConditions = () => {
         if (saveTimer) {
             clearInterval(saveTimer);
@@ -199,10 +187,16 @@ const FileManager = () => {
     // called when the in-view file changed
     const SAVE_FILE_DURATION = 10000;
     useEffect(() => {
-        // Set timeout = true to save file & state immediately
-        saveStateFileImmediate();
         clearSaveConditions();
-        let state = store.getState();
+
+        const state = store.getState();
+        // When changing file, trigger the saveFile & saveState function
+        const saveFileAndState = async () => {
+            await saveFile(false);
+            await saveState(false);
+        };
+        saveFileAndState();
+
         if (inViewID) {
             const file: IFileMetadata = state.projectManager.openFiles[inViewID];
             const projectPath = state.projectManager.activeProject?.path;
@@ -222,8 +216,13 @@ const FileManager = () => {
 
     useEffect(() => {
         if (fileToClose) {
-            saveStateFileImmediate();
-            // TODO: make sure the file is saved before being closed
+            // When changing file, trigger the saveFile & saveState function
+            const saveFileAndState = async () => {
+                await saveFile(false);
+                await saveState(false);
+            };
+            saveFileAndState();
+
             let message: IMessage = _createMessage(ProjectCommand.close_file, "", 1, {
                 path: fileToClose,
             });
@@ -264,7 +263,7 @@ const FileManager = () => {
                     { path: file.path, timestamp: timestamp }
                 );
                 console.log("FileManager send:", message.command_name, message.metadata);
-                await sendMessage(message);
+                sendMessage(message);
                 setSaveTimeout(false);
 
                 return new Promise((resolve) => {
@@ -334,7 +333,7 @@ const FileManager = () => {
                             timestamp: timestamp,
                         }
                     );
-                    await sendMessage(message);
+                    sendMessage(message);
                     setSaveTimeout(false);
                     return new Promise((resolve) => {
                         socket.once(message.webapp_endpoint, (result: string) => {
@@ -389,7 +388,7 @@ const FileManager = () => {
      * Save state & file immediately when refresh page or leave out the page
      * Use beforeunload event to detect it
      */
-    const saveEventBeforeUnload = () => {
+    const setUpSaveOnReloadEvent = () => {
         const handleBeforeUnload = async (e: any) => {
             e.preventDefault();
             // Have to trigger saveState() & saveFile() function directly because react hook is blocked in beforeunload event
@@ -398,7 +397,7 @@ const FileManager = () => {
 
             // Have to use triple equals to handle return result of saveState & saveFile function.
             // In case it doesn't satisfy the condition in top of saveState & saveFile, the result will be undefined
-            // Other case it satisfy the condition then execute the send message, if have any error with socket, the result is returend as null
+            // Other case it satisfy the condition then execute the send message, if have any errors with socket, the result is returend as null
             if (resultSaveState === null || resultSaveFile === null) {
                 return (e.returnValue = "");
             }
@@ -419,7 +418,7 @@ const FileManager = () => {
         // let message: Message = _createMessage(ProjectCommandName.get_open_files, '', 1);
         sendMessage(message);
 
-        saveEventBeforeUnload();
+        setUpSaveOnReloadEvent();
 
         // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
         // return () => clearInterval(saveFileTimer);
