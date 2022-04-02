@@ -263,15 +263,15 @@ const FileManager = () => {
                     { path: file.path, timestamp: timestamp }
                 );
                 console.log("FileManager send:", message.command_name, message.metadata);
-                sendMessage(message);
+                await sendMessage(message);
                 setSaveTimeout(false);
 
                 return new Promise((resolve) => {
-                    socket.once(message.webapp_endpoint, (result: string) => {
+                    socket.on(WebAppEndpoint.FileManager, (result: string) => {
                         try {
                             const output = JSON.parse(result);
                             if (
-                                output.command === ProjectCommand.save_file &&
+                                output.command_name === ProjectCommand.save_file &&
                                 output.type === ContentType.FILE_METADATA &&
                                 output.error == false
                             ) {
@@ -333,14 +333,14 @@ const FileManager = () => {
                             timestamp: timestamp,
                         }
                     );
-                    sendMessage(message);
+                    await sendMessage(message);
                     setSaveTimeout(false);
                     return new Promise((resolve) => {
-                        socket.once(message.webapp_endpoint, (result: string) => {
+                        socket.on(WebAppEndpoint.FileManager, (result: string) => {
                             try {
                                 const output = JSON.parse(result);
                                 if (
-                                    output.command === ProjectCommand.save_state &&
+                                    output.command_name === ProjectCommand.save_state &&
                                     output.type === ContentType.FILE_METADATA &&
                                     output.error == false
                                 ) {
