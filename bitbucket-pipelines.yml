@@ -1,0 +1,28 @@
+# This is an example Starter pipeline configuration
+# Use a skeleton to build, test and deploy using manual and parallel steps
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+
+image: docker/compose
+
+options:
+    docker: true
+    size: 2x
+    max-time: 22
+
+pipelines:
+    pull-requests:
+        '**': #this runs as default for any branch not elsewhere defined
+            - step:
+                  size: 2x
+                  name: 'Build and Test'
+                  script:
+                      - echo "Your build and test goes here..."
+                      - docker-compose up --exit-code-from cypress
+                  services:
+                      - docker
+
+definitions:
+    services:
+        docker:
+            memory: 4096

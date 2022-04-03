@@ -3,6 +3,8 @@ FROM continuumio/anaconda3
 WORKDIR /server
 COPY . /server
 
+ENV CLIENT_URL=http://web:3000
+
 # Create conda environment
 RUN conda env create -f environment.yml
 RUN conda install -c conda-forge nodejs
