@@ -99,9 +99,11 @@ class ContentType(str, Enum):
 
 
 class SubContentType(str, Enum):
-    PLOTLY_FIG = 'plotly_fig'
+    IMAGE_PLOTLY = 'image/plotly+json'
+    IMAGE_SVG = 'image/svg+xml' 
     TEXT_HTML = 'text/html'
     APPLICATION_JSON = 'application/json'
+    APPLICATION_CNEXT = 'application/cnext+json'
     NONE = 'none'
 
     def __str__(self):

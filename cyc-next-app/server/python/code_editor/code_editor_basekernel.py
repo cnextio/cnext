@@ -103,7 +103,7 @@ class MessageHandler(BaseMessageHandler):
                     if self._result_is_plotly_fig(result):
                         output = self._create_plot_data(result)
                         type = ContentType.RICH_OUTPUT
-                        sub_type = SubContentType.PLOTLY_FIG
+                        sub_type = SubContentType.IMAGE_PLOTLY
                     elif self._result_is_matplotlib_fig(result):
                         output = self._create_matplotlib_data(result)
                         type = ContentType.RICH_OUTPUT
