@@ -17,9 +17,9 @@ import NewItemInput from "./NewItemInput";
 import DeleteConfirmation from "./DeleteConfirmation";
 
 interface ContextMenuInfo {
-    parent: string,
-    item: string,
-    is_file?: boolean,
+    parent: string;
+    item: string;
+    is_file?: boolean;
 }
 
 const FileExplorer = (props: any) => {
@@ -92,6 +92,9 @@ const FileExplorer = (props: any) => {
     };
 
     const _send_message = (message: IMessage) => {
+        console.log(
+            `File Explorer Send Message: ${message.webapp_endpoint} ${JSON.stringify(message)}`
+        );
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
@@ -179,11 +182,10 @@ const FileExplorer = (props: any) => {
         // console.log('FileExplorer', event.key);
         if (event.key === "Enter") {
             if (validateFileName(value) && contextMenuItems) {
-                console.log("FileExplorer: ");
-                let fileName = contextMenuItems.parent + "/" + value;
+                let fileName = contextMenuItems.item + "/" + value;
                 let message = _create_message(ProjectCommand.create_file, { path: fileName });
                 _send_message(message);
-                fetchChildNodes(contextMenuItems.parent);
+                fetchChildNodes(contextMenuItems.item);
             }
             setCreateItemInProgress(false);
         } else if (event.key === "Escape") {
@@ -233,7 +235,7 @@ const FileExplorer = (props: any) => {
                 ) : (
                     <FileItem nodeId='stub' />
                 )}
-                {createItemInProgress && contextMenuItems && contextMenuItems["parent"] === path ? (
+                {createItemInProgress && contextMenuItems && contextMenuItems["item"] === path ? (
                     <FileItem
                         nodeId='new_item'
                         label={<NewItemInput handleKeyPress={handleNewItemKeyPress} />}
