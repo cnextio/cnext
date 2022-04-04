@@ -116,7 +116,6 @@ class PlotCommand {
         let sizeDim;
         let shapeDim;
         let aggCommand;
-        let figSize = 'width=600, height=400';
 
         if (this.aggType) {
             aggCommand = this._getAggCommand();
@@ -179,7 +178,6 @@ class PlotCommand {
         if (shapeDim) {
             command += `, ${shapeDim}`;
         }
-        command += `, ${figSize}`;
         command += ")";
 
         if (aggCommand) {

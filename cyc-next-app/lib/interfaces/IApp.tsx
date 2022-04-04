@@ -87,16 +87,12 @@ export enum ContentType {
     NONE = "none",
 }
 
-export enum StandardMimeType {
-    IMAGE_PNG = "image/png",
-    IMAGE_JPG = "image/jpg",
-    IMAGE_PLOTLY = "image/plotly+json",
-    IMAGE_SVG = "image/svg+xml",
+export enum SubContentType {
+    PLOTLY_FIG = "plotly_fig",
     TEXT_HTML = "text/html",
     APPLICATION_JSON = "application/json",
+    NONE = "none",
 }
-
-export const SubContentType = StandardMimeType;
 
 export enum CommandType {
     MLFLOW = "mlflow",
@@ -126,25 +122,20 @@ export interface ITableData {
     rows: [][];
 }
 
-export interface IPlot {
-    mime_type: StandardMimeType;
-    data: {};
-}
-
 export interface IColumnMetaData {
     name: string;
     type: string;
     unique: number[];
     describe: {};
     countna: number;
-    quantile_plot: IPlot;
-    histogram_plot: IPlot;
+    quantile_plot: {};
+    histogram_plot: {};
 }
 
 export interface IMetaData {
     df_id: string;
     shape: number[];
-    columns: { [id: string]: IColumnMetaData };
+    columns: { [id: string]: IColumnMetaData[] };
 }
 
 export enum ReviewType {
@@ -167,12 +158,16 @@ export enum FilterType {
 }
 
 export enum FileMimeType {
-    FILE_PNG = "file/png",
-    FILE_JPG = "file/jpg",
+    FILEPNG = "file/png",
+    FILEJPG = "file/jpg",
 }
 
-export const CNextMimeType = { ...FileMimeType, ...StandardMimeType };
-export type CNextMimeType = FileMimeType | StandardMimeType;
+export enum BinaryMimeType {
+    IMAGEPNG = "img/png",
+    IMAGEJPG = "img/jpg",
+}
+export const CNextMimeType = { ...FileMimeType, ...BinaryMimeType };
+export type CNextMimeType = FileMimeType | BinaryMimeType;
 
 export interface DFFilter {
     type: FilterType;
@@ -234,8 +229,8 @@ export interface IColumnMetaData {
     countna: number;
     unique: string | number[];
     describe: {};
-    histogram_plot: {} | null;
-    quantile_plot: {} | null;
+    histogram_plot: {};
+    quantile_plot: {};
 }
 
 export interface IDFMetadata {

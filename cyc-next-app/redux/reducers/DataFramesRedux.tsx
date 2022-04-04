@@ -15,7 +15,7 @@ import {
 import { ifElse, ifElseDict } from "../../lib/components/libs";
 import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
 
-// import {getLastUpdate} from
+// import {getLastUpdate} from 
 interface ILoadDataRequest {
     df_id: string | null;
     count: number;
@@ -105,8 +105,10 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             const col_name = action.payload["col_name"];
-            state.metadata[df_id].columns[col_name].histogram_plot =
-                action.payload["data"];
+            state.metadata[df_id].columns[col_name].histogram_plot = ifElseDict(
+                action.payload,
+                "plot"
+            );
         },
 
         setColumnQuantilePlot: (state, action) => {
@@ -114,9 +116,28 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             const col_name = action.payload["col_name"];
-            state.metadata[df_id].columns[col_name].quantile_plot =
-                action.payload["data"];
+            state.metadata[df_id].columns[col_name].quantile_plot = ifElseDict(
+                action.payload,
+                "plot"
+            );
         },
+
+        // setCountNA: (state, action) => {
+        //     // for testing
+        //     // state.data = testTableData
+        //     const df_id = action.payload["df_id"];
+        //     if (!(df_id in state.columnDataSummary)) {
+        //         state.columnDataSummary[df_id] = {};
+        //     }
+        //     // if ('countna' in action.payload){
+        //     //     state.columnDataSummary[df_id]['countna'] = action.payload['countna'];
+        //     // }
+        //     state.columnDataSummary[df_id]["countna"] = ifElseDict(
+        //         action.payload,
+        //         "countna"
+        //     );
+        //     //TODO: might need to set state.loadColumnHistogram = false here too
+        // },
 
         /**
          * Process the df updage message.
@@ -207,8 +228,7 @@ export const dataFrameSlice = createSlice({
 
         setReview: (state, action) => {
             let reviewRequest: IReviewRequest = action.payload;
-            let dfUpdatesReview: IDFUpdatesReview =
-                state.dfUpdatesReview[state.activeDataFrame];
+            let dfUpdatesReview: IDFUpdatesReview = state.dfUpdatesReview[state.activeDataFrame];
 
             // let updates = updates.update_content;
             if (dfUpdatesReview != null) {

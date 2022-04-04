@@ -79,57 +79,7 @@ const DataFrameManager = () => {
         df_id: string,
         col_name: string
     ) => {
-        // let content: string = `px.histogram(${df_id}, x="${col_name}")`;
-        let content: string = `
-import io, base64, simplejson as json
-from libs.json_serializable import JsonSerializable
-def _tmp():
-    if ${df_id}["${col_name}"].dtypes not in ["object"]:
-        fig = px.histogram(${df_id}, x="${col_name}")
-        fig.update_layout({
-            'showlegend': False,
-            #'width': 600, 
-            #'height': 400, 
-            'margin': {'b': 0, 'l': 0, 'r': 0, 't': 0}, 
-            'xaxis': {'showticklabels': False},
-            'yaxis': {'showticklabels': False},
-            'hoverlabel': {
-                'bgcolor': "rgba(0,0,0,0.04)", 
-                'bordercolor': "rgba(0,0,0,0.04)", 
-                'font': {'color': "rgba(0,0,0,0.6)", 'size': 12 }
-        }})
-        return JsonSerializable({"mime_type": "image/plotly+json", "data": json.loads(fig.to_json())})
-        fig.update_yaxes(visible=False, showticklabels=False)
-        fig.update_xaxes(visible=False, showticklabels=False)
-        #sns.set(rc = {'figure.figsize':(250,50)})
-        #sns.boxplot(x="${col_name}", data=${df_id})
-        #buffer = io.BytesIO()
-        #plt.savefig(buffer, format='png')        
-        #buffer.seek(0)
-        # return JsonSerializable({"mime_type": "image/png", "data": base64.b64encode(buffer.read())})
-    else:
-        #fig = px.histogram(${df_id}, x="${col_name}")
-        fig = px.bar(${df_id}["${col_name}"].value_counts()[:])
-        fig.update_layout({
-            'showlegend': False,
-            #'width': 600, 
-            #'height': 400, 
-            'margin': {'b': 0, 'l': 0, 'r': 0, 't': 0}, 
-            'xaxis': {'showticklabels': False},
-            'yaxis': {'showticklabels': False},
-            'hoverlabel': {
-                'bgcolor': "rgba(0,0,0,0.04)", 
-                'bordercolor': "rgba(0,0,0,0.04)", 
-                'font': {'color': "rgba(0,0,0,0.6)", 'size': 12 }
-        }})
-        
-        fig.update_yaxes(visible=False, showticklabels=False)
-        fig.update_xaxes(visible=False, showticklabels=False)
-        #buffer = io.BytesIO()
-        #fig.write_image(buffer, format="png")
-        #buffer.seek(0)
-        return JsonSerializable({"mime_type": "image/plotly+json", "data": json.loads(fig.to_json())})
-_tmp()`;
+        let content: string = `px.histogram(${df_id}, x="${col_name}")`;
         let message = createMessage(
             CommandName.plot_column_histogram,
             content,
@@ -146,34 +96,7 @@ _tmp()`;
         df_id: string,
         col_name: string
     ) => {
-        let content: string = `
-import io, base64, simplejson as json
-from libs.json_serializable import JsonSerializable
-def _tmp():
-    if ${df_id}["${col_name}"].dtypes not in ["object"]:
-        fig = px.box(${df_id}, x="${col_name}")
-        return JsonSerializable({"mime_type": "image/plotly+json", "data": json.loads(fig.to_json())})
-    else:
-        return None
-_tmp()`;
-//         let content: string = `
-// import io, base64, simplejson as json
-// import matplotlib.pyplot as plt
-// import seaborn as sns
-// from libs.json_serializable import JsonSerializable
-// def _tmp():
-//     if ${df_id}["${col_name}"].dtypes not in ["object"]:
-//         sns.set(rc = {'figure.figsize':(250,50)})
-//         sns.boxplot(x="${col_name}", data=${df_id})
-//         buffer = io.BytesIO()
-//         plt.savefig(buffer, format='png')        
-//         buffer.seek(0)
-//         return JsonSerializable({"mime_type": "image/png", "data": base64.b64encode(buffer.read())})
-//     else:
-//         return None
-// _tmp()
-// `;
-
+        let content: string = `px.box(${df_id}, x="${col_name}")`;
         let message = createMessage(
             CommandName.plot_column_quantile,
             content,
@@ -234,6 +157,13 @@ _tmp()`;
         sendMessage(message);
     };
 
+    // const handleGetCountna = (message: IMessage) => {
+    //     const content = message.content;
+    //     // content['df_id'] = message.metadata['df_id'];
+    //     // console.log("Dispatch ", message.content);
+    //     dispatch(setCountNA(content));
+    // };
+
     const getHistogramPlot = (df_id: string, col_list: string[]) => {
         for (var i = 0; i < col_list.length; i++) {
             const col_name = col_list[i];
@@ -250,14 +180,14 @@ _tmp()`;
     const getDefinedStat = (df_id: string, columns: string[]) => {
         getQuantilesPlot(df_id, columns);
         getHistogramPlot(df_id, columns);
-    };
+    }
 
     /** select columns to get stats based on the update type */
-    const getColumnsToGetStats = (df_id: string): string[] | null => {
+    const getColumnsToGetStats = (df_id: string): string[]|null => {
         const state = store.getState();
         const status = state.dataFrames.dfUpdates[df_id];
         const metadata = state.dataFrames.metadata[df_id];
-        let columns: string[] | null = null;
+        let columns: string[]|null = null;
         const update = getLastUpdate(status);
         if (update.update_type === DataFrameUpdateType.add_cols) {
             //only update histogram of columns that has been updated
@@ -278,11 +208,13 @@ _tmp()`;
     };
 
     /** Get defined stats if the dataframe has been updated */
-    const getDefinedStatsOnUpdate = (df_id: string) => {
+    const getDefinedStatsOnUpdate = (
+        df_id: string,
+    ) => {
         let columns = getColumnsToGetStats(df_id);
-        if (columns != null) {
+        if(columns != null){
             getDefinedStat(df_id, columns);
-        }
+        }        
     };
 
     const handleActiveDFStatus = (
@@ -304,7 +236,7 @@ _tmp()`;
             if (is_updated == true || reload == true) {
                 // console.log(df_id, dfStatusContent[df_id]);
                 let status = allDFStatus[df_id];
-                let update = getLastUpdate(status);
+                let update = getLastUpdate(status)
                 if (update != null) {
                     let updateType = update["update_type"];
                     let updateContent = update["update_content"];
@@ -331,7 +263,7 @@ _tmp()`;
         const state = store.getState();
         const status = state.dataFrames.dfUpdates[df_id];
         return status.is_updated;
-    };
+    }
 
     const handleGetTableData = (message: IMessage) => {
         const df_id = message.metadata["df_id"];
@@ -342,31 +274,25 @@ _tmp()`;
         if (df_id != null && isDataFrameUpdated(df_id)) {
             dispatch(setActiveDF(df_id));
         }
+        
     };
 
     const handlePlotColumnHistogram = (message: IMessage) => {
         console.log(
-            `${WebAppEndpoint.DFManager} got plot data for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`,
-            message.content
+            `${WebAppEndpoint.DFManager} get plot data for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`
         );
-        const payload = {
-            df_id: message.metadata["df_id"],
-            col_name: message.metadata["col_name"],
-            data: message.content,
-        };
-        dispatch(setColumnHistogramPlot(payload));
+        let content = message.content;
+        // content["plot"] = JSON.parse(content["plot"]);
+        dispatch(setColumnHistogramPlot(content));
     };
 
     const handlePlotColumnQuantile = (message: IMessage) => {
         console.log(
-            `${WebAppEndpoint.DFManager} got quantile plot for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`
+            `${WebAppEndpoint.DFManager} get quantile plot for "${message.metadata["df_id"]}" "${message.metadata["col_name"]}"`
         );
-        const payload = {
-            df_id: message.metadata["df_id"],
-            col_name: message.metadata["col_name"],
-            data: message.content,
-        };
-        dispatch(setColumnQuantilePlot(payload));
+        let content = message.content;
+        // content["plot"] = JSON.parse(content["plot"]);
+        dispatch(setColumnQuantilePlot(content));
     };
 
     const showDefinedStats = true;
@@ -384,7 +310,7 @@ _tmp()`;
         }
     };
 
-    const socket_init = () => {
+    useEffect(() => {
         // console.log('DFManager useEffect');
         socket.emit("ping", "DFManager");
         socket.on(WebAppEndpoint.DFManager, (result: string) => {
@@ -430,10 +356,6 @@ _tmp()`;
         /** Load dataframe status */
         let message = createMessage(CommandName.reload_df_status, null, 1, {});
         sendMessage(message);
-    };
-
-    useEffect(() => {
-        socket_init();
     }, []); //TODO: run this only once - not on rerender
 
     useEffect(() => {

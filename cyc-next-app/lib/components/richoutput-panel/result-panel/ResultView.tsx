@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import {
     PlotContainer as SingleResult,
@@ -15,8 +15,19 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
 });
 
-const ResultContent = React.memo(({ codeResult }) => {    
-// const ResultContent = ({ codeResult }) => {
+const ResultView = (props: any) => {
+    const activeLine = useSelector(
+        (state: RootState) => state.codeEditor.activeLine
+    );
+    /** this is used to trigger the rerender of this component whenever there is a new result update */
+    const resultUpdateCount = useSelector(
+        (state: RootState) => state.codeEditor.resultUpdateCount
+    );
+    /** this will make sure that the output will be updated each time
+     * the output is updated from server such as when inViewID changed */
+    const serverSynced = useSelector(
+        (state: RootState) => state.projectManager.serverSynced
+    );
     const setLayout = (
         data: object | string | any,
         width: number | null = null,
@@ -39,48 +50,6 @@ const ResultContent = React.memo(({ codeResult }) => {
             return null;
         }
     };
-    // const codeResult = props.codeResult;
-    return (
-        <Fragment>
-            {codeResult?.result?.subType === SubContentType.IMAGE_PLOTLY &&
-                React.createElement(
-                    PlotlyWithNoSSR,
-                    setLayout(codeResult?.result?.content)
-                )}
-            {codeResult?.result?.subType === SubContentType.APPLICATION_JSON &&
-                JSON.stringify(codeResult?.result?.content)}
-            {codeResult?.result?.subType != SubContentType.IMAGE_PLOTLY &&
-                codeResult?.result?.subType?.includes("image") && (
-                    <img
-                        src={
-                            "data:" +
-                            codeResult?.result?.subType +
-                            ";base64," +
-                            codeResult?.result?.content
-                        }
-                    />
-                )}
-            {/* Display video/ audio */}
-            {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
-                ReactHtmlParser(codeResult?.result?.content)}
-        </Fragment>
-    );
-});
-
-const ResultView = (props: any) => {
-    const activeLine = useSelector(
-        (state: RootState) => state.codeEditor.activeLine
-    );
-    /** this is used to trigger the rerender of this component whenever there is a new result update */
-    const resultUpdateCount = useSelector(
-        (state: RootState) => state.codeEditor.resultUpdateCount
-    );
-    /** this will make sure that the output will be updated each time
-     * the output is updated from server such as when inViewID changed */
-    const serverSynced = useSelector(
-        (state: RootState) => state.projectManager.serverSynced
-    );
-    
 
     const rowHeight = 50; //unit: px
     const screenSize = 2000; //unit: px;
@@ -123,7 +92,29 @@ const ResultView = (props: any) => {
                             variant="outlined"
                             focused={codeResult.lineID == activeLine}
                         >
-                            <ResultContent codeResult={codeResult} />
+                            {codeResult?.result?.subType ===
+                                SubContentType.PLOTLY_FIG &&
+                                React.createElement(
+                                    PlotlyWithNoSSR,
+                                    setLayout(codeResult?.result?.content)
+                                )}
+                            {codeResult?.result?.subType ===
+                                SubContentType.APPLICATION_JSON &&
+                                JSON.stringify(codeResult?.result?.content)}
+                            {codeResult?.result?.subType?.includes("image") && (
+                                <img
+                                    src={
+                                        "data:" +
+                                        codeResult?.result?.subType +
+                                        ";base64," +
+                                        codeResult?.result?.content
+                                    }
+                                />
+                            )}
+                            {/* Display video/ audio */}
+                            {codeResult?.result?.subType ===
+                                SubContentType.TEXT_HTML &&
+                                ReactHtmlParser(codeResult?.result?.content)}
                         </SingleResult>
                         //   </ScrollIntoViewIfNeeded>
                     ))}

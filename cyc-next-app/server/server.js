@@ -16,6 +16,7 @@ const {
 } = require('./ls/lsp_process');
 const port = process.env.PORT || 4000;
 const server = http.createServer();
+console.log('process.env.CLIENT_URL', process.env.CLIENT_URL);
 const options = {
     cors: {
         origin: [process.env.CLIENT_URL],
@@ -187,21 +188,21 @@ try {
     /** */
 
     const initialize = () => {
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: CodeEditor,
-        //         content:
-        //             'import os, sys, pandas as pd, plotly.express as px, plotly.io as pio, matplotlib.pyplot as plt, numpy as np',
-        //     })
-        // );
+        codeExecutor.send2executor(
+            JSON.stringify({
+                webapp_endpoint: CodeEditor,
+                content:
+                    'import os, sys, pandas as pd, plotly.express as px, plotly.io as pio, matplotlib.pyplot as plt, numpy as np',
+            })
+        );
 
-        // console.log(config.projects.open_projects[0]['path']);
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: CodeEditor,
-        //         content: `pio.renderers.default = "json"`,
-        //     })
-        // );
+        console.log(config.projects.open_projects[0]['path']);
+        codeExecutor.send2executor(
+            JSON.stringify({
+                webapp_endpoint: CodeEditor,
+                content: `pio.renderers.default = "json"`,
+            })
+        );
 
         codeExecutor.send2executor(
             JSON.stringify({
@@ -213,16 +214,16 @@ try {
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
-                content: `import os; os.chdir('${config.projects.open_projects[0]['path']}')`,
+                content: `os.chdir('${config.projects.open_projects[0]['path']}')`,
             })
         );
 
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: CodeEditor,
-        //         content: 'import cycdataframe.cycdataframe as cd',
-        //     })
-        // );
+        codeExecutor.send2executor(
+            JSON.stringify({
+                webapp_endpoint: CodeEditor,
+                content: 'import cycdataframe.cycdataframe as cd',
+            })
+        );
 
         nonCodeExecutor.send2executor(
             JSON.stringify({

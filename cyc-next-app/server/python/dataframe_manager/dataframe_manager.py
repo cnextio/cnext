@@ -1,14 +1,9 @@
 import base64
-import collections
-import itertools
-import sys
 import traceback
 import simplejson as json
-import io
-import base64
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
-from libs.json_serializable import ipython_internal_output, JsonSerializable
+from libs.json_serializable import ipython_internal_output
 from cycdataframe.mime_types import CnextMimeType
 
 from libs import logs
@@ -18,53 +13,40 @@ from user_space.user_space import ExecutionMode
 log = logs.get_logger(__name__)
 
 
-def total_size(o, handlers={}, verbose=False):
-    """ Returns the approximate memory footprint an object and all of its contents.
-
-    Automatically finds the contents of the following builtin containers and
-    their subclasses:  tuple, list, deque, dict, set and frozenset.
-    To search other containers, add handlers to iterate over their contents:
-
-        handlers = {SomeContainerClass: iter,
-                    OtherContainerClass: OtherContainerClass.get_elements}
-
-    """
-    def dict_handler(d): return itertools.chain.from_iterable(d.items())
-    all_handlers = {tuple: iter,
-                    list: iter,
-                    collections.deque: iter,
-                    dict: dict_handler,
-                    set: iter,
-                    frozenset: iter,
-                    }
-    all_handlers.update(handlers)     # user handlers take precedence
-    seen = set()                      # track which object id's have already been seen
-    # estimate sizeof object without __sizeof__
-    default_size = sys.getsizeof(0)
-
-    def sizeof(o):
-        if id(o) in seen:       # do not double count the same object
-            return 0
-        seen.add(id(o))
-        s = sys.getsizeof(o, default_size)
-
-        if verbose:
-            print(s, type(o), repr(o), file=sys.stderr)
-
-        for typ, handler in all_handlers.items():
-            if isinstance(o, typ):
-                s += sum(map(sizeof, handler(o)))
-                break
-        return s
-
-    return sizeof(o)
-
-
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue,  user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
-    def _get_file_content(self, file_path, mime_type):
+    # @staticmethod
+    # def get_execute_result(messages):
+    #     """
+    #         Get result from list of messages are responsed by IPython kernel
+    #         For result type rather than 'application/json' we have to convert the output
+    #         to the original object before sending to client because we already json.dumps
+    #         them inside ipython. A better way to handle this is to output 'application/json' 
+    #         instead. That will be done later.
+    #     """
+    #     result = None
+    #     for message in messages:
+    #         if message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
+    #             if message['content']['data']['text/plain'] is not None:
+    #                 result = message['content']['data']['text/plain']
+    #                 result = json.loads(result)
+    #         elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
+    #             if 'text' in message['content']:
+    #                 result = message['content']['text']
+    #                 result = json.loads(result)
+    #         elif message['header']['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA:
+    #             if 'application/json' in message['content']['data']:
+    #                 result = message['content']['data']['application/json']
+    #     return result
+
+    # TODO: unify this with _create_plot_data
+    def _create_plot_data(self, df_id, col_name, result):
+        # return {'df_id': df_id, 'col_name': col_name, 'plot': result.to_json()}
+        return {'df_id': df_id, 'col_name': col_name, 'plot': result}
+
+    def _get_mime_file_content(self, file_path, mime_type):
         with open(file_path, 'rb') as file:
             return file.read()
 
@@ -90,7 +72,7 @@ class MessageHandler(BaseMessageHandler):
         # We chose to do this outside of the dataframe, but it can also be done with a dataframe
         # see https://stackoverflow.com/questions/41710501/is-there-a-way-to-have-a-dictionary-as-an-entry-of-a-pandas-dataframe-in-python #
         for i, t in enumerate(df.dtypes):
-            if t.name in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG]:
+            if t.name in [CnextMimeType.FILEPNG, CnextMimeType.FILEJPG]:
                 log.info('Load file for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     file_path = df[df.columns[i]].iloc[r]
@@ -98,7 +80,7 @@ class MessageHandler(BaseMessageHandler):
                              (t.name, file_path))
                     tableData['rows'][r][i] = {
                         'file_path': file_path,
-                        'binary': base64.b64encode(self._get_file_content(file_path, t.name))
+                        'binary': base64.b64encode(self._get_mime_file_content(file_path, t.name))
                     }
 
         tableData['index'] = {}
@@ -111,9 +93,27 @@ class MessageHandler(BaseMessageHandler):
         # log.info(tableData)
         return tableData
 
+    def _create_countna_data(self, df_id, len, countna_series):
+        countna = {}
+        for k, v in countna_series.to_dict().items():
+            countna[k] = {'na': v, 'len': len}
+        return {'df_id': df_id, 'countna': countna}
+
+    @ipython_internal_output
+    def _get_count_na(self, df_id):
+        output = None
+        countna = self.user_space.execute(
+            "%s.isna().sum()" % df_id, ExecutionMode.EVAL)
+        len = self.user_space.execute(
+            "%s.shape[0]" % df_id, ExecutionMode.EVAL)
+        if (countna is not None) and (len is not None):
+            log.info("get countna data")
+            output = self._create_countna_data(df_id, len, countna)
+        return output
+
     @ipython_internal_output
     def _get_table_data(self, df_id, code):
-        output = None
+        output = None        
         result = self.user_space.execute(code, ExecutionMode.EVAL)
         # print("get table data %s" % result)
         # log.info("get table data %s" % result)
@@ -121,10 +121,6 @@ class MessageHandler(BaseMessageHandler):
             # log.info("get table data %s" % result)
             output = self._create_table_data(df_id, result)
         return output
-
-    @ipython_internal_output
-    def _get_column_histogram_plot(self, df_id, col_name):
-        pass
 
     @ipython_internal_output
     def _get_metadata(self, df_id):
@@ -136,26 +132,22 @@ class MessageHandler(BaseMessageHandler):
         describe = self.user_space.execute(
             "%s.describe(include='all')" % df_id, ExecutionMode.EVAL)
         columns = {}
-        MAX_UNIQUE_LENGTH = 1000
         for col_name, ctype in dtypes.items():
+            # FIXME: only get at most 100 values here, this is hacky, find a better way
+            # unique = eval("%s['%s'].unique().tolist()"%(df_id, col_name), client_globals)[:100]
             unique = self.user_space.execute(
                 "%s['%s'].unique().tolist()" % (df_id, col_name), ExecutionMode.EVAL)
-            # only send unique list that has length smaller than MAX_UNIQUE_LENGTH
-            if len(unique) > MAX_UNIQUE_LENGTH:
-                unique = []
             columns[col_name] = {'name': col_name, 'type': str(ctype.name), 'unique': unique,
                                  'describe': describe[col_name].to_dict(), 'countna': countna[col_name].item()}
         output = {'df_id': df_id, 'shape': shape, 'columns': columns}
         return output
 
     def handle_message(self, message):
-        # send_reply = False
+        send_reply = False
         # message execution_mode will always be `eval` for this sender
         log.info('eval... %s' % message)
         # log.info('Globals: %s' % client_globals)
-
-        MAX_PLOTLY_SIZE = 1024*1024  # 1MB
-
+        
         ## this step is important to make sure the query work properly in the backend #
         if (isinstance(message.content, str)):
             message.content = message.content.replace("'", '"')
@@ -165,89 +157,81 @@ class MessageHandler(BaseMessageHandler):
                 # result = eval(message.content, client_globals)
                 result_messages = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
-                log.info("Object size %d" % total_size(result_messages))
+                # log.info("PLOT DATA", result_messages)
                 result = self.get_execute_result(result_messages)
                 if result is not None:
-                    if total_size(result) < MAX_PLOTLY_SIZE:
-                        message.content = result
-                        message.type = ContentType.RICH_OUTPUT
-                        message.sub_type = SubContentType.APPLICATION_CNEXT
-                    else:
-                        message.content = "Warning: column histogram plot size is bigger than 1MB"
-                        message.type = ContentType.STRING
-                        message.sub_type = SubContentType.NONE
-                    message.error = False
-                    self._send_to_node(message)
+                    output = self._create_plot_data(
+                        message.metadata['df_id'], message.metadata['col_name'], result)
+                    log.info("get plot data")
+                    type = ContentType.RICH_OUTPUT
+                    sub_type = SubContentType.PLOTLY_FIG
+                    send_reply = True
 
             elif message.command_name == DFManagerCommand.plot_column_quantile:
-                # result = eval(message.content, client_globals)                
+                # result = eval(message.content, client_globals)
                 result_messages = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
-                log.info("Object size %d" % total_size(result_messages))
                 # log.info("Plot Column Quantile", result_messages)
                 result = self.get_execute_result(result_messages)
                 if result is not None:
-                    message.content = result
-                    message.type = ContentType.RICH_OUTPUT
-                    message.sub_type = SubContentType.APPLICATION_CNEXT
-                    # if total_size(result) < MAX_PLOTLY_SIZE:
-                    #     message.content = result
-                    #     message.type = ContentType.RICH_OUTPUT
-                    #     message.sub_type = SubContentType.APPLICATION_CNEXT
-                    # else:
-                    #     message.content = "Warning: column box plot size is bigger than 1MB"
-                    #     message.type = ContentType.STRING
-                    #     message.sub_type = SubContentType.NONE
-                    message.error = False
-                    self._send_to_node(message)
+                    log.info("get plot data")
+                    output = self._create_plot_data(
+                        message.metadata['df_id'], message.metadata['col_name'], result)
+                    type = ContentType.RICH_OUTPUT
+                    sub_type = SubContentType.PLOTLY_FIG
+                    send_reply = True
 
             elif message.command_name == DFManagerCommand.get_table_data:
                 # TODO: turn _df_manager to variable
                 # log.info("_get_table_data: %s" % "{}._get_table_data('{}', '{}')".format(
                 #     IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content))
                 output_messages = self.user_space.execute("{}._get_table_data('{}', '{}')".format(
-                    IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content))
+                    IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content))                
                 output = self.get_execute_result(output_messages)
                 if output is not None:
-                    message.content = output
                     # log.info("get table data")
                     log.info('DFManagerCommand.get_table_data: %s' % output)
-                    message.type = ContentType.PANDAS_DATAFRAME
-                    message.sub_type = SubContentType.NONE
-                    message.error = False
-                    self._send_to_node(message)
+                    type = ContentType.PANDAS_DATAFRAME
+                    sub_type = SubContentType.NONE
+                    send_reply = True
+
+            elif message.command_name == DFManagerCommand.get_countna:
+                output_messages = self.user_space.execute(
+                    "{}._get_count_na('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
+                output = self.get_execute_result(output_messages)
+                if output is not None:
+                    log.info("get countna data")
+                    # log.info('DFManagerCommand.get_countna: %s' % output)
+                    type = ContentType.DICT
+                    sub_type = SubContentType.NONE
+                    send_reply = True
 
             elif message.command_name == DFManagerCommand.get_df_metadata:
                 output_messages = self.user_space.execute(
                     "{}._get_metadata('{}')".format(IPythonInteral.DF_MANAGER.value, message.metadata['df_id']))
-                message.content = self.get_execute_result(output_messages)
+                output = self.get_execute_result(output_messages)
                 # log.info("get df metadata")
-                log.info('DFManagerCommand.get_df_metadata: %s' %
-                         message.content)
-                message.type = ContentType.DICT
-                message.sub_type = SubContentType.NONE
-                message.error = False
-                self._send_to_node(message)
+                log.info('DFManagerCommand.get_df_metadata: %s' % output)
+                type = ContentType.DICT
+                sub_type = SubContentType.NONE
+                send_reply = True
 
             elif message.command_name == DFManagerCommand.reload_df_status:
-                message.content = self.user_space.get_active_dfs_status()
-                log.info('DFManagerCommand.reload_df_status: %s' %
-                         message.content)
-                message.type = ContentType.DICT
-                message.sub_type = SubContentType.NONE
-                message.error = False
-                self._send_to_node(message)
-
+                output = self.user_space.get_active_dfs_status()
+                log.info('DFManagerCommand.reload_df_status: %s' % output)
+                type = ContentType.DICT
+                sub_type = SubContentType.NONE
+                send_reply = True
 
             # elif message.command_name == DFManagerCommand.get_file_content:
             #     output, type, send_reply = self._get_file_content(message, client_globals)
 
-            # if send_reply:
-            #     # message.type = type
-            #     # message.sub_type = sub_type
-            #     # message.content = output
-            #     message.error = False
-            #     self._send_to_node(message)
+            if send_reply:
+                message.type = type
+                message.sub_type = sub_type
+                message.content = output
+                message.error = False
+                self._send_to_node(message)
         except:
             trace = traceback.format_exc()
             log.error("%s" % (trace))

@@ -1,4 +1,5 @@
-import { Box, CssBaseline } from "@mui/material";
+import { CssBaseline } from "@mui/material";
+import { Box } from "@mui/system";
 import React from "react";
 import { Logo, LogoIcon } from "./StyledComponents";
 

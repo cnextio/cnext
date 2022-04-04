@@ -92,7 +92,6 @@ class MessageHandler(BaseMessageHandler):
             else:
                 message.type = ContentType.STRING
                 message.content = msg_ipython.content['data']
-            log.info('Result content: %s' % message.content)
             return message
         elif self._is_stream_result(msg_ipython.header):
             message.type = ContentType.STRING
@@ -107,13 +106,11 @@ class MessageHandler(BaseMessageHandler):
             # FIXME: is there situation where there are more than one item. if so what should we do?
             for key, value in msg_ipython.content['data'].items():
                 if key == 'application/json' and self._result_is_plotly_fig(value):
-                    message.sub_type = SubContentType.IMAGE_PLOTLY
+                    message.sub_type = SubContentType.PLOTLY_FIG
                     message.content = value
-                    log.info('Result content: %s %s' % (key, message.content))
                 else:
                     message.content = value
                     message.sub_type = key
-                    log.info('Result content: %s %s' % (key, message.content))
             return message
 
     def handle_message(self, message):
@@ -140,11 +137,11 @@ class MessageHandler(BaseMessageHandler):
     def _process_active_dfs_status(self):
         active_df_status = self.user_space.get_active_dfs_status()
         active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
-                                              "command_name": DFManagerCommand.update_df_status,
-                                              "seq_number": 1,
-                                              "type": "dict",
-                                              "content": active_df_status,
-                                              "error": False})
+                                                "command_name": DFManagerCommand.update_df_status,
+                                                "seq_number": 1,
+                                                "type": "dict",
+                                                "content": active_df_status,
+                                                "error": False})
         self._send_to_node(active_df_status_message)
         # if len(active_df_status) > 0:
         #     for active_df in active_df_status:
