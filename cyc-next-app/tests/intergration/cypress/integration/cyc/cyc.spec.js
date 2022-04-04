@@ -12,7 +12,7 @@ import {
     codeTestSaveState,
 } from '../data/code-text';
 const WAIT_TIME_OUT = 1000;
-const SAVE_STATE_DURATION = 12000;
+const SAVE_TIMEOUT_DURATION = 12000;
 
 const isMacOSPlatform = () => {
     return Cypress.platform.includes('darwin');
@@ -22,6 +22,15 @@ const removeText = (editor) => {
     editor.type('{selectall}');
     editor.type('{del}');
 };
+
+const randomString = () => {
+    let text = "";
+    let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 10; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+}
 
 describe('Check Code Editor', () => {
     it('Check state of Editor', () => {
@@ -395,7 +404,8 @@ describe('Check Save State', () => {
         removeText(editor);
         cy.wait(1000);
         editor = cy.get('@editor');
-        editor.type(codeTestSaveState);
+        const code = randomString(); 
+        editor.type(`print("${code}")`);
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
@@ -407,18 +417,18 @@ describe('Check Save State', () => {
             editor.type('{ctrl}l');
         }
 
-        cy.wait(SAVE_STATE_DURATION);
+        cy.wait(SAVE_TIMEOUT_DURATION);
         cy.reload();
         cy.wait(1000);
         cy.get('.MuiPaper-root > img').should('be.visible');
-        cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
+        cy.get('#CodeOutputContent > :nth-child(1)').contains(code);
 
         cy.wait(WAIT_TIME_OUT);
     });
 });
 
-describe('Check Save Event When Reload', () => {
-    it('still save state', () => {
+describe('Check Save File', () => {
+    it('still save file', () => {
         cy.visit('/').wait(2000);
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
@@ -427,7 +437,41 @@ describe('Check Save Event When Reload', () => {
         removeText(editor);
         cy.wait(1000);
         editor = cy.get('@editor');
-        editor.type(codeTestSaveState);
+        const code = randomString(); 
+        editor.type(`print("${code}")`);
+        cy.wait(1000);
+        editor = cy.get('@editor');
+        editor.type('{selectall}');
+        if (isMacOSPlatform()) {
+            editor.type('{command}k');
+            editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
+        }
+
+        cy.wait(SAVE_TIMEOUT_DURATION);
+        cy.reload();
+        cy.wait(1000);
+        cy.get('.MuiPaper-root > img').should('be.visible');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code)
+
+        cy.wait(WAIT_TIME_OUT);
+    });
+});
+
+describe('Check Save Event When Reload', () => {
+    it('still save state and save file', () => {
+        cy.visit('/').wait(2000);
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        removeText(editor);
+        cy.wait(1000);
+        editor = cy.get('@editor');
+        const code = randomString();
+        editor.type(`print("${code}")`);
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
@@ -441,9 +485,10 @@ describe('Check Save Event When Reload', () => {
 
         cy.wait(SAVE_STATE_DURATION);
         cy.reload();
-        cy.wait(1000);
+        cy.wait(5000);
         cy.get('.MuiPaper-root > img').should('be.visible');
-        cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
+        cy.get('#CodeOutputContent > :nth-child(1)').contains(code);
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code)
 
         cy.wait(WAIT_TIME_OUT);
     });
