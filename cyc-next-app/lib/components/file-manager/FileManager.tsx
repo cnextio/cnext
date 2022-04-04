@@ -263,7 +263,7 @@ const FileManager = () => {
                     { path: file.path, timestamp: timestamp }
                 );
                 console.log("FileManager send:", message.command_name, message.metadata);
-                await sendMessage(message);
+                sendMessage(message);
                 setSaveTimeout(false);
 
                 return new Promise((resolve) => {
