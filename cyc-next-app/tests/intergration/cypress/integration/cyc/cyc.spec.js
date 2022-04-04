@@ -14,9 +14,14 @@ import {
 const WAIT_TIME_OUT = 1000;
 const SAVE_STATE_DURATION = 12000;
 
-function isMacOSPlatform() {
+const isMacOSPlatform = () => {
     return Cypress.platform.includes('darwin');
 }
+
+const removeText = (editor) => {
+    editor.type('{selectall}');
+    editor.type('{del}');
+};
 
 describe('Check Code Editor', () => {
     it('Check state of Editor', () => {
@@ -243,6 +248,7 @@ describe('Check data in Redux store', () => {
 
 describe('Check Matplotlib simple result', () => {
     it('still render Matplotlib result', () => {
+        cy.visit('/').wait(2000);
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
@@ -271,6 +277,7 @@ describe('Check Matplotlib simple result', () => {
 
 describe('Check Matplotlib the coherence of two signals', () => {
     it('still render Matplotlib result', () => {
+        cy.visit('/').wait(2000);
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
@@ -297,6 +304,7 @@ describe('Check Matplotlib the coherence of two signals', () => {
 
 describe('Check Plotly', () => {
     it('still render Plotly result', () => {
+        cy.visit('/').wait(2000);
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
@@ -379,6 +387,7 @@ describe('Check Video', () => {
 
 describe('Check Save State', () => {
     it('still save state', () => {
+        cy.visit('/').wait(2000);
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
@@ -408,7 +417,35 @@ describe('Check Save State', () => {
     });
 });
 
-const removeText = (editor) => {
-    editor.type('{selectall}');
-    editor.type('{del}');
-};
+describe('Check Save Event When Reload', () => {
+    it('still save state', () => {
+        cy.visit('/').wait(2000);
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        removeText(editor);
+        cy.wait(1000);
+        editor = cy.get('@editor');
+        editor.type(codeTestSaveState);
+        cy.wait(1000);
+        editor = cy.get('@editor');
+        editor.type('{selectall}');
+        if (isMacOSPlatform()) {
+            editor.type('{command}k');
+            editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
+        }
+
+        cy.wait(SAVE_STATE_DURATION);
+        cy.reload();
+        cy.wait(1000);
+        cy.get('.MuiPaper-root > img').should('be.visible');
+        cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
+
+        cy.wait(WAIT_TIME_OUT);
+    });
+});
+
