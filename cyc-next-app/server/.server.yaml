@@ -3,25 +3,16 @@ p2n_comm:
     n2p_port: 5000
     p2n_port: 5001
 
-path_to_cycdataframe_lib: ''
+# non_code_executor_comm:
+#   host: tcp://127.0.0.1
+#   n2p_port: 5002
+#   p2n_port: 5003
+
+path_to_cycdataframe_lib: "/Users/bachbui/works/cycai/"
 
 projects:
     open_projects:
-        - id: '1'
-          name: 'Skywalker'
-          path: 'cnext_sample_projects/Skywalker'
-    active_project: '1'
-    
-#   p2n_comm:
-#   host: tcp://127.0.0.1
-#   n2p_port: 5000
-#   p2n_port: 5001
-
-# path_to_cycdataframe_lib: "D:/DEV/CycAI/"
-
-# projects:
-#   open_projects:
-#     - id: "1"
-#       name: "Skywalker"
-#       path: "D:/DEV/CycAI/cnext_sample_projects/Skywalker"
-#   active_project: "1"
+        - id: "1"
+          name: Skywalker
+          path: /Users/bachbui/works/cycai/cnext-working-dir/Skywalker
+    active_project: "1"
