@@ -15,6 +15,14 @@ services:
         build: .
         container_name: server
         working_dir: /app/cyc-next-app/server
+        volumes:
+            - cyc-next:/app/cyc-next-app/server/cnext_sample_projects/Skywalker
+        # volumes:
+        #     - c:/Users/HoaTV/cnext_sample_projects:/app/cyc-next-app/server/cnext_sample_projects/Skywalker
         ports:
             - 4000:4000
         command: npm start
+
+volumes:
+    cyc-next:
+    # /var/lib/docker/volumes/ on linux
