@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+    web:
+        # image: image
+        build: .
+        container_name: web
+        working_dir: /app/cyc-next-app
+        ports:
+            - 3000:3000
+        command: npm start
+
+    server:
+        # image: image
+        build: .
+        container_name: server
+        working_dir: /app/cyc-next-app/server
+        ports:
+            - 4000:4000
+        command: npm start
