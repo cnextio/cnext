@@ -45,7 +45,7 @@ class MessageHandler(BaseMessageHandler):
         # We chose to do this outside of the dataframe, but it can also be done with a dataframe
         # see https://stackoverflow.com/questions/41710501/is-there-a-way-to-have-a-dictionary-as-an-entry-of-a-pandas-dataframe-in-python #
         for i, t in enumerate(df.dtypes):
-            if t.name in [CnextMimeType.FILEPNG, CnextMimeType.FILEJPG]:
+            if t.name in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG]:
                 log.info('Load file for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     file_path = df[df.columns[i]].iloc[r]
@@ -136,7 +136,7 @@ class MessageHandler(BaseMessageHandler):
                         message.metadata['df_id'], message.metadata['col_name'], result)
                     # type = ContentType.PLOTLY_FIG
                     type = ContentType.RICH_OUTPUT
-                    sub_type = SubContentType.PLOTLY_FIG
+                    sub_type = SubContentType.IMAGE_PLOTLY
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.plot_column_quantile:
@@ -149,7 +149,7 @@ class MessageHandler(BaseMessageHandler):
                         message.metadata['df_id'], message.metadata['col_name'], result)
                     # type = ContentType.PLOTLY_FIG
                     type = ContentType.RICH_OUTPUT
-                    sub_type = SubContentType.PLOTLY_FIG
+                    sub_type = SubContentType.IMAGE_PLOTLY
                     send_reply = True
 
             elif message.command_name == DFManagerCommand.get_table_data:

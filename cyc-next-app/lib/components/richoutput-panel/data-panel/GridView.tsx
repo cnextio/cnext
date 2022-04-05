@@ -159,9 +159,9 @@ const GridView = (props: any) => {
 
     const createMimeElem = (item: object, mimeType: CNextMimeType) => {
         switch (mimeType) {
-            case FileMimeType.FILEPNG:
+            case FileMimeType.FILE_PNG:
                 return <img src={"data:image/png;base64," + item.binary} />;
-            case FileMimeType.FILEJPG:
+            case FileMimeType.FILE_JPG:
                 return <img src={"data:image/jpg;base64," + item.binary} />;
         }
     };
