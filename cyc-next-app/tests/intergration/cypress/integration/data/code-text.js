@@ -52,5 +52,3 @@ Video('http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckB
 
 export const codeTestSaveState = `print("test")
 plt.plot([5,6], [7,8])`;
-
-

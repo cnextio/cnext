@@ -17,9 +17,9 @@ import NewItemInput from "./NewItemInput";
 import DeleteConfirmation from "./DeleteConfirmation";
 
 interface ContextMenuInfo {
-    parent: string,
-    item: string,
-    is_file?: boolean,
+    parent: string;
+    item: string;
+    is_file?: boolean;
 }
 
 const FileExplorer = (props: any) => {
@@ -33,7 +33,7 @@ const FileExplorer = (props: any) => {
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
     const [deleteItemInProgress, setDeleteItemInProgress] = useState<boolean>(false);
-    const [expanded, setExpanded] = React.useState([]);
+    const [expanded, setExpanded] = useState<Array<string>>([]);
     const [deleteDialog, setDeleteDialog] = useState(false);
     const dispatch = useDispatch();
 
@@ -92,6 +92,9 @@ const FileExplorer = (props: any) => {
     };
 
     const _send_message = (message: IMessage) => {
+        console.log(
+            `File Explorer Send Message: ${message.webapp_endpoint} ${JSON.stringify(message)}`
+        );
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
@@ -101,7 +104,6 @@ const FileExplorer = (props: any) => {
     };
 
     const handleChange = (event, nodes) => {
-        // console.log('FileExplorer', nodes);
         const expandingNodes = nodes.filter((node) => !expanded.includes(node));
         setExpanded(nodes);
         const dirID = expandingNodes[0];
@@ -149,6 +151,9 @@ const FileExplorer = (props: any) => {
         switch (item) {
             case FileContextMenuItem.NEW_FILE:
                 if (contextMenuItems) {
+                    // Expanded the folder when creating new file
+                    const newExpanded = [...expanded, contextMenuItems.item];
+                    setExpanded([...new Set(newExpanded)]); // Remove duplicate expanded note ID
                     setCreateItemInProgress(true);
                 }
                 break;
@@ -179,11 +184,10 @@ const FileExplorer = (props: any) => {
         // console.log('FileExplorer', event.key);
         if (event.key === "Enter") {
             if (validateFileName(value) && contextMenuItems) {
-                console.log("FileExplorer: ");
-                let fileName = contextMenuItems.parent + "/" + value;
+                let fileName = contextMenuItems.item + "/" + value;
                 let message = _create_message(ProjectCommand.create_file, { path: fileName });
                 _send_message(message);
-                fetchChildNodes(contextMenuItems.parent);
+                fetchChildNodes(contextMenuItems.item);
             }
             setCreateItemInProgress(false);
         } else if (event.key === "Escape") {
@@ -233,7 +237,7 @@ const FileExplorer = (props: any) => {
                 ) : (
                     <FileItem nodeId='stub' />
                 )}
-                {createItemInProgress && contextMenuItems && contextMenuItems["parent"] === path ? (
+                {createItemInProgress && contextMenuItems && contextMenuItems["item"] === path ? (
                     <FileItem
                         nodeId='new_item'
                         label={<NewItemInput handleKeyPress={handleNewItemKeyPress} />}
@@ -269,7 +273,18 @@ const FileExplorer = (props: any) => {
                     expanded={expanded}
                     onNodeToggle={handleChange}
                 >
-                    <FileItem nodeId={activeProject.path} label={activeProject.name}>
+                    <FileItem
+                        nodeId={activeProject.path}
+                        label={activeProject.name}
+                        onContextMenu={(event: React.MouseEvent) => {
+                            handleItemContextMenu(
+                                event,
+                                activeProject.path,
+                                activeProject.path,
+                                false
+                            );
+                        }}
+                    >
                         {generateFileItems(activeProject.path)}
                     </FileItem>
                 </FileTree>
