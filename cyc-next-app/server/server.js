@@ -191,31 +191,32 @@ try {
         //     JSON.stringify({
         //         webapp_endpoint: CodeEditor,
         //         content:
-        //             'import os, sys, pandas as pd, plotly.express as px, plotly.io as pio, matplotlib.pyplot as plt, numpy as np',
+        //             `import os, os.chdir('${config.projects.open_projects[0]['path']}`,
         //     })
         // );
 
-        // console.log(config.projects.open_projects[0]['path']);
+        codeExecutor.send2executor(
+            JSON.stringify({
+                webapp_endpoint: CodeEditor,
+                content: `import os, sys; sys.path.extend(['${config.path_to_cycdataframe_lib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
+            })
+        );
+
         // codeExecutor.send2executor(
         //     JSON.stringify({
         //         webapp_endpoint: CodeEditor,
-        //         content: `pio.renderers.default = "json"`,
+        //         content: `import os; os.chdir('${config.projects.open_projects[0]["path"]}')`,
         //     })
         // );
 
-        codeExecutor.send2executor(
-            JSON.stringify({
-                webapp_endpoint: CodeEditor,
-                content: `sys.path.extend(['${config.path_to_cycdataframe_lib}/', 'python/'])`,
-            })
-        );
-
-        codeExecutor.send2executor(
-            JSON.stringify({
-                webapp_endpoint: CodeEditor,
-                content: `import os; os.chdir('${config.projects.open_projects[0]['path']}')`,
-            })
-        );
+        // console.log(config.projects.open_projects[0]["path"]);
+        // codeExecutor.send2executor(
+        //     JSON.stringify({
+        //         webapp_endpoint: CodeEditor,
+        //         content:
+        //             'import io, base64, simplejson as json, libs.json_serializable.JsonSerializable, plotly.express as px, plotly.io as pio; pio.renderers.default = "json"',
+        //     })
+        // );
 
         // codeExecutor.send2executor(
         //     JSON.stringify({
@@ -227,7 +228,7 @@ try {
         nonCodeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: ExperimentManager,
-                content: 'import mlflow, mlflow.tensorflow',
+                content: "import mlflow, mlflow.tensorflow",
             })
         );
     };
