@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+    web:
+        # image: image
+        build: .
+        container_name: web
+        working_dir: /app/cyc-next-app
+        ports:
+            - ${CLIENT_PORT}:3000
+        command: npm start
+
+    server:
+        # image: image
+        build: .
+        container_name: server
+        working_dir: /app/cyc-next-app/server
+        volumes:
+            - ${SOURCE_PROJECT_DIR}:/app/cyc-next-app/server/cnext_sample_projects/Skywalker
+        ports:
+            - ${SERVER_PORT}:4000
+        command: npm start
