@@ -74,7 +74,18 @@ open_files:
 project_dir: ${{ PATH_TO_SAMPLE_PROJECT }}
 ```
 
-### 4. Code formater
+### 4. Run integration test
+Go to `tests/integration` then run command
+```
+npx cypress run
+```
+
+To open the UI `cypress` test
+```
+npx cypress open
+```
+
+### 5. Code formater
 
 1. use `prettier plugin for vs`
 2. use `single quote` and `tab width = 4`

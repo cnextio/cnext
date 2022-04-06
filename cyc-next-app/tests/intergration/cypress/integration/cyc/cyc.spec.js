@@ -32,106 +32,113 @@ const randomString = () => {
     return text;
 }
 
-// describe('Check Code Editor', () => {
+describe('Check Code Editor', () => {
 
-//     before(() => {
-//         cy.visit('/');
-//         cy.wait(2000);
-//     })
+    before(() => {
+        cy.visit('/');
+        cy.wait(2000);
 
-//     beforeEach(() => {
-//         let editor = cy
-//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-//             .as('editor');
-//         editor.focus();
-//         removeText(editor);
-//         cy.wait(2000);
-//     })
+        cy.get("#sidebar_ClearState").click();
+        cy.wait(2000);
+    })
 
-//     it('Check print console', () => {
-//         let editor = cy
-//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-//             .as('editor');
-//         editor.focus();
-//         editor.type(codeCheckConsole);
-//         if (isMacOSPlatform()) {
-//             editor.type('{command}l');
-//         } else {
-//             editor.type('{ctrl}l');
-//         }
-//         cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
-//         cy.wait(WAIT_TIME_OUT);
-//     });
-// });
+    beforeEach(() => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        removeText(editor);
+        cy.wait(2000);
+    })
 
-// describe('Check Completion of Editor', () => {
+    it('Check print console', () => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        editor.type(codeCheckConsole);
+        if (isMacOSPlatform()) {
+            editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}l');
+        }
+        cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
+        cy.wait(WAIT_TIME_OUT);
+    });
+    
+});
 
-//     before(() => {
-//         cy.visit('/');
-//         cy.wait(2000);
-//     })
+describe('Check Completion of Editor', () => {
 
-//     beforeEach(() => {
-//         let editor = cy
-//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-//             .as('editor');
-//         editor.focus();
-//         removeText(editor);
-//         cy.wait(2000);
-//     })
+    before(() => {
+        cy.visit('/');
+        cy.wait(2000);
 
-//     it('Check autocompletion', () => {
-//         let editor = cy
-//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-//             .as('editor');
-//         editor.focus();
-//         editor.type(codeTestEditor);
+        cy.get("#sidebar_ClearState").click();
+        cy.wait(2000);
+    })
 
-//         // make sure have autocompletion dialog
-//         editor.type('df.drop');
-//         cy.get('.cm-tooltip-autocomplete').should('be.visible');
-//         cy.get('.cm-read-more-btn').should('be.visible');
-//         cy.get('.cm-read-more-btn').click();
-//         cy.get('#code-doc-content').should('be.visible');
-//         cy.get('.cm-read-more-btn').click();
-//         cy.get('#code-doc-content').should('not.exist');
+    beforeEach(() => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        removeText(editor);
+        cy.wait(2000);
+    })
 
-//         // check data
-//         let content = cy
-//             .get('[data-cy="code-editor"] > .cm-editor > .cm-tooltip-autocomplete')
-//             .as('autocomplete-content');
-//         content.contains('drop_duplicates');
+    it('Check autocompletion', () => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        editor.type(codeTestEditor);
 
-//         // make sure keyboard still work
-//         editor = cy.get('@editor');
-//         editor.type('{backspace}');
-//         editor.type('{esc}');
-//         cy.get('.cm-tooltip-autocomplete').should('not.exist');
+        // make sure have autocompletion dialog
+        editor.type('df.drop');
+        cy.get('.cm-tooltip-autocomplete').should('be.visible');
+        cy.get('.cm-read-more-btn').should('be.visible');
+        cy.get('.cm-read-more-btn').click();
+        cy.get('#code-doc-content').should('be.visible');
+        cy.get('.cm-read-more-btn').click();
+        cy.get('#code-doc-content').should('not.exist');
 
-//         // make sure have signature tooltip
-//         editor = cy.get('@editor');
-//         editor.type('p');
-//         editor.type('(');
-//         cy.get('.cm-tooltip-signature').should('be.visible');
+        // check data
+        let content = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-tooltip-autocomplete')
+            .as('autocomplete-content');
+        content.contains('drop_duplicates');
 
-//         editor = cy.get('@editor');
-//         editor.type('{esc}');
-//         cy.get('.cm-tooltip-signature').should('not.exist');
+        // make sure keyboard still work
+        editor = cy.get('@editor');
+        editor.type('{backspace}');
+        editor.type('{esc}');
+        cy.get('.cm-tooltip-autocomplete').should('not.exist');
 
-//         editor = cy.get('@editor');
-//         removeText(editor);
-//         editor.type(codeTestDF);
-//         if (isMacOSPlatform()) {
-//             editor.type('{command}l');
-//         } else {
-//             editor.type('{ctrl}l');
-//         }
-//         editor.type('{enter}');
-//         editor.type('df.drop("');
-//         cy.get('.cm-tooltip-autocomplete').should('be.visible');
-//         cy.wait(WAIT_TIME_OUT);
-//     });
-// });
+        // make sure have signature tooltip
+        editor = cy.get('@editor');
+        editor.type('p');
+        editor.type('(');
+        cy.get('.cm-tooltip-signature').should('be.visible');
+
+        editor = cy.get('@editor');
+        editor.type('{esc}');
+        cy.get('.cm-tooltip-signature').should('not.exist');
+
+        editor = cy.get('@editor');
+        removeText(editor);
+        editor.type(codeTestDF);
+        if (isMacOSPlatform()) {
+            editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}l');
+        }
+        editor.type('{enter}');
+        editor.type('df.drop("');
+        cy.get('.cm-tooltip-autocomplete').should('be.visible');
+        cy.wait(WAIT_TIME_OUT);
+    });
+});
 
 describe('Check DataFrame', () => {
     before(() => {
@@ -309,6 +316,9 @@ describe('Check Rich output result', () => {
     before(() => {
         cy.visit('/');
         cy.wait(2000);
+
+        cy.get("#sidebar_ClearState").click();
+        cy.wait(2000);
     })
 
     beforeEach(() => {
@@ -422,6 +432,9 @@ describe('Check Rich output result', () => {
 describe('Check Save Events', () => {
     before(() => {
         cy.visit('/');
+        cy.wait(2000);
+
+        cy.get("#sidebar_ClearState").click();
         cy.wait(2000);
     })
 
