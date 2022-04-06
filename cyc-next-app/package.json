@@ -32,6 +32,7 @@
         "@mui/styles": "^5.0.1",
         "@open-rpc/client-js": "^1.6.2",
         "@reduxjs/toolkit": "^1.6.2",
+        "@types/react-plotly.js": "^2.5.0",
         "@uiw/react-codemirror": "^4.0.7",
         "ace-builds": "^1.4.13",
         "animate.css": "^4.1.1",

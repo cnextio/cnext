@@ -12,110 +12,163 @@ import {
     codeTestSaveState,
 } from '../data/code-text';
 const WAIT_TIME_OUT = 1000;
-const SAVE_STATE_DURATION = 12000;
+const SAVE_TIMEOUT_DURATION = 30000;
 
-function isMacOSPlatform() {
+const isMacOSPlatform = () => {
     return Cypress.platform.includes('darwin');
 }
 
-describe('Check Code Editor', () => {
-    it('Check state of Editor', () => {
-        cy.visit('/').wait(3000);
-        let lines = cy
-            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .as('editor')
-            .children('.cm-line');
+const removeText = (editor) => {
+    editor.type('{selectall}');
+    editor.type('{del}');
+};
 
-        // make sure codeEditor have text from old state
-        expect(lines).to.exist;
-        lines.its('length').should('be.gt', 0);
-        cy.wait(WAIT_TIME_OUT);
-    });
-});
+const randomString = () => {
+    let text = "";
+    let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 10; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
 
-describe('Check Console', () => {
-    it('Check print console', () => {
-        let editor = cy
-            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .as('editor');
-        // make sure have text on output
-        editor.focus();
-        removeText(editor);
-        editor.type(codeCheckConsole);
-        if (isMacOSPlatform()) {
-            editor.type('{command}l');
-        } else {
-            editor.type('{ctrl}l');
-        }
-        cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
-        cy.wait(WAIT_TIME_OUT);
-    });
-});
+    return text;
+}
 
-describe('Check Completion of Editor', () => {
-    it('Check autocompletion', () => {
-        let editor = cy
-            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .as('editor');
-        editor.focus();
-        removeText(editor);
-        editor.type(codeTestEditor);
+// describe('Check Code Editor', () => {
 
-        // make sure have autocompletion dialog
-        editor.type('df.drop');
-        cy.get('.cm-tooltip-autocomplete').should('be.visible');
-        cy.get('.cm-read-more-btn').should('be.visible');
-        cy.get('.cm-read-more-btn').click();
-        cy.get('#code-doc-content').should('be.visible');
-        cy.get('.cm-read-more-btn').click();
-        cy.get('#code-doc-content').should('not.exist');
+//     before(() => {
+//         cy.visit('/');
+//         cy.wait(2000);
+//     })
 
-        // check data
-        let content = cy
-            .get('[data-cy="code-editor"] > .cm-editor > .cm-tooltip-autocomplete')
-            .as('autocomplete-content');
-        content.contains('drop_duplicates');
+//     beforeEach(() => {
+//         let editor = cy
+//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+//             .as('editor');
+//         editor.focus();
+//         removeText(editor);
+//         cy.wait(2000);
+//     })
 
-        // make sure keyboard still work
-        editor = cy.get('@editor');
-        editor.type('{backspace}');
-        editor.type('{esc}');
-        cy.get('.cm-tooltip-autocomplete').should('not.exist');
+//     it('Check print console', () => {
+//         let editor = cy
+//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+//             .as('editor');
+//         editor.focus();
+//         editor.type(codeCheckConsole);
+//         if (isMacOSPlatform()) {
+//             editor.type('{command}l');
+//         } else {
+//             editor.type('{ctrl}l');
+//         }
+//         cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
+//         cy.wait(WAIT_TIME_OUT);
+//     });
+// });
 
-        // make sure have signature tooltip
-        editor = cy.get('@editor');
-        editor.type('p');
-        editor.type('(');
-        cy.get('.cm-tooltip-signature').should('be.visible');
+// describe('Check Completion of Editor', () => {
 
-        editor = cy.get('@editor');
-        editor.type('{esc}');
-        cy.get('.cm-tooltip-signature').should('not.exist');
+//     before(() => {
+//         cy.visit('/');
+//         cy.wait(2000);
+//     })
 
-        editor = cy.get('@editor');
-        removeText(editor);
-        editor.type(codeTestDF);
-        if (isMacOSPlatform()) {
-            editor.type('{command}l');
-        } else {
-            editor.type('{ctrl}l');
-        }
-        editor.type('{enter}');
-        editor.type('df.drop("');
-        cy.get('.cm-tooltip-autocomplete').should('be.visible');
-        cy.wait(WAIT_TIME_OUT);
-    });
-});
+//     beforeEach(() => {
+//         let editor = cy
+//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+//             .as('editor');
+//         editor.focus();
+//         removeText(editor);
+//         cy.wait(2000);
+//     })
+
+//     it('Check autocompletion', () => {
+//         let editor = cy
+//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+//             .as('editor');
+//         editor.focus();
+//         editor.type(codeTestEditor);
+
+//         // make sure have autocompletion dialog
+//         editor.type('df.drop');
+//         cy.get('.cm-tooltip-autocomplete').should('be.visible');
+//         cy.get('.cm-read-more-btn').should('be.visible');
+//         cy.get('.cm-read-more-btn').click();
+//         cy.get('#code-doc-content').should('be.visible');
+//         cy.get('.cm-read-more-btn').click();
+//         cy.get('#code-doc-content').should('not.exist');
+
+//         // check data
+//         let content = cy
+//             .get('[data-cy="code-editor"] > .cm-editor > .cm-tooltip-autocomplete')
+//             .as('autocomplete-content');
+//         content.contains('drop_duplicates');
+
+//         // make sure keyboard still work
+//         editor = cy.get('@editor');
+//         editor.type('{backspace}');
+//         editor.type('{esc}');
+//         cy.get('.cm-tooltip-autocomplete').should('not.exist');
+
+//         // make sure have signature tooltip
+//         editor = cy.get('@editor');
+//         editor.type('p');
+//         editor.type('(');
+//         cy.get('.cm-tooltip-signature').should('be.visible');
+
+//         editor = cy.get('@editor');
+//         editor.type('{esc}');
+//         cy.get('.cm-tooltip-signature').should('not.exist');
+
+//         editor = cy.get('@editor');
+//         removeText(editor);
+//         editor.type(codeTestDF);
+//         if (isMacOSPlatform()) {
+//             editor.type('{command}l');
+//         } else {
+//             editor.type('{ctrl}l');
+//         }
+//         editor.type('{enter}');
+//         editor.type('df.drop("');
+//         cy.get('.cm-tooltip-autocomplete').should('be.visible');
+//         cy.wait(WAIT_TIME_OUT);
+//     });
+// });
 
 describe('Check DataFrame', () => {
+    before(() => {
+        cy.visit('/');
+        cy.wait(2000);
+    })
+
+    beforeEach(() => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        removeText(editor);
+        cy.wait(2000);
+    })
+
     it('Check dataframe', () => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
         editor.focus();
-        removeText(editor);
         editor.type(codeTestDF);
-        cy.get('#CodeOutputContent > :nth-child(2)').contains('New dataframe created');
+
+        cy.wait(1000)
+        editor = cy.get('@editor');
+        editor.type('{selectall}');
+        if (isMacOSPlatform()) {
+            editor.type('{command}k');
+            editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
+        }
+
+        cy.wait(3000)
+        
+        cy.get('#CodeOutputContent').contains('New dataframe created');
         cy.get('.MuiTableContainer-root').should('be.visible');
         // check columns name
         cy.get('.MuiTableHead-root > .MuiTableRow-root > :nth-child(2)').contains('Id');
@@ -124,10 +177,8 @@ describe('Check DataFrame', () => {
         cy.get('.MuiTableBody-root > :nth-child(1) > :nth-child(1)').contains('Id');
         cy.wait(WAIT_TIME_OUT);
     });
-});
 
-describe('Check DF Autocompletion', () => {
-    it('Check state of Editor', () => {
+    it('Check DF Autocompletion', () => {
         let lines = cy
             .get('.cm-theme-light > .cm-editor > .cm-scroller > .cm-content')
             .as('df-editor')
@@ -142,20 +193,32 @@ describe('Check DF Autocompletion', () => {
         cy.get('.cm-tooltip-autocomplete').should('be.visible');
         cy.get('.cm-completionLabel').contains('Alley');
         cy.wait(WAIT_TIME_OUT);
-    });
+    })
 });
 
 describe('Check data in Redux store', () => {
-    it('has expected CodeEditor state when typing', () => {
-        cy.visit('/').wait(10000);
+    before(() => {
+        cy.visit('/');
+        cy.wait(2000);
+    })
+
+    beforeEach(() => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
         editor.focus();
         removeText(editor);
+        cy.wait(2000);
+    })
+
+    it('has expected CodeEditor state when typing', () => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
         editor.type(codeTestEditorState);
 
-        cy.wait(5000);
+        cy.wait(3000);
         // check file save state | saved or not
         cy.window()
             .its('store')
@@ -213,7 +276,7 @@ describe('Check data in Redux store', () => {
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
         editor.focus();
-        removeText(editor);
+        // removeText(editor);
         editor.type(codeTestDF);
         if (isMacOSPlatform()) {
             editor.type('{command}l');
@@ -241,7 +304,22 @@ describe('Check data in Redux store', () => {
     });
 });
 
-describe('Check Matplotlib simple result', () => {
+describe('Check Rich output result', () => {
+
+    before(() => {
+        cy.visit('/');
+        cy.wait(2000);
+    })
+
+    beforeEach(() => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        removeText(editor);
+        cy.wait(2000);
+    })
+
     it('still render Matplotlib result', () => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
@@ -264,45 +342,15 @@ describe('Check Matplotlib simple result', () => {
 
         cy.wait(1000);
         cy.get('.MuiPaper-root > img').should('be.visible');
-
         cy.wait(WAIT_TIME_OUT);
     });
-});
 
-describe('Check Matplotlib the coherence of two signals', () => {
-    it('still render Matplotlib result', () => {
-        let editor = cy
-            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .as('editor');
-        editor.focus();
-        removeText(editor);
-        cy.wait(1000);
-        editor = cy.get('@editor');
-        editor.type(codeTestMatplotlibTheCoherenceOfTwoSignals);
-        editor = cy.get('@editor');
-        editor.type('{selectall}');
-        if (isMacOSPlatform()) {
-            editor.type('{command}k');
-            editor.type('{command}l');
-        } else {
-            editor.type('{ctrl}k');
-            editor.type('{ctrl}l');
-        }
-
-        cy.wait(1000);
-        cy.get('.MuiPaper-root > img').should('be.visible');
-        cy.wait(WAIT_TIME_OUT);
-    });
-});
-
-describe('Check Plotly', () => {
     it('still render Plotly result', () => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
         editor.focus();
-        removeText(editor);
-        cy.wait(1000);
+        cy.wait(2000);
         editor = cy.get('@editor');
         editor.type(codeTestPlotly);
         editor = cy.get('@editor');
@@ -319,15 +367,12 @@ describe('Check Plotly', () => {
         cy.get('.MuiPaper-root > .js-plotly-plot').should('be.visible');
         cy.wait(WAIT_TIME_OUT);
     });
-});
 
-describe('Check Audio', () => {
     it('still render Audio', () => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
         editor.focus();
-        removeText(editor);
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type(codeTestAudio);
@@ -347,15 +392,12 @@ describe('Check Audio', () => {
 
         cy.wait(WAIT_TIME_OUT);
     });
-});
 
-describe('Check Video', () => {
-    it('still render Audio', () => {
+    it('still render Video', () => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
         editor.focus();
-        removeText(editor);
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type(codeTestVideo);
@@ -377,16 +419,50 @@ describe('Check Video', () => {
     });
 });
 
-describe('Check Save State', () => {
-    it('still save state', () => {
+describe('Check Save Events', () => {
+    before(() => {
+        cy.visit('/');
+        cy.wait(2000);
+    })
+
+    beforeEach(() => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
         editor.focus();
         removeText(editor);
+        cy.wait(2000);
+    })
+
+    it('still save file successfully after timeout', () => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
         cy.wait(1000);
         editor = cy.get('@editor');
-        editor.type(codeTestSaveState);
+        const code = randomString(); 
+        editor.type(`print("${code}")`);
+        cy.wait(1000);
+        editor = cy.get('@editor');
+        cy.wait(SAVE_TIMEOUT_DURATION);
+        cy.wait(2000)
+        cy.reload();
+        cy.wait(1000);
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code)
+
+        cy.wait(WAIT_TIME_OUT);
+    });
+
+    it('still save events on reload', () => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        cy.wait(1000);
+        editor = cy.get('@editor');
+        const code = randomString();
+        editor.type(`print("${code}")`);
         cy.wait(1000);
         editor = cy.get('@editor');
         editor.type('{selectall}');
@@ -398,17 +474,47 @@ describe('Check Save State', () => {
             editor.type('{ctrl}l');
         }
 
-        cy.wait(SAVE_STATE_DURATION);
+        cy.wait(3000);
         cy.reload();
-        cy.wait(1000);
-        cy.get('.MuiPaper-root > img').should('be.visible');
-        cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
+        cy.wait(2000);
+        cy.get('#CodeOutputContent > :nth-child(1)').contains(code);
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code)
 
         cy.wait(WAIT_TIME_OUT);
-    });
+    })
+
+    it ('still save events on file change', () => {
+        let editor = cy
+            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .as('editor');
+        editor.focus();
+        cy.wait(1000);
+        editor = cy.get('@editor');
+        const code = randomString();
+        editor.type(`print("${code}")`);
+        cy.wait(1000);
+        editor = cy.get('@editor');
+        editor.type('{selectall}');
+        if (isMacOSPlatform()) {
+            editor.type('{command}k');
+            editor.type('{command}l');
+        } else {
+            editor.type('{ctrl}k');
+            editor.type('{ctrl}l');
+        }
+
+        cy.wait(2000);
+        // This is hacky
+        cy.get('[toolbarname="data_loader.py"]').click()
+        cy.wait(2000)
+        cy.get('[toolbarname="main.py"]').click()
+        cy.wait(2000);
+        cy.get('#CodeOutputContent > :nth-child(1)').contains(code);
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code)
+
+        cy.wait(WAIT_TIME_OUT);
+    })
+
 });
 
-const removeText = (editor) => {
-    editor.type('{selectall}');
-    editor.type('{del}');
-};
+

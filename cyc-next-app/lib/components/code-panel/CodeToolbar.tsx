@@ -64,6 +64,7 @@ const CodeToolbar = () => {
         return (
             <Fragment key={id}>
                 <FileNameTab
+                    toolbarName={name}
                     selected={id == inViewID}
                     component='span'
                     onClick={() => onClick(id)}
@@ -71,17 +72,17 @@ const CodeToolbar = () => {
                     onMouseEnter={(event) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
                         let newDisplay = { ...displayState };
-                        newDisplay[id] = { display: 'inline-block' };
+                        newDisplay[id] = { display: "inline-block" };
                         /** need to do the following to avoid race condition */
                         Object.keys(newDisplay).map((key) => {
-                            key !== id ? (newDisplay[key] = { display: 'none' }) : null;
+                            key !== id ? (newDisplay[key] = { display: "none" }) : null;
                         });
                         setDisplayState(newDisplay);
                     }}
                     onMouseLeave={(event) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
                         let newDisplay = { ...displayState };
-                        newDisplay[id] = { display: 'none' };
+                        newDisplay[id] = { display: "none" };
                         setDisplayState(newDisplay);
                     }}
                 >
@@ -92,7 +93,7 @@ const CodeToolbar = () => {
                             style={
                                 id in displayState && id !== executorID
                                     ? displayState[id]
-                                    : { display: 'none' }
+                                    : { display: "none" }
                             }
                             onClick={(event) => onClose(event, id)}
                         />
