@@ -37,6 +37,8 @@ import { useSelector, useDispatch } from "react-redux";
 import store, { RootState } from "../../../redux/store";
 import { ifElse, ifElseDict } from "../libs";
 import { getLastUpdate, hasDefinedStats } from "./libDataFrameManager";
+import { ICodeResultMessage } from "../../interfaces/ICodeEditor";
+import { addResult } from "../../../redux/reducers/CodeEditorRedux";
 
 const DataFrameManager = () => {
     const dispatch = useDispatch();
@@ -75,60 +77,35 @@ const DataFrameManager = () => {
         return message;
     };
 
+    const MAX_POINT_COUNT = 10000;
     const sendColumnHistogramPlotRequest = (
         df_id: string,
         col_name: string
     ) => {
         // let content: string = `px.histogram(${df_id}, x="${col_name}")`;
         let content: string = `
-import io, base64, simplejson as json
-from libs.json_serializable import JsonSerializable
-def _tmp():
+def _tmp():    
     if ${df_id}["${col_name}"].dtypes not in ["object"]:
-        fig = px.histogram(${df_id}, x="${col_name}")
-        fig.update_layout({
-            'showlegend': False,
-            #'width': 600, 
-            #'height': 400, 
-            'margin': {'b': 0, 'l': 0, 'r': 0, 't': 0}, 
-            'xaxis': {'showticklabels': False},
-            'yaxis': {'showticklabels': False},
-            'hoverlabel': {
-                'bgcolor': "rgba(0,0,0,0.04)", 
-                'bordercolor': "rgba(0,0,0,0.04)", 
-                'font': {'color': "rgba(0,0,0,0.6)", 'size': 12 }
-        }})
-        return JsonSerializable({"mime_type": "image/plotly+json", "data": json.loads(fig.to_json())})
-        fig.update_yaxes(visible=False, showticklabels=False)
-        fig.update_xaxes(visible=False, showticklabels=False)
-        #sns.set(rc = {'figure.figsize':(250,50)})
-        #sns.boxplot(x="${col_name}", data=${df_id})
-        #buffer = io.BytesIO()
-        #plt.savefig(buffer, format='png')        
-        #buffer.seek(0)
-        # return JsonSerializable({"mime_type": "image/png", "data": base64.b64encode(buffer.read())})
+        _tmp_df = ${df_id}.sample(${MAX_POINT_COUNT})
+        fig = px.histogram(_tmp_df, x="${col_name}")
     else:
-        #fig = px.histogram(${df_id}, x="${col_name}")
         fig = px.bar(${df_id}["${col_name}"].value_counts()[:])
-        fig.update_layout({
-            'showlegend': False,
-            #'width': 600, 
-            #'height': 400, 
-            'margin': {'b': 0, 'l': 0, 'r': 0, 't': 0}, 
-            'xaxis': {'showticklabels': False},
-            'yaxis': {'showticklabels': False},
-            'hoverlabel': {
-                'bgcolor': "rgba(0,0,0,0.04)", 
-                'bordercolor': "rgba(0,0,0,0.04)", 
-                'font': {'color': "rgba(0,0,0,0.6)", 'size': 12 }
-        }})
-        
-        fig.update_yaxes(visible=False, showticklabels=False)
-        fig.update_xaxes(visible=False, showticklabels=False)
-        #buffer = io.BytesIO()
-        #fig.write_image(buffer, format="png")
-        #buffer.seek(0)
-        return JsonSerializable({"mime_type": "image/plotly+json", "data": json.loads(fig.to_json())})
+    fig.update_layout({
+        'showlegend': False,
+        #'width': 600, 
+        #'height': 400, 
+        'margin': {'b': 0, 'l': 0, 'r': 0, 't': 0}, 
+        'xaxis': {'showticklabels': False},
+        'yaxis': {'showticklabels': False},
+        'hoverlabel': {
+            'bgcolor': "rgba(0,0,0,0.04)", 
+            'bordercolor': "rgba(0,0,0,0.04)", 
+            'font': {'color': "rgba(0,0,0,0.6)", 'size': 12 }
+    }})
+    
+    fig.update_yaxes(visible=False, showticklabels=False)
+    fig.update_xaxes(visible=False, showticklabels=False)
+    return JsonSerializable({"mime_type": "image/plotly+json", "data": json.loads(fig.to_json())})
 _tmp()`;
         let message = createMessage(
             CommandName.plot_column_histogram,
@@ -147,11 +124,24 @@ _tmp()`;
         col_name: string
     ) => {
         let content: string = `
-import io, base64, simplejson as json
-from libs.json_serializable import JsonSerializable
 def _tmp():
     if ${df_id}["${col_name}"].dtypes not in ["object"]:
-        fig = px.box(${df_id}, x="${col_name}")
+        _tmp_df = ${df_id}.sample(${MAX_POINT_COUNT})
+        fig = px.box(_tmp_df, x="${col_name}")
+        fig.update_layout({
+            'showlegend': False,
+            #'width': 600, 
+            #'height': 400, 
+            'margin': {'b': 0, 'l': 0, 'r': 0, 't': 0}, 
+            'xaxis': {'showticklabels': False},
+            'yaxis': {'showticklabels': False},
+            'hoverlabel': {
+                'bgcolor': "rgba(0,0,0,0.04)", 
+                'bordercolor': "rgba(0,0,0,0.04)", 
+                'font': {'color': "rgba(0,0,0,0.6)", 'size': 12 }
+        }})    
+        fig.update_yaxes(visible=False, showticklabels=False)
+        fig.update_xaxes(visible=False, showticklabels=False)
         return JsonSerializable({"mime_type": "image/plotly+json", "data": json.loads(fig.to_json())})
     else:
         return None
@@ -394,8 +384,20 @@ _tmp()`;
                     "DFManager got results for command ",
                     message.command_name
                 );
-                if (message.error == true) {
-                    // props.recvCodeOutput(message); //TODO move this to redux
+                if (message.type === ContentType.STRING || message.error === true) {
+                    // let inViewID = store.getState().projectManager.inViewID;
+                    // if (inViewID) {
+                    //     let result: ICodeResultMessage = {
+                    //         inViewID: inViewID,
+                    //         content: message.content,
+                    //         type: message.type,
+                    //         subType: message.sub_type,
+                    //         metadata: message.metadata,
+                    //     };
+                    //     dispatch(addResult(result));
+                    // }
+                    //TODO: display this on CodeOutput
+                    console.log('DataFrameManager: got text output ', message);
                 } else if (
                     message.command_name == CommandName.update_df_status
                 ) {

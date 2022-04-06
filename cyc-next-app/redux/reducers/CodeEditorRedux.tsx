@@ -283,59 +283,55 @@ export const CodeEditorRedux = createSlice({
             let resultMessage: ICodeResultMessage = action.payload;
             let inViewID = resultMessage.inViewID;
             let content: object | string | null = resultMessage.content;
-            let lineRange: ILineRange = ifElseDict(
-                resultMessage.metadata,
-                "line_range"
-            );
+            let lineRange: ILineRange = resultMessage.metadata["line_range"];
+            // console.log('CodeEditorRedux addResult: ', resultMessage);    
             /* only create result when content has something */
-            if (content != null && content !== "") {
-                if (lineRange != null) {
-                    /** TODO: double check this. for now only associate fromLine to result */
-                    let lineNumber = lineRange.fromLine;
-                    let codeLine: ICodeLine =
-                        state.codeLines[inViewID][lineNumber];
-                    /** text result will be appended within each execution. The output will be cleared at the
-                     * beginning of each execution */
-                    if (resultMessage.type === ContentType.STRING) {
-                        if (codeLine.textOutput != null) {
-                            codeLine.textOutput.content = [
-                                codeLine.textOutput.content,
-                                content,
-                            ].join("");
-                        } else {
-                            codeLine.textOutput = {
-                                type: resultMessage.type,
-                                subType: resultMessage.subType,
-                                content: content,
-                                // msg_id: resultMessage.metadata.msg_id,
-                            };
-                        }
-                        state.maxTextOutputOrder += 1;                        
-                        codeLine.textOutput.order = state.maxTextOutputOrder;                        
-                        state.textOutputUpdateCount += 1;
-                    } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
-                        let content = resultMessage.content;
-                        if (
-                            resultMessage?.subType ===
-                            SubContentType.APPLICATION_JSON
-                        ) {
-                            try {
-                                content = JSON.parse(content);
-                            } catch (error) {
-                                console.log(
-                                    "CodeEditorRedux: result is not a json string ",
-                                    content
-                                );
-                            }
-                        }
-                        codeLine.result = {
+            if ((lineRange != null && content) != null && content !== "") {
+                /** TODO: double check this. for now only associate fromLine to result */
+                let lineNumber = lineRange.fromLine;
+                let codeLine: ICodeLine =
+                    state.codeLines[inViewID][lineNumber];
+                /** text result will be appended within each execution. The output will be cleared at the
+                 * beginning of each execution */
+                if (resultMessage.type === ContentType.STRING) {
+                    if (codeLine.textOutput != null) {
+                        codeLine.textOutput.content = [
+                            codeLine.textOutput.content,
+                            content,
+                        ].join("");
+                    } else {
+                        codeLine.textOutput = {
                             type: resultMessage.type,
                             subType: resultMessage.subType,
                             content: content,
-                            msg_id: resultMessage.metadata.msg_id,
+                            // msg_id: resultMessage.metadata.msg_id,
                         };
-                        state.resultUpdateCount += 1;
                     }
+                    state.maxTextOutputOrder += 1;
+                    codeLine.textOutput.order = state.maxTextOutputOrder;
+                    state.textOutputUpdateCount += 1;
+                } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
+                    let content = resultMessage.content;
+                    if (
+                        resultMessage?.subType ===
+                        SubContentType.APPLICATION_JSON
+                    ) {
+                        try {
+                            content = JSON.parse(content);
+                        } catch (error) {
+                            console.log(
+                                "CodeEditorRedux: result is not a json string ",
+                                content
+                            );
+                        }
+                    }
+                    codeLine.result = {
+                        type: resultMessage.type,
+                        subType: resultMessage.subType,
+                        content: content,
+                        msg_id: resultMessage.metadata.msg_id,
+                    };
+                    state.resultUpdateCount += 1;
                 }
             }
         },
