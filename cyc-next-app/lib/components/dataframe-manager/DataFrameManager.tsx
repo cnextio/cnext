@@ -129,23 +129,23 @@ def _tmp():
     else:
         return None
 _tmp()`;
-        //         let content: string = `
-        // import io, base64, simplejson as json
-        // import matplotlib.pyplot as plt
-        // import seaborn as sns
-        // from libs.json_serializable import JsonSerializable
-        // def _tmp():
-        //     if ${df_id}["${col_name}"].dtypes not in ["object"]:
-        //         sns.set(rc = {'figure.figsize':(250,50)})
-        //         sns.boxplot(x="${col_name}", data=${df_id})
-        //         buffer = io.BytesIO()
-        //         plt.savefig(buffer, format='png')
-        //         buffer.seek(0)
-        //         return JsonSerializable({"mime_type": "image/png", "data": base64.b64encode(buffer.read())})
-        //     else:
-        //         return None
-        // _tmp()
-        // `;
+        let content: string = `
+        import io, base64, simplejson as json
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        from libs.json_serializable import JsonSerializable
+        def _tmp():
+            if ${df_id}["${col_name}"].dtypes not in ["object"]:
+                sns.set(rc = {'figure.figsize':(250,50)})
+                sns.boxplot(x="${col_name}", data=${df_id})
+                buffer = io.BytesIO()
+                plt.savefig(buffer, format='png')
+                buffer.seek(0)
+                return JsonSerializable({"mime_type": "image/png", "data": base64.b64encode(buffer.read())})
+            else:
+                return None
+        _tmp()
+        `;
 
         let message = createMessage(CommandName.plot_column_quantile, content, 1, {
             df_id: df_id,
