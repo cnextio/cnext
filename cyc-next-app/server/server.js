@@ -187,43 +187,12 @@ try {
     /** */
 
     const initialize = () => {
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: CodeEditor,
-        //         content:
-        //             `import os, os.chdir('${config.projects.open_projects[0]['path']}`,
-        //     })
-        // );
-
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
                 content: `import os, sys; sys.path.extend(['${config.path_to_cycdataframe_lib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
             })
         );
-
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: CodeEditor,
-        //         content: `import os; os.chdir('${config.projects.open_projects[0]["path"]}')`,
-        //     })
-        // );
-
-        // console.log(config.projects.open_projects[0]["path"]);
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: CodeEditor,
-        //         content:
-        //             'import io, base64, simplejson as json, libs.json_serializable.JsonSerializable, plotly.express as px, plotly.io as pio; pio.renderers.default = "json"',
-        //     })
-        // );
-
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: CodeEditor,
-        //         content: 'import cycdataframe.cycdataframe as cd',
-        //     })
-        // );
 
         nonCodeExecutor.send2executor(
             JSON.stringify({
