@@ -30,13 +30,8 @@ import store from "../../../redux/store";
 
 const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
-        <SidebarListItem
-            id={"sidebar_" + icon.name}
-            button
-            key={icon.name}
-            selected={selectedIcon === icon.name}
-        >
-            <StyledSidebarButton onClick={() => handleClick(icon.name)}>
+        <SidebarListItem button key={icon.name} selected={selectedIcon === icon.name}>
+            <StyledSidebarButton id={"sidebar_" + icon.name} onClick={() => handleClick(icon.name)}>
                 {icon.component}
             </StyledSidebarButton>
         </SidebarListItem>
