@@ -318,8 +318,10 @@ const FileManager = () => {
                     const codeLines = state.codeEditor.codeLines[filePath];
                     // Avoid to save the text/html result because maybe it's audio/video files.
                     // Save these files make bad performance.
-                    const codeLinesSaveState = codeLines.filter(
-                        (codeLine) => codeLine.result?.subType !== SubContentType.TEXT_HTML
+                    const codeLinesSaveState = codeLines.map((codeLine) =>
+                        codeLine.result?.subType === SubContentType.TEXT_HTML
+                            ? { ...codeLine, result: null }
+                            : codeLine
                     );
                     const timestamp = state.codeEditor.timestamp[filePath];
                     const projectPath = state.projectManager.activeProject?.path;
