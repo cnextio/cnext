@@ -107,7 +107,7 @@ class MessageHandler(BaseMessageHandler):
             # Ipython return rich output as mime types
             # FIXME: is there situation where there are more than one item. if so what should we do?
             for key, content in msg_ipython.content['data'].items():
-                if key == SubContentType.APPLICATION_JSON and self._result_is_plotly_fig(content):
+                if (key == 'application/vnd.plotly.v1+json') or (key == SubContentType.APPLICATION_JSON and self._result_is_plotly_fig(content)):
                     message.sub_type = SubContentType.IMAGE_PLOTLY
                     message.content = content
                 elif key == SubContentType.TEXT_HTML:

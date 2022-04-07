@@ -3,15 +3,11 @@ export const codeCheckConsole = `print('test')`;
 export const codeTestEditorState = `print('test1')
 print('test2')`;
 
-export const codeTestDF = `import pandas as pd
+export const codeTestDF = `import cycdataframe.cycdataframe as cd
 df = cd.DataFrame('data/housing_data/data.csv')`;
 
-export const codeTestEditor = `import pandas as pd
-cdf = cd.DataFrame(pd.read_csv('data/housing_data/data.csv'))
-df = pd.DataFrame()
-`;
-
-export const codeTestMatplotlibLine = `plt.plot([5,6], [7,8])`;
+export const codeTestMatplotlibLine = `import matplotlib.pyplot as plt
+plt.plot([5,6], [7,8])`;
 
 export const codeTestMatplotlibTheCoherenceOfTwoSignals = `import numpy as np
 import matplotlib.pyplot as plt
@@ -50,5 +46,6 @@ Audio('/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cyc-next-app/cypress/do
 export const codeTestVideo = `from IPython.display import Video
 Video('http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4')`;
 
-export const codeTestSaveState = `print("test")
+export const codeTestSaveState = `import matplotlib.pyplot as plt
+print("test")
 plt.plot([5,6], [7,8])`;
