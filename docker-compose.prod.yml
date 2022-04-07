@@ -2,8 +2,8 @@ version: '3'
 
 services:
     web:
-        # image: image
-        build: .
+        image: ${IMAGE_NAME}:${IMAGE_TAG}
+        # build: .
         container_name: web
         working_dir: /app/cyc-next-app
         ports:
@@ -11,8 +11,8 @@ services:
         command: npm start
 
     server:
-        # image: image
-        build: .
+        image: ${IMAGE_NAME}:${IMAGE_TAG}
+        # build: .
         container_name: server
         working_dir: /app/cyc-next-app/server
         volumes:
