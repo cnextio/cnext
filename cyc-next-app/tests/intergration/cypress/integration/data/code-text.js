@@ -1,8 +1,5 @@
 export const codeCheckConsole = `print('test')`;
 
-export const codeTestEditorState = `print('test1')
-print('test2')`;
-
 export const codeTestDF = `import cycdataframe.cycdataframe as cd
 df = cd.DataFrame('data/housing_data/data.csv')`;
 
@@ -45,7 +42,3 @@ Audio('/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cyc-next-app/cypress/do
 
 export const codeTestVideo = `from IPython.display import Video
 Video('http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4')`;
-
-export const codeTestSaveState = `import matplotlib.pyplot as plt
-print("test")
-plt.plot([5,6], [7,8])`;
