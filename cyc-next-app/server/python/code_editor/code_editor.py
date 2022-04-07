@@ -110,6 +110,7 @@ class MessageHandler(BaseMessageHandler):
                 if (key == 'application/vnd.plotly.v1+json') or (key == SubContentType.APPLICATION_JSON and self._result_is_plotly_fig(content)):
                     message.sub_type = SubContentType.IMAGE_PLOTLY
                     message.content = content
+                    break
                 elif key == SubContentType.TEXT_HTML:
                     message.content = content
                     message.sub_type = key
