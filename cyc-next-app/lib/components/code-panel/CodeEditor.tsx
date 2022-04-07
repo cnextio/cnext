@@ -172,26 +172,6 @@ const CodeEditor = () => {
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
                     handleResultData(codeOutput);
-                    // if (codeOutput.type === ContentType.STRING || codeOutput.error === true) {
-                    //     // recvCodeOutput(codeOutput); //TODO: move this to redux
-                    //     handleResultData(codeOutput);
-                    // } else {
-                    //     if (codeOutput.type === ContentType.PANDAS_DATAFRAME) {
-                    //         // console.log("CodeEditor: dispatch tableData");
-                    //         // dispatch(setTableData(codeOutput.content));
-                    //     } else if (codeOutput.type === ContentType.RICH_OUTPUT) {
-                    //         handleResultData(codeOutput);
-                    //     } else if (codeOutput.type === ContentType.NONE) {
-                    //         console.log(
-                    //             "CodeEditor: dispatch output with none content type :",
-                    //             codeOutput
-                    //         );
-                    //     } else {
-                    //         console.log("CodeEditor: dispatch text output:", codeOutput);
-                    //         // recvCodeOutput(codeOutput);
-                    //         handleResultData(codeOutput);
-                    //     }
-                    // }
                     let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
                         lineRange: codeOutput.metadata.line_range,

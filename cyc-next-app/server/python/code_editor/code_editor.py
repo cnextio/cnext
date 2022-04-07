@@ -85,14 +85,15 @@ class MessageHandler(BaseMessageHandler):
         elif self._is_execute_result(msg_ipython.header):
             # The case return video/ audio from IPython
             if type(msg_ipython.content['data']) is dict:
-                if 'text/html' in msg_ipython.content['data']:
+                if SubContentType.TEXT_HTML in msg_ipython.content['data']:
                     message.type = ContentType.RICH_OUTPUT
                     message.sub_type = SubContentType.TEXT_HTML
-                    message.content = msg_ipython.content['data']['text/html']
+                    content = msg_ipython.content['data'][SubContentType.TEXT_HTML]
+                    message.content = content
             else:
                 message.type = ContentType.STRING
                 message.content = msg_ipython.content['data']
-            log.info('Result content: %s' % message.content)
+            # log.info('Result content: %s' % message.content)
             return message
         elif self._is_stream_result(msg_ipython.header):
             message.type = ContentType.STRING
@@ -105,20 +106,22 @@ class MessageHandler(BaseMessageHandler):
             message.type = ContentType.RICH_OUTPUT
             # Ipython return rich output as mime types
             # FIXME: is there situation where there are more than one item. if so what should we do?
-            for key, value in msg_ipython.content['data'].items():
-                if key == 'application/vnd.plotly.v1+json' or (key == 'application/json' and self._result_is_plotly_fig(value)):
+            for key, content in msg_ipython.content['data'].items():
+                if (key == 'application/vnd.plotly.v1+json') or (key == SubContentType.APPLICATION_JSON and self._result_is_plotly_fig(content)):
                     message.sub_type = SubContentType.IMAGE_PLOTLY
-                    message.content = value
-                    log.info('Result content: %s %s' % (key, message.content))
-                    break
-                else:
-                    message.content = value
+                    message.content = content
+                elif key == SubContentType.TEXT_HTML:
+                    message.content = content
                     message.sub_type = key
-                    log.info('Result content: %s %s' % (key, message.content))
+                else:
+                    message.content = content
+                    message.sub_type = key
+            log.info('Result content: %s %s %s' %
+                     (msg_ipython.header['msg_type'], key, message.content))
             return message
 
     def handle_message(self, message):
-        """ 
+        """
             Use Ipython Kernel to handle message
         """
         log.info('message: {}'.format(message))

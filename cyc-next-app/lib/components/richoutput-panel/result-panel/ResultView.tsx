@@ -15,8 +15,8 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
 });
 
-const ResultContent = React.memo(({ codeResult }) => {    
-// const ResultContent = ({ codeResult }) => {
+const ResultContent = React.memo(({ codeResult }) => {
+    // const ResultContent = ({ codeResult }) => {
     const setLayout = (
         data: object | string | any,
         width: number | null = null,
@@ -39,32 +39,35 @@ const ResultContent = React.memo(({ codeResult }) => {
             return null;
         }
     };
-    // const codeResult = props.codeResult;
-    return (
-        <Fragment>
-            {codeResult?.result?.subType === SubContentType.IMAGE_PLOTLY &&
-                React.createElement(
-                    PlotlyWithNoSSR,
-                    setLayout(codeResult?.result?.content)
-                )}
-            {codeResult?.result?.subType === SubContentType.APPLICATION_JSON &&
-                JSON.stringify(codeResult?.result?.content)}
-            {codeResult?.result?.subType != SubContentType.IMAGE_PLOTLY &&
-                codeResult?.result?.subType?.includes("image") && (
-                    <img
-                        src={
-                            "data:" +
-                            codeResult?.result?.subType +
-                            ";base64," +
-                            codeResult?.result?.content
-                        }
-                    />
-                )}
-            {/* Display video/ audio */}
-            {codeResult?.result?.subType === SubContentType.TEXT_HTML &&
-                ReactHtmlParser(codeResult?.result?.content)}
-        </Fragment>
-    );
+
+    const createResultView = () => {
+        if (codeResult?.result?.subType === SubContentType.IMAGE_PLOTLY) {
+            return React.createElement(
+                PlotlyWithNoSSR,
+                setLayout(codeResult?.result?.content)
+            );
+        } else if (
+            codeResult?.result?.subType === SubContentType.APPLICATION_JSON
+        ) {
+            return JSON.stringify(codeResult?.result?.content);
+        } else if (codeResult?.result?.subType?.includes("image")) {
+            // image/png, img/svg+xml, img/jpg ...
+            return (
+                <img
+                    src={
+                        "data:" +
+                        codeResult?.result?.subType +
+                        ";base64," +
+                        codeResult?.result?.content
+                    }
+                />
+            );
+        } else if (codeResult?.result?.subType === SubContentType.TEXT_HTML) {
+            return ReactHtmlParser(codeResult?.result?.content.toString("base64"));
+        }
+    };
+
+    return createResultView();
 });
 
 const ResultView = (props: any) => {
@@ -80,7 +83,6 @@ const ResultView = (props: any) => {
     const serverSynced = useSelector(
         (state: RootState) => state.projectManager.serverSynced
     );
-    
 
     const rowHeight = 50; //unit: px
     const screenSize = 2000; //unit: px;
