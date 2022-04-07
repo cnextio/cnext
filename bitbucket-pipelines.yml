@@ -21,6 +21,16 @@ pipelines:
                       - docker-compose up --exit-code-from cypress
                   services:
                       - docker
+    branches:
+        master:
+            - step:
+                  size: 2x
+                  name: 'Build and Test'
+                  script:
+                      - echo "Your build and test goes here..."
+                      - docker-compose up --exit-code-from cypress
+                  services:
+                      - docker
 
 definitions:
     services:
