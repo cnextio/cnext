@@ -436,8 +436,8 @@ export const CodeEditorRedux = createSlice({
             for (let codeLine of state.codeLines[inViewID]) {
                 codeLine.result = undefined;
                 codeLine.textOutput = undefined;
-                state.textOutputUpdateCount += 1;
-                state.resultUpdateCount += 1;
+                state.textOutputUpdateCount = 0;
+                state.resultUpdateCount = 0;
             }
         },
     },
