@@ -1,7 +1,6 @@
 import {
     codeCheckConsole,
     codeTestDF,
-    codeTestEditor,
     codeTestEditorState,
     codeTestMatplotBar,
     codeTestMatplotlibLine,
@@ -37,9 +36,6 @@ describe('Check Code Editor', () => {
     before(() => {
         cy.visit('/');
         cy.wait(2000);
-
-        cy.get("#sidebar_ClearState").click();
-        cy.wait(2000);
     })
 
     beforeEach(() => {
@@ -65,43 +61,21 @@ describe('Check Code Editor', () => {
         cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
         cy.wait(WAIT_TIME_OUT);
     });
-    
-});
-
-describe('Check Completion of Editor', () => {
-
-    before(() => {
-        cy.visit('/');
-        cy.wait(2000);
-
-        cy.get("#sidebar_ClearState").click();
-        cy.wait(2000);
-    })
-
-    beforeEach(() => {
-        let editor = cy
-            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .as('editor');
-        editor.focus();
-        removeText(editor);
-        cy.wait(2000);
-    })
 
     it('Check autocompletion', () => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
         editor.focus();
-        editor.type(codeTestEditor);
+        editor.type(codeTestDF);
 
         // make sure have autocompletion dialog
+        editor.type('{enter}')
         editor.type('df.drop');
         cy.get('.cm-tooltip-autocomplete').should('be.visible');
         cy.get('.cm-read-more-btn').should('be.visible');
         cy.get('.cm-read-more-btn').click();
         cy.get('#code-doc-content').should('be.visible');
-        cy.get('.cm-read-more-btn').click();
-        cy.get('#code-doc-content').should('not.exist');
 
         // check data
         let content = cy
@@ -138,12 +112,16 @@ describe('Check Completion of Editor', () => {
         cy.get('.cm-tooltip-autocomplete').should('be.visible');
         cy.wait(WAIT_TIME_OUT);
     });
+    
 });
 
 describe('Check DataFrame', () => {
     before(() => {
         cy.visit('/');
         cy.wait(2000);
+
+        // cy.get("#sidebar_ClearState", {timeout: 2000}).click();
+        // cy.wait(2000);
     })
 
     beforeEach(() => {
@@ -159,12 +137,11 @@ describe('Check DataFrame', () => {
         let editor = cy
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
-        editor.focus();
-        editor.type(codeTestDF);
 
-        cy.wait(1000)
-        editor = cy.get('@editor');
-        editor.type('{selectall}');
+        editor.focus();
+        cy.get('@editor').type(codeTestDF);
+        cy.get('@editor').type('{selectall}');
+
         if (isMacOSPlatform()) {
             editor.type('{command}k');
             editor.type('{command}l');
@@ -175,13 +152,47 @@ describe('Check DataFrame', () => {
 
         cy.wait(3000)
         
-        cy.get('#CodeOutputContent').contains('New dataframe created');
         cy.get('.MuiTableContainer-root').should('be.visible');
         // check columns name
         cy.get('.MuiTableHead-root > .MuiTableRow-root > :nth-child(2)').contains('Id');
 
         cy.get('*[class^="StyledComponents__StyledTableViewHeader"] > :nth-child(2)').click();
         cy.get('.MuiTableBody-root > :nth-child(1) > :nth-child(1)').contains('Id');
+
+        cy.window()
+            .its('store')
+            .invoke('getState')
+            .its('dataFrames')
+            .its('activeDataFrame')
+            .then((activeDataFrame) => {
+                assert.equal(activeDataFrame, "df");
+            });
+
+        cy.window()
+            .its('store')
+            .invoke('getState')
+            .its('dataFrames')
+            .its('tableData')
+            .then((tableData) => {
+                assert.any(tableData, "df");
+            });    
+
+        // cy.window()
+        //     .its('store')
+        //     .invoke('getState')
+        //     .its('dataFrames')
+        //     .its('activeDataFrame')
+        //     .its('df')
+        //     .its('columns')
+        //     .then((activeDataFrame) => {
+        //         let i = 0;
+        //         for (let key in columns) {
+        //             i++;
+        //         }
+        //         // check have 20 colums
+        //         assert.equal(i, 20);
+        //     });
+
         cy.wait(WAIT_TIME_OUT);
     });
 
@@ -203,113 +214,113 @@ describe('Check DataFrame', () => {
     })
 });
 
-describe('Check data in Redux store', () => {
-    before(() => {
-        cy.visit('/');
-        cy.wait(2000);
-    })
+// describe('Check data in Redux store', () => {
+//     before(() => {
+//         cy.visit('/');
+//         cy.wait(2000);
+//     })
 
-    beforeEach(() => {
-        let editor = cy
-            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .as('editor');
-        editor.focus();
-        removeText(editor);
-        cy.wait(2000);
-    })
+//     beforeEach(() => {
+//         let editor = cy
+//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+//             .as('editor');
+//         editor.focus();
+//         removeText(editor);
+//         cy.wait(2000);
+//     })
 
-    it('has expected CodeEditor state when typing', () => {
-        let editor = cy
-            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .as('editor');
-        editor.focus();
-        editor.type(codeTestEditorState);
+//     it('has expected CodeEditor state when typing', () => {
+//         let editor = cy
+//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+//             .as('editor');
+//         editor.focus();
+//         editor.type(codeTestEditorState);
 
-        cy.wait(3000);
-        // check file save state | saved or not
-        cy.window()
-            .its('store')
-            .invoke('getState')
-            .its('codeEditor.fileSaved')
-            .should('equal', true);
+//         cy.wait(3000);
+//         // check file save state | saved or not
+//         cy.window()
+//             .its('store')
+//             .invoke('getState')
+//             .its('codeEditor.fileSaved')
+//             .should('equal', true);
 
-        // check codeText
-        cy.window()
-            .its('store')
-            .invoke('getState')
-            .its('codeEditor')
-            .its('codeText')
-            .then((result) => {
-                for (let key in result) {
-                    cy.log(key);
-                    assert.deepEqual(result[key], [`print('test1')`, `print('test2')`]);
-                }
-            });
+//         // check codeText
+//         cy.window()
+//             .its('store')
+//             .invoke('getState')
+//             .its('codeEditor')
+//             .its('codeText')
+//             .then((result) => {
+//                 for (let key in result) {
+//                     cy.log(key);
+//                     assert.deepEqual(result[key], [`print('test1')`, `print('test2')`]);
+//                 }
+//             });
 
-        // check length code line
-        cy.window()
-            .its('store')
-            .invoke('getState')
-            .its('codeEditor')
-            .its('codeLines')
-            .then((result) => {
-                for (let key in result) {
-                    cy.log(key);
-                    assert.equal(result[key].length, 2);
-                }
-            });
-        cy.wait(WAIT_TIME_OUT);
-    });
+//         // check length code line
+//         cy.window()
+//             .its('store')
+//             .invoke('getState')
+//             .its('codeEditor')
+//             .its('codeLines')
+//             .then((result) => {
+//                 for (let key in result) {
+//                     cy.log(key);
+//                     assert.equal(result[key].length, 2);
+//                 }
+//             });
+//         cy.wait(WAIT_TIME_OUT);
+//     });
 
-    it('has expected ProjectManager state', () => {
-        cy.window()
-            .its('store')
-            .invoke('getState')
-            .its('projectManager')
-            .its('openFiles')
-            .then((files) => {
-                let i = 0;
-                for (let key in files) {
-                    i++;
-                }
-                // check have 3 files
-                assert.equal(i, 3);
-            });
-        cy.wait(WAIT_TIME_OUT);
-    });
+//     it('has expected ProjectManager state', () => {
+//         cy.window()
+//             .its('store')
+//             .invoke('getState')
+//             .its('projectManager')
+//             .its('openFiles')
+//             .then((files) => {
+//                 let i = 0;
+//                 for (let key in files) {
+//                     i++;
+//                 }
+//                 // check have 3 files
+//                 assert.equal(i, 3);
+//             });
+//         cy.wait(WAIT_TIME_OUT);
+//     });
 
-    it('has expected DataFrames state', () => {
-        let editor = cy
-            .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .as('editor');
-        editor.focus();
-        // removeText(editor);
-        editor.type(codeTestDF);
-        if (isMacOSPlatform()) {
-            editor.type('{command}l');
-        } else {
-            editor.type('{ctrl}l');
-        }
+//     it('has expected DataFrames state', () => {
+//         let editor = cy
+//             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+//             .as('editor');
+//         editor.focus();
+//         // removeText(editor);
+//         editor.type(codeTestDF);
+//         if (isMacOSPlatform()) {
+//             editor.type('{command}l');
+//         } else {
+//             editor.type('{ctrl}l');
+//         }
 
-        cy.wait(3000);
-        cy.window()
-            .its('store')
-            .invoke('getState')
-            .its('dataFrames')
-            .its('metadata')
-            .its('cdf')
-            .its('columns')
-            .then((columns) => {
-                let i = 0;
-                for (let key in columns) {
-                    i++;
-                }
-                // check have 20 colums
-                assert.equal(i, 20);
-            });
-        cy.wait(WAIT_TIME_OUT);
-    });
-});
+//         cy.wait(3000);
+//         cy.window()
+//             .its('store')
+//             .invoke('getState')
+//             .its('dataFrames')
+//             .its('metadata')
+//             .its('cdf')
+//             .its('columns')
+//             .then((columns) => {
+//                 let i = 0;
+//                 for (let key in columns) {
+//                     i++;
+//                 }
+//                 // check have 20 colums
+//                 assert.equal(i, 20);
+//             });
+//         cy.wait(WAIT_TIME_OUT);
+//     });
+// });
 
 describe('Check Rich output result', () => {
 
@@ -317,8 +328,8 @@ describe('Check Rich output result', () => {
         cy.visit('/');
         cy.wait(2000);
 
-        cy.get("#sidebar_ClearState").click();
-        cy.wait(2000);
+        // cy.get("#sidebar_ClearState", {timeout: 2000}).click();
+        // cy.wait(2000);
     })
 
     beforeEach(() => {
@@ -335,13 +346,10 @@ describe('Check Rich output result', () => {
             .get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .as('editor');
         editor.focus();
-        removeText(editor);
         cy.wait(1000);
-        editor = cy.get('@editor');
-        editor.type(codeTestMatplotlibLine);
+        cy.get('@editor').type(codeTestMatplotlibLine);
         cy.wait(1000);
-        editor = cy.get('@editor');
-        editor.type('{selectall}');
+        cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             editor.type('{command}k');
             editor.type('{command}l');
@@ -373,7 +381,7 @@ describe('Check Rich output result', () => {
             editor.type('{ctrl}l');
         }
 
-        cy.wait(1000);
+        cy.wait(5000);
         cy.get('.MuiPaper-root > .js-plotly-plot').should('be.visible');
         cy.wait(WAIT_TIME_OUT);
     });
@@ -434,8 +442,8 @@ describe('Check Save Events', () => {
         cy.visit('/');
         cy.wait(2000);
 
-        cy.get("#sidebar_ClearState").click();
-        cy.wait(2000);
+        // cy.get("#sidebar_ClearState", {timeout: 2000}).click();
+        // cy.wait(2000);
     })
 
     beforeEach(() => {
