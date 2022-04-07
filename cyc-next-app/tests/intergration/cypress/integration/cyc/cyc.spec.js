@@ -37,7 +37,6 @@ describe('Test Code Editor', () => {
 
     beforeEach(() => {
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
-        cy.get('@editor').focus();
         removeText(cy.get('@editor'));
     })
 
@@ -115,7 +114,6 @@ describe('Test DataFrame', () => {
 
     beforeEach(() => {
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
-        cy.get('@editor').focus();
         removeText(cy.get('@editor'));
     })
 
@@ -188,7 +186,6 @@ describe('Test Rich output result', () => {
 
     beforeEach(() => {
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
-        cy.get('@editor').focus();
         removeText(cy.get('@editor'));
     })
 
@@ -270,7 +267,6 @@ describe('Test Save Events', () => {
 
     beforeEach(() => {
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
-        cy.get('@editor').focus();
         removeText(cy.get('@editor'));
     })
 
