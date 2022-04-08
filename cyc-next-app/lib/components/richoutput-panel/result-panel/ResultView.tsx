@@ -40,31 +40,60 @@ const ResultContent = React.memo(({ codeResult }) => {
         }
     };
 
+    const getMimeWithImage = (mimeTypes: string[]) => {
+        for (let i=0; i<mimeTypes.length; i++) {
+            if (mimeTypes[i].includes("image/")) {
+                return mimeTypes[i];
+            }
+        }
+        return null;
+    };
+
     const createResultView = () => {
-        if (codeResult?.result?.subType === SubContentType.IMAGE_PLOTLY) {
+        const imageMime = getMimeWithImage(
+            Object.keys(codeResult?.result?.content)
+        );
+        
+        if (SubContentType.APPLICATION_PLOTLY in codeResult?.result?.content) {
             return React.createElement(
                 PlotlyWithNoSSR,
-                setLayout(codeResult?.result?.content)
+                setLayout(
+                    codeResult?.result?.content[
+                        SubContentType.APPLICATION_PLOTLY
+                    ]
+                )
             );
         } else if (
-            codeResult?.result?.subType === SubContentType.APPLICATION_JSON
+            SubContentType.APPLICATION_JSON in codeResult?.result?.content
         ) {
-            return JSON.stringify(codeResult?.result?.content);
-        } else if (codeResult?.result?.subType?.includes("image")) {
-            // image/png, img/svg+xml, img/jpg ...
+            return JSON.stringify(
+                codeResult?.result?.content[SubContentType.APPLICATION_JSON]
+            );
+        } else if (imageMime !== null) {
+            console.log(
+                "ResultView ",
+                imageMime,
+                codeResult?.result?.content[imageMime]
+            );
             return (
                 <img
                     src={
                         "data:" +
-                        codeResult?.result?.subType +
+                        imageMime +
                         ";base64," +
-                        codeResult?.result?.content
+                        codeResult?.result?.content[imageMime]
                     }
                 />
             );
-        } else if (codeResult?.result?.subType === SubContentType.TEXT_HTML) {
-            return ReactHtmlParser(codeResult?.result?.content.toString("base64"));
+        } else if (SubContentType.TEXT_HTML in codeResult?.result?.content) {
+            return ReactHtmlParser(
+                codeResult?.result?.content[SubContentType.TEXT_HTML].toString(
+                    "base64"
+                )
+            );
         }
+
+        return null;
     };
 
     return createResultView();
