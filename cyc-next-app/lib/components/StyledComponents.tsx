@@ -800,6 +800,11 @@ export const StyledDFStatusNotification = styled(ToastContainer)`
     }
 `;
 
+export const ImageMimeCell = styled.img`
+    max-width: 150px;
+    max-height: 150px;
+`;
+
 function backgroundTransition(color) {
     return keyframes`
       50% {

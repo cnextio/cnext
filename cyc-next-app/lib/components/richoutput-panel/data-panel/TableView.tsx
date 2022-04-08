@@ -13,6 +13,7 @@ import {
     DataTableRow,
     TableContainer,
     DataTableHeadText,
+    ImageMimeCell,
 } from "../../StyledComponents";
 import {
     FileMimeType,
@@ -123,8 +124,13 @@ const TableView = (props: any) => {
                             </Fragment>
                         ) : metadata &&
                           metadata.columns[colName] &&
-                          [FileMimeType.FILE_PNG, FileMimeType.URL_PNG].includes(metadata.columns[colName].type) ? (
-                            <img src={"data:image/png;base64," + item.binary} />
+                          [
+                              FileMimeType.FILE_PNG,
+                              FileMimeType.URL_PNG,
+                          ].includes(metadata.columns[colName].type) ? (
+                            <ImageMimeCell
+                                src={"data:image/png;base64," + item.binary}
+                            />
                         ) : (
                             item
                         )}

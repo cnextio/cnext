@@ -5,6 +5,7 @@ import {
     DataGridContainer,
     DataGridItem,
     DataGridItemMetadata,
+    ImageMimeCell,
 } from "../../StyledComponents";
 import {
     CNextMimeType,
@@ -47,11 +48,15 @@ const GridView = (props: any) => {
         switch (mimeType) {
             case FileMimeType.FILE_PNG:
             case FileMimeType.URL_PNG:
-                return <img src={"data:image/png;base64," + item.binary} />;
+                return (
+                    <ImageMimeCell src={"data:image/png;base64," + item.binary} />
+                );
 
             case FileMimeType.FILE_JPG:
             case FileMimeType.URL_JPG:
-                return <img src={"data:image/jpg;base64," + item.binary} />;
+                return (
+                    <ImageMimeCell src={"data:image/jpg;base64," + item.binary} />
+                );
 
         }
     };
@@ -91,7 +96,7 @@ const GridView = (props: any) => {
         return (
             /** mime data will be displayed in big format then the metadata */
             <DataGridItem elevation={1} square={true}>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center'  }}>
                     {rowData.map((item: any, index: number) => {
                         if (
                             metadata &&
