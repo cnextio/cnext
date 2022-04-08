@@ -10,7 +10,7 @@ Cyc AI is an application focusing on improve the AI development life cycle
 ## Features
 - Create and get your coding easily
 - Visualize your data infomation in machine learning
-- Behavior follow easly
+- Behavior follow easily
 - Console output
 - Customize
 
