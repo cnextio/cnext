@@ -335,7 +335,7 @@ _tmp()`;
         dispatch(setColumnQuantilePlot(payload));
     };
 
-    const showDefinedStats = false;
+    const showDefinedStats = true;
     const handleGetDFMetadata = (message: IMessage) => {
         console.log(
             `${WebAppEndpoint.DFManager} got metadata for "${message.metadata['df_id']}": `,

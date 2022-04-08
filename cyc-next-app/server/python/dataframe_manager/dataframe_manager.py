@@ -103,8 +103,7 @@ class MessageHandler(BaseMessageHandler):
                         'file_path': file_path,
                         'binary': base64.b64encode(self._get_file_content(file_path, t.name))
                     }
-            elif t.name in [CnextMimeType.URL_PNG, CnextMimeType.URL_JPG, CnextMimeType.URL_JPEG]:
-                from PIL import Image                
+            elif t.name in [CnextMimeType.URL_PNG, CnextMimeType.URL_JPG, CnextMimeType.URL_JPEG]:          
                 log.info('Load file for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     url = df[df.columns[i]].iloc[r]
