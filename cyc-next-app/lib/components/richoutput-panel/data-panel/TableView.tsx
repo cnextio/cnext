@@ -123,8 +123,7 @@ const TableView = (props: any) => {
                             </Fragment>
                         ) : metadata &&
                           metadata.columns[colName] &&
-                          metadata.columns[colName].type ===
-                              FileMimeType.FILE_PNG ? (
+                          [FileMimeType.FILE_PNG, FileMimeType.URL_PNG].includes(metadata.columns[colName].type) ? (
                             <img src={"data:image/png;base64," + item.binary} />
                         ) : (
                             item

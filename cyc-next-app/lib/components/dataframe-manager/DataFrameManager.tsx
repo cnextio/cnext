@@ -72,6 +72,8 @@ const DataFrameManager = () => {
     const sendColumnHistogramPlotRequest = (df_id: string, col_name: string) => {
         // let content: string = `px.histogram(${df_id}, x="${col_name}")`;
         let content: string = `
+import plotly.express as px, plotly.io as pio
+pio.renderers.default = "json"        
 def _tmp():    
     if ${df_id}["${col_name}"].dtypes not in ["object"]:
         if ${df_id}.shape[0] > ${MAX_POINT_COUNT}:
@@ -107,6 +109,8 @@ _tmp()`;
 
     const sendColumnQuantilesPlotRequest = (df_id: string, col_name: string) => {
         let content: string = `
+import plotly.express as px, plotly.io as pio
+pio.renderers.default = "json"
 def _tmp():
     if ${df_id}["${col_name}"].dtypes not in ["object"]:
         if ${df_id}.shape[0] > ${MAX_POINT_COUNT}:
@@ -331,7 +335,7 @@ _tmp()`;
         dispatch(setColumnQuantilePlot(payload));
     };
 
-    const showDefinedStats = true;
+    const showDefinedStats = false;
     const handleGetDFMetadata = (message: IMessage) => {
         console.log(
             `${WebAppEndpoint.DFManager} got metadata for "${message.metadata['df_id']}": `,

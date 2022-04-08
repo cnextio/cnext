@@ -130,7 +130,7 @@ class MessageHandler(BaseMessageHandler):
         log.info('message: {}'.format(message))
         try:
             outputs = self.user_space.execute(message.content, None)
-            log.info('Execution result: {}'.format(outputs))
+            # log.info('Execution result: {}'.format(outputs))
             for output in outputs:
                 # print("MESSAGE", output)
                 msg = self.build_single_message(
