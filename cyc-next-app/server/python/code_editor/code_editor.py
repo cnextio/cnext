@@ -110,14 +110,15 @@ class MessageHandler(BaseMessageHandler):
                 if (key == 'application/vnd.plotly.v1+json') or (key == SubContentType.APPLICATION_JSON and self._result_is_plotly_fig(content)):
                     message.sub_type = SubContentType.IMAGE_PLOTLY
                     message.content = content
-                elif key == SubContentType.TEXT_HTML:
-                    message.content = content
-                    message.sub_type = key
+                    # FIXME: this is a temporal solution to make sure plotly can be displayed 
+                    # in case message has multiple type of data. In the future we have to send 
+                    # all data to client and let client decides
+                    break
                 else:
                     message.content = content
                     message.sub_type = key
             log.info('Result content: %s %s %s' %
-                        (msg_ipython.header['msg_type'], key, message.content))
+                     (msg_ipython.header['msg_type'], key, message.content))
             return message
 
     def handle_message(self, message):
