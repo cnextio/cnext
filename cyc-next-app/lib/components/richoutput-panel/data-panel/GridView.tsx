@@ -5,6 +5,7 @@ import {
     DataGridContainer,
     DataGridItem,
     DataGridItemMetadata,
+    ImageMimeCell,
 } from "../../StyledComponents";
 import {
     CNextMimeType,
@@ -34,120 +35,6 @@ const GridView = (props: any) => {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
     }
 
-    // const createCell = (
-    //     colName: string,
-    //     rowIndex: number,
-    //     item: any,
-    //     head: boolean = false,
-    //     indexCell: boolean = false
-    // ) => {
-    //     let review: boolean = false;
-    //     const metadata = ifElse(
-    //         store.getState().dataFrames.metadata,
-    //         activeDataFrame,
-    //         null
-    //     );
-
-    //     if (dfReview) {
-    //         if (dfReview.type == ReviewType.col) {
-    //             review = dfReview.name == colName;
-    //         } else if (dfReview.type == ReviewType.row) {
-    //             review = dfReview.name == rowIndex;
-    //         } else if (dfReview.type == ReviewType.cell) {
-    //             // console.log(dfReview.name);
-    //             let name = dfReview.name as [string, number];
-    //             review = name[0] == colName && name[1] == rowIndex;
-    //         }
-    //     }
-    //     // if (review){
-    //     // console.log('dfReview: ', dfReview, dfColName, dfRowIndex, head);
-    //     // }
-    //     // console.log('RichOutputView _createCell: ', dfColName);
-    //     return (
-    //         <Fragment>
-    //             {indexCell ? (
-    //                 <DataTableIndexCell
-    //                     key={shortid.generate()}
-    //                     review={review}
-    //                 >
-    //                     {rowIndex}
-    //                     {dfReview && dfReview.type == ReviewType.row && review && (
-    //                         <ScrollIntoViewIfNeeded
-    //                             options={{
-    //                                 active: true,
-    //                                 block: "nearest",
-    //                                 inline: "center",
-    //                             }}
-    //                         />
-    //                     )}
-    //                 </DataTableIndexCell>
-    //             ) : (
-    //                 <DataTableCell
-    //                     key={shortid.generate()}
-    //                     align="right"
-    //                     review={review}
-    //                     head={head}
-    //                 >
-    //                     {head ? (
-    //                         <Fragment>
-    //                             {item}
-    //                             {metadata &&
-    //                             metadata.columns[colName] &&
-    //                             !Object.values(FileMimeType).includes(
-    //                                 metadata.columns[colName].type
-    //                             ) ? (
-    //                                 <Fragment>
-    //                                     <ColumnHistogram
-    //                                         df_id={activeDataFrame}
-    //                                         col_name={colName}
-    //                                         smallLayout={true}
-    //                                     />
-    //                                     <CountNA
-    //                                         df_id={activeDataFrame}
-    //                                         col_name={colName}
-    //                                     />
-    //                                 </Fragment>
-    //                             ) : null}
-    //                         </Fragment>
-    //                     ) : metadata &&
-    //                       metadata.columns[colName] &&
-    //                       metadata.columns[colName].type ===
-    //                           FileMimeType.FILEPNG ? (
-    //                         <img src={"data:image/png;base64," + item.binary} />
-    //                     ) : (
-    //                         item
-    //                     )}
-    //                     {dfReview &&
-    //                         dfReview.type == ReviewType.col &&
-    //                         head &&
-    //                         review && (
-    //                             <ScrollIntoViewIfNeeded
-    //                                 options={{
-    //                                     active: true,
-    //                                     block: "nearest",
-    //                                     inline: "center",
-    //                                     behavior: "smooth",
-    //                                 }}
-    //                             />
-    //                         )}
-    //                     {dfReview &&
-    //                         dfReview.type == ReviewType.cell &&
-    //                         review && (
-    //                             <ScrollIntoViewIfNeeded
-    //                                 options={{
-    //                                     active: true,
-    //                                     block: "nearest",
-    //                                     inline: "center",
-    //                                     behavior: "smooth",
-    //                                 }}
-    //                             />
-    //                         )}
-    //                 </DataTableCell>
-    //             )}
-    //         </Fragment>
-    //     );
-    // };
-
     const Item = styled(Paper)(({ theme }) => ({
         ...theme.typography.body2,
         padding: theme.spacing(1),
@@ -160,9 +47,17 @@ const GridView = (props: any) => {
     const createMimeElem = (item: object, mimeType: CNextMimeType) => {
         switch (mimeType) {
             case FileMimeType.FILE_PNG:
-                return <img src={"data:image/png;base64," + item.binary} />;
+            case FileMimeType.URL_PNG:
+                return (
+                    <ImageMimeCell src={"data:image/png;base64," + item.binary} />
+                );
+
             case FileMimeType.FILE_JPG:
-                return <img src={"data:image/jpg;base64," + item.binary} />;
+            case FileMimeType.URL_JPG:
+                return (
+                    <ImageMimeCell src={"data:image/jpg;base64," + item.binary} />
+                );
+
         }
     };
 
@@ -201,7 +96,7 @@ const GridView = (props: any) => {
         return (
             /** mime data will be displayed in big format then the metadata */
             <DataGridItem elevation={1} square={true}>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center'  }}>
                     {rowData.map((item: any, index: number) => {
                         if (
                             metadata &&

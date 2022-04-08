@@ -172,6 +172,8 @@ export enum FilterType {
 export enum FileMimeType {
     FILE_PNG = "file/png",
     FILE_JPG = "file/jpg",
+    URL_PNG = "url/png",
+    URL_JPG = "url/jpg",
 }
 
 export const CNextMimeType = { ...FileMimeType, ...StandardMimeType };
