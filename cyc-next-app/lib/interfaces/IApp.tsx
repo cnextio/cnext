@@ -90,10 +90,13 @@ export enum ContentType {
 export enum StandardMimeType {
     IMAGE_PNG = "image/png",
     IMAGE_JPG = "image/jpg",
-    IMAGE_PLOTLY = "image/plotly+json",
+    IMAGE_JPEG = "image/jpeg",
     IMAGE_SVG = "image/svg+xml",
+    IMAGE_PLOTLY = "image/plotly+json",
     TEXT_HTML = "text/html",
     APPLICATION_JSON = "application/json",
+    APPLICATION_CNEXT = "application/cnext+json",
+    APPLICATION_PLOTLY = "application/vnd.plotly.v1+json",
 }
 
 export const SubContentType = StandardMimeType;

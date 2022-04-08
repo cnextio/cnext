@@ -109,7 +109,10 @@ _tmp()`;
         let content: string = `
 def _tmp():
     if ${df_id}["${col_name}"].dtypes not in ["object"]:
-        _tmp_df = ${df_id}.sample(${MAX_POINT_COUNT})
+        if ${df_id}.shape[0] > ${MAX_POINT_COUNT}:
+            _tmp_df = ${df_id}.sample(${MAX_POINT_COUNT})
+        else:
+            _tmp_df = df
         fig = px.box(_tmp_df, x="${col_name}")
         fig.update_layout({
             'showlegend': False,

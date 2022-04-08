@@ -45,6 +45,9 @@ class MessageHandler(BaseMessageHandler):
         except Exception:
             return False
 
+    PRIORITIXED_MIME_LIST = [SubContentType.APPLICATION_PLOTLY, SubContentType.APPLICATION_JSON, SubContentType.IMAGE_PLOTLY,
+                             SubContentType.IMAGE_JPG, SubContentType.IMAGE_PNG, SubContentType.IMAGE_SVG, SubContentType.TEXT_HTML]
+
     def build_single_message(self, output, message):
         """
             Get single message from IPython,
@@ -83,18 +86,8 @@ class MessageHandler(BaseMessageHandler):
             message.content = json.dumps(msg_ipython.content)
             return message
         elif self._is_execute_result(msg_ipython.header):
-            # The case return video/ audio from IPython
-            if type(msg_ipython.content['data']) is dict:
-                if SubContentType.TEXT_HTML in msg_ipython.content['data']:
-                    message.type = ContentType.RICH_OUTPUT
-                    message.sub_type = SubContentType.TEXT_HTML
-                    content = msg_ipython.content['data'][SubContentType.TEXT_HTML]
-                    message.content = content
-            else:
-                message.type = ContentType.STRING
-                message.content = msg_ipython.content['data']
-            # log.info('Result content: %s' % message.content)
-            return message
+            return self._result_conversion(
+                message, msg_ipython.content['data'])
         elif self._is_stream_result(msg_ipython.header):
             message.type = ContentType.STRING
             if 'text' in msg_ipython.content:
@@ -103,23 +96,32 @@ class MessageHandler(BaseMessageHandler):
                 message.content = msg_ipython.content['data']
             return message
         elif self._is_display_data_result(msg_ipython.header):
+            return self._result_conversion(
+                message, msg_ipython.content['data'])
+
+    def _result_conversion(self, message, result_data):
+        if type(result_data) is dict:
             message.type = ContentType.RICH_OUTPUT
-            # Ipython return rich output as mime types
-            # FIXME: is there situation where there are more than one item. if so what should we do?
-            for key, content in msg_ipython.content['data'].items():
-                if (key == 'application/vnd.plotly.v1+json') or (key == SubContentType.APPLICATION_JSON and self._result_is_plotly_fig(content)):
-                    message.sub_type = SubContentType.IMAGE_PLOTLY
-                    message.content = content
-                    # FIXME: this is a temporal solution to make sure plotly can be displayed 
-                    # in case message has multiple type of data. In the future we have to send 
-                    # all data to client and let client decides
-                    break
-                else:
-                    message.content = content
-                    message.sub_type = key
-            log.info('Result content: %s %s %s' %
-                     (msg_ipython.header['msg_type'], key, message.content))
-            return message
+        else:
+            message.type = ContentType.STRING
+        message.content = result_data
+        # if type(result_data) is dict:
+        #     for mime_type in self.PRIORITIXED_MIME_LIST:
+        #         if mime_type in result_data:
+        #             if (mime_type == SubContentType.APPLICATION_JSON and self._result_is_plotly_fig(result_data[mime_type])):
+        #                 message.sub_type = SubContentType.IMAGE_PLOTLY
+        #             message.type = ContentType.RICH_OUTPUT
+        #             message.sub_type = mime_type
+        #             message.content = result_data[mime_type]
+        #             break
+        #         else:
+        #             message.type = mime_type
+        #             message.content = result_data[mime_type]
+        # else:
+        #     message.type = ContentType.STRING
+        #     message.content = result_data
+        # log.info('Result message: %s' % (message))
+        return message
 
     def handle_message(self, message):
         """
@@ -128,6 +130,7 @@ class MessageHandler(BaseMessageHandler):
         log.info('message: {}'.format(message))
         try:
             outputs = self.user_space.execute(message.content, None)
+            log.info('Execution result: {}'.format(outputs))
             for output in outputs:
                 # print("MESSAGE", output)
                 msg = self.build_single_message(

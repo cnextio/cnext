@@ -37,8 +37,14 @@ fig = px.scatter(x=[0, 1, 2, 3, 4], y=[0, 1, 4, 9, 16])
 fig.show()`;
 
 export const codeTestAudio = `from IPython.display import Audio
-Audio('/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cyc-next-app/cypress/downloads/test_audio.mp3', autoplay=True)
+Audio('https://github.com/rafaelreis-hotmart/Audio-Sample-files/raw/master/sample.mp3', autoplay=True)
 `;
 
 export const codeTestVideo = `from IPython.display import Video
 Video('http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4')`;
+
+export const codeTestImageJPG = `from IPython import display
+display.Image("https://farm2.staticflickr.com/1533/26541536141_41abe98db3_z_d.jpg")`;
+
+export const codeTestImagePNG = `from IPython import display
+display.Image("https://kgo.googleusercontent.com/profile_vrt_raw_bytes_1587515358_10512.png")`;
