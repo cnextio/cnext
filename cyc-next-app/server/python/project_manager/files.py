@@ -48,8 +48,12 @@ def read_file(path, project_path, timestamp=None):
 
             # Read file content
             with open(path) as file:
+                content = file.read()
+                content_lines = content.splitlines()
+                if content[-1] == '\n':
+                    content_lines.append('')
                 result = FileContent(
-                    content=file.read().splitlines(), timestamp=timestamp)
+                    content=content_lines, timestamp=timestamp)
 
             # If state file path is exists that mean, the state already saved.
             # Read data from state file path.
