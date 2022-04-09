@@ -1,3 +1,4 @@
+from curses import has_key
 import traceback
 import simplejson as json
 
@@ -45,10 +46,23 @@ class MessageHandler(BaseMessageHandler):
         except Exception:
             return False
 
-    PRIORITIXED_MIME_LIST = [SubContentType.APPLICATION_PLOTLY, SubContentType.APPLICATION_JSON, SubContentType.IMAGE_PLOTLY,
-                             SubContentType.IMAGE_JPG, SubContentType.IMAGE_PNG, SubContentType.IMAGE_SVG, SubContentType.TEXT_HTML]
+    # PRIORITIXED_MIME_LIST = [SubContentType.APPLICATION_PLOTLY, SubContentType.APPLICATION_JSON, SubContentType.IMAGE_PLOTLY,
+    #                          SubContentType.IMAGE_JPG, SubContentType.IMAGE_PNG, SubContentType.IMAGE_SVG, SubContentType.TEXT_HTML]
 
-    def build_single_message(self, output, message):
+    def _process_rich_ouput(self, message, result_data):
+        if type(result_data) is dict:
+            message.type = ContentType.RICH_OUTPUT
+        else:
+            message.type = ContentType.STRING
+        message.content = result_data
+
+        # remove 'text/html' key if the output is plotly to improve the efficiency.
+        # TODO: revisit this later #
+        if type(message.content) is dict and SubContentType.APPLICATION_PLOTLY in message.content:
+            message.content.pop('text/html', None)
+        return message
+
+    def _create_return_message(self, output, message):
         """
             Get single message from IPython,
             classify it according to the message type then return it to the client
@@ -86,8 +100,7 @@ class MessageHandler(BaseMessageHandler):
             message.content = json.dumps(msg_ipython.content)
             return message
         elif self._is_execute_result(msg_ipython.header):
-            return self._result_conversion(
-                message, msg_ipython.content['data'])
+            return self._process_rich_ouput(message, msg_ipython.content['data'])
         elif self._is_stream_result(msg_ipython.header):
             message.type = ContentType.STRING
             if 'text' in msg_ipython.content:
@@ -96,32 +109,7 @@ class MessageHandler(BaseMessageHandler):
                 message.content = msg_ipython.content['data']
             return message
         elif self._is_display_data_result(msg_ipython.header):
-            return self._result_conversion(
-                message, msg_ipython.content['data'])
-
-    def _result_conversion(self, message, result_data):
-        if type(result_data) is dict:
-            message.type = ContentType.RICH_OUTPUT
-        else:
-            message.type = ContentType.STRING
-        message.content = result_data
-        # if type(result_data) is dict:
-        #     for mime_type in self.PRIORITIXED_MIME_LIST:
-        #         if mime_type in result_data:
-        #             if (mime_type == SubContentType.APPLICATION_JSON and self._result_is_plotly_fig(result_data[mime_type])):
-        #                 message.sub_type = SubContentType.IMAGE_PLOTLY
-        #             message.type = ContentType.RICH_OUTPUT
-        #             message.sub_type = mime_type
-        #             message.content = result_data[mime_type]
-        #             break
-        #         else:
-        #             message.type = mime_type
-        #             message.content = result_data[mime_type]
-        # else:
-        #     message.type = ContentType.STRING
-        #     message.content = result_data
-        # log.info('Result message: %s' % (message))
-        return message
+            return self._process_rich_ouput(message, msg_ipython.content['data'])
 
     def handle_message(self, message):
         """
@@ -133,7 +121,7 @@ class MessageHandler(BaseMessageHandler):
             # log.info('Execution result: {}'.format(outputs))
             for output in outputs:
                 # print("MESSAGE", output)
-                msg = self.build_single_message(
+                msg = self._create_return_message(
                     output=output, message=message)
                 if msg is not None:
                     self._send_to_node(msg)
@@ -154,12 +142,3 @@ class MessageHandler(BaseMessageHandler):
                                               "content": active_df_status,
                                               "error": False})
         self._send_to_node(active_df_status_message)
-        # if len(active_df_status) > 0:
-        #     for active_df in active_df_status:
-        #         active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
-        #                                               "command_name": DFManagerCommand.update_df_status,
-        #                                               "seq_number": 1,
-        #                                               "type": "dict",
-        #                                               "content": active_df,
-        #                                               "error": False})
-        #         self._send_to_node(active_df_status_message)

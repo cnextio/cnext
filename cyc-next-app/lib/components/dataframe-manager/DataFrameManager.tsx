@@ -74,7 +74,7 @@ const DataFrameManager = () => {
         let content: string = `
 from libs.json_serializable import JsonSerializable 
 import plotly.express as px, plotly.io as pio, simplejson as json
-pio.renderers.default = "json"        
+#pio.renderers.default = "json"        
 def _tmp():    
     if ${df_id}["${col_name}"].dtypes not in ["object"]:
         if ${df_id}.shape[0] > ${MAX_POINT_COUNT}:
@@ -112,7 +112,7 @@ _tmp()`;
         let content: string = `
 from libs.json_serializable import JsonSerializable 
 import plotly.express as px, plotly.io as pio, simplejson as json
-pio.renderers.default = "json"
+#pio.renderers.default = "json"
 def _tmp():
     if ${df_id}["${col_name}"].dtypes not in ["object"]:
         if ${df_id}.shape[0] > ${MAX_POINT_COUNT}:
