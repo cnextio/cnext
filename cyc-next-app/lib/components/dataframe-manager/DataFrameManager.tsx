@@ -72,7 +72,8 @@ const DataFrameManager = () => {
     const sendColumnHistogramPlotRequest = (df_id: string, col_name: string) => {
         // let content: string = `px.histogram(${df_id}, x="${col_name}")`;
         let content: string = `
-import plotly.express as px, plotly.io as pio
+from libs.json_serializable import JsonSerializable 
+import plotly.express as px, plotly.io as pio, simplejson as json
 pio.renderers.default = "json"        
 def _tmp():    
     if ${df_id}["${col_name}"].dtypes not in ["object"]:
@@ -109,7 +110,8 @@ _tmp()`;
 
     const sendColumnQuantilesPlotRequest = (df_id: string, col_name: string) => {
         let content: string = `
-import plotly.express as px, plotly.io as pio
+from libs.json_serializable import JsonSerializable 
+import plotly.express as px, plotly.io as pio, simplejson as json
 pio.renderers.default = "json"
 def _tmp():
     if ${df_id}["${col_name}"].dtypes not in ["object"]:
