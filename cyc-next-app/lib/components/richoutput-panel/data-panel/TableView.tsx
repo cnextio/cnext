@@ -11,7 +11,7 @@ import {
     DataTableHeadCell,
     DataTableIndexCell,
     DataTableRow,
-    TableContainer,
+    StyledTableView,
     DataTableHeadText,
     ImageMimeCell,
 } from "../../StyledComponents";
@@ -54,8 +54,7 @@ const TableView = (props: any) => {
         let review: boolean = false;
         let state = store.getState();
         let activeDataFrame = state.dataFrames.activeDataFrame;
-        let dfReview =
-            state.dataFrames.dfUpdatesReview[activeDataFrame];
+        let dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
         console.log("TableView: ", dfReview);
 
         const metadata = state.dataFrames.metadata[activeDataFrame];
@@ -66,7 +65,7 @@ const TableView = (props: any) => {
             } else if (dfReview.type === ReviewType.row) {
                 review = dfReview.name == rowIndex;
             } else if (dfReview.type === ReviewType.cell) {
-                // console.log(dfReview.name);                
+                // console.log(dfReview.name);
                 let name = dfReview.name as [string, number];
                 review = name[0] == colName && name[1] == rowIndex;
                 console.log("TableView: ", name, colName, rowIndex);
@@ -177,36 +176,41 @@ const TableView = (props: any) => {
     };
 
     return (
-        <TableContainer>
+        <StyledTableView>
             {/* {console.log("Render TableContainer: ", tableData)} */}
             {console.log("Render TableContainer")}
-            <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
-                {/* {console.log(tableData)} */}
-                <DataTableHead>
-                    <DataTableHeadRow>
-                        <DataTableHeadCell>
-                            <DataTableHeadText>
-                                {tableData[activeDataFrame].index.name}
-                            </DataTableHeadText>
-                        </DataTableHeadCell>
-                        {tableData[activeDataFrame].column_names.map(
-                            (dfColName: string, index: number) =>
-                                createCell(dfColName, 0, dfColName, true)
+            {tableData[activeDataFrame] && (
+                <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
+                    {/* {console.log(tableData)} */}
+
+                    <DataTableHead>
+                        <DataTableHeadRow>
+                            <DataTableHeadCell>
+                                <DataTableHeadText>
+                                    {tableData[activeDataFrame]?.index.name}
+                                </DataTableHeadText>
+                            </DataTableHeadCell>
+                            {tableData[activeDataFrame]?.column_names.map(
+                                (dfColName: string, index: number) =>
+                                    createCell(dfColName, 0, dfColName, true)
+                            )}
+                        </DataTableHeadRow>
+                    </DataTableHead>
+                    <TableBody>
+                        {tableData[activeDataFrame]?.rows.map(
+                            (rowData: any[], index: number) =>
+                                _createRow(
+                                    tableData[activeDataFrame]?.column_names,
+                                    tableData[activeDataFrame]?.index.data[
+                                        index
+                                    ],
+                                    rowData
+                                )
                         )}
-                    </DataTableHeadRow>
-                </DataTableHead>
-                <TableBody>
-                    {tableData[activeDataFrame].rows.map(
-                        (rowData: any[], index: number) =>
-                            _createRow(
-                                tableData[activeDataFrame].column_names,
-                                tableData[activeDataFrame].index.data[index],
-                                rowData
-                            )
-                    )}
-                </TableBody>
-            </DataTable>
-        </TableContainer>
+                    </TableBody>
+                </DataTable>
+            )}
+        </StyledTableView>
     );
 };
 

@@ -12,10 +12,11 @@ import { defaultHighlightStyle } from "@codemirror/highlight";
 import { dfFilterLanguageServer } from "../../../codemirror/autocomplete-lsp/index.js";
 import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
 import store from "../../../../redux/store";
+import { ViewUpdate } from "@codemirror/view";
 
 const ls = dfFilterLanguageServer();
 
-const DFExplorer = () => {
+const DFExplorer = React.memo(() => {
     // const dfList = useSelector((state) => _checkDFList(state));
     const dispatch = useDispatch();
     const filterCM = useRef();
@@ -23,7 +24,7 @@ const DFExplorer = () => {
     /**
      * All query string will be converted to loc/iloc pandas query
      */
-    function onCMChange(text, viewUpdate) {
+    const onCMChange = (text: string, viewUpdate: ViewUpdate) => {
         const state = store.getState();
         const activeDF = state.dataFrames.activeDataFrame;
 
@@ -158,7 +159,7 @@ const DFExplorer = () => {
             }
         }
         dispatch(setDFFilter({ df_id: activeDF, query: queryStr }));
-    }
+    };
 
     const extensions = [
         // basicSetup,
@@ -169,6 +170,7 @@ const DFExplorer = () => {
         // python(),
         ls,
     ];
+
     return (
         <DFFilterForm>
             {/* <InputLabel sx={{fontSize: '13px', p: '0px'}}>Data Frame</InputLabel> */}
@@ -199,7 +201,7 @@ const DFExplorer = () => {
                         /> */}
         </DFFilterForm>
     );
-};
+});
 
 export default DFExplorer;
 

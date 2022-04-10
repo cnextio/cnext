@@ -8,68 +8,28 @@ import React, { useEffect, useState, Fragment } from "react";
 //   )
 
 // redux
-import { useSelector } from "react-redux";
-import { ifElse } from "../libs";
-import RichOuputViewHeader from "./RichOuputViewHeader";
+import RichOuputPanelHeader from "./RichOuputPanelHeader";
 import SummaryView from "./summary-panel/SummaryView";
-import ResultView from "./result-panel/ResultView";
-import { RichOutputViewHeader } from "../../interfaces/IRichOuputViewer";
+import ResultPanel from "./result-panel/ResultPanel";
+import { RichOutputPanelToolbarItems } from "../../interfaces/IRichOuputViewer";
 import ExperimentManager from "./experiment-panel/ExperimentsManager";
-import ModelView from "./model-panel/ModelView";
-import TableView from "./data-panel/TableView";
-import GridView, { GridViewStatus } from "./data-panel/GridView";
-import { RootState } from "../../../redux/store";
+import ModelPanel from "./model-panel/ModelPanel";
+import DataPanel from "./data-panel/DataPanel";
 
 const RichOutputView = (props: any) => {
-    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
-    const [gridViewStatus, setGridViewStatus] = useState<GridViewStatus>(GridViewStatus.NONE);
-    const resultUpdateCount = useSelector(
-        (state: RootState) => state.codeEditor.resultUpdateCount
-    );
-    const activeDataFrame = useSelector(
-        (state: RootState) => state.dataFrames.activeDataFrame
-    );
-    const [show, setShow] = useState(RichOutputViewHeader.DATA);
+    const [show, setShow] = useState(RichOutputPanelToolbarItems.DATA);
 
-    useEffect(() => {
-        setShow(RichOutputViewHeader.DATA);
-    }, [activeDataFrame, tableData]);
-
-    useEffect(() => {
-        setShow(RichOutputViewHeader.RESULTS);
-    }, [resultUpdateCount]);
-
-    useEffect(() => {
-        if (show != RichOutputViewHeader.DATA) {
-            setGridViewStatus(GridViewStatus.NONE);
-        }
-        if (show == RichOutputViewHeader.DATA && ifElse(tableData, activeDataFrame, null)) {
-            setGridViewStatus(GridViewStatus.UNSELECTED);
-        }
-    }, [show, tableData, activeDataFrame]);
-
-    const handleGridViewBtn = () => {
-        gridViewStatus == GridViewStatus.SELECTED
-            ? setGridViewStatus(GridViewStatus.UNSELECTED)
-            : setGridViewStatus(GridViewStatus.SELECTED);
-    };
-    //TODO: move all grid view related thing to under DataView
     return (
         <Fragment>
-            <RichOuputViewHeader
+            <RichOuputPanelHeader
                 show={show}
                 setShow={setShow}
-                gridViewStatus={gridViewStatus}
-                handleGridViewBtn={handleGridViewBtn}
             />
-            <Divider />
-            {show === RichOutputViewHeader.DATA &&
-                ifElse(tableData, activeDataFrame, null) &&
-                (gridViewStatus === GridViewStatus.SELECTED ? <GridView /> : <TableView />)}
-            {show == RichOutputViewHeader.SUMMARY && <SummaryView />}
-            {show === RichOutputViewHeader.RESULTS && <ResultView />}
-            {show === RichOutputViewHeader.EXPERIMENTS && <ExperimentManager />}
-            {show === RichOutputViewHeader.MODEL && <ModelView />}
+            {show === RichOutputPanelToolbarItems.DATA && <DataPanel />}
+            {show == RichOutputPanelToolbarItems.SUMMARY && <SummaryView />}
+            {show === RichOutputPanelToolbarItems.RESULTS && <ResultPanel />}
+            {show === RichOutputPanelToolbarItems.EXPERIMENTS && <ExperimentManager />}
+            {show === RichOutputPanelToolbarItems.MODEL && <ModelPanel />}
         </Fragment>
     );
 };

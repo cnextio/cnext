@@ -1,4 +1,4 @@
-export enum RichOutputViewHeader {
+export enum RichOutputPanelToolbarItems {
     DATA = "DATA",
     SUMMARY = "SUMMARY",
     // PLOTS = "PLOTS",
