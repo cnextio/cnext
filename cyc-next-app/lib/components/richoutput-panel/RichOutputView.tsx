@@ -33,7 +33,7 @@ const RichOutputView = (props: any) => {
 
     useEffect(() => {
         setShow(RichOutputViewHeader.DATA);
-    }, [tableData]);
+    }, [activeDataFrame, tableData]);
 
     useEffect(() => {
         setShow(RichOutputViewHeader.RESULTS);

@@ -48,3 +48,10 @@ display.Image("https://farm2.staticflickr.com/1533/26541536141_41abe98db3_z_d.jp
 
 export const codeTestImagePNG = `from IPython import display
 display.Image("https://kgo.googleusercontent.com/profile_vrt_raw_bytes_1587515358_10512.png")`;
+
+export const codeTestGroupLines = `import matplotlib.pyplot as plt
+plt.plot([5,6], [7,8])
+\n
+\n
+\n
+`

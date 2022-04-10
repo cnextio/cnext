@@ -2,12 +2,12 @@ import {
     codeCheckConsole,
     codeTestDF,
     codeTestMatplotlibLine,
-    codeTestMatplotlibTheCoherenceOfTwoSignals,
     codeTestPlotly,
     codeTestAudio,
     codeTestVideo,
     codeTestImageJPG,
-    codeTestImagePNG
+    codeTestImagePNG,
+    codeTestGroupLines
 } from '../data/code-text';
 const WAIT_TIME_OUT = 1000;
 const SAVE_TIMEOUT_DURATION = 30000;
@@ -106,6 +106,33 @@ describe('Test Code Editor', () => {
         cy.wait(WAIT_TIME_OUT);
     });
     
+    it('Check group lines', () => {
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+          .as('editor');
+        cy.get('@editor').focus();
+        cy.get('@editor').type(codeTestGroupLines);
+        cy.get('@editor').focus();
+        cy.get('@editor').type('{selectall}');
+        if (isMacOSPlatform()) {
+            cy.get('@editor').type('{command}k');
+        } else {
+            cy.get('@editor').type('{ctrl}k');
+        }
+        cy.wait(3000);
+        cy.reload();
+        cy.get('@editor').focus();
+        cy.get('@editor').type('{selectall}');
+        if (isMacOSPlatform()) {
+            cy.get('@editor').type('{command}k');
+            cy.get('@editor').type('{command}l');
+        } else {
+            cy.get('@editor').type('{ctrl}k');
+            cy.get('@editor').type('{ctrl}l');
+        }
+
+        cy.get('.MuiPaper-root > img').should('be.visible');
+        cy.wait(WAIT_TIME_OUT);
+    });
 });
 
 describe('Test DataFrame', () => {
