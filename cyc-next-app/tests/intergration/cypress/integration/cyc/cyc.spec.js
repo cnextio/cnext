@@ -34,10 +34,11 @@ describe('Test Code Editor', () => {
 
     before(() => {
         cy.visit('/');
-        cy.get('[toolbarname="main.py"]').trigger("click");
     })
 
     beforeEach(() => {
+        cy.get('[toolbarname="main.py"]').trigger('click');
+
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
         removeText(cy.get('@editor'));
     })
