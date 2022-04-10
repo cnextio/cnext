@@ -4,7 +4,7 @@ import {
     PlotContainer as SingleResult,
     ResultViewContainer as StyledResultView,
 } from "../../StyledComponents";
-// import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
+import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 import ReactHtmlParser from "html-react-parser";
 import { useSelector } from "react-redux";
 import { ICodeLine } from "../../../interfaces/ICodeEditor";
@@ -41,7 +41,7 @@ const ResultContent = React.memo(({ codeResult }) => {
     };
 
     const getMimeWithImage = (mimeTypes: string[]) => {
-        for (let i=0; i<mimeTypes.length; i++) {
+        for (let i = 0; i < mimeTypes.length; i++) {
             if (mimeTypes[i].includes("image/")) {
                 return mimeTypes[i];
             }
@@ -49,11 +49,11 @@ const ResultContent = React.memo(({ codeResult }) => {
         return null;
     };
 
-    const createResultView = () => {
+    const createResultContent = () => {
         const imageMime = getMimeWithImage(
             Object.keys(codeResult?.result?.content)
         );
-        
+
         if (SubContentType.APPLICATION_PLOTLY in codeResult?.result?.content) {
             return React.createElement(
                 PlotlyWithNoSSR,
@@ -96,10 +96,11 @@ const ResultContent = React.memo(({ codeResult }) => {
         return null;
     };
 
-    return createResultView();
+    return createResultContent();
 });
 
-const ResultView = (props: any) => {
+const ResultPanel = React.memo((props: any) => {
+    const [readyToScroll, setReadyToScroll] = useState(false);
     const activeLine = useSelector(
         (state: RootState) => state.codeEditor.activeLine
     );
@@ -112,6 +113,10 @@ const ResultView = (props: any) => {
     const serverSynced = useSelector(
         (state: RootState) => state.projectManager.serverSynced
     );
+
+    useEffect(() => {
+        setReadyToScroll(true);
+    }, []);
 
     const rowHeight = 50; //unit: px
     const screenSize = 2000; //unit: px;
@@ -140,23 +145,23 @@ const ResultView = (props: any) => {
                         isResizable={true}
                     > */}
                     {codeWithResult?.map((codeResult: ICodeLine) => (
-                        //   <ScrollIntoViewIfNeeded
-                        //       active={codeResult.lineID == activeLine}
-                        //       options={{
-                        //           block: "start",
-                        //           inline: "center",
-                        //           behavior: "smooth",
-                        //           boundary: document.getElementById(resultViewId),
-                        //       }}
-                        //   >
-                        <SingleResult
-                            key={codeResult.lineID}
-                            variant="outlined"
-                            focused={codeResult.lineID == activeLine}
+                        <ScrollIntoViewIfNeeded
+                            active={codeResult.lineID === activeLine && readyToScroll}
+                            options={{
+                                block: "start",
+                                inline: "center",
+                                behavior: "smooth",
+                                boundary: document.getElementById(resultViewId),
+                            }}
                         >
-                            <ResultContent codeResult={codeResult} />
-                        </SingleResult>
-                        //   </ScrollIntoViewIfNeeded>
+                            <SingleResult
+                                key={codeResult.lineID}
+                                variant="outlined"
+                                focused={codeResult.lineID === activeLine}
+                            >
+                                <ResultContent codeResult={codeResult} />
+                            </SingleResult>
+                        </ScrollIntoViewIfNeeded>
                     ))}
                     {/* </GridLayout> */}
                 </StyledResultView>
@@ -165,6 +170,6 @@ const ResultView = (props: any) => {
     };
 
     return renderResult();
-};
+});
 
-export default ResultView;
+export default ResultPanel;

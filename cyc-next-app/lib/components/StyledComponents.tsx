@@ -456,7 +456,7 @@ export const PanelDivider = styled(Divider)`
             : props.theme.palette.divider};
 `;
 
-export const TablePanel = styled.div`
+export const StyledRichOutputPanel = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
     // border-radius: 4px;
     // padding: 0px 10px 0px 10px;
@@ -468,10 +468,10 @@ export const TablePanel = styled.div`
     overflow: hidden;
 `;
 
-export const TableToolbar = styled.div`
+export const DataToolbar = styled.div`
     display: flex;
     height: 45px;
-    padding: 5px;
+    padding: 5px 10px 0px 10px;
     align-self: stretch;
 `;
 
@@ -499,7 +499,7 @@ export const DFSelectorMenuItem = styled(MenuItem)`
 export const DFFilterForm = styled(FormControl)`
     height: 100%;
     width: 100%;
-    padding: 0px 0px 0px 5px;
+    padding: 0px 10px 0px 5px;
     font-size: 13px;
 `;
 export const DFFilterInput = styled(OutlinedInput)`
@@ -569,8 +569,9 @@ export const TableShape = styled(Typography)`
     margin-left: auto;
 `;
 
-export const TableContainer = styled(MuiTableContainer)`
+export const StyledTableView = styled(MuiTableContainer)`
     background-color: ${(props) => props.theme.palette.background.paper};
+    margin-top: 10px;
     padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
     max-height: 90%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
     overflow: auto;
@@ -578,7 +579,7 @@ export const TableContainer = styled(MuiTableContainer)`
 
 export const DataTable = styled(Table)`
     border: 1px solid ${(props) => props.theme.palette.divider};
-    margin-top: 10px; //see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
+    margin-top: 0px; //see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
 `;
 
 export const DataTableHead = styled(TableHead)`
@@ -630,6 +631,7 @@ export const DataTableCell = styled(TableCell)`
 
 export const ResultViewContainer = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
+    margin-top: 10px;
     padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
     // max-height: 100%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
     overflow: auto;
@@ -745,9 +747,10 @@ export const CountNAContainer = styled.div`
     width: 70px;
 `;
 
-export const DataGridContainer = styled.div`
+export const StyledGridView = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
-    padding: 10px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
+    margin-top: 5px;
+    padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
     // max-height: 90%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
     overflow: auto;
 `;
@@ -763,16 +766,11 @@ export const DataGridItemMetadata = styled.div`
     // line-height: "100%";
 `;
 
-export const GridViewBtn = styled.div`
+export const DataPanelToolbarBtn = styled.div`
 	margin-left: auto;
     padding: 2px;
     display: flex;
-	// font-size: 10px;
-    // align-items: bottom;
-    // justify-content: bottom;
-    // height: 30px;
-    // width: 100%;
-    
+    align-items: center;
     background-color: ${(props) =>
         props.selected
             ? "rgba(25, 118, 210, 0.1)"

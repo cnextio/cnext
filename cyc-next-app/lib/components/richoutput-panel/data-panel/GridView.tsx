@@ -2,7 +2,7 @@ import { Grid, Paper, styled, TableBody, Typography } from "@mui/material";
 import React, { Fragment } from "react";
 
 import {
-    DataGridContainer,
+    StyledGridView,
     DataGridItem,
     DataGridItemMetadata,
     ImageMimeCell,
@@ -128,22 +128,22 @@ const GridView = (props: any) => {
     };
 
     return (
-        <DataGridContainer>
+        <StyledGridView>
             {console.log("Render GridView")}
             <Grid container rowSpacing={1} columnSpacing={1}>
-                {tableData[activeDataFrame].rows.map(
+                {tableData[activeDataFrame]?.rows.map(
                     (rowData: any[], index: number) => (
                         <Grid item>
                             {createGridCell(
-                                tableData[activeDataFrame].column_names,
-                                tableData[activeDataFrame].index.data[index],
+                                tableData[activeDataFrame]?.column_names,
+                                tableData[activeDataFrame]?.index.data[index],
                                 rowData
                             )}
                         </Grid>
                     )
                 )}
             </Grid>
-        </DataGridContainer>
+        </StyledGridView>
     );
 };
 

@@ -25,7 +25,7 @@ import {
     DataTable,
     DataTableCell,
     DataTableRow,
-    TableContainer,
+    StyledTableView,
 } from "../../StyledComponents";
 import CountNA from "../data-panel/CountNA";
 import ColumnHistogram from "../data-panel/ColumnHistogram";
@@ -94,7 +94,7 @@ const ColumnSummary = (props: any) => {
     };
 
     return (
-        <TableContainer style={{ padding: "10px" }}>
+        <StyledTableView style={{ padding: "10px" }}>
             {console.log("Render ColumnSummary ")}
             {dfMetadata ? (
                 <DataTable style={{ border: 0 }} size="small">
@@ -274,7 +274,7 @@ const ColumnSummary = (props: any) => {
                     </TableBody>
                 </DataTable>
             ) : null}
-        </TableContainer>
+        </StyledTableView>
     );
 };
 
