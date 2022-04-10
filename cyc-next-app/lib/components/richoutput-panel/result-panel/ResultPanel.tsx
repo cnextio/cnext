@@ -49,7 +49,7 @@ const ResultContent = React.memo(({ codeResult }) => {
         return null;
     };
 
-    const createResultView = () => {
+    const createResultContent = () => {
         const imageMime = getMimeWithImage(
             Object.keys(codeResult?.result?.content)
         );
@@ -96,7 +96,7 @@ const ResultContent = React.memo(({ codeResult }) => {
         return null;
     };
 
-    return createResultView();
+    return createResultContent();
 });
 
 const ResultPanel = React.memo((props: any) => {
