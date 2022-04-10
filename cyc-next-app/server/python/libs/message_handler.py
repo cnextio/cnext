@@ -1,5 +1,5 @@
 import simplejson as json
-from libs.message import ContentType, Message
+from libs.message import ContentType, Message, SubContentType
 from libs import logs
 from user_space.user_space import BaseKernel, UserSpace
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
@@ -14,6 +14,7 @@ class BaseMessageHandler:
         else:
             self.user_space = user_space
     
+    ## TODO: this needs to be designed #
     @staticmethod
     def get_execute_result(messages):
         """
@@ -36,8 +37,8 @@ class BaseMessageHandler:
                     result = message['content']['text']
                     result = json.loads(result)
             elif message['header']['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA:
-                if 'application/json' in message['content']['data']:
-                    result = message['content']['data']['application/json']
+                if SubContentType.APPLICATION_PLOTLY in message['content']['data']:
+                    result = message['content']['data'][SubContentType.APPLICATION_PLOTLY]
         return result
 
     @staticmethod

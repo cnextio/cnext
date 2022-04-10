@@ -89,7 +89,7 @@ class MessageHandler(BaseMessageHandler):
                                        ].dt.strftime('%Y-%m-%d %H:%M:%S')
 
         tableData['rows'] = df.values.tolist()
-        ## Modify data field of column with mime type of file/*. See note above
+        # Modify data field of column with mime type of file/*. See note above
         #  We chose to do this outside of the dataframe, but it can also be done with a dataframe
         #  see https://stackoverflow.com/questions/41710501/is-there-a-way-to-have-a-dictionary-as-an-entry-of-a-pandas-dataframe-in-python ##
         for i, t in enumerate(df.dtypes):
@@ -103,7 +103,7 @@ class MessageHandler(BaseMessageHandler):
                         'file_path': file_path,
                         'binary': base64.b64encode(self._get_file_content(file_path, t.name))
                     }
-            elif t.name in [CnextMimeType.URL_PNG, CnextMimeType.URL_JPG, CnextMimeType.URL_JPEG]:          
+            elif t.name in [CnextMimeType.URL_PNG, CnextMimeType.URL_JPG, CnextMimeType.URL_JPEG]:
                 log.info('Load file for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     url = df[df.columns[i]].iloc[r]
@@ -136,10 +136,6 @@ class MessageHandler(BaseMessageHandler):
             # log.info("get table data %s" % result)
             output = self._create_table_data(df_id, result)
         return output
-
-    @ipython_internal_output
-    def _get_column_histogram_plot(self, df_id, col_name):
-        pass
 
     @ipython_internal_output
     def _get_metadata(self, df_id):
@@ -186,16 +182,16 @@ class MessageHandler(BaseMessageHandler):
                     if total_size(result) < MAX_PLOTLY_SIZE:
                         message.content = result
                         message.type = ContentType.RICH_OUTPUT
-                        message.sub_type = SubContentType.APPLICATION_CNEXT
+                        message.sub_type = SubContentType.APPLICATION_PLOTLY
                     else:
-                        message.content = "Warning: column histogram plot size is bigger than 1MB"
+                        message.content = "Warning: column histogram plot size is bigger than 1MB -> discard it"
                         message.type = ContentType.STRING
                         message.sub_type = SubContentType.NONE
                     message.error = False
                     self._send_to_node(message)
 
             elif message.command_name == DFManagerCommand.plot_column_quantile:
-                # result = eval(message.content, client_globals)                
+                # result = eval(message.content, client_globals)
                 result_messages = self.user_space.execute(
                     message.content, ExecutionMode.EVAL)
                 log.info("Object size %d" % total_size(result_messages))
@@ -252,7 +248,6 @@ class MessageHandler(BaseMessageHandler):
                 message.sub_type = SubContentType.NONE
                 message.error = False
                 self._send_to_node(message)
-
 
             # elif message.command_name == DFManagerCommand.get_file_content:
             #     output, type, send_reply = self._get_file_content(message, client_globals)
