@@ -1,47 +1,39 @@
-import React, { FC, ReactElement, useEffect, useMemo, useRef, useState } from "react";
-import { StyledCodePanel, PanelDivider, CodeContainer, CodeOutputContainer, CodeOutputContent} from "../StyledComponents";
-import SplitPane from 'react-split-pane-v2';
+import React, { useState } from "react";
+import { StyledCodePanel, CodeContainer } from "../StyledComponents";
+import SplitPane from "react-split-pane-v2";
 import CodeEditor from "./CodeEditor";
-// import CodeEditor from "./zzz-CodeEditor";
-// import WorkingPanelDivider from "../obs-WorkingPanelDivider";
-import { Typography } from "@mui/material";  
-import {IMessage} from "../../interfaces/IApp";
+import { IMessage, ViewMode } from "../../interfaces/IApp";
 import CodeOutput from "./CodeOutput";
 import CodeToolbar from "./CodeToolbar";
-// import { pure } from 'recompose';
-import shortid from "shortid";
 
-const CodePanel = () => {
-    const [codeOutput, setCodeOutput] = useState<IMessage>({commandType: "", contentType: "", content: "", error: false});
+const CodePanel = ({ workingPanelViewMode }) => {
+    const [codeOutput, setCodeOutput] = useState<IMessage>({
+        commandType: "",
+        contentType: "",
+        content: "",
+        error: false,
+    });
 
-    // use useCallback to avoid rerender CodeEditorComponent when this is rerendered
-    // see this https://felixgerschau.com/react-performance-react-memo/
-    const recvCodeOutput = React.useCallback(
-        (output: IMessage) => {            
-        setCodeOutput(output);
-    }, []);
-
-    // const codeEditor = useMemo(() => {return (<CodeEditor recvCodeOutput={recvCodeOutput} id={shortid()}/>)}, []);
-    // const codeEditor = <CodeEditor recvCodeOutput={recvCodeOutput} id={shortid()}/>;
-    // console.log("CodeEditor render CodePanel codeEditor", codeEditor.props.id);
-    // console.log('CodeEditor render CodePanel render ');            
-    return (        
-        <StyledCodePanel >
-            {/* {console.log('CodeEditor render CodePanel render ', id)}             */}
-            <CodeToolbar />                
-            {/* <WorkingPanelDivider color='white'/> */}
+    return (
+        <StyledCodePanel>
+            {console.log('CodePanel render ')}
+            <CodeToolbar />
             <CodeContainer>
-                <SplitPane split="horizontal" defaultSize="70%" pane2Style={{height: "30%"}}>  
-                            {/* panel2 height is the must for the scrolling to work */}
-                    {/* {codeEditor} */}
+                <SplitPane
+                    split={
+                        workingPanelViewMode === ViewMode.HORIZONTAL
+                            ? ViewMode.VERTICAL
+                            : ViewMode.HORIZONTAL
+                    }
+                    defaultSize="70%"
+                    pane2Style={{ height: "30%" }}
+                >
                     <CodeEditor />
                     <CodeOutput />
-                </SplitPane>            
+                </SplitPane>
             </CodeContainer>
         </StyledCodePanel>
     );
 };
-  
+
 export default CodePanel;
-
-

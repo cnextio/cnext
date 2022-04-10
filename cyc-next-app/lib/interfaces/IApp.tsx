@@ -185,6 +185,11 @@ export interface DFFilter {
     cols: string[];
 }
 
+export enum ViewMode {
+    HORIZONTAL = "horizontal",
+    VERTICAL = "vertical",
+}
+
 // export interface IDFUpdates {
 //     update_type: DataFrameUpdateType;
 //     update_content: string[] | number[] | {[id: string]: []};
