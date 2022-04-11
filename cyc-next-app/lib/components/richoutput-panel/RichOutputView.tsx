@@ -16,7 +16,7 @@ import ExperimentManager from "./experiment-panel/ExperimentsManager";
 import ModelPanel from "./model-panel/ModelPanel";
 import DataPanel from "./data-panel/DataPanel";
 
-const RichOutputView = (props: any) => {
+const RichOutputPanel = (props: any) => {
     const [show, setShow] = useState(RichOutputPanelToolbarItems.DATA);
 
     return (
@@ -34,4 +34,4 @@ const RichOutputView = (props: any) => {
     );
 };
 
-export default RichOutputView;
+export default RichOutputPanel;
