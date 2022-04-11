@@ -141,9 +141,3 @@ def get_state_path(path, project_path):
         project_path, CNEXT_FOLDER_PATH, 'states', sub_path)
     state_path = os.path.splitext(file_path)[0] + '.json'
     return state_path
-
-
-with open('/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/main.py') as f:
-    content = f.read()
-    print(content.splitlines())
-
