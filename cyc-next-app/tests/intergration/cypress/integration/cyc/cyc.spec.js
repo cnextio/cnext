@@ -32,20 +32,20 @@ const randomString = () => {
 
 describe('Test Code Editor', () => {
 
-    before(() => {
-        cy.visit('/');
-    })
+    // before(() => {
+    //     cy.visit('/');
+    // })
 
     beforeEach(() => {
-        cy.get('[toolbarname="main.py"]').trigger('click');
+        cy.visit('/');
+        cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
 
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         removeText(cy.get('@editor'));
     })
 
     it('Check print console', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-          .as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeCheckConsole);
         if (isMacOSPlatform()) {
@@ -58,8 +58,7 @@ describe('Test Code Editor', () => {
     });
 
     it('Check autocompletion', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-          .as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestDF);
         // make sure have autocompletion dialog
@@ -107,8 +106,7 @@ describe('Test Code Editor', () => {
     });
     
     it('Check group lines', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-          .as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestGroupLines);
         cy.get('@editor').focus();
@@ -120,6 +118,7 @@ describe('Test Code Editor', () => {
         }
         cy.wait(3000);
         cy.reload();
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
@@ -137,19 +136,20 @@ describe('Test Code Editor', () => {
 
 describe('Test DataFrame', () => {
 
-    before(() => {
-        cy.visit('/');
-        cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
-    })
+    // before(() => {
+    //     cy.visit('/');
+    //     cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
+    // })
 
     beforeEach(() => {
+        cy.visit('/');
+        cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
         removeText(cy.get('@editor'));
     })
 
     it('Check dataframe', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-          .as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestDF);
         cy.get('@editor').type('{selectall}');
@@ -209,18 +209,19 @@ describe('Test DataFrame', () => {
 
 describe('Test Rich output result', () => {
 
-    before(() => {
-        cy.visit('/');
-        cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
-    })
+    // before(() => {
+        
+    // })
 
     beforeEach(() => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.visit('/');
+        cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         removeText(cy.get('@editor'));
     })
 
     it('still render Matplotlib result', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus().type(codeTestMatplotlibLine);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
@@ -236,7 +237,7 @@ describe('Test Rich output result', () => {
     });
 
     it('still render Plotly result', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestPlotly);
         cy.get('@editor').type('{selectall}');
@@ -253,7 +254,7 @@ describe('Test Rich output result', () => {
     });
 
     it('still render Audio', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestAudio);
         cy.get('@editor').type('{selectall}');
@@ -271,7 +272,7 @@ describe('Test Rich output result', () => {
     });
 
     it('still render Video', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestVideo);
         cy.get('@editor').type('{selectall}');
@@ -289,7 +290,7 @@ describe('Test Rich output result', () => {
     });
 
     it('still render Image JPG', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestImageJPG);
         cy.get('@editor').type('{selectall}');
@@ -307,7 +308,7 @@ describe('Test Rich output result', () => {
     });
 
     it('still render Image PNG', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestImagePNG);
         cy.get('@editor').type('{selectall}');
@@ -326,18 +327,20 @@ describe('Test Rich output result', () => {
 });
 
 describe('Test Save Events', () => {
-    before(() => {
-        cy.visit('/');
-        cy.get('[toolbarname="main.py"]').trigger("click");
-    })
+    // before(() => {
+    //     cy.visit('/');
+    //     cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
+    // })
 
     beforeEach(() => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.visit('/');
+        cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         removeText(cy.get('@editor'));
     })
 
     it('still save file successfully after timeout', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         const code = randomString(); 
         cy.get('@editor').type(`print("${code}")`);
@@ -350,7 +353,7 @@ describe('Test Save Events', () => {
     });
 
     it('still save events on reload', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         const code = randomString();
         cy.get('@editor').type(`print("${code}")`);
@@ -371,7 +374,7 @@ describe('Test Save Events', () => {
     })
 
     it ('still save events on file change', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         const code = randomString();
         cy.get('@editor').type(`print("${code}")`);
