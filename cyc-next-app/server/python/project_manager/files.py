@@ -50,7 +50,7 @@ def read_file(path, project_path, timestamp=None):
             with open(path) as file:
                 content = file.read()
                 content_lines = content.splitlines()
-                if content[-1] == '\n':
+                if content_lines == [] or content[-1] == '\n':
                     content_lines.append('')
                 result = FileContent(
                     content=content_lines, timestamp=timestamp)
@@ -141,3 +141,9 @@ def get_state_path(path, project_path):
         project_path, CNEXT_FOLDER_PATH, 'states', sub_path)
     state_path = os.path.splitext(file_path)[0] + '.json'
     return state_path
+
+
+with open('/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/main.py') as f:
+    content = f.read()
+    print(content.splitlines())
+
