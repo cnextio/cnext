@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyledRichOutputPanel } from "../StyledComponents";
 // import RichOutputView from "./RichOutputView";
 import RichOuputPanelHeader from "./RichOuputPanelHeader";
@@ -8,10 +8,19 @@ import { RichOutputPanelToolbarItems } from "../../interfaces/IRichOuputViewer";
 import ExperimentManager from "./experiment-panel/ExperimentsManager";
 import ModelPanel from "./model-panel/ModelPanel";
 import DataPanel from "./data-panel/DataPanel";
+import { useSelector, useDispatch } from "react-redux";
 
 const RichOutputPanel = (props: any) => {
     const [show, setShow] = useState(RichOutputPanelToolbarItems.DATA);
-    
+
+    const resultUpdateCount = useSelector((state) => state.codeEditor.resultUpdateCount);
+
+    useEffect(() => {
+        if (resultUpdateCount > 0) {
+            setShow(RichOutputPanelToolbarItems.RESULTS);
+        }
+    }, [resultUpdateCount]);
+
     return (
         <StyledRichOutputPanel>
             {/* <RichOutputView {...props} /> */}
