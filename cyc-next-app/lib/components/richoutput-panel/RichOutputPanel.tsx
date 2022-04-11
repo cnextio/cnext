@@ -14,12 +14,20 @@ const RichOutputPanel = (props: any) => {
     const [show, setShow] = useState(RichOutputPanelToolbarItems.DATA);
 
     const resultUpdateCount = useSelector((state) => state.codeEditor.resultUpdateCount);
+    const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
+    const tableData = useSelector((state) => state.dataFrames.tableData);
 
     useEffect(() => {
         if (resultUpdateCount > 0) {
             setShow(RichOutputPanelToolbarItems.RESULTS);
         }
     }, [resultUpdateCount]);
+
+    useEffect(() => {
+        if (activeDataFrame.length > 0 && Object.keys(tableData).length > 0) {
+            setShow(RichOutputPanelToolbarItems.DATA);
+        }
+    }, [activeDataFrame, tableData]);
 
     return (
         <StyledRichOutputPanel>
