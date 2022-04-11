@@ -32,10 +32,6 @@ const randomString = () => {
 
 describe('Test Code Editor', () => {
 
-    // before(() => {
-    //     cy.visit('/');
-    // })
-
     beforeEach(() => {
         cy.visit('/');
         cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
@@ -76,22 +72,18 @@ describe('Test Code Editor', () => {
         content.contains('drop_duplicates');
 
         // make sure keyboard still work
-        // editor = cy.get('@editor');
         cy.get('@editor').type('{backspace}');
         cy.get('@editor').type('{esc}');
         cy.get('.cm-tooltip-autocomplete').should('not.exist');
 
         // make sure have signature tooltip
-        // editor = cy.get('@editor');
         cy.get('@editor').type('p');
         cy.get('@editor').type('(');
         cy.get('.cm-tooltip-signature').should('be.visible');
 
-        // editor = cy.get('@editor');
         cy.get('@editor').type('{esc}');
         cy.get('.cm-tooltip-signature').should('not.exist');
 
-        // editor = cy.get('@editor');
         removeText(cy.get('@editor'));
         cy.get('@editor').type(codeTestDF);
         if (isMacOSPlatform()) {
@@ -109,7 +101,6 @@ describe('Test Code Editor', () => {
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestGroupLines);
-        cy.get('@editor').focus();
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -118,6 +109,7 @@ describe('Test Code Editor', () => {
         }
         cy.wait(3000);
         cy.reload();
+        cy.wait(2000);
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type('{selectall}');
@@ -132,18 +124,37 @@ describe('Test Code Editor', () => {
         cy.get('.MuiPaper-root > img').should('be.visible');
         cy.wait(WAIT_TIME_OUT);
     });
+
+    it("Check blank code editor when loading", () => {
+        cy.wait(3000);
+        cy.reload();
+        cy.wait(2000);
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content', { timeout: 10000 }).should('be.visible').as('editor');
+        cy.get('@editor').focus();
+        const code = randomString();
+        cy.get('@editor').type(`print("${code}")`);
+        cy.get('@editor').type('{selectall}');
+        if (isMacOSPlatform()) {
+            cy.get('@editor').type('{command}k');
+            cy.get('@editor').type('{command}l');
+        } else {
+            cy.get('@editor').type('{ctrl}k');
+            cy.get('@editor').type('{ctrl}l');
+        }
+
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code)
+        cy.wait(WAIT_TIME_OUT);
+    })
 });
 
 describe('Test DataFrame', () => {
-
-    // before(() => {
-    //     cy.visit('/');
-    //     cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
-    // })
-
-    beforeEach(() => {
+    
+    before(() => {
         cy.visit('/');
         cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
+    })
+
+    beforeEach(() => {
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
         removeText(cy.get('@editor'));
     })
@@ -161,10 +172,10 @@ describe('Test DataFrame', () => {
             cy.get('@editor').type('{ctrl}l');
         }
 
+        cy.get('#RichOuputViewHeader_DATA', { timeout: 10000 }).should('be.visible').click();
         cy.get('.MuiTableContainer-root').should('be.visible');
         // check columns name
         cy.get('.MuiTableHead-root > .MuiTableRow-root > :nth-child(2)').contains('Id');
-
         cy.get('*[class^="StyledComponents__StyledTableViewHeader"] > :nth-child(2)').click();
         cy.get('.MuiTableBody-root > :nth-child(1) > :nth-child(1)').contains('Id');
 
@@ -190,6 +201,7 @@ describe('Test DataFrame', () => {
     });
 
     it('Check DF Autocompletion', () => {
+        cy.get('#RichOuputViewHeader_DATA', { timeout: 10000 }).should('be.visible').click();
         let lines = cy
             .get('.cm-theme-light > .cm-editor > .cm-scroller > .cm-content')
             .as('df-editor')
@@ -209,10 +221,6 @@ describe('Test DataFrame', () => {
 
 describe('Test Rich output result', () => {
 
-    // before(() => {
-        
-    // })
-
     beforeEach(() => {
         cy.visit('/');
         cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
@@ -231,7 +239,8 @@ describe('Test Rich output result', () => {
             cy.get('@editor').type('{ctrl}k');
             cy.get('@editor').type('{ctrl}l');
         }
-
+        
+        cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
         cy.get('.MuiPaper-root > img').should('be.visible');
         cy.wait(WAIT_TIME_OUT);
     });
@@ -249,6 +258,7 @@ describe('Test Rich output result', () => {
             cy.get('@editor').type('{ctrl}l');
         }
 
+        cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
         cy.get('.MuiPaper-root > .js-plotly-plot').should('be.visible');
         cy.wait(WAIT_TIME_OUT);
     });
@@ -266,8 +276,8 @@ describe('Test Rich output result', () => {
             cy.get('@editor').type('{ctrl}l');
         }
 
+        cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
         cy.get('.MuiPaper-root > audio').should('be.visible');
-
         cy.wait(WAIT_TIME_OUT);
     });
 
@@ -284,8 +294,8 @@ describe('Test Rich output result', () => {
             cy.get('@editor').type('{ctrl}l');
         }
 
+        cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
         cy.get('.MuiPaper-root > video').should('be.visible');
-
         cy.wait(WAIT_TIME_OUT);
     });
 
@@ -302,8 +312,8 @@ describe('Test Rich output result', () => {
             cy.get('@editor').type('{ctrl}l');
         }
 
+        cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
         cy.get('.MuiPaper-root > img').should('be.visible');
-
         cy.wait(WAIT_TIME_OUT);
     });
 
@@ -320,17 +330,13 @@ describe('Test Rich output result', () => {
             cy.get('@editor').type('{ctrl}l');
         }
 
+        cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
         cy.get('.MuiPaper-root > img').should('be.visible');
-
         cy.wait(WAIT_TIME_OUT);
     });
 });
 
 describe('Test Save Events', () => {
-    // before(() => {
-    //     cy.visit('/');
-    //     cy.get('[toolbarname="main.py"]', { timeout: 10000 }).should('be.visible').trigger('click');
-    // })
 
     beforeEach(() => {
         cy.visit('/');
