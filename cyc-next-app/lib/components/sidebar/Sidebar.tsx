@@ -19,6 +19,7 @@ import { clearTextOutputs } from "../../../redux/reducers/CodeEditorRedux";
 import { setViewMode } from "../../../redux/reducers/ConfigManagerRedux";
 import { ViewModeOptions } from "../../interfaces/IApp";
 import { SideBarName } from "../../interfaces/IApp";
+import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
 
 // const drawerWidth = 240;
@@ -35,9 +36,14 @@ import store from "../../../redux/store";
 const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
         <SidebarListItem button key={icon.name} selected={selectedIcon === icon.name}>
-            <StyledSidebarButton id={"sidebar_" + icon.name} onClick={() => handleClick(icon.name)}>
-                {icon.component}
-            </StyledSidebarButton>
+            <Tooltip title={icon.tooltip} placement='right-end'>
+                <StyledSidebarButton
+                    id={"sidebar_" + icon.name}
+                    onClick={() => handleClick(icon.name)}
+                >
+                    {icon.component}
+                </StyledSidebarButton>
+            </Tooltip>
         </SidebarListItem>
     );
 };
@@ -49,18 +55,22 @@ const MiniSidebar = () => {
         {
             name: SideBarName.PROJECT,
             component: <FolderIcon />,
+            tooltip: "Explorer",
         },
         {
             name: SideBarName.INBOX,
             component: <InboxIcon />,
+            tooltip: "Show file",
         },
         {
             name: SideBarName.CLEAR_STATE,
             component: <DeleteIcon />,
+            tooltip: "Clear state",
         },
         {
             name: SideBarName.CHANGE_LAYOUT,
             component: <ViewCompactIcon />,
+            tooltip: "Change layout",
         },
     ];
 
