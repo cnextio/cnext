@@ -185,9 +185,16 @@ export interface DFFilter {
     cols: string[];
 }
 
-export enum ViewMode {
+export enum ViewModeOptions {
     HORIZONTAL = "horizontal",
     VERTICAL = "vertical",
+}
+
+export enum SideBarName {
+    PROJECT = "Projects",
+    INBOX = "Inbox",
+    CLEAR_STATE = "ClearState",
+    CHANGE_LAYOUT = "ChangeLayout",
 }
 
 // export interface IDFUpdates {
