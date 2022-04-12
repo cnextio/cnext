@@ -3,15 +3,15 @@ p2n_comm:
     n2p_port: 5000
     p2n_port: 5001
 
-path_to_cycdataframe_lib: ''
+path_to_cycdataframe_lib: ""
 
 projects:
     open_projects:
-        - id: '1'
-          name: 'Skywalker'
-          path: '/Users/bachbui/works/cycai/cnext-working-dir/Skywalker'
-    active_project: '1'
-
+        -   id: "1"
+            name: "Skywalker"
+            path: '/Users/bachbui/works/cycai/cnext-working-dir/Skywalker'
+        #   path: "/Users/bachbui/works/cycai/cnext_sample_projects/Skywalker"
+    active_project: "1"
 # p2n_comm:
 #     host: tcp://127.0.0.1
 #     n2p_port: 5000
