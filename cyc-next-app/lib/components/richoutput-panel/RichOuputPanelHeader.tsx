@@ -14,6 +14,7 @@ const RichOuputPanelHeader = ({ show, setShow }) => {
             <StyledTableViewHeader>
                 {Object.values(RichOutputPanelToolbarItems).map((name, index) => (
                     <RichOuputViewHeaderButton
+                        id={"RichOuputViewHeader_" + name}
                         key={index}
                         selected={show == name ? true : false}
                         variant='overline'
