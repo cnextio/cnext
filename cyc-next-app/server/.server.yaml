@@ -9,7 +9,7 @@ projects:
     open_projects:
         - id: '1'
           name: 'Skywalker'
-          path: '/Users/bachbui/works/cycai/cnext-working-dir/Skywalker'
+          path: 'cnext_sample_projects/Skywalker'
     active_project: '1'
 
 # p2n_comm:
