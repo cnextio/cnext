@@ -24,7 +24,7 @@ const RichOutputPanel = (props: any) => {
     }, [resultUpdateCount]);
 
     useEffect(() => {
-        if (activeDataFrame.length > 0 && Object.keys(tableData).length > 0) {
+        if (activeDataFrame != null && Object.keys(tableData).length > 0) {
             setShow(RichOutputPanelToolbarItems.DATA);
         }
     }, [activeDataFrame, tableData]);
