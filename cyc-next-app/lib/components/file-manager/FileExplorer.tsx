@@ -1,4 +1,5 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
+import path from "path";
 import {
     CodeToolbar as FileExporerHeader,
     FileExplorerHeaderName,
@@ -12,6 +13,7 @@ import {
     FileContextMenuItem,
     IDirectoryMetadata,
     IDirListResult,
+    IFileMetadata,
     IProjectMetadata,
     ProjectCommand,
 } from "../../interfaces/IFileManager";
@@ -82,8 +84,12 @@ const FileExplorer = (props: any) => {
                         dispatch(setInView(fmResult.metadata["path"]));
                         break;
                     case ProjectCommand.delete:
-                        console.log("FileExplorer got delete: ", fmResult);
-                        dispatch(setOpenFiles(fmResult.content));
+                        console.log("FileExplorer got delete result: ", fmResult);
+                        let openFiles: IFileMetadata[] = fmResult.content;
+                        dispatch(setOpenFiles(openFiles));
+                        if (openFiles.length > 0) {
+                            dispatch(setInView(openFiles[0].path));
+                        }
                         // setDeleteItemInProgress(false);
                         // dispatch(setInView(fmResult.metadata['path']));
                         break;
@@ -97,10 +103,7 @@ const FileExplorer = (props: any) => {
         setupSocket();
     }, []);
 
-    const createMessage = (
-        command: ProjectCommand,
-        metadata: {}
-    ): IMessage => {
+    const createMessage = (command: ProjectCommand, metadata: {}): IMessage => {
         let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.FileExplorer,
             command_name: command,
@@ -122,22 +125,22 @@ const FileExplorer = (props: any) => {
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
-    const fetchChildNodes = (id: string) => {
+    const fetchDirChildNodes = (path: string) => {
         const state = store.getState();
         const projectPath = state.projectManager.activeProject?.path;
         let message: IMessage = createMessage(ProjectCommand.list_dir, {
             project_path: projectPath,
-            path: id
+            path: path,
         });
         sendMessage(message);
     };
 
-    const handleChange = (event, nodes) => {
+    const handleDirToggle = (event, nodes) => {
         const expandingNodes = nodes.filter((node) => !expanded.includes(node));
         setExpanded(nodes);
         const dirID = expandingNodes[0];
         if (dirID) {
-            fetchChildNodes(dirID);
+            fetchDirChildNodes(dirID);
         }
     };
 
@@ -213,6 +216,9 @@ const FileExplorer = (props: any) => {
         return name.split(".")[0].length > 0;
     };
 
+    const relativeProjectPath = "./";
+    const handleCreateFile = (fileName: string) => {};
+
     const handleNewItemKeyPress = (
         event: React.KeyboardEvent,
         value: string
@@ -222,13 +228,22 @@ const FileExplorer = (props: any) => {
         const projectPath = state.projectManager.activeProject?.path;
         if (event.key === "Enter") {
             if (validateFileName(value) && contextMenuItems) {
-                let fileName = contextMenuItems.item + "/" + value;
+                /** add relativeProjectPath because path.join will remove `./` preceding  */
+                let relativeFilePath =
+                    relativeProjectPath +
+                    path.join(contextMenuItems.item, value);
+                console.log(
+                    "FileExplorer create file: ",
+                    relativeFilePath,
+                    contextMenuItems.item,
+                    value
+                );
                 let message = createMessage(ProjectCommand.create_file, {
                     project_path: projectPath,
-                    path: fileName,
+                    path: relativeFilePath,
                 });
                 sendMessage(message);
-                fetchChildNodes(contextMenuItems.item);
+                fetchDirChildNodes(contextMenuItems.item);
             }
             setCreateItemInProgress(false);
         } else if (event.key === "Escape") {
@@ -311,11 +326,11 @@ const FileExplorer = (props: any) => {
                 is_file: contextMenuItems.is_file,
             });
             sendMessage(message);
-            fetchChildNodes(contextMenuItems.parent);
+            fetchDirChildNodes(contextMenuItems.parent);
         }
         setDeleteDialog(false);
     };
-
+    
     return (
         <Fragment>
             <FileExporerHeader>
@@ -335,21 +350,21 @@ const FileExplorer = (props: any) => {
                         overflowY: "auto",
                     }}
                     expanded={expanded}
-                    onNodeToggle={handleChange}
+                    onNodeToggle={handleDirToggle}
                 >
                     <FileItem
-                        nodeId={activeProject.path}
+                        nodeId={relativeProjectPath}
                         label={activeProject.name}
                         onContextMenu={(event: React.MouseEvent) => {
                             handleItemContextMenu(
                                 event,
-                                activeProject.path,
-                                activeProject.path,
+                                relativeProjectPath,
+                                relativeProjectPath,
                                 false
                             );
                         }}
                     >
-                        {generateFileItems(activeProject.path)}
+                        {generateFileItems(relativeProjectPath)}
                     </FileItem>
                 </FileTree>
             ) : null}

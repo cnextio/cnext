@@ -52,7 +52,7 @@ const FileManager = () => {
     const [saveTimer, setSaveTimer] = useState<NodeJS.Timer | null>(null);
     const [saveTimeout, setSaveTimeout] = useState(false);
 
-    const _setup_socket = () => {
+    const setupSocket = () => {
         socket.emit("ping", WebAppEndpoint.FileManager);
         socket.on(WebAppEndpoint.FileManager, (result: string) => {
             console.log("FileManager got results...", result);
@@ -155,7 +155,7 @@ const FileManager = () => {
                                 "FileManager got active project result: ",
                                 fmResult
                             );
-                            let message: IMessage = _createMessage(
+                            let message: IMessage = createMessage(
                                 ProjectCommand.get_open_files,
                                 "",
                                 1
@@ -198,7 +198,7 @@ const FileManager = () => {
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
-    const _createMessage = (
+    const createMessage = (
         command_name: ProjectCommand,
         content: string | ICodeLine[] | null,
         seq_number: number,
@@ -242,7 +242,7 @@ const FileManager = () => {
             const file: IFileMetadata =
                 state.projectManager.openFiles[inViewID];
             const projectPath = state.projectManager.activeProject?.path;
-            const message: IMessage = _createMessage(
+            const message: IMessage = createMessage(
                 ProjectCommand.read_file,
                 "",
                 1,
@@ -270,7 +270,7 @@ const FileManager = () => {
             };
             saveFileAndState();
 
-            let message: IMessage = _createMessage(
+            let message: IMessage = createMessage(
                 ProjectCommand.close_file,
                 "",
                 1,
@@ -282,10 +282,11 @@ const FileManager = () => {
         }
     }, [fileToClose]);
 
-    useEffect(() => {
+    useEffect(() => {        
         if (fileToOpen) {
+            console.log("FileManager file to open: ", fileToOpen);
             // TODO: make sure the file is saved before being closed
-            let message: IMessage = _createMessage(
+            let message: IMessage = createMessage(
                 ProjectCommand.open_file,
                 "",
                 1,
@@ -315,7 +316,7 @@ const FileManager = () => {
                 let codeText = state.codeEditor.codeText[filePath];
                 let timestamp = state.codeEditor.timestamp[filePath];
                 const projectPath = state.projectManager.activeProject?.path;
-                let message: IMessage = _createMessage(
+                let message: IMessage = createMessage(
                     ProjectCommand.save_file,
                     codeText.join("\n"),
                     1,
@@ -397,7 +398,7 @@ const FileManager = () => {
                     const timestamp = state.codeEditor.timestamp[filePath];
                     const projectPath =
                         state.projectManager.activeProject?.path;
-                    const message: IMessage = _createMessage(
+                    const message: IMessage = createMessage(
                         ProjectCommand.save_state,
                         codeLinesSaveState,
                         1,
@@ -492,8 +493,8 @@ const FileManager = () => {
     };
 
     useEffect(() => {
-        _setup_socket();
-        let message: IMessage = _createMessage(
+        setupSocket();
+        let message: IMessage = createMessage(
             ProjectCommand.get_active_project,
             "",
             1

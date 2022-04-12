@@ -15,10 +15,16 @@ CNEXT_FOLDER_PATH = '.cnext/'
 def list_dir(project_path, relative_dir_path):
     dir_list: DirMetatdata = []
     try:
+        # if relative_dir_path == '/':
+        #     dir_path = project_path
+        # else:
         dir_path = os.path.join(project_path, relative_dir_path)
+        log.info('list_dir paths: %s %s %s' %
+                 (project_path, relative_dir_path, dir_path))
         for file_name in os.listdir(dir_path):
+            relative_file_path = os.path.join(relative_dir_path, file_name)
             file_path = os.path.join(dir_path, file_name)
-            dir_list.append(DirMetatdata(file_path, name=file_name, is_file=isfile(
+            dir_list.append(DirMetatdata(relative_file_path, name=file_name, is_file=isfile(
                 file_path), timestamp=os.path.getmtime(file_path)))
     except Exception:
         raise Exception
