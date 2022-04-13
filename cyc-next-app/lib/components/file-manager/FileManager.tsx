@@ -335,7 +335,7 @@ const FileManager = () => {
                             timestamp: timestamp,
                         }
                     );
-                    await sendMessage(message);
+                    sendMessage(message);
                     setSaveTimeout(false);
                     return new Promise((resolve) => {
                         socket.on(WebAppEndpoint.FileManager, (result: string) => {

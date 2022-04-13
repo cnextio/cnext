@@ -31,7 +31,8 @@ const FileManager = 'FileManager';
 const FileExplorer = 'FileExplorer';
 const MagicCommandGen = 'MagicCommandGen';
 const ExperimentManager = 'ExperimentManager';
-const CodeExecutor = [CodeEditor, DFManager, FileManager, FileExplorer, MagicCommandGen];
+const ConfigManager = 'ConfigManager';
+const CodeExecutor = [CodeEditor, DFManager, FileManager, FileExplorer, MagicCommandGen, ConfigManager];
 const NotCodeExecutor = [ExperimentManager];
 
 const LSPExecutor = [

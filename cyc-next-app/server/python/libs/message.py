@@ -17,6 +17,7 @@ class WebappEndpoint(str, Enum):
     MagicCommandGen = 'MagicCommandGen'
     FileExplorer = 'FileExplorer'
     ExperimentManager = 'ExperimentManager'
+    ConfigManager = 'ConfigManager'
 
     def __str__(self):
         return str(self.value)
@@ -74,6 +75,11 @@ class ExperimentManagerCommand(str, Enum):
 class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'
     exec_grouped_lines = 'exec_grouped_lines'
+
+
+class ConfigManagerCommand(str, Enum):
+    save_config = 'save_config'
+    load_config = 'load_config'
 
 
 class ContentType(str, Enum):
