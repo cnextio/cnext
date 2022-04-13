@@ -1,3 +1,4 @@
+import os
 import simplejson as json
 
 class DirMetatdata:
@@ -57,10 +58,12 @@ class FileContent:
 
 class ProjectMetadata:
     def __init__(self, **entries): 
-        self.path = None
+        self.path = None        
         self.name = None
         self.id = None
-        self.__dict__.update(entries) 
+        self.__dict__.update(entries)
+        self.data_path = os.path.join(self.path, '.cnext')
+        self.config_path = os.path.join(self.data_path, 'cnext.yaml')
     
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)

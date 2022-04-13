@@ -16,7 +16,7 @@ def get_open_files():
     open_files = []
     try:
         if active_project: 
-            config_path = active_project.path+'/.cnext.yaml'
+            config_path = active_project.config_path  # active_project.path+'/.cnext.yaml'
             if exists(config_path):
                 config = read_config(config_path)
                 if hasattr(config, 'open_files'):
@@ -35,7 +35,7 @@ def close_file(path):
     open_files = []
     try:
         if active_project: 
-            config_path = active_project.path+'/.cnext.yaml'
+            config_path = active_project.config_path #active_project.path+'/.cnext.yaml'
             if exists(config_path):
                 config = read_config(config_path)
                 if hasattr(config, 'open_files'):
@@ -59,7 +59,7 @@ def open_file(path):
     open_files = []
     try:
         if active_project: 
-            config_path = active_project.path+'/.cnext.yaml'
+            config_path = active_project.config_path #active_project.path+'/.cnext.yaml'
             if exists(config_path):
                 config = read_config(config_path)
                 if hasattr(config, 'open_files'):
