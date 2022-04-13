@@ -3,9 +3,9 @@
     "baseUrl": "http://localhost:3000",
     "defaultCommandTimeout": 10000,
     "video": false,
-    "reporter": "junit",
+    "reporter": "mocha-junit-reporter",
     "reporterOptions": {
-        "mochaFile": "cypress/results/output.xml",
-        "toConsole": true
+        "testsuitesTitle": true,
+        "mochaFile": "./cypress/reports/junit.[hash].xml"
     }
 }
