@@ -1,9 +1,11 @@
 {
+    "projectId": "4rrkju",
     "baseUrl": "http://localhost:3000",
     "defaultCommandTimeout": 10000,
     "video": false,
-    "reporter": "junit",
+    "reporter": "mocha-junit-reporter",
     "reporterOptions": {
-        "mochaFile": "cypress/results/output.xml"
+        "testsuitesTitle": true,
+        "mochaFile": "./cypress/reports/junit.[hash].xml"
     }
 }

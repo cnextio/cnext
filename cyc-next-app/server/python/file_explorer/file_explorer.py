@@ -22,16 +22,18 @@ class MessageHandler(BaseMessageHandler):
             if message.command_name == ProjectCommand.list_dir:
                 output = []
                 if 'path' in metadata.keys():
-                    output = files.list_dir(metadata['path'])
+                    output = files.list_dir(metadata['project_path'], metadata['path'])
                     type = ContentType.DIR_LIST
             elif message.command_name == ProjectCommand.create_file:
                 if 'path' in metadata.keys():
-                    files.create_file(metadata['path'])
+                    files.create_file(
+                        metadata['project_path'], metadata['path'])
                 output = projects.open_file(metadata['path'])
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.delete:
                 if 'path' in metadata.keys():
-                    files.delete(metadata['path'], metadata['is_file'])
+                    files.delete(metadata['project_path'],
+                                 metadata['path'], metadata['is_file'])
                 if ('is_file' in metadata) and metadata['is_file']:
                     output = projects.close_file(metadata['path'])
                 else:  # TODO: handle the case where a dir is deleted and deleted files were opened

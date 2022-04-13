@@ -37,7 +37,7 @@ fig = px.scatter(x=[0, 1, 2, 3, 4], y=[0, 1, 4, 9, 16])
 fig.show()`;
 
 export const codeTestAudio = `from IPython.display import Audio
-Audio('https://github.com/rafaelreis-hotmart/Audio-Sample-files/raw/master/sample.mp3', autoplay=True)
+Audio('https://github.com/rafaelreis-hotmart/Audio-Sample-files/raw/master/sample.mp3', autoplay=False)
 `;
 
 export const codeTestVideo = `from IPython.display import Video
