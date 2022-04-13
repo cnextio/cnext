@@ -55,7 +55,7 @@ describe('Test Code Editor', () => {
         } else {
             cy.get('@editor').type('{ctrl}l');
         }
-        cy.get('#CodeOutputContent > :nth-child(1)').contains('testt');
+        cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
     });
 
     it('Check autocompletion', () => {
