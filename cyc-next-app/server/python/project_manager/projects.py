@@ -10,7 +10,7 @@ from project_manager.interfaces import FileMetadata
 log = logs.get_logger(__name__)
      
 active_project = None        
-CNEXT_PROJECT_DIR = './'
+CNEXT_PROJECT_DIR = ''
 
 def get_open_files():    
     open_files = []

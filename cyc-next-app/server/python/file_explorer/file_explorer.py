@@ -20,7 +20,11 @@ class MessageHandler(BaseMessageHandler):
         try:
             metadata = message.metadata
             if 'path' in metadata.keys():
-                norm_path = os.path.normpath(metadata['path'])
+                ## avoid creating `./` when the path is empty
+                if metadata['path']=="":
+                    norm_path = metadata['path']
+                else:
+                    norm_path = os.path.normpath(metadata['path'])
             if 'project_path' in metadata.keys():
                 norm_project_path = os.path.normpath(metadata['project_path'])
 
