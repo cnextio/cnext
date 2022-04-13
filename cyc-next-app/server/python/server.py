@@ -5,7 +5,6 @@ from code_editor import code_editor as ce
 from dataframe_manager import dataframe_manager_basekernel as dm_base
 from dataframe_manager import dataframe_manager as dm
 from experiment_manager import experiment_manager as em
-from config_manager import config_manager as cm
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
@@ -47,8 +46,7 @@ if __name__ == "__main__":
             WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config),
             WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space),
-            WebappEndpoint.FileExplorer: fe.MessageHandler(p2n_queue, user_space),
-            WebappEndpoint.ConfigManager: cm.MessageHandler(p2n_queue, user_space)    
+            WebappEndpoint.FileExplorer: fe.MessageHandler(p2n_queue, user_space)
         }
 
     except Exception as error:

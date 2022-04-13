@@ -13,25 +13,27 @@ const WorkingPanel = () => {
     const showProjectExplore = useSelector(
         (state: RootState) => state.projectManager.showProjectExplore
     );
+
+    const projectConfig = useSelector((state: RootState) => state.projectManager.configs);
     // const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.VERTICAL);
-    const viewMode = useSelector((state: RootState) => state.configManager.viewMode);
+    // const [viewMode, setViewMode] = useState("vertical");
 
-    // useEffect(() => {
-
-    // }, [viewMode]);
+    useEffect(() => {
+        // const viewMode = projectConfig.view_mode;
+    }, []);
 
     return (
         <StyledWorkingPanel>
             {/* have to do complicated inline style because of this 
 			https://newbedev.com/absolute-positioning-ignoring-padding-of-parent */}
-            <WorkingPanelSplitPanel split={viewMode}>
+            <WorkingPanelSplitPanel split={projectConfig.view_mode}>
                 {showProjectExplore && (
                     <Pane size='300px'>
                         <FileExplorer />
                     </Pane>
                 )}
                 <Pane>
-                    <CodePanel workingPanelViewMode={viewMode} />
+                    <CodePanel workingPanelViewMode={projectConfig.view_mode} />
                 </Pane>
                 <Pane>
                     <RichOutputPanel />
@@ -41,6 +43,6 @@ const WorkingPanel = () => {
             <FileManager />
         </StyledWorkingPanel>
     );
-};
+};;
 
 export default WorkingPanel;

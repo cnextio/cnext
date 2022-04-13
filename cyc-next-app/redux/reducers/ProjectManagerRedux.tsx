@@ -5,7 +5,7 @@ import {
     IFileMetadata,
     IProjectMetadata,
 } from "../../lib/interfaces/IFileManager";
-import { IConfigs } from "../../lib/interfaces/IApp";
+import { IConfigs, ViewMode } from "../../lib/interfaces/IApp";
 
 type ProjectManagerState = {
     openFiles: { [id: string]: IFileMetadata };
@@ -37,6 +37,7 @@ const initialState: ProjectManagerState = {
     configs: {
         local_tmp_dir: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.tmp",
         mlflow_tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+        view_mode: ViewMode.VERTICAL,
     },
 };
 
@@ -125,6 +126,12 @@ export const ProjectManagerRedux = createSlice({
         setScrollPos: (state, action) => {
             if (state.inViewID) state.openFiles[state.inViewID].scroll_pos = action.payload;
         },
+
+        setProjectConfig: (state, action) => {
+            if (action.payload) {
+                state.configs = { ...state.configs, ...action.payload };
+            }
+        },
     },
 });
 
@@ -142,6 +149,7 @@ export const {
     setFileMetaData,
     setServerSynced,
     setScrollPos,
+    setProjectConfig,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;

@@ -14,10 +14,12 @@ import {
 import LogoComponent from "../Logo";
 import { useDispatch } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
-import { setShowProjectExplorer } from "../../../redux/reducers/ProjectManagerRedux";
+import {
+    setShowProjectExplorer,
+    setProjectConfig,
+} from "../../../redux/reducers/ProjectManagerRedux";
 import { clearTextOutputs } from "../../../redux/reducers/CodeEditorRedux";
-import { setViewMode } from "../../../redux/reducers/ConfigManagerRedux";
-import { ViewModeOptions } from "../../interfaces/IApp";
+import { ViewMode } from "../../interfaces/IApp";
 import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
@@ -82,11 +84,14 @@ const MiniSidebar = () => {
 
     const handleClickChangeLayout = () => {
         const state = store.getState();
-        let viewMode = state.configManager.viewMode;
-        if (viewMode === ViewModeOptions.HORIZONTAL) {
-            dispatch(setViewMode(ViewModeOptions.VERTICAL));
+        const viewMode = state.projectManager.configs.view_mode;
+        // if (state.projectManager.configs.hasOwnProperty('view_mode')) {
+        //     let viewMode = state.projectManager.configs;
+        // }
+        if (viewMode === ViewMode.HORIZONTAL) {
+            dispatch(setProjectConfig({ view_mode: ViewMode.VERTICAL }));
         } else {
-            dispatch(setViewMode(ViewModeOptions.HORIZONTAL));
+            dispatch(setProjectConfig({ view_mode: ViewMode.HORIZONTAL }));
         }
     };
 

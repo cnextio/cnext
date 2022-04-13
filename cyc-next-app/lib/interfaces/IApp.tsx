@@ -185,7 +185,7 @@ export interface DFFilter {
     cols: string[];
 }
 
-export enum ViewModeOptions {
+export enum ViewMode {
     HORIZONTAL = "horizontal",
     VERTICAL = "vertical",
 }
@@ -264,6 +264,7 @@ export interface IDFMetadata {
 export interface IConfigs {
     local_tmp_dir: string;
     mlflow_tracking_uri: string;
+    view_mode?: string;
 }
 
 // export class DFUpdates {

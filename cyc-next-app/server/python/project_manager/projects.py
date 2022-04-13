@@ -6,11 +6,13 @@ from project_manager.interfaces import ProjectMetadata
 from libs import logs
 from libs.config import read_config, save_config
 from project_manager.interfaces import FileMetadata
+from project_manager.files import CNEXT_FOLDER_PATH
 
 log = logs.get_logger(__name__)
      
 active_project = None        
 CNEXT_PROJECT_DIR = './'
+FILE_CONFIG = 'config.json'
 
 def get_open_files():    
     open_files = []
@@ -100,3 +102,28 @@ def set_working_dir(path):
         return True
     except Exception:
         raise Exception
+
+
+def save_project_config(project_path, content):
+
+    try:
+        # config_file_path = os.path.join(project_path, FILE_CONFIG)
+        config_file_path = os.path.join(
+            project_path, CNEXT_FOLDER_PATH, FILE_CONFIG)
+        os.makedirs(os.path.dirname(config_file_path), exist_ok=True)
+        with open(config_file_path, 'w') as outfile:
+            outfile.write(json.dumps(content))
+        return FileMetadata(config_file_path, name=FILE_CONFIG, timestamp=os.path.getmtime(config_file_path))
+    except Exception as ex:
+        log.error("Save config error: {}".format(ex))
+        raise Exception
+
+
+def get_project_config(project_path):
+    config_file_path = os.path.join(
+        project_path, CNEXT_FOLDER_PATH, FILE_CONFIG)
+    if os.path.exists(config_file_path):
+        config_file_data = open(config_file_path, "r")
+        data = json.loads(config_file_data.read())
+        return data
+    return

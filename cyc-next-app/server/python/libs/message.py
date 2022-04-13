@@ -17,7 +17,6 @@ class WebappEndpoint(str, Enum):
     MagicCommandGen = 'MagicCommandGen'
     FileExplorer = 'FileExplorer'
     ExperimentManager = 'ExperimentManager'
-    ConfigManager = 'ConfigManager'
 
     def __str__(self):
         return str(self.value)
@@ -63,6 +62,8 @@ class ProjectCommand(str, Enum):
     set_project_dir = 'set_project_dir'
     get_active_project = 'get_active_project'
     save_state = 'save_state'
+    save_project_config = 'save_project_config'
+    get_project_config = 'get_project_config'
 
 
 class ExperimentManagerCommand(str, Enum):
@@ -75,11 +76,6 @@ class ExperimentManagerCommand(str, Enum):
 class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'
     exec_grouped_lines = 'exec_grouped_lines'
-
-
-class ConfigManagerCommand(str, Enum):
-    save_config = 'save_config'
-    load_config = 'load_config'
 
 
 class ContentType(str, Enum):
@@ -106,7 +102,7 @@ class ContentType(str, Enum):
 
 class SubContentType(str, Enum):
     IMAGE_PLOTLY = 'image/plotly+json'
-    IMAGE_SVG = 'image/svg+xml' 
+    IMAGE_SVG = 'image/svg+xml'
     IMAGE_PNG = 'image/png'
     IMAGE_JPG = 'image/jpg'
     TEXT_HTML = 'text/html'
