@@ -139,7 +139,8 @@ const FileExplorer = (props: any) => {
         const expandingNodes = nodes.filter((node) => !expanded.includes(node));
         setExpanded(nodes);
         const dirID = expandingNodes[0];
-        if (dirID) {
+        console.log("FileExplorer handleDirToggle: ", dirID);
+        if (dirID !== null) {
             fetchDirChildNodes(dirID);
         }
     };
@@ -216,7 +217,7 @@ const FileExplorer = (props: any) => {
         return name.split(".")[0].length > 0;
     };
 
-    const relativeProjectPath = "./";
+    const relativeProjectPath = "";
     const handleCreateFile = (fileName: string) => {};
 
     const handleNewItemKeyPress = (
