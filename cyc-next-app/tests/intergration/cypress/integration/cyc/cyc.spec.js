@@ -89,6 +89,7 @@ describe('Test Code Editor', () => {
 
         removeText(cy.get('@editor'));
         cy.get('@editor').type(codeTestDF);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -123,6 +124,7 @@ describe('Test DataFrame', () => {
 
     it('Check dataframe', () => {
         cy.get('@editor').type(codeTestDF);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -160,6 +162,7 @@ describe('Test DataFrame', () => {
 
     it('Check DF Autocompletion', () => {
         cy.get('@editor').type(codeTestDF);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -209,6 +212,7 @@ describe('Test Rich output result', () => {
             .should('be.visible')
             .as('editor');
         cy.get('@editor').focus().type(codeTestMatplotlibLine);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -228,6 +232,7 @@ describe('Test Rich output result', () => {
             .as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestPlotly);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -241,31 +246,13 @@ describe('Test Rich output result', () => {
         cy.get('.MuiPaper-root > .js-plotly-plot').should('be.visible');
     });
 
-    it('still render Audio', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .should('be.visible')
-            .as('editor');
-        cy.get('@editor').focus();
-        cy.get('@editor').type(codeTestAudio);
-        cy.get('@editor').type('{selectall}');
-        if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}k');
-            cy.get('@editor').type('{command}l');
-        } else {
-            cy.get('@editor').type('{ctrl}k');
-            cy.get('@editor').type('{ctrl}l');
-        }
-
-        cy.get('#RichOuputViewHeader_RESULTS').should('be.visible').click();
-        cy.get('.MuiPaper-root > audio').should('be.visible');
-    });
-
     it('still render Video', () => {
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
             .should('be.visible')
             .as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestVideo);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -285,6 +272,7 @@ describe('Test Rich output result', () => {
             .as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestImageJPG);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -304,6 +292,7 @@ describe('Test Rich output result', () => {
             .as('editor');
         cy.get('@editor').focus();
         cy.get('@editor').type(codeTestImagePNG);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -355,6 +344,7 @@ describe('Test Save Events', () => {
         cy.get('@editor').focus();
         const code = randomString();
         cy.get('@editor').type(`print("${code}")`);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -376,6 +366,7 @@ describe('Test Save Events', () => {
         cy.get('@editor').focus();
         const code = randomString();
         cy.get('@editor').type(`print("${code}")`);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -413,6 +404,7 @@ describe('Check special case on Code lines', () => {
 
     it('Check group lines', () => {
         cy.get('@editor').type(codeTestGroupLines);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -447,6 +439,7 @@ describe('Check special case on Code lines', () => {
         cy.get('@editor').focus();
         const code = randomString();
         cy.get('@editor').type(`print("${code}")`);
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
@@ -456,6 +449,45 @@ describe('Check special case on Code lines', () => {
             cy.get('@editor').type('{ctrl}l');
         }
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
+    });
+
+    afterEach(() => {
+        cy.wait(WAIT_1S);
+    });
+});
+
+describe('Check Heavy case', () => {
+    before(() => {
+        cy.visit('/');
+        cy.wait(WAIT_3S);
+    });
+
+    beforeEach(() => {
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .should('be.visible')
+            .as('editor');
+        removeText(cy.get('@editor'));
+        cy.wait(WAIT_1S);
+    });
+
+    it('still render Audio', () => {
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+            .should('be.visible')
+            .as('editor');
+        cy.get('@editor').focus();
+        cy.get('@editor').type(codeTestAudio);
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{selectall}');
+        if (isMacOSPlatform()) {
+            cy.get('@editor').type('{command}k');
+            cy.get('@editor').type('{command}l');
+        } else {
+            cy.get('@editor').type('{ctrl}k');
+            cy.get('@editor').type('{ctrl}l');
+        }
+
+        cy.get('#RichOuputViewHeader_RESULTS').should('be.visible').click();
+        cy.get('.MuiPaper-root > audio').should('be.visible');
     });
 
     afterEach(() => {

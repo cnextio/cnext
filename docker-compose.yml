@@ -30,7 +30,7 @@ services:
             - server
         environment:
             - CYPRESS_baseUrl=http://web:3000
-        command: npx cypress run
+        command: npx cypress run --record --key 5a02471d-2779-4256-bd4b-58ec1efa6929
         volumes:
             - ./cyc-next-app/tests/intergration/cypress:/app/cypress
             - ./cyc-next-app/tests/intergration/cypress.json:/app/cypress.json
