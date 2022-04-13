@@ -9,7 +9,7 @@ from project_manager.interfaces import FileContent
 log = logs.get_logger(__name__)
 
 # The folder that consist the state, configuration files
-CNEXT_FOLDER_PATH = '.cnext/'
+CNEXT_FOLDER_PATH = '.cnext'
 
 
 def list_dir(project_path, relative_dir_path):

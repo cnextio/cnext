@@ -84,7 +84,10 @@ const FileExplorer = (props: any) => {
                         dispatch(setInView(fmResult.metadata["path"]));
                         break;
                     case ProjectCommand.delete:
-                        console.log("FileExplorer got delete result: ", fmResult);
+                        console.log(
+                            "FileExplorer got delete result: ",
+                            fmResult
+                        );
                         let openFiles: IFileMetadata[] = fmResult.content;
                         dispatch(setOpenFiles(openFiles));
                         if (openFiles.length > 0) {
@@ -139,7 +142,8 @@ const FileExplorer = (props: any) => {
         const expandingNodes = nodes.filter((node) => !expanded.includes(node));
         setExpanded(nodes);
         const dirID = expandingNodes[0];
-        if (dirID) {
+        console.log("FileExplorer handleDirToggle: ", dirID);
+        if (dirID !== null) {
             fetchDirChildNodes(dirID);
         }
     };
@@ -216,7 +220,7 @@ const FileExplorer = (props: any) => {
         return name.split(".")[0].length > 0;
     };
 
-    const relativeProjectPath = "./";
+    const relativeProjectPath = "";
     const handleCreateFile = (fileName: string) => {};
 
     const handleNewItemKeyPress = (
@@ -228,10 +232,14 @@ const FileExplorer = (props: any) => {
         const projectPath = state.projectManager.activeProject?.path;
         if (event.key === "Enter") {
             if (validateFileName(value) && contextMenuItems) {
-                /** add relativeProjectPath because path.join will remove `./` preceding  */
-                let relativeFilePath =
-                    relativeProjectPath +
-                    path.join(contextMenuItems.item, value);
+                /** this will create path format that conforms to the style of the client OS 
+                 * but not that of server OS. The server will have to use os.path.norm to correct 
+                 * the path */
+                let relativeFilePath = path.join(
+                    relativeProjectPath,
+                    contextMenuItems.item,
+                    value
+                );
                 console.log(
                     "FileExplorer create file: ",
                     relativeFilePath,
@@ -330,7 +338,7 @@ const FileExplorer = (props: any) => {
         }
         setDeleteDialog(false);
     };
-    
+
     return (
         <Fragment>
             <FileExporerHeader>
