@@ -27,7 +27,7 @@ Create a folder anywhere you want and give it any name
 Create ```.env``` file in your computer inside above folder and put content bellow
 ``` 
  IMAGE_NAME = cycai/cnext
- IMAGE_TAG = v1.0.0 
+ IMAGE_TAG = v0.1.0 
  CLIENT_PORT = 3000
  SERVER_PORT = 4000 
  SOURCE_PROJECT_DIR = c:/cnext_sample_projects
