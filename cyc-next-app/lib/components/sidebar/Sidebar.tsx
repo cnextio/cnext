@@ -62,7 +62,7 @@ const MiniSidebar = () => {
         {
             name: SideBarName.INBOX,
             component: <InboxIcon />,
-            tooltip: "Hide explorer",
+            tooltip: "Inbox",
         },
         {
             name: SideBarName.CLEAR_STATE,
