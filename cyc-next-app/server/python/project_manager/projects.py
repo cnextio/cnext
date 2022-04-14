@@ -11,7 +11,7 @@ from project_manager.files import CNEXT_FOLDER_PATH
 log = logs.get_logger(__name__)
 
 active_project = None
-CNEXT_PROJECT_DIR = './'
+CNEXT_PROJECT_DIR = ''
 FILE_CONFIG = 'config.json'
 
 
