@@ -9,35 +9,37 @@ from project_manager.interfaces import FileMetadata
 from project_manager.files import CNEXT_FOLDER_PATH
 
 log = logs.get_logger(__name__)
-     
-active_project = None        
+
+active_project = None
 CNEXT_PROJECT_DIR = './'
 FILE_CONFIG = 'config.json'
 
-def get_open_files():    
+
+def get_open_files():
     open_files = []
     try:
-        if active_project: 
+        if active_project:
             config_path = active_project.config_path  # active_project.path+'/.cnext.yaml'
             if exists(config_path):
                 config = read_config(config_path)
                 if hasattr(config, 'open_files'):
                     open_files = config.open_files
             else:
-                log.error("Config file does not exist %s" % (config_path))        
+                log.error("Config file does not exist %s" % (config_path))
         return open_files
     # except yaml.YAMLError as error:
-    #     log.error("%s" % (error))        
-    #     return []  
+    #     log.error("%s" % (error))
+    #     return []
     except Exception as error:
-        log.error("%s - %s" % (error, traceback.format_exc()))          
-        raise Exception # this will be seen in the web app #
+        log.error("%s - %s" % (error, traceback.format_exc()))
+        raise Exception  # this will be seen in the web app #
+
 
 def close_file(path):
     open_files = []
     try:
-        if active_project: 
-            config_path = active_project.config_path #active_project.path+'/.cnext.yaml'
+        if active_project:
+            config_path = active_project.config_path  # active_project.path+'/.cnext.yaml'
             if exists(config_path):
                 config = read_config(config_path)
                 if hasattr(config, 'open_files'):
@@ -46,55 +48,60 @@ def close_file(path):
                         if(f['path'] != path):
                             open_files.append(f)
                 config.open_files = open_files
-                save_config(config.__dict__, config_path)        
+                save_config(config.__dict__, config_path)
             else:
-                log.error("Config file does not exist %s" % (config_path))        
+                log.error("Config file does not exist %s" % (config_path))
         return open_files
     # except yaml.YAMLError as error:
-    #     log.error("%s" % (error))        
-    #     return []  
+    #     log.error("%s" % (error))
+    #     return []
     except Exception as error:
-        log.error("%s - %s" % (error, traceback.format_exc()))          
-        raise Exception # this will be seen in the web app #
+        log.error("%s - %s" % (error, traceback.format_exc()))
+        raise Exception  # this will be seen in the web app #
+
 
 def open_file(path):
     open_files = []
     try:
-        if active_project: 
-            config_path = active_project.config_path #active_project.path+'/.cnext.yaml'
+        if active_project:
+            config_path = active_project.config_path  # active_project.path+'/.cnext.yaml'
             if exists(config_path):
                 config = read_config(config_path)
                 if hasattr(config, 'open_files'):
                     open_files = config.open_files
-                ## Note that we dont set the timestamp when open the file #    
-                file = FileMetadata(path, 
-                    name = path.split('/')[-1], 
-                    executor = (config.executor==path))
-                open_files.append(file.__dict__)    
+                ## Note that we dont set the timestamp when open the file #
+                file = FileMetadata(path,
+                                    name=path.split('/')[-1],
+                                    executor=(config.executor == path))
+                open_files.append(file.__dict__)
                 config.open_files = open_files
-                save_config(config.__dict__, config_path)        
+                save_config(config.__dict__, config_path)
             else:
-                log.error("Config file does not exist %s" % (config_path))        
+                log.error("Config file does not exist %s" % (config_path))
         return open_files
     # except yaml.YAMLError as error:
-    #     log.error("%s" % (error))        
-    #     return []  
+    #     log.error("%s" % (error))
+    #     return []
     except Exception as error:
-        log.error("%s - %s" % (error, traceback.format_exc()))          
-        raise Exception # this will be seen in the web app #
+        log.error("%s - %s" % (error, traceback.format_exc()))
+        raise Exception  # this will be seen in the web app #
+
 
 def set_project_dir(path):
     global CNEXT_PROJECT_DIR
     CNEXT_PROJECT_DIR = path
     return True
 
+
 def set_active_project(project: ProjectMetadata):
     global active_project
     active_project = project
     return True
 
+
 def get_active_project():
     return active_project
+
 
 def set_working_dir(path):
     try:

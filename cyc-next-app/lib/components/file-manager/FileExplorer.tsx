@@ -131,7 +131,8 @@ const FileExplorer = (props: any) => {
         const expandingNodes = nodes.filter((node) => !expanded.includes(node));
         setExpanded(nodes);
         const dirID = expandingNodes[0];
-        if (dirID) {
+        console.log("FileExplorer handleDirToggle: ", dirID);
+        if (dirID !== null) {
             fetchDirChildNodes(dirID);
         }
     };
@@ -208,7 +209,8 @@ const FileExplorer = (props: any) => {
         return name.split(".")[0].length > 0;
     };
 
-    const relativeProjectPath = "./";
+    const relativeProjectPath = "";
+    const handleCreateFile = (fileName: string) => {};
 
     const handleNewItemKeyPress = (event: React.KeyboardEvent, value: string) => {
         // console.log('FileExplorer', event.key);
@@ -216,9 +218,10 @@ const FileExplorer = (props: any) => {
         const projectPath = state.projectManager.activeProject?.path;
         if (event.key === "Enter") {
             if (validateFileName(value) && contextMenuItems) {
-                /** add relativeProjectPath because path.join will remove `./` preceding  */
-                let relativeFilePath =
-                    relativeProjectPath + path.join(contextMenuItems.item, value);
+                /** this will create path format that conforms to the style of the client OS
+                 * but not that of server OS. The server will have to use os.path.norm to correct
+                 * the path */
+                let relativeFilePath = path.join(relativeProjectPath, contextMenuItems.item, value);
                 console.log(
                     "FileExplorer create file: ",
                     relativeFilePath,
