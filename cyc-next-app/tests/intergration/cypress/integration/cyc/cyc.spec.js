@@ -121,14 +121,14 @@ describe('Test DataFrame', () => {
     beforeEach(() => {
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
         removeText(cy.get('@editor'));
-        cy.wait(WAIT_2S);
+        cy.wait(WAIT_3S);
     });
 
     it('Check dataframe', () => {
         cy.get('@editor').type(codeTestDF);
-        cy.wait(WAIT_1S);
+        cy.wait(WAIT_3S);
         cy.get('@editor').type('{selectall}');
-        cy.wait(WAIT_500MLS);
+        cy.wait(WAIT_3S);
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
             cy.get('@editor').type('{command}l');
@@ -136,7 +136,7 @@ describe('Test DataFrame', () => {
             cy.get('@editor').type('{ctrl}k');
             cy.get('@editor').type('{ctrl}l');
         }
-        cy.wait(WAIT_500MLS);
+        cy.wait(WAIT_3S);
 
         cy.get('#RichOuputViewHeader_DATA').should('be.visible').click();
         cy.get('.MuiTableContainer-root').should('be.visible');
