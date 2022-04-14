@@ -67,7 +67,7 @@ const MiniSidebar = () => {
         {
             name: SideBarName.CLEAR_STATE,
             component: <DeleteIcon />,
-            tooltip: "Clear state",
+            tooltip: "Clear results and outputs",
         },
         {
             name: SideBarName.CHANGE_LAYOUT,
