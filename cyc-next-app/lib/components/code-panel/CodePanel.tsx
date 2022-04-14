@@ -16,7 +16,7 @@ const CodePanel = ({ workingPanelViewMode }) => {
 
     return (
         <StyledCodePanel>
-            {console.log('CodePanel render ')}
+            {console.log("CodePanel render ")}
             <CodeToolbar />
             <CodeContainer>
                 <SplitPane
@@ -25,7 +25,7 @@ const CodePanel = ({ workingPanelViewMode }) => {
                             ? ViewMode.VERTICAL
                             : ViewMode.HORIZONTAL
                     }
-                    defaultSize="70%"
+                    defaultSize='70%'
                     pane2Style={{ height: "30%" }}
                 >
                     <CodeEditor />

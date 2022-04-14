@@ -25,6 +25,8 @@ export enum ProjectCommand {
     set_working_dir = "set_working_dir",
     get_active_project = "get_active_project",
     save_state = "save_state",
+    save_project_config = "save_project_config",
+    get_project_config = "get_project_config",
 };
 
 export interface IFileMetadata {

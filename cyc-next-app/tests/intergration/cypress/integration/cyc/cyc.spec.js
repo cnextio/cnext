@@ -9,10 +9,10 @@ import {
     codeTestImagePNG,
     codeTestGroupLines,
 } from '../data/code-text';
-const WAIT_500MLS = 500;
-const WAIT_1S = 1000;
-const WAIT_2S = 2000;
-const WAIT_3S = 3000;
+const WAIT_500MLS = Cypress.env('wait_500mls');
+const WAIT_1S = Cypress.env('wait_1s');
+const WAIT_2S = Cypress.env('wait_2s');
+const WAIT_3S = Cypress.env('wait_3s');
 const SAVE_TIMEOUT_DURATION = 30000;
 
 const isMacOSPlatform = () => {

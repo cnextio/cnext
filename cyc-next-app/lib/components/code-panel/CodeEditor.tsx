@@ -75,7 +75,7 @@ import {
     textShouldBeExec as isExpression,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
-import CypressIds from '../tests/CypressIds'
+import CypressIds from "../tests/CypressIds";
 
 const ls = languageServer({
     serverUri: "ws://localhost:3001/python",

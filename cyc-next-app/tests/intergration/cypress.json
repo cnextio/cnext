@@ -7,5 +7,11 @@
     "reporterOptions": {
         "testsuitesTitle": true,
         "mochaFile": "./cypress/reports/junit.[hash].xml"
+    },
+    "env": {
+        "wait_500mls": 500,
+        "wait_1s": 1000,
+        "wait_2s": 2000,
+        "wait_3s": 3000
     }
 }

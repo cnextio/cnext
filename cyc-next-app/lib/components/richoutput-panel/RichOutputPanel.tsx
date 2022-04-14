@@ -9,13 +9,14 @@ import ExperimentManager from "./experiment-panel/ExperimentsManager";
 import ModelPanel from "./model-panel/ModelPanel";
 import DataPanel from "./data-panel/DataPanel";
 import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../../redux/store";
 
 const RichOutputPanel = (props: any) => {
     const [show, setShow] = useState(RichOutputPanelToolbarItems.DATA);
 
-    const resultUpdateCount = useSelector((state) => state.codeEditor.resultUpdateCount);
-    const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
-    const tableData = useSelector((state) => state.dataFrames.tableData);
+    const resultUpdateCount = useSelector((state: RootState) => state.codeEditor.resultUpdateCount);
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
+    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
 
     useEffect(() => {
         if (resultUpdateCount > 0) {

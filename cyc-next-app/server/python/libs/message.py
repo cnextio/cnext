@@ -62,6 +62,8 @@ class ProjectCommand(str, Enum):
     set_project_dir = 'set_project_dir'
     get_active_project = 'get_active_project'
     save_state = 'save_state'
+    save_project_config = 'save_project_config'
+    get_project_config = 'get_project_config'
 
 
 class ExperimentManagerCommand(str, Enum):
@@ -100,7 +102,7 @@ class ContentType(str, Enum):
 
 class SubContentType(str, Enum):
     IMAGE_PLOTLY = 'image/plotly+json'
-    IMAGE_SVG = 'image/svg+xml' 
+    IMAGE_SVG = 'image/svg+xml'
     IMAGE_PNG = 'image/png'
     IMAGE_JPG = 'image/jpg'
     TEXT_HTML = 'text/html'

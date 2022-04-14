@@ -46,7 +46,7 @@ if __name__ == "__main__":
             WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
             WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config),
             WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space),
-            WebappEndpoint.FileExplorer: fe.MessageHandler(p2n_queue, user_space),
+            WebappEndpoint.FileExplorer: fe.MessageHandler(p2n_queue, user_space)
         }
 
     except Exception as error:

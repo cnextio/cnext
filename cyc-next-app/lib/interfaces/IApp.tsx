@@ -190,6 +190,13 @@ export enum ViewMode {
     VERTICAL = "vertical",
 }
 
+export enum SideBarName {
+    PROJECT = "Projects",
+    INBOX = "Inbox",
+    CLEAR_STATE = "ClearState",
+    CHANGE_LAYOUT = "ChangeLayout",
+}
+
 // export interface IDFUpdates {
 //     update_type: DataFrameUpdateType;
 //     update_content: string[] | number[] | {[id: string]: []};
@@ -257,6 +264,7 @@ export interface IDFMetadata {
 export interface IConfigs {
     local_tmp_dir: string;
     mlflow_tracking_uri: string;
+    view_mode?: string;
 }
 
 // export class DFUpdates {
