@@ -15,12 +15,6 @@ const WorkingPanel = () => {
     );
 
     const projectConfig = useSelector((state: RootState) => state.projectManager.configs);
-    // const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.VERTICAL);
-    // const [viewMode, setViewMode] = useState("vertical");
-
-    useEffect(() => {
-        // const viewMode = projectConfig.view_mode;
-    }, []);
 
     return (
         <StyledWorkingPanel>

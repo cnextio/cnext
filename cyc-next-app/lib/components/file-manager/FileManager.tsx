@@ -118,8 +118,7 @@ const FileManager = () => {
                             let messageProjectConfig: IMessage = createMessage(
                                 ProjectCommand.get_project_config,
                                 "",
-                                1,
-                                { project_path: projectPath }
+                                1
                             );
                             sendMessage(messageProjectConfig);
                             break;
@@ -398,11 +397,8 @@ const FileManager = () => {
 
     const saveConfigs = () => {
         const state = store.getState();
-        const projectPath = state.projectManager.activeProject?.path;
         const configs = state.projectManager.configs;
-        let message: IMessage = createMessage(ProjectCommand.save_project_config, configs, 1, {
-            project_path: projectPath,
-        });
+        let message: IMessage = createMessage(ProjectCommand.save_project_config, configs, 1, {});
         console.log("FileManager send:", message.command_name, message.metadata);
         sendMessage(message);
     };

@@ -111,12 +111,13 @@ def set_working_dir(path):
         raise Exception
 
 
-def save_project_config(project_path, content):
+def save_project_config(content):
 
     try:
         # config_file_path = os.path.join(project_path, FILE_CONFIG)
+        active_project = get_active_project()
         config_file_path = os.path.join(
-            project_path, CNEXT_FOLDER_PATH, FILE_CONFIG)
+            active_project.path, CNEXT_FOLDER_PATH, FILE_CONFIG)
         os.makedirs(os.path.dirname(config_file_path), exist_ok=True)
         with open(config_file_path, 'w') as outfile:
             outfile.write(json.dumps(content))
@@ -126,9 +127,10 @@ def save_project_config(project_path, content):
         raise Exception
 
 
-def get_project_config(project_path):
+def get_project_config():
+    active_project = get_active_project()
     config_file_path = os.path.join(
-        project_path, CNEXT_FOLDER_PATH, FILE_CONFIG)
+        active_project.path, CNEXT_FOLDER_PATH, FILE_CONFIG)
     if os.path.exists(config_file_path):
         config_file_data = open(config_file_path, "r")
         data = json.loads(config_file_data.read())

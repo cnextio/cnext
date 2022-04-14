@@ -93,14 +93,10 @@ class MessageHandler(BaseMessageHandler):
                         norm_project_path, norm_path, content=message.content)
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.save_project_config:
-                result = projects.save_project_config(
-                    project_path=metadata['project_path'],
-                    content=message.content
-                )
+                result = projects.save_project_config(content=message.content)
                 type = ContentType.PROJECT_METADATA
             elif message.command_name == ProjectCommand.get_project_config:
-                result = projects.get_project_config(
-                    project_path=metadata['project_path'])
+                result = projects.get_project_config()
                 type = ContentType.PROJECT_METADATA
 
             # create reply message
