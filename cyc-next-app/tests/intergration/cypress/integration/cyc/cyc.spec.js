@@ -9,10 +9,10 @@ import {
     codeTestImagePNG,
     codeTestGroupLines,
 } from '../data/code-text';
-const WAIT_500MLS = 500;
-const WAIT_1S = 1000;
-const WAIT_2S = 2000;
-const WAIT_3S = 3000;
+const WAIT_500MLS = Cypress.env('wait_500mls');
+const WAIT_1S = Cypress.env('wait_1s');
+const WAIT_2S = Cypress.env('wait_2s');
+const WAIT_3S = Cypress.env('wait_3s');
 const SAVE_TIMEOUT_DURATION = 30000;
 
 const isMacOSPlatform = () => {
@@ -359,29 +359,29 @@ describe('Test Save Events', () => {
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
     });
 
-    it('still save events on file change', () => {
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-            .should('be.visible')
-            .as('editor');
-        cy.get('@editor').focus();
-        const code = randomString();
-        cy.get('@editor').type(`print("${code}")`);
-        cy.wait(WAIT_500MLS);
-        cy.get('@editor').type('{selectall}');
-        if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}k');
-            cy.get('@editor').type('{command}l');
-        } else {
-            cy.get('@editor').type('{ctrl}k');
-            cy.get('@editor').type('{ctrl}l');
-        }
+    // it('still save events on file change', () => {
+    //     cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
+    //         .should('be.visible')
+    //         .as('editor');
+    //     cy.get('@editor').focus();
+    //     const code = randomString();
+    //     cy.get('@editor').type(`print("${code}")`);
+    //     cy.wait(WAIT_500MLS);
+    //     cy.get('@editor').type('{selectall}');
+    //     if (isMacOSPlatform()) {
+    //         cy.get('@editor').type('{command}k');
+    //         cy.get('@editor').type('{command}l');
+    //     } else {
+    //         cy.get('@editor').type('{ctrl}k');
+    //         cy.get('@editor').type('{ctrl}l');
+    //     }
 
-        // This is hacky
-        cy.get('[toolbarname="data_loader.py"]').click();
-        cy.get('[toolbarname="main.py"]').click();
-        cy.get('#CodeOutputContent > :nth-child(1)').contains(code);
-        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
-    });
+    //     // This is hacky
+    //     cy.get('[toolbarname="data_loader.py"]').click();
+    //     cy.get('[toolbarname="main.py"]').click();
+    //     cy.get('#CodeOutputContent > :nth-child(1)').contains(code);
+    //     cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
+    // });
 
     afterEach(() => {
         cy.wait(WAIT_1S);
