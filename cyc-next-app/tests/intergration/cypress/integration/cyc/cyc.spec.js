@@ -128,6 +128,7 @@ describe('Test DataFrame', () => {
         cy.get('@editor').type(codeTestDF);
         cy.wait(WAIT_1S);
         cy.get('@editor').type('{selectall}');
+        cy.wait(WAIT_500MLS);
         if (isMacOSPlatform()) {
             cy.get('@editor').type('{command}k');
             cy.get('@editor').type('{command}l');
@@ -135,6 +136,7 @@ describe('Test DataFrame', () => {
             cy.get('@editor').type('{ctrl}k');
             cy.get('@editor').type('{ctrl}l');
         }
+        cy.wait(WAIT_500MLS);
 
         cy.get('#RichOuputViewHeader_DATA').should('be.visible').click();
         cy.get('.MuiTableContainer-root').should('be.visible');
