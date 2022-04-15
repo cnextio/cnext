@@ -114,7 +114,6 @@ const FileManager = () => {
                             dispatch(setActiveProject(fmResult.content));
 
                             // Send get project configs message
-                            const projectPath = fmResult.content["path"];
                             let messageProjectConfig: IMessage = createMessage(
                                 ProjectCommand.get_project_config,
                                 "",

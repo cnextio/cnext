@@ -6,15 +6,14 @@ import {
 } from "../../StyledComponents";
 import DFExplorer from "./DFExplorer";
 import DFFilter from "./DFFilter";
+import DataStatistic from "./DataStatistic";
 import GridView, { GridViewStatus } from "./GridView";
 import DataView from "./DataView";
 import GridOnIcon from "@mui/icons-material/GridOn";
 import SummarizeIcon from "@mui/icons-material/Summarize";
 
 const DataPanel = (props: any) => {
-    const [gridViewStatus, setGridViewStatus] = useState<GridViewStatus>(
-        GridViewStatus.NONE
-    );
+    const [gridViewStatus, setGridViewStatus] = useState<GridViewStatus>(GridViewStatus.NONE);
 
     const handleGridViewBtn = () => {
         gridViewStatus == GridViewStatus.SELECTED
@@ -44,10 +43,8 @@ const DataPanel = (props: any) => {
                     </Fragment>
                 }
             </DataToolbar>
-            <DataView
-                gridViewStatus={gridViewStatus}
-                setGridViewStatus={setGridViewStatus}
-            />
+            <DataStatistic />
+            <DataView gridViewStatus={gridViewStatus} setGridViewStatus={setGridViewStatus} />
         </Fragment>
     );
 };

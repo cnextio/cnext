@@ -480,6 +480,19 @@ export const DFSelectorForm = styled(FormControl)`
     width: 120px;
     font-size: 13px;
 `;
+
+export const DFDataStatistic = styled.div`
+    width: 100%;
+    padding-left: 10px;
+    margin-top: 4px;
+`;
+
+export const DFDataStatisticForm = styled(FormControl)`
+    height: 100%;
+    width: 240px;
+    font-size: 13px;
+`;
+
 export const DFSelector = styled(Select)`
     // &:hover {
     //     border: 0px;

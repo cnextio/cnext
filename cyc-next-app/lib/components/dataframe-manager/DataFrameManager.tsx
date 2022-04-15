@@ -39,12 +39,17 @@ const DataFrameManager = () => {
     const loadDataRequest = useSelector(
         (state: RootState) => state.dataFrames.loadDataRequest
     );
-    const dfFilter = useSelector(
-        (state: RootState) => state.dataFrames.dfFilter
-    );
+
+    const dfFilter = useSelector((state: RootState) => state.dataFrames.dfFilter);
+
     const activeDataFrame = useSelector(
         (state: RootState) => state.dataFrames.activeDataFrame
     );
+
+    const dataFrameConfig = useSelector(
+        (state: RootState) => state.projectManager.configs.dataframe
+    );
+
     const sendMessage = (message: IMessage) => {
         console.log(
             `Send ${WebAppEndpoint.DFManager} request: `,
@@ -231,15 +236,19 @@ _tmp()`;
     };
 
     const getHistogramPlot = (df_id: string, col_list: string[]) => {
-        for (var i = 0; i < col_list.length; i++) {
-            const col_name = col_list[i];
-            sendColumnHistogramPlotRequest(df_id, col_name);
+        if (dataFrameConfig.show_histogram_plot) {
+            for (var i = 0; i < col_list.length; i++) {
+                const col_name = col_list[i];
+                sendColumnHistogramPlotRequest(df_id, col_name);
+            }
         }
     };
 
     const getQuantilesPlot = (df_id: string, col_list: string[]) => {
-        for (var col_name of col_list) {
-            sendColumnQuantilesPlotRequest(df_id, col_name);
+        if (dataFrameConfig.show_quantile_plot) {
+            for (var col_name of col_list) {
+                sendColumnQuantilesPlotRequest(df_id, col_name);
+            }
         }
     };
 

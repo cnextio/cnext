@@ -29,15 +29,19 @@ import {
 } from "../../StyledComponents";
 import CountNA from "../data-panel/CountNA";
 import ColumnHistogram from "../data-panel/ColumnHistogram";
+import { RootState } from "../../../../redux/store";
 
 const PlotWithNoSSR = dynamic(() => import("react-plotly.js"), { ssr: false });
 
 const ColumnSummary = (props: any) => {
-    const activeDataFrame = useSelector(
-        (state) => state.dataFrames.activeDataFrame
-    );
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
+
     const dfMetadata = useSelector(
-        (state) => state.dataFrames.metadata[activeDataFrame]
+        (state: RootState) => state.dataFrames.metadata[activeDataFrame]
+    );
+
+    const dataFrameConfig = useSelector(
+        (state: RootState) => state.projectManager.configs.dataframe
     );
 
     // function setLayout(col_name: string, width: number = 250, height: number = 50) {
@@ -97,180 +101,135 @@ const ColumnSummary = (props: any) => {
         <StyledTableView style={{ padding: "10px" }}>
             {console.log("Render ColumnSummary ")}
             {dfMetadata ? (
-                <DataTable style={{ border: 0 }} size="small">
+                <DataTable style={{ border: 0 }} size='small'>
                     <TableBody style={{ border: 0 }}>
-                        {Object.keys(dfMetadata.columns).map(
-                            (col_name: string, index: number) => (
-                                <TableRow key={index}>
-                                    {/* , 'width': '1%', 'white-space': 'nowrap' */}
-                                    <DataTableCell
-                                        style={{
-                                            "text-align": "left",
-                                            "white-space": "nowrap",
+                        {Object.keys(dfMetadata.columns).map((col_name: string, index: number) => (
+                            <TableRow key={index}>
+                                {/* , 'width': '1%', 'white-space': 'nowrap' */}
+                                <DataTableCell
+                                    style={{
+                                        "text-align": "left",
+                                        "white-space": "nowrap",
+                                    }}
+                                >
+                                    <Typography
+                                        sx={{
+                                            "font-size": "14px",
+                                            "font-weight": "bold",
                                         }}
+                                        variant='subtitle2'
                                     >
-                                        <Typography
-                                            sx={{
-                                                "font-size": "14px",
-                                                "font-weight": "bold",
-                                            }}
-                                            variant="subtitle2"
-                                        >
-                                            {col_name}
-                                        </Typography>
-                                    </DataTableCell>
-                                    <DataTableCell
-                                        style={{
-                                            "text-align": "left",
-                                            "white-space": "nowrap",
-                                        }}
-                                    >
-                                        <Typography
-                                            sx={{ "font-size": "14px" }}
-                                            variant="caption"
-                                        >
-                                            {dfMetadata.columns[col_name].type}
-                                        </Typography>
-                                    </DataTableCell>
-                                    <DataTableCell
-                                        style={{
-                                            "text-align": "left",
-                                            "white-space": "nowrap",
-                                        }}
-                                    >
+                                        {col_name}
+                                    </Typography>
+                                </DataTableCell>
+                                <DataTableCell
+                                    style={{
+                                        "text-align": "left",
+                                        "white-space": "nowrap",
+                                    }}
+                                >
+                                    <Typography sx={{ "font-size": "14px" }} variant='caption'>
+                                        {dfMetadata.columns[col_name].type}
+                                    </Typography>
+                                </DataTableCell>
+                                <DataTableCell
+                                    style={{
+                                        "text-align": "left",
+                                        "white-space": "nowrap",
+                                    }}
+                                >
+                                    {dataFrameConfig.show_quantile_plot && (
                                         <CountNA
                                             df_id={activeDataFrame}
                                             col_name={col_name}
                                         ></CountNA>
-                                    </DataTableCell>
-                                    <DataTableCell
-                                        style={{
-                                            "text-align": "left",
-                                            width: "1%",
-                                            "white-space": "nowrap",
-                                        }}
-                                    >
-                                        {/* {console.log(dfMetadata.columns[col_name].desribe)} */}
-                                        <div>
-                                            {Object.keys(
-                                                dfMetadata.columns[col_name]
-                                                    .describe
-                                            ).map(
-                                                (
-                                                    item: String,
-                                                    index: number
-                                                ) => (
-                                                    <Typography
-                                                        sx={{
-                                                            "font-size": "14px",
-                                                        }}
-                                                        variant="caption"
-                                                    >
-                                                        {dfMetadata.columns[
-                                                            col_name
-                                                        ].describe[item] ? (
-                                                            <Fragment>
-                                                                <Typography
-                                                                    sx={{
-                                                                        "font-size":
-                                                                            "14px",
-                                                                    }}
-                                                                    variant="caption"
-                                                                >
-                                                                    {item}:{" "}
-                                                                </Typography>
-                                                                {typeof dfMetadata
-                                                                    .columns[
-                                                                    col_name
-                                                                ].describe[
-                                                                    item
-                                                                ] != "string"
-                                                                    ? Number.isInteger(
-                                                                          dfMetadata
-                                                                              .columns[
+                                    )}
+                                </DataTableCell>
+                                <DataTableCell
+                                    style={{
+                                        "text-align": "left",
+                                        width: "1%",
+                                        "white-space": "nowrap",
+                                    }}
+                                >
+                                    {/* {console.log(dfMetadata.columns[col_name].desribe)} */}
+                                    <div>
+                                        {Object.keys(dfMetadata.columns[col_name].describe).map(
+                                            (item: String, index: number) => (
+                                                <Typography
+                                                    sx={{
+                                                        "font-size": "14px",
+                                                    }}
+                                                    variant='caption'
+                                                >
+                                                    {dfMetadata.columns[col_name].describe[item] ? (
+                                                        <Fragment>
+                                                            <Typography
+                                                                sx={{
+                                                                    "font-size": "14px",
+                                                                }}
+                                                                variant='caption'
+                                                            >
+                                                                {item}:{" "}
+                                                            </Typography>
+                                                            {typeof dfMetadata.columns[col_name]
+                                                                .describe[item] != "string"
+                                                                ? Number.isInteger(
+                                                                      dfMetadata.columns[col_name]
+                                                                          .describe[item]
+                                                                  )
+                                                                    ? dfMetadata.columns[col_name]
+                                                                          .describe[item]
+                                                                    : Number.parseFloat(
+                                                                          dfMetadata.columns[
                                                                               col_name
-                                                                          ]
-                                                                              .describe[
-                                                                              item
-                                                                          ]
-                                                                      )
-                                                                        ? dfMetadata
-                                                                              .columns[
-                                                                              col_name
-                                                                          ]
-                                                                              .describe[
-                                                                              item
-                                                                          ]
-                                                                        : Number.parseFloat(
-                                                                              dfMetadata
-                                                                                  .columns[
-                                                                                  col_name
-                                                                              ]
-                                                                                  .describe[
-                                                                                  item
-                                                                              ]
-                                                                          ).toFixed(
-                                                                              2
-                                                                          )
-                                                                    : dfMetadata
-                                                                          .columns[
-                                                                          col_name
-                                                                      ]
-                                                                          .describe[
-                                                                          item
-                                                                      ]}
-                                                                &nbsp;&nbsp;
-                                                            </Fragment>
-                                                        ) : null}
-                                                        {item === "std" ? (
-                                                            <br />
-                                                        ) : null}
-                                                    </Typography>
-                                                )
-                                            )}
-                                        </div>
-                                        <div>
-                                            {dfMetadata.columns[col_name]
-                                                .quantile_plot
-                                                ? dfMetadata.columns[col_name]
-                                                      .quantile_plot
-                                                      .mime_type ===
-                                                  StandardMimeType.IMAGE_PLOTLY
-                                                    ? React.createElement(
-                                                          PlotWithNoSSR,
-                                                          createPlotlyFig(
-                                                              dfMetadata
-                                                                  .columns[
-                                                                  col_name
-                                                              ].quantile_plot,
-                                                              250,
-                                                              50
-                                                          )
-                                                      )
-                                                    : createBinaryFig(
-                                                          dfMetadata.columns[
-                                                              col_name
-                                                          ].quantile_plot,
+                                                                          ].describe[item]
+                                                                      ).toFixed(2)
+                                                                : dfMetadata.columns[col_name]
+                                                                      .describe[item]}
+                                                            &nbsp;&nbsp;
+                                                        </Fragment>
+                                                    ) : null}
+                                                    {item === "std" ? <br /> : null}
+                                                </Typography>
+                                            )
+                                        )}
+                                    </div>
+                                    <div>
+                                        {dataFrameConfig.show_quantile_plot &&
+                                        dfMetadata.columns[col_name].quantile_plot
+                                            ? dfMetadata.columns[col_name].quantile_plot
+                                                  .mime_type === StandardMimeType.IMAGE_PLOTLY
+                                                ? React.createElement(
+                                                      PlotWithNoSSR,
+                                                      createPlotlyFig(
+                                                          dfMetadata.columns[col_name]
+                                                              .quantile_plot,
                                                           250,
                                                           50
                                                       )
-                                                : null}
-                                        </div>
-                                    </DataTableCell>
-                                    <DataTableCell
-                                        style={{ "text-align": "left" }}
-                                    >
-                                        {/* TODO: consider unify ColumnHistogram with quantile plot*/}
+                                                  )
+                                                : createBinaryFig(
+                                                      dfMetadata.columns[col_name].quantile_plot,
+                                                      250,
+                                                      50
+                                                  )
+                                            : null}
+                                    </div>
+                                </DataTableCell>
+                                <DataTableCell style={{ "text-align": "left" }}>
+                                    {/* TODO: consider unify ColumnHistogram with quantile plot*/}
+                                    {dataFrameConfig.show_histogram_plot && (
                                         <ColumnHistogram
                                             df_id={activeDataFrame}
                                             col_name={col_name}
                                             width={200}
                                             height={70}
                                         />
-                                    </DataTableCell>
-                                </TableRow>
-                            )
-                        )}
+                                    )}
+                                </DataTableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </DataTable>
             ) : null}

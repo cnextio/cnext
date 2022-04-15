@@ -261,9 +261,20 @@ export interface IDFMetadata {
     columns: { [key: string]: IColumnMetaData };
 }
 
+export enum DataFrameConfigOption {
+    show_histogram_plot = "show_histogram_plot",
+    show_quantile_plot = "show_quantile_plot",
+}
+
+interface IDataFrameConfig {
+    show_histogram_plot: boolean;
+    show_quantile_plot: boolean;
+}
+
 export interface IConfigs {
     local_tmp_dir: string;
     mlflow_tracking_uri: string;
+    dataframe: IDataFrameConfig;
     view_mode?: string;
 }
 
