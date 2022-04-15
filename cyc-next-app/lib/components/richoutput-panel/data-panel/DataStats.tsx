@@ -37,7 +37,7 @@ const DataStats = () => {
         const {
             target: { value },
         } = event;
-        setDataStatistics(value);
+        // setDataStatistics(value);
         setCanUpdateDataStats(true);
     };
 
@@ -69,7 +69,7 @@ const DataStats = () => {
                     }}
                     renderValue={(selected) => {
                         if (selected.length === 0) {
-                            return <em>Data Stats</em>;
+                            return <span>Stats</span>;
                         }
                         return selected.join(", ");
                     }}
