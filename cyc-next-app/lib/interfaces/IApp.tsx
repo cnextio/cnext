@@ -255,6 +255,8 @@ export interface IColumnMetaData {
     quantile_plot: {} | null;
 }
 
+view_mode: "vertical" | "horizontal" | undefined;
+
 export interface IDFMetadata {
     df_id: string;
     shape: [number, number];
@@ -275,7 +277,7 @@ export interface IConfigs {
     local_tmp_dir: string;
     mlflow_tracking_uri: string;
     dataframe: IDataFrameConfig;
-    view_mode?: string;
+    view_mode?: ViewMode|undefined;
 }
 
 // export class DFUpdates {
