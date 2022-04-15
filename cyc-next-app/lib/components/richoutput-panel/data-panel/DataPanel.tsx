@@ -6,7 +6,7 @@ import {
 } from "../../StyledComponents";
 import DFExplorer from "./DFExplorer";
 import DFFilter from "./DFFilter";
-import DataStatistic from "./DataStatistic";
+import DataStats from "./DataStats";
 import GridView, { GridViewStatus } from "./GridView";
 import DataView from "./DataView";
 import GridOnIcon from "@mui/icons-material/GridOn";
@@ -43,7 +43,7 @@ const DataPanel = (props: any) => {
                     </Fragment>
                 }
             </DataToolbar>
-            <DataStatistic />
+            <DataStats />
             <DataView gridViewStatus={gridViewStatus} setGridViewStatus={setGridViewStatus} />
         </Fragment>
     );

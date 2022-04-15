@@ -41,7 +41,7 @@ const TableView = (props: any) => {
     );
 
     const dataFrameConfig = useSelector(
-        (state: RootState) => state.projectManager.configs.dataframe
+        (state: RootState) => state.projectManager.configs.dataframe_manager
     );
 
     function getReviewRequest(state: RootState): IDFUpdatesReview {
@@ -106,7 +106,7 @@ const TableView = (props: any) => {
                                 {item}
                                 {metadata &&
                                 metadata.columns[colName] &&
-                                dataFrameConfig.show_histogram_plot &&
+                                dataFrameConfig.histogram &&
                                 !Object.values(FileMimeType).includes(
                                     metadata.columns[colName].type
                                 ) ? (

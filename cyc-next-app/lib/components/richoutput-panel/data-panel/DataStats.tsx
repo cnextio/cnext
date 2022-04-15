@@ -1,19 +1,19 @@
 import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemText from "@mui/material/ListItemText";
 import { SelectChangeEvent } from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
-import { DFSelector, DFDataStatisticForm, DFDataStatistic } from "../../StyledComponents";
+import { DFSelector, DFStatsForm, DFStats } from "../../StyledComponents";
 import { DataFrameConfigOption } from "../../../interfaces/IApp";
-import store from "../../../../redux/store";
+import store, { RootState } from "../../../../redux/store";
 import { setProjectConfig } from "../../../../redux/reducers/ProjectManagerRedux";
 
-const DataStatistic = () => {
+const DataStats = () => {
     const dispatch = useDispatch();
 
-    const getDataStatistic = () => {
-        const dataFrameConfig = store.getState().projectManager.configs.dataframe;
+    const getDataStats = (state: RootState) => {
+        const dataFrameConfig = state.projectManager?.configs?.dataframe_manager;
         let result: Array<String> = [];
         Object.entries(dataFrameConfig).forEach(([key, value]) => {
             if (value == true) {
@@ -22,17 +22,18 @@ const DataStatistic = () => {
         });
         return result;
     };
-    const [dataStatistics, setDataStatistics] = React.useState<string[]>(getDataStatistic());
-
+    // const [dataStatistics, setDataStatistics] = React.useState<string[]>(getDataStatistic());
+    const dataStats = useSelector((state: RootState) => getDataStats(state));
+    
     // use canUpdateDataStats to prevent to trigger update project config in redux in loading
     const [canUpdateDataStats, setCanUpdateDataStats] = React.useState<boolean>(false);
 
     const options = [
-        { name: "Show histogram plot", value: DataFrameConfigOption.show_histogram_plot },
-        { name: "Show quantile plot", value: DataFrameConfigOption.show_quantile_plot },
+        { name: "Histogram", value: DataFrameConfigOption.histogram },
+        { name: "Quantile", value: DataFrameConfigOption.quantile },
     ];
 
-    const handleSelectChecbox = (event: SelectChangeEvent<typeof dataStatistics>) => {
+    const handleSelectChecbox = (event: SelectChangeEvent<typeof dataStats>) => {
         const {
             target: { value },
         } = event;
@@ -43,9 +44,9 @@ const DataStatistic = () => {
     useEffect(() => {
         if (canUpdateDataStats) {
             let configs = store.getState().projectManager.configs;
-            let newDataFrameConfig = { ...configs.dataframe };
+            let newDataFrameConfig = { ...configs.dataframe_manager };
             for (let config in newDataFrameConfig) {
-                if (dataStatistics.includes(config)) {
+                if (dataStats.includes(config)) {
                     newDataFrameConfig[config] = true;
                 } else {
                     newDataFrameConfig[config] = false;
@@ -53,36 +54,36 @@ const DataStatistic = () => {
             }
             dispatch(setProjectConfig({ dataframe: newDataFrameConfig }));
         }
-    }, [dataStatistics, canUpdateDataStats]);
+    }, [dataStats, canUpdateDataStats]);
 
     return (
-        <DFDataStatistic>
-            <DFDataStatisticForm>
+        <DFStats>
+            <DFStatsForm>
                 <DFSelector
                     multiple
                     displayEmpty
-                    value={dataStatistics}
+                    value={dataStats}
                     onChange={handleSelectChecbox}
                     SelectDisplayProps={{
                         style: { padding: "0px 10px", lineHeight: "35px" },
                     }}
                     renderValue={(selected) => {
                         if (selected.length === 0) {
-                            return <em>Data Statistics</em>;
+                            return <em>Data Stats</em>;
                         }
                         return selected.join(", ");
                     }}
                 >
                     {options.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
-                            <Checkbox checked={dataStatistics.indexOf(option.value) > -1} />
+                            <Checkbox checked={dataStats.indexOf(option.value) > -1} />
                             <ListItemText primary={option.name} />
                         </MenuItem>
                     ))}
                 </DFSelector>
-            </DFDataStatisticForm>
-        </DFDataStatistic>
+            </DFStatsForm>
+        </DFStats>
     );
 };
 
-export default DataStatistic;
+export default DataStats;

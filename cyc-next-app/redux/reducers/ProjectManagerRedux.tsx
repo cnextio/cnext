@@ -38,9 +38,9 @@ const initialState: ProjectManagerState = {
         local_tmp_dir: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.tmp",
         mlflow_tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
         view_mode: ViewMode.VERTICAL,
-        dataframe: {
-            show_histogram_plot: false,
-            show_quantile_plot: false,
+        dataframe_manager: {
+            histogram: false,
+            quantile: false,
         },
     },
 };

@@ -481,13 +481,13 @@ export const DFSelectorForm = styled(FormControl)`
     font-size: 13px;
 `;
 
-export const DFDataStatistic = styled.div`
+export const DFStats = styled.div`
     width: 100%;
     padding-left: 10px;
     margin-top: 4px;
 `;
 
-export const DFDataStatisticForm = styled(FormControl)`
+export const DFStatsForm = styled(FormControl)`
     height: 100%;
     width: 240px;
     font-size: 13px;
@@ -838,7 +838,7 @@ function backgroundTransitionToColor(color1, color2) {
     `;
 }
 
-import Pane from "react-split-pane-v2/lib/Pane";
+import Pane from "react-split-pane-v2";
 
 export const FilePane = styled(Pane)`
     animation: ${slidein()} 1s easein 0s;

@@ -47,7 +47,7 @@ const DataFrameManager = () => {
     );
 
     const dataFrameConfig = useSelector(
-        (state: RootState) => state.projectManager.configs.dataframe
+        (state: RootState) => state.projectManager.configs.dataframe_manager
     );
 
     const sendMessage = (message: IMessage) => {
@@ -236,7 +236,7 @@ _tmp()`;
     };
 
     const getHistogramPlot = (df_id: string, col_list: string[]) => {
-        if (dataFrameConfig.show_histogram_plot) {
+        if (dataFrameConfig.histogram) {
             for (var i = 0; i < col_list.length; i++) {
                 const col_name = col_list[i];
                 sendColumnHistogramPlotRequest(df_id, col_name);
@@ -245,7 +245,7 @@ _tmp()`;
     };
 
     const getQuantilesPlot = (df_id: string, col_list: string[]) => {
-        if (dataFrameConfig.show_quantile_plot) {
+        if (dataFrameConfig.quantile) {
             for (var col_name of col_list) {
                 sendColumnQuantilesPlotRequest(df_id, col_name);
             }

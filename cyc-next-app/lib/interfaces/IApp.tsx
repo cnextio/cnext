@@ -255,8 +255,6 @@ export interface IColumnMetaData {
     quantile_plot: {} | null;
 }
 
-view_mode: "vertical" | "horizontal" | undefined;
-
 export interface IDFMetadata {
     df_id: string;
     shape: [number, number];
@@ -264,20 +262,26 @@ export interface IDFMetadata {
 }
 
 export enum DataFrameConfigOption {
-    show_histogram_plot = "show_histogram_plot",
-    show_quantile_plot = "show_quantile_plot",
+    histogram = "histogram",
+    quantile = "quantile",
 }
 
-interface IDataFrameConfig {
-    show_histogram_plot: boolean;
-    show_quantile_plot: boolean;
+interface IDataFrameManagerConfig {
+    histogram: boolean;
+    quantile: boolean;
+}
+
+interface IExperimentManagerConfig {
+    local_tmp_dir: string;
+    mlflow_tracking_uri: string;
 }
 
 export interface IConfigs {
     local_tmp_dir: string;
     mlflow_tracking_uri: string;
-    dataframe: IDataFrameConfig;
-    view_mode?: ViewMode|undefined;
+    dataframe_manager: IDataFrameManagerConfig;
+    experiment_manager: IExperimentManagerConfig;
+    view_mode?: ViewMode | undefined;
 }
 
 // export class DFUpdates {
