@@ -9,11 +9,11 @@ class DirMetatdata:
     #     self.is_file = None
     #     self.__dict__.update(entries)
 
-    def __init__(self, path, name, is_file, able_delete, timestamp):
+    def __init__(self, path, name, is_file, deletable, timestamp):
         self.path = path
         self.name = name
         self.is_file = is_file
-        self.able_delete = able_delete
+        self.deletable = deletable
         self.timestamp = timestamp
 
     def toJSON(self):

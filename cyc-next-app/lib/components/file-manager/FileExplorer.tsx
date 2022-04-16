@@ -153,7 +153,7 @@ const FileExplorer = (props: any) => {
         clickedItem: string,
         parentItem: string,
         is_file: boolean,
-        able_delete: boolean
+        deletable: boolean
     ) => {
         event.preventDefault();
         event.stopPropagation();
@@ -173,7 +173,7 @@ const FileExplorer = (props: any) => {
             parent: parentItem,
             item: clickedItem,
             is_file: is_file,
-            able_delete: able_delete,
+            deletable: deletable,
         });
     };
 
@@ -275,7 +275,7 @@ const FileExplorer = (props: any) => {
                                             value.path,
                                             path,
                                             value.is_file,
-                                            value.able_delete
+                                            value.deletable
                                         );
                                     }}
                                 >

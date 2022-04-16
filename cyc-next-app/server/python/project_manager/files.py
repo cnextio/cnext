@@ -29,7 +29,7 @@ def list_dir(project_path, relative_dir_path):
                 relative_file_path,
                 name=file_name,
                 is_file=isfile(file_path),
-                able_delete=False if relative_file_path in LIST_UNABLE_DELETE_FILES else True,
+                deletable=False if relative_file_path in LIST_UNABLE_DELETE_FILES else True,
                 timestamp=os.path.getmtime(file_path)
             )
             dir_list.append(new_file)

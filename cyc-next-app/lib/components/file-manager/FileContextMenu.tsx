@@ -4,7 +4,6 @@ import { FileContextMenuItem } from "../../interfaces/IFileManager";
 
 //TODO: refactor to use libs/ContextMenu instead
 const FileContextMenu = ({ contextMenuPos, handleClose, handleSelection, contextMenuItem }) => {
-    console.log("contextMenuItem", contextMenuItem);
     const menu = [
         {
             name: FileContextMenuItem.NEW_FILE,
@@ -17,7 +16,7 @@ const FileContextMenu = ({ contextMenuPos, handleClose, handleSelection, context
         {
             name: FileContextMenuItem.DELETE,
             text: "Delete",
-            disable: true ? !contextMenuItem?.able_delete : false,
+            disable: true ? !contextMenuItem?.deletable : false,
         },
     ];
 
