@@ -22,25 +22,17 @@ import {
 } from "../../../interfaces/IApp";
 import ColumnHistogram from "./ColumnHistogram";
 import { useSelector } from "react-redux";
-import { ifElse, ifElseDict } from "../../libs";
+import { ifElse } from "../../libs";
 import CountNA from "./CountNA";
 import store from "../../../../redux/store";
 import { RootState } from "../../../../redux/store";
 
 const TableView = (props: any) => {
-    const tableData = useSelector(
-        (state: RootState) => state.dataFrames.tableData
-    );
+    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
 
-    const activeDataFrame = useSelector(
-        (state: RootState) => state.dataFrames.activeDataFrame
-    );
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
 
-    const dfReview: IDFUpdatesReview = useSelector((state: RootState) =>
-        getReviewRequest(state)
-    );
-
-    const dataFrameConfig = useSelector((state: RootState) => state.dataFrames.stats);
+    const dfReview: IDFUpdatesReview = useSelector((state: RootState) => getReviewRequest(state));
 
     function getReviewRequest(state: RootState): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
@@ -168,7 +160,7 @@ const TableView = (props: any) => {
             {/* {console.log("Render TableContainer: ", tableData)} */}
             {console.log("Render TableContainer")}
             {tableData[activeDataFrame] && (
-                <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
+                <DataTable sx={{ minWidth: 650 }} size='small' stickyHeader>
                     {/* {console.log(tableData)} */}
 
                     <DataTableHead>
@@ -185,15 +177,12 @@ const TableView = (props: any) => {
                         </DataTableHeadRow>
                     </DataTableHead>
                     <TableBody>
-                        {tableData[activeDataFrame]?.rows.map(
-                            (rowData: any[], index: number) =>
-                                _createRow(
-                                    tableData[activeDataFrame]?.column_names,
-                                    tableData[activeDataFrame]?.index.data[
-                                        index
-                                    ],
-                                    rowData
-                                )
+                        {tableData[activeDataFrame]?.rows.map((rowData: any[], index: number) =>
+                            _createRow(
+                                tableData[activeDataFrame]?.column_names,
+                                tableData[activeDataFrame]?.index.data[index],
+                                rowData
+                            )
                         )}
                     </TableBody>
                 </DataTable>

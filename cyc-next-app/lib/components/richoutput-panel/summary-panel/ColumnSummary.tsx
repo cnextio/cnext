@@ -40,8 +40,6 @@ const ColumnSummary = (props: any) => {
         (state: RootState) => state.dataFrames.metadata[activeDataFrame]
     );
 
-    const dataFrameConfig = useSelector((state: RootState) => state.dataFrames.stats);
-
     // function setLayout(col_name: string, width: number = 250, height: number = 50) {
     //     try {
     //         /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
