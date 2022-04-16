@@ -136,12 +136,7 @@ const ColumnSummary = (props: any) => {
                                         "white-space": "nowrap",
                                     }}
                                 >
-                                    {dataFrameConfig.quantile && (
-                                        <CountNA
-                                            df_id={activeDataFrame}
-                                            col_name={col_name}
-                                        ></CountNA>
-                                    )}
+                                    <CountNA df_id={activeDataFrame} col_name={col_name}></CountNA>
                                 </DataTableCell>
                                 <DataTableCell
                                     style={{
@@ -194,8 +189,7 @@ const ColumnSummary = (props: any) => {
                                         )}
                                     </div>
                                     <div>
-                                        {dataFrameConfig.quantile &&
-                                        dfMetadata.columns[col_name].quantile_plot
+                                        {dfMetadata.columns[col_name].quantile_plot
                                             ? dfMetadata.columns[col_name].quantile_plot
                                                   .mime_type === StandardMimeType.IMAGE_PLOTLY
                                                 ? React.createElement(
@@ -217,14 +211,12 @@ const ColumnSummary = (props: any) => {
                                 </DataTableCell>
                                 <DataTableCell style={{ "text-align": "left" }}>
                                     {/* TODO: consider unify ColumnHistogram with quantile plot*/}
-                                    {dataFrameConfig.quantile && (
-                                        <ColumnHistogram
-                                            df_id={activeDataFrame}
-                                            col_name={col_name}
-                                            width={200}
-                                            height={70}
-                                        />
-                                    )}
+                                    <ColumnHistogram
+                                        df_id={activeDataFrame}
+                                        col_name={col_name}
+                                        width={200}
+                                        height={70}
+                                    />
                                 </DataTableCell>
                             </TableRow>
                         ))}

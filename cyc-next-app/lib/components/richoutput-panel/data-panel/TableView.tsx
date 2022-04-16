@@ -104,7 +104,6 @@ const TableView = (props: any) => {
                                 {item}
                                 {metadata &&
                                 metadata.columns[colName] &&
-                                dataFrameConfig.histogram &&
                                 !Object.values(FileMimeType).includes(
                                     metadata.columns[colName].type
                                 ) ? (
