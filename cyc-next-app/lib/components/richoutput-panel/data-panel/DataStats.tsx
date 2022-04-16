@@ -41,7 +41,7 @@ const DataStats = () => {
                 >
                     {Object.entries(dataStat).map(([key, value]) => (
                         <MenuItem key={key} value={key}>
-                            <Checkbox checked={Number(value) == 1} />
+                            <Checkbox checked={value} />
                             <ListItemText primary={key} />
                         </MenuItem>
                     ))}
