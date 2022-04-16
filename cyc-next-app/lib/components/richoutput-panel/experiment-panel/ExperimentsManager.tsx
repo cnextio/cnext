@@ -269,8 +269,11 @@ const ExperimentManager = (props: any) => {
             switch (item.name) {
                 case MetricPlotContextMenuItems.LOAD_CHECKPOINT:
                     /** first, download the artifacts to local */
-                    let local_dir = store.getState().projectManager.configs.local_tmp_dir;
-                    let tracking_uri = store.getState().projectManager.configs.mlflow_tracking_uri;
+                    let local_dir =
+                        store.getState().projectManager.configs.experiment_manager.local_tmp_dir;
+                    let tracking_uri =
+                        store.getState().projectManager.configs.experiment_manager
+                            .mlflow_tracking_uri;
                     let artifact_path =
                         item && item.metadata ? ifElse(item.metadata, "checkpoint", null) : null;
                     let run_id =

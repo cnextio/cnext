@@ -35,13 +35,11 @@ const initialState: ProjectManagerState = {
     showProjectExplore: false,
     serverSynced: false,
     configs: {
-        local_tmp_dir: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.tmp",
-        mlflow_tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
-        view_mode: ViewMode.VERTICAL,
-        dataframe_manager: {
-            histogram: false,
-            quantile: false,
+        experiment_manager: {
+            local_tmp_dir: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.tmp",
+            mlflow_tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
         },
+        view_mode: ViewMode.VERTICAL,
     },
 };
 

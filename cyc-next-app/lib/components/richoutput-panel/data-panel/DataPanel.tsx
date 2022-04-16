@@ -1,9 +1,5 @@
-import React, { useEffect, useState, Fragment } from "react";
-import {
-    DataPanelToolbarBtn,
-    PanelDivider,
-    DataToolbar,
-} from "../../StyledComponents";
+import React, { useState, Fragment } from "react";
+import { DataPanelToolbarBtn, DataToolbar } from "../../StyledComponents";
 import DFExplorer from "./DFExplorer";
 import DFFilter from "./DFFilter";
 import DataStats from "./DataStats";
@@ -11,6 +7,8 @@ import GridView, { GridViewStatus } from "./GridView";
 import DataView from "./DataView";
 import GridOnIcon from "@mui/icons-material/GridOn";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import { RootState } from "../../../../redux/store";
+import { useSelector } from "react-redux";
 
 const DataPanel = (props: any) => {
     const [gridViewStatus, setGridViewStatus] = useState<GridViewStatus>(GridViewStatus.NONE);
@@ -20,6 +18,8 @@ const DataPanel = (props: any) => {
             ? setGridViewStatus(GridViewStatus.UNSELECTED)
             : setGridViewStatus(GridViewStatus.SELECTED);
     };
+
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     //TODO: move all grid view related thing to under DataView
     return (
         <Fragment>
@@ -43,7 +43,7 @@ const DataPanel = (props: any) => {
                     </Fragment>
                 }
             </DataToolbar>
-            <DataStats />
+            {activeDataFrame != null && <DataStats />}
             <DataView gridViewStatus={gridViewStatus} setGridViewStatus={setGridViewStatus} />
         </Fragment>
     );

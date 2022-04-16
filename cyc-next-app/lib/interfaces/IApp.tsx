@@ -261,12 +261,7 @@ export interface IDFMetadata {
     columns: { [key: string]: IColumnMetaData };
 }
 
-export enum DataFrameConfigOption {
-    histogram = "histogram",
-    quantile = "quantile",
-}
-
-interface IDataFrameManagerConfig {
+export interface IDataFrameStatsConfig {
     histogram: boolean;
     quantile: boolean;
 }
@@ -277,9 +272,6 @@ interface IExperimentManagerConfig {
 }
 
 export interface IConfigs {
-    local_tmp_dir: string;
-    mlflow_tracking_uri: string;
-    dataframe_manager: IDataFrameManagerConfig;
     experiment_manager: IExperimentManagerConfig;
     view_mode?: ViewMode | undefined;
 }
