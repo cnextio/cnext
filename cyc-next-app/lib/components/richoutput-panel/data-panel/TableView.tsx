@@ -40,9 +40,7 @@ const TableView = (props: any) => {
         getReviewRequest(state)
     );
 
-    const dataFrameConfig = useSelector(
-        (state: RootState) => state.projectManager.configs.dataframe_manager
-    );
+    const dataFrameConfig = useSelector((state: RootState) => state.dataFrames.stats);
 
     function getReviewRequest(state: RootState): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);

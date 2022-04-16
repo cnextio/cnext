@@ -40,9 +40,7 @@ const ColumnSummary = (props: any) => {
         (state: RootState) => state.dataFrames.metadata[activeDataFrame]
     );
 
-    const dataFrameConfig = useSelector(
-        (state: RootState) => state.projectManager.configs.dataframe
-    );
+    const dataFrameConfig = useSelector((state: RootState) => state.dataFrames.stats);
 
     // function setLayout(col_name: string, width: number = 250, height: number = 50) {
     //     try {
@@ -138,7 +136,7 @@ const ColumnSummary = (props: any) => {
                                         "white-space": "nowrap",
                                     }}
                                 >
-                                    {dataFrameConfig.show_quantile_plot && (
+                                    {dataFrameConfig.quantile && (
                                         <CountNA
                                             df_id={activeDataFrame}
                                             col_name={col_name}
@@ -196,7 +194,7 @@ const ColumnSummary = (props: any) => {
                                         )}
                                     </div>
                                     <div>
-                                        {dataFrameConfig.show_quantile_plot &&
+                                        {dataFrameConfig.quantile &&
                                         dfMetadata.columns[col_name].quantile_plot
                                             ? dfMetadata.columns[col_name].quantile_plot
                                                   .mime_type === StandardMimeType.IMAGE_PLOTLY
@@ -219,7 +217,7 @@ const ColumnSummary = (props: any) => {
                                 </DataTableCell>
                                 <DataTableCell style={{ "text-align": "left" }}>
                                     {/* TODO: consider unify ColumnHistogram with quantile plot*/}
-                                    {dataFrameConfig.show_histogram_plot && (
+                                    {dataFrameConfig.quantile && (
                                         <ColumnHistogram
                                             df_id={activeDataFrame}
                                             col_name={col_name}

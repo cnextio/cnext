@@ -46,15 +46,10 @@ const DataFrameManager = () => {
         (state: RootState) => state.dataFrames.activeDataFrame
     );
 
-    const dataFrameConfig = useSelector(
-        (state: RootState) => state.projectManager.configs.dataframe_manager
-    );
+    const dataFrameConfig = useSelector((state: RootState) => state.dataFrames.stats);
 
     const sendMessage = (message: IMessage) => {
-        console.log(
-            `Send ${WebAppEndpoint.DFManager} request: `,
-            JSON.stringify(message)
-        );
+        console.log(`Send ${WebAppEndpoint.DFManager} request: `, JSON.stringify(message));
         socket.emit(WebAppEndpoint.DFManager, JSON.stringify(message));
     };
 
@@ -77,10 +72,7 @@ const DataFrameManager = () => {
     };
 
     const MAX_POINT_COUNT = 10000;
-    const sendColumnHistogramPlotRequest = (
-        df_id: string,
-        col_name: string
-    ) => {
+    const sendColumnHistogramPlotRequest = (df_id: string, col_name: string) => {
         // let content: string = `px.histogram(${df_id}, x="${col_name}")`;
         let content: string = `
 from libs.json_serializable import JsonSerializable 
@@ -112,22 +104,14 @@ def _tmp():
     fig.update_xaxes(visible=False, showticklabels=False)
     return JsonSerializable({"mime_type": "image/plotly+json", "data": json.loads(fig.to_json())})
 _tmp()`;
-        let message = createMessage(
-            CommandName.plot_column_histogram,
-            content,
-            1,
-            {
-                df_id: df_id,
-                col_name: col_name,
-            }
-        );
+        let message = createMessage(CommandName.plot_column_histogram, content, 1, {
+            df_id: df_id,
+            col_name: col_name,
+        });
         sendMessage(message);
     };
 
-    const sendColumnQuantilesPlotRequest = (
-        df_id: string,
-        col_name: string
-    ) => {
+    const sendColumnQuantilesPlotRequest = (df_id: string, col_name: string) => {
         let content: string = `
 from libs.json_serializable import JsonSerializable 
 import plotly.express as px, plotly.io as pio, simplejson as json
@@ -175,15 +159,10 @@ _tmp()`;
         // _tmp()
         // `;
 
-        let message = createMessage(
-            CommandName.plot_column_quantile,
-            content,
-            1,
-            {
-                df_id: df_id,
-                col_name: col_name,
-            }
-        );
+        let message = createMessage(CommandName.plot_column_quantile, content, 1, {
+            df_id: df_id,
+            col_name: col_name,
+        });
         console.log("here", JSON.stringify(message));
         sendMessage(message);
     };
@@ -198,10 +177,7 @@ _tmp()`;
     // };
 
     const DF_DISPLAY_HALF_LENGTH = 15;
-    const sendGetTableDataAroundRowIndex = (
-        df_id: string,
-        around_index: number = 0
-    ) => {
+    const sendGetTableDataAroundRowIndex = (df_id: string, around_index: number = 0) => {
         let queryStr: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
                                 if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
                                 :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;
@@ -251,6 +227,16 @@ _tmp()`;
             }
         }
     };
+
+    useEffect(() => {
+        const state = store.getState().dataFrames;
+        const activeDF = state.activeDataFrame;
+        if (activeDF != null) {
+            const df_id = state.metadata[activeDF].df_id;
+            const columns = getColumnsToGetStats(df_id);
+            getDefinedStat(df_id, columns);
+        }
+    }, [dataFrameConfig]);
 
     const getDefinedStat = (df_id: string, columns: string[]) => {
         getQuantilesPlot(df_id, columns);
