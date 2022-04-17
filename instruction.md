@@ -17,52 +17,23 @@ Cyc AI is an application focusing on improve the AI development life cycle
 More about CycAI.
 [Website] - [Docker Image] - [Overview Video]
 
-## Installation version 1
-Step 1: ```Download``` sample project template
-[Sample Project Template]
+## Installation
+Step 1: ```Download``` [cnext] folder and ```extract```
 
-Step 2: Use ```docker-compose``` command
-You need to ```setup Docker``` on your computer firstly
-Create a folder anywhere you want and give it any name
-Create ```.env``` file in your computer inside above folder and put content bellow
-``` 
- IMAGE_NAME = cycai/cnext
- IMAGE_TAG = v0.1.0 
- CLIENT_PORT = 3000
- SERVER_PORT = 4000 
- SOURCE_PROJECT_DIR = c:/cnext_sample_projects
-```
-- ```IMAGE_NAME```: point to our docker image
-- ```IMAGE_TAG```: point to our docker image version
-- ```CLIENT_PORT```: front-end port which you want to start
-- ```SERVER_PORT```: back-end port (notice the ports that are already in use)
-- ```SOURCE_PROJECT_DIR```: define a path directory of your source code, pay attention to your system (```you must to change it```)
+Step 2: ```setup``` [Docker] on your computer 
 
-Copy all files inside ```Skywalker folder``` (download at step 1) to ```SOURCE_PROJECT_DIR```
-Create your ```docker-compose.yml``` file in directory containing .env and fill in the following content
-```
-version: '3'
-services:
-    web:
-        image: ${IMAGE_NAME}:${IMAGE_TAG}
-        container_name: web
-        working_dir: /app/cyc-next-app
-        ports:
-            - ${CLIENT_PORT}:3000
-        command: npm start
-    server:
-        image: ${IMAGE_NAME}:${IMAGE_TAG}
-        container_name: server
-        working_dir: /app/cyc-next-app/server
-        volumes:
-            - ${SOURCE_PROJECT_DIR}:/app/cyc-next-app/server/cnext_sample_projects/Skywalker
-        ports:
-            - ${SERVER_PORT}:4000
-        command: npm start
-```
-Run command ```docker-compose up -d``` under Command Promt from the folder containing your ".env" and "docker-compose.yml"
-Web application will launch at : ```http://localhost:CLIENT_PORT``` or ```http://127.0.0.1:CLIENT_PORT/```
-Stop application: ```docker-compose down```
+Step 3: run ```docker login``` login with your docker account
+
+Step 4: point destination command to `cnext` directory
+
+Step 5: Specific for ```MacOS\Linux\Ubuntu``` :
+- in ```MacOS\Linux\Ubuntu``` run: ```sed -i 's/%cd%/pwd/g' .env```
+- in ```Windows```: next to step 6
+
+Step 6: Run command ```docker-compose up -d```
+- Web application will launch at : ```http://localhost:CLIENT_PORT``` or ```http://127.0.0.1:CLIENT_PORT/```
+- Stop application: ```docker-compose down```
+- Note: Pay attention at ```CLIENT_PORT```, and ```SERVER_PORT``` in ```.env``` file (you will have to change these ports if you already use them on your machine)
 
 ## Comments
 Quoc Tran - Principal Data Scientist - Walmart Lab
@@ -115,7 +86,8 @@ CYCAI
    [Website]: <https://cyc-ai.com/>
    [Docker Image]: <https://hub.docker.com/r/cycai/cnext>
    [Overview Video]:<https://youtu.be/5eWPkQIUfZw>
-   [Sample Project Template]:<https://drive.google.com/file/d/1oZQIwDxGoOLGrtW4BdUfv31sjXn2ES7o>
+   [cnext]:<https://drive.google.com/file/d/1mMUFyQitT32rSiJFN7FA1fQx80FFACfC>
+   [Docker]: <https://www.docker.com/products/docker-desktop/>
 
 # Build a image and update version
 docker tag [image-name:tag] [new-image-name:new-tag-version]
