@@ -7,7 +7,7 @@ import { ExperimentManagerCommand } from "../../../interfaces/IExperimentManager
 import socket from "../../Socket";
 import {
     DFSelector as ExpSelector,
-    DFSelectorIcon,
+    SmallArrowIcon,
     DFSelectorMenuItem as ExpSelectorMenuItem,
     ExperimentContainer,
     ExperimentLeftPanel,
@@ -305,13 +305,13 @@ const ExperimentManager = (props: any) => {
     return (
         <ExperimentContainer>
             <ExperimentLeftPanel>
-                <Typography variant='subtitle'>Experiments</Typography>
+                <Typography variant="subtitle">Experiments</Typography>
                 <ExpSelectorForm>
                     <ExpSelector
                         onChange={handleExpChange}
                         value={selectedExpId && expDict ? expDict[selectedExpId]["_name"] : null}
                         // label={dfList.activeDF}
-                        IconComponent={DFSelectorIcon}
+                        IconComponent={SmallArrowIcon}
                         SelectDisplayProps={{
                             style: { padding: "0px 10px", lineHeight: "35px" },
                         }}
@@ -320,15 +320,15 @@ const ExperimentManager = (props: any) => {
                             return (
                                 <Fragment>
                                     {selectedExpId && expDict ? (
-                                        <Typography height='100%' variant='caption' fontSize='14px'>
+                                        <Typography height="100%" variant="caption" fontSize="14px">
                                             {expDict[selectedExpId]["_name"]}
                                         </Typography>
                                     ) : (
                                         <Typography
-                                            height='100%'
-                                            variant='caption'
-                                            fontSize='12px'
-                                            color='#BFC7CF'
+                                            height="100%"
+                                            variant="caption"
+                                            fontSize="12px"
+                                            color="#BFC7CF"
                                         >
                                             Experiments
                                         </Typography>
@@ -345,7 +345,7 @@ const ExperimentManager = (props: any) => {
                             ))}
                     </ExpSelector>
                 </ExpSelectorForm>
-                <Typography variant='subtitle'>Runs</Typography>
+                <Typography variant="subtitle">Runs</Typography>
                 <RunSelectorForm>
                     {runDict &&
                         Object.keys(runDict)
@@ -366,7 +366,7 @@ const ExperimentManager = (props: any) => {
                                             {runDict[key]["_cnext_metadata"]["run_name"]}
                                             {" - "}
                                             <RunTimeLabel
-                                                variant='caption'
+                                                variant="caption"
                                                 sx={{ fontStyle: "italic" }}
                                             >
                                                 <Moment unix fromNow>

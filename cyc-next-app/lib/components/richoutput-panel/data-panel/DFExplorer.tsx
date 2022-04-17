@@ -7,7 +7,7 @@ import { setActiveDF } from "../../../../redux/reducers/DataFramesRedux";
 import {
     DFSelector,
     DFSelectorForm,
-    DFSelectorIcon,
+    SmallArrowIcon,
     DFSelectorMenuItem,
 } from "../../StyledComponents";
 // import { CountNAContainer } from "./StyledComponents";
@@ -41,7 +41,7 @@ const DFExplorer = () => {
                 onChange={handleChange}
                 value={dataFrameList ? dataFrameList.activeDF : ""}
                 // label={dfList.activeDF}
-                IconComponent={DFSelectorIcon}
+                IconComponent={SmallArrowIcon}
                 SelectDisplayProps={{
                     style: { padding: "0px 10px", lineHeight: "35px" },
                 }}
