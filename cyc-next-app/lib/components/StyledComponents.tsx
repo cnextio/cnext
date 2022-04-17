@@ -549,7 +549,7 @@ export const DFStats = styled.div`
 
 export const DFStatsForm = styled(FormControl)`
     height: 100%;
-    width: 95px;
+    width: 88px;
     font-size: 13px;
     // border-radius: 10px;
     // border-color: red;
