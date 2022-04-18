@@ -43,9 +43,11 @@ describe('Test Code Editor', () => {
 
     it('Check autocompletion', () => {
         cy.get('@editor').type(codeTestDF);
+        cy.wait(WAIT_500MLS);
         // make sure have autocompletion dialog
         cy.get('@editor').type('{enter}');
         cy.get('@editor').type('df.drop');
+        cy.wait(WAIT_500MLS);
         cy.get('.cm-tooltip-autocomplete').should('be.visible');
         cy.get('.cm-read-more-btn').should('be.visible');
         cy.get('.cm-read-more-btn').click();
