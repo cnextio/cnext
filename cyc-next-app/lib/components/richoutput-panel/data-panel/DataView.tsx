@@ -1,41 +1,32 @@
-import React, { useEffect, useState, Fragment } from "react";
+import React, { Fragment } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/store";
-import GridView, { GridViewStatus } from "./GridView";
+import GridView from "./GridView";
 import TableView from "./TableView";
+import { DFViewMode } from "../../../interfaces/IApp";
+import SummaryView from "../summary-panel/SummaryView";
 
-const DataView = ({ gridViewStatus, setGridViewStatus }) => {
-    const tableData = useSelector(
-        (state: RootState) => state.dataFrames.tableData
-    );
-    
-    const activeDataFrame = useSelector(
-        (state: RootState) => state.dataFrames.activeDataFrame
-    );
+const DataView = () => {
+    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
 
-    // useEffect(() => {
-    //     setGridViewStatus(GridViewStatus.NONE);
-    //     if (tableData[activeDataFrame] !== null) {
-    //         setGridViewStatus(GridViewStatus.UNSELECTED);
-    //     }
-    // }, [tableData, activeDataFrame]);
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
 
-    // const handleGridViewBtn = () => {
-    //     gridViewStatus == GridViewStatus.SELECTED
-    //         ? setGridViewStatus(GridViewStatus.UNSELECTED)
-    //         : setGridViewStatus(GridViewStatus.SELECTED);
-    // };
+    const dataViewMode = useSelector((state: RootState) => state.dataFrames.dataViewMode);
+
+    const renderData = () => {
+        switch (dataViewMode) {
+            case DFViewMode.DASHBOARD:
+                return <GridView />;
+            case DFViewMode.TABLE:
+                return <TableView />;
+            case DFViewMode.SUMMARY:
+                return <SummaryView />;
+            default:
+                return null;
+        }
+    };
     //TODO: move all grid view related thing to under DataView
-    return (
-        <Fragment>
-            {tableData[activeDataFrame] !== null &&
-                (gridViewStatus === GridViewStatus.SELECTED ? (
-                    <GridView />
-                ) : (
-                    <TableView />
-                ))}
-        </Fragment>
-    );
+    return <Fragment>{tableData[activeDataFrame] !== null && renderData()}</Fragment>;
 };
 
 export default DataView;

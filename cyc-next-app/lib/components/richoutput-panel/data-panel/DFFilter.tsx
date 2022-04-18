@@ -1,11 +1,7 @@
 import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
 import React, { useRef } from "react";
 import { useDispatch } from "react-redux";
-import {
-    DFFilterForm,
-    DFFilterInput,
-    StyledFilterCodeMirror,
-} from "../../StyledComponents";
+import { DFFilterForm, DFFilterInput, StyledFilterCodeMirror } from "../../StyledComponents";
 import { bracketMatching } from "@codemirror/matchbrackets";
 import { closeBrackets } from "@codemirror/closebrackets";
 import { defaultHighlightStyle } from "@codemirror/highlight";
@@ -42,11 +38,7 @@ const DFExplorer = React.memo(() => {
             console.log(tree.toString());
             let cursor = tree.cursor(0, 0);
             let curComponent;
-            if (
-                cursor.name == "Script" &&
-                cursor.firstChild() &&
-                cursor.name == "QueryStatement"
-            ) {
+            if (cursor.name == "Script" && cursor.firstChild() && cursor.name == "QueryStatement") {
                 cursor.next();
                 // queryStr = activeDF;
                 queryStr = "";
@@ -61,24 +53,16 @@ const DFExplorer = React.memo(() => {
                             if (cursor.name == "IndexExpression") {
                                 curComponent = "index";
                                 indexEnd = cursor.to;
-                            } else if (
-                                cursor.name == "ColumnFilterExpression"
-                            ) {
+                            } else if (cursor.name == "ColumnFilterExpression") {
                                 curComponent = "column";
                                 columnEnd = cursor.to;
                             } else if (cursor.name == "SimpleQueryExpression") {
                                 break;
                             } else {
-                                if (
-                                    curComponent == "index" &&
-                                    cursor.from >= indexEnd
-                                ) {
+                                if (curComponent == "index" && cursor.from >= indexEnd) {
                                     curComponent = "other";
                                 }
-                                if (
-                                    curComponent == "column" &&
-                                    cursor.from >= columnEnd
-                                ) {
+                                if (curComponent == "column" && cursor.from >= columnEnd) {
                                     curComponent = "other";
                                 }
                             }
@@ -91,20 +75,12 @@ const DFExplorer = React.memo(() => {
                                         text.substring(cursor.from, cursor.to),
                                         "]"
                                     );
-                                } else if (
-                                    cursor.name == "isna" ||
-                                    cursor.name == "notna"
-                                ) {
-                                    indexStr = indexStr.concat(
-                                        `.${cursor.name}()`
-                                    );
+                                } else if (cursor.name == "isna" || cursor.name == "notna") {
+                                    indexStr = indexStr.concat(`.${cursor.name}()`);
                                 } else if (cursor.name == "isin") {
                                     cursor.nextSibling();
                                     indexStr = indexStr.concat(
-                                        `.isin(${text.substring(
-                                            cursor.from,
-                                            cursor.to
-                                        )})`
+                                        `.isin(${text.substring(cursor.from, cursor.to)})`
                                     );
                                     // cursor is here now: IndexSelectorExpression("[",(Number),"]"))
                                     // need to move cursor to the node ending at cursor.to, so the next step
@@ -122,28 +98,13 @@ const DFExplorer = React.memo(() => {
                             }
                         }
                         if (indexStr == "" && columnStr != "") {
-                            queryStr = queryStr.concat(
-                                ".loc[",
-                                ":, ",
-                                columnStr,
-                                "]"
-                            );
+                            queryStr = queryStr.concat(".loc[", ":, ", columnStr, "]");
                         }
                         if (indexStr != "") {
                             if (columnStr != "") {
-                                queryStr = queryStr.concat(
-                                    ".loc[",
-                                    indexStr,
-                                    ",",
-                                    columnStr,
-                                    "]"
-                                );
+                                queryStr = queryStr.concat(".loc[", indexStr, ",", columnStr, "]");
                             } else {
-                                queryStr = queryStr.concat(
-                                    ".loc[",
-                                    indexStr,
-                                    "]"
-                                );
+                                queryStr = queryStr.concat(".loc[", indexStr, "]");
                             }
                         }
                         // console.log(
@@ -178,7 +139,7 @@ const DFExplorer = React.memo(() => {
                 // sx={{ borderBottom: 1 }}
                 // onChange = {onFilterChange}
                 // inputProps = {{style: {padding: '0px 10px', height: '32px'}}}
-                placeholder="Filter..."
+                placeholder='Filter...'
                 // value = {filterText}
                 inputComponent={() => {
                     return (
@@ -186,9 +147,7 @@ const DFExplorer = React.memo(() => {
                             ref={filterCM}
                             extensions={extensions}
                             basicSetup={false}
-                            onChange={(text, viewUpdate) =>
-                                onCMChange(text, viewUpdate)
-                            }
+                            onChange={(text, viewUpdate) => onCMChange(text, viewUpdate)}
                             // placeholder = 'Filter'
                         />
                     );

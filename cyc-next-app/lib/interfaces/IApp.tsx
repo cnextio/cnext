@@ -276,6 +276,12 @@ export interface IConfigs {
     view_mode?: ViewMode | undefined;
 }
 
+export enum DFViewMode {
+    TABLE = "Table",
+    SUMMARY = "Summary",
+    DASHBOARD = "Dashboard",
+}
+
 // export class DFUpdates {
 //     update_type: UpdateType = UpdateType.no_update;
 //     update_content: string[] | number[] | [number, number][] = [];

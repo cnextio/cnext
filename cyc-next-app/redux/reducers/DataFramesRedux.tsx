@@ -7,10 +7,10 @@ import {
     IDFUpdatesReview,
     IMetaData,
     IDataFrameStatsConfig,
+    DFViewMode,
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
-import { acceptCompletion } from "../../lib/codemirror/autocomplete-lsp/autocomplete";
 
 interface ILoadDataRequest {
     df_id: string | null;
@@ -34,6 +34,7 @@ export type DataFrameState = {
     loadColumnHistogram: boolean;
     dfFilter: null;
     stats: IDataFrameStatsConfig;
+    dataViewMode: string;
 };
 
 const initialState: DataFrameState = {
@@ -52,6 +53,7 @@ const initialState: DataFrameState = {
     loadColumnHistogram: false,
     dfFilter: null,
     stats: { histogram: false, quantile: false },
+    dataViewMode: DFViewMode.TABLE,
 };
 
 export const dataFrameSlice = createSlice({
@@ -306,6 +308,12 @@ export const dataFrameSlice = createSlice({
                 state.stats = { ...action.payload };
             }
         },
+
+        setDataViewMode: (state, action) => {
+            if (action.payload) {
+                state.dataViewMode = action.payload;
+            }
+        },
     },
 });
 
@@ -320,6 +328,7 @@ export const {
     setDFFilter,
     setColumnQuantilePlot,
     setStatsConfig,
+    setDataViewMode,
 } = dataFrameSlice.actions;
 
 export default dataFrameSlice.reducer;

@@ -492,6 +492,10 @@ export const SmallArrowIcon = styled(ArrowDropDownIcon)`
     font-size: 20px;
 `;
 
+export const DFViewModeSmallArrowIcon = styled(SmallArrowIcon)`
+    right: 0;
+`;
+
 export const DFSelectorMenuItem = styled(MenuItem)`
     font-size: 13px;
     padding: 5px 10px;
@@ -542,7 +546,6 @@ export const StyledFilterCodeMirror = styled(CodeMirror)`
 `;
 
 export const DFStats = styled.div`
-    width: 100%;
     padding-left: 0px;
     margin-top: 4px;
 `;
@@ -553,7 +556,6 @@ export const DFStatsForm = styled(FormControl)`
     font-size: 13px;
     // border-radius: 10px;
     // border-color: red;
-    
 `;
 
 export const DFStatsParentCheckbox = styled(Checkbox)`
@@ -576,6 +578,14 @@ export const DFStatsMenuItem = styled(MenuItem)`
     padding: 5px 10px 5px 0px;
     .MuiSvgIcon-root {
         font-size: 18px;
+    }
+`;
+
+export const DFViewModeMenuItem = styled(MenuItem)`
+    font-size: 13px;
+    .MuiSvgIcon-root {
+        font-size: 18px;
+        right: 0;
     }
 `;
 
