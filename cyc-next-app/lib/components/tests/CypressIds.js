@@ -3,7 +3,8 @@ const CypressIds = {
     codeEditor: 'code-editor',
     dfEditor: 'df-editor',
     projectRoot: 'project-root',
-    newFileItem: 'new-file-item'
+    newFileItem: 'new-file-item',
+    dfStatsCheckboxAll: 'df-stats-checkbox'
 };
 
 export default CypressIds;

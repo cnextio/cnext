@@ -14,6 +14,7 @@ import store, { RootState } from "../../../../redux/store";
 import { setStatsConfig } from "../../../../redux/reducers/DataFramesRedux";
 import { FormControlLabel, OutlinedInput } from "@mui/material";
 import { makeStyles } from "@mui/styles";
+import CypressIds from "../../tests/CypressIds";
 
 const DataStats = () => {
     const dispatch = useDispatch();
@@ -82,13 +83,14 @@ const DataStats = () => {
                             checked={selectedStatsLen == allStatsLen}
                             indeterminate={selectedStatsLen > 0 && selectedStatsLen != allStatsLen}
                             onChange={handleSelectParentChecbox}
-                            size="small"
+                            size='small'
+                            data-cy={CypressIds.dfStatsCheckboxAll}
                         />
                     }
-                    label=""
+                    label=''
                     sx={{ marginRight: "-10px", marginTop: "-12px", paddingLeft: "10px" }}
                 />
-                <DFStatsForm size="small">
+                <DFStatsForm size='small'>
                     <DFStatsSelector
                         multiple
                         displayEmpty
@@ -109,7 +111,7 @@ const DataStats = () => {
                         {/* <MenuList dense> */}
                         {Object.entries(statConfig).map(([key, value]) => (
                             <DFStatsMenuItem value={key}>
-                                <Checkbox checked={value} size="small" />
+                                <Checkbox checked={value} size='small' />
                                 {key}
                             </DFStatsMenuItem>
                         ))}
