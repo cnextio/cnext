@@ -212,19 +212,15 @@ _tmp()`;
     };
 
     const getHistogramPlot = (df_id: string, col_list: string[]) => {
-        if (dataFrameConfig.histogram) {
-            for (var i = 0; i < col_list.length; i++) {
-                const col_name = col_list[i];
-                sendColumnHistogramPlotRequest(df_id, col_name);
-            }
+        for (var i = 0; i < col_list.length; i++) {
+            const col_name = col_list[i];
+            sendColumnHistogramPlotRequest(df_id, col_name);
         }
     };
 
     const getQuantilesPlot = (df_id: string, col_list: string[]) => {
-        if (dataFrameConfig.quantile) {
-            for (var col_name of col_list) {
-                sendColumnQuantilesPlotRequest(df_id, col_name);
-            }
+        for (var col_name of col_list) {
+            sendColumnQuantilesPlotRequest(df_id, col_name);
         }
     };
 
@@ -239,8 +235,12 @@ _tmp()`;
     }, [dataFrameConfig]);
 
     const getDefinedStat = (df_id: string, columns: string[]) => {
-        getQuantilesPlot(df_id, columns);
-        getHistogramPlot(df_id, columns);
+        if (dataFrameConfig.quantile) {
+            getQuantilesPlot(df_id, columns);
+        }
+        if (dataFrameConfig.histogram) {
+            getHistogramPlot(df_id, columns);
+        }
     };
 
     /** select columns to get stats based on the update type */
