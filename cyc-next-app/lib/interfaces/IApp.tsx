@@ -277,9 +277,9 @@ export interface IConfigs {
 }
 
 export enum DFViewMode {
-    TABLE = "Table",
-    SUMMARY = "Summary",
-    DASHBOARD = "Dashboard",
+    TABLE_VIEW = "Table View",
+    SUMMARY_VIEW = "Summary View",
+    GRID_VIEW = "Grid View",
 }
 
 // export class DFUpdates {

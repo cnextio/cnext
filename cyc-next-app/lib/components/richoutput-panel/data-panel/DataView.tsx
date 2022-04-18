@@ -15,11 +15,11 @@ const DataView = () => {
 
     const renderData = () => {
         switch (dataViewMode) {
-            case DFViewMode.DASHBOARD:
+            case DFViewMode.GRID_VIEW:
                 return <GridView />;
-            case DFViewMode.TABLE:
+            case DFViewMode.TABLE_VIEW:
                 return <TableView />;
-            case DFViewMode.SUMMARY:
+            case DFViewMode.SUMMARY_VIEW:
                 return <SummaryView />;
             default:
                 return null;

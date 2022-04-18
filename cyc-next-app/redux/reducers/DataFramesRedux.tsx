@@ -53,7 +53,7 @@ const initialState: DataFrameState = {
     loadColumnHistogram: false,
     dfFilter: null,
     stats: { histogram: false, quantile: false },
-    dataViewMode: DFViewMode.TABLE,
+    dataViewMode: DFViewMode.TABLE_VIEW,
 };
 
 export const dataFrameSlice = createSlice({
