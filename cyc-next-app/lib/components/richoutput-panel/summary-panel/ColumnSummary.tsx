@@ -1,35 +1,15 @@
 import dynamic from "next/dynamic";
-import {
-    Box,
-    Divider,
-    List,
-    ListItem,
-    ListItemText,
-    TableBody,
-    TableRow,
-    Typography,
-} from "@mui/material";
+import { TableBody, TableRow, Typography } from "@mui/material";
 import React, { Fragment } from "react";
-import shortid from "shortid";
-// import Plot from "react-plotly.js";
 
 // redux
-import { useSelector, useDispatch } from "react-redux";
-import { ifElse } from "../../libs";
-import {
-    IColumnMetaData,
-    IDFMetadata,
-    StandardMimeType,
-} from "../../../interfaces/IApp";
-import {
-    DataTable,
-    DataTableCell,
-    DataTableRow,
-    StyledTableView,
-} from "../../StyledComponents";
+import { useSelector } from "react-redux";
+import { StandardMimeType } from "../../../interfaces/IApp";
+import { DataTable, DataTableCell, StyledTableView } from "../../StyledComponents";
 import CountNA from "../data-panel/CountNA";
 import ColumnHistogram from "../data-panel/ColumnHistogram";
 import { RootState } from "../../../../redux/store";
+import CypressIds from "../../tests/CypressIds";
 
 const PlotWithNoSSR = dynamic(() => import("react-plotly.js"), { ssr: false });
 
@@ -94,7 +74,7 @@ const ColumnSummary = (props: any) => {
     };
 
     return (
-        <StyledTableView style={{ padding: "10px" }}>
+        <StyledTableView style={{ padding: "10px" }} data-cy={CypressIds.dfSummaryTable}>
             {console.log("Render ColumnSummary ")}
             {dfMetadata ? (
                 <DataTable style={{ border: 0 }} size='small'>

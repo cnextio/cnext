@@ -4,7 +4,9 @@ const CypressIds = {
     dfEditor: 'df-editor',
     projectRoot: 'project-root',
     newFileItem: 'new-file-item',
-    dfStatsCheckboxAll: 'df-stats-checkbox'
+    dfStatsCheckboxAll: 'df-stats-checkbox',
+    dfViewMode: 'df-viewmode',
+    dfSummaryTable: 'df-summary-table',
 };
 
 export default CypressIds;

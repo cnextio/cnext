@@ -13,6 +13,7 @@ import { setDataViewMode } from "../../../../redux/reducers/DataFramesRedux";
 import { OutlinedInput } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { DFViewMode as DFViewModeOptions } from "../../../interfaces/IApp";
+import CypressIds from "../../tests/CypressIds";
 
 const DataViewMode = () => {
     const dispatch = useDispatch();
@@ -56,6 +57,7 @@ const DataViewMode = () => {
                             },
                         }}
                         IconComponent={DFViewModeSmallArrowIcon}
+                        data-cy={CypressIds.dfViewMode}
                         input={<OutlinedInput classes={classes} />}
                     >
                         {/* <MenuList dense> */}

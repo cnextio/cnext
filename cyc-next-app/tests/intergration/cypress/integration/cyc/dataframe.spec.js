@@ -104,6 +104,9 @@ describe('Test DataFrame', () => {
         cy.get('[data-cy="df-stats-checkbox"]').should('be.visible').click();
         cy.wait(WAIT_5S);
         cy.get('.MuiTableHead-root > .MuiTableRow-root > :nth-child(2) > .MuiTableContainer-root > .js-plotly-plot > .plot-container').should('be.visible');
+
+        cy.get('[data-cy="df-viewmode"]').should('be.visible').click();
+        cy.wait(WAIT_500MLS);
     })
 
     afterEach(() => {
