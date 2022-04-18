@@ -11,6 +11,7 @@ log = logs.get_logger(__name__)
 # The folder that consist the state, configuration files
 CNEXT_FOLDER_PATH = '.cnext'
 
+LIST_UNABLE_DELETE_FILES = ['main.py', 'config.json']
 
 def list_dir(project_path, relative_dir_path):
     dir_list: DirMetatdata = []
@@ -24,8 +25,15 @@ def list_dir(project_path, relative_dir_path):
         for file_name in os.listdir(dir_path):
             relative_file_path = os.path.join(relative_dir_path, file_name)
             file_path = os.path.join(dir_path, file_name)
-            dir_list.append(DirMetatdata(relative_file_path, name=file_name, is_file=isfile(
-                file_path), timestamp=os.path.getmtime(file_path)))
+            new_file = DirMetatdata(
+                relative_file_path,
+                name=file_name,
+                is_file=isfile(file_path),
+                deletable=False if relative_file_path in LIST_UNABLE_DELETE_FILES else True,
+                timestamp=os.path.getmtime(file_path)
+            )
+            dir_list.append(new_file)
+
     except Exception:
         raise Exception
     return dir_list

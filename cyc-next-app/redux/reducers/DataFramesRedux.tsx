@@ -6,16 +6,12 @@ import {
     ReviewRequestType,
     IDFUpdatesReview,
     IMetaData,
+    IDataFrameStatsConfig,
+    DFViewMode,
 } from "../../lib/interfaces/IApp";
-
-import {
-    DataFrameUpdateType,
-    IDataFrameStatus,
-} from "../../lib/interfaces/IDataFrameStatus";
-import { ifElse, ifElseDict } from "../../lib/components/libs";
+import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
 
-// import {getLastUpdate} from
 interface ILoadDataRequest {
     df_id: string | null;
     count: number;
@@ -28,7 +24,7 @@ export type DataFrameState = {
     // columnDataSummary: { [id: string]: {} };
     dfUpdates: { [id: string]: IDataFrameStatus };
     dfUpdatesReview: { [id: string]: IDFUpdatesReview };
-    activeDataFrame: string;
+    activeDataFrame: string | null;
     // this variable is used to indicate whether the tableData is being loaded.
     // this is used mainly for TableComponent to know when to show the table updates
     tableDataReady: boolean;
@@ -37,6 +33,8 @@ export type DataFrameState = {
     loadDataRequest: ILoadDataRequest;
     loadColumnHistogram: boolean;
     dfFilter: null;
+    stats: IDataFrameStatsConfig;
+    dataViewMode: string;
 };
 
 const initialState: DataFrameState = {
@@ -45,7 +43,7 @@ const initialState: DataFrameState = {
     // columnDataSummary: {},
     dfUpdates: {},
     dfUpdatesReview: {},
-    activeDataFrame: "",
+    activeDataFrame: null,
     // this variable is used to indicate whether the tableData is being loaded.
     // this is used mainly for TableComponent to know when to show the table updates
     tableDataReady: false,
@@ -54,6 +52,8 @@ const initialState: DataFrameState = {
     loadDataRequest: { df_id: null, count: 0, row_index: 0 },
     loadColumnHistogram: false,
     dfFilter: null,
+    stats: { histogram: false, quantile: false },
+    dataViewMode: DFViewMode.TABLE_VIEW,
 };
 
 export const dataFrameSlice = createSlice({
@@ -105,8 +105,7 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             const col_name = action.payload["col_name"];
-            state.metadata[df_id].columns[col_name].histogram_plot =
-                action.payload["data"];
+            state.metadata[df_id].columns[col_name].histogram_plot = action.payload["data"];
         },
 
         setColumnQuantilePlot: (state, action) => {
@@ -114,8 +113,7 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             const col_name = action.payload["col_name"];
-            state.metadata[df_id].columns[col_name].quantile_plot =
-                action.payload["data"];
+            state.metadata[df_id].columns[col_name].quantile_plot = action.payload["data"];
         },
 
         /**
@@ -158,9 +156,7 @@ export const dataFrameSlice = createSlice({
                             length: update.update_content.length,
                         };
                         state.loadColumnHistogram = true;
-                    } else if (
-                        update.update_type == DataFrameUpdateType.update_cells
-                    ) {
+                    } else if (update.update_type == DataFrameUpdateType.update_cells) {
                         // console.log('Update content: ', Object.keys(updates.update_content));
                         let colNames = Object.keys(update.update_content);
                         let colEndIndex = [];
@@ -193,9 +189,7 @@ export const dataFrameSlice = createSlice({
                                 state.dfUpdatesReview["df"]
                             );
                         }
-                    } else if (
-                        update.update_type == DataFrameUpdateType.new_df
-                    ) {
+                    } else if (update.update_type == DataFrameUpdateType.new_df) {
                         // state.columnHistogram = {};
                         // state.columnDataSummary[df_id] = {};
                         state.loadColumnHistogram = true;
@@ -207,8 +201,7 @@ export const dataFrameSlice = createSlice({
 
         setReview: (state, action) => {
             let reviewRequest: IReviewRequest = action.payload;
-            let dfUpdatesReview: IDFUpdatesReview =
-                state.dfUpdatesReview[state.activeDataFrame];
+            let dfUpdatesReview: IDFUpdatesReview = state.dfUpdatesReview[state.activeDataFrame];
 
             // let updates = updates.update_content;
             if (dfUpdatesReview != null) {
@@ -222,16 +215,12 @@ export const dataFrameSlice = createSlice({
                 ) {
                     dfUpdatesReview.count += 1;
                     dfUpdatesReview.index += 1;
-                    if (
-                        update.update_type == DataFrameUpdateType.update_cells
-                    ) {
+                    if (update.update_type == DataFrameUpdateType.update_cells) {
                         if (
                             dfUpdatesReview.col_end_index != null &&
                             dfUpdatesReview.updates_col_index != null &&
                             dfUpdatesReview.index ==
-                                dfUpdatesReview.col_end_index[
-                                    dfUpdatesReview.updates_col_index
-                                ]
+                                dfUpdatesReview.col_end_index[dfUpdatesReview.updates_col_index]
                         ) {
                             dfUpdatesReview.updates_col_index += 1;
                             dfUpdatesReview.updates_row_index = 0;
@@ -245,38 +234,31 @@ export const dataFrameSlice = createSlice({
                 ) {
                     dfUpdatesReview.count += 1;
                     dfUpdatesReview.index -= 1;
-                    if (
-                        update.update_type == DataFrameUpdateType.update_cells
-                    ) {
+                    if (update.update_type == DataFrameUpdateType.update_cells) {
                         if (
                             dfUpdatesReview.col_end_index != null &&
                             dfUpdatesReview.updates_col_index != null &&
                             dfUpdatesReview.updates_col_index > 0 &&
                             dfUpdatesReview.index ==
-                                dfUpdatesReview.col_end_index[
-                                    dfUpdatesReview.updates_col_index - 1
-                                ]
+                                dfUpdatesReview.col_end_index[dfUpdatesReview.updates_col_index - 1]
                         ) {
                             dfUpdatesReview.updates_col_index -= 1;
                             dfUpdatesReview.updates_row_index =
-                                dfUpdatesReview.col_end_index[
-                                    dfUpdatesReview.updates_col_index
-                                ] - 1;
+                                dfUpdatesReview.col_end_index[dfUpdatesReview.updates_col_index] -
+                                1;
                         } else if (dfUpdatesReview.updates_row_index != null) {
                             dfUpdatesReview.updates_row_index -= 1;
                         }
                     }
                 }
-                let tableData: ITableData =
-                    state.tableData[state.activeDataFrame];
+                let tableData: ITableData = state.tableData[state.activeDataFrame];
                 let update_content = update.update_content;
 
                 if (
                     update.update_type == DataFrameUpdateType.add_cols &&
                     Array.isArray(update_content)
                 ) {
-                    dfUpdatesReview.name =
-                        update_content[dfUpdatesReview.index];
+                    dfUpdatesReview.name = update_content[dfUpdatesReview.index];
                 } else {
                     // check if the row needs to be loaded, if so make the data loading request
                     let reviewingDFRowIndex;
@@ -285,26 +267,19 @@ export const dataFrameSlice = createSlice({
                         update.update_type == DataFrameUpdateType.add_rows &&
                         Array.isArray(update_content)
                     ) {
-                        reviewingDFRowIndex =
-                            update_content[dfUpdatesReview.index];
+                        reviewingDFRowIndex = update_content[dfUpdatesReview.index];
                         dfUpdatesReview.name = reviewingDFRowIndex;
                     } else if (
-                        update.update_type ==
-                            DataFrameUpdateType.update_cells &&
+                        update.update_type == DataFrameUpdateType.update_cells &&
                         dfUpdatesReview.col_names &&
                         dfUpdatesReview.updates_col_index != null &&
                         dfUpdatesReview.updates_row_index != null &&
                         typeof update_content === "object" &&
                         !Array.isArray(update_content)
                     ) {
-                        colName =
-                            dfUpdatesReview.col_names[
-                                dfUpdatesReview.updates_col_index
-                            ];
+                        colName = dfUpdatesReview.col_names[dfUpdatesReview.updates_col_index];
                         reviewingDFRowIndex =
-                            update_content[colName][
-                                dfUpdatesReview.updates_row_index
-                            ];
+                            update_content[colName][dfUpdatesReview.updates_row_index];
                         dfUpdatesReview.name = [colName, reviewingDFRowIndex];
                     }
                     // make data loading request if needed
@@ -327,6 +302,18 @@ export const dataFrameSlice = createSlice({
         setDFFilter: (state, action) => {
             state.dfFilter = action.payload;
         },
+
+        setStatsConfig: (state, action) => {
+            if (action.payload) {
+                state.stats = { ...action.payload };
+            }
+        },
+
+        setDataViewMode: (state, action) => {
+            if (action.payload) {
+                state.dataViewMode = action.payload;
+            }
+        },
     },
 });
 
@@ -340,6 +327,8 @@ export const {
     setActiveDF,
     setDFFilter,
     setColumnQuantilePlot,
+    setStatsConfig,
+    setDataViewMode,
 } = dataFrameSlice.actions;
 
 export default dataFrameSlice.reducer;

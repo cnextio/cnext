@@ -1,5 +1,5 @@
-import { Grid, Paper, styled, TableBody, Typography } from "@mui/material";
-import React, { Fragment } from "react";
+import { Grid, Paper, styled, Typography } from "@mui/material";
+import React from "react";
 
 import {
     StyledGridView,
@@ -7,29 +7,17 @@ import {
     DataGridItemMetadata,
     ImageMimeCell,
 } from "../../StyledComponents";
-import {
-    CNextMimeType,
-    FileMimeType,
-    IDFUpdatesReview,
-} from "../../../interfaces/IApp";
+import { CNextMimeType, FileMimeType, IDFUpdatesReview } from "../../../interfaces/IApp";
 import { useSelector } from "react-redux";
-import { ifElse, ifElseDict } from "../../libs";
+import { ifElse } from "../../libs";
 import store from "../../../../redux/store";
-
-export enum GridViewStatus {
-    NONE, UNSELECTED, SELECTED
-}
 
 const GridView = (props: any) => {
     const tableData = useSelector((state) => state.dataFrames.tableData);
 
-    const activeDataFrame = useSelector(
-        (state) => state.dataFrames.activeDataFrame
-    );
+    const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
 
-    const dfReview: IDFUpdatesReview = useSelector((state) =>
-        getReviewRequest(state)
-    );
+    const dfReview: IDFUpdatesReview = useSelector((state) => getReviewRequest(state));
 
     function getReviewRequest(state): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
@@ -48,16 +36,11 @@ const GridView = (props: any) => {
         switch (mimeType) {
             case FileMimeType.FILE_PNG:
             case FileMimeType.URL_PNG:
-                return (
-                    <ImageMimeCell src={"data:image/png;base64," + item.binary} />
-                );
+                return <ImageMimeCell src={"data:image/png;base64," + item.binary} />;
 
             case FileMimeType.FILE_JPG:
             case FileMimeType.URL_JPG:
-                return (
-                    <ImageMimeCell src={"data:image/jpg;base64," + item.binary} />
-                );
-
+                return <ImageMimeCell src={"data:image/jpg;base64," + item.binary} />;
         }
     };
 
@@ -65,10 +48,10 @@ const GridView = (props: any) => {
         // FIXME: move the line-height style to StyledComponents. I tried it but it did not work
         return (
             <DataGridItemMetadata style={{ "line-height": "100%" }}>
-                <Typography fontSize={12} component="span" variant="caption">
+                <Typography fontSize={12} component='span' variant='caption'>
                     {colName}:{" "}
                 </Typography>
-                <Typography fontSize={12} component="span">
+                <Typography fontSize={12} component='span'>
                     {item}
                 </Typography>
             </DataGridItemMetadata>
@@ -76,11 +59,7 @@ const GridView = (props: any) => {
     };
 
     const createGridCell = (colNames: [], rowIndex: any, rowData: any[]) => {
-        const metadata = ifElse(
-            store.getState().dataFrames.metadata,
-            activeDataFrame,
-            null
-        );
+        const metadata = ifElse(store.getState().dataFrames.metadata, activeDataFrame, null);
 
         // let colsWithMime = colNames.filter(
         //     (colName) =>
@@ -96,7 +75,7 @@ const GridView = (props: any) => {
         return (
             /** mime data will be displayed in big format then the metadata */
             <DataGridItem elevation={1} square={true}>
-                <div style={{ display: 'flex', justifyContent: 'center'  }}>
+                <div style={{ display: "flex", justifyContent: "center" }}>
                     {rowData.map((item: any, index: number) => {
                         if (
                             metadata &&
@@ -105,10 +84,7 @@ const GridView = (props: any) => {
                                 metadata.columns[colNames[index]].type
                             )
                         )
-                            return createMimeElem(
-                                item,
-                                metadata.columns[colNames[index]].type
-                            );
+                            return createMimeElem(item, metadata.columns[colNames[index]].type);
                     })}
                 </div>
                 <div style={{ paddingTop: "5px" }}>
@@ -131,17 +107,15 @@ const GridView = (props: any) => {
         <StyledGridView>
             {console.log("Render GridView")}
             <Grid container rowSpacing={1} columnSpacing={1}>
-                {tableData[activeDataFrame]?.rows.map(
-                    (rowData: any[], index: number) => (
-                        <Grid item>
-                            {createGridCell(
-                                tableData[activeDataFrame]?.column_names,
-                                tableData[activeDataFrame]?.index.data[index],
-                                rowData
-                            )}
-                        </Grid>
-                    )
-                )}
+                {tableData[activeDataFrame]?.rows.map((rowData: any[], index: number) => (
+                    <Grid item>
+                        {createGridCell(
+                            tableData[activeDataFrame]?.column_names,
+                            tableData[activeDataFrame]?.index.data[index],
+                            rowData
+                        )}
+                    </Grid>
+                ))}
             </Grid>
         </StyledGridView>
     );

@@ -261,10 +261,25 @@ export interface IDFMetadata {
     columns: { [key: string]: IColumnMetaData };
 }
 
-export interface IConfigs {
+export interface IDataFrameStatsConfig {
+    histogram: boolean;
+    quantile: boolean;
+}
+
+interface IExperimentManagerConfig {
     local_tmp_dir: string;
     mlflow_tracking_uri: string;
-    view_mode?: string;
+}
+
+export interface IConfigs {
+    experiment_manager?: IExperimentManagerConfig;
+    view_mode: ViewMode | undefined;
+}
+
+export enum DFViewMode {
+    TABLE_VIEW = "Table View",
+    SUMMARY_VIEW = "Summary View",
+    GRID_VIEW = "Grid View",
 }
 
 // export class DFUpdates {

@@ -1,12 +1,15 @@
 import {
     Box,
     Button,
+    Checkbox,
     Divider,
     FormControl,
     FormControlLabel,
     Input,
+    ListItemText,
     Menu,
     MenuItem,
+    MenuList,
     OutlinedInput,
     Paper,
     Popover,
@@ -480,15 +483,17 @@ export const DFSelectorForm = styled(FormControl)`
     width: 120px;
     font-size: 13px;
 `;
+
 export const DFSelector = styled(Select)`
-    // &:hover {
-    //     border: 0px;
-    // }
     font-size: 13px;
 `;
 
-export const DFSelectorIcon = styled(ArrowDropDownIcon)`
+export const SmallArrowIcon = styled(ArrowDropDownIcon)`
     font-size: 20px;
+`;
+
+export const DFViewModeSmallArrowIcon = styled(SmallArrowIcon)`
+    right: 0;
 `;
 
 export const DFSelectorMenuItem = styled(MenuItem)`
@@ -505,9 +510,6 @@ export const DFFilterForm = styled(FormControl)`
 export const DFFilterInput = styled(OutlinedInput)`
     font-size: 13px;
     padding: 0px;
-    :hover {
-        border-color: "red";
-    }
 `;
 
 export const StyledFilterCodeMirror = styled(CodeMirror)`
@@ -543,6 +545,50 @@ export const StyledFilterCodeMirror = styled(CodeMirror)`
     }
 `;
 
+export const DFStats = styled.div`
+    padding-left: 0px;
+    margin-top: 4px;
+`;
+
+export const DFStatsForm = styled(FormControl)`
+    height: 100%;
+    width: 88px;
+    font-size: 13px;
+    // border-radius: 10px;
+    // border-color: red;
+`;
+
+export const DFStatsParentCheckbox = styled(Checkbox)`
+    .MuiSvgIcon-root {
+        font-size: 18px;
+    }
+`;
+export const DFStatsSelector = styled(Select)`
+    font-size: 13px;
+    .MuiTypography-root {
+        font-size: 13px;
+    }
+    .MuiCheckbox-root {
+        padding: 5px 5px 5px 0px;
+    }
+`;
+
+export const DFStatsMenuItem = styled(MenuItem)`
+    font-size: 13px;
+    padding: 5px 10px 5px 0px;
+    .MuiSvgIcon-root {
+        font-size: 18px;
+    }
+`;
+
+export const DFViewModeMenuItem = styled(MenuItem)`
+    font-size: 13px;
+    .MuiSvgIcon-root {
+        font-size: 18px;
+        right: 0;
+    }
+`;
+
 export const StyledTableViewHeader = styled.div`
     display: flex;
     flex-direction: row;
@@ -571,7 +617,7 @@ export const TableShape = styled(Typography)`
 
 export const StyledTableView = styled(MuiTableContainer)`
     background-color: ${(props) => props.theme.palette.background.paper};
-    margin-top: 10px;
+    // margin-top: 10px;
     padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
     max-height: 90%; //TODO: can't make this 100% because the scroll to the top will mess the frame up
     overflow: auto;
@@ -825,7 +871,7 @@ function backgroundTransitionToColor(color1, color2) {
     `;
 }
 
-import Pane from "react-split-pane-v2/lib/Pane";
+import Pane from "react-split-pane-v2";
 
 export const FilePane = styled(Pane)`
     animation: ${slidein()} 1s easein 0s;

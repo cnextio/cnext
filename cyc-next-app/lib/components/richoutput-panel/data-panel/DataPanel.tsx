@@ -1,53 +1,33 @@
-import React, { useEffect, useState, Fragment } from "react";
-import {
-    DataPanelToolbarBtn,
-    PanelDivider,
-    DataToolbar,
-} from "../../StyledComponents";
+import React, { Fragment } from "react";
+import { DataToolbar } from "../../StyledComponents";
 import DFExplorer from "./DFExplorer";
 import DFFilter from "./DFFilter";
-import GridView, { GridViewStatus } from "./GridView";
+import DataStats from "./DataStats";
+import DataViewMode from "./DataViewMode";
 import DataView from "./DataView";
-import GridOnIcon from "@mui/icons-material/GridOn";
-import SummarizeIcon from "@mui/icons-material/Summarize";
+import { RootState } from "../../../../redux/store";
+import { useSelector } from "react-redux";
+import Box from "@mui/material/Box";
 
 const DataPanel = (props: any) => {
-    const [gridViewStatus, setGridViewStatus] = useState<GridViewStatus>(
-        GridViewStatus.NONE
-    );
-
-    const handleGridViewBtn = () => {
-        gridViewStatus == GridViewStatus.SELECTED
-            ? setGridViewStatus(GridViewStatus.UNSELECTED)
-            : setGridViewStatus(GridViewStatus.SELECTED);
-    };
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     //TODO: move all grid view related thing to under DataView
     return (
         <Fragment>
             <DataToolbar>
                 <DFExplorer />
                 <DFFilter />
-                {
-                    <Fragment>
-                        {/* <DataPanelToolbarBtn
-                            selected={gridViewStatus == GridViewStatus.SELECTED}
-                            onClick={() => handleGridViewBtn()}
-                        >
-                            <SummarizeIcon sx={{ fontSize: "20px" }} />
-                        </DataPanelToolbarBtn> */}
-                        <DataPanelToolbarBtn
-                            selected={gridViewStatus == GridViewStatus.SELECTED}
-                            onClick={() => handleGridViewBtn()}
-                        >
-                            <GridOnIcon sx={{ fontSize: "20px" }} />
-                        </DataPanelToolbarBtn>
-                    </Fragment>
-                }
             </DataToolbar>
-            <DataView
-                gridViewStatus={gridViewStatus}
-                setGridViewStatus={setGridViewStatus}
-            />
+            {activeDataFrame != null && (
+                <Box
+                    sx={{ display: "inline-flex", justifyContent: "flex-start" }}
+                    style={{ width: "100%" }}
+                >
+                    <DataStats />
+                    <DataViewMode />
+                </Box>
+            )}
+            <DataView />
         </Fragment>
     );
 };

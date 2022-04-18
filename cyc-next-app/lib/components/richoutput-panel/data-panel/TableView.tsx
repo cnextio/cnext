@@ -22,23 +22,17 @@ import {
 } from "../../../interfaces/IApp";
 import ColumnHistogram from "./ColumnHistogram";
 import { useSelector } from "react-redux";
-import { ifElse, ifElseDict } from "../../libs";
+import { ifElse } from "../../libs";
 import CountNA from "./CountNA";
 import store from "../../../../redux/store";
 import { RootState } from "../../../../redux/store";
 
 const TableView = (props: any) => {
-    const tableData = useSelector(
-        (state: RootState) => state.dataFrames.tableData
-    );
+    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
 
-    const activeDataFrame = useSelector(
-        (state: RootState) => state.dataFrames.activeDataFrame
-    );
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
 
-    const dfReview: IDFUpdatesReview = useSelector((state: RootState) =>
-        getReviewRequest(state)
-    );
+    const dfReview: IDFUpdatesReview = useSelector((state: RootState) => getReviewRequest(state));
 
     function getReviewRequest(state: RootState): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
@@ -78,10 +72,7 @@ const TableView = (props: any) => {
         return (
             <Fragment>
                 {indexCell ? (
-                    <DataTableIndexCell
-                        key={shortid.generate()}
-                        review={review}
-                    >
+                    <DataTableIndexCell key={shortid.generate()} review={review}>
                         {rowIndex}
                         {dfReview && dfReview.type == ReviewType.row && review && (
                             <ScrollIntoViewIfNeeded
@@ -96,7 +87,7 @@ const TableView = (props: any) => {
                 ) : (
                     <DataTableCell
                         key={shortid.generate()}
-                        align="right"
+                        align='right'
                         review={review}
                         head={head}
                     >
@@ -114,50 +105,39 @@ const TableView = (props: any) => {
                                             col_name={colName}
                                             smallLayout={true}
                                         />
-                                        <CountNA
-                                            df_id={activeDataFrame}
-                                            col_name={colName}
-                                        />
+                                        <CountNA df_id={activeDataFrame} col_name={colName} />
                                     </Fragment>
                                 ) : null}
                             </Fragment>
                         ) : metadata &&
                           metadata.columns[colName] &&
-                          [
-                              FileMimeType.FILE_PNG,
-                              FileMimeType.URL_PNG,
-                          ].includes(metadata.columns[colName].type) ? (
-                            <ImageMimeCell
-                                src={"data:image/png;base64," + item.binary}
-                            />
+                          [FileMimeType.FILE_PNG, FileMimeType.URL_PNG].includes(
+                              metadata.columns[colName].type
+                          ) ? (
+                            <ImageMimeCell src={"data:image/png;base64," + item.binary} />
                         ) : (
                             item
                         )}
-                        {dfReview &&
-                            dfReview.type == ReviewType.col &&
-                            head &&
-                            review && (
-                                <ScrollIntoViewIfNeeded
-                                    options={{
-                                        active: true,
-                                        block: "nearest",
-                                        inline: "center",
-                                        behavior: "smooth",
-                                    }}
-                                />
-                            )}
-                        {dfReview &&
-                            dfReview.type == ReviewType.cell &&
-                            review && (
-                                <ScrollIntoViewIfNeeded
-                                    options={{
-                                        active: true,
-                                        block: "nearest",
-                                        inline: "center",
-                                        behavior: "smooth",
-                                    }}
-                                />
-                            )}
+                        {dfReview && dfReview.type == ReviewType.col && head && review && (
+                            <ScrollIntoViewIfNeeded
+                                options={{
+                                    active: true,
+                                    block: "nearest",
+                                    inline: "center",
+                                    behavior: "smooth",
+                                }}
+                            />
+                        )}
+                        {dfReview && dfReview.type == ReviewType.cell && review && (
+                            <ScrollIntoViewIfNeeded
+                                options={{
+                                    active: true,
+                                    block: "nearest",
+                                    inline: "center",
+                                    behavior: "smooth",
+                                }}
+                            />
+                        )}
                     </DataTableCell>
                 )}
             </Fragment>
@@ -180,7 +160,7 @@ const TableView = (props: any) => {
             {/* {console.log("Render TableContainer: ", tableData)} */}
             {console.log("Render TableContainer")}
             {tableData[activeDataFrame] && (
-                <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
+                <DataTable sx={{ minWidth: 650 }} size='small' stickyHeader>
                     {/* {console.log(tableData)} */}
 
                     <DataTableHead>
@@ -197,15 +177,12 @@ const TableView = (props: any) => {
                         </DataTableHeadRow>
                     </DataTableHead>
                     <TableBody>
-                        {tableData[activeDataFrame]?.rows.map(
-                            (rowData: any[], index: number) =>
-                                _createRow(
-                                    tableData[activeDataFrame]?.column_names,
-                                    tableData[activeDataFrame]?.index.data[
-                                        index
-                                    ],
-                                    rowData
-                                )
+                        {tableData[activeDataFrame]?.rows.map((rowData: any[], index: number) =>
+                            _createRow(
+                                tableData[activeDataFrame]?.column_names,
+                                tableData[activeDataFrame]?.index.data[index],
+                                rowData
+                            )
                         )}
                     </TableBody>
                 </DataTable>

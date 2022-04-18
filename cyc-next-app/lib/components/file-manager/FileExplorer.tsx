@@ -152,7 +152,8 @@ const FileExplorer = (props: any) => {
         event: React.MouseEvent,
         clickedItem: string,
         parentItem: string,
-        is_file: boolean
+        is_file: boolean,
+        deletable: boolean
     ) => {
         event.preventDefault();
         event.stopPropagation();
@@ -172,6 +173,7 @@ const FileExplorer = (props: any) => {
             parent: parentItem,
             item: clickedItem,
             is_file: is_file,
+            deletable: deletable,
         });
     };
 
@@ -186,17 +188,17 @@ const FileExplorer = (props: any) => {
                     setCreateItemInProgress(true);
                 }
                 break;
-            case FileContextMenuItem.DELETE:
-                if (contextMenuItems) {
-                    // FIXME: this is a hack for now to avoid main.py being deleted
-                    if (contextMenuItems.item.split("/").at(-1) === "main.py") {
-                        // do nothing
-                        break;
-                    }
-                    // setRemoveItemInProgress(true);
-                    setDeleteDialog(true);
-                }
-                break;
+            // case FileContextMenuItem.DELETE:
+            //     if (contextMenuItems) {
+            //         // FIXME: this is a hack for now to avoid main.py being deleted
+            //         if (contextMenuItems.item.split("/").at(-1) === "main.py") {
+            //             // do nothing
+            //             break;
+            //         }
+            //         // setRemoveItemInProgress(true);
+            //         setDeleteDialog(true);
+            //     }
+            //     break;
         }
         setContextMenuPos(null);
     };
@@ -272,7 +274,8 @@ const FileExplorer = (props: any) => {
                                             event,
                                             value.path,
                                             path,
-                                            value.is_file
+                                            value.is_file,
+                                            value.deletable
                                         );
                                     }}
                                 >
@@ -336,6 +339,7 @@ const FileExplorer = (props: any) => {
                                 event,
                                 relativeProjectPath,
                                 relativeProjectPath,
+                                false,
                                 false
                             );
                         }}

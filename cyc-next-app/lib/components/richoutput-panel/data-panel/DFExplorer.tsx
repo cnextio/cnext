@@ -1,21 +1,13 @@
-import {
-    FormControl,
-    InputLabel,
-    MenuItem,
-    OutlinedInput,
-    Select,
-    Typography,
-} from "@mui/material";
-import React, { Fragment, useEffect } from "react";
+import { Typography } from "@mui/material";
+import React, { Fragment } from "react";
 
 // redux
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveDF } from "../../../../redux/reducers/DataFramesRedux";
-import store from "../../../../redux/store";
 import {
     DFSelector,
     DFSelectorForm,
-    DFSelectorIcon,
+    SmallArrowIcon,
     DFSelectorMenuItem,
 } from "../../StyledComponents";
 // import { CountNAContainer } from "./StyledComponents";
@@ -49,7 +41,7 @@ const DFExplorer = () => {
                 onChange={handleChange}
                 value={dataFrameList ? dataFrameList.activeDF : ""}
                 // label={dfList.activeDF}
-                IconComponent={DFSelectorIcon}
+                IconComponent={SmallArrowIcon}
                 SelectDisplayProps={{
                     style: { padding: "0px 10px", lineHeight: "35px" },
                 }}
@@ -58,19 +50,15 @@ const DFExplorer = () => {
                     return (
                         <Fragment>
                             {dataFrameList ? (
-                                <Typography
-                                    height="100%"
-                                    variant="caption"
-                                    fontSize="14px"
-                                >
+                                <Typography height='100%' variant='caption' fontSize='14px'>
                                     {dataFrameList.activeDF}
                                 </Typography>
                             ) : (
                                 <Typography
-                                    height="100%"
-                                    variant="caption"
-                                    fontSize="12px"
-                                    color="#BFC7CF"
+                                    height='100%'
+                                    variant='caption'
+                                    fontSize='12px'
+                                    color='#BFC7CF'
                                 >
                                     Data Frame
                                 </Typography>
@@ -81,9 +69,7 @@ const DFExplorer = () => {
             >
                 {dataFrameList &&
                     dataFrameList.list.map((item, index) => (
-                        <DFSelectorMenuItem value={item}>
-                            {item}
-                        </DFSelectorMenuItem>
+                        <DFSelectorMenuItem value={item}>{item}</DFSelectorMenuItem>
                     ))}
             </DFSelector>
         </DFSelectorForm>

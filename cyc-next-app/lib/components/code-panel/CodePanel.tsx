@@ -5,6 +5,7 @@ import CodeEditor from "./CodeEditor";
 import { IMessage, ViewMode } from "../../interfaces/IApp";
 import CodeOutput from "./CodeOutput";
 import CodeToolbar from "./CodeToolbar";
+import Pane from "react-split-pane-v2";
 
 const CodePanel = ({ workingPanelViewMode }) => {
     const [codeOutput, setCodeOutput] = useState<IMessage>({
@@ -25,11 +26,13 @@ const CodePanel = ({ workingPanelViewMode }) => {
                             ? ViewMode.VERTICAL
                             : ViewMode.HORIZONTAL
                     }
-                    defaultSize='70%'
-                    pane2Style={{ height: "30%" }}
                 >
-                    <CodeEditor />
-                    <CodeOutput />
+                    <Pane>
+                        <CodeEditor />
+                    </Pane>
+                    <Pane size="30%">
+                        <CodeOutput />
+                    </Pane>
                 </SplitPane>
             </CodeContainer>
         </StyledCodePanel>

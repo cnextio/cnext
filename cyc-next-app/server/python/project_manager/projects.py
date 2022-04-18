@@ -6,7 +6,6 @@ from project_manager.interfaces import ProjectMetadata
 from libs import logs
 from libs.config import read_config, save_config
 from project_manager.interfaces import FileMetadata
-from project_manager.files import CNEXT_FOLDER_PATH
 
 log = logs.get_logger(__name__)
 
@@ -117,7 +116,7 @@ def save_project_config(content):
         # config_file_path = os.path.join(project_path, FILE_CONFIG)
         active_project = get_active_project()
         config_file_path = os.path.join(
-            active_project.path, CNEXT_FOLDER_PATH, FILE_CONFIG)
+            active_project.path, FILE_CONFIG)
         os.makedirs(os.path.dirname(config_file_path), exist_ok=True)
         with open(config_file_path, 'w') as outfile:
             outfile.write(json.dumps(content))
@@ -130,7 +129,7 @@ def save_project_config(content):
 def get_project_config():
     active_project = get_active_project()
     config_file_path = os.path.join(
-        active_project.path, CNEXT_FOLDER_PATH, FILE_CONFIG)
+        active_project.path, FILE_CONFIG)
     if os.path.exists(config_file_path):
         config_file_data = open(config_file_path, "r")
         data = json.loads(config_file_data.read())
