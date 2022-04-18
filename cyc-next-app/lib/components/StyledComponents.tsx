@@ -569,7 +569,6 @@ export const DFStatsSelector = styled(Select)`
     .MuiCheckbox-root {
         padding: 5px 5px 5px 0px;
     }
-    
 `;
 
 export const DFStatsMenuItem = styled(MenuItem)`

@@ -25,7 +25,7 @@ import {
     setRunSelection,
     setSelectedExp,
 } from "../../../../redux/reducers/ExperimentManagerRedux";
-import store from "../../../../redux/store";
+import store, { RootState } from "../../../../redux/store";
 import { DefaultRootState, shallowEqual, useDispatch, useSelector } from "react-redux";
 import { setCodeToInsert } from "../../../../redux/reducers/CodeEditorRedux";
 import { ICodeToInsert } from "../../../interfaces/ICodeEditor";
@@ -36,16 +36,16 @@ const ExperimentManager = (props: any) => {
     const [metricPlotData, setMetricPlot] = useState();
     const [timer, setTimer] = useState();
     const [timeout, setTimeout] = useState(0);
-    let runDict = useSelector((state) => state.experimentManager.runDict);
-    let expDict = useSelector((state) => state.experimentManager.expDict);
-    let selectedRunIds = useSelector((state) => getSelectedRuns(state), shallowEqual);
-    let selectedRunningRunId = useSelector((state) => getSelectedRunningRun(state));
+    let runDict = useSelector((state: RootState) => state.experimentManager.runDict);
+    let expDict = useSelector((state: RootState) => state.experimentManager.expDict);
+    let selectedRunIds = useSelector((state: RootState) => getSelectedRuns(state), shallowEqual);
+    let selectedRunningRunId = useSelector((state: RootState) => getSelectedRunningRun(state));
 
     // let runningExpId = useSelector(state => state.experimentManager.runningExpId);
     let selectedExpId = useSelector((state) => state.experimentManager.selectedExpId);
     const dispatch = useDispatch();
 
-    function getSelectedRuns(state: DefaultRootState) {
+    function getSelectedRuns(state: RootState) {
         let runDict = state.experimentManager.runDict;
         return runDict ? Object.keys(runDict).filter((key) => runDict[key]["selected"]) : null;
     }
@@ -71,13 +71,15 @@ const ExperimentManager = (props: any) => {
 
     const refreshData = (expId) => {
         console.log("Exp timer refreshData timeout count and running id", timeout, expId);
+        let tracking_uri =
+            store.getState().projectManager.configs.experiment_manager.mlflow_tracking_uri;
         if (expId) {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.list_run_infos,
                 type: CommandType.MLFLOW_CLIENT,
                 content: {
-                    tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+                    tracking_uri: tracking_uri,
                     experiment_id: expId,
                 },
             };
@@ -90,8 +92,7 @@ const ExperimentManager = (props: any) => {
                     command_name: ExperimentManagerCommand.get_metric_plots,
                     type: CommandType.MLFLOW_COMBINE,
                     content: {
-                        tracking_uri:
-                            "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+                        tracking_uri: tracking_uri,
                         experiment_id: expId,
                         run_ids: selectedRuns,
                     },
@@ -132,13 +133,15 @@ const ExperimentManager = (props: any) => {
      * If selected runs have changed then reload the metric plots
      */
     useEffect(() => {
+        let tracking_uri =
+            store.getState().projectManager.configs.experiment_manager.mlflow_tracking_uri;
         if (selectedRunIds && selectedRunIds.length > 0) {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.get_metric_plots,
                 type: CommandType.MLFLOW_COMBINE,
                 content: {
-                    tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+                    tracking_uri: tracking_uri,
                     experiment_id: selectedExpId,
                     run_ids: selectedRunIds,
                 },
@@ -164,13 +167,15 @@ const ExperimentManager = (props: any) => {
      * If selected exp has changed then reload the run list
      */
     useEffect(() => {
+        let tracking_uri =
+            store.getState().projectManager.configs.experiment_manager.mlflow_tracking_uri;
         if (selectedExpId) {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.list_run_infos,
                 type: CommandType.MLFLOW_CLIENT,
                 content: {
-                    tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
+                    tracking_uri: tracking_uri,
                     experiment_id: selectedExpId,
                 },
             };
@@ -234,7 +239,7 @@ const ExperimentManager = (props: any) => {
 
     useEffect(() => {
         setup_socket();
-        let tracking_uri = store.getState().projectManager.configs.mlflow_tracking_uri;
+        let tracking_uri = store.getState().projectManager.configs.experiment_manager.mlflow_tracking_uri;
         let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.ExperimentManager,
             command_name: ExperimentManagerCommand.list_experiments,
