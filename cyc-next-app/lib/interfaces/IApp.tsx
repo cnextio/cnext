@@ -272,8 +272,8 @@ interface IExperimentManagerConfig {
 }
 
 export interface IConfigs {
-    experiment_manager: IExperimentManagerConfig;
-    view_mode?: ViewMode | undefined;
+    experiment_manager?: IExperimentManagerConfig;
+    view_mode: ViewMode | undefined;
 }
 
 export enum DFViewMode {
