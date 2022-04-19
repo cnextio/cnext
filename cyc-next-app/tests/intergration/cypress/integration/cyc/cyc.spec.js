@@ -95,6 +95,112 @@ describe('Test Code Editor', () => {
     });
 });
 
+describe('Test DataFrame', () => {
+    before(() => {
+        cy.visit('/');
+        cy.wait(WAIT_3S);
+    });
+
+    beforeEach(() => {
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').as('editor');
+        removeText(cy.get('@editor'));
+        cy.wait(WAIT_1S);
+    });
+
+    it('Check dataframe', () => {
+        cy.get('@editor').type(codeTestDF);
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{selectall}');
+        if (isMacOSPlatform()) {
+            cy.get('@editor').type('{command}k');
+            cy.get('@editor').type('{command}l');
+        } else {
+            cy.get('@editor').type('{ctrl}k');
+            cy.get('@editor').type('{ctrl}l');
+        }
+
+        cy.get('#RichOuputViewHeader_DATA').should('be.visible').click();
+        cy.get('.MuiTableContainer-root').should('be.visible');
+        // check columns name
+        cy.get('.MuiTableHead-root > .MuiTableRow-root > :nth-child(2)').contains('Id');
+        cy.get('*[class^="StyledComponents__StyledTableViewHeader"] > :nth-child(2)').click();
+        cy.get('.MuiTableBody-root > :nth-child(1) > :nth-child(1)').contains('Id');
+
+        cy.window()
+            .its('store')
+            .invoke('getState')
+            .its('dataFrames')
+            .its('activeDataFrame')
+            .then((activeDataFrame) => {
+                assert.equal(activeDataFrame, 'df');
+            });
+
+        cy.window()
+            .its('store')
+            .invoke('getState')
+            .its('dataFrames')
+            .its('tableData')
+            .then((tableData) => {
+                assert.notDeepEqual(tableData, {});
+            });
+    });
+
+    it('Check DF Autocompletion', () => {
+        cy.get('@editor').type(codeTestDF);
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{selectall}');
+        if (isMacOSPlatform()) {
+            cy.get('@editor').type('{command}k');
+            cy.get('@editor').type('{command}l');
+        } else {
+            cy.get('@editor').type('{ctrl}k');
+            cy.get('@editor').type('{ctrl}l');
+        }
+
+        cy.get('#RichOuputViewHeader_DATA').should('be.visible').click();
+        let lines = cy
+            .get('.cm-theme-light > .cm-editor > .cm-scroller > .cm-content')
+            .as('df-editor')
+            .children('.cm-line');
+        expect(lines).to.exist;
+        lines.its('length').should('be.gt', 0);
+
+        let dfEditor = cy.get('@df-editor');
+        dfEditor.focus();
+        dfEditor.type('("');
+
+        cy.get('.cm-tooltip-autocomplete').should('be.visible');
+        cy.get('.cm-completionLabel').contains('Alley');
+    });
+
+    it('Check Data Stats', () => {
+        cy.visit('/');
+        cy.wait(WAIT_3S);
+
+        cy.get('@editor').type(codeTestDF);
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{selectall}');
+        if (isMacOSPlatform()) {
+            cy.get('@editor').type('{command}k');
+            cy.get('@editor').type('{command}l');
+        } else {
+            cy.get('@editor').type('{ctrl}k');
+            cy.get('@editor').type('{ctrl}l');
+        }
+        cy.wait(WAIT_500MLS);
+        cy.get('[data-cy="df-stats-checkbox"]').should('be.visible').click();
+        cy.wait(WAIT_5S);
+        cy.get('.MuiTableHead-root > .MuiTableRow-root > :nth-child(2) > .MuiTableContainer-root > .js-plotly-plot > .plot-container').should('be.visible');
+
+        cy.get('[data-cy="df-viewmode"]').should('be.visible').click();
+        cy.wait(WAIT_500MLS);
+    })
+
+    afterEach(() => {
+        cy.wait(WAIT_1S);
+    });
+});
+
 describe('Test Rich output result', () => {
     before(() => {
         cy.visit('/');
@@ -390,6 +496,38 @@ describe('Check Heavy case', () => {
 
         cy.get('#RichOuputViewHeader_RESULTS').should('be.visible').click();
         cy.get('.MuiPaper-root > audio').should('be.visible');
+    });
+
+    afterEach(() => {
+        cy.wait(WAIT_1S);
+    });
+});
+
+describe('Check File Explorer', () => {
+    before(() => {
+        cy.visit('/');
+        cy.wait(WAIT_3S);
+    });
+
+    it('Check create and delete file', () => {
+        cy.get('#sidebar_Projects').should('be.visible').click();
+
+        // Create file
+        cy.wait(WAIT_2S);
+        cy.get('[data-cy="project-root"]').rightclick();
+        cy.wait(WAIT_1S);
+        cy.get(".MuiMenuItem-root").contains('New file').click();
+        cy.get('[data-cy="new-file-item').type("test").type('{enter}');
+        cy.wait(WAIT_1S);
+
+        // Delete file
+        cy.get('.MuiTreeItem-label').contains('test.py').rightclick();
+        cy.wait(WAIT_1S);
+        cy.get('.MuiMenuItem-root').contains('Delete').click();
+        cy.wait(WAIT_500MLS);
+        cy.get('button').contains('Move to trash').click();
+
+        cy.get('.MuiTreeItem-label').contains('test.py').should('not.exist');
     });
 
     afterEach(() => {
