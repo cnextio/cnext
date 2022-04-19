@@ -1,12 +1,12 @@
 import {
-    codeTestDF
+    codeTestDF,
 } from '../data/code-text';
+import { removeText, isMacOSPlatform } from './shared';
 const WAIT_500MLS = Cypress.env('wait_500mls');
 const WAIT_1S = Cypress.env('wait_1s');
-const WAIT_2S = Cypress.env('wait_2s');
 const WAIT_3S = Cypress.env('wait_3s');
 const WAIT_5S = Cypress.env('wait_5s');
-import { removeText, isMacOSPlatform } from './shared';
+
 
 describe('Test DataFrame', () => {
     before(() => {
@@ -33,11 +33,10 @@ describe('Test DataFrame', () => {
         }
 
         cy.get('#RichOuputViewHeader_DATA').should('be.visible').click();
+        cy.wait(WAIT_500MLS);
         cy.get('.MuiTableContainer-root').should('be.visible');
         // check columns name
         cy.get('.MuiTableHead-root > .MuiTableRow-root > :nth-child(2)').contains('Id');
-        cy.get('*[class^="StyledComponents__StyledTableViewHeader"] > :nth-child(2)').click();
-        cy.get('.MuiTableBody-root > :nth-child(1) > :nth-child(1)').contains('Id');
 
         cy.window()
             .its('store')
@@ -104,9 +103,6 @@ describe('Test DataFrame', () => {
         cy.get('[data-cy="df-stats-checkbox"]').should('be.visible').click();
         cy.wait(WAIT_5S);
         cy.get('.MuiTableHead-root > .MuiTableRow-root > :nth-child(2) > .MuiTableContainer-root > .js-plotly-plot > .plot-container').should('be.visible');
-
-        cy.get('[data-cy="df-viewmode"]').should('be.visible').click();
-        cy.wait(WAIT_500MLS);
     })
 
     afterEach(() => {
