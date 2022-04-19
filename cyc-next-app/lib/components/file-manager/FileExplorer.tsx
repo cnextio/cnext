@@ -188,17 +188,12 @@ const FileExplorer = (props: any) => {
                     setCreateItemInProgress(true);
                 }
                 break;
-            // case FileContextMenuItem.DELETE:
-            //     if (contextMenuItems) {
-            //         // FIXME: this is a hack for now to avoid main.py being deleted
-            //         if (contextMenuItems.item.split("/").at(-1) === "main.py") {
-            //             // do nothing
-            //             break;
-            //         }
-            //         // setRemoveItemInProgress(true);
-            //         setDeleteDialog(true);
-            //     }
-            //     break;
+            case FileContextMenuItem.DELETE:
+                if (contextMenuItems) {
+                    // setRemoveItemInProgress(true);
+                    setDeleteDialog(true);
+                }
+                break;
         }
         setContextMenuPos(null);
     };
@@ -297,6 +292,8 @@ const FileExplorer = (props: any) => {
     };
 
     const handleDeleteDialogClose = (confirm) => {
+        console.log(confirm);
+        console.log(contextMenuItems);
         if (confirm && contextMenuItems) {
             const state = store.getState();
             const projectPath = state.projectManager.activeProject?.path;
