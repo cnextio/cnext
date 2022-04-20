@@ -5,7 +5,7 @@ services:
         image: ${IMAGE_NAME}:${IMAGE_TAG}
         # build: .
         container_name: web
-        working_dir: /app/cyc-next-app
+        working_dir: /app/cyc_next_app
         ports:
             - ${CLIENT_PORT}:3000
         command: npm start
@@ -14,9 +14,9 @@ services:
         image: ${IMAGE_NAME}:${IMAGE_TAG}
         # build: .
         container_name: server
-        working_dir: /app/cyc-next-app/server
+        working_dir: /app/cyc_next_app/server
         volumes:
-            - ${SOURCE_PROJECT_DIR}:/app/cyc-next-app/server/cnext_sample_projects/Skywalker
+            - ${SOURCE_PROJECT_DIR}:/app/cyc_next_app/server/cnext_sample_projects/Skywalker
         ports:
             - ${SERVER_PORT}:4000
         command: npm start
