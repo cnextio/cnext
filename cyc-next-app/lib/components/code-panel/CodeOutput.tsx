@@ -15,7 +15,7 @@ import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
 import store, { RootState } from "../../../redux/store";
 import { getLastUpdate } from "../dataframe-manager/libDataFrameManager";
 
-const CodeOutputComponent = () => {
+const CodeOutputComponent = React.memo(() => {
     const dataFrameStatus = useSelector((state: RootState) => getDataFrameStatus(state));
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
@@ -264,6 +264,6 @@ const CodeOutputComponent = () => {
             </CodeOutputContent>
         </CodeOutputContainer>
     );
-};
+});
 
 export default CodeOutputComponent;

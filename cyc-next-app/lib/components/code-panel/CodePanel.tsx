@@ -8,13 +8,6 @@ import CodeToolbar from "./CodeToolbar";
 import Pane from "react-split-pane-v2";
 
 const CodePanel = ({ workingPanelViewMode }) => {
-    const [codeOutput, setCodeOutput] = useState<IMessage>({
-        commandType: "",
-        contentType: "",
-        content: "",
-        error: false,
-    });
-
     return (
         <StyledCodePanel>
             {console.log("CodePanel render ")}

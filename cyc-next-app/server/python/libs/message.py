@@ -71,7 +71,7 @@ class ExperimentManagerCommand(str, Enum):
     list_run_infos = 'list_run_infos'
     get_metric_plots = 'get_metric_plots'
     load_artifacts_to_local = "load_artifacts_to_local"
-
+    set_tracking_uri = 'set_tracking_uri'
 
 class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'

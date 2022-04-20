@@ -40,9 +40,7 @@ const ExperimentManager = (props: any) => {
     let expDict = useSelector((state: RootState) => state.experimentManager.expDict);
     let selectedRunIds = useSelector((state: RootState) => getSelectedRuns(state), shallowEqual);
     let selectedRunningRunId = useSelector((state: RootState) => getSelectedRunningRun(state));
-
-    // let runningExpId = useSelector(state => state.experimentManager.runningExpId);
-    let selectedExpId = useSelector((state) => state.experimentManager.selectedExpId);
+    let selectedExpId = useSelector((state: RootState) => state.experimentManager.selectedExpId);
     const dispatch = useDispatch();
 
     function getSelectedRuns(state: RootState) {
@@ -50,16 +48,7 @@ const ExperimentManager = (props: any) => {
         return runDict ? Object.keys(runDict).filter((key) => runDict[key]["selected"]) : null;
     }
 
-    // const getRunningRun = (state: DefaultRootState) => {
-    //   let runDict = state.experimentManager.runDict;
-    //   return runDict
-    //     ? Object.keys(runDict).filter(
-    //         (key) => runDict[key]["_status"] == "RUNNING"
-    //       )
-    //     : null;
-    // };
-
-    function getSelectedRunningRun(state: DefaultRootState) {
+    function getSelectedRunningRun(state: RootState) {
         let runDict = state.experimentManager.runDict;
         /** There should be only one running run so we only get the first item of the list */
         return runDict
@@ -69,11 +58,11 @@ const ExperimentManager = (props: any) => {
             : null;
     }
 
-    const refreshData = (expId) => {
+    const refreshData = (expId: string) => {
         console.log("Exp timer refreshData timeout count and running id", timeout, expId);
         let tracking_uri =
-            store.getState().projectManager.configs.experiment_manager.mlflow_tracking_uri;
-        if (expId) {
+            store.getState().projectManager?.configs?.experiment_manager?.mlflow_tracking_uri;
+        if (expId && tracking_uri) {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.list_run_infos,
@@ -134,8 +123,8 @@ const ExperimentManager = (props: any) => {
      */
     useEffect(() => {
         let tracking_uri =
-            store.getState().projectManager.configs.experiment_manager.mlflow_tracking_uri;
-        if (selectedRunIds && selectedRunIds.length > 0) {
+            store.getState().projectManager?.configs?.experiment_manager?.mlflow_tracking_uri;
+        if (tracking_uri && selectedRunIds && selectedRunIds.length > 0) {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.get_metric_plots,
@@ -168,8 +157,8 @@ const ExperimentManager = (props: any) => {
      */
     useEffect(() => {
         let tracking_uri =
-            store.getState().projectManager.configs.experiment_manager.mlflow_tracking_uri;
-        if (selectedExpId) {
+            store.getState().projectManager?.configs?.experiment_manager?.mlflow_tracking_uri;
+        if (tracking_uri && selectedExpId) {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.list_run_infos,
@@ -239,7 +228,8 @@ const ExperimentManager = (props: any) => {
 
     useEffect(() => {
         setup_socket();
-        let tracking_uri = store.getState().projectManager.configs.experiment_manager.mlflow_tracking_uri;
+        let tracking_uri =
+            store.getState().projectManager.configs?.experiment_manager?.mlflow_tracking_uri;
         let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.ExperimentManager,
             command_name: ExperimentManagerCommand.list_experiments,
@@ -275,10 +265,10 @@ const ExperimentManager = (props: any) => {
                 case MetricPlotContextMenuItems.LOAD_CHECKPOINT:
                     /** first, download the artifacts to local */
                     let local_dir =
-                        store.getState().projectManager.configs.experiment_manager.local_tmp_dir;
+                        store.getState().projectManager.configs?.experiment_manager?.local_tmp_dir;
                     let tracking_uri =
-                        store.getState().projectManager.configs.experiment_manager
-                            .mlflow_tracking_uri;
+                        store.getState().projectManager.configs?.experiment_manager
+                            ?.mlflow_tracking_uri;
                     let artifact_path =
                         item && item.metadata ? ifElse(item.metadata, "checkpoint", null) : null;
                     let run_id =

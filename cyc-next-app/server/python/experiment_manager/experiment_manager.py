@@ -169,9 +169,10 @@ class MessageHandler(BaseMessageHandler):
     def handle_message(self, message):
         log.info('Handle ExperimentManager message: %s' % message)    
         try:    
-            params = message.content
-            mlflowClient: MlflowClient = mlflow.tracking.MlflowClient(params['tracking_uri'])
+            params = message.content            
             if message.type == CommandType.MLFLOW_CLIENT:                    
+                mlflowClient: MlflowClient = mlflow.tracking.MlflowClient(
+                    params['tracking_uri'])
                 params.pop('tracking_uri')
                 message.content = getattr(mlflowClient, message.command_name)(**params)
                 if message.command_name == ExperimentManagerCommand.list_experiments:
@@ -179,8 +180,13 @@ class MessageHandler(BaseMessageHandler):
                 elif message.command_name == ExperimentManagerCommand.list_run_infos:
                     self._get_list_run_infos(mlflowClient, message)
             elif message.type == CommandType.MFLOW:
-                message.content = getattr(mlflow, message.command_name)(**params)    
+                tracking_uri = params['tracking_uri']
+                params.pop('tracking_uri')
+                params['uri'] = tracking_uri
+                message.content = getattr(mlflow, message.command_name)(**params)
             elif message.type == CommandType.MLFLOW_COMBINE:
+                mlflowClient: MlflowClient = mlflow.tracking.MlflowClient(
+                    params['tracking_uri'])
                 if message.command_name == ExperimentManagerCommand.get_metric_plots:             
                     self._get_metric_plots(mlflowClient, message)
                 elif message.command_name == ExperimentManagerCommand.load_artifacts_to_local:             
