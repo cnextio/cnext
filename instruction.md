@@ -26,11 +26,7 @@ Step 3: run ```docker login``` login with your docker account
 
 Step 4: point destination command to `cnext` directory
 
-Step 5: Specific for ```MacOS\Linux\Ubuntu``` :
-- in ```MacOS\Linux\Ubuntu``` run: ```sed -i 's/%cd%/pwd/g' .env```
-- in ```Windows```: next to step 6
-
-Step 6: Run command ```docker-compose up -d```
+Step 5: Run command ```docker-compose up -d```
 - Web application will launch at : ```http://localhost:CLIENT_PORT``` or ```http://127.0.0.1:CLIENT_PORT/```
 - Stop application: ```docker-compose down```
 - Note: Pay attention at ```CLIENT_PORT```, and ```SERVER_PORT``` in ```.env``` file (you will have to change these ports if you already use them on your machine)
@@ -86,7 +82,7 @@ CYCAI
    [Website]: <https://cyc-ai.com/>
    [Docker Image]: <https://hub.docker.com/r/cycai/cnext>
    [Overview Video]:<https://youtu.be/5eWPkQIUfZw>
-   [cnext]:<https://drive.google.com/file/d/1Ts0tJEUlDFnRg7CuYUcX6_y_g9Um5vBD>
+   [cnext]:<https://drive.google.com/file/d/1iCkp_FlWTUNS_xfusBZYzwIdfTLz7vKY>
    [Docker]: <https://www.docker.com/products/docker-desktop/>
 
 # Build a image and update version
