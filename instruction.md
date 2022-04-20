@@ -82,7 +82,7 @@ CYCAI
    [Website]: <https://cyc-ai.com/>
    [Docker Image]: <https://hub.docker.com/r/cycai/cnext>
    [Overview Video]:<https://youtu.be/5eWPkQIUfZw>
-   [cnext]:<https://drive.google.com/file/d/1iCkp_FlWTUNS_xfusBZYzwIdfTLz7vKY>
+   [cnext]:<https://drive.google.com/file/d/1VxYBW8VTvkzDqxdLKsfYD_yTjQRXuY5J>
    [Docker]: <https://www.docker.com/products/docker-desktop/>
 
 # Build a image and update version
