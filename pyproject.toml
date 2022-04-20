@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "cycai-cnext"
+version = "0.1.0"
+description = "improve your ai work follow"
+authors = ["cycai"]
+license = "MIT"
+
+packages = [
+    { include = "cyc_next_app" },
+]
+
+[tool.poetry.scripts]
+cnext-init = "cyc_next_app.__main__:main"
+cnext-run = "cyc_next_app.__main__:start"
+
+[tool.poetry.dependencies]
+python = "3.9"
+plotly = "5.7.0"
+simplejson = "3.17.6"
+requests = "2.27.1"
+mlflow = "1.25.1"
+zmq = "0.0.0"
+send2trash = "1.8.0"
+jupyter-client = "7.2.2"
+jupyterlab = "3.3.4"
+tensorflow = "2.8.0"
+matplotlib = "3.5.1"
+pandas = "1.3.5"
+multipledispatch = "0.6.0"
+windows-curses = "2.3.0"
+python-language-server = "0.36.2"
+cycdataframe = "^0.1.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
