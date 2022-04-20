@@ -4,7 +4,6 @@ channels:
     - conda-forge
     - defaults
 dependencies:
-    # - appnope=0.1.2
     - astroid=2.9.0
     - attrs=21.4.0
     - autopep8=1.5.6
@@ -13,7 +12,7 @@ dependencies:
     - bleach=4.1.0
     - bottleneck=1.3.2
     - branca=0.4.2
-    - ca-certificates=2021.10.8
+    - ca-certificates=2021.10.8 #dont see in pip
     - certifi=2021.10.8
     - debugpy=1.5.1
     - decorator=5.1.1
@@ -35,12 +34,12 @@ dependencies:
     - jedi=0.17.2
     - jinja2=3.0.3
     - jsonschema=4.4.0
-    - jupyter_client=7.1.2
-    - jupyter_core=4.9.1
-    - jupyterlab_widgets=1.0.2
+    - jupyter_client=7.1.2 #consider
+    - jupyter_core=4.9.1 #consider
+    - jupyterlab_widgets=1.0.2 #consider
     - lazy-object-proxy=1.6.0
-    - libcxx=12.0.0
-    - libffi=3.3
+    # - libcxx=13.0.1 #cannot install in windows try in docker
+    - libffi=3.3 # dont see in pip
     - libsodium=1.0.18
     - markupsafe=2.1.0
     - matplotlib-inline=0.1.2
@@ -54,12 +53,12 @@ dependencies:
     - multipledispatch=0.6.0
     - nbconvert=5.6.1
     - nbformat=5.2.0
-    - ncurses=6.3
+    # - ncurses=6.3 #cannot install in windows try in docker
     - nest-asyncio=1.5.1
     - notebook=5.7.11
     - numexpr=2.8.1
-    - numpy=1.21.2
-    - numpy-base=1.21.2
+    # - numpy=1.21.2 #don't requires
+    - numpy-base=1.21.2 #dont see in pipy
     - openssl=1.1.1l
     - packaging=21.3
     - pandas=1.3.5
@@ -85,12 +84,12 @@ dependencies:
     - python-dateutil=2.8.2
     - python-jsonrpc-server=0.4.0
     - python-language-server=0.36.2
-    - python_abi=3.9
+    - python_abi=3.9 # error when install with pip
     - pythreejs=2.3.0
     - pytz=2021.3
     - pyyaml=6.0
     - pyzmq=22.3.0
-    - readline=8.1.2
+    # - readline=8.1.2 #cannot install in windows try in docker
     - rope=0.22.0
     - send2trash=1.8.0
     - setuptools=58.0.4
@@ -98,10 +97,6 @@ dependencies:
     - simplejson=3.17.6
     - six=1.16.0
     - snowballstemmer=2.2.0
-    - sqlite=3.37.2
-    - tenacity=8.0.1
-    - terminado=0.13.3
-    - testpath=0.6.0
     - tk=8.6.11
     - toml=0.10.2
     - tornado=6.1
@@ -121,7 +116,6 @@ dependencies:
     - yaml=0.2.5
     - yapf=0.31.0
     - zeromq=4.3.4
-    - zipp=3.7.0
-    - zlib=1.2.11
     - mlflow=1.24.0
-    # - zmq=0.0.0
+    - pysqlite3=0.4.6
+    # - windows-curses=2.3.0 need to install by hand with develop mode
