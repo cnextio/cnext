@@ -14,13 +14,13 @@ RUN npm -version
 RUN npm install node
 RUN npm install npm@latest 
 
-WORKDIR /app/cyc-next-app
+WORKDIR /app/cyc_next_app
 RUN npm i --force
 ENV NODE_ENV=production
 ENV NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT=http://localhost:4000
 RUN npm run build
 
-WORKDIR /app/cyc-next-app/server
+WORKDIR /app/cyc_next_app/server
 RUN npm i
 
 # Install git
