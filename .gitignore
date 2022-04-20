@@ -60,4 +60,4 @@ Thumbs.db
 package-lock.json
 cyc_next_app/package-lock.json
 cyc_next_app/server/package-lock.json
-# cyc_next_app/server/.server.yaml
+cyc_next_app/server/.server.yaml
