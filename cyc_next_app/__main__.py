@@ -22,7 +22,7 @@ def main():
     # Get file's content as a list
     my_file.close()
     string_list[11] = string_list[11].replace(
-        '/Skywalker', server_path + '/Skywalker')
+        'cnext_sample_projects/Skywalker', server_path + '/Skywalker')
     print(string_list[11])
     my_file = open(FILE_NAME, 'w')
     new_file_contents = ''.join(string_list)
