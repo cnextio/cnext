@@ -11,7 +11,7 @@ from libs.json_serializable import ipython_internal_output, JsonSerializable
 from cycdataframe.mime_types import CnextMimeType
 
 from libs import logs
-from user_space.ipython.constants import IPythonInteral, IPythonKernelConstants as IPythonConstants
+from user_space.ipython.constants import IPythonInteral, IPythonConstants as IPythonConstants
 from user_space.ipython.kernel import IPythonKernel
 from user_space.user_space import ExecutionMode
 log = logs.get_logger(__name__)

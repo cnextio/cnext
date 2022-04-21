@@ -2,7 +2,7 @@ import simplejson as json
 from libs.message import ContentType, Message, SubContentType
 from libs import logs
 from user_space.user_space import BaseKernel, UserSpace
-from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
+from user_space.ipython.constants import IPythonConstants as IPythonConstants
 
 log = logs.get_logger(__name__)
 

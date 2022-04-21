@@ -3,7 +3,7 @@ import simplejson as json
 import cycdataframe.user_space as _cus
 import cycdataframe.df_status_hook as _sh
 from user_space.ipython.kernel import IPythonKernel
-from user_space.ipython.constants import IPythonInteral, IPythonKernelConstants as IPythonConstants
+from user_space.ipython.constants import IPythonInteral, IPythonConstants as IPythonConstants
 
 from libs import logs
 log = logs.get_logger(__name__)
@@ -120,7 +120,8 @@ _sh.DataFrameStatusHook.set_user_space({_user_space})
             # log.info("IPythonKernel Outputs: %s" % outputs)
             for output in outputs:
                 if output['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
-                    result = json.loads(output['content']['data']['text/plain'])
+                    result = json.loads(
+                        output['content']['data']['text/plain'])
             log.info("Results: %s" % result)
             return result
 
@@ -131,16 +132,12 @@ _sh.DataFrameStatusHook.set_user_space({_user_space})
             code = "_user_space.reset_active_dfs_status()"
             self.executor.execute(code)
 
-    def execute(self, code, exec_mode: ExecutionMode = None):
-        self.reset_active_dfs_status()
-        return self.executor.execute(code, exec_mode)
+    def execute(self, code, exec_mode: ExecutionMode = None, message_handler_callback = None):
+        # self.reset_active_dfs_status()
+        return self.executor.execute(code, exec_mode, message_handler_callback)
 
-    def get_shell_msg(self):
-        msg = self.executor.get_shell_msg()
-        log.info('Shell msg: %s', msg)
-        return msg
+    # def get_shell_msg(self):
+    #     return self.executor.get_shell_msg()
 
-    def get_iobuf_msg(self):
-        msg = self.executor.get_iobuf_msg()
-        log.info('Iobuf msg: %s', msg)
-        return msg
+    # def get_iobuf_msg(self):
+    #     return self.executor.get_iobuf_msg()

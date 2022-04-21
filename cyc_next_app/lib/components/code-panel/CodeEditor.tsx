@@ -142,7 +142,7 @@ const CodeEditor = () => {
     });
 
     const handleResultData = (message: IMessage) => {
-        console.log(`${WebAppEndpoint.CodeEditor} got result data`);
+        // console.log(`${WebAppEndpoint.CodeEditor} got result data`);
         let inViewID = store.getState().projectManager.inViewID;
         if (inViewID) {
             let result: ICodeResultMessage = {
@@ -162,10 +162,10 @@ const CodeEditor = () => {
     /**
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
-    function socketInit() {
+    const socketInit = () => {
         socket.emit("ping", WebAppEndpoint.CodeEditor);
         socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
-            console.log("CodeEditor: got results: ", result, "\n");
+            console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
                 let codeOutput: IMessage = JSON.parse(result);
@@ -193,7 +193,9 @@ const CodeEditor = () => {
     }
 
     useEffect(() => {
+        console.log('CodeEditor init');
         socketInit();
+        return () => {socket.off(WebAppEndpoint.CodeEditor);}
     }, []);
 
     /**

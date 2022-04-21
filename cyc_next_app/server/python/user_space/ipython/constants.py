@@ -13,7 +13,7 @@ class IpythonResultMessage:
         self.__dict__.update(entries)
 
 
-class IPythonKernelConstants:
+class IPythonConstants:
     class MessageType(str, Enum):
         EXECUTE_REPLY = 'execute_reply'
         INSPECT_REPLY = 'inspect_reply'
@@ -36,6 +36,11 @@ class IPythonKernelConstants:
         CLEAR_OUTPUT = 'clear_output'
         DEBUG_EVENT = 'debug_event'
         INPUT_REPLY = 'input_reply'
+
+    class StreamType(str, Enum):
+        IOBUF = 'iobuf'
+        SHELL = 'shell'
+        CONTROL = 'control'
 
     class ShellMessageStatus(str, Enum):
         OK = 'ok'

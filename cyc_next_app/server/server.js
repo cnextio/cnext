@@ -31,8 +31,8 @@ const FileManager = 'FileManager';
 const FileExplorer = 'FileExplorer';
 const MagicCommandGen = 'MagicCommandGen';
 const ExperimentManager = 'ExperimentManager';
-const CodeExecutor = [CodeEditor, DFManager, FileManager, FileExplorer, MagicCommandGen];
-const NotCodeExecutor = [ExperimentManager];
+const CodeExecutor = [CodeEditor, DFManager, MagicCommandGen];
+const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
 
 const LSPExecutor = [
     LanguageServer,
@@ -53,7 +53,7 @@ class PythonProcess {
     static io;
 
     // TODO: using clientMessage is hacky solution to send stdout back to client. won't work if there is multiple message being handled simultaneously
-    constructor(io, commandStr) {
+    constructor(io, commandStr, args) {
         process.env.PYTHONPATH = [
             process.env.PYTHONPATH,
             config.path_to_cycdataframe_lib,
@@ -63,6 +63,7 @@ class PythonProcess {
             stdio: ['pipe', 'pipe', 'pipe', 'pipe'], // stdin, stdout, stderr, custom
             mode: 'text',
             env: process.env,
+            args: args
         };
 
         this.executor = new PythonShell(commandStr, pyshellOpts);
@@ -127,7 +128,10 @@ try {
 
         function nonCodeExecutorHandler(strMessage) {
             // clientMessage = strMessage.slice();
-            console.log('Receive msg from client, server will run: ', JSON.parse(strMessage));
+            console.log(
+                "Receive msg from client, server will run: ",
+                JSON.parse(strMessage)["command_name"]
+            );
             nonCodeExecutor.send2executor(strMessage);
         }
 
@@ -157,8 +161,8 @@ try {
     server.listen(port, () => console.log(`Waiting on port ${port}`));
 
     console.log('Starting python shell...');
-    let codeExecutor = new PythonProcess(io, 'python/server.py');
-    let nonCodeExecutor = new PythonProcess(io, 'python/server.py');
+    let codeExecutor = new PythonProcess(io, `python/server.py`, ['code']);
+    let nonCodeExecutor = new PythonProcess(io, `python/server.py`, ['noncode']);
     let lspExecutor = new LSPProcess(io);
 
     /**
@@ -177,7 +181,7 @@ try {
         for await (const [message] of command_output_zmq) {
             const json_message = JSON.parse(message.toString());
             console.log(
-                `command_output_zmq: forward output of command_name ${json_message['command_name']}`
+                `command_output_zmq: forward output of command_name ${json_message["webapp_endpoint"]} ${json_message["content"]}`
             );
             sendOutput(json_message);
         }

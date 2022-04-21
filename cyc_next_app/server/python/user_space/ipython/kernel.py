@@ -1,7 +1,8 @@
+import threading
 import jupyter_client
 import queue
 import simplejson as json
-from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
+from user_space.ipython.constants import IPythonConstants
 # from user_space.user_space import BaseKernel
 from cycdataframe.df_status_hook import DataFrameStatusHook
 
@@ -10,20 +11,18 @@ log = logs.get_logger(__name__)
 
 
 class IPythonKernel():
-
     def __init__(self):
         self.km = jupyter_client.KernelManager()
         self.km.start_kernel()
-        # Set blocking client is important, It execute python line by line then response exactly flow result to client
-        # It also block the response messages from IPython. The IPython messages are only created when execution finish.
-        # Example:
-        # import time
-        # time.sleep(60)
-        # print("Run after sleeping")
-        # Without blocking client, the print command will be executed immediately without waiting 60s.
-        # After command print is executed, Ipython generates the messages and returns it to the client.
         self.kc = self.km.blocking_client()
         self.wait_for_ready()
+        shell_msg_thread = threading.Thread(
+            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
+        iobuf_msg_thread = threading.Thread(
+            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
+        shell_msg_thread.start()
+        iobuf_msg_thread.start()
+        self.message_handler_callback = None
 
     def shutdown_kernel(self):
         if self.km.is_alive:
@@ -38,15 +37,33 @@ class IPythonKernel():
         except RuntimeError:
             self.shutdown_kernel()
 
-    def get_shell_msg(self):
-        return self.kc.get_shell_msg()
+    def handle_ipython_stream(self, stream_type: IPythonConstants.StreamType):
+        while True:
+            ipython_message = None
+            if stream_type == IPythonConstants.StreamType.SHELL:
+                ipython_message = self.kc.get_shell_msg()
+            elif stream_type == IPythonConstants.StreamType.IOBUF:
+                ipython_message = self.kc.get_iopub_msg()
+            if ipython_message is not None and self.message_handler_callback is not None:
+                self.message_handler_callback(ipython_message)
+            log.info('%s msg: %s %s' % (
+                stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
 
-    def get_iobuf_msg(self):
-        return self.kc.get_iopub_msg()
+    # def get_shell_msg(self):
+    #     msg = self.kc.get_shell_msg()
+    #     log.info('Shell msg: %s %s' %
+    #              (msg['header']['msg_type'], msg['content']))
+    #     return msg
 
-    def execute(self, code, exec_mode=None):
-        outputs = list()
+    # def get_iobuf_msg(self):
+    #     msg = self.kc.get_iopub_msg()
+    #     log.info('Iobuf msg: %s %s' %
+    #              (msg['header']['msg_type'], msg['content']))
+    #     return msg
+
+    def execute(self, code, exec_mode=None, message_handler_callback=None):
         self.kc.execute(code)
+        self.message_handler_callback = message_handler_callback
         # reply = self.kc.get_shell_msg()
         # status = reply['content']['status']
 
