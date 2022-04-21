@@ -1,14 +1,10 @@
 import requests
-from io import BytesIO
 import base64
 import collections
 import itertools
 import sys
 import traceback
-import simplejson as json
-import io
-import base64
-import IPython
+
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
 from libs.json_serializable import ipython_internal_output, JsonSerializable

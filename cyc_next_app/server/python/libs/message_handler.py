@@ -6,14 +6,15 @@ from user_space.ipython.constants import IPythonKernelConstants as IPythonConsta
 
 log = logs.get_logger(__name__)
 
+
 class BaseMessageHandler:
-    def __init__(self, p2n_queue, user_space = None):
+    def __init__(self, p2n_queue, user_space=None):
         self.p2n_queue = p2n_queue
         if user_space == None:
             self.user_space = UserSpace(BaseKernel())
         else:
             self.user_space = user_space
-    
+
     ## TODO: this needs to be designed #
     @staticmethod
     def get_execute_result(messages):
@@ -44,7 +45,7 @@ class BaseMessageHandler:
     @staticmethod
     def _create_error_message(webapp_endpoint, trace, metadata=None):
         return Message(**{
-            "webapp_endpoint": webapp_endpoint, 
+            "webapp_endpoint": webapp_endpoint,
             "type": ContentType.STRING,
             "content": trace,
             "error": True,
@@ -53,7 +54,8 @@ class BaseMessageHandler:
 
     def _send_to_node(self, message: Message):
         # the current way of communicate with node server is through stdout with a json string
-        log.info("Send to node server: %s %s %s" % (message.command_name, message.type, message.sub_type))
+        log.info("Send to node server: %s %s %s %s %s" %
+                 (message.webapp_endpoint, message.command_name, message.type, message.sub_type, message.metadata))
         BaseMessageHandler.send_message(self.p2n_queue, message)
 
     @staticmethod

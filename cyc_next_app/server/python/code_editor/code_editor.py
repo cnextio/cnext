@@ -1,4 +1,4 @@
-from curses import has_key
+import threading
 import traceback
 import simplejson as json
 
@@ -7,7 +7,7 @@ from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, SubContentType, Message
 
 from libs import logs
-from libs.message import DFManagerCommand, WebappEndpoint
+from libs.message import DFManagerCommand, WebappEndpoint, CodeEditorCommand
 from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
 log = logs.get_logger(__name__)
 
@@ -15,6 +15,13 @@ log = logs.get_logger(__name__)
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
+        shell_msg_thread = threading.Thread(
+            target=self.handle_ipython_shell_msg, daemon=True)
+        iobuf_msg_thread = threading.Thread(
+            target=self.handle_ipython_iobuf_msg, daemon=True)
+        shell_msg_thread.start()
+        iobuf_msg_thread.start()
+        self.message = None
 
     @staticmethod
     def _is_execute_result(header) -> bool:
@@ -69,8 +76,11 @@ class MessageHandler(BaseMessageHandler):
         """
         msg_ipython = IpythonResultMessage(**output)
 
+        log.info('Got message from ipython: %s %s',
+                 msg_ipython.header['msg_type'], msg_ipython.content['status'] if 'status' in msg_ipython.content else None)
+
         # Add header message from ipython to message metadata
-        if message.metadata is None:
+        if message.metadata == None:
             message.metadata = {}
 
         message.metadata['msg_id'] = msg_ipython.header['msg_id']
@@ -99,8 +109,6 @@ class MessageHandler(BaseMessageHandler):
             message.sub_type = SubContentType.NONE
             message.content = json.dumps(msg_ipython.content)
             return message
-        elif self._is_execute_result(msg_ipython.header):
-            return self._process_rich_ouput(message, msg_ipython.content['data'])
         elif self._is_stream_result(msg_ipython.header):
             message.type = ContentType.STRING
             if 'text' in msg_ipython.content:
@@ -108,24 +116,53 @@ class MessageHandler(BaseMessageHandler):
             elif 'data' in msg_ipython.content:
                 message.content = msg_ipython.content['data']
             return message
-        elif self._is_display_data_result(msg_ipython.header):
+        elif self._is_execute_result(msg_ipython.header) or self._is_display_data_result(msg_ipython.header):
             return self._process_rich_ouput(message, msg_ipython.content['data'])
+        else:
+            message.type = ContentType.IPYTHON_MSG
+            message.sub_type = SubContentType.NONE
+            message.content = json.dumps(msg_ipython.content)
+
+    def handle_ipython_shell_msg(self):
+        try: 
+            while True:
+                output = self.user_space.get_shell_msg()            
+                if self.message is not None:
+                    message = self._create_return_message(
+                        output=output, message=self.message)
+                    self._send_to_node(message)
+        except:
+            trace = traceback.format_exc()
+            log.error("Exception %s" % (trace))
+            error_message = self._create_error_message(
+                message.webapp_endpoint, trace, message.metadata)
+            self._send_to_node(error_message)
+
+    def handle_ipython_iobuf_msg(self):
+        while True:
+            output = self.user_space.get_iobuf_msg()            
+            if self.message is not None:
+                message = self._create_return_message(
+                    output=output, message=self.message)
+                self._send_to_node(message)
 
     def handle_message(self, message):
         """
             Use Ipython Kernel to handle message
         """
-        log.info('message: {}'.format(message))
+        log.info('Got client message: {}'.format(message))
         try:
+            self.message = message
             outputs = self.user_space.execute(message.content, None)
             # log.info('Execution result: {}'.format(outputs))
-            for output in outputs:
-                # print("MESSAGE", output)
-                msg = self._create_return_message(
-                    output=output, message=message)
-                if msg is not None:
-                    self._send_to_node(msg)
-            self._process_active_dfs_status()
+            # for output in outputs:
+            #     # print("MESSAGE", output)
+            #     msg = self._create_return_message(
+            #         output=output, message=message)
+            #     if msg is not None:
+            #         self._send_to_node(msg)
+
+            # self._process_active_dfs_status()
         except:
             trace = traceback.format_exc()
             log.error("Exception %s" % (trace))
@@ -135,10 +172,6 @@ class MessageHandler(BaseMessageHandler):
 
     def _process_active_dfs_status(self):
         active_df_status = self.user_space.get_active_dfs_status()
-        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
-                                              "command_name": DFManagerCommand.update_df_status,
-                                              "seq_number": 1,
-                                              "type": "dict",
-                                              "content": active_df_status,
-                                              "error": False})
+        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": DFManagerCommand.update_df_status,
+                                              "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
         self._send_to_node(active_df_status_message)

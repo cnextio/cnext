@@ -1,7 +1,3 @@
-import yaml
-import logging
-import traceback
-from multipledispatch import dispatch
 import simplejson as json
 from enum import Enum
 
@@ -91,8 +87,9 @@ class ContentType(str, Enum):
     COLUMN_CARDINAL = 'column_cardinal'
     RICH_OUTPUT = 'rich_output'
     PLOTLY_FIG = 'plotly_fig'  # It is used for code editor basekernel
+    IPYTHON_MSG = 'ipython_msg'
     NONE = 'none'
-
+    
     def __str__(self):
         return str(self.value)
 

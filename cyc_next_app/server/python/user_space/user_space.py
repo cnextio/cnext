@@ -134,3 +134,13 @@ _sh.DataFrameStatusHook.set_user_space({_user_space})
     def execute(self, code, exec_mode: ExecutionMode = None):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode)
+
+    def get_shell_msg(self):
+        msg = self.executor.get_shell_msg()
+        log.info('Shell msg: %s', msg)
+        return msg
+
+    def get_iobuf_msg(self):
+        msg = self.executor.get_iobuf_msg()
+        log.info('Iobuf msg: %s', msg)
+        return msg

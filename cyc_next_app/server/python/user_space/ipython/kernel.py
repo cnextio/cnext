@@ -38,35 +38,41 @@ class IPythonKernel():
         except RuntimeError:
             self.shutdown_kernel()
 
+    def get_shell_msg(self):
+        return self.kc.get_shell_msg()
+
+    def get_iobuf_msg(self):
+        return self.kc.get_iopub_msg()
+
     def execute(self, code, exec_mode=None):
         outputs = list()
         self.kc.execute(code)
-        reply = self.kc.get_shell_msg()
-        status = reply['content']['status']
+        # reply = self.kc.get_shell_msg()
+        # status = reply['content']['status']
 
-        # Handle message is returned from shell socket by status
-        if status == IPythonConstants.ShellMessageStatus.ERROR:
-            traceback_text = reply['content']['traceback']
-            log.info(traceback_text)
-        elif status == IPythonConstants.ShellMessageStatus.OK:
-            # If shell message status is ok, add command code to ouput list to reponse to client
-            outputs.append(reply)
-            log.info('Shell returned: {}'.format(reply))
+        # # Handle message is returned from shell socket by status
+        # if status == IPythonConstants.ShellMessageStatus.ERROR:
+        #     traceback_text = reply['content']['traceback']
+        #     log.info(traceback_text)
+        # elif status == IPythonConstants.ShellMessageStatus.OK:
+        #     # If shell message status is ok, add command code to ouput list to reponse to client
+        #     outputs.append(reply)
+        #     log.info('Shell returned: {}'.format(reply))
 
-        while True:
-            # execution state must return message that include idle status before the queue becomes empty.
-            # If not, there are some errors.
-            # for more information: https://jupyter-client.readthedocs.io/en/master/messaging.html#messages-on-the-shell-router-dealer-channel
-            try:
-                msg = self.kc.get_iopub_msg()
-                header = msg['header']
-                content = msg['content']
+        # while True:
+        #     # execution state must return message that include idle status before the queue becomes empty.
+        #     # If not, there are some errors.
+        #     # for more information: https://jupyter-client.readthedocs.io/en/master/messaging.html#messages-on-the-shell-router-dealer-channel
+        #     try:
+        #         msg = self.kc.get_iopub_msg()
+        #         header = msg['header']
+        #         content = msg['content']
 
-                if header['msg_type'] == IPythonConstants.MessageType.STATUS:
-                    if content['execution_state'] == IPythonConstants.ExecutionState.IDLE:
-                        break
-            except queue.Empty:
-                # Break if queue empty
-                break
-            outputs.append(msg)
-        return outputs
+        #         if header['msg_type'] == IPythonConstants.MessageType.STATUS:
+        #             if content['execution_state'] == IPythonConstants.ExecutionState.IDLE:
+        #                 break
+        #     except queue.Empty:
+        #         # Break if queue empty
+        #         break
+        #     outputs.append(msg)
+        # return outputs
