@@ -187,7 +187,6 @@ const FileExplorer = (props: any) => {
                 break;
             case FileContextMenuItem.DELETE:
                 if (contextMenuItems) {
-                    console.log("CONTEXT MENU ITEM", contextMenuItems);
                     setDeleteDialog(true);
                 }
                 break;
