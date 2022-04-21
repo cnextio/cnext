@@ -117,9 +117,14 @@ def save_file(project_path, relative_file_path, content):
     try:
         log.info('Save file {}'.format(relative_file_path))
         file_path = get_abs_file_path(project_path, relative_file_path)
-        with open(file_path, 'w') as file:
-            file.write(content)
-        return FileMetadata(relative_file_path, name=relative_file_path.split('/')[-1], timestamp=os.path.getmtime(file_path))
+        file_name = relative_file_path.split('/')[-1]
+        if file_name.lower().endswith('.json'):
+            with open(file_path, 'w') as file:
+                file.write(json.dumps(json.loads(content), indent=4))
+        else:
+            with open(file_path, 'w') as file:
+                file.write(content)
+        return FileMetadata(relative_file_path, name=file_name, timestamp=os.path.getmtime(file_path))
     except Exception:
         raise Exception
 
