@@ -15,11 +15,17 @@ def main():
     os.system('npm i')
 
 
+def path():
+    var = input("Please enter something: ")
+    print("You entered: " + var)
+
+
 def start():
     os.chdir(web_path)
     web_proc = Popen("npm start", shell=True)
     os.chdir(server_path)
     ser_proc = Popen("npm start", shell=True)
+
 
 if __name__ == "__main__":
     main()

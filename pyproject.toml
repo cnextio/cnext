@@ -11,6 +11,7 @@ packages = [
 
 [tool.poetry.scripts]
 cnext-init = "cyc_next_app.__main__:main"
+cnext-path = "cyc_next_app.__main__:path"
 cnext-run = "cyc_next_app.__main__:start"
 
 [tool.poetry.dependencies]
