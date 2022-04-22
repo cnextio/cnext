@@ -54,7 +54,7 @@ Step 5 `run` command `cnext-run`
 -   Stop application: `Ctrl + c | Command + c`
 -   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine)
 
-## Comments
+<!-- ## Comments
 
 Quoc Tran - Principal Data Scientist - Walmart Lab
 
@@ -97,7 +97,7 @@ Anh Dinh - Sr. Manager machine Learning - Zendesk
 > CNext is particulary useful fordata scientist on my team to iterate quikly ontheir experiments.
 > Without CNext, the bottleneck in their research workflow is the ability to switch from the data
 > exploration phase to model research phase and back to data exploration seamlessly. By having these two phases fully integrated into a single view, it helps scientists to keep the context and make changes more effectively. If there is
-> VSCode for software engineer, CNext yield potentital for a much needed development environment for data scientists.
+> VSCode for software engineer, CNext yield potentital for a much needed development environment for data scientists. -->
 
 ## License
 
