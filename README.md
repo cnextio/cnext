@@ -26,9 +26,9 @@ Step 1: `Download` [cnext] folder and `extract`
 
 Step 2: `setup` [Docker] on your computer
 
-Step 3: run `docker login` login with your docker account
+Step 3: Run `docker login` login with your docker account
 
-Step 4: point destination command to `cnext` directory
+Step 4: Point destination command to `cnext` directory
 
 Step 5: Run command `docker-compose up -d`
 
@@ -40,13 +40,15 @@ Step 5: Run command `docker-compose up -d`
 
 Step 1: `Download` [cnext] folder and `extract`
 
-Step 2: `run` command `cnext-init`
+Step 3: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
 
-Step 3: `run` command `cnext-path`
+Step 3: `run` command `cnext-init`
+
+Step 4: `run` command `cnext-path`
 
 -   Input `Skywalker folder directory path` and hit `Enter` (Example `C:/Skywalker`)
 
-Step 4 `run` command `cnext-run`
+Step 5 `run` command `cnext-run`
 
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/`
 -   Stop application: `Ctrl + c | Command + c`
@@ -110,7 +112,8 @@ CYCAI
 [cnext]: https://drive.google.com/file/d/1aK0bq5sFVQufth3y66iP1by-gyIwH6t3
 [docker]: https://www.docker.com/products/docker-desktop/
 
-<!-- # Build a image and update version
+<!--
+# Build a image and update version
 docker tag [image-name:tag] [new-image-name:new-tag-version]
 docker login -u [user] -p [password]
 docker push [new-image-name:new-tag-version] -->
