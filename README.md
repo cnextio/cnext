@@ -1,4 +1,4 @@
-# Cycai/CNext Docker Instruction
+# Cycai/CNext Instruction
 
 ## Setup and run CNext web application
 
