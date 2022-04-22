@@ -175,7 +175,6 @@ const FileExplorer = (props: any) => {
     };
 
     const handleContextMenuSelection = (item: FileContextMenuItem) => {
-        console.log(item);
         switch (item) {
             case FileContextMenuItem.NEW_FILE:
                 if (contextMenuItems) {
