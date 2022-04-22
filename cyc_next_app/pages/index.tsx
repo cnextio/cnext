@@ -14,16 +14,17 @@ import Helmet from 'react-helmet';
 import { Provider } from 'react-redux';
 import store from '../redux/store/index';
 import Main from '../lib/components/Main';
+import ErrorBoundary from "../lib/components/error-boundary/ErrorBoundary";
 // import themes from '../theme';
 // global style
-import { createGlobalStyle, ThemeProvider as StyledThemeProvider } from 'styled-components'
+import { createGlobalStyle, ThemeProvider as StyledThemeProvider } from "styled-components";
 const GlobalStyle = createGlobalStyle`
   body {
     height: 100vh;
     margin:0;
-  }`
+  }`;
 
-const theme =  createTheme({});
+const theme = createTheme({});
 
 const Home: NextPage = () => {
     // useEffect(() => {
@@ -32,27 +33,29 @@ const Home: NextPage = () => {
     //     if (jssStyles)
     //       if(jssStyles.parentElement)
     //         jssStyles.parentElement.removeChild(jssStyles);
-    // }, []); 
+    // }, []);
 
     return (
-        <Provider store={store}>    
+        <Provider store={store}>
             <React.Fragment>
                 <GlobalStyle />
                 <Helmet
-                    titleTemplate="%s | CycAI"
-                    defaultTitle="CycAI - Inteligent Platform for Data Scientists"
+                    titleTemplate='%s | CycAI'
+                    defaultTitle='CycAI - Inteligent Platform for Data Scientists'
                 />
                 <StyledEngineProvider injectFirst>
                     <StyledThemeProvider theme={theme}>
-                        <MuiThemeProvider theme={theme}>    
-                            <Main/>
+                        <MuiThemeProvider theme={theme}>
+                            <ErrorBoundary>
+                                <Main />
+                            </ErrorBoundary>
                         </MuiThemeProvider>
                     </StyledThemeProvider>
                 </StyledEngineProvider>
             </React.Fragment>
         </Provider>
     );
-}
+};
 
 // export default App
 export default Home;
