@@ -34,9 +34,6 @@ def main():
     os.chdir(server_path)
     os.system('npm i')
 
-    print('auto intinialize default Skywalker folder path inside Server folder')
-    change_path(server_path + '/Skywalker')
-
 
 def path():
     path = input('Please enter your Skywalker directory\'s path: ')
