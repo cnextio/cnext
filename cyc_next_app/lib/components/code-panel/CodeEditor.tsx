@@ -192,6 +192,10 @@ const CodeEditor = () => {
 
     useEffect(() => {
         socketInit();
+
+        return () => {
+            socket.off(WebAppEndpoint.CodeEditor);
+        };
     }, []);
 
     /**

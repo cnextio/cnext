@@ -239,6 +239,10 @@ const ExperimentManager = (props: any) => {
             },
         };
         sendMessage(message);
+
+        return () => {
+            socket.off(WebAppEndpoint.ExperimentManager);
+        };
     }, []);
 
     function handleExpChange(event: React.SyntheticEvent) {

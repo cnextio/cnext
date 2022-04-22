@@ -440,14 +440,15 @@ _tmp()`;
 
     useEffect(() => {
         socket_init();
+
+        return () => {
+            socket.off(WebAppEndpoint.DFManager);
+        };
     }, []); //TODO: run this only once - not on rerender
 
     useEffect(() => {
         if (loadDataRequest.df_id != null) {
-            sendGetTableDataAroundRowIndex(
-                loadDataRequest.df_id,
-                loadDataRequest.row_index
-            );
+            sendGetTableDataAroundRowIndex(loadDataRequest.df_id, loadDataRequest.row_index);
         }
     }, [loadDataRequest]);
 
@@ -460,10 +461,7 @@ _tmp()`;
     useEffect(() => {
         if (activeDataFrame != null) {
             let state = store.getState();
-            if (
-                !hasDefinedStats(activeDataFrame, state.dataFrames) &&
-                showDefinedStats
-            ) {
+            if (!hasDefinedStats(activeDataFrame, state.dataFrames) && showDefinedStats) {
                 let metadata = state.dataFrames.metadata[activeDataFrame];
                 if (metadata) {
                     let columns: string[] = Object.keys(metadata.columns);
