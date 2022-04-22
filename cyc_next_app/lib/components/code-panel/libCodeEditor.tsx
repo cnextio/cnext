@@ -43,13 +43,13 @@ const executedMarker = new class extends GutterMarker {
     }
 }
 
-const getCodeLine = (state): (ICodeLine[]|null) => {
-    let inViewID = state.projectManager.inViewID;
-    if (inViewID) {
-        return ifElse(state.codeEditor.codeLines, inViewID, null);
-    }
-    return null;
-}
+// const getCodeLine = (state: RootState): (ICodeLine[]|null) => {
+//     let inViewID = state.projectManager.inViewID;
+//     if (inViewID) {
+//         return ifElse(state.codeEditor.codeLines, inViewID, null);
+//     }
+//     return null;
+// }
 
 /** 
  * This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror 
@@ -64,7 +64,8 @@ const editStatusGutter = (inViewID: string|null, lines: ICodeLine[]|null) => gut
             // line.number in state.doc is 1 based, so convert to 0 base
             let lineNumber = view.state.doc.lineAt(line.from).number-1;
             // console.log(lines.length);
-            if(lines && lineNumber<lines.length){                                
+            if(lines && lineNumber<lines.length){       
+                console.log("editStatusGutter: ", lineNumber, lines[lineNumber].status);                         
                 switch(lines[lineNumber].status){
                     case LineStatus.EDITED: return editedMarker;
                     case LineStatus.EXECUTING: return executingMarker;
@@ -201,6 +202,7 @@ const genLineDeco = (reduxState: RootState, view: EditorView) => StateField.defi
     },
     provide: f => EditorView.decorations.from(f)
 });
+
 const setGenLineDeco = (reduxState: RootState, view: EditorView|undefined) => {
     if (view) {
         // console.log('CodeEditor set gencode solid')

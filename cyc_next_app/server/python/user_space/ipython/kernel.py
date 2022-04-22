@@ -44,26 +44,20 @@ class IPythonKernel():
                 ipython_message = self.kc.get_shell_msg()
             elif stream_type == IPythonConstants.StreamType.IOBUF:
                 ipython_message = self.kc.get_iopub_msg()
-            if ipython_message is not None and self.message_handler_callback is not None:
-                self.message_handler_callback(ipython_message)
+            if ipython_message is not None and self.message_handler_callback is not None:                
+                if self.request_metadata:
+                    self.request_metadata.update({'stream_type': stream_type})
+                else:
+                    self.request_metadata = {'stream_type': stream_type}
+                self.message_handler_callback(
+                    ipython_message, self.request_metadata)
             log.info('%s msg: %s %s' % (
                 stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
 
-    # def get_shell_msg(self):
-    #     msg = self.kc.get_shell_msg()
-    #     log.info('Shell msg: %s %s' %
-    #              (msg['header']['msg_type'], msg['content']))
-    #     return msg
-
-    # def get_iobuf_msg(self):
-    #     msg = self.kc.get_iopub_msg()
-    #     log.info('Iobuf msg: %s %s' %
-    #              (msg['header']['msg_type'], msg['content']))
-    #     return msg
-
-    def execute(self, code, exec_mode=None, message_handler_callback=None):
+    def execute(self, code, exec_mode=None, message_handler_callback=None, request_metadata=None):
         self.kc.execute(code)
         self.message_handler_callback = message_handler_callback
+        self.request_metadata = request_metadata
         # reply = self.kc.get_shell_msg()
         # status = reply['content']['status']
 

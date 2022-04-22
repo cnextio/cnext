@@ -132,9 +132,9 @@ _sh.DataFrameStatusHook.set_user_space({_user_space})
             code = "_user_space.reset_active_dfs_status()"
             self.executor.execute(code)
 
-    def execute(self, code, exec_mode: ExecutionMode = None, message_handler_callback = None):
+    def execute(self, code, exec_mode: ExecutionMode = None, message_handler_callback=None, request_metadata=None):
         # self.reset_active_dfs_status()
-        return self.executor.execute(code, exec_mode, message_handler_callback)
+        return self.executor.execute(code, exec_mode, message_handler_callback, request_metadata)
 
     # def get_shell_msg(self):
     #     return self.executor.get_shell_msg()

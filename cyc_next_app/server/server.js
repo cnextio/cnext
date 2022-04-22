@@ -181,7 +181,7 @@ try {
         for await (const [message] of command_output_zmq) {
             const json_message = JSON.parse(message.toString());
             console.log(
-                `command_output_zmq: forward output of command_name ${json_message["webapp_endpoint"]} ${json_message["content"]}`
+                `command_output_zmq: forward output to ${json_message["webapp_endpoint"]}`
             );
             sendOutput(json_message);
         }

@@ -449,6 +449,9 @@ const FileManager = () => {
 
         // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
         // return () => clearInterval(saveFileTimer);
+        return () => {
+            socket.off(WebAppEndpoint.FileManager);
+        };
     }, []); //run this only once - not on rerender
 
     return null;

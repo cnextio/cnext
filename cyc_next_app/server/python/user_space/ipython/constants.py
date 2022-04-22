@@ -1,7 +1,9 @@
 from enum import Enum
 
+from libs.json_serializable import JsonSerializable
 
-class IpythonResultMessage:
+
+class IpythonResultMessage(JsonSerializable):
     def __init__(self, **entries):
         self.header = None
         self.msg_id = None
@@ -57,4 +59,3 @@ class IPythonInteral(Enum):
     DF_MANAGER = '_df_manager'
     CASSIST = '_cassist'
     USER_SPACE = '_user_space'
-

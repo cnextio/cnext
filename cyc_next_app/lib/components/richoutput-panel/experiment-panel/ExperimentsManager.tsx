@@ -172,7 +172,7 @@ const ExperimentManager = (props: any) => {
         }
     }, [selectedExpId]);
 
-    const setup_socket = () => {
+    const socketInit = () => {
         // const socket = openSocket(CODE_SERVER_SOCKET_ENDPOINT);
         socket.emit("ping", "ExperimentManager");
         socket.on(WebAppEndpoint.ExperimentManager, (result: string) => {
@@ -227,7 +227,7 @@ const ExperimentManager = (props: any) => {
     };
 
     useEffect(() => {
-        setup_socket();
+        socketInit();
         let tracking_uri =
             store.getState().projectManager.configs?.experiment_manager?.mlflow_tracking_uri;
         let message: IMessage = {
@@ -239,6 +239,9 @@ const ExperimentManager = (props: any) => {
             },
         };
         sendMessage(message);
+        return () => {
+            socket.off(WebAppEndpoint.ExperimentManager);
+        };
     }, []);
 
     function handleExpChange(event: React.SyntheticEvent) {
