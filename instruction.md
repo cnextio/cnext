@@ -40,11 +40,13 @@ Step 5: Run command `docker-compose up -d`
 
 Step 1: `Download` [cnext] folder and `extract`
 
-Step 3: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
+Step 2: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
 
-Step 3: `run` command `cnext-init`
+Step 3: `run` command `pin install cycai-cnext`
 
-Step 4: `run` command `cnext-path`
+Step 4: `run` command `cnext-init`
+
+Step 5: `run` command `cnext-path`
 
 -   Input `Skywalker folder directory path` and hit `Enter` (Example `C:/Skywalker`)
 
