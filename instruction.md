@@ -1,6 +1,6 @@
 # Cycai/CNext Docker Instruction
 
-## Setup and run CNext web application tool in docker image
+## Setup and run CNext web application
 
 Cyc AI is an application focusing on improve the AI development life cycle
 
