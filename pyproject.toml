@@ -1,9 +1,13 @@
 [tool.poetry]
 name = "cycai-cnext"
-version = "0.5.0"
-description = "improve your ai work follow"
-authors = ["cycai"]
+version = "0.2.2"
+description = "improve your AI work follow"
+authors = ["cycai company"]
 license = "MIT"
+
+readme = "README.md"  # Markdown files are supported
+
+homepage = "https://cyc-ai.com/"
 
 packages = [
     { include = "cyc_next_app" },

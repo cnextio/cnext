@@ -1,5 +1,0 @@
-executor: main.py
-open_files:
-- executor: true
-  name: main.py
-  path: main.py
