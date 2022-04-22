@@ -44,13 +44,12 @@ Step 2: `run` command `cnext-init`
 
 Step 3: `run` command `cnext-path`
 
--   Input `Skywalker` folder directory path and hit `Enter`
--   Example `C:/Skywalker`
+-   Input `Skywalker folder directory path` and hit `Enter` (Example `C:/Skywalker`)
 
 Step 4 `run` command `cnext-run`
 
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/`
--   Stop application: `docker-compose down`
+-   Stop application: `Ctrl + c | Command + c`
 -   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine)
 
 ## Comments
@@ -111,8 +110,7 @@ CYCAI
 [cnext]: https://drive.google.com/file/d/1aK0bq5sFVQufth3y66iP1by-gyIwH6t3
 [docker]: https://www.docker.com/products/docker-desktop/
 
-# Build a image and update version
-
+<!-- # Build a image and update version
 docker tag [image-name:tag] [new-image-name:new-tag-version]
 docker login -u [user] -p [password]
-docker push [new-image-name:new-tag-version]
+docker push [new-image-name:new-tag-version] -->

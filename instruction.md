@@ -110,8 +110,8 @@ CYCAI
 [cnext]: https://drive.google.com/file/d/1aK0bq5sFVQufth3y66iP1by-gyIwH6t3
 [docker]: https://www.docker.com/products/docker-desktop/
 
+<!--
 # Build a image and update version
-
 docker tag [image-name:tag] [new-image-name:new-tag-version]
 docker login -u [user] -p [password]
-docker push [new-image-name:new-tag-version]
+docker push [new-image-name:new-tag-version] -->
