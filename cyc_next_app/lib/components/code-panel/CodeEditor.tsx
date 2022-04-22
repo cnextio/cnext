@@ -90,22 +90,21 @@ const CodeEditor = () => {
      * when it is first opened or being selected to be in view */
     // const [serverSynced, setServerSynced] = useState(false);
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
-    const inViewID = useSelector(
-        (state: RootState) => state.projectManager.inViewID
+    
+    const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+
+    const codeLines: ICodeLine[] | null = useSelector((state: RootState) => getCodeLine(state));
+
+    const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
+
+    const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
+
+    const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
+
+    const shortcutKeysConfig = useSelector(
+        (state: RootState) => state.projectManager.configs.shortcut_keys
     );
-    const codeLines: ICodeLine[] | null = useSelector((state: RootState) =>
-        getCodeLine(state)
-    );
-    // const codeText: string[] = useSelector(state => getCodeTextRedux(state));
-    const runQueue = useSelector(
-        (state: RootState) => state.codeEditor.runQueue
-    );
-    const cAssistInfo = useSelector(
-        (state: RootState) => state.codeEditor.cAssistInfo
-    );
-    const codeToInsert = useSelector(
-        (state: RootState) => state.codeEditor.codeToInsert
-    );
+
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
     const editorRef = useRef();
@@ -113,7 +112,6 @@ const CodeEditor = () => {
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
-
     const extensions = [
         basicSetup,
         lineNumbers(),
@@ -124,9 +122,9 @@ const CodeEditor = () => {
         python(),
         ls,
         keymap.of([
-            { key: "Mod-l", run: setRunQueue },
-            { key: "Mod-k", run: setGroup },
-            { key: "Mod-j", run: setUnGroup },
+            { key: shortcutKeysConfig.run_queue, run: setRunQueue },
+            { key: shortcutKeysConfig.set_group, run: setGroup },
+            { key: shortcutKeysConfig.set_ungroup, run: setUnGroup },
             ...completionKeymap,
         ]),
         indentUnit.of("    "),
