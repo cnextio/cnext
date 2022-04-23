@@ -43,13 +43,13 @@ const executedMarker = new class extends GutterMarker {
     }
 }
 
-// const getCodeLine = (state: RootState): (ICodeLine[]|null) => {
-//     let inViewID = state.projectManager.inViewID;
-//     if (inViewID) {
-//         return ifElse(state.codeEditor.codeLines, inViewID, null);
-//     }
-//     return null;
-// }
+const getCodeLine = (state: RootState): (ICodeLine[]|null) => {
+    let inViewID = state.projectManager.inViewID;
+    if (inViewID) {
+        return ifElse(state.codeEditor.codeLines, inViewID, null);
+    }
+    return null;
+}
 
 /** 
  * This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror 
