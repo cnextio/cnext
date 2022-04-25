@@ -154,5 +154,5 @@ _sh.DataFrameStatusHook.set_user_space({_user_space})
             self.executor.execute(code)
 
     def execute(self, code, exec_mode: ExecutionMode = None, message_handler_callback=None, client_message=None):
-        # self.reset_active_dfs_status()
+        self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
