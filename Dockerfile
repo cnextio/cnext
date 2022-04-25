@@ -11,8 +11,8 @@ RUN conda install -c conda-forge/label/cf201901 nodejs
 RUN conda install -c conda-forge/label/cf202003 nodejs
 
 RUN npm -version
-RUN npm install node
-RUN npm install npm@latest 
+RUN npm install node@16.14.2
+RUN npm install npm@8.5.0 
 
 WORKDIR /app/cyc_next_app
 RUN npm i --force
@@ -26,11 +26,11 @@ RUN npm i
 # Install git
 RUN conda install -c anaconda git
 RUN git clone https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cycdataframe.git
-RUN git clone -b deploy --single-branch https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cnext_sample_projects.git
+RUN git clone https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cnext_sample_projects.git
 
 # Create conda environment
-WORKDIR /app
 RUN conda env create -f environment.yml
 # Activate conda environment
+WORKDIR /app
 ENV PATH /opt/conda/envs/py39/bin:$PATH
 RUN /bin/bash -c "source activate py39"
