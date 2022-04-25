@@ -95,6 +95,9 @@ const FileExplorer = (props: any) => {
     };
     useEffect(() => {
         setupSocket();
+        return () => {
+            socket.off(WebAppEndpoint.FileExplorer);
+        };
     }, []);
 
     const createMessage = (command: ProjectCommand, metadata: {}): IMessage => {

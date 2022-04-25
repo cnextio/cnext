@@ -1,7 +1,3 @@
-import yaml
-import logging
-import traceback
-from multipledispatch import dispatch
 import simplejson as json
 from enum import Enum
 
@@ -73,6 +69,7 @@ class ExperimentManagerCommand(str, Enum):
     load_artifacts_to_local = "load_artifacts_to_local"
     set_tracking_uri = 'set_tracking_uri'
 
+
 class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'
     exec_grouped_lines = 'exec_grouped_lines'
@@ -91,6 +88,7 @@ class ContentType(str, Enum):
     COLUMN_CARDINAL = 'column_cardinal'
     RICH_OUTPUT = 'rich_output'
     PLOTLY_FIG = 'plotly_fig'  # It is used for code editor basekernel
+    IPYTHON_MSG = 'ipython_msg'
     NONE = 'none'
 
     def __str__(self):
@@ -148,3 +146,8 @@ class Message:
 
     def __repr__(self) -> str:
         return self.toJSON()
+
+
+class ExecutorType(str, Enum):
+    CODE = 'code'
+    NONCODE = 'noncode'

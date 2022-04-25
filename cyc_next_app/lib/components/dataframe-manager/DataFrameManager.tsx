@@ -375,7 +375,7 @@ _tmp()`;
         }
     };
 
-    const socket_init = () => {
+    const socketInit = () => {
         // console.log('DFManager useEffect');
         socket.emit("ping", "DFManager");
         socket.on(WebAppEndpoint.DFManager, (result: string) => {
@@ -439,7 +439,10 @@ _tmp()`;
     };
 
     useEffect(() => {
-        socket_init();
+        socketInit();
+        return () => {
+            socket.off(WebAppEndpoint.DFManager);
+        };
     }, []); //TODO: run this only once - not on rerender
 
     useEffect(() => {

@@ -1,3 +1,4 @@
+import threading
 import traceback
 import simplejson as json
 
@@ -6,8 +7,8 @@ from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, SubContentType, Message
 
 from libs import logs
-from libs.message import DFManagerCommand, WebappEndpoint
-from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants, IpythonResultMessage
+from libs.message import DFManagerCommand, WebappEndpoint, CodeEditorCommand
+from user_space.ipython.constants import IPythonConstants as IPythonConstants, IpythonResultMessage
 log = logs.get_logger(__name__)
 
 
@@ -15,25 +16,25 @@ class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
-    @staticmethod
-    def _is_execute_result(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
+    # @staticmethod
+    # def _is_execute_result(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
 
-    @staticmethod
-    def _is_execute_reply(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY
+    # @staticmethod
+    # def _is_execute_reply(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY
 
-    @staticmethod
-    def _is_stream_result(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.STREAM
+    # @staticmethod
+    # def _is_stream_result(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.STREAM
 
-    @staticmethod
-    def _is_display_data_result(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA
+    # @staticmethod
+    # def _is_display_data_result(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA
 
-    @staticmethod
-    def _is_error_message(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.ERROR
+    # @staticmethod
+    # def _is_error_message(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.ERROR
 
     @staticmethod
     def _result_is_plotly_fig(content) -> bool:
@@ -48,12 +49,13 @@ class MessageHandler(BaseMessageHandler):
     # PRIORITIXED_MIME_LIST = [SubContentType.APPLICATION_PLOTLY, SubContentType.APPLICATION_JSON, SubContentType.IMAGE_PLOTLY,
     #                          SubContentType.IMAGE_JPG, SubContentType.IMAGE_PNG, SubContentType.IMAGE_SVG, SubContentType.TEXT_HTML]
 
-    def _process_rich_ouput(self, message, result_data):
-        if type(result_data) is dict:
+    def _process_rich_ouput(self, message, msg_ipython):
+        message.error = False
+        if type(msg_ipython.content['data']) is dict:
             message.type = ContentType.RICH_OUTPUT
         else:
             message.type = ContentType.STRING
-        message.content = result_data
+        message.content = msg_ipython.content['data']
 
         # remove 'text/html' key if the output is plotly to improve the efficiency.
         # TODO: revisit this later #
@@ -61,83 +63,79 @@ class MessageHandler(BaseMessageHandler):
             message.content.pop('text/html', None)
         return message
 
-    def _create_return_message(self, output, message):
+    def _process_error_message(self, message, ipython_msg):
+        # log.error("Error %s" % (msg_ipython.content['traceback']))
+        if isinstance(ipython_msg.content['traceback'], list):
+            content = '\n'.join(ipython_msg.content['traceback'])
+        else:
+            content = ipython_msg.content['traceback']
+        return self._create_error_message(
+            WebappEndpoint.CodeEditor, content, message.metadata)
+
+    def _process_stream_message(self, message, ipython_msg):
+        message.error = False
+        message.type = ContentType.STRING
+        if 'text' in ipython_msg.content:
+            message.content = ipython_msg.content['text']
+        elif 'data' in ipython_msg.content:
+            message.content = ipython_msg.content['data']
+        return message
+
+    def _process_other_message(self, message, ipython_msg):
+        message.error = False
+        message.type = ContentType.IPYTHON_MSG
+        message.sub_type = SubContentType.NONE
+        message.content = ipython_msg.content
+        return message
+
+    def _create_return_message(self, ipython_message, stream_type, client_message):
         """
             Get single message from IPython,
             classify it according to the message type then return it to the client
         """
-        msg_ipython = IpythonResultMessage(**output)
+        ipython_message = IpythonResultMessage(**ipython_message)
+        message = Message(**{'webapp_endpoint': WebappEndpoint.CodeEditor, 'command_name': client_message.command_name})
+
+        log.info('Got message from ipython: %s %s',
+                 ipython_message.header['msg_type'], ipython_message.content['status'] if 'status' in ipython_message.content else None)
 
         # Add header message from ipython to message metadata
-        if message.metadata is None:
+        if message.metadata == None:
             message.metadata = {}
 
-        message.metadata['msg_id'] = msg_ipython.header['msg_id']
-        message.metadata['msg_type'] = msg_ipython.header['msg_type']
-        message.metadata['session'] = msg_ipython.header['session']
+        if client_message.metadata != None:
+            message.metadata.update(client_message.metadata)
+        message.metadata.update(dict((k, ipython_message.header[k])
+                                     for k in ('msg_id', 'msg_type', 'session')))
+        message.metadata.update({'stream_type': stream_type})
 
-        # Handle error message
-        if self._is_error_message(msg_ipython.header):
-            log.error("Error %s" % (msg_ipython.content['traceback']))
-            if isinstance(msg_ipython.content['traceback'], list):
-                content = '\n'.join(msg_ipython.content['traceback'])
-            else:
-                content = msg_ipython.content['traceback']
-            error_message = self._create_error_message(
-                message.webapp_endpoint,
-                content,
-                message.metadata
-            )
-            return error_message
+        if self._is_error_message(ipython_message.header):
+            message = self._process_error_message(message, ipython_message)
+        elif self._is_stream_result(ipython_message.header):
+            message = self._process_stream_message(message, ipython_message)
+        elif self._is_execute_result(ipython_message.header) or self._is_display_data_result(ipython_message.header):
+            message = self._process_rich_ouput(message, ipython_message)
+        else:
+            message = self._process_other_message(message, ipython_message)
 
-        # Handle success message
-        message.error = False
+        return message
 
-        if self._is_execute_reply(msg_ipython.header):
-            message.type = ContentType.NONE
-            message.sub_type = SubContentType.NONE
-            message.content = json.dumps(msg_ipython.content)
-            return message
-        elif self._is_execute_result(msg_ipython.header):
-            return self._process_rich_ouput(message, msg_ipython.content['data'])
-        elif self._is_stream_result(msg_ipython.header):
-            message.type = ContentType.STRING
-            if 'text' in msg_ipython.content:
-                message.content = msg_ipython.content['text']
-            elif 'data' in msg_ipython.content:
-                message.content = msg_ipython.content['data']
-            return message
-        elif self._is_display_data_result(msg_ipython.header):
-            return self._process_rich_ouput(message, msg_ipython.content['data'])
+    @BaseMessageHandler.exception_handler
+    def message_handler_callback(self, ipython_message, stream_type, client_message):
+        # if self.request_metadata is not None:
+        message = self._create_return_message(
+            ipython_message=ipython_message, stream_type=stream_type, client_message=client_message)
+        # log.info('Message: %s %s', self.message)
+        self._send_to_node(message)
 
+    @BaseMessageHandler.exception_handler
     def handle_message(self, message):
-        """
-            Use Ipython Kernel to handle message
-        """
-        log.info('message: {}'.format(message))
-        try:
-            outputs = self.user_space.execute(message.content, None)
-            # log.info('Execution result: {}'.format(outputs))
-            for output in outputs:
-                # print("MESSAGE", output)
-                msg = self._create_return_message(
-                    output=output, message=message)
-                if msg is not None:
-                    self._send_to_node(msg)
-            self._process_active_dfs_status()
-        except:
-            trace = traceback.format_exc()
-            log.error("Exception %s" % (trace))
-            error_message = self._create_error_message(
-                message.webapp_endpoint, trace, message.metadata)
-            self._send_to_node(error_message)
+        self.user_space.execute(
+            message.content, None, self.message_handler_callback, client_message=message)
+        self._process_active_dfs_status()
 
     def _process_active_dfs_status(self):
         active_df_status = self.user_space.get_active_dfs_status()
-        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
-                                              "command_name": DFManagerCommand.update_df_status,
-                                              "seq_number": 1,
-                                              "type": "dict",
-                                              "content": active_df_status,
-                                              "error": False})
+        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": DFManagerCommand.update_df_status,
+                                              "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
         self._send_to_node(active_df_status_message)

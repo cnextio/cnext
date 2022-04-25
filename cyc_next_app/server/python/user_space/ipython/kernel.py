@@ -1,7 +1,8 @@
+import threading
 import jupyter_client
 import queue
 import simplejson as json
-from user_space.ipython.constants import IPythonKernelConstants as IPythonConstants
+from user_space.ipython.constants import IPythonConstants
 # from user_space.user_space import BaseKernel
 from cycdataframe.df_status_hook import DataFrameStatusHook
 
@@ -10,20 +11,20 @@ log = logs.get_logger(__name__)
 
 
 class IPythonKernel():
-
     def __init__(self):
         self.km = jupyter_client.KernelManager()
         self.km.start_kernel()
-        # Set blocking client is important, It execute python line by line then response exactly flow result to client
-        # It also block the response messages from IPython. The IPython messages are only created when execution finish.
-        # Example:
-        # import time
-        # time.sleep(60)
-        # print("Run after sleeping")
-        # Without blocking client, the print command will be executed immediately without waiting 60s.
-        # After command print is executed, Ipython generates the messages and returns it to the client.
         self.kc = self.km.blocking_client()
         self.wait_for_ready()
+        shell_msg_thread = threading.Thread(
+            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
+        iobuf_msg_thread = threading.Thread(
+            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
+        shell_msg_thread.start()
+        iobuf_msg_thread.start()
+        self.message_handler_callback = None
+        ## This lock is used to make sure only one execution is being executed at any moment in time #
+        self.execute_lock = threading.Lock()
 
     def shutdown_kernel(self):
         if self.km.is_alive:
@@ -38,35 +39,40 @@ class IPythonKernel():
         except RuntimeError:
             self.shutdown_kernel()
 
-    def execute(self, code, exec_mode=None):
-        outputs = list()
-        self.kc.execute(code)
-        reply = self.kc.get_shell_msg()
-        status = reply['content']['status']
+    def _is_status_message(self, message):
+        return message['header']['msg_type'] == 'status'
 
-        # Handle message is returned from shell socket by status
-        if status == IPythonConstants.ShellMessageStatus.ERROR:
-            traceback_text = reply['content']['traceback']
-            log.info(traceback_text)
-        elif status == IPythonConstants.ShellMessageStatus.OK:
-            # If shell message status is ok, add command code to ouput list to reponse to client
-            outputs.append(reply)
-            log.info('Shell returned: {}'.format(reply))
-
+    def _complete_execution_message(self, message) -> bool:
+        return message['header']['msg_type'] == 'execute_reply' and 'status' in message['content']
+        
+    def handle_ipython_stream(self, stream_type: IPythonConstants.StreamType):
         while True:
-            # execution state must return message that include idle status before the queue becomes empty.
-            # If not, there are some errors.
-            # for more information: https://jupyter-client.readthedocs.io/en/master/messaging.html#messages-on-the-shell-router-dealer-channel
-            try:
-                msg = self.kc.get_iopub_msg()
-                header = msg['header']
-                content = msg['content']
+            ipython_message = None
+            if stream_type == IPythonConstants.StreamType.SHELL:
+                ipython_message = self.kc.get_shell_msg()
+            elif stream_type == IPythonConstants.StreamType.IOBUF:
+                ipython_message = self.kc.get_iopub_msg()
 
-                if header['msg_type'] == IPythonConstants.MessageType.STATUS:
-                    if content['execution_state'] == IPythonConstants.ExecutionState.IDLE:
-                        break
-            except queue.Empty:
-                # Break if queue empty
-                break
-            outputs.append(msg)
-        return outputs
+            log.info('%s msg: %s %s' % (
+                stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
+
+            if ipython_message is not None and self.message_handler_callback is not None:
+                # if self.request_metadata:
+                #     self.request_metadata.update({'stream_type': stream_type})
+                # else:
+                #     self.request_metadata = {'stream_type': stream_type}
+                self.message_handler_callback(
+                    ipython_message, stream_type, self.client_message)
+
+            ## unlock execute lock only after upstream has processed the data if messge is status #
+            # if self._is_status_message(ipython_message) and ipython_message['content']['execution_state'] != 'busy' and self.execute_lock.locked():
+            #     self.execute_lock.release()
+            if self._complete_execution_message(ipython_message):
+                log.info('Execution completed')
+                self.execute_lock.release()            
+
+    def execute(self, code, exec_mode=None, message_handler_callback=None, client_message=None):
+        self.execute_lock.acquire()
+        self.message_handler_callback = message_handler_callback
+        self.client_message = client_message
+        self.kc.execute(code)

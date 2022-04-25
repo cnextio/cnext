@@ -93,9 +93,7 @@ const CodeEditor = () => {
     const inViewID = useSelector(
         (state: RootState) => state.projectManager.inViewID
     );
-    const codeLines: ICodeLine[] | null = useSelector((state: RootState) =>
-        getCodeLine(state)
-    );
+    const lineStatusUpdate = useSelector((state: RootState) => state.codeEditor.lineStatusUpdateCount);
     // const codeText: string[] = useSelector(state => getCodeTextRedux(state));
     const runQueue = useSelector(
         (state: RootState) => state.codeEditor.runQueue
@@ -141,8 +139,15 @@ const CodeEditor = () => {
         onChange: onCodeMirrorChange,
     });
 
+    // function getCodeLineStatus(state: RootState) {
+    //     let inViewID = state.projectManager.inViewID;
+    //     if (inViewID) {
+    //         return state.codeEditor.codeLines[inViewID];
+    //     }
+    //     return null;
+    // }
     const handleResultData = (message: IMessage) => {
-        console.log(`${WebAppEndpoint.CodeEditor} got result data`);
+        // console.log(`${WebAppEndpoint.CodeEditor} got result data`);
         let inViewID = store.getState().projectManager.inViewID;
         if (inViewID) {
             let result: ICodeResultMessage = {
@@ -162,10 +167,10 @@ const CodeEditor = () => {
     /**
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
-    function socketInit() {
+    const socketInit = () => {
         socket.emit("ping", WebAppEndpoint.CodeEditor);
         socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
-            console.log("CodeEditor: got results: ", result, "\n");
+            console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
                 let codeOutput: IMessage = JSON.parse(result);
@@ -174,26 +179,32 @@ const CodeEditor = () => {
                     handleResultData(codeOutput);
                     let lineStatus: ICodeLineStatus = {
                         inViewID: inViewID,
-                        lineRange: codeOutput.metadata.line_range,
+                        lineRange: codeOutput.metadata?.line_range,
                         status: LineStatus.EXECUTED,
                     };
-                    // console.log('CodeEditor socket ', lineStatus);
-                    dispatch(setLineStatus(lineStatus));
-                    /** set active code line to be the current line after it is excuted so the result will be show accordlingly
-                     * not sure if this is a good design but will live with it for now */
-                    let activeLine: ICodeActiveLine = {
-                        inViewID: inViewID,
-                        lineNumber: codeOutput.metadata.line_range.fromLine,
-                    };
-                    dispatch(setActiveLine(activeLine));
-                    dispatch(compeleteRunQueue(null));
+
+                    if (codeOutput.metadata?.msg_type === "execute_reply" && codeOutput.content?.status != null ) {
+                        // TODO: check the status output
+                        // console.log('CodeEditor socket ', lineStatus);
+                        dispatch(setLineStatus(lineStatus));
+                        /** set active code line to be the current line after it is excuted so the result will be show accordlingly
+                         * not sure if this is a good design but will live with it for now */
+                        let activeLine: ICodeActiveLine = {
+                            inViewID: inViewID,
+                            lineNumber: codeOutput.metadata.line_range.fromLine,
+                        };
+                        dispatch(setActiveLine(activeLine));
+                        dispatch(compeleteRunQueue(null));
+                    }                    
                 }
             } catch {}
         });
     }
 
     useEffect(() => {
+        console.log('CodeEditor init');
         socketInit();
+        return () => {socket.off(WebAppEndpoint.CodeEditor);}
     }, []);
 
     /**
@@ -251,11 +262,10 @@ const CodeEditor = () => {
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update
      * with line status. This works but might need to find a better performant solution. */
     useEffect(() => {
-        console.log("CodeEditor useEffect codeLines", codeLines !== null);
         if (view) {
             view.dispatch();
         }
-    }, [codeLines]);
+    }, [lineStatusUpdate]);
 
     useEffect(() => {
         console.log("CodeEditor useEffect magicInfo ", cAssistInfo);
