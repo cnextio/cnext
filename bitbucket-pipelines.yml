@@ -8,7 +8,7 @@ image: docker/compose
 options:
     docker: true
     size: 2x
-    max-time: 22
+    max-time: 25
 
 pipelines:
     pull-requests:
@@ -41,8 +41,8 @@ pipelines:
                       - echo "Your build and test goes here..."
                       - docker-compose up --exit-code-from cypress
                       - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASSWORD
-                      - docker build -t https://hub.docker.com/repository/docker/cycai/cnext:v0.2.1 .
-                      - docker push https://hub.docker.com/repository/docker/cycai/cnext:v0.2.1
+                      - docker build -t https://hub.docker.com/repository/docker/$DOCKER_HUB_USER/cnext:v0.2.1 .
+                      - docker push https://hub.docker.com/repository/docker/$DOCKER_HUB_USER/cnext:v0.2.1
                   services:
                       - docker
 
