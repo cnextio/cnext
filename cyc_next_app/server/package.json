@@ -1,6 +1,6 @@
 {
-    "name": "server",
-    "version": "0.1.0",
+    "name": "cyc-cnext-server",
+    "version": "0.3.0",
     "private": true,
     "scripts": {
         "start": "nodemon server.js",
