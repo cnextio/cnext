@@ -49,7 +49,7 @@ const DataFrameManager = () => {
     const dataFrameConfig = useSelector((state: RootState) => state.dataFrames.stats);
 
     const sendMessage = (message: IMessage) => {
-        console.log(`Send ${WebAppEndpoint.DFManager} request: `, JSON.stringify(message));
+        console.log(`Send DataFrameManager request: `, JSON.stringify(message));
         socket.emit(WebAppEndpoint.DFManager, JSON.stringify(message));
     };
 
@@ -328,7 +328,7 @@ _tmp()`;
         const df_id = message.metadata["df_id"];
         // const tableData = JSON.parse(message.content);
         const tableData = message.content;
-        console.log("DFManager: dispatch to tableData (DataFrame) ", tableData);
+        console.log("DataFrameManager: dispatch to tableData (DataFrame) ", tableData);
         dispatch(setTableData(tableData));
         if (df_id != null && isDataFrameUpdated(df_id)) {
             dispatch(setActiveDF(df_id));
@@ -381,10 +381,7 @@ _tmp()`;
         socket.on(WebAppEndpoint.DFManager, (result: string) => {
             try {
                 let message: IMessage = JSON.parse(result);
-                console.log(
-                    "DFManager got results for command ",
-                    message.command_name
-                );
+                console.log("DataFrameManager got results for command ", message.command_name);
                 if (
                     message.type === ContentType.STRING ||
                     message.error === true
@@ -409,7 +406,7 @@ _tmp()`;
                 } else if (
                     message.command_name == CommandName.reload_df_status
                 ) {
-                    console.log("DFManager reload_df_status:", message);
+                    console.log("DataFrameManager reload_df_status:", message);
                     handleActiveDFStatus(message, true);
                 } else if (message.command_name == CommandName.get_table_data) {
                     handleGetTableData(message);
