@@ -1,4 +1,3 @@
-from curses import has_key
 import traceback
 import simplejson as json
 
