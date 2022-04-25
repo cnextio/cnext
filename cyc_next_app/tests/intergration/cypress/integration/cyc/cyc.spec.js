@@ -71,7 +71,7 @@ describe('Test Code Editor', () => {
         cy.get('.cm-tooltip-signature').should('be.visible');
 
         cy.get('@editor').type('{esc}');
-        cy.wait(WAIT_1000MLS);
+        cy.wait(WAIT_1S);
         cy.get('.cm-tooltip-signature').should('not.exist');
 
         removeText(cy.get('@editor'));
