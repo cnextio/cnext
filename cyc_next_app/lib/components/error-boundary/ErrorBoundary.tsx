@@ -1,5 +1,5 @@
 import React from "react";
-import Snackbar from "@mui/material/Snackbar";
+import { Typography } from "@mui/material";
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -23,13 +23,10 @@ class ErrorBoundary extends React.Component {
         if (this.state.hasError) {
             //render any fallback UI
             return (
-                <Snackbar
-                    anchorOrigin={{ vertical: "top", horizontal: "center" }}
-                    autoHideDuration={6000}
-                    open={true}
-                    message="We're sorry, something went wrong!"
-                    key={"Error_Boundary"}
-                />
+                <div style={{ textAlign: "center" }}>
+                    <Typography>We're sorry, something went wrong!</Typography>
+                    <a href='/'>Back to page</a>
+                </div>
             );
         }
 
