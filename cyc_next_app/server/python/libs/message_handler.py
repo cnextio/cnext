@@ -1,6 +1,8 @@
+import traceback
 import simplejson as json
 from libs.message import ContentType, Message, SubContentType
 from libs import logs
+# from server.python.libs.message import WebappEndpoint
 from user_space.user_space import BaseKernel, UserSpace
 from user_space.ipython.constants import IPythonConstants as IPythonConstants
 
@@ -15,9 +17,55 @@ class BaseMessageHandler:
         else:
             self.user_space = user_space
 
-    ## TODO: this needs to be designed #
     @staticmethod
-    def get_execute_result(messages):
+    def _is_execute_result(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
+
+    @staticmethod
+    def _is_execute_reply(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY
+
+    @staticmethod
+    def _is_stream_result(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.STREAM
+
+    @staticmethod
+    def _is_display_data_result(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA
+
+    @staticmethod
+    def _is_error_message(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.ERROR
+        
+    ## TODO: this needs to be designed #
+    # @staticmethod
+    # def get_execute_result(messages):
+    #     """
+    #         Get result from list of messages are responsed by IPython kernel
+    #         For result type rather than 'application/json' we have to convert the output
+    #         to the original object before sending to client because we already json.dumps
+    #         them inside ipython. A better way to handle this is to output 'application/json' 
+    #         instead. That will be done later.
+    #     """
+    #     result = None
+    #     for message in messages:
+    #         log.info('Message type %s' % message['header']['msg_type'])
+    #         if message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
+    #             if message['content']['data']['text/plain'] is not None:
+    #                 result = message['content']['data']['text/plain']
+    #                 result = json.loads(result)
+    #         elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
+    #             # log.info('Stream result: %s' % result)
+    #             if 'text' in message['content']:
+    #                 result = message['content']['text']
+    #                 result = json.loads(result)
+    #         elif message['header']['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA:
+    #             if SubContentType.APPLICATION_PLOTLY in message['content']['data']:
+    #                 result = message['content']['data'][SubContentType.APPLICATION_PLOTLY]
+    #     return result
+
+    @staticmethod
+    def get_execute_result(message):
         """
             Get result from list of messages are responsed by IPython kernel
             For result type rather than 'application/json' we have to convert the output
@@ -26,21 +74,38 @@ class BaseMessageHandler:
             instead. That will be done later.
         """
         result = None
-        for message in messages:
-            log.info('Message type %s' % message['header']['msg_type'])
-            if message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
-                if message['content']['data']['text/plain'] is not None:
-                    result = message['content']['data']['text/plain']
-                    result = json.loads(result)
-            elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
-                # log.info('Stream result: %s' % result)
-                if 'text' in message['content']:
-                    result = message['content']['text']
-                    result = json.loads(result)
-            elif message['header']['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA:
-                if SubContentType.APPLICATION_PLOTLY in message['content']['data']:
-                    result = message['content']['data'][SubContentType.APPLICATION_PLOTLY]
+        log.info('Message type %s' % message['header']['msg_type'])
+        if message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
+            if message['content']['data']['text/plain'] is not None:
+                result = message['content']['data']['text/plain']
+                result = json.loads(result)
+        elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
+            # log.info('Stream result: %s' % result)
+            if 'text' in message['content']:
+                result = message['content']['text']
+                result = json.loads(result)
+        elif message['header']['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA:
+            if SubContentType.APPLICATION_PLOTLY in message['content']['data']:
+                result = message['content']['data'][SubContentType.APPLICATION_PLOTLY]
         return result
+
+    @staticmethod
+    def exception_handler(func):
+        def wrapper_func(*args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except:
+                trace = traceback.format_exc()
+                log.info("Exception %s" % (trace))
+                if args[3] != None:
+                    error_message = BaseMessageHandler._create_error_message(
+                        args[3]['webapp_endpoint'], trace, {})
+                    BaseMessageHandler._send_to_node(error_message)
+                elif 'client_message' in kwargs:
+                    error_message = BaseMessageHandler._create_error_message(
+                        kwargs['client_message']['webapp_endpoint'], trace, {})
+                    BaseMessageHandler._send_to_node(error_message)
+        return wrapper_func
 
     @staticmethod
     def _create_error_message(webapp_endpoint, trace, metadata=None):

@@ -16,25 +16,25 @@ class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
-    @staticmethod
-    def _is_execute_result(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
+    # @staticmethod
+    # def _is_execute_result(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
 
-    @staticmethod
-    def _is_execute_reply(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY
+    # @staticmethod
+    # def _is_execute_reply(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY
 
-    @staticmethod
-    def _is_stream_result(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.STREAM
+    # @staticmethod
+    # def _is_stream_result(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.STREAM
 
-    @staticmethod
-    def _is_display_data_result(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA
+    # @staticmethod
+    # def _is_display_data_result(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA
 
-    @staticmethod
-    def _is_error_message(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.ERROR
+    # @staticmethod
+    # def _is_error_message(header) -> bool:
+    #     return header['msg_type'] == IPythonConstants.MessageType.ERROR
 
     @staticmethod
     def _result_is_plotly_fig(content) -> bool:
@@ -88,72 +88,51 @@ class MessageHandler(BaseMessageHandler):
         message.content = ipython_msg.content
         return message
 
-    def _create_return_message(self, output, request_metadata):
+    def _create_return_message(self, ipython_message, stream_type, client_message):
         """
             Get single message from IPython,
             classify it according to the message type then return it to the client
         """
-        ipython_msg = IpythonResultMessage(**output)
-        message = Message(
-            **{'webapp_endpoint': WebappEndpoint.CodeEditor, 'metadata': request_metadata})
+        ipython_message = IpythonResultMessage(**ipython_message)
+        message = Message(**{'webapp_endpoint': WebappEndpoint.CodeEditor, 'command_name': client_message.command_name})
 
         log.info('Got message from ipython: %s %s',
-                 ipython_msg.header['msg_type'], ipython_msg.content['status'] if 'status' in ipython_msg.content else None)
+                 ipython_message.header['msg_type'], ipython_message.content['status'] if 'status' in ipython_message.content else None)
 
         # Add header message from ipython to message metadata
         if message.metadata == None:
             message.metadata = {}
 
-        message.metadata.update(dict((k, ipython_msg.header[k])
-             for k in ('msg_id', 'msg_type', 'session')))        
-        
-        if self._is_error_message(ipython_msg.header):
-            message = self._process_error_message(message, ipython_msg)
-        elif self._is_stream_result(ipython_msg.header):
-            message = self._process_stream_message(message, ipython_msg)
-        elif self._is_execute_result(ipython_msg.header) or self._is_display_data_result(ipython_msg.header):
-            message = self._process_rich_ouput(message, ipython_msg)
+        if client_message.metadata != None:
+            message.metadata.update(client_message.metadata)
+        message.metadata.update(dict((k, ipython_message.header[k])
+                                     for k in ('msg_id', 'msg_type', 'session')))
+        message.metadata.update({'stream_type': stream_type})
+
+        if self._is_error_message(ipython_message.header):
+            message = self._process_error_message(message, ipython_message)
+        elif self._is_stream_result(ipython_message.header):
+            message = self._process_stream_message(message, ipython_message)
+        elif self._is_execute_result(ipython_message.header) or self._is_display_data_result(ipython_message.header):
+            message = self._process_rich_ouput(message, ipython_message)
         else:
-            message = self._process_other_message(message, ipython_msg)
+            message = self._process_other_message(message, ipython_message)
 
         return message
 
-    def exception_handler(func):
-        def wrapper_func(*args, **kwargs):
-            try:
-                func(*args, **kwargs)
-            except:
-                trace = traceback.format_exc()
-                log.error("Exception %s" % (trace))
-                error_message = args[0]._create_error_message(
-                    args[0].message.webapp_endpoint, trace, args[0].message.metadata)
-                args[0]._send_to_node(error_message)
-        return wrapper_func
-
-    @exception_handler
-    def message_handler_callback(self, ipython_message, request_metadata):
+    @BaseMessageHandler.exception_handler
+    def message_handler_callback(self, ipython_message, stream_type, client_message):
         # if self.request_metadata is not None:
         message = self._create_return_message(
-            output=ipython_message, request_metadata=request_metadata)
+            ipython_message=ipython_message, stream_type=stream_type, client_message=client_message)
         # log.info('Message: %s %s', self.message)
         self._send_to_node(message)
 
+    @BaseMessageHandler.exception_handler
     def handle_message(self, message):
-        """
-            Use Ipython Kernel to handle message
-        """
-        # log.info('Got client message: {}'.format(message))
-        try:
-            self.user_space.execute(
-                message.content, None, self.message_handler_callback, message.metadata)
-
-            # self._process_active_dfs_status()
-        except:
-            trace = traceback.format_exc()
-            log.error("Exception %s" % (trace))
-            error_message = self._create_error_message(
-                message.webapp_endpoint, trace, message.metadata)
-            self._send_to_node(error_message)
+        self.user_space.execute(
+            message.content, None, self.message_handler_callback, client_message=message)
+        self._process_active_dfs_status()
 
     def _process_active_dfs_status(self):
         active_df_status = self.user_space.get_active_dfs_status()
