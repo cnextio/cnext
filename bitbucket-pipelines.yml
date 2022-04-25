@@ -32,6 +32,20 @@ pipelines:
                   services:
                       - docker
 
+    custom:
+        publish-to-docker-hub:
+            - step:
+                  size: 2x
+                  name: 'Build and Test and Upload to Dockerhub'
+                  script:
+                      - echo "Your build and test goes here..."
+                      - docker-compose up --exit-code-from cypress
+                      - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASSWORD
+                      - docker build -t https://hub.docker.com/repository/docker/cycai/cnext:test .
+                      - docker push https://hub.docker.com/repository/docker/cycai/cnext:test
+                  services:
+                      - docker
+
 definitions:
     services:
         docker:
