@@ -53,6 +53,7 @@ export interface ILineUpdate {
     text: string[];
     updatedStartLineNumber: number;
     updatedLineCount: number;
+    startLineChanged: boolean;
 }
 
 export interface ICodeLineStatus {
