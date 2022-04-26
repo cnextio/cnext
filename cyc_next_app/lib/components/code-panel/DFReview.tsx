@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment } from "react";
 import { IconButton } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
@@ -11,35 +11,25 @@ import {
     ReviewRequestType,
     UndefReviewIndex,
 } from "../../interfaces/IApp";
-import { ifElse } from "../libs";
 import store, { RootState } from "../../../redux/store";
 
 const ReviewButton = ({ type, onClick, disabled }) => {
     return (
         <IconButton
             onClick={onClick}
-            aria-label="Back"
-            size="small"
-            color="primary"
+            aria-label='Back'
+            size='small'
+            color='primary'
             disabled={disabled}
         >
             {type == ReviewRequestType.prev && (
-                <ArrowBackIosIcon
-                    fontSize="small"
-                    style={{ width: "14px", height: "14px" }}
-                />
+                <ArrowBackIosIcon fontSize='small' style={{ width: "14px", height: "14px" }} />
             )}
             {type == ReviewRequestType.repeat && (
-                <FiberManualRecordIcon
-                    fontSize="small"
-                    style={{ width: "14px", height: "14px" }}
-                />
+                <FiberManualRecordIcon fontSize='small' style={{ width: "14px", height: "14px" }} />
             )}
             {type == ReviewRequestType.next && (
-                <ArrowForwardIosIcon
-                    fontSize="small"
-                    style={{ width: "14px", height: "14px" }}
-                />
+                <ArrowForwardIosIcon fontSize='small' style={{ width: "14px", height: "14px" }} />
             )}
         </IconButton>
     );
@@ -48,9 +38,7 @@ const ReviewButton = ({ type, onClick, disabled }) => {
 const ReviewComponent = ({ activeReview }) => {
     const dispatch = useDispatch();
     //this will be used to set the status of the review buttons
-    const dfReview: IDFUpdatesReview = useSelector((state: RootState) =>
-        get_review_request(state)
-    );
+    const dfReview: IDFUpdatesReview = useSelector((state: RootState) => get_review_request(state));
 
     function get_review_request(state: RootState): IDFUpdatesReview {
         const activeDataFrame = state.dataFrames.activeDataFrame;
@@ -60,7 +48,10 @@ const ReviewComponent = ({ activeReview }) => {
     function onClick(type: ReviewRequestType) {
         let review: IReviewRequest = { type: type, index: UndefReviewIndex };
         let state = store.getState();
-        console.log('ReviewComponent: ', state.dataFrames.dfUpdatesReview[state.dataFrames.activeDataFrame]);
+        console.log(
+            "ReviewComponent: ",
+            state.dataFrames.dfUpdatesReview[state.dataFrames.activeDataFrame]
+        );
         dispatch(setReview(review));
     }
 

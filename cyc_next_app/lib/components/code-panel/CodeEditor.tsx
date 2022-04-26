@@ -90,20 +90,25 @@ const CodeEditor = () => {
      * when it is first opened or being selected to be in view */
     // const [serverSynced, setServerSynced] = useState(false);
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
-    const inViewID = useSelector(
-        (state: RootState) => state.projectManager.inViewID
+
+    const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+
+    const codeLines: ICodeLine[] | null = useSelector((state: RootState) => getCodeLine(state));
+
+    const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
+
+    const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
+
+    const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
+
+    const shortcutKeysConfig = useSelector(
+        (state: RootState) => state.projectManager.configs.shortcut_keys
     );
-    const lineStatusUpdate = useSelector((state: RootState) => state.codeEditor.lineStatusUpdateCount);
-    // const codeText: string[] = useSelector(state => getCodeTextRedux(state));
-    const runQueue = useSelector(
-        (state: RootState) => state.codeEditor.runQueue
+
+    const lineStatusUpdate = useSelector(
+        (state: RootState) => state.codeEditor.lineStatusUpdateCount
     );
-    const cAssistInfo = useSelector(
-        (state: RootState) => state.codeEditor.cAssistInfo
-    );
-    const codeToInsert = useSelector(
-        (state: RootState) => state.codeEditor.codeToInsert
-    );
+
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
     const editorRef = useRef();
@@ -111,7 +116,6 @@ const CodeEditor = () => {
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
-
     const extensions = [
         basicSetup,
         lineNumbers(),
@@ -122,9 +126,9 @@ const CodeEditor = () => {
         python(),
         ls,
         keymap.of([
-            { key: "Mod-l", run: setRunQueue },
-            { key: "Mod-k", run: setGroup },
-            { key: "Mod-j", run: setUnGroup },
+            { key: shortcutKeysConfig.run_queue, run: setRunQueue },
+            { key: shortcutKeysConfig.set_group, run: setGroup },
+            { key: shortcutKeysConfig.set_ungroup, run: setUnGroup },
             ...completionKeymap,
         ]),
         indentUnit.of("    "),
@@ -183,7 +187,10 @@ const CodeEditor = () => {
                         status: LineStatus.EXECUTED,
                     };
 
-                    if (codeOutput.metadata?.msg_type === "execute_reply" && codeOutput.content?.status != null ) {
+                    if (
+                        codeOutput.metadata?.msg_type === "execute_reply" &&
+                        codeOutput.content?.status != null
+                    ) {
                         // TODO: check the status output
                         // console.log('CodeEditor socket ', lineStatus);
                         dispatch(setLineStatus(lineStatus));
@@ -195,16 +202,18 @@ const CodeEditor = () => {
                         };
                         dispatch(setActiveLine(activeLine));
                         dispatch(compeleteRunQueue(null));
-                    }                    
+                    }
                 }
             } catch {}
         });
-    }
+    };
 
     useEffect(() => {
-        console.log('CodeEditor init');
+        console.log("CodeEditor init");
         socketInit();
-        return () => {socket.off(WebAppEndpoint.CodeEditor);}
+        return () => {
+            socket.off(WebAppEndpoint.CodeEditor);
+        };
     }, []);
 
     /**
@@ -280,12 +289,12 @@ const CodeEditor = () => {
     }, [editorRef.current]);
 
     useEffect(() => {
-        if(runQueue.status !== RunQueueStatus.STOP){
+        if (runQueue.status !== RunQueueStatus.STOP) {
             let state = store.getState();
             let inViewID = state.projectManager.inViewID;
             dispatch(clearRunQueueTextOutput(inViewID));
             execLines();
-        }        
+        }
     }, [runQueue]);
 
     useEffect(() => {
@@ -475,7 +484,7 @@ const CodeEditor = () => {
     function onCodeMirrorChange(value: string, viewUpdate: ViewUpdate) {
         try {
             console.log("CodeEditor onCodeMirrorChange");
-            
+
             /** do nothing if the update is due to code reloading from external source */
             if (codeReloading) return;
 
@@ -771,7 +780,11 @@ const CodeEditor = () => {
         }
     };
 
-    return <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>{console.log("CodeEditor render")}</StyledCodeEditor>;
+    return (
+        <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>
+            {console.log("CodeEditor render")}
+        </StyledCodeEditor>
+    );
 };
 
 export default CodeEditor;
