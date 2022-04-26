@@ -35,6 +35,7 @@ export type DataFrameState = {
     dfFilter: null;
     stats: IDataFrameStatsConfig;
     dataViewMode: string;
+    dfUpdateCount: number;
 };
 
 const initialState: DataFrameState = {
@@ -54,6 +55,7 @@ const initialState: DataFrameState = {
     dfFilter: null,
     stats: { histogram: false, quantile: false },
     dataViewMode: DFViewMode.TABLE_VIEW,
+    dfUpdateCount: 0,
 };
 
 export const dataFrameSlice = createSlice({
@@ -194,8 +196,18 @@ export const dataFrameSlice = createSlice({
                         // state.columnDataSummary[df_id] = {};
                         state.loadColumnHistogram = true;
                     }
+                    status.is_showed = false;
                 }
                 state.dfUpdates[df_id] = status; //ifElseDict(action.payload, 'updates');
+                state.dfUpdateCount++;
+            }
+        },
+        /** set the showed state of the active dataframe status */
+        setDFStatusShowed: (state, action) => {
+            let is_showed = action.payload;
+            const status = state.dfUpdates[state.activeDataFrame];
+            if (status != null) {
+                status.is_showed = is_showed;
             }
         },
 
@@ -329,6 +341,7 @@ export const {
     setColumnQuantilePlot,
     setStatsConfig,
     setDataViewMode,
+    setDFStatusShowed,
 } = dataFrameSlice.actions;
 
 export default dataFrameSlice.reducer;

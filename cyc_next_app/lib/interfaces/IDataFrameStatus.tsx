@@ -26,6 +26,8 @@ export interface IDataFrameStatusItem {
 
 export interface IDataFrameStatus {
     is_updated: boolean;
+    /** indiate whether this update has been showed to the user or not */
+    is_showed: boolean;
     _status_list: IDataFrameStatusItem[];
 }
 

@@ -14,9 +14,12 @@ import Ansi from "ansi-to-react";
 import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
 import store, { RootState } from "../../../redux/store";
 import { getLastUpdate } from "../dataframe-manager/libDataFrameManager";
+import { setDFStatusShowed } from "../../../redux/reducers/DataFramesRedux";
 
 const CodeOutputComponent = React.memo(() => {
-    const dataFrameStatus = useSelector((state: RootState) => getDataFrameStatus(state));
+    const activeDFStatus = useSelector((state: RootState) => getActiveDataFrameStatus(state));
+    const dispatch = useDispatch();
+    // const dfUpdateCount = useSelector((state: RootState) => state.dataFrames.dfUpdateCount);
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
     const serverSynced = useSelector(
@@ -64,7 +67,7 @@ const CodeOutputComponent = React.memo(() => {
         }
     }
 
-    function getDataFrameStatus(state: RootState) {
+    function getActiveDataFrameStatus(state: RootState) {
         const activeDataFrame = state.dataFrames.activeDataFrame;
         if (
             activeDataFrame &&
@@ -74,7 +77,7 @@ const CodeOutputComponent = React.memo(() => {
             // console.log('Check update: ', state.dataFrames.dfUpdates[activeDataFrame]);
             const activeDataFrameStatus =
                 state.dataFrames.dfUpdates[activeDataFrame];
-            if (activeDataFrameStatus.is_updated) {
+            if (activeDataFrameStatus.is_updated && !activeDataFrameStatus.is_showed) {
                 return activeDataFrameStatus;
             }
         }
@@ -180,14 +183,14 @@ const CodeOutputComponent = React.memo(() => {
 
     /** Get an df update messages */
     const handleDFUpdates = () => {
+        // const state = store.getState();
+        // const activeDFStatus = getActiveDataFrameStatus(state);
         //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
-        if (dataFrameStatus != null) {
-            const update = getLastUpdate(dataFrameStatus);
-                // dfUpdates._status_list[dfUpdates._status_list.length-1].updates;
+        if (activeDFStatus != null) {
+            const update = getLastUpdate(activeDFStatus);
+            // dfUpdates._status_list[dfUpdates._status_list.length-1].updates;
             const updateType = update.update_type;
-            const updateContent = update.update_content
-                ? update.update_content
-                : [];
+            const updateContent = update.update_content ? update.update_content : [];
 
             let newOutputContent = {
                 type: "df_updates",
@@ -198,14 +201,12 @@ const CodeOutputComponent = React.memo(() => {
             };
             //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
             if (newOutputContent != null) {
-                setOutputContent((outputContent) => [
-                    ...outputContent,
-                    newOutputContent,
-                ]);
+                setOutputContent((outputContent) => [...outputContent, newOutputContent]);
             }
+            dispatch(setDFStatusShowed(true));
         }
     };
-    useEffect(handleDFUpdates, [dataFrameStatus]);
+    useEffect(handleDFUpdates, [activeDFStatus]);
 
     const codeOutputContentID = "CodeOutputContent";
     return (
