@@ -33,6 +33,14 @@ class IPythonKernel():
             self.km.shutdown_kernel(now=True)
             log.info('Shutdown kernel')
 
+    def restart_kernel(self):
+        log.info('restart kernel')
+        self.km.restart_kernel(now=True)
+
+    def interrupt_kernel(self):
+        log.info('Interrupt kernel')
+        self.km.interrupt_kernel()
+
     def wait_for_ready(self):
         try:
             self.kc.wait_for_ready(timeout=50)

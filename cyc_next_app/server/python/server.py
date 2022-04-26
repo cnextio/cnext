@@ -8,6 +8,7 @@ from experiment_manager import experiment_manager as em
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
+from kernel_manager import kernel_manager as km
 
 from libs.message import Message, WebappEndpoint
 from libs.zmq_message import MessageQueue
@@ -49,8 +50,8 @@ def main(argv):
                 message_handler = {
                     WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, noncode_user_space),
                     WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, noncode_user_space, config),
-                    WebappEndpoint.FileExplorer: fe.MessageHandler(
-                        p2n_queue, noncode_user_space)
+                    WebappEndpoint.FileExplorer: fe.MessageHandler(p2n_queue, noncode_user_space),
+                    WebappEndpoint.KernelManager: km.MessageHandler(p2n_queue, noncode_user_space),
                 }
         except Exception as error:
             log.error("%s - %s" % (error, traceback.format_exc()))

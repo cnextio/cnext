@@ -3,6 +3,8 @@ import Box from "@mui/material/Box";
 import InboxIcon from "@mui/icons-material/Inbox";
 import FolderIcon from "@mui/icons-material/Folder";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PauseIcon from "@mui/icons-material/Pause";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import {
     Sidebar,
@@ -23,17 +25,8 @@ import { ViewMode } from "../../interfaces/IApp";
 import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
-
-// const drawerWidth = 240;
-
-// export const DrawerHeader = styled('div')(({ theme }) => ({
-//   display: 'flex',
-//   alignItems: 'center',
-//   justifyContent: 'flex-end',
-//   padding: theme.spacing(0, 1),
-//   // necessary for content to be below app bar
-//   ...theme.mixins.toolbar,
-// }));
+import Divider from "@mui/material/Divider";
+import { restartKernel, interruptKernel } from "../kernel-manager/KernelManager";
 
 const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -49,6 +42,7 @@ const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
         </SidebarListItem>
     );
 };
+
 const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
     const dispatch = useDispatch();
@@ -76,18 +70,36 @@ const MiniSidebar = () => {
         },
     ];
 
+    const kernelIconList = [
+        {
+            name: SideBarName.RESTART_KERNEL,
+            component: <RestartAltIcon />,
+            tooltip: "Restart kernel",
+        },
+        {
+            name: SideBarName.INTERRUPT_KERNEL,
+            component: <PauseIcon />,
+            tooltip: "Interrupt kernel",
+        },
+    ];
+
     const handleClickClearState = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
         dispatch(clearTextOutputs(inViewID));
     };
 
+    const handleClickRestartKernel = () => {
+        console.log("handleClickRestartKernel");
+    };
+
+    const handleClickInterruptKernel = () => {
+        console.log("handleClickInterruptKernel");
+    };
+
     const handleClickChangeLayout = () => {
         const state = store.getState();
         const viewMode = state.projectManager.configs.view_mode;
-        // if (state.projectManager.configs.hasOwnProperty('view_mode')) {
-        //     let viewMode = state.projectManager.configs;
-        // }
         if (viewMode === ViewMode.HORIZONTAL) {
             dispatch(setProjectConfig({ view_mode: ViewMode.VERTICAL }));
         } else {
@@ -100,6 +112,10 @@ const MiniSidebar = () => {
             handleClickClearState();
         } else if (name === SideBarName.CHANGE_LAYOUT) {
             handleClickChangeLayout();
+        } else if (name === SideBarName.RESTART_KERNEL) {
+            restartKernel();
+        } else if (name === SideBarName.INTERRUPT_KERNEL) {
+            interruptKernel();
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -128,6 +144,17 @@ const MiniSidebar = () => {
                                 key={index}
                                 icon={icon}
                                 selectedIcon={selectedIcon}
+                                handleClick={handleClick}
+                            />
+                        ))}
+                    </SidebarList>
+                    <Divider style={{ width: "100%" }} />
+                    <SidebarList>
+                        {kernelIconList.map((icon, index) => (
+                            <SidebarItem
+                                key={index}
+                                selectedIcon={selectedIcon}
+                                icon={icon}
                                 handleClick={handleClick}
                             />
                         ))}
