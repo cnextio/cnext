@@ -120,21 +120,33 @@ class MessageHandler(BaseMessageHandler):
 
         return message
 
-    @BaseMessageHandler.exception_handler
     def message_handler_callback(self, ipython_message, stream_type, client_message):
-        # if self.request_metadata is not None:
-        message = self._create_return_message(
-            ipython_message=ipython_message, stream_type=stream_type, client_message=client_message)
-        # log.info('Message: %s %s', self.message)
-        self._send_to_node(message)
+        try:
+            # if self.request_metadata is not None:
+            message = self._create_return_message(
+                ipython_message=ipython_message, stream_type=stream_type, client_message=client_message)            
+            # log.info('Reply message: %s' % message)
+            if message != None:
+                self._send_to_node(message)
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))
+            error_message = BaseMessageHandler._create_error_message(
+                client_message.webapp_endpoint, trace, {})
+            self._send_to_node(error_message)
 
-    @BaseMessageHandler.exception_handler
     def handle_message(self, message):
-        self.user_space.execute(
-            message.content, None, self.message_handler_callback, client_message=message)
-        self._process_active_dfs_status()
+        try:
+            self.user_space.execute(
+                message.content, None, self.message_handler_callback, client_message=message)
+            self._get_active_dfs_status()
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))            
+            error_message = BaseMessageHandler._create_error_message(message.webapp_endpoint, trace, {})
+            self._send_to_node(error_message)
 
-    def _process_active_dfs_status(self):
+    def _get_active_dfs_status(self):
         active_df_status = self.user_space.get_active_dfs_status()
         active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": DFManagerCommand.update_df_status,
                                               "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})

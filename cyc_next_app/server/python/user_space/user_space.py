@@ -1,5 +1,6 @@
 from enum import Enum
 import threading
+import traceback
 import simplejson as json
 from zmq import PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_MESSAGE
 import cycdataframe.user_space as _cus
@@ -107,26 +108,35 @@ _sh.DataFrameStatusHook.set_user_space({_user_space})
         return message['header']['msg_type'] == 'execute_reply' and 'status' in message['content']
 
     def message_handler_callback(self, ipython_message, stream_type, client_message):
-        log.info('%s msg: %s %s' % (
-            stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
-        if ipython_message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
-            self.result = json.loads(
-                ipython_message['content']['data']['text/plain'])
-        elif self._complete_execution_message(ipython_message) and self.execution_lock.locked():
-            self.execution_lock.release()
-            log.info('Execution unlocked')
-        else:
-            # TODO: log everything else
-            log.info('Other messages: %s' % ipython_message)
+        try:
+            log.info('%s msg: %s %s' % (
+                stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
+            # log.info('%s msg: msg_type = %s' % (
+            #     stream_type, ipython_message['header']['msg_type']))
+            if ipython_message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
+                self.result = json.loads(
+                    ipython_message['content']['data']['text/plain'])
+            elif self._complete_execution_message(ipython_message) and self.execution_lock.locked():
+                self.execution_lock.release()
+                log.info('Execution unlocked')
+            else:
+                # TODO: log everything else
+                log.info('Other messages: %s' % ipython_message)
+        except:
+            ## this is internal exception, we won't send it to the client
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))
 
     def _get_active_dfs_status_ipython(self):
+        """ This function will be blocked until the execution completes and the result will be returned directly from here """
         self.execution_lock.acquire()
         log.info('Execution locked')
         code = "{user_space}.get_active_dfs_status()".format(
             user_space=IPythonInteral.USER_SPACE.value)
         log.info('Code to execute %s' % code)
         self.executor.execute(code, None, self.message_handler_callback)
-        # will wait here until the execution complete then return the result
+        # will wait here until the execution complete then return the result 
+        # acquire the lock to wait for the result, then release it right away #
         self.execution_lock.acquire()
         self.execution_lock.release()
         log.info("Results: %s" % self.result)

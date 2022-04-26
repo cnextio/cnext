@@ -158,21 +158,21 @@ class MessageHandler(BaseMessageHandler):
 
     MAX_PLOTLY_SIZE = 1024*1024  # 1MB
 
-    @BaseMessageHandler.exception_handler
-    def message_handler_callback(self, ipython_message, stream_type, client_message):
+    def _create_return_message(self, ipython_message, stream_type, client_message):
         result = self.get_execute_result(ipython_message)
-        ipython_message = IpythonResultMessage(**ipython_message)
-        message = Message(**{'webapp_endpoint': WebappEndpoint.DFManager, 'command_name': client_message.command_name})        
-        # Add header message from ipython to message metadata
-        if message.metadata == None:
-            message.metadata = {}
-        message.metadata.update(client_message.metadata)
-        message.metadata.update(dict((k, ipython_message.header[k])
-                                     for k in ('msg_id', 'msg_type', 'session')))
-        message.metadata.update({'stream_type': stream_type})
+        if result is not None:
+            ipython_message = IpythonResultMessage(**ipython_message)
+            message = Message(**{'webapp_endpoint': WebappEndpoint.DFManager,
+                                 'command_name': client_message.command_name})
+            # Add header message from ipython to message metadata
+            if message.metadata == None:
+                message.metadata = {}
+            message.metadata.update(client_message.metadata)
+            message.metadata.update(dict((k, ipython_message.header[k])
+                                         for k in ('msg_id', 'msg_type', 'session')))
+            message.metadata.update({'stream_type': stream_type})
 
-        if client_message.command_name == DFManagerCommand.plot_column_histogram:
-            if result is not None:
+            if client_message.command_name == DFManagerCommand.plot_column_histogram:
                 if total_size(result) < MessageHandler.MAX_PLOTLY_SIZE:
                     message.content = result
                     message.type = ContentType.RICH_OUTPUT
@@ -182,43 +182,43 @@ class MessageHandler(BaseMessageHandler):
                     message.type = ContentType.STRING
                     message.sub_type = SubContentType.NONE
                 message.error = False
-                self._send_to_node(message)
 
-        elif client_message.command_name == DFManagerCommand.plot_column_quantile:
-            if result is not None:
+            elif client_message.command_name == DFManagerCommand.plot_column_quantile:
                 message.content = result
                 message.type = ContentType.RICH_OUTPUT
                 message.sub_type = SubContentType.APPLICATION_PLOTLY
                 message.error = False
-                self._send_to_node(message)
 
-        elif client_message.command_name == DFManagerCommand.get_table_data:
-            if result is not None:
+            elif client_message.command_name == DFManagerCommand.get_table_data:
                 log.info('DFManagerCommand.get_table_data: %s' % result)
                 message.content = result
                 message.type = ContentType.PANDAS_DATAFRAME
                 message.sub_type = SubContentType.NONE
                 message.error = False
-                self._send_to_node(message)
 
-        elif client_message.command_name == DFManagerCommand.get_df_metadata:
-            if result is not None:
+            elif client_message.command_name == DFManagerCommand.get_df_metadata:
                 log.info('DFManagerCommand.get_df_metadata: %s' % result)
                 message.content = result
                 message.type = ContentType.DICT
                 message.sub_type = SubContentType.NONE
                 message.error = False
+            
+            return message
+        
+    def message_handler_callback(self, ipython_message, stream_type, client_message):
+        try:
+            # if self.request_metadata is not None:
+            message = self._create_return_message(
+                ipython_message=ipython_message, stream_type=stream_type, client_message=client_message)
+            log.info('Message: %s' % message)
+            if message != None:                
                 self._send_to_node(message)
-
-        elif client_message.command_name == DFManagerCommand.reload_df_status:
-            if result is not None:
-                log.info('DFManagerCommand.reload_df_status: %s' %
-                         message.content)
-                message.content = result
-                message.type = ContentType.DICT
-                message.sub_type = SubContentType.NONE
-                message.error = False
-                self._send_to_node(message)
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))
+            error_message = BaseMessageHandler._create_error_message(
+                client_message.webapp_endpoint, trace, {})
+            self._send_to_node(error_message)
 
     def handle_message(self, message):
         # send_reply = False
@@ -250,7 +250,10 @@ class MessageHandler(BaseMessageHandler):
                     IPythonInteral.DF_MANAGER.value, message.metadata['df_id']), ExecutionMode.EVAL, self.message_handler_callback, message)
 
             elif message.command_name == DFManagerCommand.reload_df_status:
-                self.user_space.get_active_dfs_status()
+                active_df_status = self.user_space.get_active_dfs_status()
+                active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": message.command_name,
+                                                      "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
+                self._send_to_node(active_df_status_message)
 
         except:
             trace = traceback.format_exc()
