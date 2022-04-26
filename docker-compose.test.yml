@@ -1,0 +1,3 @@
+services:
+    test:
+        command: docker-compose up --exit-code-from cypress
