@@ -210,16 +210,6 @@ class MessageHandler(BaseMessageHandler):
                 message.error = False
                 self._send_to_node(message)
 
-        elif client_message.command_name == DFManagerCommand.reload_df_status:
-            if result is not None:
-                log.info('DFManagerCommand.reload_df_status: %s' %
-                         message.content)
-                message.content = result
-                message.type = ContentType.DICT
-                message.sub_type = SubContentType.NONE
-                message.error = False
-                self._send_to_node(message)
-
     def handle_message(self, message):
         # send_reply = False
         # message execution_mode will always be `eval` for this sender
@@ -250,7 +240,10 @@ class MessageHandler(BaseMessageHandler):
                     IPythonInteral.DF_MANAGER.value, message.metadata['df_id']), ExecutionMode.EVAL, self.message_handler_callback, message)
 
             elif message.command_name == DFManagerCommand.reload_df_status:
-                self.user_space.get_active_dfs_status()
+                active_df_status = self.user_space.get_active_dfs_status()
+                active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": message.command_name,
+                                              "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
+                self._send_to_node(active_df_status_message)
 
         except:
             trace = traceback.format_exc()
