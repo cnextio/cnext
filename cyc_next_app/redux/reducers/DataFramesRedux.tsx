@@ -35,7 +35,7 @@ export type DataFrameState = {
     dfFilter: null;
     stats: IDataFrameStatsConfig;
     dataViewMode: string;
-    dfUpdateCount: number;
+    // dfUpdateCount: number;
 };
 
 const initialState: DataFrameState = {
@@ -55,7 +55,7 @@ const initialState: DataFrameState = {
     dfFilter: null,
     stats: { histogram: false, quantile: false },
     dataViewMode: DFViewMode.TABLE_VIEW,
-    dfUpdateCount: 0,
+    // dfUpdateCount: 0,
 };
 
 export const dataFrameSlice = createSlice({
@@ -199,7 +199,7 @@ export const dataFrameSlice = createSlice({
                     status.is_showed = false;
                 }
                 state.dfUpdates[df_id] = status; //ifElseDict(action.payload, 'updates');
-                state.dfUpdateCount++;
+                // state.dfUpdateCount++;
             }
         },
         /** set the showed state of the active dataframe status */
