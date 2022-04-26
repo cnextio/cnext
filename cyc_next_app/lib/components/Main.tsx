@@ -12,6 +12,7 @@ const Main: FC = (props: any) => {
         // macbook pro 13 height
         // move this to style files
         <Box display="flex" sx={{ flexDirection: 'column' }} style={{height: "100vh"}}> 
+            {console.log('MainPanel render')}
             {/* <CssBaseline /> */}
             {/* <TopPanel>
                 <LogoComponent />

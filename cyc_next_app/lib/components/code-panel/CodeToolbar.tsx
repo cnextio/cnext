@@ -64,7 +64,7 @@ const CodeToolbar = () => {
         return (
             <Fragment key={id}>
                 <FileNameTab
-                    toolbarName={name}
+                    // toolbarName={name}
                     selected={id == inViewID}
                     component='span'
                     onClick={() => onClick(id)}

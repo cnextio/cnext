@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import path from "path";
 import {
     CodeToolbar as FileExporerHeader,
@@ -92,7 +92,6 @@ const FileExplorer = (props: any) => {
     };
     useEffect(() => {
         setupSocket();
-
         return () => {
             socket.off(WebAppEndpoint.FileExplorer);
         };

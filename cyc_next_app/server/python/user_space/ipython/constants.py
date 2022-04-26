@@ -1,7 +1,9 @@
 from enum import Enum
 
+from libs.json_serializable import JsonSerializable
 
-class IpythonResultMessage:
+
+class IpythonResultMessage(JsonSerializable):
     def __init__(self, **entries):
         self.header = None
         self.msg_id = None
@@ -13,7 +15,7 @@ class IpythonResultMessage:
         self.__dict__.update(entries)
 
 
-class IPythonKernelConstants:
+class IPythonConstants:
     class MessageType(str, Enum):
         EXECUTE_REPLY = 'execute_reply'
         INSPECT_REPLY = 'inspect_reply'
@@ -37,6 +39,11 @@ class IPythonKernelConstants:
         DEBUG_EVENT = 'debug_event'
         INPUT_REPLY = 'input_reply'
 
+    class StreamType(str, Enum):
+        IOBUF = 'iobuf'
+        SHELL = 'shell'
+        CONTROL = 'control'
+
     class ShellMessageStatus(str, Enum):
         OK = 'ok'
         ERROR = 'error'
@@ -52,4 +59,3 @@ class IPythonInteral(Enum):
     DF_MANAGER = '_df_manager'
     CASSIST = '_cassist'
     USER_SPACE = '_user_space'
-

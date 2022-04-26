@@ -41,6 +41,7 @@ type CodeEditorState = {
      * It will increase whenever there is an update to text output results*/
     textOutputUpdateCount: number;
 
+    lineStatusUpdateCount: number;
     activeLine: string | null;
     cAssistInfo: ICAssistInfo | undefined;
     runDict: {} | undefined;
@@ -57,6 +58,7 @@ const initialState: CodeEditorState = {
     resultUpdateCount: 0,
     maxTextOutputOrder: 0,
     textOutputUpdateCount: 0,
+    lineStatusUpdateCount: 0,
     activeLine: null,
     cAssistInfo: undefined,
     runDict: undefined,
@@ -237,6 +239,7 @@ export const CodeEditorRedux = createSlice({
                     codeLines[ln].generated = lineStatus.generated;
                 }
             }
+            state.lineStatusUpdateCount++;
         },
 
         setLineGroupStatus: (state, action) => {
@@ -269,6 +272,7 @@ export const CodeEditorRedux = createSlice({
                 }
                 codeLines[i].groupID = groupID;
             }
+            state.lineStatusUpdateCount++;
         },
 
         /**
@@ -286,19 +290,31 @@ export const CodeEditorRedux = createSlice({
             let lineRange: ILineRange = resultMessage.metadata["line_range"];
             // console.log('CodeEditorRedux addResult: ', resultMessage);    
             /* only create result when content has something */
-            if ((lineRange != null && content) != null && content !== "") {
+            if (lineRange != null && content != null && content !== "") {
                 /** TODO: double check this. for now only associate fromLine to result */
                 let lineNumber = lineRange.fromLine;
                 let codeLine: ICodeLine =
                     state.codeLines[inViewID][lineNumber];
                 /** text result will be appended within each execution. The output will be cleared at the
-                 * beginning of each execution */
+                 * beginning of each execution */                
                 if (resultMessage.type === ContentType.STRING) {
+                    /** Remove backspace out of the text. TODO: move this to a function */
+                    const backspaceReg = RegExp('[\b]+', 'g');
+                    let matchBackspace;
                     if (codeLine.textOutput != null) {
-                        codeLine.textOutput.content = [
-                            codeLine.textOutput.content,
-                            content,
-                        ].join("");
+                        let curContent = codeLine.textOutput.content as string;
+                        if ((matchBackspace = backspaceReg.exec(content)) !== null){
+                            codeLine.textOutput.content = [
+                                curContent.substr(0, curContent.length - matchBackspace[0].length),
+                                content.substr(backspaceReg.lastIndex)
+                            ].join("");
+                        } else {
+                            codeLine.textOutput.content = [
+                                codeLine.textOutput.content,
+                                content,
+                            ].join("");
+                        }
+                        // console.log("CodeEditorRedux ", codeLine.textOutput.content);
                     } else {
                         codeLine.textOutput = {
                             type: resultMessage.type,

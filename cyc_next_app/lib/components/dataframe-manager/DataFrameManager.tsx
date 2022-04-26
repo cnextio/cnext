@@ -15,10 +15,7 @@ import {
     ContentType,
     IDFUpdates,
 } from "../../interfaces/IApp";
-import {
-    DataFrameUpdateType,
-    IAllDataFrameStatus,
-} from "../../interfaces/IDataFrameStatus";
+import { DataFrameUpdateType, IAllDataFrameStatus } from "../../interfaces/IDataFrameStatus";
 import socket from "../Socket";
 import {
     setTableData,
@@ -36,20 +33,16 @@ import { getLastUpdate, hasDefinedStats } from "./libDataFrameManager";
 
 const DataFrameManager = () => {
     const dispatch = useDispatch();
-    const loadDataRequest = useSelector(
-        (state: RootState) => state.dataFrames.loadDataRequest
-    );
+    const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
 
     const dfFilter = useSelector((state: RootState) => state.dataFrames.dfFilter);
 
-    const activeDataFrame = useSelector(
-        (state: RootState) => state.dataFrames.activeDataFrame
-    );
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
 
     const dataFrameConfig = useSelector((state: RootState) => state.dataFrames.stats);
 
     const sendMessage = (message: IMessage) => {
-        console.log(`Send ${WebAppEndpoint.DFManager} request: `, JSON.stringify(message));
+        console.log(`Send DataFrameManager request: `, JSON.stringify(message));
         socket.emit(WebAppEndpoint.DFManager, JSON.stringify(message));
     };
 
@@ -276,14 +269,8 @@ _tmp()`;
         }
     };
 
-    const handleActiveDFStatus = (
-        message: IMessage,
-        reload: boolean = false
-    ) => {
-        console.log(
-            "DataFrameManager got active df status message: ",
-            message.content
-        );
+    const handleActiveDFStatus = (message: IMessage, reload: boolean = false) => {
+        console.log("DataFrameManager got active df status message: ", message.content);
         const allDFStatus = message.content as IAllDataFrameStatus;
 
         // console.log(dfStatusContent);
@@ -328,7 +315,7 @@ _tmp()`;
         const df_id = message.metadata["df_id"];
         // const tableData = JSON.parse(message.content);
         const tableData = message.content;
-        console.log("DFManager: dispatch to tableData (DataFrame) ", tableData);
+        console.log("DataFrameManager: dispatch to tableData (DataFrame) ", tableData);
         dispatch(setTableData(tableData));
         if (df_id != null && isDataFrameUpdated(df_id)) {
             dispatch(setActiveDF(df_id));
@@ -375,20 +362,14 @@ _tmp()`;
         }
     };
 
-    const socket_init = () => {
+    const socketInit = () => {
         // console.log('DFManager useEffect');
         socket.emit("ping", "DFManager");
         socket.on(WebAppEndpoint.DFManager, (result: string) => {
             try {
                 let message: IMessage = JSON.parse(result);
-                console.log(
-                    "DFManager got results for command ",
-                    message.command_name
-                );
-                if (
-                    message.type === ContentType.STRING ||
-                    message.error === true
-                ) {
+                console.log("DataFrameManager got results for command ", message.command_name);
+                if (message.type === ContentType.STRING || message.error === true) {
                     // let inViewID = store.getState().projectManager.inViewID;
                     // if (inViewID) {
                     //     let result: ICodeResultMessage = {
@@ -402,30 +383,20 @@ _tmp()`;
                     // }
                     //TODO: display this on CodeOutput
                     console.log("DataFrameManager: got text output ", message);
-                } else if (
-                    message.command_name == CommandName.update_df_status
-                ) {
+                } else if (message.command_name == CommandName.update_df_status) {
                     handleActiveDFStatus(message);
-                } else if (
-                    message.command_name == CommandName.reload_df_status
-                ) {
-                    console.log("DFManager reload_df_status:", message);
+                } else if (message.command_name == CommandName.reload_df_status) {
+                    console.log("DataFrameManager reload_df_status:", message);
                     handleActiveDFStatus(message, true);
                 } else if (message.command_name == CommandName.get_table_data) {
                     handleGetTableData(message);
-                } else if (
-                    message.command_name == CommandName.plot_column_histogram
-                ) {
+                } else if (message.command_name == CommandName.plot_column_histogram) {
                     handlePlotColumnHistogram(message);
-                } else if (
-                    message.command_name == CommandName.plot_column_quantile
-                ) {
+                } else if (message.command_name == CommandName.plot_column_quantile) {
                     handlePlotColumnQuantile(message);
                     // } else if (message.command_name == CommandName.get_countna) {
                     //     handleGetCountna(message);
-                } else if (
-                    message.command_name == CommandName.get_df_metadata
-                ) {
+                } else if (message.command_name == CommandName.get_df_metadata) {
                     handleGetDFMetadata(message);
                 } else {
                     console.log("dispatch text output");
@@ -439,8 +410,7 @@ _tmp()`;
     };
 
     useEffect(() => {
-        socket_init();
-
+        socketInit();
         return () => {
             socket.off(WebAppEndpoint.DFManager);
         };
