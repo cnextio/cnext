@@ -89,14 +89,6 @@ const MiniSidebar = () => {
         dispatch(clearTextOutputs(inViewID));
     };
 
-    const handleClickRestartKernel = () => {
-        console.log("handleClickRestartKernel");
-    };
-
-    const handleClickInterruptKernel = () => {
-        console.log("handleClickInterruptKernel");
-    };
-
     const handleClickChangeLayout = () => {
         const state = store.getState();
         const viewMode = state.projectManager.configs.view_mode;
