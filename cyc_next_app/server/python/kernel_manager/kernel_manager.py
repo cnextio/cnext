@@ -17,15 +17,15 @@ class MessageHandler(BaseMessageHandler):
         log.info('FileManager handle message: %s %s %s' %
                  (message.command_name, message.type, message.sub_type))
         try:
-            result = None
+            ipython_kernel = IPythonKernel.get_instance()
             if message.command_name == KernelManagerCommand.restart_kernel:
-                IPythonKernel().restart_kernel()
+                ipython_kernel.restart_kernel()
             elif message.command_name == KernelManagerCommand.interrupt_kernel:
-                IPythonKernel().interrupt_kernel()
+                ipython_kernel.interrupt_kernel()
 
             # create reply message
             message.type = type
-            message.content = result
+            message.content = ""
             message.error = False
             self._send_to_node(message)
 
