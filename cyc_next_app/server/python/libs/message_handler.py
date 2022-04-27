@@ -90,24 +90,6 @@ class BaseMessageHandler:
         return result
 
     @staticmethod
-    def exception_handler(func):
-        def wrapper_func(*args, **kwargs):
-            try:
-                func(*args, **kwargs)
-            except:
-                trace = traceback.format_exc()
-                log.info("Exception %s" % (trace))
-                if args[3] != None:
-                    error_message = BaseMessageHandler._create_error_message(
-                        args[3]['webapp_endpoint'], trace, {})
-                    BaseMessageHandler._send_to_node(error_message)
-                elif 'client_message' in kwargs:
-                    error_message = BaseMessageHandler._create_error_message(
-                        kwargs['client_message']['webapp_endpoint'], trace, {})
-                    BaseMessageHandler._send_to_node(error_message)
-        return wrapper_func
-
-    @staticmethod
     def _create_error_message(webapp_endpoint, trace, metadata=None):
         return Message(**{
             "webapp_endpoint": webapp_endpoint,

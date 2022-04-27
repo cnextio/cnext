@@ -1,8 +1,6 @@
 import React, { Fragment } from "react";
-import { StyledTableViewHeader, RichOuputViewHeaderButton, DataPanelToolbarBtn } from "../StyledComponents";
+import { StyledTableViewHeader, RichOuputViewHeaderButton } from "../StyledComponents";
 import { RichOutputPanelToolbarItems } from "../../interfaces/IRichOuputViewer";
-import { GridViewStatus } from "./data-panel/GridView";
-import GridOnIcon from "@mui/icons-material/GridOn";
 
 const RichOuputPanelHeader = ({ show, setShow }) => {
     // const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);

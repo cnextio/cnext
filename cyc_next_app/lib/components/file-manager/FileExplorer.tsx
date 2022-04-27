@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import path from "path";
 import {
     CodeToolbar as FileExporerHeader,
@@ -47,7 +47,6 @@ const FileExplorer = (props: any) => {
     // const [clickedItemParent, setClickedItemParent] = useState<string|null>(null);
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
-    const [deleteItemInProgress, setDeleteItemInProgress] = useState<boolean>(false);
     const [expanded, setExpanded] = useState<Array<string>>([]);
     const [deleteDialog, setDeleteDialog] = useState(false);
     const dispatch = useDispatch();
@@ -84,8 +83,6 @@ const FileExplorer = (props: any) => {
                         if (openFiles.length > 0) {
                             dispatch(setInView(openFiles[0].path));
                         }
-                        // setDeleteItemInProgress(false);
-                        // dispatch(setInView(fmResult.metadata['path']));
                         break;
                 }
             } catch (error) {
@@ -181,7 +178,6 @@ const FileExplorer = (props: any) => {
     };
 
     const handleContextMenuSelection = (item: FileContextMenuItem) => {
-        // console.log('FileExplorer: ', item);
         switch (item) {
             case FileContextMenuItem.NEW_FILE:
                 if (contextMenuItems) {
@@ -193,7 +189,6 @@ const FileExplorer = (props: any) => {
                 break;
             case FileContextMenuItem.DELETE:
                 if (contextMenuItems) {
-                    // setRemoveItemInProgress(true);
                     setDeleteDialog(true);
                 }
                 break;
@@ -210,7 +205,6 @@ const FileExplorer = (props: any) => {
     };
 
     const relativeProjectPath = "";
-    const handleCreateFile = (fileName: string) => {};
 
     const handleNewItemKeyPress = (event: React.KeyboardEvent, value: string) => {
         // console.log('FileExplorer', event.key);
@@ -295,8 +289,6 @@ const FileExplorer = (props: any) => {
     };
 
     const handleDeleteDialogClose = (confirm) => {
-        console.log(confirm);
-        console.log(contextMenuItems);
         if (confirm && contextMenuItems) {
             const state = store.getState();
             const projectPath = state.projectManager.activeProject?.path;
@@ -354,11 +346,13 @@ const FileExplorer = (props: any) => {
                 handleSelection={handleContextMenuSelection}
                 contextMenuItem={contextMenuItems}
             />
-            <DeleteConfirmation
-                deleteDialog={deleteDialog}
-                confirmDelete={handleDeleteDialogClose}
-                itemName={contextMenuItems?.item}
-            />
+            {deleteDialog && contextMenuItems?.item != null && (
+                <DeleteConfirmation
+                    deleteDialog={deleteDialog}
+                    confirmDelete={handleDeleteDialogClose}
+                    itemName={contextMenuItems?.item}
+                />
+            )}
         </Fragment>
     );
 };

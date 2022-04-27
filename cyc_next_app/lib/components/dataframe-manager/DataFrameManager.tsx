@@ -15,10 +15,7 @@ import {
     ContentType,
     IDFUpdates,
 } from "../../interfaces/IApp";
-import {
-    DataFrameUpdateType,
-    IAllDataFrameStatus,
-} from "../../interfaces/IDataFrameStatus";
+import { DataFrameUpdateType, IAllDataFrameStatus } from "../../interfaces/IDataFrameStatus";
 import socket from "../Socket";
 import {
     setTableData,
@@ -36,15 +33,11 @@ import { getLastUpdate, hasDefinedStats } from "./libDataFrameManager";
 
 const DataFrameManager = () => {
     const dispatch = useDispatch();
-    const loadDataRequest = useSelector(
-        (state: RootState) => state.dataFrames.loadDataRequest
-    );
+    const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
 
     const dfFilter = useSelector((state: RootState) => state.dataFrames.dfFilter);
 
-    const activeDataFrame = useSelector(
-        (state: RootState) => state.dataFrames.activeDataFrame
-    );
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
 
     const dataFrameConfig = useSelector((state: RootState) => state.dataFrames.stats);
 
@@ -276,14 +269,8 @@ _tmp()`;
         }
     };
 
-    const handleActiveDFStatus = (
-        message: IMessage,
-        reload: boolean = false
-    ) => {
-        console.log(
-            "DataFrameManager got active df status message: ",
-            message.content
-        );
+    const handleActiveDFStatus = (message: IMessage, reload: boolean = false) => {
+        console.log("DataFrameManager got active df status message: ", message.content);
         const allDFStatus = message.content as IAllDataFrameStatus;
 
         // console.log(dfStatusContent);
@@ -382,10 +369,7 @@ _tmp()`;
             try {
                 let message: IMessage = JSON.parse(result);
                 console.log("DataFrameManager got results for command ", message.command_name);
-                if (
-                    message.type === ContentType.STRING ||
-                    message.error === true
-                ) {
+                if (message.type === ContentType.STRING || message.error === true) {
                     // let inViewID = store.getState().projectManager.inViewID;
                     // if (inViewID) {
                     //     let result: ICodeResultMessage = {
@@ -399,30 +383,20 @@ _tmp()`;
                     // }
                     //TODO: display this on CodeOutput
                     console.log("DataFrameManager: got text output ", message);
-                } else if (
-                    message.command_name == CommandName.update_df_status
-                ) {
+                } else if (message.command_name == CommandName.update_df_status) {
                     handleActiveDFStatus(message);
-                } else if (
-                    message.command_name == CommandName.reload_df_status
-                ) {
+                } else if (message.command_name == CommandName.reload_df_status) {
                     console.log("DataFrameManager reload_df_status:", message);
                     handleActiveDFStatus(message, true);
                 } else if (message.command_name == CommandName.get_table_data) {
                     handleGetTableData(message);
-                } else if (
-                    message.command_name == CommandName.plot_column_histogram
-                ) {
+                } else if (message.command_name == CommandName.plot_column_histogram) {
                     handlePlotColumnHistogram(message);
-                } else if (
-                    message.command_name == CommandName.plot_column_quantile
-                ) {
+                } else if (message.command_name == CommandName.plot_column_quantile) {
                     handlePlotColumnQuantile(message);
                     // } else if (message.command_name == CommandName.get_countna) {
                     //     handleGetCountna(message);
-                } else if (
-                    message.command_name == CommandName.get_df_metadata
-                ) {
+                } else if (message.command_name == CommandName.get_df_metadata) {
                     handleGetDFMetadata(message);
                 } else {
                     console.log("dispatch text output");
@@ -444,10 +418,7 @@ _tmp()`;
 
     useEffect(() => {
         if (loadDataRequest.df_id != null) {
-            sendGetTableDataAroundRowIndex(
-                loadDataRequest.df_id,
-                loadDataRequest.row_index
-            );
+            sendGetTableDataAroundRowIndex(loadDataRequest.df_id, loadDataRequest.row_index);
         }
     }, [loadDataRequest]);
 
@@ -460,10 +431,7 @@ _tmp()`;
     useEffect(() => {
         if (activeDataFrame != null) {
             let state = store.getState();
-            if (
-                !hasDefinedStats(activeDataFrame, state.dataFrames) &&
-                showDefinedStats
-            ) {
+            if (!hasDefinedStats(activeDataFrame, state.dataFrames) && showDefinedStats) {
                 let metadata = state.dataFrames.metadata[activeDataFrame];
                 if (metadata) {
                     let columns: string[] = Object.keys(metadata.columns);

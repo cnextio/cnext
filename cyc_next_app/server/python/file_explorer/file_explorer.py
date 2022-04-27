@@ -41,8 +41,13 @@ class MessageHandler(BaseMessageHandler):
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.delete:
                 if 'path' in metadata.keys() and 'project_path' in metadata.keys():
-                    files.delete(norm_project_path, norm_path,
-                                 metadata['is_file'])
+                    files.delete(norm_project_path, norm_path)
+
+                    # Delete state file
+                    state_file_path = files.get_state_path(
+                        norm_project_path, norm_path)
+                    if os.path.exists(state_file_path):
+                        files.delete(norm_project_path, state_file_path)
                 if ('is_file' in metadata) and metadata['is_file']:
                     output = projects.close_file(metadata['path'])
                 else:  # TODO: handle the case where a dir is deleted and deleted files were opened
