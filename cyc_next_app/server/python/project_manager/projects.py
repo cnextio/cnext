@@ -111,7 +111,6 @@ def set_working_dir(path):
 
 
 def save_project_config(content):
-
     try:
         # config_file_path = os.path.join(project_path, FILE_CONFIG)
         active_project = get_active_project()
