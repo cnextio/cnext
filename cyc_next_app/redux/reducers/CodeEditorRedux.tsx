@@ -201,6 +201,8 @@ export const CodeEditorRedux = createSlice({
                     ...codeLines.slice(0, modifiedStartLineNumber + 1),
                     ...codeLines.slice(modifiedStartLineNumber + 1 + deletedLineCount),
                 ];
+                /** lines that is in the same group as  modifiedStartLineNumber will be considered editted */
+                setGroupEdittedStatus(codeLines, modifiedStartLineNumber, startLineGroupID);
             }
 
             /** mark the first line where the insert is `edited`, this is correct in most case except for case
