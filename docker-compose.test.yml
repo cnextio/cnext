@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+    python:
+        build:
+            context: .
+            dockerfile: Dockerfile-poetry
+        container_name: deploy
+        command: pip install poetry
