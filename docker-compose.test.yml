@@ -1,9 +1,8 @@
 version: '3'
 
 services:
-    python:
+    sut:
         build:
             context: .
             dockerfile: Dockerfile-poetry
-        container_name: deploy
-        command: pip install poetry
+        command: run_tests.sh
