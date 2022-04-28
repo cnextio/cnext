@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cycai-cnext"
-version = "0.2.8"
+version = "0.2.10"
 description = "improve your AI work follow"
 authors = ["cycai company"]
 license = "MIT"

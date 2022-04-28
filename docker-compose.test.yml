@@ -5,4 +5,3 @@ services:
         build:
             context: .
             dockerfile: Dockerfile-poetry
-        command: run_tests.sh
