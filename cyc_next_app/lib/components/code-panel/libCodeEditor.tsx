@@ -78,23 +78,20 @@ const editStatusGutter = (inViewID: string|null, lines: ICodeLine[]|null) => gut
     initialSpacer: () => executedMarker
 })
 
-const getCodeText = (state) => {
+const getCodeText = (state: RootState) => {
     // let state = store.getState();
     let inViewID = state.projectManager.inViewID;
-    // console.log('CodeEditor getCodeText ', inViewID, editorRef.current);
-    let codeText;
-    if (inViewID) {            
-        codeText = ifElse(state.codeEditor.codeText, inViewID, null);            
+    if (inViewID) {
+        return ifElse(state.codeEditor.codeText, inViewID, null);
     }
-    return codeText;
-}
+    return null;
+};
 
-const getJoinedCodeText = (state) => {
+const getJoinedCodeText = (state: RootState) => {
     let codeText = getCodeText(state);
-    if (codeText)
-        codeText = codeText.join('\n');
+    if (codeText) codeText = codeText.join("\n");
     return codeText;
-}
+};
 
 const scrollToPrevPos = (state) => {
     let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;

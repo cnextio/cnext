@@ -93,7 +93,8 @@ const CodeEditor = () => {
 
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
 
-    const codeLines: ICodeLine[] | null = useSelector((state: RootState) => getCodeLine(state));
+    // using this to trigger refresh in gutter
+    const codeText = useSelector((state: RootState) => getCodeText(state));
 
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
 
