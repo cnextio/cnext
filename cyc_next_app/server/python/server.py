@@ -1,5 +1,6 @@
 from libs import logs
 import pandas as pd
+import zmq
 from code_editor import code_editor_basekernel as ce_base
 from code_editor import code_editor as ce
 from dataframe_manager import dataframe_manager_basekernel as dm_base
@@ -18,22 +19,50 @@ from libs.config import read_config
 import sys
 import simplejson as json
 from libs.message_handler import BaseMessageHandler
-from libs.message import ExecutorType
+from libs.message import ExecutorType, MessageType
 
 from user_space.user_space import BaseKernel, UserSpace
 from user_space.ipython.kernel import IPythonKernel
 
 log = logs.get_logger(__name__)
 
+config = read_config('.server.yaml', {'code_executor_comm': {
+    'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
+
+
+def control_kernel():
+    n2p_queue = MessageQueue(
+        config.p2n_comm['host'],
+        config.p2n_comm['n2p_port'],
+        type=MessageType.N2P
+    )
+    user_space = UserSpace(IPythonKernel(), [cd.DataFrame, pd.DataFrame])
+    while True:
+        try:
+            message_recv = n2p_queue.receive_msg()
+            if message_recv:
+                p2n_queue = MessageQueue(
+                    config.p2n_comm['host'], config.p2n_comm['p2n_port'])
+                message = Message(**json.loads(message_recv))
+                log.info('Got message from %s command %s' %
+                         (message.webapp_endpoint, message.command_name))
+                km.MessageHandler(
+                    n2p_queue, user_space).handle_message(message)
+        except:
+            log.error("Failed to execute the control message %s",
+                      traceback.format_exc())
+            message = BaseMessageHandler._create_error_message(
+                message.webapp_endpoint, traceback.format_exc())
+            BaseMessageHandler.send_message(
+                p2n_queue, message.toJSON())
+        finally:
+            n2p_queue.close()
+
 
 def main(argv):
     if argv and len(argv) > 0:
         executor_type = argv[0]
         try:
-            config = read_config('.server.yaml', {'code_executor_comm': {
-                'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
-            log.info('Server config: %s' % config)
-
             p2n_queue = MessageQueue(
                 config.p2n_comm['host'], config.p2n_comm['p2n_port'])
 
@@ -51,7 +80,6 @@ def main(argv):
                     WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, noncode_user_space),
                     WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, noncode_user_space, config),
                     WebappEndpoint.FileExplorer: fe.MessageHandler(p2n_queue, noncode_user_space),
-                    WebappEndpoint.KernelManager: km.MessageHandler(p2n_queue, noncode_user_space),
                 }
         except Exception as error:
             log.error("%s - %s" % (error, traceback.format_exc()))
@@ -89,3 +117,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+    control_kernel()

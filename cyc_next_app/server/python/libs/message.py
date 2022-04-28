@@ -157,3 +157,8 @@ class Message:
 class ExecutorType(str, Enum):
     CODE = 'code'
     NONCODE = 'noncode'
+
+
+class MessageType(str, Enum):
+    P2N = 'p2n'
+    N2P = 'n2p'

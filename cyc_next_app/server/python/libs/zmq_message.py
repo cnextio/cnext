@@ -1,29 +1,37 @@
 import zmq
 from libs import logs
-
+from libs.message import MessageType
 # log = logs.get_logger(__name__)
 
+
 class MessageQueue:
-    def __init__(self, host: str, port: int, hwm=1000):
+    def __init__(self, host: str, port: int, type=MessageType.P2N, hwm=1000):
         context = zmq.Context()
         self.host = host
         self.port = port
         self.addr = '{}:{}'.format(host, port)
-        self.pub: zmq.Socket = context.socket(zmq.PUSH)            
-        self.pub.connect(self.addr)
+        if type == MessageType.P2N:
+            self.push: zmq.Socket = context.socket(zmq.PUSH)
+            self.push.connect(self.addr)
+        elif type == MessageType.N2P:
+            self.pull: zmq.Socket = context.socket(zmq.PULL)
+            self.pull.connect(self.addr)
 
-    def get_socket(self):    
-        return self.pub
+    def get_socket(self):
+        return self.push
 
     def send(self, message):
         # TODO: could not explain why NOBLOCK would not work even when the receiver already connects
         # TODO: and calls `receive` command
         # res = self.push_queue.send_json(message)#, flags=zmq.NOBLOCK)
-        res = self.pub.send_string(message)
+        res = self.push.send_string(message)
         return res
 
     def close(self):
         self.pull_queue.disconnect(self.addr)
+
+    def receive_msg(self):
+        return self.pull.recv()
 
 # class MessageQueue:
 #     def __init__(self, host: str, port: int, hwm=1000, is_producer=True):
@@ -35,14 +43,14 @@ class MessageQueue:
 #         if is_producer:
 #             self.push_queue: zmq.Socket = context.socket(zmq.PUSH)
 #             # self.push_queue.setsockopt(zmq.SNDHWM, 5)
-#             # log.info("ZMQ option: %s" % self.push_queue.hwm)             
+#             # log.info("ZMQ option: %s" % self.push_queue.hwm)
 #             self.push_queue.bind(self.addr)
 #         else:
 #             self.pull_queue: zmq.Socket = context.socket(zmq.PULL)
 #             self.pull_queue.connect(self.addr)
 
 
-#     def get_socket(self):    
+#     def get_socket(self):
 #         return self.push_queue
 
 #     def push(self, message):

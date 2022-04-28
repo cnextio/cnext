@@ -20,6 +20,7 @@ const options = {
     cors: {
         origin: [process.env.CLIENT_URL],
         methods: ['GET', 'POST'],
+
     },
 };
 const io = new socketIo.Server(server, options);
@@ -33,7 +34,8 @@ const MagicCommandGen = 'MagicCommandGen';
 const ExperimentManager = 'ExperimentManager';
 const KernelManager = 'KernelManager';
 const CodeExecutor = [CodeEditor, DFManager, MagicCommandGen];
-const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer, KernelManager];
+const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
+const ControllerExecutor = [KernelManager];
 
 const LSPExecutor = [
     LanguageServer,
@@ -111,6 +113,25 @@ class PythonProcess {
     }
 }
 
+// /* Initialize n2p socket */
+const sock = new zmq.Push;
+const n2p_host = config.p2n_comm.host;
+const n2p_port = config.p2n_comm.n2p_port;
+const n2p_address = `${n2p_host}:${n2p_port}`;
+sock.bind(n2p_address);
+            
+// class N2PSocket {
+//     constructor() {
+//         this.sock = new zmq.Push;
+//         this.sock.sendHighWaterMark = 100;
+//         const n2p_host = config.p2n_comm.host;
+//         const n2p_port = config.p2n_comm.n2p_port;
+//         this.sock.bind(`${n2p_host}:${n2p_port}`);
+//     };
+// }
+// const n2pSocket = new N2PSocket();
+
+
 /*
  * Communicate with web client
  */
@@ -150,6 +171,9 @@ try {
                 nonCodeExecutorHandler(message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
+            } else if (ControllerExecutor.includes(endpoint)) {
+                // This is temporary solution, when refactor the nodejs completely conenct to python by ZMQ, we 'll refactor later
+                zmq_sender(message);
             }
         });
         socket.once('disconnect', () => {});
@@ -167,11 +191,29 @@ try {
     let lspExecutor = new LSPProcess(io);
 
     /**
+     * ZMQ communication from node server to python-shell
+     */
+    async function zmq_sender(message) {
+        try {
+            while (true) {
+                const jsonMessage = JSON.parse(message.toString());
+                console.log(
+                    `command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`
+                );
+                await sock.send(message)
+                // new Promise(resolve => setTimeout(resolve, 500))
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+
+    /**
      * ZMQ communication from python-shell to node server
      */
     async function zmq_receiver() {
         const command_output_zmq = new zmq.Pull();
-
         const p2n_host = config.p2n_comm.host;
         const p2n_port = config.p2n_comm.p2n_port;
         await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);
@@ -180,11 +222,11 @@ try {
         console.log(`Waiting for python executor message on ${p2n_port}`);
 
         for await (const [message] of command_output_zmq) {
-            const json_message = JSON.parse(message.toString());
+            const jsonMessage = JSON.parse(message.toString());
             console.log(
-                `command_output_zmq: forward output to ${json_message["webapp_endpoint"]}`
+                `command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`
             );
-            sendOutput(json_message);
+            sendOutput(jsonMessage);
         }
     }
 
