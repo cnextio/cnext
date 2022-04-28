@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cycai-cnext"
-version = "0.2.8"
+version = "0.2.10"
 description = "improve your AI work follow"
 authors = ["cycai company"]
 license = "MIT"
@@ -19,7 +19,7 @@ cnext-path = "cyc_next_app.__main__:path"
 cnext-run = "cyc_next_app.__main__:start"
 
 [tool.poetry.dependencies]
-python = "3.9"
+python = "3.9.12"
 plotly = "5.7.0"
 simplejson = "3.17.6"
 requests = "2.27.1"
