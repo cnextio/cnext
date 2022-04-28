@@ -490,7 +490,7 @@ const CodeEditor = () => {
             /** do nothing if the update is due to code reloading from external source */
             if (codeReloading) return;
 
-            let doc = viewUpdate.state.doc;            
+            let doc = viewUpdate.state.doc;
             let serverSynced = store.getState().projectManager.serverSynced;
             viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
                 console.log(
@@ -515,12 +515,12 @@ const CodeEditor = () => {
                 viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
                     changeStartLine = doc.lineAt(fromA);
                 });
-                
+
                 // convert the line number 0-based index, which is what we use internally
                 let changeStartLineNumber = changeStartLine.number - 1;
                 // console.log(changes);
                 // console.log('changeStartLineNumber', changeStartLineNumber);
-                
+
                 if (updatedLineCount > 0) {
                     console.log(
                         "changeStartLine: ",
@@ -541,11 +541,10 @@ const CodeEditor = () => {
                     dispatch(updateLines(updatedLineInfo));
                 } else if (updatedLineCount < 0) {
                     console.log(
-                        "changeStartLine: ",
+                        "CodeEditor changeStartLine: ",
                         changeStartLine,
-                        inViewCodeText[changeStartLineNumber - updatedLineCount],
-                        changeStartLine.text !=
-                            inViewCodeText[changeStartLineNumber - updatedLineCount],                        
+                        inViewCodeText[changeStartLineNumber],
+                        changeStartLine.text != inViewCodeText[changeStartLineNumber]
                     );
                     // Note 1: _getCurrentLineNumber returns line number indexed starting from 1.
                     // Convert it to 0-indexed by -1.
@@ -555,8 +554,7 @@ const CodeEditor = () => {
                         updatedStartLineNumber: changeStartLineNumber,
                         updatedLineCount: updatedLineCount,
                         startLineChanged:
-                            changeStartLine.text !=
-                            inViewCodeText[changeStartLineNumber - updatedLineCount],
+                            changeStartLine.text != inViewCodeText[changeStartLineNumber],
                     };
                     dispatch(updateLines(updatedLineInfo));
                 } else {
