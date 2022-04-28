@@ -5,7 +5,13 @@ import {
     IFileMetadata,
     IProjectMetadata,
 } from "../../lib/interfaces/IFileManager";
-import { IConfigs, ViewMode } from "../../lib/interfaces/IApp";
+import { IConfigs, IShorcutKey, ViewMode } from "../../lib/interfaces/IApp";
+
+const originalShortcutKeys: IShorcutKey = {
+    run_queue: "Mod-l",
+    set_group: "Mod-k",
+    set_ungroup: "Mod-j",
+};
 
 type ProjectManagerState = {
     openFiles: { [id: string]: IFileMetadata };
@@ -41,7 +47,10 @@ const initialState: ProjectManagerState = {
     //     },
     //     view_mode: ViewMode.VERTICAL,
     // },
-    configs: { view_mode: ViewMode.VERTICAL },
+    configs: {
+        view_mode: ViewMode.VERTICAL,
+        shortcut_keys: originalShortcutKeys,
+    },
 };
 
 export const ProjectManagerRedux = createSlice({

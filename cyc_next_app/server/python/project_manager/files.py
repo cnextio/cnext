@@ -13,6 +13,7 @@ CNEXT_FOLDER_PATH = '.cnext'
 
 UNDELETABLE_FILES = ['main.py', 'config.json']
 
+
 def list_dir(project_path, relative_dir_path):
     dir_list: DirMetatdata = []
     try:
@@ -56,13 +57,14 @@ def set_name(path):
 def read_file(project_path, relative_file_path, timestamp=None):
     try:
         result: FileContent = None
-        log.info('Read file %s, old timestamp %s' % (relative_file_path, timestamp))
+        log.info('Read file %s, old timestamp %s' %
+                 (relative_file_path, timestamp))
         file_path = get_abs_file_path(project_path, relative_file_path)
         if (timestamp != os.path.getmtime(file_path)):
             timestamp = os.path.getmtime(file_path)
             log.info('Read file have new timestamp %s, %s' %
                      (file_path, timestamp))
-            # Read file content            
+            # Read file content
             with open(file_path) as file:
                 content = file.read()
                 content_lines = content.splitlines()
@@ -100,7 +102,7 @@ def create_file(project_path, relative_file_path):
         raise Exception
 
 
-def delete(project_path, relative_file_path, is_file):
+def delete(project_path, relative_file_path):
     try:
         file_path = get_abs_file_path(project_path, relative_file_path)
         log.info('Send item to trash %s' % file_path)
@@ -117,9 +119,10 @@ def save_file(project_path, relative_file_path, content):
     try:
         log.info('Save file {}'.format(relative_file_path))
         file_path = get_abs_file_path(project_path, relative_file_path)
+        file_name = relative_file_path.split('/')[-1]
         with open(file_path, 'w') as file:
             file.write(content)
-        return FileMetadata(relative_file_path, name=relative_file_path.split('/')[-1], timestamp=os.path.getmtime(file_path))
+        return FileMetadata(relative_file_path, name=file_name, timestamp=os.path.getmtime(file_path))
     except Exception:
         raise Exception
 
@@ -135,7 +138,7 @@ def save_state(project_path, relative_file_path, content):
         os.makedirs(os.path.dirname(state_file_path), exist_ok=True)
         with open(state_file_path, 'w') as outfile:
             outfile.write(json.dumps(content))
-        #TODO return the relative state path instead
+        # TODO return the relative state path instead
         return FileMetadata(relative_file_path, name=state_file_name, timestamp=os.path.getmtime(state_file_path))
     except Exception as ex:
         log.error("Save state error: {}".format(ex))

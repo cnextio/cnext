@@ -1,4 +1,4 @@
-import { Checkbox, FormControlLabel, FormGroup, Typography } from "@mui/material";
+import { Checkbox, Typography } from "@mui/material";
 import React, { Fragment, useEffect, useState } from "react";
 import Moment from "react-moment";
 import "moment-timezone";
@@ -26,7 +26,7 @@ import {
     setSelectedExp,
 } from "../../../../redux/reducers/ExperimentManagerRedux";
 import store, { RootState } from "../../../../redux/store";
-import { DefaultRootState, shallowEqual, useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { setCodeToInsert } from "../../../../redux/reducers/CodeEditorRedux";
 import { ICodeToInsert } from "../../../interfaces/ICodeEditor";
 import { IMenuItem, MetricPlotContextMenuItems } from "../../../interfaces/IContextMenu";
@@ -303,7 +303,7 @@ const ExperimentManager = (props: any) => {
     return (
         <ExperimentContainer>
             <ExperimentLeftPanel>
-                <Typography variant="subtitle">Experiments</Typography>
+                <Typography variant='subtitle'>Experiments</Typography>
                 <ExpSelectorForm>
                     <ExpSelector
                         onChange={handleExpChange}
@@ -318,15 +318,15 @@ const ExperimentManager = (props: any) => {
                             return (
                                 <Fragment>
                                     {selectedExpId && expDict ? (
-                                        <Typography height="100%" variant="caption" fontSize="14px">
+                                        <Typography height='100%' variant='caption' fontSize='14px'>
                                             {expDict[selectedExpId]["_name"]}
                                         </Typography>
                                     ) : (
                                         <Typography
-                                            height="100%"
-                                            variant="caption"
-                                            fontSize="12px"
-                                            color="#BFC7CF"
+                                            height='100%'
+                                            variant='caption'
+                                            fontSize='12px'
+                                            color='#BFC7CF'
                                         >
                                             Experiments
                                         </Typography>
@@ -343,7 +343,7 @@ const ExperimentManager = (props: any) => {
                             ))}
                     </ExpSelector>
                 </ExpSelectorForm>
-                <Typography variant="subtitle">Runs</Typography>
+                <Typography variant='subtitle'>Runs</Typography>
                 <RunSelectorForm>
                     {runDict &&
                         Object.keys(runDict)
@@ -364,7 +364,7 @@ const ExperimentManager = (props: any) => {
                                             {runDict[key]["_cnext_metadata"]["run_name"]}
                                             {" - "}
                                             <RunTimeLabel
-                                                variant="caption"
+                                                variant='caption'
                                                 sx={{ fontStyle: "italic" }}
                                             >
                                                 <Moment unix fromNow>

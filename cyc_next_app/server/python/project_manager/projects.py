@@ -111,7 +111,6 @@ def set_working_dir(path):
 
 
 def save_project_config(content):
-
     try:
         # config_file_path = os.path.join(project_path, FILE_CONFIG)
         active_project = get_active_project()
@@ -119,7 +118,7 @@ def save_project_config(content):
             active_project.path, FILE_CONFIG)
         os.makedirs(os.path.dirname(config_file_path), exist_ok=True)
         with open(config_file_path, 'w') as outfile:
-            outfile.write(json.dumps(content))
+            outfile.write(json.dumps(content, indent=4))
         return FileMetadata(config_file_path, name=FILE_CONFIG, timestamp=os.path.getmtime(config_file_path))
     except Exception as ex:
         log.error("Save config error: {}".format(ex))
