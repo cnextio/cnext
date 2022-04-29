@@ -2,7 +2,6 @@ from enum import Enum
 import threading
 import traceback
 import simplejson as json
-from zmq import PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_MESSAGE
 import cycdataframe.user_space as _cus
 import cycdataframe.df_status_hook as _sh
 from user_space.ipython.kernel import IPythonKernel

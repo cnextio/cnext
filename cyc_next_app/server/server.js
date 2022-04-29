@@ -113,25 +113,6 @@ class PythonProcess {
     }
 }
 
-// /* Initialize n2p socket */
-const sock = new zmq.Push;
-const n2p_host = config.p2n_comm.host;
-const n2p_port = config.p2n_comm.n2p_port;
-const n2p_address = `${n2p_host}:${n2p_port}`;
-sock.bind(n2p_address);
-            
-// class N2PSocket {
-//     constructor() {
-//         this.sock = new zmq.Push;
-//         this.sock.sendHighWaterMark = 100;
-//         const n2p_host = config.p2n_comm.host;
-//         const n2p_port = config.p2n_comm.n2p_port;
-//         this.sock.bind(`${n2p_host}:${n2p_port}`);
-//     };
-// }
-// const n2pSocket = new N2PSocket();
-
-
 /*
  * Communicate with web client
  */
@@ -194,19 +175,26 @@ try {
      * ZMQ communication from node server to python-shell
      */
     async function zmq_sender(message) {
-        try {
             while (true) {
-                const jsonMessage = JSON.parse(message.toString());
+                const sock = new zmq.Push({linger: 0});
+                const n2p_host = config.p2n_comm.host;
+                const n2p_port = config.p2n_comm.n2p_port;
+                const n2p_address = `${n2p_host}:${n2p_port}`;
+                sock.connect(n2p_address);
+                try {
+                    const jsonMessage = JSON.parse(message.toString());
                 console.log(
                     `command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`
                 );
-                await sock.send(message)
-                // new Promise(resolve => setTimeout(resolve, 500))
+                await sock.send(message);
+                new Promise(resolve => setTimeout(resolve, 500));
+                } catch (err) {
+                    console.log(err);
+                    sock.close();
+                } finally {
+                    sock.close();
+                }
             }
-        } catch (error) {
-            console.log(error);
-        }
-        
     }
 
     /**

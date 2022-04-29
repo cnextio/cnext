@@ -157,8 +157,3 @@ class Message:
 class ExecutorType(str, Enum):
     CODE = 'code'
     NONCODE = 'noncode'
-
-
-class MessageQueueType(str, Enum):
-    PUSH = 'push'
-    PULL = 'pull'

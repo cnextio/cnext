@@ -1,21 +1,51 @@
 import zmq
-from libs import logs
-from libs.message import MessageQueueType
+
+
+# from libs import logs
 # log = logs.get_logger(__name__)
+# class MessageQueue:
+#     def __init__(self, host: str, port: int, type=MessageQueueType.PULL, hwm=1000):
+#         context = zmq.Context()
+#         self.host = host
+#         self.port = port
+#         self.addr = '{}:{}'.format(host, port)
+#         if type == MessageQueueType.PUSH:
+#             self.push: zmq.Socket = context.socket(zmq.PUSH)
+#             self.push.connect(self.addr)
+#         elif type == MessageQueueType.PULL:
+#             self.pull: zmq.Socket = context.socket(zmq.PULL)
+#             self.pull.connect(self.addr)
+
+#     def get_socket(self):
+#         return self.push
+
+#     def send(self, message):
+#         # TODO: could not explain why NOBLOCK would not work even when the receiver already connects
+#         # TODO: and calls `receive` command
+#         # res = self.push_queue.send_json(message)#, flags=zmq.NOBLOCK)
+#         res = self.push.send_string(message)
+#         return res
+
+#     def close(self):
+#         self.pull_queue.disconnect(self.addr)
+
+#     def receive_msg(self):
+#         return self.pull.recv()
 
 
-class MessageQueue:
-    def __init__(self, host: str, port: int, type=MessageQueueType.PULL, hwm=1000):
+from libs.config import read_config
+config = read_config('.server.yaml', {'code_executor_comm': {
+    'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
+
+
+class MessageQueuePush:
+    def __init__(self, hwm=1000):
         context = zmq.Context()
-        self.host = host
-        self.port = port
-        self.addr = '{}:{}'.format(host, port)
-        if type == MessageQueueType.PUSH:
-            self.push: zmq.Socket = context.socket(zmq.PUSH)
-            self.push.connect(self.addr)
-        elif type == MessageQueueType.PULL:
-            self.pull: zmq.Socket = context.socket(zmq.PULL)
-            self.pull.connect(self.addr)
+        self.host = config.p2n_comm['host']
+        self.port = config.p2n_comm['p2n_port']
+        self.addr = '{}:{}'.format(self.host, self.port)
+        self.push: zmq.Socket = context.socket(zmq.PUSH)
+        self.push.connect(self.addr)
 
     def get_socket(self):
         return self.push
@@ -27,53 +57,19 @@ class MessageQueue:
         res = self.push.send_string(message)
         return res
 
+
+class MessageQueuePull:
+    def __init__(self, hwm=1000):
+        self.context = zmq.Context()
+        self.context.setsockopt(zmq.LINGER, 0)
+        self.host = config.p2n_comm['host']
+        self.port = config.p2n_comm['n2p_port']
+        self.addr = '{}:{}'.format(self.host, self.port)
+        self.pull: zmq.Socket = self.context.socket(zmq.PULL)
+        self.pull.connect(self.addr)
+
     def close(self):
         self.pull_queue.disconnect(self.addr)
 
     def receive_msg(self):
         return self.pull.recv()
-
-# class MessageQueue:
-#     def __init__(self, host: str, port: int, hwm=1000, is_producer=True):
-#         context = zmq.Context()
-#         self.host = host
-#         self.port = port
-#         self.addr = '{}:{}'.format(host, port)
-#         self.is_producer = is_producer
-#         if is_producer:
-#             self.push_queue: zmq.Socket = context.socket(zmq.PUSH)
-#             # self.push_queue.setsockopt(zmq.SNDHWM, 5)
-#             # log.info("ZMQ option: %s" % self.push_queue.hwm)
-#             self.push_queue.bind(self.addr)
-#         else:
-#             self.pull_queue: zmq.Socket = context.socket(zmq.PULL)
-#             self.pull_queue.connect(self.addr)
-
-
-#     def get_socket(self):
-#         return self.push_queue
-
-#     def push(self, message):
-#         if self.is_producer:
-#             # TODO: could not explain why NOBLOCK would not work even when the receiver already connects
-#             # TODO: and calls `receive` command
-#             # res = self.push_queue.send_json(message)#, flags=zmq.NOBLOCK)
-#             res = self.push_queue.send_string(message)
-#             return res
-#         else:
-#             return zmq.ENOTSUP
-
-#     def pull(self):
-#         if not self.is_producer:
-#             res = self.pull_queue.recv_json()
-#             return res
-#         else:
-#             return zmq.ENOTSUP
-
-#     def close(self):
-#         if self.is_producer:
-#             pass
-#             self.push_queue.unbind(self.addr)
-#         else:
-#             pass
-#             self.pull_queue.disconnect(self.addr)

@@ -12,6 +12,10 @@ log = logs.get_logger(__name__)
 
 
 class IPythonKernel():
+    """
+        Use singleton pattern for this class to make sure only one Ipython Kernel is running during the application alive.
+        Just call get_instance() method to get the IPython kernel.
+    """
 
     _instance = None
 
