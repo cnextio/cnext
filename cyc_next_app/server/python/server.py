@@ -36,10 +36,11 @@ def control_kernel():
     n2p_queue = MessageQueue(
         config.p2n_comm['host'],
         config.p2n_comm['n2p_port'],
-        type=MessageQueueType.PUSH
+        type=MessageQueueType.PULL
     )
     user_space = UserSpace(IPythonKernel(), [cd.DataFrame, pd.DataFrame])
     while True:
+        print("22222")
         try:
             message_recv = n2p_queue.receive_msg()
             if message_recv:
@@ -119,7 +120,7 @@ def main(argv):
 
 if __name__ == "__main__":
     control_kernel_thread = threading.Thread(
-        target=control_kernel, args=(IPythonConstants.StreamType.CONTROL,), daemon=True)
+        target=control_kernel, daemon=True)
     control_kernel_thread.start()
     main(sys.argv[1:])
     

@@ -14,12 +14,12 @@ class MessageQueue:
         self.push.connect(self.addr)
         self.pull: zmq.Socket = context.socket(zmq.PULL)
         self.pull.connect(self.addr)
-        # if type == MessageQueueType.PUSH:
-        #     self.push: zmq.Socket = context.socket(zmq.PUSH)
-        #     self.push.connect(self.addr)
-        # elif type == MessageQueueType.PULL:
-        #     self.pull: zmq.Socket = context.socket(zmq.PULL)
-        #     self.pull.connect(self.addr)
+        if type == MessageQueueType.PUSH:
+            self.push: zmq.Socket = context.socket(zmq.PUSH)
+            self.push.connect(self.addr)
+        elif type == MessageQueueType.PULL:
+            self.pull: zmq.Socket = context.socket(zmq.PULL)
+            self.pull.connect(self.addr)
 
     def get_socket(self):
         return self.push
