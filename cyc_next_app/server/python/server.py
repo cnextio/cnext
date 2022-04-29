@@ -1,6 +1,7 @@
 from libs import logs
 import pandas as pd
 import zmq
+import threading
 from code_editor import code_editor_basekernel as ce_base
 from code_editor import code_editor as ce
 from dataframe_manager import dataframe_manager_basekernel as dm_base
@@ -19,10 +20,11 @@ from libs.config import read_config
 import sys
 import simplejson as json
 from libs.message_handler import BaseMessageHandler
-from libs.message import ExecutorType, MessageType
+from libs.message import ExecutorType, MessageQueueType
 
 from user_space.user_space import BaseKernel, UserSpace
 from user_space.ipython.kernel import IPythonKernel
+from user_space.ipython.constants import IPythonConstants
 
 log = logs.get_logger(__name__)
 
@@ -34,7 +36,7 @@ def control_kernel():
     n2p_queue = MessageQueue(
         config.p2n_comm['host'],
         config.p2n_comm['n2p_port'],
-        type=MessageType.N2P
+        type=MessageQueueType.PUSH
     )
     user_space = UserSpace(IPythonKernel(), [cd.DataFrame, pd.DataFrame])
     while True:
@@ -116,5 +118,8 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    control_kernel_thread = threading.Thread(
+        target=control_kernel, args=(IPythonConstants.StreamType.CONTROL,), daemon=True)
+    control_kernel_thread.start()
     main(sys.argv[1:])
-    control_kernel()
+    

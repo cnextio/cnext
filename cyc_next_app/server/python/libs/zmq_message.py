@@ -1,21 +1,25 @@
 import zmq
 from libs import logs
-from libs.message import MessageType
+from libs.message import MessageQueueType
 # log = logs.get_logger(__name__)
 
 
 class MessageQueue:
-    def __init__(self, host: str, port: int, type=MessageType.P2N, hwm=1000):
+    def __init__(self, host: str, port: int, type=MessageQueueType.PULL, hwm=1000):
         context = zmq.Context()
         self.host = host
         self.port = port
         self.addr = '{}:{}'.format(host, port)
-        if type == MessageType.P2N:
-            self.push: zmq.Socket = context.socket(zmq.PUSH)
-            self.push.connect(self.addr)
-        elif type == MessageType.N2P:
-            self.pull: zmq.Socket = context.socket(zmq.PULL)
-            self.pull.connect(self.addr)
+        self.push: zmq.Socket = context.socket(zmq.PUSH)
+        self.push.connect(self.addr)
+        self.pull: zmq.Socket = context.socket(zmq.PULL)
+        self.pull.connect(self.addr)
+        # if type == MessageQueueType.PUSH:
+        #     self.push: zmq.Socket = context.socket(zmq.PUSH)
+        #     self.push.connect(self.addr)
+        # elif type == MessageQueueType.PULL:
+        #     self.pull: zmq.Socket = context.socket(zmq.PULL)
+        #     self.pull.connect(self.addr)
 
     def get_socket(self):
         return self.push

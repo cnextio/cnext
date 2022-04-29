@@ -159,6 +159,6 @@ class ExecutorType(str, Enum):
     NONCODE = 'noncode'
 
 
-class MessageType(str, Enum):
-    P2N = 'p2n'
-    N2P = 'n2p'
+class MessageQueueType(str, Enum):
+    PUSH = 'push'
+    PULL = 'pull'
