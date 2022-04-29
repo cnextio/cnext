@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cnext-test"
-version = "0.3.2"
+version = "0.3.0"
 description = "improve your AI work follow"
 authors = ["cycai company"]
 license = "MIT"
