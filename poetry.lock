@@ -227,7 +227,7 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
-name = "cnext-libs-test"
+name = "cnext-libs"
 version = "0.1.0"
 description = "cyc libraries for cyc-next-app"
 category = "main"
@@ -557,7 +557,7 @@ test = ["pytest (>=6.0)", "pytest-cov", "flaky", "ipyparallel", "pre-commit", "p
 
 [[package]]
 name = "ipython"
-version = "8.2.0"
+version = "8.3.0"
 description = "IPython: Productive Interactive Computing"
 category = "main"
 optional = false
@@ -1950,7 +1950,7 @@ pyzmq = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "3.9.7"
-content-hash = "c863fd5291a94d944c9f4ecc27e6166c2f1a0505ab0f8a1596cbac9b4c7556c4"
+content-hash = "157f8eccca9b1ef88f9650e2aee5e25b40f6dabf22b9c0abf6e7dfcc24ff8f0a"
 
 [metadata.files]
 absl-py = [
@@ -2096,9 +2096,9 @@ cloudpickle = [
     {file = "cloudpickle-2.0.0-py3-none-any.whl", hash = "sha256:6b2df9741d06f43839a3275c4e6632f7df6487a1f181f5f46a052d3c917c3d11"},
     {file = "cloudpickle-2.0.0.tar.gz", hash = "sha256:5cd02f3b417a783ba84a4ec3e290ff7929009fe51f6405423cfccfadd43ba4a4"},
 ]
-cnext-libs-test = [
-    {file = "cnext-libs-test-0.1.0.tar.gz", hash = "sha256:aaca4fbac88129f6a418e7135e6465bccea8489c3209e082b85a29c6bb85f89e"},
-    {file = "cnext_libs_test-0.1.0-py3-none-any.whl", hash = "sha256:87c92ae9cfe2a5bbbf813ff6335e30620ab9087f99d984ee0196d12ba384a94f"},
+cnext-libs = [
+    {file = "cnext-libs-0.1.0.tar.gz", hash = "sha256:ee507b56b8b0e65bcb8078a9f977b8045d2b1e3cf2422543d8468962344ec594"},
+    {file = "cnext_libs-0.1.0-py3-none-any.whl", hash = "sha256:f084a4b4a7d23dd2ce2b5ae9ce232b6fd0f3b128110cf9e58d6364424f2dd278"},
 ]
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
@@ -2341,8 +2341,8 @@ ipykernel = [
     {file = "ipykernel-6.13.0.tar.gz", hash = "sha256:0e28273e290858393e86e152b104e5506a79c13d25b951ac6eca220051b4be60"},
 ]
 ipython = [
-    {file = "ipython-8.2.0-py3-none-any.whl", hash = "sha256:1b672bfd7a48d87ab203d9af8727a3b0174a4566b4091e9447c22fb63ea32857"},
-    {file = "ipython-8.2.0.tar.gz", hash = "sha256:70e5eb132cac594a34b5f799bd252589009905f05104728aea6a403ec2519dc1"},
+    {file = "ipython-8.3.0-py3-none-any.whl", hash = "sha256:341456643a764c28f670409bbd5d2518f9b82c013441084ff2c2fc999698f83b"},
+    {file = "ipython-8.3.0.tar.gz", hash = "sha256:807ae3cf43b84693c9272f70368440a9a7eaa2e7e6882dad943c32fbf7e51402"},
 ]
 ipython-genutils = [
     {file = "ipython_genutils-0.2.0-py2.py3-none-any.whl", hash = "sha256:72dd37233799e619666c9f639a9da83c34013a73e8bbc79a7a6348d93c61fab8"},
