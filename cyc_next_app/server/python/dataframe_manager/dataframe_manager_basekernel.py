@@ -2,7 +2,7 @@ import base64
 import traceback
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
-from cycdataframe.mime_types import CnextMimeType
+from cnext_libs.mime_types import CnextMimeType
 import simplejson as json
 
 from libs import logs

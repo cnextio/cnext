@@ -3,8 +3,8 @@ import threading
 import traceback
 import simplejson as json
 from zmq import PROTOCOL_ERROR_ZMTP_MALFORMED_COMMAND_MESSAGE
-import cycdataframe.user_space as _cus
-import cycdataframe.df_status_hook as _sh
+import cnext_libs.user_space as _cus
+import cnext_libs.df_status_hook as _sh
 from user_space.ipython.kernel import IPythonKernel
 from user_space.ipython.constants import IPythonInteral, IPythonConstants as IPythonConstants
 
@@ -57,9 +57,9 @@ class UserSpace(_cus.UserSpace):
             _sh.DataFrameStatusHook.set_user_space(self)
         elif isinstance(executor, IPythonKernel):
             code = """
-import cycdataframe.user_space as _cus
-import cycdataframe.df_status_hook as _sh
-import cycdataframe.cycdataframe as _cd
+import cnext_libs.user_space as _cus
+import cnext_libs.df_status_hook as _sh
+import cnext_libs.cycdataframe as _cd
 import pandas as _pd
 from dataframe_manager import dataframe_manager as _dm
 from cassist import cassist as _ca
