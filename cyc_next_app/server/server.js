@@ -63,7 +63,7 @@ class PythonProcess {
             stdio: ['pipe', 'pipe', 'pipe', 'pipe'], // stdin, stdout, stderr, custom
             mode: 'text',
             env: process.env,
-            args: args
+            args: args,
         };
 
         this.executor = new PythonShell(commandStr, pyshellOpts);
@@ -129,8 +129,8 @@ try {
         function nonCodeExecutorHandler(strMessage) {
             // clientMessage = strMessage.slice();
             console.log(
-                "Receive msg from client, server will run: ",
-                JSON.parse(strMessage)["command_name"]
+                'Receive msg from client, server will run: ',
+                JSON.parse(strMessage)['command_name']
             );
             nonCodeExecutor.send2executor(strMessage);
         }
@@ -180,9 +180,7 @@ try {
 
         for await (const [message] of command_output_zmq) {
             const json_message = JSON.parse(message.toString());
-            console.log(
-                `command_output_zmq: forward output to ${json_message["webapp_endpoint"]}`
-            );
+            console.log(`command_output_zmq: forward output to ${json_message['webapp_endpoint']}`);
             sendOutput(json_message);
         }
     }
@@ -194,14 +192,14 @@ try {
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
-                content: `import os, sys; sys.path.extend(['${config.path_to_cycdataframe_lib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
+                content: `import os, sys; sys.path.extend(['${config.path_to_cycdataframe_lib}/', 'python/']); os.chdir('${config.projects.open_projects[0]['path']}')`,
             })
         );
 
         nonCodeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: ExperimentManager,
-                content: "import mlflow, mlflow.tensorflow",
+                content: 'import mlflow, mlflow.tensorflow',
             })
         );
     };

@@ -25,7 +25,7 @@ RUN npm i
 
 # Install git
 RUN conda install -c anaconda git
-RUN git clone https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cycdataframe.git
+RUN git clone -b v0.2.1 https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cycdataframe.git ./cycdataframe
 RUN git clone https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cnext_sample_projects.git
 
 # Create conda environment
