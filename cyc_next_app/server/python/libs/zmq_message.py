@@ -10,10 +10,6 @@ class MessageQueue:
         self.host = host
         self.port = port
         self.addr = '{}:{}'.format(host, port)
-        self.push: zmq.Socket = context.socket(zmq.PUSH)
-        self.push.connect(self.addr)
-        self.pull: zmq.Socket = context.socket(zmq.PULL)
-        self.pull.connect(self.addr)
         if type == MessageQueueType.PUSH:
             self.push: zmq.Socket = context.socket(zmq.PUSH)
             self.push.connect(self.addr)
