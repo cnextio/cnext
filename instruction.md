@@ -42,7 +42,7 @@ Step 1: `Download` [cnext] folder and `extract`
 
 Step 2: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
 
-Step 3: `run` command `pip install cycai-cnext`
+Step 3: `run` command `pip install cnext`
 
 Step 4: `run` command `cnext-init`
 
