@@ -13,7 +13,7 @@ from model_manager import model_manager as mm
 from libs.message import Message, WebappEndpoint
 from libs.zmq_message import MessageQueue
 import traceback
-import cnext_libs.cycdataframe as cd
+import cnextlib.dataframe as cd
 import torch
 import tensorflow
 from libs.config import read_config

@@ -90,8 +90,8 @@ class MessageHandler(BaseMessageHandler):
         if output['status'] == IPythonConstants.IOBufMessageStatus.OK:
             MODEL_PATH = output['result']
             address = (self.netron_host, self.netron_port)
-            netron.stop(address)
-            netron.start(MODEL_PATH, address, browse=False)
+            # netron.stop(address)
+            # netron.start(MODEL_PATH, address, browse=False)
             return {'address': address}
 
     def handle_message(self, message):

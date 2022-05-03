@@ -57,7 +57,7 @@ class PythonProcess {
     constructor(io, commandStr, args) {
         process.env.PYTHONPATH = [
             process.env.PYTHONPATH,
-            config.path_to_cnext_libs,
+            config.path_to_cnextlib,
             "./python/",
         ].join(path.delimiter);
         let pyshellOpts = {
@@ -196,7 +196,7 @@ try {
         codeExecutor.send2executor(
             JSON.stringify({
                 webapp_endpoint: CodeEditor,
-                content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnext_libs}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
+                content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
             })
         );
 
@@ -243,20 +243,20 @@ model = ToyModel()
         //             })
         //         );
 
-        codeExecutor.send2executor(
-            JSON.stringify({
-                webapp_endpoint: CodeEditor,
-                content: `
-import tensorflow as tf
-model1 = tf.keras.models.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(10)
-])              
-`,
-            })
-        );
+//         codeExecutor.send2executor(
+//             JSON.stringify({
+//                 webapp_endpoint: CodeEditor,
+//                 content: `
+// import tensorflow as tf
+// model1 = tf.keras.models.Sequential([
+//     tf.keras.layers.Flatten(input_shape=(28, 28)),
+//     tf.keras.layers.Dense(128, activation='relu'),
+//     tf.keras.layers.Dropout(0.2),
+//     tf.keras.layers.Dense(10)
+// ])              
+// `,
+//             })
+//         );
 
         // codeExecutor.send2executor(
         //     JSON.stringify({

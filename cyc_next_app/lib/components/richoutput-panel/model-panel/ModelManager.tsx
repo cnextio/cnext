@@ -19,7 +19,6 @@ const ModelManager = () => {
     const dispatch = useDispatch();
     const activeModel = useSelector((state: RootState) => state.modelManager.activeModel);
     const reloadCounter = useSelector((state: RootState) => state.modelManager.reloadCounter);
-    // const [modelViewerCounter, setModelViewerCounter] = useState(0);
 
     const createMessage = (
         command: ModelManagerCommand,
@@ -53,8 +52,9 @@ const ModelManager = () => {
                     switch (mmResult.command_name) {
                         case ModelManagerCommand.get_active_models_info:
                             let modelInfo = mmResult.content as IModelInfo;
-                            console.log("ModelManager got active model: ", modelInfo);
+                            // console.log("ModelManager got active model: ", modelInfo);
                             dispatch(setModelInfo(modelInfo));
+                            // displayModel();
                             break;
                         case ModelManagerCommand.display_model:
                             let modelViewerInfo = mmResult.content as IModelViewerInfo;
@@ -136,7 +136,7 @@ const ModelPanel = () => {
             return (
                 <iframe
                     key={modelViewerCounter}
-                    style={{ width: "100%", height: "100%", border: "none" }}
+                    style={{ width: "100%", height: "100%", border: "none", paddingLeft: "35px" }}
                     src={address}
                 />
             );
@@ -148,7 +148,7 @@ const ModelPanel = () => {
         <Fragment>
             <ModelManager />
             <ModelManagerToolbar>
-                <ReloadButton clickHandler = {()=>{}} />
+                <ReloadButton />
                 <ModelExplorer />
             </ModelManagerToolbar>
             {createModelViewerComponent()}

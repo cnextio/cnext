@@ -3,8 +3,8 @@ import base64
 import traceback
 import plotly
 import matplotlib.pyplot as plt
-from cnext_libs.df_status_hook import DataFrameStatusHook
-import cnext_libs.cycdataframe as cd
+from cnextlib.df_status_hook import DataFrameStatusHook
+import cnextlib.dataframe as cd
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, Message, SubContentType
 

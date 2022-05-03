@@ -2,8 +2,8 @@ from enum import Enum
 import threading
 import traceback
 import simplejson as json
-import cnext_libs.user_space as _cus
-import cnext_libs.cycdataframe as _cd
+import cnextlib.user_space as _cus
+import cnextlib.dataframe as _cd
 from user_space.ipython.kernel import IPythonKernel
 from user_space.ipython.constants import IPythonInteral, IPythonConstants
 
@@ -50,7 +50,7 @@ class IPythonUserSpace(_cus.UserSpace):
     def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
         self.executor = IPythonKernel()
         code = """
-import cnext_libs.cycdataframe as _cd
+import cnextlib.dataframe as _cd
 import pandas as _pd
 import torch as _to
 import tensorflow as _tf
@@ -141,7 +141,7 @@ class _UserSpace(BaseKernelUserSpace):
         code = "{_user_space}.reset_active_dfs_status()".format(
             _user_space=IPythonInteral.USER_SPACE.value)
         self.executor.execute(code)
-        
+
     def execute(self, code, exec_mode: ExecutionMode = None, message_handler_callback=None, client_message=None):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
