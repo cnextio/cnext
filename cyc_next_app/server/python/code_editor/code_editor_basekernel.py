@@ -11,7 +11,7 @@ from libs.message import ContentType, Message, SubContentType
 from libs import logs
 from libs.message import DFManagerCommand, WebappEndpoint
 from user_space.user_space import ExecutionMode
-from user_space.user_space import BaseKernel, UserSpace
+from user_space.user_space import BaseKernel, IPythonUserSpace
 log = logs.get_logger(__name__)
 
 
@@ -62,7 +62,7 @@ class MessageHandler(BaseMessageHandler):
                 return True
         return False
 
-    def _process_active_dfs_status(self):
+    def _get_active_dfs_status(self):
         active_dfs_status = self.user_space.get_active_dfs_status()
         if active_dfs_status:
             active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
@@ -119,7 +119,7 @@ class MessageHandler(BaseMessageHandler):
             message.error = False
             self._send_to_node(message)
 
-            self._process_active_dfs_status()
+            self._get_active_dfs_status()
 
         except:
             trace = traceback.format_exc()
