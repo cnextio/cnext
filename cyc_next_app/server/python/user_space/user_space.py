@@ -148,7 +148,9 @@ class _UserSpace(BaseKernelUserSpace):
 
     def shutdown(self):        
         self.executor.shutdown_kernel()
-        self.execution_lock.release()
+        ## not sure if this is needed
+        if self.execution_lock.locked():
+            self.execution_lock.release()
 
 class BaseKernelUserSpace(_cus.UserSpace):
     ''' 

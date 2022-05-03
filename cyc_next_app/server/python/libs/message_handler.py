@@ -114,4 +114,5 @@ class BaseMessageHandler:
         raise "Abstract function must be implemented by subclass"
 
     def shutdown(self):
+        self.user_space.shutdown()
         pass

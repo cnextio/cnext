@@ -218,35 +218,35 @@ try {
             })
         );
 
-        codeExecutor.send2executor(
-            JSON.stringify({
-                webapp_endpoint: CodeEditor,
-                content: `
-import torch.nn as nn
-import torch
-class ToyModel(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.lin1 = nn.Linear(3, 3)
-        self.relu = nn.ReLU()
-        self.lin2 = nn.Linear(3, 2)
+//         codeExecutor.send2executor(
+//             JSON.stringify({
+//                 webapp_endpoint: CodeEditor,
+//                 content: `
+// import torch.nn as nn
+// import torch
+// class ToyModel(nn.Module):
+//     def __init__(self):
+//         super().__init__()
+//         self.lin1 = nn.Linear(3, 3)
+//         self.relu = nn.ReLU()
+//         self.lin2 = nn.Linear(3, 2)
 
-        # initialize weights and biases
-        self.lin1.weight = nn.Parameter(torch.arange(-4.0, 5.0).view(3, 3))
-        self.lin1.bias = nn.Parameter(torch.zeros(1, 3))
-        self.lin2.weight = nn.Parameter(torch.arange(-3.0, 3.0).view(2, 3))
-        self.lin2.bias = nn.Parameter(torch.ones(1, 2))
+//         # initialize weights and biases
+//         self.lin1.weight = nn.Parameter(torch.arange(-4.0, 5.0).view(3, 3))
+//         self.lin1.bias = nn.Parameter(torch.zeros(1, 3))
+//         self.lin2.weight = nn.Parameter(torch.arange(-3.0, 3.0).view(2, 3))
+//         self.lin2.bias = nn.Parameter(torch.ones(1, 2))
 
-    def forward(self, input):
-        return self.lin2(self.relu(self.lin1(input)))
+//     def forward(self, input):
+//         return self.lin2(self.relu(self.lin1(input)))
     
-    def createInput(self):
-        return torch.randn(1, 3, 3)
+//     def createInput(self):
+//         return torch.randn(1, 3, 3)
 
-model = ToyModel()
-        `,
-            })
-        );
+// model = ToyModel()
+//         `,
+//             })
+//         );
 
         //         codeExecutor.send2executor(
         //             JSON.stringify({

@@ -39,19 +39,13 @@ class ShutdownSignalHandler:
     self.message_handler = message_handler
 
   def exit_gracefully(self, *args):
-    log.info('ShutdownSignalHandler {} {}'.format(args, self.message_handler))
+    log.info('ShutdownSignalHandler {}'.format(args))
     
     if self.message_handler != None:
-        log.info('Shutdown {}'.format(self.message_handler.items()))
         for key, value in self.message_handler.items():
             log.info('Shutdown {}'.format(key))
             value.shutdown()
-
-    ## the user_space has to be shutdown after all the message_handler.
-    ## it won't work otherwise, need more investigation
-    if self.user_space != None:
-        log.info('Shutdown user space')
-        self.user_space.shutdown()
+            # value.user_space.executor.interupt_kernel()
         
     self.running = False    
     ## currently we exit right here. In the future, consider option to stop message handler gracefully.
