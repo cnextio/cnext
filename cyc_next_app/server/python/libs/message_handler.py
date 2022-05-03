@@ -112,3 +112,6 @@ class BaseMessageHandler:
     def handle_message(self, message):
         ''' `ext_globals` is the user namespace where the user executes their command'''
         raise "Abstract function must be implemented by subclass"
+
+    def shutdown(self):
+        pass

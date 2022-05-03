@@ -23,6 +23,7 @@ class MessageHandler(BaseMessageHandler):
         self.netron_port = sock.getsockname()[1]
         self.netron_host = 'localhost'
         self.netron_tmp_dir = tempfile.gettempdir()
+        self.netron_address = None
 
     @classmethod
     def _fullname(cls, klass):
@@ -89,10 +90,10 @@ class MessageHandler(BaseMessageHandler):
         # log.info("Code to run: {}".format(code))
         if output['status'] == IPythonConstants.IOBufMessageStatus.OK:
             MODEL_PATH = output['result']
-            address = (self.netron_host, self.netron_port)
-            # netron.stop(address)
-            # netron.start(MODEL_PATH, address, browse=False)
-            return {'address': address}
+            self.netron_address = (self.netron_host, self.netron_port)
+            netron.stop(self.netron_address)
+            netron.start(MODEL_PATH, self.netron_address, browse=False)
+            return {'address': self.netron_address}
 
     def handle_message(self, message):
         # send_reply = False
@@ -123,3 +124,10 @@ class MessageHandler(BaseMessageHandler):
             error_message = MessageHandler._create_error_message(
                 message.webapp_endpoint, trace)
             self._send_to_node(error_message)
+
+    def shutdown(self):
+        log.info('Netron stop at address {}'.format(self.netron_address))
+        if netron.status(self.netron_address):
+            log.info('Netron stop at address {}'.format(self.netron_address))
+            netron.stop(self.netron_address)
+        return super().shutdown()

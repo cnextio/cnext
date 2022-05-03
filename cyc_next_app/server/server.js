@@ -109,6 +109,10 @@ class PythonProcess {
         this.clientMessage = message.slice();
         this.executor.send(message);
     }
+
+    shutdown(signal) {
+        this.executor.kill(signal);
+    }
 }
 
 /*
@@ -191,6 +195,20 @@ try {
 
     zmq_receiver().catch((e) => console.error("ZMQ_error: ", e.stack));
     /** */
+
+    // process.on("exit", function () {});
+
+    process.on("SIGINT", function () {
+        codeExecutor.shutdown("SIGINT");
+        nonCodeExecutor.shutdown("SIGINT");
+        process.exit(1);
+    });
+
+    process.on("SIGTERM", function () {
+        codeExecutor.shutdown("SIGTERM");
+        nonCodeExecutor.shutdown("SIGTERM");
+        process.exit(1);
+    });
 
     const initialize = () => {
         codeExecutor.send2executor(
@@ -277,3 +295,4 @@ model = ToyModel()
 } catch (error) {
     console.log(error);
 }
+
