@@ -37,10 +37,19 @@ const CodeOutputComponent = React.memo(() => {
         state: RootState
     ): (ICodeResultContent | undefined)[] {
         const inViewID = state.projectManager.inViewID;
+        const groupIDSet = new Set();
         if (inViewID != null) {
             let textOutputs = state.codeEditor.codeLines[inViewID]
-                ?.filter((item: ICodeLine) => {
-                    return item.textOutput != null;
+                ?.filter((codeLine: ICodeLine) => {
+                    /** only display one result in a group */
+                    if (codeLine.groupID == null) {
+                        return codeLine.textOutput != null;
+                    } else if (!groupIDSet.has(codeLine.groupID)) {
+                        groupIDSet.add(codeLine.groupID);
+                        return codeLine.textOutput != null;
+                    } else {
+                        return false;
+                    }
                 })
                 .sort((item1: ICodeLine, item2: ICodeLine) => {
                     if (
