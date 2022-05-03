@@ -1,6 +1,6 @@
 {
-    "name": "cycnext",
-    "version": "0.3.0",
+    "name": "cnext-app",
+    "version": "0.3.3",
     "private": true,
     "scripts": {
         "dev": "next dev",
