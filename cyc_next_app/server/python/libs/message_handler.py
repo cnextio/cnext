@@ -3,7 +3,7 @@ import simplejson as json
 from libs.message import ContentType, Message, SubContentType
 from libs import logs
 # from server.python.libs.message import WebappEndpoint
-from user_space.user_space import BaseKernel, UserSpace
+from user_space.user_space import BaseKernel, IPythonUserSpace
 from user_space.ipython.constants import IPythonConstants as IPythonConstants
 
 log = logs.get_logger(__name__)
@@ -13,7 +13,7 @@ class BaseMessageHandler:
     def __init__(self, p2n_queue, user_space=None):
         self.p2n_queue = p2n_queue
         if user_space == None:
-            self.user_space = UserSpace(BaseKernel())
+            self.user_space = IPythonUserSpace(BaseKernel())
         else:
             self.user_space = user_space
 

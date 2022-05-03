@@ -13,7 +13,8 @@ class WebappEndpoint(str, Enum):
     MagicCommandGen = 'MagicCommandGen'
     FileExplorer = 'FileExplorer'
     ExperimentManager = 'ExperimentManager'
-
+    ModelManager = 'ModelManager'
+    
     def __str__(self):
         return str(self.value)
 
@@ -68,6 +69,11 @@ class ExperimentManagerCommand(str, Enum):
     get_metric_plots = 'get_metric_plots'
     load_artifacts_to_local = "load_artifacts_to_local"
     set_tracking_uri = 'set_tracking_uri'
+
+
+class ModelManagerCommand(str, Enum):
+    get_active_models_info = 'get_active_models_info'
+    display_model = 'display_model'
 
 
 class CodeEditorCommand(str, Enum):

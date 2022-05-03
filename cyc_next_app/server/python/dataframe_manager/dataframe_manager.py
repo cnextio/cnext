@@ -8,7 +8,7 @@ import traceback
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
 from libs.json_serializable import ipython_internal_output, JsonSerializable
-from cnext_libs.mime_types import CnextMimeType
+from cnextlib.mime_types import CnextMimeType
 
 from libs import logs
 from libs.message import Message, WebappEndpoint

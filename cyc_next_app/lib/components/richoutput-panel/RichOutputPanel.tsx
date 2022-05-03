@@ -4,7 +4,7 @@ import RichOuputPanelHeader from "./RichOuputPanelHeader";
 import ResultPanel from "./result-panel/ResultPanel";
 import { RichOutputPanelToolbarItems } from "../../interfaces/IRichOuputViewer";
 import ExperimentManager from "./experiment-panel/ExperimentsManager";
-import ModelPanel from "./model-panel/ModelPanel";
+import ModelPanel from "./model-panel/ModelManager";
 import DataPanel from "./data-panel/DataPanel";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";

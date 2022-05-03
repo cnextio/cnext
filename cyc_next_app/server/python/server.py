@@ -8,18 +8,21 @@ from experiment_manager import experiment_manager as em
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
+from model_manager import model_manager as mm
 
 from libs.message import Message, WebappEndpoint
 from libs.zmq_message import MessageQueue
 import traceback
-import cnext_libs.cycdataframe as cd
+import cnextlib.dataframe as cd
+import torch
+import tensorflow
 from libs.config import read_config
 import sys
 import simplejson as json
 from libs.message_handler import BaseMessageHandler
 from libs.message import ExecutorType
 
-from user_space.user_space import BaseKernel, UserSpace
+from user_space.user_space import BaseKernel, IPythonUserSpace, BaseKernelUserSpace
 from user_space.ipython.kernel import IPythonKernel
 
 log = logs.get_logger(__name__)
@@ -37,20 +40,20 @@ def main(argv):
                 config.p2n_comm['host'], config.p2n_comm['p2n_port'])
 
             if executor_type == ExecutorType.CODE:
-                user_space = UserSpace(
-                    IPythonKernel(), [cd.DataFrame, pd.DataFrame])
+                ipython_user_space = IPythonUserSpace(
+                    (cd.DataFrame, pd.DataFrame), (torch.nn.Module, tensorflow.keras.Model))
                 message_handler = {
-                    WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
-                    WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
-                    WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space)}
+                    WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, ipython_user_space),
+                    WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, ipython_user_space),
+                    WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, ipython_user_space),
+                    WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, ipython_user_space)}
             elif executor_type == ExecutorType.NONCODE:
-                noncode_user_space = UserSpace(
-                    BaseKernel(), [cd.DataFrame, pd.DataFrame])
+                basekernel_user_space = BaseKernelUserSpace()
                 message_handler = {
-                    WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, noncode_user_space),
-                    WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, noncode_user_space, config),
+                    WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, basekernel_user_space),
+                    WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, basekernel_user_space, config),
                     WebappEndpoint.FileExplorer: fe.MessageHandler(
-                        p2n_queue, noncode_user_space)
+                        p2n_queue, basekernel_user_space)
                 }
         except Exception as error:
             log.error("%s - %s" % (error, traceback.format_exc()))
