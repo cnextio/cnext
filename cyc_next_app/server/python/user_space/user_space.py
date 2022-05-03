@@ -48,7 +48,7 @@ class IPythonUserSpace(_cus.UserSpace):
     '''
 
     def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
-        self.executor = IPythonKernel()
+        self.executor: IPythonKernel = IPythonKernel()
         code = """
 import cnextlib.dataframe as _cd
 import pandas as _pd
@@ -146,6 +146,9 @@ class _UserSpace(BaseKernelUserSpace):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
 
+    def shutdown(self):        
+        self.executor.shutdown_kernel()
+        self.execution_lock.release()
 
 class BaseKernelUserSpace(_cus.UserSpace):
     ''' 
@@ -164,3 +167,6 @@ class BaseKernelUserSpace(_cus.UserSpace):
     def execute(self, code, exec_mode: ExecutionMode = None):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, self.globals())
+    
+    def shutdown():
+        pass
