@@ -2,8 +2,6 @@ from enum import Enum
 import threading
 import traceback
 import simplejson as json
-import cycdataframe.user_space as _cus
-import cycdataframe.df_status_hook as _sh
 import cnextlib.user_space as _cus
 import cnextlib.dataframe as _cd
 from user_space.ipython.kernel import IPythonKernel

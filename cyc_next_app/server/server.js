@@ -74,19 +74,20 @@ class PythonProcess {
         let _this = this;
         this.executor.on("message", function (stdout) {
             try {
-                console.log("On message: ", _this.clientMessage);
-                let replyMessage = JSON.parse(_this.clientMessage);
-                console.log("stdout: forward output to client", replyMessage);
+                // console.log("On message: ", _this.clientMessage);
+                // let replyMessage = JSON.parse(_this.clientMessage);
+                // console.log("stdout: forward output to client", replyMessage);
                 // replyMessage["content"] = stdout;
                 // _this.send2client(replyMessage);
+                console.log("stdout: ", stdout);
             } catch (error) {
                 console.log(error.stack);
             }
         });
 
         this.executor.on("stderr", function (stderr) {
-            let replyMessage = JSON.parse(_this.clientMessage);
-            console.log("stderr: forward output to client", replyMessage);
+            // let replyMessage = JSON.parse(_this.clientMessage);
+            // console.log("stderr: forward output to client", replyMessage);
             // replyMessage['content'] = stderr;
             // replyMessage['type'] = 'str';
             // _this.send2client(replyMessage);
@@ -244,79 +245,8 @@ try {
             webapp_endpoint: KernelManager,
             command_name: "interrupt_kernel",
         };
-        zmq_sender(JSON.stringify(message));
+        // zmq_sender(JSON.stringify(message));
 
-        //         codeExecutor.send2executor(
-        //             JSON.stringify({
-        //                 webapp_endpoint: CodeEditor,
-        //                 content: `
-        // import torch.nn as nn
-        // import torch
-        // class ToyModel(nn.Module):
-        //     def __init__(self):
-        //         super().__init__()
-        //         self.lin1 = nn.Linear(3, 3)
-        //         self.relu = nn.ReLU()
-        //         self.lin2 = nn.Linear(3, 2)
-
-        //         # initialize weights and biases
-        //         self.lin1.weight = nn.Parameter(torch.arange(-4.0, 5.0).view(3, 3))
-        //         self.lin1.bias = nn.Parameter(torch.zeros(1, 3))
-        //         self.lin2.weight = nn.Parameter(torch.arange(-3.0, 3.0).view(2, 3))
-        //         self.lin2.bias = nn.Parameter(torch.ones(1, 2))
-
-        //     def forward(self, input):
-        //         return self.lin2(self.relu(self.lin1(input)))
-
-        //     def createInput(self):
-        //         return torch.randn(1, 3, 3)
-
-        // model = ToyModel()
-        //         `,
-        //             })
-        //         );
-
-        //         codeExecutor.send2executor(
-        //             JSON.stringify({
-        //                 webapp_endpoint: CodeEditor,
-        //                 content: `
-        // import tensorflow as tf
-        // inputs = tf.keras.Input(shape=(3,))
-        // x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(inputs)
-        // outputs = tf.keras.layers.Dense(5, activation=tf.nn.softmax)(x)
-        // model = tf.keras.Model(inputs=inputs, outputs=outputs)
-        // `,
-        //             })
-        //         );
-
-        //         codeExecutor.send2executor(
-        //             JSON.stringify({
-        //                 webapp_endpoint: CodeEditor,
-        //                 content: `
-        // import tensorflow as tf
-        // model1 = tf.keras.models.Sequential([
-        //     tf.keras.layers.Flatten(input_shape=(28, 28)),
-        //     tf.keras.layers.Dense(128, activation='relu'),
-        //     tf.keras.layers.Dropout(0.2),
-        //     tf.keras.layers.Dense(10)
-        // ])
-        // `,
-        //             })
-        //         );
-
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: ModelManager,
-        //         command_name: `get_active_models`,
-        //     })
-        // );
-
-        // nonCodeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: ExperimentManager,
-        //         content: 'import mlflow, mlflow.tensorflow',
-        //     })
-        // );
     };
 
     initialize();

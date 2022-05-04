@@ -16,7 +16,6 @@ from file_manager import file_manager as fm
 from kernel_manager import kernel_manager as km
 from libs.message import Message, WebappEndpoint
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
-import cycdataframe.cycdataframe as cd
 from model_manager import model_manager as mm
 
 from libs.message import Message, WebappEndpoint
@@ -38,13 +37,13 @@ config = read_config('.server.yaml', {'code_executor_comm': {
 
 
 def control_kernel(user_space):
-    print("1111111111")
+    log.info("control_kernel 1111111111")
     n2p_queue = MessageQueuePull()
     # user_space = IPythonUserSpace(IPythonKernel.get_instance(),
     #                               [cd.DataFrame, pd.DataFrame])
     while True:
         message_recv = n2p_queue.receive_msg()
-        print("Message recv: ", message_recv)
+        log.info("Message recv: ", message_recv)
         # if message_recv:
         #     p2n_queue = (
         #         config.p2n_comm['host'], config.p2n_comm['p2n_port'])
