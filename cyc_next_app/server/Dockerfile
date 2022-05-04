@@ -1,4 +1,4 @@
-FROM python:buster
+FROM python:3.9.7-buster
 
 RUN groupadd --gid 1000 pn && useradd --uid 1000 --gid pn --shell /bin/bash --create-home pn
 ENV POETRY_HOME=/usr/local
@@ -19,5 +19,6 @@ RUN \
 
 USER pn
 WORKDIR /home/pn/app
+COPY  . .
 
 CMD ["bash"]
