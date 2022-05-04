@@ -49,6 +49,11 @@ class IPythonConstants:
         ERROR = 'error'
         IDLE = 'idle'
 
+    class IOBufMessageStatus(str, Enum):
+        OK = 'ok'
+        ERROR = 'error'
+        ABORT = 'abort'
+
     class ExecutionState(str, Enum):
         STARTING = 'starting'
         BUSY = 'busy'

@@ -7,8 +7,8 @@ from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, SubContentType, Message
 
 from libs import logs
-from libs.message import DFManagerCommand, WebappEndpoint, CodeEditorCommand
-from user_space.ipython.constants import IPythonConstants as IPythonConstants, IpythonResultMessage
+from libs.message import DFManagerCommand, WebappEndpoint, CodeEditorCommand, ModelManagerCommand
+from user_space.ipython.constants import IPythonConstants, IpythonResultMessage
 log = logs.get_logger(__name__)
 
 
@@ -140,6 +140,7 @@ class MessageHandler(BaseMessageHandler):
             self.user_space.execute(
                 message.content, None, self.message_handler_callback, client_message=message)
             self._get_active_dfs_status()
+            # self._get_active_model()
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))            
@@ -151,3 +152,9 @@ class MessageHandler(BaseMessageHandler):
         active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": DFManagerCommand.update_df_status,
                                               "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
         self._send_to_node(active_df_status_message)
+
+    def _get_active_models_info(self):
+        active_models = self.user_space.get_active_models_info()
+        active_models_message = Message(**{"webapp_endpoint": WebappEndpoint.ModelManager, "command_name": ModelManagerCommand.get_active_models_info,
+                                              "seq_number": 1, "type": "dict", "content": active_models, "error": False})
+        self._send_to_node(active_models_message)

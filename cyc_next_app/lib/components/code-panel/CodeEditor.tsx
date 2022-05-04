@@ -93,7 +93,8 @@ const CodeEditor = () => {
 
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
 
-    const codeLines: ICodeLine[] | null = useSelector((state: RootState) => getCodeLine(state));
+    // using this to trigger refresh in gutter
+    const codeText = useSelector((state: RootState) => getCodeText(state));
 
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
 
@@ -484,15 +485,23 @@ const CodeEditor = () => {
     function onCodeMirrorChange(value: string, viewUpdate: ViewUpdate) {
         try {
             console.log("CodeEditor onCodeMirrorChange");
-
+            const state = store.getState();
+            let inViewID = store.getState().projectManager.inViewID;
+            const inViewCodeText = state.codeEditor.codeText[inViewID];
             /** do nothing if the update is due to code reloading from external source */
             if (codeReloading) return;
 
             let doc = viewUpdate.state.doc;
-            let inViewID = store.getState().projectManager.inViewID;
             let serverSynced = store.getState().projectManager.serverSynced;
             viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
-                console.log("CodeEditor render onCodeMirrorChange", fromA, toA, fromB, toB);
+                console.log(
+                    "CodeEditor render onCodeMirrorChange",
+                    fromA,
+                    toA,
+                    fromB,
+                    toB,
+                    inserted
+                );
             });
             if (serverSynced && inViewID) {
                 // let startText = viewUpdate.startState.doc.text;
@@ -507,27 +516,47 @@ const CodeEditor = () => {
                 viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
                     changeStartLine = doc.lineAt(fromA);
                 });
+
                 // convert the line number 0-based index, which is what we use internally
                 let changeStartLineNumber = changeStartLine.number - 1;
                 // console.log(changes);
                 // console.log('changeStartLineNumber', changeStartLineNumber);
-                let updatedLineInfo: ILineUpdate = {
-                    inViewID: inViewID,
-                    text: text,
-                    updatedStartLineNumber: changeStartLineNumber,
-                    updatedLineCount: updatedLineCount,
-                };
+
                 if (updatedLineCount > 0) {
-                    // Note 1: _getCurrentLineNumber returns line number indexed starting from 1.
+                    console.log(
+                        "changeStartLine: ",
+                        changeStartLine,
+                        inViewCodeText[changeStartLineNumber],
+                        changeStartLine.text != inViewCodeText[changeStartLineNumber]
+                    );
+                    // Note: _getCurrentLineNumber returns line number indexed starting from 1.
                     // Convert it to 0-indexed by -1.
-                    // Note 2: the lines being added are lines above currentLine.
-                    // If there is new text in the current line then current line is `edited` not `added`
+                    let updatedLineInfo: ILineUpdate = {
+                        inViewID: inViewID,
+                        text: text,
+                        updatedStartLineNumber: changeStartLineNumber,
+                        updatedLineCount: updatedLineCount,
+                        startLineChanged:
+                            changeStartLine.text != inViewCodeText[changeStartLineNumber],
+                    };
                     dispatch(updateLines(updatedLineInfo));
                 } else if (updatedLineCount < 0) {
+                    console.log(
+                        "CodeEditor changeStartLine: ",
+                        changeStartLine,
+                        inViewCodeText[changeStartLineNumber],
+                        changeStartLine.text != inViewCodeText[changeStartLineNumber]
+                    );
                     // Note 1: _getCurrentLineNumber returns line number indexed starting from 1.
                     // Convert it to 0-indexed by -1.
-                    // Note 2: the lines being deleted are lines above currentLine.
-                    // If there is new text in the current line then current line is `edited`
+                    let updatedLineInfo: ILineUpdate = {
+                        inViewID: inViewID,
+                        text: text,
+                        updatedStartLineNumber: changeStartLineNumber,
+                        updatedLineCount: updatedLineCount,
+                        startLineChanged:
+                            changeStartLine.text != inViewCodeText[changeStartLineNumber],
+                    };
                     dispatch(updateLines(updatedLineInfo));
                 } else {
                     let lineStatus: ICodeLineStatus;

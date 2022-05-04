@@ -14,6 +14,7 @@ class WebappEndpoint(str, Enum):
     FileExplorer = 'FileExplorer'
     ExperimentManager = 'ExperimentManager'
     KernelManager = 'KernelManager'
+    ModelManager = 'ModelManager'
 
     def __str__(self):
         return str(self.value)
@@ -74,6 +75,11 @@ class ExperimentManagerCommand(str, Enum):
 class KernelManagerCommand(str, Enum):
     restart_kernel = 'restart_kernel'
     interrupt_kernel = 'interrupt_kernel'
+
+
+class ModelManagerCommand(str, Enum):
+    get_active_models_info = 'get_active_models_info'
+    display_model = 'display_model'
 
 
 class CodeEditorCommand(str, Enum):

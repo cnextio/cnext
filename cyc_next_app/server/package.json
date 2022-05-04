@@ -1,5 +1,5 @@
 {
-    "name": "cyc-cnext-server",
+    "name": "cnext-server",
     "version": "0.3.0",
     "private": true,
     "scripts": {

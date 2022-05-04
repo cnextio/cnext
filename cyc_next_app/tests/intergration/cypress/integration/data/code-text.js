@@ -1,6 +1,6 @@
 export const codeCheckConsole = `print('test')`;
 
-export const codeTestDF = `import cycdataframe.cycdataframe as cd
+export const codeTestDF = `import cnextlib.dataframe as cd
 df = cd.DataFrame('data/housing_data/data.csv')`;
 
 export const codeTestMatplotlibLine = `import matplotlib.pyplot as plt

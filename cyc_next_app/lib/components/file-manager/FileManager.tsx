@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-    initCodeText,
-    setFileSaved,
-} from "../../../redux/reducers/CodeEditorRedux";
+import { initCodeText, setFileSaved } from "../../../redux/reducers/CodeEditorRedux";
 import {
     setActiveProject,
     setFileMetaData,
@@ -254,9 +251,14 @@ const FileManager = () => {
         const state = store.getState();
         const fileToSave = state.projectManager.fileToSave;
         if ((saveTimeout || !useTimeOut) && fileToSave.length > 0) {
-            console.log("FileManager: save file");
             for (let filePath of fileToSave) {
                 let file: IFileMetadata = state.projectManager.openFiles[filePath];
+                console.log(
+                    "FileManager: save file ",
+                    filePath,
+                    // state.projectManager.openFiles,
+                    // file
+                );
                 let codeText = state.codeEditor.codeText[filePath];
                 let timestamp = state.codeEditor.timestamp[filePath];
                 const projectPath = state.projectManager.activeProject?.path;

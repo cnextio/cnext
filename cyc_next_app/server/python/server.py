@@ -2,6 +2,8 @@ import sys
 import zmq
 import traceback
 import threading
+import signal
+from libs import logs
 import pandas as pd
 from libs import logs
 import simplejson as json
@@ -15,10 +17,18 @@ from kernel_manager import kernel_manager as km
 from libs.message import Message, WebappEndpoint
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 import cycdataframe.cycdataframe as cd
+from model_manager import model_manager as mm
+
+from libs.message import Message, WebappEndpoint
+from libs.zmq_message import MessageQueue
+import traceback
+import cnextlib.dataframe as cd
+import torch
+import tensorflow
 from libs.config import read_config
 from libs.message_handler import BaseMessageHandler
 from libs.message import ExecutorType
-from user_space.user_space import BaseKernel, UserSpace
+from user_space.user_space import BaseKernel, IPythonUserSpace, BaseKernelUserSpace, UserSpace
 from user_space.ipython.kernel import IPythonKernel
 
 log = logs.get_logger(__name__)
@@ -52,34 +62,61 @@ def control_kernel():
         #     n2p_queue.context.term()
 
 
+class ShutdownSignalHandler:
+    running = True
+
+    def __init__(self, message_handler, user_space):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+        self.user_space = user_space
+        self.message_handler = message_handler
+
+    def exit_gracefully(self, *args):
+        log.info('ShutdownSignalHandler {}'.format(args))
+
+        if self.message_handler != None:
+            for key, value in self.message_handler.items():
+                log.info('Shutdown {}'.format(key))
+                value.shutdown()
+                # value.user_space.executor.interupt_kernel()
+
+        self.running = False
+        # currently we exit right here. In the future, consider option to stop message handler gracefully.
+        sys.exit(0)
+
+
 def main(argv):
     if argv and len(argv) > 0:
         executor_type = argv[0]
-        print('argv', argv)
+        user_space = None
+        message_handler = None
         try:
             p2n_queue = MessageQueuePush()
 
             if executor_type == ExecutorType.CODE:
-                user_space = UserSpace(
-                    IPythonKernel(), [cd.DataFrame, pd.DataFrame])
+                user_space = IPythonUserSpace(
+                    (cd.DataFrame, pd.DataFrame), (torch.nn.Module, tensorflow.keras.Model))
                 message_handler = {
                     WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
                     WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
-                    WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space),
-                }
+                    WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
+                    WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space)}
             elif executor_type == ExecutorType.NONCODE:
-                noncode_user_space = UserSpace(
-                    BaseKernel(), [cd.DataFrame, pd.DataFrame])
+                user_space = BaseKernelUserSpace()
                 message_handler = {
-                    WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, noncode_user_space),
-                    WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, noncode_user_space, config),
-                    WebappEndpoint.FileExplorer: fe.MessageHandler(p2n_queue, noncode_user_space),
+                    WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
+                    WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config),
+                    WebappEndpoint.FileExplorer: fe.MessageHandler(
+                        p2n_queue, user_space)
                 }
+
         except Exception as error:
             log.error("%s - %s" % (error, traceback.format_exc()))
             exit(1)
 
-        while True:
+        shutdowHandler = ShutdownSignalHandler(message_handler, user_space)
+        # this condition here is meaningless for now because the process will be exit inside ShutdownSignalHandler.exit_gracefully already
+        while shutdowHandler.running:
             for line in sys.stdin:
                 try:
                     # log.info('Got message %s' % line)

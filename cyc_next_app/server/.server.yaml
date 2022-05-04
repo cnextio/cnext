@@ -3,7 +3,7 @@ p2n_comm:
     n2p_port: 5000
     p2n_port: 5001
 
-path_to_cycdataframe_lib: ''
+path_to_cycdataframe_lib: 'cycdataframe'
 
 projects:
     open_projects:
@@ -17,11 +17,11 @@ projects:
 #     n2p_port: 5000
 #     p2n_port: 5001
 
-# path_to_cycdataframe_lib: 'D:/DEV/CycAI/cycdataframe'
+# path_to_cycdataframe_lib: 'G:/DEV/CycAI/cycdataframe'
 
 # projects:
 #     open_projects:
 #         - id: '1'
 #           name: 'Skywalker'
-#           path: 'D:/DEV/CycAI/cnext_sample_projects/Skywalker'
+#           path: 'G:/DEV/CycAI/cnext_sample_projects/Skywalker'
 #     active_project: '1'
