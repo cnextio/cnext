@@ -36,29 +36,34 @@ config = read_config('.server.yaml', {'code_executor_comm': {
     'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
 
 
-def control_kernel(user_space):
+def control_kernel(user_space):    
     log.info("control_kernel 1111111111")    
-    n2p_queue = MessageQueuePull()
-    while True:
-        message_recv = n2p_queue.receive_msg()
-        log.info("Message recv: %s" % message_recv)
-        # if message_recv:
-        #     p2n_queue = (
-        #         config.p2n_comm['host'], config.p2n_comm['p2n_port'])
-        #     message = Message(**json.loads(message_recv))
-        #     log.info('Got message from %s command %s' %
-        #              (message.webapp_endpoint, message.command_name))
-        # km.MessageHandler(
-        #     p2n_queue, user_space).handle_message(message)
-        # log.error("Failed to execute the control message %s",
-        #           traceback.format_exc())
-        # message = BaseMessageHandler._create_error_message(
-        #     message.webapp_endpoint, traceback.format_exc())
-        # BaseMessageHandler.send_message(
-        #     p2n_queue, message.toJSON())
-        # finally:
-        #     n2p_queue.close()
-        #     n2p_queue.context.term()
+    try:
+        n2p_queue = MessageQueuePull()
+        while True:
+            message_recv = n2p_queue.receive_msg()
+            log.info("Message recv: %s" % message_recv)
+            user_space.executor.interupt_kernel()
+            # if message_recv:
+            #     p2n_queue = (
+            #         config.p2n_comm['host'], config.p2n_comm['p2n_port'])
+            #     message = Message(**json.loads(message_recv))
+            #     log.info('Got message from %s command %s' %
+            #              (message.webapp_endpoint, message.command_name))
+            # km.MessageHandler(
+            #     p2n_queue, user_space).handle_message(message)
+            # log.error("Failed to execute the control message %s",
+            #           traceback.format_exc())
+            # message = BaseMessageHandler._create_error_message(
+            #     message.webapp_endpoint, traceback.format_exc())
+            # BaseMessageHandler.send_message(
+            #     p2n_queue, message.toJSON())
+            # finally:
+            #     n2p_queue.close()
+            #     n2p_queue.context.term()
+    except:
+        trace = traceback.format_exc()
+        log.info("Exception %s" % (trace))
 
 
 class ShutdownSignalHandler:
