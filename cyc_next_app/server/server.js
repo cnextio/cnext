@@ -101,6 +101,14 @@ class PythonProcess {
         this.executor.on("close", function (message) {
             console.log("close ", "python-shell closed: " + message);
         });
+
+        if (args[0]==="code"){
+            this.control_sock = new zmq.Push({ linger: 0 });
+            const n2p_host = config.p2n_comm.host;
+            const control_port = config.p2n_comm.n2p_port;
+            const control_address = `${n2p_host}:${control_port}`;
+            this.control_sock.connect(control_address);
+        }
     }
 
     send2client(message) {
@@ -110,6 +118,18 @@ class PythonProcess {
     send2executor(message) {
         this.clientMessage = message.slice();
         this.executor.send(message);
+    }
+
+    async send2executor_zmq(message) {
+        try {
+            if(this.control_sock!=undefined) {
+                console.log(`send2executor_zmq: ${message}`);
+                await this.control_sock.send(message);
+            }
+            // new Promise((resolve) => setTimeout(resolve, 500));
+        } catch (err) {
+            console.log(err);
+        } 
     }
 
     shutdown(signal) {
@@ -178,25 +198,6 @@ try {
     let lspExecutor = new LSPProcess(io);
 
     /**
-     * ZMQ communication from node server to python-shell
-     */
-    const sock = new zmq.Push({ linger: 0 });
-    const n2p_host = config.p2n_comm.host;
-    const n2p_port = config.p2n_comm.n2p_port;
-    const n2p_address = `${n2p_host}:${n2p_port}`;
-    sock.connect(n2p_address);
-    async function zmq_sender(sock, message) {
-        try {
-            const jsonMessage = JSON.parse(message.toString());
-            console.log(`command_input_zmq: forward input to ${jsonMessage["webapp_endpoint"]}`);
-            await sock.send(message);
-            // new Promise((resolve) => setTimeout(resolve, 500));
-        } catch (err) {
-            console.log(err);
-        } 
-    }
-
-    /**
      * ZMQ communication from python-shell to node server
      */
     async function zmq_receiver() {
@@ -243,8 +244,7 @@ try {
             webapp_endpoint: KernelManager,
             command_name: "interrupt_kernel",
         };
-        zmq_sender(sock, JSON.stringify(message));
-
+        codeExecutor.send2executor_zmq(JSON.stringify(message));
     };
 
     initialize();
