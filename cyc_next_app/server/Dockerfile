@@ -1,30 +1,23 @@
-FROM continuumio/anaconda3
+FROM python:buster
 
-WORKDIR /server
-COPY . /server
+RUN groupadd --gid 1000 pn && useradd --uid 1000 --gid pn --shell /bin/bash --create-home pn
+ENV POETRY_HOME=/usr/local
+# Install node prereqs, nodejs and yarn
+# Ref: https://deb.nodesource.com/setup_14.x
+# Ref: https://yarnpkg.com/en/docs/install
+RUN \
+    echo "deb https://deb.nodesource.com/node_16.x buster main" > /etc/apt/sources.list.d/nodesource.list && \
+    wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list && \
+    wget -qO- https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    apt-get update && \
+    apt-get install -yqq nodejs yarn && \
+    pip install -U pip && pip install pipenv && \
+    npm i -g npm@^8 && \
+    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python - && \
+    rm -rf /var/lib/apt/lists/*
 
-ENV CLIENT_URL=http://web:3000
+USER pn
+WORKDIR /home/pn/app
 
-# Create conda environment
-RUN conda env create -f environment.yml
-RUN conda install -c conda-forge nodejs
-RUN conda install -c conda-forge/label/gcc7 nodejs
-RUN conda install -c conda-forge/label/cf201901 nodejs
-RUN conda install -c conda-forge/label/cf202003 nodejs
-
-# Install git
-RUN conda install -c anaconda git
-RUN git clone -b v0.2.1 https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cycdataframe.git ./cycdataframe
-RUN git clone https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cnext_sample_projects.git
-# RUN git clone -b deploy --single-branch https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cnext_sample_projects.git
-RUN npm install
-
-# Activate conda environment
-ENV PATH /opt/conda/envs/py39/bin:$PATH
-RUN /bin/bash -c "source activate py39"
-# Run python script
-CMD ["npm", "start"]
-# Run python script 
-# CMD ["python", "test.py"]
-
-EXPOSE 4000
+CMD ["bash"]
