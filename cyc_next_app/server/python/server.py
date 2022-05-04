@@ -32,38 +32,26 @@ from libs.message import KernelManagerCommand
 
 log = logs.get_logger(__name__)
 
-config = read_config('.server.yaml', {'code_executor_comm': {
-    'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
+config = read_config('.server.yaml', {
+    'p2n_comm': {'host': '127.0.0.1', 'port': 5001},
+    'n2p_comm': {'host': '127.0.0.1', 'kernel_control_port': 5005, }})
 
 
-def control_kernel(user_space):    
-    log.info("control_kernel 1111111111")    
+def control_kernel(user_space):
+    log.info("Kernel control thread started")
     try:
-        n2p_queue = MessageQueuePull()
+        n2p_queue = MessageQueuePull(
+            config.n2p_comm['host'], config.n2p_comm['kernel_control_port'])
         while True:
-            message_recv = n2p_queue.receive_msg()
-            log.info("Message recv: %s" % message_recv)
-            user_space.executor.interupt_kernel()
-            # if message_recv:
-            #     p2n_queue = (
-            #         config.p2n_comm['host'], config.p2n_comm['p2n_port'])
-            #     message = Message(**json.loads(message_recv))
-            #     log.info('Got message from %s command %s' %
-            #              (message.webapp_endpoint, message.command_name))
-            # km.MessageHandler(
-            #     p2n_queue, user_space).handle_message(message)
-            # log.error("Failed to execute the control message %s",
-            #           traceback.format_exc())
-            # message = BaseMessageHandler._create_error_message(
-            #     message.webapp_endpoint, traceback.format_exc())
-            # BaseMessageHandler.send_message(
-            #     p2n_queue, message.toJSON())
-            # finally:
-            #     n2p_queue.close()
-            #     n2p_queue.context.term()
+            strMessage = n2p_queue.receive_msg()
+            message = Message(**json.loads(strMessage))
+            log.info("Received control message: %s" % message)
+            if message.command_name == KernelManagerCommand.restart_kernel:
+                result = user_space.executor.restart_kernel()
     except:
         trace = traceback.format_exc()
         log.info("Exception %s" % (trace))
+        exit(1)
 
 
 class ShutdownSignalHandler:
@@ -106,8 +94,9 @@ def main(argv):
         user_space = None
         message_handler = None
         try:
-            p2n_queue = MessageQueuePush()                               
-            if executor_type == ExecutorType.CODE:                
+            p2n_queue = MessageQueuePush(
+                config.p2n_comm['host'], config.p2n_comm['port'])
+            if executor_type == ExecutorType.CODE:
                 user_space = IPythonUserSpace(
                     (cd.DataFrame, pd.DataFrame), (torch.nn.Module, tensorflow.keras.Model))
                 # control_kernel(user_space)

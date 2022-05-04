@@ -104,8 +104,8 @@ class PythonProcess {
 
         if (args[0]==="code"){
             this.control_sock = new zmq.Push({ linger: 0 });
-            const n2p_host = config.p2n_comm.host;
-            const control_port = config.p2n_comm.n2p_port;
+            const n2p_host = config.n2p_comm.host;
+            const control_port = config.n2p_comm.kernel_control_port;
             const control_address = `${n2p_host}:${control_port}`;
             this.control_sock.connect(control_address);
         }
@@ -193,7 +193,7 @@ try {
     async function zmq_receiver() {
         const command_output_zmq = new zmq.Pull();
         const p2n_host = config.p2n_comm.host;
-        const p2n_port = config.p2n_comm.p2n_port;
+        const p2n_port = config.p2n_comm.port;
         await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);
 
         // notification_zmq.bind(`${p2n_host}:${p2n_notif_port}`);

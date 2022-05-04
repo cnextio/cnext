@@ -39,10 +39,10 @@ config = read_config('.server.yaml', {'code_executor_comm': {
 
 
 class MessageQueuePush:
-    def __init__(self, hwm=1000):
+    def __init__(self, host, port, hwm=1000):
         context = zmq.Context()
-        self.host = config.p2n_comm['host']
-        self.port = config.p2n_comm['p2n_port']
+        self.host = host
+        self.port = port
         self.addr = '{}:{}'.format(self.host, self.port)
         self.push: zmq.Socket = context.socket(zmq.PUSH)
         self.push.connect(self.addr)
@@ -68,11 +68,11 @@ class MessageQueuePull:
             MessageQueuePull()
         return MessageQueuePull._instance
 
-    def __init__(self):
+    def __init__(self, host, port):
         self.context = zmq.Context()
         self.context.setsockopt(zmq.LINGER, 0)
-        self.host = config.p2n_comm['host']
-        self.port = config.p2n_comm['n2p_port']
+        self.host = host
+        self.port = port
         self.addr = '{}:{}'.format(self.host, self.port)
         self.pull: zmq.Socket = self.context.socket(zmq.PULL)
         self.pull.bind(self.addr)
