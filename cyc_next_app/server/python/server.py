@@ -20,7 +20,6 @@ import cycdataframe.cycdataframe as cd
 from model_manager import model_manager as mm
 
 from libs.message import Message, WebappEndpoint
-from libs.zmq_message import MessageQueue
 import traceback
 import cnextlib.dataframe as cd
 import torch
@@ -28,7 +27,7 @@ import tensorflow
 from libs.config import read_config
 from libs.message_handler import BaseMessageHandler
 from libs.message import ExecutorType
-from user_space.user_space import BaseKernel, IPythonUserSpace, BaseKernelUserSpace, UserSpace
+from user_space.user_space import BaseKernel, IPythonUserSpace, BaseKernelUserSpace
 from user_space.ipython.kernel import IPythonKernel
 
 log = logs.get_logger(__name__)
