@@ -37,13 +37,11 @@ config = read_config('.server.yaml', {'code_executor_comm': {
 
 
 def control_kernel(user_space):
-    log.info("control_kernel 1111111111")
+    log.info("control_kernel 1111111111")    
     n2p_queue = MessageQueuePull()
-    # user_space = IPythonUserSpace(IPythonKernel.get_instance(),
-    #                               [cd.DataFrame, pd.DataFrame])
     while True:
         message_recv = n2p_queue.receive_msg()
-        log.info("Message recv: ", message_recv)
+        log.info("Message recv: %s" % message_recv)
         # if message_recv:
         #     p2n_queue = (
         #         config.p2n_comm['host'], config.p2n_comm['p2n_port'])
@@ -103,13 +101,13 @@ def main(argv):
         user_space = None
         message_handler = None
         try:
-            p2n_queue = MessageQueuePush()
-            if executor_type == ExecutorType.CODE:
+            p2n_queue = MessageQueuePush()                               
+            if executor_type == ExecutorType.CODE:                
                 user_space = IPythonUserSpace(
                     (cd.DataFrame, pd.DataFrame), (torch.nn.Module, tensorflow.keras.Model))
                 # control_kernel(user_space)
                 control_kernel_thread = threading.Thread(
-                    target=control_kernel, args=(user_space, ), daemon=True)
+                    target=control_kernel, args=(user_space,), daemon=True)
                 control_kernel_thread.start()
                 message_handler = {
                     WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),

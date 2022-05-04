@@ -180,12 +180,12 @@ try {
     /**
      * ZMQ communication from node server to python-shell
      */
-    async function zmq_sender(message) {
-        const sock = new zmq.Push({ linger: 0 });
-        const n2p_host = config.p2n_comm.host;
-        const n2p_port = config.p2n_comm.n2p_port;
-        const n2p_address = `${n2p_host}:${n2p_port}`;
-        sock.connect(n2p_address);
+    const sock = new zmq.Push({ linger: 0 });
+    const n2p_host = config.p2n_comm.host;
+    const n2p_port = config.p2n_comm.n2p_port;
+    const n2p_address = `${n2p_host}:${n2p_port}`;
+    sock.connect(n2p_address);
+    async function zmq_sender(sock, message) {
         try {
             const jsonMessage = JSON.parse(message.toString());
             console.log(`command_input_zmq: forward input to ${jsonMessage["webapp_endpoint"]}`);
@@ -193,9 +193,7 @@ try {
             // new Promise((resolve) => setTimeout(resolve, 500));
         } catch (err) {
             console.log(err);
-        } finally {
-            sock.close();
-        }
+        } 
     }
 
     /**
@@ -245,7 +243,7 @@ try {
             webapp_endpoint: KernelManager,
             command_name: "interrupt_kernel",
         };
-        // zmq_sender(JSON.stringify(message));
+        zmq_sender(sock, JSON.stringify(message));
 
     };
 
