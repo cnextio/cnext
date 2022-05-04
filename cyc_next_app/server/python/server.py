@@ -29,6 +29,7 @@ from libs.message_handler import BaseMessageHandler
 from libs.message import ExecutorType
 from user_space.user_space import BaseKernel, IPythonUserSpace, BaseKernelUserSpace
 from user_space.ipython.kernel import IPythonKernel
+from libs.message import KernelManagerCommand
 
 log = logs.get_logger(__name__)
 
@@ -36,20 +37,22 @@ config = read_config('.server.yaml', {'code_executor_comm': {
     'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
 
 
-def control_kernel():
-    n2p_queue = MessageQueuePull.get_instance()
-    user_space = UserSpace(IPythonKernel.get_instance(),
-                           [cd.DataFrame, pd.DataFrame])
-    message_recv = n2p_queue.receive_msg()
-    print("Message recv", message_recv)
-    if message_recv:
-        p2n_queue = (
-            config.p2n_comm['host'], config.p2n_comm['p2n_port'])
-        message = Message(**json.loads(message_recv))
-        log.info('Got message from %s command %s' %
-                 (message.webapp_endpoint, message.command_name))
-        km.MessageHandler(
-            p2n_queue, user_space).handle_message(message)
+def control_kernel(user_space):
+    print("1111111111")
+    n2p_queue = MessageQueuePull()
+    # user_space = IPythonUserSpace(IPythonKernel.get_instance(),
+    #                               [cd.DataFrame, pd.DataFrame])
+    while True:
+        message_recv = n2p_queue.receive_msg()
+        print("Message recv: ", message_recv)
+        # if message_recv:
+        #     p2n_queue = (
+        #         config.p2n_comm['host'], config.p2n_comm['p2n_port'])
+        #     message = Message(**json.loads(message_recv))
+        #     log.info('Got message from %s command %s' %
+        #              (message.webapp_endpoint, message.command_name))
+        # km.MessageHandler(
+        #     p2n_queue, user_space).handle_message(message)
         # log.error("Failed to execute the control message %s",
         #           traceback.format_exc())
         # message = BaseMessageHandler._create_error_message(
@@ -63,12 +66,23 @@ def control_kernel():
 
 class ShutdownSignalHandler:
     running = True
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if ShutdownSignalHandler._instance == None:
+            ShutdownSignalHandler()
+        return ShutdownSignalHandler._instance
 
     def __init__(self, message_handler, user_space):
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
         self.user_space = user_space
         self.message_handler = message_handler
+        ShutdownSignalHandler._instance = self
+
+    def get_running_status(self):
+        return self.running
 
     def exit_gracefully(self, *args):
         log.info('ShutdownSignalHandler {}'.format(args))
@@ -91,15 +105,21 @@ def main(argv):
         message_handler = None
         try:
             p2n_queue = MessageQueuePush()
-
             if executor_type == ExecutorType.CODE:
                 user_space = IPythonUserSpace(
                     (cd.DataFrame, pd.DataFrame), (torch.nn.Module, tensorflow.keras.Model))
+                # control_kernel(user_space)
+                control_kernel_thread = threading.Thread(
+                    target=control_kernel, args=(user_space, ), daemon=True)
+                control_kernel_thread.start()
                 message_handler = {
                     WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
                     WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
                     WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
-                    WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space)}
+                    # WebappEndpoint.KernelManager: km.MessageHandler(p2n_queue, user_space),
+                    WebappEndpoint.MagicCommandGen: ca.MessageHandler(
+                        p2n_queue, user_space)
+                }
             elif executor_type == ExecutorType.NONCODE:
                 user_space = BaseKernelUserSpace()
                 message_handler = {
@@ -122,9 +142,12 @@ def main(argv):
                     message = Message(**json.loads(line))
                     log.info('Got message from %s command %s' %
                              (message.webapp_endpoint, message.command_name))
-                    message_handler[message.webapp_endpoint].handle_message(
-                        message)
-
+                    if message.webapp_endpoint == WebappEndpoint.KernelManager:
+                        if message.command_name == KernelManagerCommand.interrupt_kernel:
+                            shutdowHandler.exit_gracefully()
+                    else:
+                        message_handler[message.webapp_endpoint].handle_message(
+                            message)
                 except OSError as error:  # TODO check if this has to do with buffer error
                     # since this error might be related to the pipe, we do not send this error to nodejs
                     log.error("OSError: %s" % (error))
@@ -146,7 +169,6 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    # control_kernel_thread = threading.Thread(
-    #     target=control_kernel, daemon=True)
+
     # control_kernel_thread.start()
     main(sys.argv[1:])

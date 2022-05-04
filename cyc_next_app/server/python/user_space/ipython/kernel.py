@@ -12,6 +12,15 @@ log = logs.get_logger(__name__)
 
 
 class IPythonKernel():
+
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if IPythonKernel._instance == None:
+            IPythonKernel()
+        return IPythonKernel._instance
+
     def __init__(self):
         self.km = jupyter_client.KernelManager()
         self.km.start_kernel()
@@ -27,6 +36,7 @@ class IPythonKernel():
         ## This lock is used to make sure only one execution is being executed at any moment in time #
         self.execute_lock = threading.Lock()
         self._reset_execution_complete_condition()
+        IPythonKernel._instance = self
 
     def shutdown_kernel(self):
         try:

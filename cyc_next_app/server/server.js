@@ -234,12 +234,17 @@ try {
     });
 
     const initialize = () => {
-        codeExecutor.send2executor(
-            JSON.stringify({
-                webapp_endpoint: CodeEditor,
-                content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
-            })
-        );
+        // codeExecutor.send2executor(
+        //     JSON.stringify({
+        //         webapp_endpoint: CodeEditor,
+        //         content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
+        //     })
+        // );
+        const message = {
+            webapp_endpoint: KernelManager,
+            command_name: "interrupt_kernel",
+        };
+        zmq_sender(JSON.stringify(message));
 
         //         codeExecutor.send2executor(
         //             JSON.stringify({
