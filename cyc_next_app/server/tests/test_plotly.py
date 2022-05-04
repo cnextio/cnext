@@ -1,4 +1,4 @@
-from cnext_libs.cycdataframes import CycDataFrame
+import cnextlib.dataframe as cd
 import plotly.express as px
 import plotly.io as pio
 import io
@@ -6,7 +6,7 @@ import sys
 import os
 os.chdir('/Volumes/GoogleDrive/.shortcut-targets-by-id/1FrvaCWSo3NV1g0sR9ib6frv_lzRww_8K/CycAI/works/CAT/machine_simulation/')
 sys.path.append(os.getcwd())
-training_data = CycDataFrame('data/exp_data/997/21549286_out.csv')
+training_data = cd.DataFrame('data/exp_data/997/21549286_out.csv')
 df = training_data
 
 

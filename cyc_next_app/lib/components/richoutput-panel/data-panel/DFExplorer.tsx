@@ -4,6 +4,7 @@ import React, { Fragment } from "react";
 // redux
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveDF } from "../../../../redux/reducers/DataFramesRedux";
+import { RootState } from "../../../../redux/store";
 import {
     DFSelector,
     DFSelectorForm,
@@ -13,10 +14,10 @@ import {
 // import { CountNAContainer } from "./StyledComponents";
 
 const DFExplorer = () => {
-    const dataFrameList = useSelector((state) => getDataFrameList(state));
+    const dataFrameList = useSelector((state: RootState) => getDataFrameList(state));
     const dispatch = useDispatch();
 
-    function getDataFrameList(state) {
+    function getDataFrameList(state: RootState) {
         let activeDF = state.dataFrames.activeDataFrame;
         return activeDF
             ? {

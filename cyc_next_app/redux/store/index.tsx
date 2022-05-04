@@ -3,7 +3,7 @@ import dataFrameReducer from "../reducers/DataFramesRedux";
 import codeEditorReducer from "../reducers/CodeEditorRedux";
 import ProjectManagerRedux from "../reducers/ProjectManagerRedux";
 import ExperimentManagerRedux from "../reducers/ExperimentManagerRedux";
-// import dfUpdatesReducer from '../reducers/dfUpdates'
+import ModelManagerRedux from "../reducers/ModelManagerRedux";
 
 const store = configureStore({
     reducer: {
@@ -11,6 +11,7 @@ const store = configureStore({
         codeEditor: codeEditorReducer,
         projectManager: ProjectManagerRedux,
         experimentManager: ExperimentManagerRedux,
+        modelManager: ModelManagerRedux,
     },
 });
 
