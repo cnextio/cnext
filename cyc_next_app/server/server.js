@@ -32,9 +32,8 @@ const FileExplorer = "FileExplorer";
 const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
 const KernelManager = "KernelManager";
-const CodeExecutor = [CodeEditor, DFManager, MagicCommandGen];
+const CodeExecutor = [CodeEditor, DFManager, MagicCommandGen, KernelManager];
 const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
-const ControllerExecutor = [KernelManager];
 
 const LSPExecutor = [
     LanguageServer,
@@ -146,14 +145,16 @@ try {
         socket.onAny((endpoint, message) => {
             //TODO: use enum
             if (CodeExecutor.includes(endpoint)) {
-                codeExecutorHandler(message);
+                if (endpoint === KernelManager) {
+                    // This is temporary solution, when refactor the nodejs completely conenct to python by ZMQ, we 'll refactor later
+                    zmq_sender(message);
+                } else {
+                    codeExecutorHandler(message);
+                }
             } else if (NotCodeExecutor.includes(endpoint)) {
                 nonCodeExecutorHandler(message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
-            } else if (ControllerExecutor.includes(endpoint)) {
-                // This is temporary solution, when refactor the nodejs completely conenct to python by ZMQ, we 'll refactor later
-                zmq_sender(message);
             }
         });
         socket.once("disconnect", () => {});
@@ -181,9 +182,9 @@ try {
         sock.connect(n2p_address);
         try {
             const jsonMessage = JSON.parse(message.toString());
-            console.log(`command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`);
+            console.log(`command_input_zmq: forward input to ${jsonMessage["webapp_endpoint"]}`);
             await sock.send(message);
-            new Promise((resolve) => setTimeout(resolve, 500));
+            // new Promise((resolve) => setTimeout(resolve, 500));
         } catch (err) {
             console.log(err);
         } finally {

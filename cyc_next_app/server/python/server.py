@@ -13,7 +13,7 @@ from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
 from kernel_manager import kernel_manager as km
 from libs.message import Message, WebappEndpoint
-from libs.zmq_message import MessageQueuePull, MessageQueuePush
+from libs.zmq_message import MessageQueuePush, MessageQueuePull
 import cycdataframe.cycdataframe as cd
 from libs.config import read_config
 from libs.message_handler import BaseMessageHandler
@@ -31,35 +31,34 @@ def control_kernel():
     n2p_queue = MessageQueuePull()
     user_space = UserSpace(IPythonKernel.get_instance(),
                            [cd.DataFrame, pd.DataFrame])
-    while True:
-        try:
-            message_recv = n2p_queue.receive_msg()
-            if message_recv:
-                p2n_queue = (
-                    config.p2n_comm['host'], config.p2n_comm['p2n_port'])
-                message = Message(**json.loads(message_recv))
-                log.info('Got message from %s command %s' %
-                         (message.webapp_endpoint, message.command_name))
-                km.MessageHandler(
-                    p2n_queue, user_space).handle_message(message)
-            n2p_queue.close()
-            n2p_queue.context.term()
-        except Exception as ex:
-            print(ex)
-            # log.error("Failed to execute the control message %s",
-            #           traceback.format_exc())
-            # message = BaseMessageHandler._create_error_message(
-            #     message.webapp_endpoint, traceback.format_exc())
-            # BaseMessageHandler.send_message(
-            #     p2n_queue, message.toJSON())
+    message_recv = n2p_queue.receive_msg()
+    print("Message recv", message_recv)
+    if message_recv:
+        p2n_queue = (
+            config.p2n_comm['host'], config.p2n_comm['p2n_port'])
+        message = Message(**json.loads(message_recv))
+        log.info('Got message from %s command %s' %
+                 (message.webapp_endpoint, message.command_name))
+        km.MessageHandler(
+            p2n_queue, user_space).handle_message(message)
+        # log.error("Failed to execute the control message %s",
+        #           traceback.format_exc())
+        # message = BaseMessageHandler._create_error_message(
+        #     message.webapp_endpoint, traceback.format_exc())
+        # BaseMessageHandler.send_message(
+        #     p2n_queue, message.toJSON())
         # finally:
         #     n2p_queue.close()
+        #     n2p_queue.context.term()
 
 
 def main(argv):
     if argv and len(argv) > 0:
         executor_type = argv[0]
         try:
+
+            # Start control kernel thread
+
             p2n_queue = MessageQueuePush()
 
             if executor_type == ExecutorType.CODE:
@@ -112,15 +111,17 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    # Init socket
+    # try:
     # context = zmq.Context()
     # host = config.p2n_comm['host']
     # port = config.p2n_comm['n2p_port']
     # addr = '{}:{}'.format(host, port)
     # socket: zmq.Socket = context.socket(zmq.PULL)
-    # socket.bind(addr)
-
-    control_kernel_thread = threading.Thread(
-        target=control_kernel)
-    control_kernel_thread.start()
+    # socket.bind("tcp://*:7005")
+    # control_kernel()
+    # except Exception as ex:
+    #     print(ex)
+    # control_kernel_thread = threading.Thread(
+    #     target=control_kernel, daemon=True)
+    # control_kernel_thread.start()
     main(sys.argv[1:])

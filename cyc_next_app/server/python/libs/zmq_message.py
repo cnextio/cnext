@@ -59,7 +59,7 @@ class MessageQueuePush:
 
 
 class MessageQueuePull:
-    def __init__(self, hwm=1000):
+    def __init__(self):
         self.context = zmq.Context()
         self.context.setsockopt(zmq.LINGER, 0)
         self.host = config.p2n_comm['host']
@@ -72,4 +72,4 @@ class MessageQueuePull:
         self.pull_queue.disconnect(self.addr)
 
     def receive_msg(self):
-        return self.pull.recv()
+        return self.pull.recv_string()
