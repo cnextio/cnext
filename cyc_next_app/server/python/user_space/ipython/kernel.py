@@ -40,7 +40,7 @@ class IPythonKernel():
         self.message_handler_callback = None
         ## This lock is used to make sure only one execution is being executed at any moment in time #
         self.execute_lock = threading.Lock()
-        self._reset_execution_complete_condition()
+        self._set_execution_complete_condition_false()
         IPythonKernel._instance = self
 
     def shutdown_kernel(self):
@@ -71,8 +71,14 @@ class IPythonKernel():
                     target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
                 self.stop_stream_thread = False
                 self.shell_msg_thread.start()
-                self.iobuf_msg_thread.start()                        
+                self.iobuf_msg_thread.start() 
                 log.info('Kernel restarted')
+
+                ## release execution lock which might be locked during an execution
+                if self.execute_lock.locked():
+                    self.execute_lock.release()
+                    log.info('Kernel execution lock released')
+                    self._set_execution_complete_condition_true()                    
                 return True
         except:
             trace = traceback.format_exc()
@@ -97,9 +103,13 @@ class IPythonKernel():
     def _is_status_message(self, message):
         return message['header']['msg_type'] == 'status'
 
-    def _reset_execution_complete_condition(self):
+    def _set_execution_complete_condition_false(self):
         self.shell_cond = False
         self.iobuf_cond = False
+
+    def _set_execution_complete_condition_true(self):
+        self.shell_cond = True
+        self.iobuf_cond = True
 
     def _set_execution_complete_condition(self, stream_type, message):
         if stream_type == IPythonConstants.StreamType.SHELL:
@@ -143,9 +153,9 @@ class IPythonKernel():
                     #     self.execute_lock.release()
                     self._set_execution_complete_condition(
                         stream_type, ipython_message)
-                    if self.execute_lock.locked() and self._is_execution_complete(stream_type, ipython_message):
-                        log.info('Execution completed')
+                    if self.execute_lock.locked() and self._is_execution_complete(stream_type, ipython_message):                        
                         self.execute_lock.release()
+                        log.info('Kernel execution lock released')
                 except queue.Empty:
                     pass
             log.info('Stop stream %s' % stream_type)
@@ -155,7 +165,8 @@ class IPythonKernel():
 
     def execute(self, code, exec_mode=None, message_handler_callback=None, client_message=None):
         self.execute_lock.acquire()
-        self._reset_execution_complete_condition()
+        log.info('Kernel execution lock acquired')
+        self._set_execution_complete_condition_false()
         self.message_handler_callback = message_handler_callback
         self.client_message = client_message
         self.kc.execute(code)

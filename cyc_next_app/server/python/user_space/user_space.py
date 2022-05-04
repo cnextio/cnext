@@ -106,10 +106,11 @@ class _UserSpace(BaseKernelUserSpace):
         '''
         def _result_waiting_execution_wrapper(*args, **kwargs):
             args[0].execution_lock.acquire()
-            log.info('Execution locked')
+            log.info('User_space execution lock acquired')
             func(*args, **kwargs)
             args[0].execution_lock.acquire()
             args[0].execution_lock.release()
+            log.info('User_space execution lock released')
             log.info("Results: %s" % args[0].result)
             return args[0].result
         return _result_waiting_execution_wrapper
@@ -146,12 +147,20 @@ class _UserSpace(BaseKernelUserSpace):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
 
-    def shutdown(self):
+    def shutdown_executor(self):
         self.executor.shutdown_kernel()
-        # not sure if this is needed
         if self.execution_lock.locked():
             self.execution_lock.release()
 
+    def restart_executor(self):
+        self.executor.restart_kernel()
+        if self.execution_lock.locked():
+            self.execution_lock.release()
+    
+    def interrupt_executor(self):
+        self.executor.restart_kernel()
+        if self.execution_lock.locked():
+            self.execution_lock.release()
 
 class BaseKernelUserSpace(_cus.UserSpace):
     ''' 

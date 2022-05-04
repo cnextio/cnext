@@ -47,7 +47,9 @@ def control_kernel(user_space):
             message = Message(**json.loads(strMessage))
             log.info("Received control message: %s" % message)
             if message.command_name == KernelManagerCommand.restart_kernel:
-                result = user_space.executor.restart_kernel()
+                result = user_space.restart_executor()
+            elif message.command_name == KernelManagerCommand.interrupt_kernel:
+                result = user_space.interupt_executor()
     except:
         trace = traceback.format_exc()
         log.info("Exception %s" % (trace))
