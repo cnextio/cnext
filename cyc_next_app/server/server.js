@@ -144,24 +144,6 @@ class PythonProcess {
 // let clientMessage;
 try {
     io.on("connection", (socket) => {
-        function codeExecutorHandler(strMessage) {
-            // clientMessage = strMessage.slice();
-            console.log(
-                "Receive msg from client, server will run: ",
-                JSON.parse(strMessage)["command_name"]
-            );
-            codeExecutor.send2executor(strMessage);
-        }
-
-        function nonCodeExecutorHandler(strMessage) {
-            // clientMessage = strMessage.slice();
-            console.log(
-                "Receive msg from client, server will run: ",
-                JSON.parse(strMessage)["command_name"]
-            );
-            nonCodeExecutor.send2executor(strMessage);
-        }
-
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();
             console.log(`Got ping at ${time}: ${message}`);
@@ -169,16 +151,24 @@ try {
         });
 
         socket.onAny((endpoint, message) => {
-            //TODO: use enum
+            //TODO: use enum            
             if (CodeExecutor.includes(endpoint)) {
+                console.log(
+                    "Receive msg from client, server will run: ",
+                    JSON.parse(message)["command_name"]
+                );
                 if (endpoint === KernelManager) {
                     // This is temporary solution, when refactor the nodejs completely conenct to python by ZMQ, we 'll refactor later
-                    zmq_sender(message);
+                    codeExecutor.send2executor_zmq(message);
                 } else {
-                    codeExecutorHandler(message);
+                    codeExecutor.send2executor(message);
                 }
             } else if (NotCodeExecutor.includes(endpoint)) {
-                nonCodeExecutorHandler(message);
+                console.log(
+                    "Receive msg from client, server will run: ",
+                    JSON.parse(message)["command_name"]
+                );
+                nonCodeExecutor.send2executor(message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             }
