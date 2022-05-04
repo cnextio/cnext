@@ -12,19 +12,6 @@ log = logs.get_logger(__name__)
 
 
 class IPythonKernel():
-    """
-        Use singleton pattern for this class to make sure only one Ipython Kernel is running during the application alive.
-        Just call get_instance() method to get the IPython kernel.
-    """
-
-    _instance = None
-
-    @staticmethod
-    def get_instance():
-        if IPythonKernel._instance == None:
-            IPythonKernel()
-        return IPythonKernel._instance
-
     def __init__(self):
         self.km = jupyter_client.KernelManager()
         self.km.start_kernel()
@@ -39,7 +26,7 @@ class IPythonKernel():
         self.message_handler_callback = None
         ## This lock is used to make sure only one execution is being executed at any moment in time #
         self.execute_lock = threading.Lock()
-        IPythonKernel._instance = self
+        self._reset_execution_complete_condition()
 
     def shutdown_kernel(self):
         try:
@@ -65,13 +52,24 @@ class IPythonKernel():
         try:
             self.kc.wait_for_ready(timeout=50)
         except RuntimeError:
-            self.interrupt_kernel()
+            self.shutdown_kernel()
 
     def _is_status_message(self, message):
         return message['header']['msg_type'] == 'status'
 
-    def _complete_execution_message(self, message) -> bool:
-        return message['header']['msg_type'] == 'execute_reply' and 'status' in message['content']
+    def _reset_execution_complete_condition(self):
+        self.shell_cond = False
+        self.iobuf_cond = False
+
+    def _set_execution_complete_condition(self, stream_type, message):
+        if stream_type == IPythonConstants.StreamType.SHELL:
+            self.shell_cond = message['header']['msg_type'] == 'execute_reply' and 'status' in message['content']
+        if stream_type == IPythonConstants.StreamType.IOBUF:
+            self.iobuf_cond = message['header']['msg_type'] == 'status' and message['content']['execution_state'] == 'idle'
+
+    def _is_execution_complete(self, stream_type, message) -> bool:
+        ## Look at the shell stream and check the status #
+        return self.shell_cond and self.iobuf_cond
 
     def handle_ipython_stream(self, stream_type: IPythonConstants.StreamType):
         try:
@@ -110,6 +108,7 @@ class IPythonKernel():
 
     def execute(self, code, exec_mode=None, message_handler_callback=None, client_message=None):
         self.execute_lock.acquire()
+        self._reset_execution_complete_condition()
         self.message_handler_callback = message_handler_callback
         self.client_message = client_message
         self.kc.execute(code)
