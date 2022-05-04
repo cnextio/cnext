@@ -45,7 +45,6 @@ class ShutdownSignalHandler:
         for key, value in self.message_handler.items():
             log.info('Shutdown {}'.format(key))
             value.shutdown()
-            # value.user_space.executor.interupt_kernel()
         
     self.running = False    
     ## currently we exit right here. In the future, consider option to stop message handler gracefully.
