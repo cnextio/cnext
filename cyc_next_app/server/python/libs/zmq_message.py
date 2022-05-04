@@ -59,6 +59,15 @@ class MessageQueuePush:
 
 
 class MessageQueuePull:
+
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if MessageQueuePull._instance == None:
+            MessageQueuePull()
+        return MessageQueuePull._instance
+
     def __init__(self):
         self.context = zmq.Context()
         self.context.setsockopt(zmq.LINGER, 0)
@@ -66,7 +75,8 @@ class MessageQueuePull:
         self.port = config.p2n_comm['n2p_port']
         self.addr = '{}:{}'.format(self.host, self.port)
         self.pull: zmq.Socket = self.context.socket(zmq.PULL)
-        self.pull.connect(self.addr)
+        self.pull.bind(self.addr)
+        MessageQueuePull._instance = self
 
     def close(self):
         self.pull_queue.disconnect(self.addr)

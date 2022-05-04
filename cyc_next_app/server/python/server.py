@@ -28,7 +28,7 @@ config = read_config('.server.yaml', {'code_executor_comm': {
 
 
 def control_kernel():
-    n2p_queue = MessageQueuePull()
+    n2p_queue = MessageQueuePull.get_instance()
     user_space = UserSpace(IPythonKernel.get_instance(),
                            [cd.DataFrame, pd.DataFrame])
     message_recv = n2p_queue.receive_msg()
@@ -55,10 +55,8 @@ def control_kernel():
 def main(argv):
     if argv and len(argv) > 0:
         executor_type = argv[0]
+        print('argv', argv)
         try:
-
-            # Start control kernel thread
-
             p2n_queue = MessageQueuePush()
 
             if executor_type == ExecutorType.CODE:
@@ -67,7 +65,8 @@ def main(argv):
                 message_handler = {
                     WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
                     WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
-                    WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space)}
+                    WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space),
+                }
             elif executor_type == ExecutorType.NONCODE:
                 noncode_user_space = UserSpace(
                     BaseKernel(), [cd.DataFrame, pd.DataFrame])
@@ -111,16 +110,6 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    # try:
-    # context = zmq.Context()
-    # host = config.p2n_comm['host']
-    # port = config.p2n_comm['n2p_port']
-    # addr = '{}:{}'.format(host, port)
-    # socket: zmq.Socket = context.socket(zmq.PULL)
-    # socket.bind("tcp://*:7005")
-    # control_kernel()
-    # except Exception as ex:
-    #     print(ex)
     # control_kernel_thread = threading.Thread(
     #     target=control_kernel, daemon=True)
     # control_kernel_thread.start()
