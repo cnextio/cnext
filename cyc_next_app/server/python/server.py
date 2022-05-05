@@ -1,34 +1,29 @@
 import sys
-import zmq
 import traceback
 import threading
 import signal
+import traceback
+import torch
+import tensorflow
 from libs import logs
 import pandas as pd
 from libs import logs
 import simplejson as json
+from libs.config import read_config
 from code_editor import code_editor as ce
 from dataframe_manager import dataframe_manager as dm
 from experiment_manager import experiment_manager as em
+from model_manager import model_manager as mm
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
-from kernel_manager import kernel_manager as km
-from libs.message import Message, WebappEndpoint
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
-from model_manager import model_manager as mm
-
-from libs.message import Message, WebappEndpoint
-import traceback
-import cnextlib.dataframe as cd
-import torch
-import tensorflow
-from libs.config import read_config
+from libs.message import Message, WebappEndpoint, KernelManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
-from libs.message import ExecutorType
-from user_space.user_space import BaseKernel, IPythonUserSpace, BaseKernelUserSpace
-from user_space.ipython.kernel import IPythonKernel
-from libs.message import KernelManagerCommand
+from user_space.user_space import IPythonUserSpace, BaseKernelUserSpace
+
+import cnextlib.dataframe as cd
+
 
 log = logs.get_logger(__name__)
 
@@ -58,20 +53,12 @@ def control_kernel(user_space):
 
 class ShutdownSignalHandler:
     running = True
-    _instance = None
-
-    @staticmethod
-    def get_instance():
-        if ShutdownSignalHandler._instance == None:
-            ShutdownSignalHandler()
-        return ShutdownSignalHandler._instance
 
     def __init__(self, message_handler, user_space):
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
         self.user_space = user_space
         self.message_handler = message_handler
-        ShutdownSignalHandler._instance = self
 
     def get_running_status(self):
         return self.running

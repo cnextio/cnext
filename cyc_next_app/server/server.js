@@ -1,5 +1,4 @@
 require("dotenv").config();
-const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const fs = require("fs");
@@ -126,7 +125,6 @@ class PythonProcess {
                 console.log(`send2executor_zmq: ${message}`);
                 await this.control_sock.send(message);
             }
-            // new Promise((resolve) => setTimeout(resolve, 500));
         } catch (err) {
             console.log(err);
         }
@@ -195,10 +193,7 @@ try {
         const p2n_host = config.p2n_comm.host;
         const p2n_port = config.p2n_comm.port;
         await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);
-
-        // notification_zmq.bind(`${p2n_host}:${p2n_notif_port}`);
         console.log(`Waiting for python executor message on ${p2n_port}`);
-
         for await (const [message] of command_output_zmq) {
             const jsonMessage = JSON.parse(message.toString());
             console.log(`command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`);
@@ -207,9 +202,6 @@ try {
     }
 
     zmq_receiver().catch((e) => console.error("ZMQ_error: ", e.stack));
-    /** */
-
-    // process.on("exit", function () {});
 
     process.on("SIGINT", function () {
         codeExecutor.shutdown("SIGINT");
@@ -230,11 +222,6 @@ try {
                 content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
             })
         );
-        // const message = {
-        //     webapp_endpoint: KernelManager,
-        //     command_name: "interrupt_kernel",
-        // };
-        // codeExecutor.send2executor_zmq(JSON.stringify(message));
     };
 
     initialize();

@@ -3,11 +3,7 @@ import time
 import traceback
 import jupyter_client
 import queue
-import simplejson as json
 from user_space.ipython.constants import IPythonConstants
-# from user_space.user_space import BaseKernel
-# from cnextlib.df_status_hook import DataFrameStatusHook
-
 from libs import logs
 log = logs.get_logger(__name__)
 
