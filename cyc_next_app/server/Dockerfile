@@ -1,6 +1,9 @@
 FROM python:3.9.7-buster
+RUN mkdir app
+WORKDIR /app
 
-RUN groupadd --gid 1000 pn && useradd --uid 1000 --gid pn --shell /bin/bash --create-home pn
+RUN chmod -R 777 /app
+
 ENV POETRY_HOME=/usr/local
 # Install node prereqs, nodejs and yarn
 # Ref: https://deb.nodesource.com/setup_14.x
@@ -17,8 +20,10 @@ RUN \
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python - && \
     rm -rf /var/lib/apt/lists/*
 
-USER pn
-WORKDIR /home/pn/app
 COPY  . .
 
-CMD ["bash"]
+RUN /bin/bash -c "poetry install"
+
+CMD [ "/bin/bash" ]
+
+# ,"poetry install", "npm i", "npm start"

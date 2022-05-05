@@ -5,27 +5,6 @@ description = "improve your AI work follow"
 authors = ["cycai company"]
 license = "MIT"
 
-readme = "README.md"  # Markdown files are supported
-
-homepage = "https://cyc-ai.com/"
-
-packages = [
-    { include = "cyc_next_app" },
-]
-
-exclude = [
-    "cyc_next_app/tsconfig.json",
-    "cyc_next_app/README.md",
-    "cyc_next_app/Dockerfile",
-    "cyc_next_app/Dockerfile-poetry",
-    "cyc_next_app/.dockerignore",
-    "cyc_next_app/server/Dockerfile",
-]
-
-[tool.poetry.scripts]
-cnext-init = "cyc_next_app.__main__:main"
-cnext-path = "cyc_next_app.__main__:path"
-cnext-run = "cyc_next_app.__main__:start"
 
 [tool.poetry.dependencies]
 python = ">=3.9"
