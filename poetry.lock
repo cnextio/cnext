@@ -875,6 +875,14 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "netron"
+version = "5.7.6"
+description = "Viewer for neural network, deep learning, and machine learning models"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "notebook"
 version = "6.4.11"
 description = "A web-based notebook environment for interactive computing"
@@ -1613,7 +1621,7 @@ pyzmq = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9"
-content-hash = "2a6023dbca93d44300f215c935765cee4d74185d494c4d4632a5de65490f16f2"
+content-hash = "1577096d08dfd1b0d89ceed32be49216e35174080a597d0f9842ad1997761dda"
 
 [metadata.files]
 alembic = [
@@ -2112,6 +2120,9 @@ nbformat = [
 nest-asyncio = [
     {file = "nest_asyncio-1.5.5-py3-none-any.whl", hash = "sha256:b98e3ec1b246135e4642eceffa5a6c23a3ab12c82ff816a92c612d68205813b2"},
     {file = "nest_asyncio-1.5.5.tar.gz", hash = "sha256:e442291cd942698be619823a17a86a5759eabe1f8613084790de189fe9e16d65"},
+]
+netron = [
+    {file = "netron-5.7.6-py2.py3-none-any.whl", hash = "sha256:55220ad9a441acaf151bb849fa8fe5ed37e479f32626dae71a1ea543afb605a9"},
 ]
 notebook = [
     {file = "notebook-6.4.11-py3-none-any.whl", hash = "sha256:b4a6baf2eba21ce67a0ca11a793d1781b06b8078f34d06c710742e55f3eee505"},
