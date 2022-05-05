@@ -13,6 +13,7 @@ log = logs.get_logger(__name__)
 
 MESSSAGE_TIMEOUT = 1
 
+
 class IPythonKernel():
 
     _instance = None
@@ -28,7 +29,7 @@ class IPythonKernel():
         self.km.start_kernel()
         self.kc = self.km.blocking_client()
         self.wait_for_ready()
-        
+
         self.stop_stream_thread = False
         self.shell_msg_thread = threading.Thread(
             target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
@@ -48,7 +49,7 @@ class IPythonKernel():
             if self.km.is_alive():
                 log.info('Kernel shutting down')
                 self.kc.stop_channels()
-                self.km.shutdown_kernel(now=True)                
+                self.km.shutdown_kernel(now=True)
                 log.info('Kernel shutdown')
         except:
             trace = traceback.format_exc()
@@ -59,10 +60,10 @@ class IPythonKernel():
             if self.km.is_alive():
                 log.info('Kernel restarting')
                 self.km.restart_kernel()
-                self.stop_stream_thread = True                
-                self.kc = self.km.blocking_client()                
+                self.stop_stream_thread = True
+                self.kc = self.km.blocking_client()
                 self.wait_for_ready()
-                ## wait to make sure the stream threads will stop before proceeding
+                # wait to make sure the stream threads will stop before processding
                 while self.shell_msg_thread.is_alive() or self.shell_msg_thread.is_alive():
                     time.sleep(1)
                 self.shell_msg_thread = threading.Thread(
@@ -71,14 +72,14 @@ class IPythonKernel():
                     target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
                 self.stop_stream_thread = False
                 self.shell_msg_thread.start()
-                self.iobuf_msg_thread.start() 
+                self.iobuf_msg_thread.start()
                 log.info('Kernel restarted')
 
-                ## release execution lock which might be locked during an execution
+                # release execution lock which might be locked during an execution
                 if self.execute_lock.locked():
                     self.execute_lock.release()
                     log.info('Kernel execution lock released')
-                    self._set_execution_complete_condition_true()                    
+                    self._set_execution_complete_condition_true()
                 return True
         except:
             trace = traceback.format_exc()
@@ -88,7 +89,7 @@ class IPythonKernel():
     def interupt_kernel(self):
         try:
             if self.km.is_alive():
-                self.km.interrupt_kernel()
+                self.km.shutdown_kernel(now=True)
                 log.info('Interupt kernel')
         except:
             trace = traceback.format_exc()
@@ -153,7 +154,7 @@ class IPythonKernel():
                     #     self.execute_lock.release()
                     self._set_execution_complete_condition(
                         stream_type, ipython_message)
-                    if self.execute_lock.locked() and self._is_execution_complete(stream_type, ipython_message):                        
+                    if self.execute_lock.locked() and self._is_execution_complete(stream_type, ipython_message):
                         self.execute_lock.release()
                         log.info('Kernel execution lock released')
                 except queue.Empty:

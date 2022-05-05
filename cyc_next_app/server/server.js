@@ -102,7 +102,7 @@ class PythonProcess {
             console.log("close ", "python-shell closed: " + message);
         });
 
-        if (args[0]==="code"){
+        if (args[0] === "code") {
             this.control_sock = new zmq.Push({ linger: 0 });
             const n2p_host = config.n2p_comm.host;
             const control_port = config.n2p_comm.kernel_control_port;
@@ -122,14 +122,14 @@ class PythonProcess {
 
     async send2executor_zmq(message) {
         try {
-            if(this.control_sock!=undefined) {
+            if (this.control_sock != undefined) {
                 console.log(`send2executor_zmq: ${message}`);
                 await this.control_sock.send(message);
             }
             // new Promise((resolve) => setTimeout(resolve, 500));
         } catch (err) {
             console.log(err);
-        } 
+        }
     }
 
     shutdown(signal) {
@@ -151,7 +151,7 @@ try {
         });
 
         socket.onAny((endpoint, message) => {
-            //TODO: use enum            
+            //TODO: use enum
             if (CodeExecutor.includes(endpoint)) {
                 console.log(
                     "Receive msg from client, server will run: ",

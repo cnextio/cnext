@@ -49,7 +49,7 @@ def control_kernel(user_space):
             if message.command_name == KernelManagerCommand.restart_kernel:
                 result = user_space.restart_executor()
             elif message.command_name == KernelManagerCommand.interrupt_kernel:
-                result = user_space.interupt_executor()
+                result = user_space.interrupt_executor()
     except:
         trace = traceback.format_exc()
         log.info("Exception %s" % (trace))
@@ -101,10 +101,12 @@ def main(argv):
             if executor_type == ExecutorType.CODE:
                 user_space = IPythonUserSpace(
                     (cd.DataFrame, pd.DataFrame), (torch.nn.Module, tensorflow.keras.Model))
-                # control_kernel(user_space)
+
+                # Start control kernel thread
                 control_kernel_thread = threading.Thread(
                     target=control_kernel, args=(user_space,), daemon=True)
                 control_kernel_thread.start()
+
                 message_handler = {
                     WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
                     WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
@@ -162,6 +164,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-
-    # control_kernel_thread.start()
     main(sys.argv[1:])
