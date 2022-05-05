@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cnext"
-version = "0.3.5"
+version = "0.3.6"
 description = "improve your AI work follow"
 authors = ["cycai company"]
 license = "MIT"
@@ -11,6 +11,15 @@ homepage = "https://cyc-ai.com/"
 
 packages = [
     { include = "cyc_next_app" },
+]
+
+exclude = [
+    "cyc_next_app/tsconfig.json",
+    "cyc_next_app/README.md",
+    "cyc_next_app/Dockerfile",
+    "cyc_next_app/Dockerfile-poetry",
+    "cyc_next_app/.dockerignore",
+    "cyc_next_app/server/Dockerfile",
 ]
 
 [tool.poetry.scripts]
