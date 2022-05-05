@@ -23,7 +23,8 @@ RUN \
 COPY  . .
 
 RUN /bin/bash -c "poetry install"
+RUN /bin/bash -c "npm i"
 
-CMD [ "/bin/bash" ]
+CMD [ "/bin/bash npm start" ]
 
 # ,"poetry install", "npm i", "npm start"
