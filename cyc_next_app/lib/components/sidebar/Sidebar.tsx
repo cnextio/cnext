@@ -27,6 +27,8 @@ import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
 import Divider from "@mui/material/Divider";
 import { restartKernel, interruptKernel } from "../kernel-manager/KernelManager";
+import KernelInterruptConfirmation from "./KernelInterruptConfirmation";
+import KernelRestartComfirmation from "./KernelRestartConfirmation";
 
 const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -45,6 +47,8 @@ const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
 
 const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
+    const [openKernelInterruptDialog, setOpenKernelInterruptDialog] = useState(false);
+    const [openKernelRestartDialog, setOpenKernelRestartDialog] = useState(false);
     const dispatch = useDispatch();
 
     const iconList = [
@@ -105,9 +109,9 @@ const MiniSidebar = () => {
         } else if (name === SideBarName.CHANGE_LAYOUT) {
             handleClickChangeLayout();
         } else if (name === SideBarName.RESTART_KERNEL) {
-            restartKernel();
+            setOpenKernelRestartDialog(true);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
-            interruptKernel();
+            setOpenKernelInterruptDialog(true);
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -115,6 +119,20 @@ const MiniSidebar = () => {
                 setSelectedIcon(name);
             }
         }
+    };
+
+    const handleKernelInterruptDialogClose = (confirm: boolean) => {
+        if (confirm) {
+            interruptKernel();
+        }
+        setOpenKernelInterruptDialog(false);
+    };
+
+    const handleKernelRestartDialogClose = (confirm: boolean) => {
+        if (confirm) {
+            restartKernel();
+        }
+        setOpenKernelRestartDialog(false);
     };
 
     useEffect(() => {
@@ -154,6 +172,14 @@ const MiniSidebar = () => {
                 </Sidebar>
             </Box>
             <SideBarDivider orientation='vertical' />
+            <KernelInterruptConfirmation
+                openDialog={openKernelInterruptDialog}
+                confirm={handleKernelInterruptDialogClose}
+            />
+            <KernelRestartComfirmation
+                openDialog={openKernelRestartDialog}
+                confirm={handleKernelRestartDialogClose}
+            />
         </Fragment>
     );
 };
