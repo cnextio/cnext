@@ -177,7 +177,7 @@ try {
         const command_output_zmq = new zmq.Pull();
 
         const p2n_host = config.p2n_comm.host;
-        const p2n_port = config.p2n_comm.p2n_port;
+        const p2n_port = config.p2n_comm.port;
         await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);
 
         // notification_zmq.bind(`${p2n_host}:${p2n_notif_port}`);

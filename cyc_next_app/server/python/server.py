@@ -15,8 +15,6 @@ from libs.message import Message, WebappEndpoint
 from libs.zmq_message import MessageQueue
 import traceback
 import cnextlib.dataframe as cd
-import torch
-import tensorflow
 from libs.config import read_config
 import sys
 import simplejson as json
@@ -56,16 +54,16 @@ def main(argv):
         user_space = None
         message_handler = None
         try:
-            config = read_config('.server.yaml', {'code_executor_comm': {
-                'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
+            config = read_config('.server.yaml', {'p2n_comm': {
+                'host': '127.0.0.1', 'port': 5002}})
             log.info('Server config: %s' % config)
 
             p2n_queue = MessageQueue(
-                config.p2n_comm['host'], config.p2n_comm['p2n_port'])
+                config.p2n_comm['host'], config.p2n_comm['port'])
 
             if executor_type == ExecutorType.CODE:
                 user_space = IPythonUserSpace(
-                    (cd.DataFrame, pd.DataFrame), (torch.nn.Module, tensorflow.keras.Model))
+                    (cd.DataFrame, pd.DataFrame), ("torch.nn.Module", "tensorflow.keras.Model"))
                 message_handler = {
                     WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
                     WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
