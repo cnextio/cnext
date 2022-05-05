@@ -40,7 +40,11 @@ const DFExplorer = () => {
             {console.log(dataFrameList)}
             <DFSelector
                 onChange={handleChange}
-                value={dataFrameList ? dataFrameList.activeDF : ""}
+                value={
+                    dataFrameList != null && dataFrameList.activeDF != null
+                        ? dataFrameList.activeDF
+                        : ""
+                }
                 // label={dfList.activeDF}
                 IconComponent={SmallArrowIcon}
                 SelectDisplayProps={{
@@ -51,15 +55,15 @@ const DFExplorer = () => {
                     return (
                         <Fragment>
                             {dataFrameList ? (
-                                <Typography height='100%' variant='caption' fontSize='14px'>
+                                <Typography height="100%" variant="caption" fontSize="14px">
                                     {dataFrameList.activeDF}
                                 </Typography>
                             ) : (
                                 <Typography
-                                    height='100%'
-                                    variant='caption'
-                                    fontSize='12px'
-                                    color='#BFC7CF'
+                                    height="100%"
+                                    variant="caption"
+                                    fontSize="12px"
+                                    color="#BFC7CF"
                                 >
                                     Data Frame
                                 </Typography>
