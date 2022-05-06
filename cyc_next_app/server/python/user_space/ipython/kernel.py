@@ -85,7 +85,7 @@ class IPythonKernel():
     def interupt_kernel(self):
         try:
             if self.km.is_alive():
-                self.km.shutdown_kernel(now=True)
+                self.km.interrupt_kernel()
                 log.info('Interupt kernel')
         except:
             trace = traceback.format_exc()
