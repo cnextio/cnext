@@ -57,7 +57,7 @@ const MiniSidebar = () => {
         {
             name: SideBarName.PROJECT,
             component: <FolderIcon />,
-            tooltip: "Explorer",
+            tooltip: "File Explorer",
         },
         {
             name: SideBarName.INBOX,
