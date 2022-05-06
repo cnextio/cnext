@@ -432,7 +432,7 @@ export const CodeOutputHeader = styled(Typography)`
 // need this compoent to make the text output respect tab character
 export const CodeOutputContent = styled.div`
     overflow: auto;
-    max-height: 100%;
+    max-height: 90%;
 `;
 // export const IndividualCodeOutputContent = styled.pre`
 //     margin: 0px;
