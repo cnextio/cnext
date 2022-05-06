@@ -116,7 +116,7 @@ export const SidebarListItem = styled.div`
     height: 45px;
     width: 100%;
     &:not(:last-of-type) {
-        margin-bottom: 10px;
+        margin-bottom: 0px;
     }
     border-left: 4px solid
         ${(props) =>
@@ -136,6 +136,14 @@ export const SidebarListItem = styled.div`
         border-left: 4px solid
             ${(props) => (props.selected ? "rgba(25, 118, 210, 1)" : "black")};
     }
+`;
+
+export const SidebarDivider = styled.div`
+    padding: 0px 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
 `;
 export const SidebarButton = styled.div`
     display: flex;
