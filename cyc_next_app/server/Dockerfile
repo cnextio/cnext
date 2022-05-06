@@ -29,6 +29,8 @@ RUN git clone https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cn
 RUN /bin/bash -c "poetry install"
 RUN /bin/bash -c "npm install"
 
+RUN chmod -R 777 ./start.sh
+
 ENTRYPOINT [ "./start.sh" ]
 
 EXPOSE 4000
