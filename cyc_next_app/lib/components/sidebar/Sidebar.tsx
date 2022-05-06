@@ -6,6 +6,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PauseIcon from "@mui/icons-material/Pause";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
+import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
+
 import {
     Sidebar,
     SidebarList,
@@ -67,11 +69,6 @@ const MiniSidebar = () => {
 
     const executorIconList = [
         {
-            name: SideBarName.CLEAR_STATE,
-            component: <DeleteIcon />,
-            tooltip: "Clear results and outputs",
-        },
-        {
             name: SideBarName.RESTART_KERNEL,
             component: <RestartAltIcon />,
             tooltip: "Restart kernel",
@@ -80,6 +77,11 @@ const MiniSidebar = () => {
             name: SideBarName.INTERRUPT_KERNEL,
             component: <PauseIcon />,
             tooltip: "Interrupt kernel",
+        },
+        {
+            name: SideBarName.CLEAR_STATE,
+            component: <PlaylistRemoveIcon />,
+            tooltip: "Clear results and outputs",
         },
     ];
 

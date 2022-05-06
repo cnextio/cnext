@@ -62,7 +62,7 @@ class _UserSpace(BaseKernelUserSpace):
     def globals(self):
         return globals()
     
-{_user_space} = _UserSpace((_cd.DataFrame, _pd.DataFrame), (_to.nn.Module, _tf.keras.Model))  
+{_user_space} = _UserSpace((_cd.DataFrame, _pd.DataFrame), ("torch.nn.Module", "tensorflow.keras.Model"))  
 {_df_manager} = _dm.MessageHandler(None, {_user_space})
 {_cassist} = _ca.MessageHandler(None, {_user_space})
 """.format(_user_space=IPythonInteral.USER_SPACE.value,

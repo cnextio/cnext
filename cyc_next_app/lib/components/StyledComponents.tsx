@@ -105,7 +105,7 @@ export const SidebarList = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 181px;
+    // height: 181px;
     width: 47px;
 `;
 export const SidebarListItem = styled.div`
