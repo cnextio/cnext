@@ -3,6 +3,8 @@ RUN mkdir app
 
 WORKDIR /app
 
+ENV CLIENT_URL=http://web:3000
+
 RUN chmod -R 777 /app
 
 ENV POETRY_HOME=/usr/local
