@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cnext"
-version = "0.3.9"
+version = "0.3.10"
 description = "improve your AI work follow"
 authors = ["cycai company"]
 license = "MIT"
@@ -20,6 +20,8 @@ exclude = [
     "cyc_next_app/Dockerfile-poetry",
     "cyc_next_app/.dockerignore",
     "cyc_next_app/server/Dockerfile",
+    "cyc_next_app/server/Dockerfile-conda",
+    "cyc_next_app/server/.dockerignore",
 ]
 
 [tool.poetry.scripts]
