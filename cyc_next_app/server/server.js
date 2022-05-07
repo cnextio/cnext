@@ -75,7 +75,6 @@ class PythonProcess {
             try {
                 // console.log("On message: ", _this.clientMessage);
                 // let replyMessage = JSON.parse(_this.clientMessage);
-                // console.log("stdout: forward output to client", replyMessage);
                 // replyMessage["content"] = stdout;
                 // _this.send2client(replyMessage);
                 console.log("stdout: ", stdout);

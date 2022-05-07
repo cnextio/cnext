@@ -32,7 +32,7 @@ import KernelRestartComfirmation from "./KernelRestartConfirmation";
 
 const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
-        <SidebarListItem button key={icon.name} selected={selectedIcon === icon.name}>
+        <SidebarListItem key={icon.name} selected={selectedIcon === icon.name}>
             <Tooltip title={icon.tooltip} placement='right-end'>
                 <StyledSidebarButton
                     id={"sidebar_" + icon.name}
