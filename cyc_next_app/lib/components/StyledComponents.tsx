@@ -105,7 +105,7 @@ export const SidebarList = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 181px;
+    // height: 181px;
     width: 47px;
 `;
 export const SidebarListItem = styled.div`
@@ -116,7 +116,7 @@ export const SidebarListItem = styled.div`
     height: 45px;
     width: 100%;
     &:not(:last-of-type) {
-        margin-bottom: 10px;
+        margin-bottom: 0px;
     }
     border-left: 4px solid
         ${(props) =>
@@ -136,6 +136,14 @@ export const SidebarListItem = styled.div`
         border-left: 4px solid
             ${(props) => (props.selected ? "rgba(25, 118, 210, 1)" : "black")};
     }
+`;
+
+export const SidebarDivider = styled.div`
+    padding: 0px 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
 `;
 export const SidebarButton = styled.div`
     display: flex;
@@ -424,7 +432,7 @@ export const CodeOutputHeader = styled(Typography)`
 // need this compoent to make the text output respect tab character
 export const CodeOutputContent = styled.div`
     overflow: auto;
-    max-height: 100%;
+    max-height: 90%;
 `;
 // export const IndividualCodeOutputContent = styled.pre`
 //     margin: 0px;

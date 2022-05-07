@@ -1,5 +1,5 @@
-import '../node_modules/react-grid-layout/css/styles.css';
-import '../node_modules/react-resizable/css/styles.css';
+// import '../node_modules/react-grid-layout/css/styles.css';
+// import '../node_modules/react-resizable/css/styles.css';
 
 // import "font-awesome/css/font-awesome.css";
 // import "@lumino/widgets/style/index.css";
@@ -40,8 +40,8 @@ const Home: NextPage = () => {
             <React.Fragment>
                 <GlobalStyle />
                 <Helmet
-                    titleTemplate='%s | CycAI'
-                    defaultTitle='CycAI - Inteligent Platform for Data Scientists'
+                    titleTemplate='%s | CNext'
+                    defaultTitle='CNext - A Data-Centric Platform for DS and AI'
                 />
                 <StyledEngineProvider injectFirst>
                     <StyledThemeProvider theme={theme}>

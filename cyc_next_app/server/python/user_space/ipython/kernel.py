@@ -82,7 +82,7 @@ class IPythonKernel():
             log.info("Exception %s" % (trace))
         return False
 
-    def interupt_kernel(self):
+    def interrupt_kernel(self):
         try:
             if self.km.is_alive():
                 self.km.interrupt_kernel()

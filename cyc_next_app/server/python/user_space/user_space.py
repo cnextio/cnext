@@ -156,7 +156,7 @@ class _UserSpace(BaseKernelUserSpace):
             self.execution_lock.release()
 
     def interrupt_executor(self):
-        self.executor.interupt_kernel()
+        self.executor.interrupt_kernel()
         if self.execution_lock.locked():
             self.execution_lock.release()
 
