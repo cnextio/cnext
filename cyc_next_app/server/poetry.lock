@@ -198,7 +198,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "cnextlib"
-version = "0.2.0"
+version = "0.3.1"
 description = "cyc libraries for cyc-next-app"
 category = "main"
 optional = false
@@ -532,7 +532,7 @@ dev = ["hypothesis"]
 
 [[package]]
 name = "jsonschema"
-version = "4.4.0"
+version = "4.5.1"
 description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
@@ -1621,7 +1621,7 @@ pyzmq = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9"
-content-hash = "1577096d08dfd1b0d89ceed32be49216e35174080a597d0f9842ad1997761dda"
+content-hash = "ba51a87e9e88338a06c2d862fe79b308da2726355f8a2bf6869622d9772796f8"
 
 [metadata.files]
 alembic = [
@@ -1756,8 +1756,8 @@ cloudpickle = [
     {file = "cloudpickle-2.0.0.tar.gz", hash = "sha256:5cd02f3b417a783ba84a4ec3e290ff7929009fe51f6405423cfccfadd43ba4a4"},
 ]
 cnextlib = [
-    {file = "cnextlib-0.2.0-py3-none-any.whl", hash = "sha256:ad0c84489f4086abc62027b655d86a28ed0d1f9e24fbd3d9066c1f32a70ba888"},
-    {file = "cnextlib-0.2.0.tar.gz", hash = "sha256:02832a48c4539c7392fd4e7e0c19c24f4509fb9b465f35a814577f94e251a470"},
+    {file = "cnextlib-0.3.1-py3-none-any.whl", hash = "sha256:973ebf8178f830e9284eae3e6361d2e7445c9d9633a780549e952452202f6559"},
+    {file = "cnextlib-0.3.1.tar.gz", hash = "sha256:4e0f47c11c13615a0157bead6fcd813ef9410bb192ff28ee04a9172639a9bf9c"},
 ]
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
@@ -1929,8 +1929,8 @@ json5 = [
     {file = "json5-0.9.6.tar.gz", hash = "sha256:9175ad1bc248e22bb8d95a8e8d765958bf0008fef2fe8abab5bc04e0f1ac8302"},
 ]
 jsonschema = [
-    {file = "jsonschema-4.4.0-py3-none-any.whl", hash = "sha256:77281a1f71684953ee8b3d488371b162419767973789272434bbc3f29d9c8823"},
-    {file = "jsonschema-4.4.0.tar.gz", hash = "sha256:636694eb41b3535ed608fe04129f26542b59ed99808b4f688aa32dcf55317a83"},
+    {file = "jsonschema-4.5.1-py3-none-any.whl", hash = "sha256:71b5e39324422543546572954ce71c67728922c104902cb7ce252e522235b33f"},
+    {file = "jsonschema-4.5.1.tar.gz", hash = "sha256:7c6d882619340c3347a1bf7315e147e6d3dae439033ae6383d6acb908c101dfc"},
 ]
 jupyter-client = [
     {file = "jupyter_client-7.3.0-py3-none-any.whl", hash = "sha256:671dd2d90d03f41716b09627a4eb06bb37875f92bf6563cc2ce4fe71c61c5cda"},
