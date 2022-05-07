@@ -111,7 +111,7 @@ CYCAI
 [website]: https://cyc-ai.com/
 [docker image]: https://hub.docker.com/r/cycai/cnext
 [overview video]: https://youtu.be/5eWPkQIUfZw
-[cnext]: https://drive.google.com/file/d/1aK0bq5sFVQufth3y66iP1by-gyIwH6t3
+[cnext]: https://drive.google.com/file/d/1w4MU3nr0E14PAS_5NmruuoMSfQeE5MLK
 [docker]: https://www.docker.com/products/docker-desktop/
 
 <!--
