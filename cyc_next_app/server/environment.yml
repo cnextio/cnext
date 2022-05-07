@@ -4,7 +4,6 @@ channels:
     - conda-forge
     - defaults
 dependencies:
-    # - appnope=0.1.2
     - astroid=2.9.0
     - attrs=21.4.0
     - autopep8=1.5.6
@@ -39,7 +38,6 @@ dependencies:
     - jupyter_core=4.9.1
     - jupyterlab_widgets=1.0.2
     - lazy-object-proxy=1.6.0
-    # - libcxx=12.0.0
     - libffi=3.3
     - libsodium=1.0.18
     - markupsafe=2.1.0
@@ -54,7 +52,6 @@ dependencies:
     - multipledispatch=0.6.0
     - nbconvert=5.6.1
     - nbformat=5.2.0
-    # - ncurses=6.3
     - nest-asyncio=1.5.1
     - notebook=5.7.11
     - numexpr=2.8.1
@@ -90,7 +87,6 @@ dependencies:
     - pytz=2021.3
     - pyyaml=6.0
     - pyzmq=22.3.0
-    # - readline=8.1.2
     - rope=0.22.0
     - send2trash=1.8.0
     - setuptools=58.0.4
@@ -124,4 +120,6 @@ dependencies:
     - zipp=3.7.0
     - zlib=1.2.11
     - mlflow=1.24.0
-    # - zmq=0.0.0
+    - pytorch=1.11.0
+    - torchvision=0.12.0
+    - tensorflow=2.7.0
