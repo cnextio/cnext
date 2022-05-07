@@ -13,8 +13,8 @@ import {
     SidebarList,
     SidebarListItem,
     SidebarButton as StyledSidebarButton,
-    SideBarDivider,
-    SidebarDivider,
+    SideBarDividerContainer,
+    MainContainerDivider,
 } from "../StyledComponents";
 import LogoComponent from "../Logo";
 import { useDispatch } from "react-redux";
@@ -48,18 +48,29 @@ const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
     );
 };
 
+const SideBarDivider = () => {
+    return (
+        <SideBarDividerContainer>
+            <Divider style={{ paddingTop: "5px", marginBottom: "5px", width: "80%" }} />
+        </SideBarDividerContainer>
+    );
+}
+
 const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
     const [openKernelInterruptDialog, setOpenKernelInterruptDialog] = useState(false);
     const [openKernelRestartDialog, setOpenKernelRestartDialog] = useState(false);
     const dispatch = useDispatch();
 
-    const iconList = [
+    const projectManagerIconList = [
         {
             name: SideBarName.PROJECT,
             component: <FolderIcon />,
-            tooltip: "Explorer",
-        },
+            tooltip: "File Explorer",
+        }
+    ];
+
+    const layoutManagerIconList = [
         {
             name: SideBarName.CHANGE_LAYOUT,
             component: <ViewCompactIcon />,
@@ -67,7 +78,7 @@ const MiniSidebar = () => {
         },
     ];
 
-    const executorIconList = [
+    const executorManagerIconList = [
         {
             name: SideBarName.RESTART_KERNEL,
             component: <RestartAltIcon />,
@@ -147,7 +158,7 @@ const MiniSidebar = () => {
                 <LogoComponent />
                 <Sidebar variant="permanent">
                     <SidebarList>
-                        {iconList.map((icon, index) => (
+                        {projectManagerIconList.map((icon, index) => (
                             <SidebarItem
                                 key={index}
                                 icon={icon}
@@ -156,11 +167,20 @@ const MiniSidebar = () => {
                             />
                         ))}
                     </SidebarList>
-                    <SidebarDivider>
-                        <Divider style={{ paddingTop: "5px", marginBottom: "5px", width: "80%" }} />
-                    </SidebarDivider>
+                    <SideBarDivider />
                     <SidebarList>
-                        {executorIconList.map((icon, index) => (
+                        {layoutManagerIconList.map((icon, index) => (
+                            <SidebarItem
+                                key={index}
+                                icon={icon}
+                                selectedIcon={selectedIcon}
+                                handleClick={handleClick}
+                            />
+                        ))}
+                    </SidebarList>
+                    <SideBarDivider />
+                    <SidebarList>
+                        {executorManagerIconList.map((icon, index) => (
                             <SidebarItem
                                 key={index}
                                 selectedIcon={selectedIcon}
@@ -171,7 +191,7 @@ const MiniSidebar = () => {
                     </SidebarList>
                 </Sidebar>
             </Box>
-            <SideBarDivider orientation="vertical" />
+            <MainContainerDivider orientation="vertical" />
             <KernelInterruptConfirmation
                 openDialog={openKernelInterruptDialog}
                 confirm={handleKernelInterruptDialogClose}

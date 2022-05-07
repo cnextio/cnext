@@ -138,13 +138,19 @@ export const SidebarListItem = styled.div`
     }
 `;
 
-export const SidebarDivider = styled.div`
+export const MainContainerDivider = styled(Divider)`
+    display: flex;
+    align-items: center;
+`;
+
+export const SideBarDividerContainer = styled.div`
     padding: 0px 0px;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
 `;
+
 export const SidebarButton = styled.div`
     display: flex;
     flex-direction: column;
@@ -159,10 +165,10 @@ export const SidebarIcon = styled.div`
     height: 75%;
 `;
 
-export const SideBarDivider = styled(Divider)`
-    display: flex;
-    align-items: center;
-`;
+// export const SideBarDividerContainer = styled(Divider)`
+//     display: flex;
+//     align-items: center;
+// `;
 
 // export const StyledDividerVertical = styled(
 //   DividerVertical
