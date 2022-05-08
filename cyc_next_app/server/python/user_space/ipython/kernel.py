@@ -11,15 +11,6 @@ MESSSAGE_TIMEOUT = 1
 
 
 class IPythonKernel():
-
-    _instance = None
-
-    @staticmethod
-    def get_instance():
-        if IPythonKernel._instance == None:
-            IPythonKernel()
-        return IPythonKernel._instance
-
     def __init__(self):
         self.km = jupyter_client.KernelManager()
         self.km.start_kernel()
@@ -37,8 +28,7 @@ class IPythonKernel():
         self.message_handler_callback = None
         ## This lock is used to make sure only one execution is being executed at any moment in time #
         self.execute_lock = threading.Lock()
-        self._set_execution_complete_condition_false()
-        IPythonKernel._instance = self
+        self._set_execution_complete_condition(False)
 
     def shutdown_kernel(self):
         try:
@@ -75,7 +65,7 @@ class IPythonKernel():
                 if self.execute_lock.locked():
                     self.execute_lock.release()
                     log.info('Kernel execution lock released')
-                    self._set_execution_complete_condition_true()
+                    self._set_execution_complete_condition(True)
                 return True
         except:
             trace = traceback.format_exc()
@@ -87,9 +77,11 @@ class IPythonKernel():
             if self.km.is_alive():
                 self.km.interrupt_kernel()
                 log.info('Interupt kernel')
+                return True
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
+        return False
 
     def wait_for_ready(self):
         try:
@@ -100,15 +92,11 @@ class IPythonKernel():
     def _is_status_message(self, message):
         return message['header']['msg_type'] == 'status'
 
-    def _set_execution_complete_condition_false(self):
-        self.shell_cond = False
-        self.iobuf_cond = False
+    def _set_execution_complete_condition(self, condition: bool):
+        self.shell_cond = condition
+        self.iobuf_cond = condition
 
-    def _set_execution_complete_condition_true(self):
-        self.shell_cond = True
-        self.iobuf_cond = True
-
-    def _set_execution_complete_condition(self, stream_type, message):
+    def _set_execution_complete_condition_from_message(self, stream_type, message):
         if stream_type == IPythonConstants.StreamType.SHELL:
             self.shell_cond = message['header']['msg_type'] == 'execute_reply' and 'status' in message['content']
         if stream_type == IPythonConstants.StreamType.IOBUF:
@@ -148,7 +136,7 @@ class IPythonKernel():
                     ## unlock execute lock only after upstream has processed the data if messge is status #
                     # if self._is_status_message(ipython_message) and ipython_message['content']['execution_state'] != 'busy' and self.execute_lock.locked():
                     #     self.execute_lock.release()
-                    self._set_execution_complete_condition(
+                    self._set_execution_complete_condition_from_message(
                         stream_type, ipython_message)
                     if self.execute_lock.locked() and self._is_execution_complete(stream_type, ipython_message):
                         self.execute_lock.release()
@@ -163,7 +151,7 @@ class IPythonKernel():
     def execute(self, code, exec_mode=None, message_handler_callback=None, client_message=None):
         self.execute_lock.acquire()
         log.info('Kernel execution lock acquired')
-        self._set_execution_complete_condition_false()
+        self._set_execution_complete_condition(False)
         self.message_handler_callback = message_handler_callback
         self.client_message = client_message
         self.kc.execute(code)

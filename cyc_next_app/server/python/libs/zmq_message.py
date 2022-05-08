@@ -59,7 +59,6 @@ class MessageQueuePush:
 
 
 class MessageQueuePull:
-
     def __init__(self, host, port):
         self.context = zmq.Context()
         self.context.setsockopt(zmq.LINGER, 0)
