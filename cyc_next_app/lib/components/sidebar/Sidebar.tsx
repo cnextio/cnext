@@ -30,8 +30,8 @@ import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
 import Divider from "@mui/material/Divider";
 import { restartKernel, interruptKernel } from "../kernel-manager/KernelManager";
-import KernelInterruptConfirmation from "./KernelInterruptConfirmation";
-import KernelRestartComfirmation from "./KernelRestartConfirmation";
+import KernelInterruptConfirmation from "../kernel-manager/KernelInterruptConfirmation";
+import KernelRestartComfirmation from "../kernel-manager/KernelRestartConfirmation";
 
 const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
