@@ -31,7 +31,7 @@ config = read_config('.server.yaml', {
     'n2p_comm': {'host': '127.0.0.1', 'kernel_control_port': 5005, }})
 
 
-def control_kernel(user_space):
+def kernel_control_handler(user_space):
     log.info("Kernel control thread started")
     try:
         n2p_queue = MessageQueuePull(
@@ -88,16 +88,15 @@ def main(argv):
                 user_space = IPythonUserSpace(
                     (cd.DataFrame, pd.DataFrame), (torch.nn.Module, tensorflow.keras.Model))
 
-                # Start control kernel thread
-                control_kernel_thread = threading.Thread(
-                    target=control_kernel, args=(user_space,), daemon=True)
-                control_kernel_thread.start()
+                # Start kernel control thread
+                kernel_control_thread = threading.Thread(
+                    target=kernel_control_handler, args=(user_space,), daemon=True)
+                kernel_control_thread.start()
 
                 message_handler = {
                     WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
                     WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
                     WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
-                    # WebappEndpoint.KernelManager: km.MessageHandler(p2n_queue, user_space),
                     WebappEndpoint.MagicCommandGen: ca.MessageHandler(
                         p2n_queue, user_space)
                 }

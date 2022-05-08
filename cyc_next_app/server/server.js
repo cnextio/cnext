@@ -101,11 +101,11 @@ class PythonProcess {
         });
 
         if (args[0] === "code") {
-            this.control_sock = new zmq.Push({ linger: 0 });
+            this.kernel_control_socket = new zmq.Push({ linger: 0 });
             const n2p_host = config.n2p_comm.host;
             const control_port = config.n2p_comm.kernel_control_port;
             const control_address = `${n2p_host}:${control_port}`;
-            this.control_sock.connect(control_address);
+            this.kernel_control_socket.connect(control_address);
         }
     }
 
@@ -120,9 +120,9 @@ class PythonProcess {
 
     async send2executor_zmq(message) {
         try {
-            if (this.control_sock != undefined) {
+            if (this.kernel_control_socket != undefined) {
                 console.log(`send2executor_zmq: ${message}`);
-                await this.control_sock.send(message);
+                await this.kernel_control_socket.send(message);
             }
         } catch (err) {
             console.log(err);
