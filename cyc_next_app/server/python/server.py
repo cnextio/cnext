@@ -3,8 +3,6 @@ import traceback
 import threading
 import signal
 import traceback
-import torch
-import tensorflow
 from libs import logs
 import pandas as pd
 from libs import logs
@@ -86,7 +84,7 @@ def main(argv):
                 config.p2n_comm['host'], config.p2n_comm['port'])
             if executor_type == ExecutorType.CODE:
                 user_space = IPythonUserSpace(
-                    (cd.DataFrame, pd.DataFrame), (torch.nn.Module, tensorflow.keras.Model))
+                    (cd.DataFrame, pd.DataFrame), ("torch.nn.Module", "tensorflow.keras.Model"))
 
                 # Start kernel control thread
                 kernel_control_thread = threading.Thread(

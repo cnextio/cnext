@@ -1,19 +1,19 @@
 p2n_comm:
     host: tcp://127.0.0.1
-    port: 5000
+    port: 5001
 
 n2p_comm:
     host: tcp://127.0.0.1
     kernel_control_port: 5005
 
-path_to_cnextlib: 'cycdataframe'
+path_to_cnextlib: "/Users/bachbui/works/cycai/cycdataframe"
 
 projects:
     open_projects:
-        - id: '1'
-          name: 'Skywalker'
-          path: 'cnext_sample_projects/Skywalker'
-    active_project: '1'
+        - id: "1"
+          name: "Skywalker"
+          path: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker"
+    active_project: "1"
     
 # p2n_comm:
 #     host: tcp://127.0.0.1
