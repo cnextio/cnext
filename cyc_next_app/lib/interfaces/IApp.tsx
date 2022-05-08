@@ -1,12 +1,9 @@
 import React from "react";
-import {
-    ProjectCommand,
-    IFileMetadata,
-    IDirectoryMetadata,
-} from "./IFileManager";
+import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from "./IFileManager";
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
+import { KernelManagerCommand } from "./IKernelManager";
 import { ModelManagerCommand } from "./IModelManager";
 
 export type RecvCodeOutput = (output: IMessage) => void;
@@ -19,10 +16,12 @@ export type RecvCodeOutput = (output: IMessage) => void;
 export interface IMessage {
     webapp_endpoint: string; // the web client component which sends
     // and/or receives this message
-    command_name: CommandName | ProjectCommand | ExperimentManagerCommand | ModelManagerCommand; // 'code_area_command'|'updated_dataframe_list'|
-    // 'plot_column_histogram'|'plot_count_na'|
-    // 'query_data'|'row_difference'|'column_difference'
-    seq_number?: number; // sequence number of the command. This is needed
+    command_name:
+        | CommandName
+        | ProjectCommand
+        | ExperimentManagerCommand
+        | KernelManagerCommand
+        | ModelManagerCommand; // 'code_area_command'|'updated_dataframe_list'|
     // for commands that requires more than one command
     type: ContentType | CommandType; // the object type of the output content
     content:
@@ -110,13 +109,14 @@ export enum CommandType {
 
 export enum WebAppEndpoint {
     DFManager = "DFManager",
-    ModelManager = 'ModelManager',
+    ModelManager = "ModelManager",
     CodeEditor = "CodeEditor",
     FileManager = "FileManager",
     MagicCommandGen = "MagicCommandGen",
     FileExplorer = "FileExplorer",
     ExperimentManager = "ExperimentManager",
     PlotManager = "PlotManager",
+    KernelManager = "KernelManager",
     LanguageServer = "LanguageServer",
     LanguageServerNotifier = "LanguageServerNotifier",
     LanguageServerHover = "LanguageServerHover",
@@ -197,6 +197,8 @@ export enum SideBarName {
     INBOX = "Inbox",
     CLEAR_STATE = "ClearState",
     CHANGE_LAYOUT = "ChangeLayout",
+    RESTART_KERNEL = "RestartKernel",
+    INTERRUPT_KERNEL = "InterruptKernel",
 }
 
 // export interface IDFUpdates {
