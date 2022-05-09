@@ -1,10 +1,10 @@
+import importlib
 import os
 import tempfile
 import threading
 import traceback
 import socket
 import netron
-import tensorflow, torch
 
 from libs.message_handler import BaseMessageHandler
 from libs import logs
@@ -51,6 +51,13 @@ class MessageHandler(BaseMessageHandler):
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
 
+    def _load_class(name):
+        components = name.split('.')
+        mod = importlib.import_module(components[0])
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
+        return mod
+
     def _complete_waiting_execution(func):
         '''
         Wrapper to block the execution until the execution complete
@@ -67,14 +74,14 @@ class MessageHandler(BaseMessageHandler):
     @_complete_waiting_execution
     def _save_model(self, modelInfo: ModelInfo):
         MODEL_PATH = None
-        if modelInfo.base_class == self._fullname(tensorflow.keras.Model):
+        if modelInfo.base_class == "keras.engine.training.Model":
             MODEL_PATH = os.path.join(
                 self.netron_tmp_dir, '{}.h5'.format(modelInfo.name))
             if os.path.exists(MODEL_PATH):
                 os.remove(MODEL_PATH)
             code = '{}.save("{}")'.format(modelInfo.name, MODEL_PATH)
             self.user_space.execute(code, None, self._message_handler_callback)
-        elif modelInfo.base_class == self._fullname(torch.nn.Module):
+        elif modelInfo.base_class == "torch.nn.modules.module.Module":
             MODEL_PATH = os.path.join(
                 self.netron_tmp_dir, '{}.onnx'.format(modelInfo.name))
             if os.path.exists(MODEL_PATH):

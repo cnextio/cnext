@@ -12,4 +12,4 @@ RUN poetry config virtualenvs.create false
 RUN poetry --version
 RUN poetry install --no-dev
 RUN poetry build
-RUN poetry publish -u hoatv -p Hoa@761991
+RUN poetry publish -u bachbui  -p JupyterNext2022!

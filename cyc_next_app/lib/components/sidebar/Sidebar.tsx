@@ -3,13 +3,18 @@ import Box from "@mui/material/Box";
 import InboxIcon from "@mui/icons-material/Inbox";
 import FolderIcon from "@mui/icons-material/Folder";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PauseIcon from "@mui/icons-material/Pause";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
+import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
+
 import {
     Sidebar,
     SidebarList,
     SidebarListItem,
     SidebarButton as StyledSidebarButton,
-    SideBarDivider,
+    SideBarDividerContainer,
+    MainContainerDivider,
 } from "../StyledComponents";
 import LogoComponent from "../Logo";
 import { useDispatch } from "react-redux";
@@ -23,21 +28,14 @@ import { ViewMode } from "../../interfaces/IApp";
 import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
-
-// const drawerWidth = 240;
-
-// export const DrawerHeader = styled('div')(({ theme }) => ({
-//   display: 'flex',
-//   alignItems: 'center',
-//   justifyContent: 'flex-end',
-//   padding: theme.spacing(0, 1),
-//   // necessary for content to be below app bar
-//   ...theme.mixins.toolbar,
-// }));
+import Divider from "@mui/material/Divider";
+import { restartKernel, interruptKernel } from "../kernel-manager/KernelManager";
+import KernelInterruptConfirmation from "../kernel-manager/KernelInterruptConfirmation";
+import KernelRestartComfirmation from "../kernel-manager/KernelRestartConfirmation";
 
 const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
-        <SidebarListItem button key={icon.name} selected={selectedIcon === icon.name}>
+        <SidebarListItem key={icon.name} selected={selectedIcon === icon.name}>
             <Tooltip title={icon.tooltip} placement='right-end'>
                 <StyledSidebarButton
                     id={"sidebar_" + icon.name}
@@ -49,30 +47,52 @@ const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
         </SidebarListItem>
     );
 };
+
+const SideBarDivider = () => {
+    return (
+        <SideBarDividerContainer>
+            <Divider style={{ paddingTop: "5px", marginBottom: "5px", width: "80%" }} />
+        </SideBarDividerContainer>
+    );
+};
+
 const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
+    const [openKernelInterruptDialog, setOpenKernelInterruptDialog] = useState(false);
+    const [openKernelRestartDialog, setOpenKernelRestartDialog] = useState(false);
     const dispatch = useDispatch();
 
-    const iconList = [
+    const projectManagerIconList = [
         {
             name: SideBarName.PROJECT,
             component: <FolderIcon />,
             tooltip: "File Explorer",
         },
-        {
-            name: SideBarName.INBOX,
-            component: <InboxIcon />,
-            tooltip: "Inbox",
-        },
-        {
-            name: SideBarName.CLEAR_STATE,
-            component: <DeleteIcon />,
-            tooltip: "Clear results and outputs",
-        },
+    ];
+
+    const layoutManagerIconList = [
         {
             name: SideBarName.CHANGE_LAYOUT,
             component: <ViewCompactIcon />,
             tooltip: "Change layout",
+        },
+    ];
+
+    const executorManagerIconList = [
+        {
+            name: SideBarName.RESTART_KERNEL,
+            component: <RestartAltIcon />,
+            tooltip: "Restart kernel",
+        },
+        {
+            name: SideBarName.INTERRUPT_KERNEL,
+            component: <PauseIcon />,
+            tooltip: "Interrupt kernel",
+        },
+        {
+            name: SideBarName.CLEAR_STATE,
+            component: <PlaylistRemoveIcon />,
+            tooltip: "Clear results and outputs",
         },
     ];
 
@@ -85,9 +105,6 @@ const MiniSidebar = () => {
     const handleClickChangeLayout = () => {
         const state = store.getState();
         const viewMode = state.projectManager.configs.view_mode;
-        // if (state.projectManager.configs.hasOwnProperty('view_mode')) {
-        //     let viewMode = state.projectManager.configs;
-        // }
         if (viewMode === ViewMode.HORIZONTAL) {
             dispatch(setProjectConfig({ view_mode: ViewMode.VERTICAL }));
         } else {
@@ -100,6 +117,10 @@ const MiniSidebar = () => {
             handleClickClearState();
         } else if (name === SideBarName.CHANGE_LAYOUT) {
             handleClickChangeLayout();
+        } else if (name === SideBarName.RESTART_KERNEL) {
+            setOpenKernelRestartDialog(true);
+        } else if (name === SideBarName.INTERRUPT_KERNEL) {
+            setOpenKernelInterruptDialog(true);
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -107,6 +128,20 @@ const MiniSidebar = () => {
                 setSelectedIcon(name);
             }
         }
+    };
+
+    const handleKernelInterruptDialogClose = (confirm: boolean) => {
+        if (confirm) {
+            interruptKernel();
+        }
+        setOpenKernelInterruptDialog(false);
+    };
+
+    const handleKernelRestartDialogClose = (confirm: boolean) => {
+        if (confirm) {
+            restartKernel();
+        }
+        setOpenKernelRestartDialog(false);
     };
 
     useEffect(() => {
@@ -123,7 +158,7 @@ const MiniSidebar = () => {
                 <LogoComponent />
                 <Sidebar variant='permanent'>
                     <SidebarList>
-                        {iconList.map((icon, index) => (
+                        {projectManagerIconList.map((icon, index) => (
                             <SidebarItem
                                 key={index}
                                 icon={icon}
@@ -132,9 +167,39 @@ const MiniSidebar = () => {
                             />
                         ))}
                     </SidebarList>
+                    <SideBarDivider />
+                    <SidebarList>
+                        {layoutManagerIconList.map((icon, index) => (
+                            <SidebarItem
+                                key={index}
+                                icon={icon}
+                                selectedIcon={selectedIcon}
+                                handleClick={handleClick}
+                            />
+                        ))}
+                    </SidebarList>
+                    <SideBarDivider />
+                    <SidebarList>
+                        {executorManagerIconList.map((icon, index) => (
+                            <SidebarItem
+                                key={index}
+                                selectedIcon={selectedIcon}
+                                icon={icon}
+                                handleClick={handleClick}
+                            />
+                        ))}
+                    </SidebarList>
                 </Sidebar>
             </Box>
-            <SideBarDivider orientation='vertical' />
+            <MainContainerDivider orientation='vertical' />
+            <KernelInterruptConfirmation
+                openDialog={openKernelInterruptDialog}
+                confirm={handleKernelInterruptDialogClose}
+            />
+            <KernelRestartComfirmation
+                openDialog={openKernelRestartDialog}
+                confirm={handleKernelRestartDialogClose}
+            />
         </Fragment>
     );
 };

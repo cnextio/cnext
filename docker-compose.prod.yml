@@ -19,4 +19,4 @@ services:
             - ${SOURCE_PROJECT_DIR}:/app/cyc_next_app/server/cnext_sample_projects/Skywalker
         ports:
             - ${SERVER_PORT}:4000
-        command: npm start
+        command: /bin/sh -c "./start.sh"

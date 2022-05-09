@@ -1,5 +1,4 @@
 require("dotenv").config();
-const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const fs = require("fs");
@@ -32,7 +31,8 @@ const FileManager = "FileManager";
 const FileExplorer = "FileExplorer";
 const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
-const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen];
+const KernelManager = "KernelManager";
+const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
 const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
 
 const LSPExecutor = [
@@ -73,19 +73,19 @@ class PythonProcess {
         let _this = this;
         this.executor.on("message", function (stdout) {
             try {
-                console.log("On message: ", _this.clientMessage);
-                let replyMessage = JSON.parse(_this.clientMessage);
-                console.log("stdout: forward output to client", replyMessage);
+                // console.log("On message: ", _this.clientMessage);
+                // let replyMessage = JSON.parse(_this.clientMessage);
                 // replyMessage["content"] = stdout;
                 // _this.send2client(replyMessage);
+                console.log("stdout: ", stdout);
             } catch (error) {
                 console.log(error.stack);
             }
         });
 
         this.executor.on("stderr", function (stderr) {
-            let replyMessage = JSON.parse(_this.clientMessage);
-            console.log("stderr: forward output to client", replyMessage);
+            // let replyMessage = JSON.parse(_this.clientMessage);
+            // console.log("stderr: forward output to client", replyMessage);
             // replyMessage['content'] = stderr;
             // replyMessage['type'] = 'str';
             // _this.send2client(replyMessage);
@@ -99,6 +99,14 @@ class PythonProcess {
         this.executor.on("close", function (message) {
             console.log("close ", "python-shell closed: " + message);
         });
+
+        if (args[0] === "code") {
+            this.kernel_control_socket = new zmq.Push({ linger: 0 });
+            const n2p_host = config.n2p_comm.host;
+            const control_port = config.n2p_comm.kernel_control_port;
+            const control_address = `${n2p_host}:${control_port}`;
+            this.kernel_control_socket.connect(control_address);
+        }
     }
 
     send2client(message) {
@@ -108,6 +116,17 @@ class PythonProcess {
     send2executor(message) {
         this.clientMessage = message.slice();
         this.executor.send(message);
+    }
+
+    async send2executor_zmq(message) {
+        try {
+            if (this.kernel_control_socket != undefined) {
+                console.log(`send2executor_zmq: ${message}`);
+                await this.kernel_control_socket.send(message);
+            }
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     shutdown(signal) {
@@ -122,24 +141,6 @@ class PythonProcess {
 // let clientMessage;
 try {
     io.on("connection", (socket) => {
-        function codeExecutorHandler(strMessage) {
-            // clientMessage = strMessage.slice();
-            console.log(
-                "Receive msg from client, server will run: ",
-                JSON.parse(strMessage)["command_name"]
-            );
-            codeExecutor.send2executor(strMessage);
-        }
-
-        function nonCodeExecutorHandler(strMessage) {
-            // clientMessage = strMessage.slice();
-            console.log(
-                "Receive msg from client, server will run: ",
-                JSON.parse(strMessage)["command_name"]
-            );
-            nonCodeExecutor.send2executor(strMessage);
-        }
-
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();
             console.log(`Got ping at ${time}: ${message}`);
@@ -149,9 +150,22 @@ try {
         socket.onAny((endpoint, message) => {
             //TODO: use enum
             if (CodeExecutor.includes(endpoint)) {
-                codeExecutorHandler(message);
+                console.log(
+                    "Receive msg from client, server will run: ",
+                    JSON.parse(message)["command_name"]
+                );
+                if (endpoint === KernelManager) {
+                    // This is temporary solution, when refactor the nodejs completely conenct to python by ZMQ, we 'll refactor later
+                    codeExecutor.send2executor_zmq(message);
+                } else {
+                    codeExecutor.send2executor(message);
+                }
             } else if (NotCodeExecutor.includes(endpoint)) {
-                nonCodeExecutorHandler(message);
+                console.log(
+                    "Receive msg from client, server will run: ",
+                    JSON.parse(message)["command_name"]
+                );
+                nonCodeExecutor.send2executor(message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             }
@@ -175,28 +189,18 @@ try {
      */
     async function zmq_receiver() {
         const command_output_zmq = new zmq.Pull();
-
         const p2n_host = config.p2n_comm.host;
-        const p2n_port = config.p2n_comm.p2n_port;
+        const p2n_port = config.p2n_comm.port;
         await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);
-
-        // notification_zmq.bind(`${p2n_host}:${p2n_notif_port}`);
         console.log(`Waiting for python executor message on ${p2n_port}`);
-
         for await (const [message] of command_output_zmq) {
-            const json_message = JSON.parse(message.toString());
-            // console.log(
-            //     `command_output_zmq: forward output to ${json_message["webapp_endpoint"]} content=`, json_message["content"]
-            // );
-            console.log(`command_output_zmq: forward output to ${json_message["webapp_endpoint"]}`);
-            sendOutput(json_message);
+            const jsonMessage = JSON.parse(message.toString());
+            console.log(`command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`);
+            sendOutput(jsonMessage);
         }
     }
 
     zmq_receiver().catch((e) => console.error("ZMQ_error: ", e.stack));
-    /** */
-
-    // process.on("exit", function () {});
 
     process.on("SIGINT", function () {
         codeExecutor.shutdown("SIGINT");
@@ -217,82 +221,9 @@ try {
                 content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
             })
         );
-
-//         codeExecutor.send2executor(
-//             JSON.stringify({
-//                 webapp_endpoint: CodeEditor,
-//                 content: `
-// import torch.nn as nn
-// import torch
-// class ToyModel(nn.Module):
-//     def __init__(self):
-//         super().__init__()
-//         self.lin1 = nn.Linear(3, 3)
-//         self.relu = nn.ReLU()
-//         self.lin2 = nn.Linear(3, 2)
-
-//         # initialize weights and biases
-//         self.lin1.weight = nn.Parameter(torch.arange(-4.0, 5.0).view(3, 3))
-//         self.lin1.bias = nn.Parameter(torch.zeros(1, 3))
-//         self.lin2.weight = nn.Parameter(torch.arange(-3.0, 3.0).view(2, 3))
-//         self.lin2.bias = nn.Parameter(torch.ones(1, 2))
-
-//     def forward(self, input):
-//         return self.lin2(self.relu(self.lin1(input)))
-    
-//     def createInput(self):
-//         return torch.randn(1, 3, 3)
-
-// model = ToyModel()
-//         `,
-//             })
-//         );
-
-        //         codeExecutor.send2executor(
-        //             JSON.stringify({
-        //                 webapp_endpoint: CodeEditor,
-        //                 content: `
-        // import tensorflow as tf
-        // inputs = tf.keras.Input(shape=(3,))
-        // x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(inputs)
-        // outputs = tf.keras.layers.Dense(5, activation=tf.nn.softmax)(x)
-        // model = tf.keras.Model(inputs=inputs, outputs=outputs)
-        // `,
-        //             })
-        //         );
-
-//         codeExecutor.send2executor(
-//             JSON.stringify({
-//                 webapp_endpoint: CodeEditor,
-//                 content: `
-// import tensorflow as tf
-// model1 = tf.keras.models.Sequential([
-//     tf.keras.layers.Flatten(input_shape=(28, 28)),
-//     tf.keras.layers.Dense(128, activation='relu'),
-//     tf.keras.layers.Dropout(0.2),
-//     tf.keras.layers.Dense(10)
-// ])              
-// `,
-//             })
-//         );
-
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: ModelManager,
-        //         command_name: `get_active_models`,
-        //     })
-        // );
-
-        // nonCodeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: ExperimentManager,
-        //         content: 'import mlflow, mlflow.tensorflow',
-        //     })
-        // );
     };
 
     initialize();
 } catch (error) {
     console.log(error);
 }
-

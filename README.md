@@ -42,7 +42,7 @@ Step 1: `Download` [cnext] folder and `extract`
 
 Step 2: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
 
-Step 3: `run` command `pip install cycai-cnext`
+Step 3: `run` command `pip install cnext`
 
 Step 4: `run` command `cnext-init`
 
@@ -111,7 +111,7 @@ CYCAI
 [website]: https://cyc-ai.com/
 [docker image]: https://hub.docker.com/r/cycai/cnext
 [overview video]: https://youtu.be/5eWPkQIUfZw
-[cnext]: https://drive.google.com/file/d/1aK0bq5sFVQufth3y66iP1by-gyIwH6t3
+[cnext]: https://drive.google.com/file/d/1w4MU3nr0E14PAS_5NmruuoMSfQeE5MLK
 [docker]: https://www.docker.com/products/docker-desktop/
 
 <!--

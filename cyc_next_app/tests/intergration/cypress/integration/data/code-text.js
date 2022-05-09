@@ -51,4 +51,10 @@ display.Image("https://kgo.googleusercontent.com/profile_vrt_raw_bytes_158751535
 
 export const codeTestGroupLines = `import matplotlib.pyplot as plt
 plt.plot([5,6], [7,8])\n\n\n
-`
+`;
+
+export const codeTestKernelControl = `import time
+for i in range(20):
+print(i)
+    time.sleep(2)
+`;

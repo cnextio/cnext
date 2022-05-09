@@ -52,8 +52,6 @@ class IPythonUserSpace(_cus.UserSpace):
         code = """
 import cnextlib.dataframe as _cd
 import pandas as _pd
-import torch as _to
-import tensorflow as _tf
 from dataframe_manager import dataframe_manager as _dm
 from cassist import cassist as _ca
 from user_space.user_space import BaseKernelUserSpace
@@ -62,13 +60,13 @@ class _UserSpace(BaseKernelUserSpace):
     def globals(self):
         return globals()
     
-{_user_space} = _UserSpace((_cd.DataFrame, _pd.DataFrame), (_to.nn.Module, _tf.keras.Model))  
+{_user_space} = _UserSpace((_cd.DataFrame, _pd.DataFrame), ("torch.nn.Module", "tensorflow.keras.Model"))  
 {_df_manager} = _dm.MessageHandler(None, {_user_space})
 {_cassist} = _ca.MessageHandler(None, {_user_space})
 """.format(_user_space=IPythonInteral.USER_SPACE.value,
-                _df_manager=IPythonInteral.DF_MANAGER.value,
-                _cassist=IPythonInteral.CASSIST.value)
-            # log.info(code)
+           _df_manager=IPythonInteral.DF_MANAGER.value,
+           _cassist=IPythonInteral.CASSIST.value)
+        # log.info(code)
         self.executor.execute(code)
         self.execution_lock = threading.Lock()
         self.result = None
@@ -88,7 +86,7 @@ class _UserSpace(BaseKernelUserSpace):
             #     stream_type, ipython_message['header']['msg_type']))
             if ipython_message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
                 self.result = json.loads(
-                    ipython_message['content']['data']['text/plain'])                
+                    ipython_message['content']['data']['text/plain'])
             elif self._complete_execution_message(ipython_message) and self.execution_lock.locked():
                 self.execution_lock.release()
                 log.info('Execution unlocked')
@@ -106,10 +104,11 @@ class _UserSpace(BaseKernelUserSpace):
         '''
         def _result_waiting_execution_wrapper(*args, **kwargs):
             args[0].execution_lock.acquire()
-            log.info('Execution locked')
+            log.info('User_space execution lock acquired')
             func(*args, **kwargs)
             args[0].execution_lock.acquire()
             args[0].execution_lock.release()
+            log.info('User_space execution lock released')
             log.info("Results: %s" % args[0].result)
             return args[0].result
         return _result_waiting_execution_wrapper
@@ -123,7 +122,7 @@ class _UserSpace(BaseKernelUserSpace):
 
         Returns:
             _type_: _description_
-        """        
+        """
         code = "{_user_space}.get_active_dfs_status()".format(
             _user_space=IPythonInteral.USER_SPACE.value)
         log.info('Code to execute %s' % code)
@@ -146,11 +145,21 @@ class _UserSpace(BaseKernelUserSpace):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
 
-    def shutdown(self):        
+    def shutdown_executor(self):
         self.executor.shutdown_kernel()
-        ## not sure if this is needed
         if self.execution_lock.locked():
             self.execution_lock.release()
+
+    def restart_executor(self):
+        self.executor.restart_kernel()
+        if self.execution_lock.locked():
+            self.execution_lock.release()
+
+    def interrupt_executor(self):
+        self.executor.interrupt_kernel()
+        if self.execution_lock.locked():
+            self.execution_lock.release()
+
 
 class BaseKernelUserSpace(_cus.UserSpace):
     ''' 
@@ -158,6 +167,7 @@ class BaseKernelUserSpace(_cus.UserSpace):
         This is encapsulated in a python module so all the imports and variables are separated out from the rest.
         The code is executed on a kernel such as BaseKernel or IPythonKernel
     '''
+
     def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
         self.executor = BaseKernel()
         _cd.DataFrame.set_user_space(self)
@@ -169,6 +179,6 @@ class BaseKernelUserSpace(_cus.UserSpace):
     def execute(self, code, exec_mode: ExecutionMode = None):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, self.globals())
-    
+
     def shutdown():
         pass
