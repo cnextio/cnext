@@ -1,7 +1,6 @@
 # CNext Instructions
 
-​
-
+[Website] - [Documentation] - [Docker Image] - [Overview Video]
 ## Setup and run the CNext workspace
 
 ​
@@ -21,9 +20,6 @@ CNext is a data-centric workspace for DS and AI. Our workspace is meant to conso
 -   Experiment and model management
 -   Instant dashboarding
     ​
-    [Website] - [Documentation] - [Docker Image] - [Overview Video]
-    ​
-
 ## Installation via Docker
 
 Step 1: `Download` [cnext] folder and `extract`
