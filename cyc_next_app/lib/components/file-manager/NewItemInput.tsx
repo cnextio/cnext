@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { ContextMenuNewItem } from "../StyledComponents";
 import CypressIds from "../tests/CypressIds";
 
-const NewItemInput = ({ handleKeyPress }) => {
+const NewItemInput = ({ handleKeyPress, projectCommand }) => {
     const newItemRef = useRef();
 
     useEffect(() => {
@@ -16,10 +16,10 @@ const NewItemInput = ({ handleKeyPress }) => {
     return (
         <ContextMenuNewItem
             inputRef={newItemRef}
-            defaultValue='.py'
+            defaultValue=''
             data-cy={CypressIds.newFileItem}
             onKeyDown={(event: React.KeyboardEvent) =>
-                handleKeyPress(event, newItemRef.current.value)
+                handleKeyPress(event, newItemRef.current.value, projectCommand)
             }
         />
     );

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { ContextMenu, ContextMenuItem } from "../StyledComponents";
 import { FileContextMenuItem } from "../../interfaces/IFileManager";
 
@@ -10,7 +10,11 @@ const FileContextMenu = ({ contextMenuPos, handleClose, handleSelection, context
             text: "New file",
             disable: true ? contextMenuItem?.is_file : false, // disable create file function if context menu is file type
         },
-        { name: FileContextMenuItem.NEW_FOLDER, text: "New folder", disable: true },
+        {
+            name: FileContextMenuItem.NEW_FOLDER,
+            text: "New folder",
+            disable: true ? contextMenuItem?.is_file : false, // disable create folder function if context menu is file type
+        },
         { name: FileContextMenuItem.DIVIDER },
         { name: FileContextMenuItem.RENAME, text: "Rename", disable: true },
         {
