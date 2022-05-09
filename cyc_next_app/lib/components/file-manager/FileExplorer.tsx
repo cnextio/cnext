@@ -236,16 +236,16 @@ const FileExplorer = (props: any) => {
                 /** this will create path format that conforms to the style of the client OS
                  * but not that of server OS. The server will have to use os.path.norm to correct
                  * the path */
-                let relativeFilePath = path.join(relativeProjectPath, contextMenuItems.item, value);
+                let relativePath = path.join(relativeProjectPath, contextMenuItems.item, value);
                 console.log(
                     "FileExplorer create new item: ",
-                    relativeFilePath,
+                    relativePath,
                     contextMenuItems.item,
                     value
                 );
                 let message = createMessage(projectCommand, {
                     project_path: projectPath,
-                    path: relativeFilePath,
+                    path: relativePath,
                 });
                 sendMessage(message);
                 fetchDirChildNodes(contextMenuItems.item);
