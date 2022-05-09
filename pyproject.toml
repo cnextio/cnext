@@ -43,7 +43,7 @@ matplotlib = "^3.5.1"
 pandas = "1.3.5"
 multipledispatch = "^0.6.0"
 python-language-server = "^0.36.2"
-netron = "^5.7.6"
+netron = "^5.7.7"
 cnextlib = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
