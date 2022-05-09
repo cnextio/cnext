@@ -160,6 +160,6 @@ if __name__ == "__main__":
     )
 
     # Test sentry
-    division_by_zero = 1 / 0
+    # division_by_zero = 1 / 0
 
     main(sys.argv[1:])
