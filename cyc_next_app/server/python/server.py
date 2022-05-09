@@ -75,75 +75,87 @@ class ShutdownSignalHandler:
 
 
 def main(argv):
-    if argv and len(argv) > 0:
-        executor_type = argv[0]
-        user_space = None
-        message_handler = None
-        try:
-            p2n_queue = MessageQueuePush(
-                config.p2n_comm['host'], config.p2n_comm['port'])
-            if executor_type == ExecutorType.CODE:
-                user_space = IPythonUserSpace(
-                    (cd.DataFrame, pd.DataFrame), ("torch.nn.Module", "tensorflow.keras.Model"))
+    try: 
+        if argv and len(argv) > 0:
+            executor_type = argv[0]
+            user_space = None
+            message_handler = None
+            try:
+                p2n_queue = MessageQueuePush(
+                    config.p2n_comm['host'], config.p2n_comm['port'])
+                if executor_type == ExecutorType.CODE:
+                    user_space = IPythonUserSpace(
+                        (cd.DataFrame, pd.DataFrame), ("torch.nn.Module", "tensorflow.keras.Model"))
 
-                # Start kernel control thread
-                kernel_control_thread = threading.Thread(
-                    target=kernel_control_handler, args=(user_space,), daemon=True)
-                kernel_control_thread.start()
+                    # Start kernel control thread
+                    kernel_control_thread = threading.Thread(
+                        target=kernel_control_handler, args=(user_space,), daemon=True)
+                    kernel_control_thread.start()
 
-                message_handler = {
-                    WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
-                    WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
-                    WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
-                    WebappEndpoint.MagicCommandGen: ca.MessageHandler(
-                        p2n_queue, user_space)
-                }
-            elif executor_type == ExecutorType.NONCODE:
-                user_space = BaseKernelUserSpace()
-                message_handler = {
-                    WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
-                    WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config),
-                    WebappEndpoint.FileExplorer: fe.MessageHandler(
-                        p2n_queue, user_space)
-                }
+                    message_handler = {
+                        WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.MagicCommandGen: ca.MessageHandler(
+                            p2n_queue, user_space)
+                    }
+                elif executor_type == ExecutorType.NONCODE:
+                    user_space = BaseKernelUserSpace()
+                    message_handler = {
+                        WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config),
+                        WebappEndpoint.FileExplorer: fe.MessageHandler(
+                            p2n_queue, user_space)
+                    }
 
-        except Exception as error:
-            log.error("%s - %s" % (error, traceback.format_exc()))
-            exit(1)
+            except Exception as error:
+                log.error("%s - %s" % (error, traceback.format_exc()))
+                exit(0)
 
-        shutdowHandler = ShutdownSignalHandler(message_handler, user_space)
-        # this condition here is meaningless for now because the process will be exit inside ShutdownSignalHandler.exit_gracefully already
-        while shutdowHandler.running:
-            for line in sys.stdin:
-                try:
-                    # log.info('Got message %s' % line)
-                    message = Message(**json.loads(line))
-                    log.info('Got message from %s command %s' %
-                             (message.webapp_endpoint, message.command_name))
-                    if message.webapp_endpoint == WebappEndpoint.KernelManager:
-                        if message.command_name == KernelManagerCommand.interrupt_kernel:
-                            shutdowHandler.exit_gracefully()
-                    else:
-                        message_handler[message.webapp_endpoint].handle_message(
-                            message)
-                except OSError as error:  # TODO check if this has to do with buffer error
-                    # since this error might be related to the pipe, we do not send this error to nodejs
-                    log.error("OSError: %s" % (error))
+            shutdowHandler = ShutdownSignalHandler(message_handler, user_space)
+            # this condition here is meaningless for now because the process will be exit inside ShutdownSignalHandler.exit_gracefully already
+            try: 
+                while shutdowHandler.running:
+                    for line in sys.stdin:
+                        try:
+                            # log.info('Got message %s' % line)
+                            message = Message(**json.loads(line))
+                            log.info('Got message from %s command %s' %
+                                    (message.webapp_endpoint, message.command_name))
+                            if message.webapp_endpoint == WebappEndpoint.KernelManager:
+                                if message.command_name == KernelManagerCommand.interrupt_kernel:
+                                    shutdowHandler.exit_gracefully()
+                            else:
+                                message_handler[message.webapp_endpoint].handle_message(
+                                    message)
+                        except OSError as error:  # TODO check if this has to do with buffer error
+                            # since this error might be related to the pipe, we do not send this error to nodejs
+                            log.error("OSError: %s" % (error))
 
-                except:
-                    log.error("Failed to execute the command %s",
-                              traceback.format_exc())
-                    message = BaseMessageHandler._create_error_message(
-                        message.webapp_endpoint, traceback.format_exc())
-                    # send_to_node(message)
-                    BaseMessageHandler.send_message(
-                        p2n_queue, message.toJSON())
+                        except:
+                            log.error("Failed to execute the command %s",
+                                    traceback.format_exc())
+                            message = BaseMessageHandler._create_error_message(
+                                message.webapp_endpoint, traceback.format_exc())
+                            # send_to_node(message)
+                            BaseMessageHandler.send_message(
+                                p2n_queue, message.toJSON())
 
-                try:
-                    sys.stdout.flush()
-                except Exception as error:
-                    log.error("Failed to flush stdout %s - %s" %
-                              (error, traceback.format_exc()))
+                        try:
+                            sys.stdout.flush()
+                        except Exception as error:
+                            log.error("Failed to flush stdout %s - %s" %
+                                    (error, traceback.format_exc()))
+            except:                
+                log.error("Exception %s - %s" % (error, traceback.format_exc()))
+                ## make sure all the message handler shut down properly #
+                shutdowHandler.exit_gracefully()
+                exit(0)
+
+    except Exception as error:
+        log.error("Failed to flush stdout %s - %s" %
+                  (error, traceback.format_exc()))
+        exit(0)
 
 
 if __name__ == "__main__":
