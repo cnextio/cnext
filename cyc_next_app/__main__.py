@@ -52,8 +52,9 @@ def path():
 
 def start():
     print("cnext starting !")
-    # os.chdir(web_path)
-    # web_proc = Popen('npm start', shell=True)
+    
+    os.chdir(web_path)
+    web_proc = Popen('npm start', shell=True)
 
     os.chdir(server_path)
     my_env = os.environ.copy()
