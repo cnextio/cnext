@@ -23,9 +23,13 @@ CNext is a data-centric workspace for DS and AI. Our workspace is meant to conso
 ## Installation via Docker
 
 Step 1: `Download` [cnext] folder and `extract`
+
 Step 2: `setup` [Docker] on your computer
+
 Step 3: Run `docker login` login with your docker account
+
 Step 4: Point destination command to `cnext` directory
+
 Step 5: Run command `docker-compose up -d`
 ​
 
@@ -38,15 +42,19 @@ Step 5: Run command `docker-compose up -d`
 
 ​
 Step 1: `Download` [cnext] folder and `extract`
+
 Step 2: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
+
 Step 3: `run` command `pip install cnext`
+
 Step 4: `run` command `cnext-init`
+
 Step 5: `run` command `cnext-path`
-​
 
 -   Input `Skywalker folder directory path` and hit `Enter` (Example `C:/Skywalker`)
     ​
-    Step 5 `run` command `cnext-run`
+    
+Step 6 `run` command `cnext-run`
     ​
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 3000)
 -   Stop application: `Ctrl + c | Command + c`
