@@ -1,4 +1,5 @@
 import os
+import sys
 from subprocess import Popen
 
 
@@ -50,10 +51,22 @@ def path():
 
 
 def start():
-    os.chdir(web_path)
-    web_proc = Popen('npm start', shell=True)
+    print("cnext starting !")
+    # os.chdir(web_path)
+    # web_proc = Popen('npm start', shell=True)
+
     os.chdir(server_path)
-    ser_proc = Popen('npm start', shell=True)
+    my_env = os.environ.copy()
+    splitPathArr = my_env["PATH"].split(os.path.pathsep)
+
+    my_env["PATH"] = os.path.dirname(sys.executable)
+    for pathElement in splitPathArr:
+        if ("nodejs" in pathElement) or ("npm" in pathElement):
+            print(pathElement)
+            my_env["PATH"] = pathElement + os.path.pathsep + my_env["PATH"]
+    print(my_env["PATH"])
+    ser_proc = Popen('npm run start-prod', shell=True, env=my_env)
+    print("cnext started !")
 
 
 if __name__ == '__main__':
