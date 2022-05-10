@@ -18,6 +18,7 @@ from file_manager import file_manager as fm
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, KernelManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
+from libs.constants import TrackingModelType
 from user_space.user_space import IPythonUserSpace, BaseKernelUserSpace
 import cnextlib.dataframe as cd
 
@@ -25,17 +26,21 @@ import cnextlib.dataframe as cd
 log = logs.get_logger(__name__)
 
 
-def kernel_control_handler(user_space, n2p_queue):
+def kernel_control_handler(user_space):
     log.info("Kernel control thread started")
+    ## reading config here to get the most updated version #
+    config = read_config('.server.yaml')
+    n2p_queue = MessageQueuePull(
+        config.n2p_comm['host'], config.n2p_comm['kernel_control_port'])
     try:
-        while True:            
+        while True:
             strMessage = n2p_queue.receive_msg()
             message = Message(**json.loads(strMessage))
             log.info("Received control message: %s" % message)
             if message.command_name == KernelManagerCommand.restart_kernel:
                 result = user_space.restart_executor()
                 if result:
-                    ## get the lastest config to make sure that it is updated with the lastest open project
+                    # get the lastest config to make sure that it is updated with the lastest open project
                     config = read_config('.server.yaml')
                     set_executor_working_dir(user_space, config)
             elif message.command_name == KernelManagerCommand.interrupt_kernel:
@@ -82,8 +87,9 @@ def get_active_project_path(config):
 
 def set_executor_working_dir(user_space, config):
     project_path = get_active_project_path(config)
+    log.info('Project path: {}'.format(project_path))
     if project_path:
-        user_space.set_executor_working_dir(get_active_project_path(config))
+        user_space.set_executor_working_dir(project_path)
 
 
 def main(argv):
@@ -97,15 +103,13 @@ def main(argv):
             try:
                 p2n_queue = MessageQueuePush(
                     config.p2n_comm['host'], config.p2n_comm['port'])
-                n2p_queue = MessageQueuePull(
-                    config.n2p_comm['host'], config.n2p_comm['kernel_control_port'])
                 if executor_type == ExecutorType.CODE:
                     user_space = IPythonUserSpace(
-                        (cd.DataFrame, pd.DataFrame), ("torch.nn.Module", "tensorflow.keras.Model"))
+                        (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
 
                     # Start kernel control thread
                     kernel_control_thread = threading.Thread(
-                        target=kernel_control_handler, args=(user_space, n2p_queue), daemon=True)
+                        target=kernel_control_handler, args=(user_space,), daemon=True)
                     kernel_control_thread.start()
 
                     message_handler = {
@@ -165,7 +169,7 @@ def main(argv):
                         except Exception as error:
                             log.error("Failed to flush stdout %s - %s" %
                                       (error, traceback.format_exc()))
-            except:
+            except Exception as error:
                 log.error("Exception %s - %s" %
                           (error, traceback.format_exc()))
                 ## make sure all the message handler shut down properly #
