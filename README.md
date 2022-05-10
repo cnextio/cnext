@@ -50,11 +50,11 @@ Step 3: `run` command `pip install cnext`
 Step 4: `run` command `cnext-init`
 
 Step 5: `run` command `cnext-path`
-​
 
 -   Input `Skywalker folder directory path` and hit `Enter` (Example `C:/Skywalker`)
     ​
-    Step 5 `run` command `cnext-run`
+    
+Step 6 `run` command `cnext-run`
     ​
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 3000)
 -   Stop application: `Ctrl + c | Command + c`
