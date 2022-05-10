@@ -1,12 +1,11 @@
-
 export enum FileType {
-    python = 'py',
-    jupyter = 'ipy'
+    python = "py",
+    jupyter = "ipy",
 }
 
 export enum FileStatus {
-    edited = 'edited',
-    saved = 'saved'
+    edited = "edited",
+    saved = "saved",
 }
 
 export enum ProjectCommand {
@@ -27,7 +26,8 @@ export enum ProjectCommand {
     save_state = "save_state",
     save_project_config = "save_project_config",
     get_project_config = "get_project_config",
-};
+    add_project = "add_project",
+}
 
 export interface IFileMetadata {
     path: string;
@@ -61,4 +61,4 @@ export enum FileContextMenuItem {
     RENAME,
     DELETE,
     DIVIDER,
-};
+}

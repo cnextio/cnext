@@ -62,6 +62,7 @@ class ProjectCommand(str, Enum):
     save_state = 'save_state'
     save_project_config = 'save_project_config'
     get_project_config = 'get_project_config'
+    add_project = 'add_project'
 
 
 class ExperimentManagerCommand(str, Enum):
