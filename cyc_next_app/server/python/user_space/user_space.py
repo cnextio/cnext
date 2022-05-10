@@ -159,6 +159,10 @@ class _UserSpace(BaseKernelUserSpace):
         self.executor.interrupt_kernel()
         if self.execution_lock.locked():
             self.execution_lock.release()
+    
+    def set_executor_working_dir(self, path):
+        code = "import os, os.chdir('{}')".format(path)
+        return self.executor.execute(code)
 
 
 class BaseKernelUserSpace(_cus.UserSpace):
