@@ -163,14 +163,18 @@ class MessageHandler(BaseMessageHandler):
         columns = {}
         MAX_UNIQUE_LENGTH = 1000
         for col_name, ctype in dtypes.items():
-            if not re.search(r'datetime', ctype.name):
+            if re.search(r'datetime', ctype.name):
+                ## the unique value of datetime is usually the same as the length so it is meaningless
+                ## also we have to convert it to string before sending back. So just don't do it now.
+                unique = []                
+            else:
                 unique = self.user_space.execute(
                     "_pd.Series(%s['%s'].unique()).tolist()" % (df_id, col_name), ExecutionMode.EVAL)
-            else:
-                unique = []
+            
             # only send unique list that has length smaller than MAX_UNIQUE_LENGTH
             if len(unique) > MAX_UNIQUE_LENGTH:
                 unique = []
+            
             columns[col_name] = {'name': col_name,
                                  'type': str(ctype.name), 'unique': unique, 
                                  'countna': countna[col_name].item(), 'describe': describe[col_name].to_dict()}
