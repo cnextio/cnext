@@ -158,7 +158,7 @@ class MessageHandler(BaseMessageHandler):
 
     MAX_PLOTLY_SIZE = 1024*1024  # 1MB
 
-    def _create_return_message(self, ipython_message, stream_type, client_message):
+    def _create_return_message(self, ipython_message, stream_type, client_message, error=False):
         result = self.get_execute_result(ipython_message)
         if result is not None:
             ipython_message = IpythonResultMessage(**ipython_message)
@@ -181,27 +181,27 @@ class MessageHandler(BaseMessageHandler):
                     message.content = "Warning: column histogram plot size is bigger than 1MB -> discard it"
                     message.type = ContentType.STRING
                     message.sub_type = SubContentType.NONE
-                message.error = False
+                message.error = error
 
             elif client_message.command_name == DFManagerCommand.plot_column_quantile:
                 message.content = result
                 message.type = ContentType.RICH_OUTPUT
                 message.sub_type = SubContentType.APPLICATION_PLOTLY
-                message.error = False
+                message.error = error
 
             elif client_message.command_name == DFManagerCommand.get_table_data:
                 log.info('DFManagerCommand.get_table_data: %s' % result)
                 message.content = result
                 message.type = ContentType.PANDAS_DATAFRAME
                 message.sub_type = SubContentType.NONE
-                message.error = False
+                message.error = error
 
             elif client_message.command_name == DFManagerCommand.get_df_metadata:
                 log.info('DFManagerCommand.get_df_metadata: %s' % result)
                 message.content = result
                 message.type = ContentType.DICT
                 message.sub_type = SubContentType.NONE
-                message.error = False
+                message.error = error
             
             return message
         

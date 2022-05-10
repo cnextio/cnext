@@ -49,7 +49,7 @@ class IPythonKernel():
                 self.stop_stream_thread = True
                 self.kc = self.km.blocking_client()
                 self.wait_for_ready()
-                # wait to make sure the stream threads will stop before processding
+                # wait to make sure the stream threads will stop before proceeding
                 while self.shell_msg_thread.is_alive() or self.shell_msg_thread.is_alive():
                     time.sleep(1)
                 self.shell_msg_thread = threading.Thread(

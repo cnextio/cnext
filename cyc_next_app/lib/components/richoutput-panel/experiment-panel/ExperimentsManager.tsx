@@ -79,7 +79,7 @@ const ExperimentManager = (props: any) => {
                 let message: IMessage = {
                     webapp_endpoint: WebAppEndpoint.ExperimentManager,
                     command_name: ExperimentManagerCommand.get_metric_plots,
-                    type: CommandType.MLFLOW_COMBINE,
+                    type: CommandType.MLFLOW_OTHERS,
                     content: {
                         tracking_uri: tracking_uri,
                         experiment_id: expId,
@@ -128,7 +128,7 @@ const ExperimentManager = (props: any) => {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
                 command_name: ExperimentManagerCommand.get_metric_plots,
-                type: CommandType.MLFLOW_COMBINE,
+                type: CommandType.MLFLOW_OTHERS,
                 content: {
                     tracking_uri: tracking_uri,
                     experiment_id: selectedExpId,
@@ -280,7 +280,7 @@ const ExperimentManager = (props: any) => {
                         let message: IMessage = {
                             webapp_endpoint: WebAppEndpoint.ExperimentManager,
                             command_name: ExperimentManagerCommand.load_artifacts_to_local,
-                            type: CommandType.MLFLOW_COMBINE,
+                            type: CommandType.MLFLOW_OTHERS,
                             content: {
                                 tracking_uri: tracking_uri,
                                 artifact_path: artifact_path,
