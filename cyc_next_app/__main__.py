@@ -57,13 +57,8 @@ def start():
 
     os.chdir(server_path)
     my_env = os.environ.copy()
-    splitPathArr = my_env["PATH"].split(os.path.pathsep)
-
-    my_env["PATH"] = os.path.dirname(sys.executable)
-    for pathElement in splitPathArr:
-        if ("nodejs" in pathElement) or ("npm" in pathElement):
-            print(pathElement)
-            my_env["PATH"] = pathElement + os.path.pathsep + my_env["PATH"]
+    my_env["PATH"] = os.path.dirname(
+        sys.executable) + os.path.pathsep + my_env["PATH"]
     print(my_env["PATH"])
     ser_proc = Popen('npm run start-prod', shell=True, env=my_env)
     print("cnext started !")
