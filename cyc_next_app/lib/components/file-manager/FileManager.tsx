@@ -36,9 +36,6 @@ const FileManager = () => {
     const codeText = useSelector((state: RootState) => getCodeText(state));
     const codeLines = useSelector((state: RootState) => getCodeLines(state));
     const projectConfigs = useSelector((state: RootState) => state.projectManager.configs);
-    const addProjectStatus = useSelector(
-        (state: RootState) => state.projectManager.addProjectStatus
-    );
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
     // using this to avoid saving the file when we load code doc for the first time
     // const [codeTextInit, setcodeTextInit] = useState(0);
@@ -258,7 +255,7 @@ const FileManager = () => {
                 let file: IFileMetadata = state.projectManager.openFiles[filePath];
                 console.log(
                     "FileManager: save file ",
-                    filePath
+                    filePath,
                     // state.projectManager.openFiles,
                     // file
                 );
@@ -445,20 +442,6 @@ const FileManager = () => {
         }
     };
 
-    /**
-     * Add project when user handle add project in sidebar
-     */
-    const addProject = (path: string) => {
-        let message: IMessage = createMessage(ProjectCommand.add_project, path, 1, {});
-        sendMessage(message);
-    };
-
-    useEffect(() => {
-        if (addProjectStatus) {
-            addProject(path);
-        }
-    }, [addProjectStatus]);
-
     useEffect(() => {
         setupSocket();
         let message: IMessage = createMessage(ProjectCommand.get_active_project, "", 1);
@@ -466,6 +449,12 @@ const FileManager = () => {
 
         setUpSaveOnReloadEvent();
 
+        return () => {
+            socket.off(WebAppEndpoint.FileManager);
+        };
+
+        // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
+        // return () => clearInterval(saveFileTimer);
         return () => {
             socket.off(WebAppEndpoint.FileManager);
         };

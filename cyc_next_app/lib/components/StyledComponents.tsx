@@ -120,14 +120,21 @@ export const SidebarListItem = styled.div`
     }
     border-left: 4px solid
         ${(props) =>
-            props.selected ? "rgba(25, 118, 210, 1)" : props.theme.palette.background.paper};
+            props.selected
+                ? "rgba(25, 118, 210, 1)"
+                : props.theme.palette.background.paper};
     background-color: ${(props) =>
-        props.selected ? "rgba(25, 118, 210, 0.1)" : "props.theme.palette.background.paper"};
+        props.selected
+            ? "rgba(25, 118, 210, 0.1)"
+            : "props.theme.palette.background.paper"};
     &:hover {
         cursor: pointer;
         background-color: ${(props) =>
-            props.selected ? "rgba(25, 118, 210, 0.1)" : props.theme.palette.grey.A200};
-        border-left: 4px solid ${(props) => (props.selected ? "rgba(25, 118, 210, 1)" : "black")};
+            props.selected
+                ? "rgba(25, 118, 210, 0.1)"
+                : props.theme.palette.grey.A200};
+        border-left: 4px solid
+            ${(props) => (props.selected ? "rgba(25, 118, 210, 1)" : "black")};
     }
 `;
 
@@ -189,7 +196,9 @@ export const FileExplorerHeaderName = styled(Typography)`
     // &:hover {
     //     cursor: pointer;
     //     background-color: ${(props) =>
-        props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
+        props.selected
+            ? props.theme.palette.background.paper
+            : props.theme.palette.grey.A100};
     // }
 `;
 
@@ -270,14 +279,20 @@ export const FileNameTab = styled(Typography)`
     padding: 0px 5px 0px 10px;
     font-size: 13px;
     color: ${(props) =>
-        props.fileSaved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
+        props.fileSaved
+            ? props.theme.palette.text.secondary
+            : props.theme.palette.error.dark};
     background-color: ${(props) =>
-        props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
+        props.selected
+            ? props.theme.palette.background.paper
+            : props.theme.palette.grey.A200};
     border-width: 1px;
     &:hover {
         cursor: pointer;
         background-color: ${(props) =>
-            props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
+            props.selected
+                ? props.theme.palette.background.paper
+                : props.theme.palette.grey.A100};
     }
 `;
 
@@ -295,7 +310,9 @@ export const FileCloseIcon = styled(CloseIcon)`
     &:hover {
         cursor: pointer;
         background-color: ${(props) =>
-            props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
+            props.selected
+                ? props.theme.palette.background.paper
+                : props.theme.palette.grey.A200};
     }
 `;
 
@@ -396,7 +413,9 @@ export const CodeEditMarker = styled.div`
     height: 10px;
     width: 10px;
     // background-color: ${(props) =>
-        props.edited ? props.theme.palette.primary.light : props.theme.palette.success.light};
+        props.edited
+            ? props.theme.palette.primary.light
+            : props.theme.palette.success.light};
     background-color: green;
     border: 2px;
 `;
@@ -449,7 +468,9 @@ export const PanelDivider = styled(Divider)`
     // adding display flex here does not work because the divider width becomes 0, no sure why
     align-self: stretch;
     border-color: ${(props) =>
-        props.color == "light" ? props.theme.palette.grey.A100 : props.theme.palette.divider};
+        props.color == "light"
+            ? props.theme.palette.grey.A100
+            : props.theme.palette.divider};
 `;
 
 export const StyledRichOutputPanel = styled.div`
@@ -638,7 +659,9 @@ export const DataTableHeadCell = styled(TableCell)`
     font-size: 13px;
     vertical-align: bottom;
     ${(props) =>
-        props.review ? backgroundTransition(props.theme.palette.primary.light) : null} 1s linear 0s;
+        props.review
+            ? backgroundTransition(props.theme.palette.primary.light)
+            : null} 1s linear 0s;
 `;
 
 export const DataTableHeadText = styled.div`
@@ -649,7 +672,9 @@ export const DataTableIndexCell = styled(TableCell)`
     font-weight: bold;
     font-size: 13px;
     animation: ${(props) =>
-            props.review ? backgroundTransition(props.theme.palette.primary.light) : null}
+            props.review
+                ? backgroundTransition(props.theme.palette.primary.light)
+                : null}
         1s linear 0s;
 `;
 export const DataTableCell = styled(TableCell)`
@@ -658,7 +683,9 @@ export const DataTableCell = styled(TableCell)`
     text-align: ${(props) => (props.head ? "left" : "right")};
     font-size: 13px;
     animation: ${(props) =>
-            props.review ? backgroundTransition(props.theme.palette.primary.light) : null}
+            props.review
+                ? backgroundTransition(props.theme.palette.primary.light)
+                : null}
         1s linear 0s;
 `;
 
@@ -756,19 +783,20 @@ export const ExperimentRightPanel = styled.div`
 `;
 
 export const MetricPlots = styled.div`
-    background-color: ${(props) => props.theme.palette.background.paper};
-    padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
-    overflow: auto;
-    width: 100%;
-    height: 100%;
-    .react-grid-layout {
-        position: relative !important;
-    }
-`;
+  background-color: ${(props) => props.theme.palette.background.paper};
+  padding: 0px 10px 10px 10px; // remove top padding to make the sticky head work, see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+  .react-grid-layout {
+    position: relative !important;
+  }`;
 
 export const CountNAContainer = styled.div`
     background-color: ${(props) =>
-        props.nonZeroNA ? props.theme.palette.error.light : props.theme.palette.action.hover};
+        props.nonZeroNA
+            ? props.theme.palette.error.light
+            : props.theme.palette.action.hover};
     color: ${(props) =>
         props.nonZeroNA
             ? props.theme.palette.error.contrastText
@@ -799,16 +827,20 @@ export const DataGridItemMetadata = styled.div`
 `;
 
 export const DataPanelToolbarBtn = styled.div`
-    margin-left: auto;
+	margin-left: auto;
     padding: 2px;
     display: flex;
     align-items: center;
     background-color: ${(props) =>
-        props.selected ? "rgba(25, 118, 210, 0.1)" : "props.theme.palette.background.paper"};
+        props.selected
+            ? "rgba(25, 118, 210, 0.1)"
+            : "props.theme.palette.background.paper"};
     &:hover {
         cursor: pointer;
         background-color: ${(props) =>
-            props.selected ? "rgba(25, 118, 210, 0.1)" : props.theme.palette.grey.A200};
+            props.selected
+                ? "rgba(25, 118, 210, 0.1)"
+                : props.theme.palette.grey.A200};
     }
 `;
 

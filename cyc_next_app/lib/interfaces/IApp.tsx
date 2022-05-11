@@ -193,7 +193,6 @@ export enum ViewMode {
 }
 
 export enum SideBarName {
-    ADD_PROJECT = "AddProject",
     PROJECT = "Projects",
     INBOX = "Inbox",
     CLEAR_STATE = "ClearState",
