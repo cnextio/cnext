@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "cnext"
-version = "0.4.6"
-description = "improve your AI work follow"
-authors = ["cycai company"]
+version = "0.4.7"
+description = "The data-centric workspace for AI & DS"
+authors = ["CycAI Inc"]
 license = "MIT"
 
 readme = "README.md"  # Markdown files are supported

@@ -1,9 +1,9 @@
 # CNext Instructions
 
 [Website] - [Documentation] - [Docker Image] - [Overview Video]
+
 ## Setup and run the CNext workspace
 
-​
 CNext is a data-centric workspace for DS and AI. Our workspace is meant to consolidate the most common tasks performed by data scientists and ML engineers. At a high level our workspace allows for:
 
 -   Data exploration & transformation
@@ -11,6 +11,7 @@ CNext is a data-centric workspace for DS and AI. Our workspace is meant to conso
 -   Production code generation
 -   Dashboard & App Generation
 -   Experiment Management
+
 ## Features
 
 -   Interactive Python coding envrionment with native Python output (think Jupyter replacement)
@@ -19,7 +20,7 @@ CNext is a data-centric workspace for DS and AI. Our workspace is meant to conso
 -   Automative visualizations
 -   Experiment and model management
 -   Instant dashboarding
-    ​
+
 ## Installation via Docker
 
 Step 1: `Download` [cnext] folder and `extract`
@@ -31,16 +32,13 @@ Step 3: Run `docker login` login with your docker account
 Step 4: Point destination command to `cnext` directory
 
 Step 5: Run command `docker-compose up -d`
-​
 
 -   The web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 3000)
 -   To stop the application: `docker-compose down`
 -   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine, by default they are 3000 and 4000 respectively)
-    ​
 
 ## Installation via Pip
 
-​
 Step 1: `Download` [cnext] folder and `extract`
 
 Step 2: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
@@ -49,22 +47,24 @@ Step 3: `run` command `pip install cnext`
 
 Step 4: `run` command `cnext-init`
 
-Step 5: `run` command `cnext-path`
-
 -   Input `Skywalker folder directory path` and hit `Enter` (Example `C:/Skywalker`)
     ​
-    
+
 Step 6 `run` command `cnext-run`
-    ​
+
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 3000)
 -   Stop application: `Ctrl + c | Command + c`
 -   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine, by default they are 3000 and 4000 respectively)
 
 ## License
 
-CYCAI
-
-**Great Software, Hell Yeah!**
+Copyright 2022 CycAI Inc.
+​
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+​
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+​
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [website]: https://www.cnext.io/
 [docker image]: https://hub.docker.com/r/cycai/cnext
