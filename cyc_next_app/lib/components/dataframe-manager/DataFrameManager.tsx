@@ -220,7 +220,7 @@ _tmp()`;
     useEffect(() => {
         const state = store.getState().dataFrames;
         const activeDF = state.activeDataFrame;
-        if (activeDF != null) {
+        if (activeDF != null && state.metadata[activeDF] != null) {
             const df_id = state.metadata[activeDF].df_id;
             const columns = getColumnsToGetStats(df_id);
             getDefinedStat(df_id, columns);

@@ -82,6 +82,7 @@ class MessageHandler(BaseMessageHandler):
             for r in df.index:
                 if not self._is_jsonable(df.at[r, c]):
                     df.at[r, c] = str(df.at[r, c])
+        return df
 
     def _create_table_data(self, df_id, df):
         ''' The tableData will be the same as the original `df` except for two exceptions
@@ -158,7 +159,7 @@ class MessageHandler(BaseMessageHandler):
             "%s.isna().sum()" % df_id, ExecutionMode.EVAL)
         describe = self.user_space.execute(
             "%s.describe(include='all')" % df_id, ExecutionMode.EVAL)
-        self._convert_to_str_if_not_jsonable(describe)
+        describe = self._convert_to_str_if_not_jsonable(describe)
 
         columns = {}
         MAX_UNIQUE_LENGTH = 1000
