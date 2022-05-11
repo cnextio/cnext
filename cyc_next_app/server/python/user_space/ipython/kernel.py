@@ -128,6 +128,8 @@ class IPythonKernel():
                     else:
                         log.info('%s msg: msg_type = %s' % (
                             stream_type, ipython_message['header']['msg_type']))
+                        # log.info('%s msg: msg_type = %s msg_content = %s' % (
+                        #     stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
 
                     if ipython_message is not None and self.message_handler_callback is not None:
                         self.message_handler_callback(

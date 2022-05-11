@@ -63,10 +63,11 @@ from dataframe_manager import dataframe_manager as _dm
 from cassist import cassist as _ca
 from user_space.user_space import BaseKernelUserSpace
 
+## need to create a new _UserSpace class here so that the global() will be represent this module where all the execution are #
 class _UserSpace(BaseKernelUserSpace):
     def globals(self):
         return globals()
-    
+
 {_user_space} = _UserSpace((_cd.DataFrame, _pd.DataFrame), {tracking_models})  
 {_df_manager} = _dm.MessageHandler(None, {_user_space})
 {_cassist} = _ca.MessageHandler(None, {_user_space})
@@ -181,14 +182,16 @@ class BaseKernelUserSpace(_cus.UserSpace):
 
     def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
         self.executor = BaseKernel()
-        _cd.DataFrame.set_user_space(self)
+        ## need to set user space on DataFrameTracker, it does not work if set with DataFrame
+        _cd.DataFrameTracker.set_user_space(self)
         super().__init__(tracking_df_types, tracking_model_types)
 
     def globals(self):
         return globals()
 
     def execute(self, code, exec_mode: ExecutionMode = None):
-        self.reset_active_dfs_status()
+        ## this function is not called when using ipython
+        # self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, self.globals())
 
     def shutdown_executor(self):
