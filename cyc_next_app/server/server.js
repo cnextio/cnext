@@ -1,37 +1,37 @@
-require("dotenv").config();
-const http = require("http");
-const socketIo = require("socket.io");
-const fs = require("fs");
-const YAML = require("yaml");
-const zmq = require("zeromq");
-const path = require("path");
-const { PythonShell } = require("python-shell");
+require('dotenv').config();
+const http = require('http');
+const socketIo = require('socket.io');
+const fs = require('fs');
+const YAML = require('yaml');
+const zmq = require('zeromq');
+const path = require('path');
+const { PythonShell } = require('python-shell');
 const {
     LSPProcess,
     LanguageServer,
     LanguageServerHover,
     LanguageServerSignature,
     LanguageServerCompletion,
-} = require("./ls/lsp_process");
+} = require('./ls/lsp_process');
 const port = process.env.PORT || 4000;
 const server = http.createServer();
 const options = {
     cors: {
         origin: [process.env.CLIENT_URL],
-        methods: ["GET", "POST"],
+        methods: ['GET', 'POST'],
     },
 };
 const io = new socketIo.Server(server, options);
 
 // TODO: move to Interfaces.tsx
-const CodeEditor = "CodeEditor";
-const DFManager = "DFManager";
-const ModelManager = "ModelManager";
-const FileManager = "FileManager";
-const FileExplorer = "FileExplorer";
-const MagicCommandGen = "MagicCommandGen";
-const ExperimentManager = "ExperimentManager";
-const KernelManager = "KernelManager";
+const CodeEditor = 'CodeEditor';
+const DFManager = 'DFManager';
+const ModelManager = 'ModelManager';
+const FileManager = 'FileManager';
+const FileExplorer = 'FileExplorer';
+const MagicCommandGen = 'MagicCommandGen';
+const ExperimentManager = 'ExperimentManager';
+const KernelManager = 'KernelManager';
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
 const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
 
@@ -44,7 +44,7 @@ const LSPExecutor = [
 
 try {
     let file;
-    file = fs.readFileSync(".server.yaml", "utf8");
+    file = fs.readFileSync('.server.yaml', 'utf8');
     config = YAML.parse(file);
 } catch (error) {
     console.log(error.stack);
@@ -58,11 +58,12 @@ class PythonProcess {
         process.env.PYTHONPATH = [
             process.env.PYTHONPATH,
             config.path_to_cnextlib,
-            "./python/",
+            './python/',
         ].join(path.delimiter);
+
         let pyshellOpts = {
-            stdio: ["pipe", "pipe", "pipe", "pipe"], // stdin, stdout, stderr, custom
-            mode: "text",
+            stdio: ['pipe', 'pipe', 'pipe', 'pipe'], // stdin, stdout, stderr, custom
+            mode: 'text',
             env: process.env,
             args: args,
         };
@@ -71,36 +72,36 @@ class PythonProcess {
 
         this.io = io;
         let _this = this;
-        this.executor.on("message", function (stdout) {
+        this.executor.on('message', function (stdout) {
             try {
                 // console.log("On message: ", _this.clientMessage);
                 // let replyMessage = JSON.parse(_this.clientMessage);
                 // replyMessage["content"] = stdout;
                 // _this.send2client(replyMessage);
-                console.log("stdout: ", stdout);
+                console.log('stdout: ', stdout);
             } catch (error) {
                 console.log(error.stack);
             }
         });
 
-        this.executor.on("stderr", function (stderr) {
+        this.executor.on('stderr', function (stderr) {
             // let replyMessage = JSON.parse(_this.clientMessage);
             // console.log("stderr: forward output to client", replyMessage);
             // replyMessage['content'] = stderr;
             // replyMessage['type'] = 'str';
             // _this.send2client(replyMessage);
-            console.log("stderr:", stderr);
+            console.log('stderr:', stderr);
         });
 
-        this.executor.on("error", function (message) {
-            console.log("error ", message);
+        this.executor.on('error', function (message) {
+            console.log('error ', message);
         });
 
-        this.executor.on("close", function (message) {
-            console.log("close ", "python-shell closed: " + message);
+        this.executor.on('close', function (message) {
+            console.log('close ', 'python-shell closed: ' + message);
         });
 
-        if (args[0] === "code") {
+        if (args[0] === 'code') {
             this.kernel_control_socket = new zmq.Push({ linger: 0 });
             const n2p_host = config.n2p_comm.host;
             const control_port = config.n2p_comm.kernel_control_port;
@@ -110,7 +111,7 @@ class PythonProcess {
     }
 
     send2client(message) {
-        this.io.emit(message["webapp_endpoint"], JSON.stringify(message));
+        this.io.emit(message['webapp_endpoint'], JSON.stringify(message));
     }
 
     send2executor(message) {
@@ -140,19 +141,19 @@ class PythonProcess {
 /** this variable is used to send back stdout to server */
 // let clientMessage;
 try {
-    io.on("connection", (socket) => {
-        socket.on("ping", (message) => {
+    io.on('connection', (socket) => {
+        socket.on('ping', (message) => {
             const time = new Date().toLocaleString();
             console.log(`Got ping at ${time}: ${message}`);
-            io.emit("pong", time);
+            io.emit('pong', time);
         });
 
         socket.onAny((endpoint, message) => {
             //TODO: use enum
             if (CodeExecutor.includes(endpoint)) {
                 console.log(
-                    "Receive msg from client, server will run: ",
-                    JSON.parse(message)["command_name"]
+                    'Receive msg from client, server will run: ',
+                    JSON.parse(message)['command_name']
                 );
                 if (endpoint === KernelManager) {
                     // This is temporary solution, when refactor the nodejs completely conenct to python by ZMQ, we 'll refactor later
@@ -162,26 +163,26 @@ try {
                 }
             } else if (NotCodeExecutor.includes(endpoint)) {
                 console.log(
-                    "Receive msg from client, server will run: ",
-                    JSON.parse(message)["command_name"]
+                    'Receive msg from client, server will run: ',
+                    JSON.parse(message)['command_name']
                 );
                 nonCodeExecutor.send2executor(message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             }
         });
-        socket.once("disconnect", () => {});
+        socket.once('disconnect', () => {});
     });
 
     const sendOutput = (message) => {
-        io.emit(message["webapp_endpoint"], JSON.stringify(message));
+        io.emit(message['webapp_endpoint'], JSON.stringify(message));
     };
 
     server.listen(port, () => console.log(`Waiting on port ${port}`));
 
-    console.log("Starting python shell...");
-    let codeExecutor = new PythonProcess(io, `python/server.py`, ["code"]);
-    let nonCodeExecutor = new PythonProcess(io, `python/server.py`, ["noncode"]);
+    console.log('Starting python shell...');
+    let codeExecutor = new PythonProcess(io, `python/server.py`, ['code']);
+    let nonCodeExecutor = new PythonProcess(io, `python/server.py`, ['noncode']);
     let lspExecutor = new LSPProcess(io);
 
     /**
@@ -195,32 +196,33 @@ try {
         console.log(`Waiting for python executor message on ${p2n_port}`);
         for await (const [message] of command_output_zmq) {
             const jsonMessage = JSON.parse(message.toString());
-            console.log(`command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`);
+            console.log(`command_output_zmq: forward output to ${jsonMessage['webapp_endpoint']}`);
             sendOutput(jsonMessage);
         }
     }
 
-    zmq_receiver().catch((e) => console.error("ZMQ_error: ", e.stack));
+    zmq_receiver().catch((e) => console.error('ZMQ_error: ', e.stack));
 
-    process.on("SIGINT", function () {
-        codeExecutor.shutdown("SIGINT");
-        nonCodeExecutor.shutdown("SIGINT");
+    process.on('SIGINT', function () {
+        codeExecutor.shutdown('SIGINT');
+        nonCodeExecutor.shutdown('SIGINT');
         process.exit(1);
     });
 
-    process.on("SIGTERM", function () {
-        codeExecutor.shutdown("SIGTERM");
-        nonCodeExecutor.shutdown("SIGTERM");
+    process.on('SIGTERM', function () {
+        codeExecutor.shutdown('SIGTERM');
+        nonCodeExecutor.shutdown('SIGTERM');
         process.exit(1);
     });
 
     const initialize = () => {
-        codeExecutor.send2executor(
-            JSON.stringify({
-                webapp_endpoint: CodeEditor,
-                content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
-            })
-        );
+        // codeExecutor.send2executor(
+        //     JSON.stringify({
+        //         webapp_endpoint: CodeEditor,
+        //         // content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
+        //         content: `import os; os.chdir('${config.projects.open_projects[0]["path"]}')`,
+        //     })
+        // );
     };
 
     initialize();

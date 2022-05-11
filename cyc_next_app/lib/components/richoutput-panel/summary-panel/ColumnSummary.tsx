@@ -77,7 +77,7 @@ const ColumnSummary = (props: any) => {
         <StyledTableView style={{ padding: "10px" }} data-cy={CypressIds.dfSummaryTable}>
             {console.log("Render ColumnSummary ")}
             {dfMetadata ? (
-                <DataTable style={{ border: 0 }} size='small'>
+                <DataTable style={{ border: 0 }} size="small">
                     <TableBody style={{ border: 0 }}>
                         {Object.keys(dfMetadata.columns).map((col_name: string, index: number) => (
                             <TableRow key={index}>
@@ -93,7 +93,7 @@ const ColumnSummary = (props: any) => {
                                             "font-size": "14px",
                                             "font-weight": "bold",
                                         }}
-                                        variant='subtitle2'
+                                        variant="subtitle2"
                                     >
                                         {col_name}
                                     </Typography>
@@ -104,7 +104,7 @@ const ColumnSummary = (props: any) => {
                                         "white-space": "nowrap",
                                     }}
                                 >
-                                    <Typography sx={{ "font-size": "14px" }} variant='caption'>
+                                    <Typography sx={{ "font-size": "14px" }} variant="caption">
                                         {dfMetadata.columns[col_name].type}
                                     </Typography>
                                 </DataTableCell>
@@ -125,13 +125,14 @@ const ColumnSummary = (props: any) => {
                                 >
                                     {/* {console.log(dfMetadata.columns[col_name].desribe)} */}
                                     <div>
-                                        {Object.keys(dfMetadata.columns[col_name].describe).map(
-                                            (item: String, index: number) => (
+                                        {dfMetadata.columns[col_name].describe && Object
+                                            .keys(dfMetadata.columns[col_name].describe)
+                                            .map((item: String, index: number) => (
                                                 <Typography
                                                     sx={{
                                                         "font-size": "14px",
                                                     }}
-                                                    variant='caption'
+                                                    variant="caption"
                                                 >
                                                     {dfMetadata.columns[col_name].describe[item] ? (
                                                         <Fragment>
@@ -139,7 +140,7 @@ const ColumnSummary = (props: any) => {
                                                                 sx={{
                                                                     "font-size": "14px",
                                                                 }}
-                                                                variant='caption'
+                                                                variant="caption"
                                                             >
                                                                 {item}:{" "}
                                                             </Typography>
@@ -163,8 +164,7 @@ const ColumnSummary = (props: any) => {
                                                     ) : null}
                                                     {item === "std" ? <br /> : null}
                                                 </Typography>
-                                            )
-                                        )}
+                                            ))}
                                     </div>
                                     <div>
                                         {dfMetadata.columns[col_name].quantile_plot

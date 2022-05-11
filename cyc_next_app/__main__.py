@@ -1,5 +1,8 @@
 import os
+import sys
 from subprocess import Popen
+from contextlib import contextmanager
+import time
 
 
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
@@ -30,6 +33,7 @@ def change_path(path):
 
 
 def main():
+    path()
     os.chdir(web_path)
     os.system('npm i --force')
     os.system('npm run build')
@@ -49,11 +53,34 @@ def path():
         print('Your path isn\'t correct, Please try again')
 
 
+@contextmanager
+def run_and_terminate_process():
+    try:
+        print("cnext starting !")
+
+        os.chdir(web_path)
+        web_proc = Popen('npm start', shell=True)
+
+        os.chdir(server_path)
+        my_env = os.environ.copy()
+        my_env["PATH"] = os.path.dirname(
+            sys.executable) + os.path.pathsep + my_env["PATH"]
+
+        ser_proc = Popen('npm run start-prod', shell=True, env=my_env)
+        yield
+
+    finally:
+        web_proc.terminate()  # send sigterm, or ...
+        web_proc.kill()      # send sigkill
+
+        ser_proc.terminate()  # send sigterm, or ...
+        ser_proc.kill()      # send sigkill
+
+
 def start():
-    os.chdir(web_path)
-    web_proc = Popen('npm start', shell=True)
-    os.chdir(server_path)
-    ser_proc = Popen('npm start', shell=True)
+    with run_and_terminate_process() as running_proc:
+        while True:
+            time.sleep(1000)
 
 
 if __name__ == '__main__':

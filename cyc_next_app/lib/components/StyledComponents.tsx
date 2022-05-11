@@ -613,7 +613,7 @@ export const StyledTableViewHeader = styled.div`
 `;
 
 export const RichOuputViewHeaderButton = styled(Typography)`
-    margin: 0px 10px 0px 0px;
+    margin: 0px 15px 0px 0px;
     font-size: 12px;
     border-bottom-style: ${(props) => (props.selected ? "solid" : "none")};
     border-width: 1px;
