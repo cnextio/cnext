@@ -23,7 +23,7 @@ CNext is a data-centric workspace for DS and AI. Our workspace is meant to conso
 
 ## Installation via Docker
 
-Step 1: `Download` [cnext] folder and `extract`
+Step 1: `Download` [cnext] sample project here and `extract`
 
 Step 2: `setup` [Docker] on your computer
 
