@@ -11,7 +11,7 @@ class SignaturePlugin {
         this.setSignature = setSignature;
         this.restartTimeout = -1;
         this.curPos = this.view.state.selection.main.head;
-        this.running = false;
+        this.running = true;
         this.countDocChanges = countDocChanges;
         this.currentData = null;
     }
@@ -43,6 +43,7 @@ class SignaturePlugin {
                     this.view.dispatch({
                         effects: closeSignatureEffect.of(null),
                     });
+                    this.running = false;
                     return;
                 }
 
@@ -57,12 +58,13 @@ class SignaturePlugin {
                         };
                         this.view.dispatch({ effects: this.setSignature.of(this.currentData) });
                     }
+                    this.running = true;
                 } else if (context.matchBefore(/['"]+$/)) {
                     // escape case for dfFilter
                     this.view.dispatch({
                         effects: closeSignatureEffect.of(null),
                     });
-                } else if (this.currentData) {
+                } else if (this.currentData && this.running) {
                     this.view.dispatch({
                         effects: this.setSignature.of({
                             ...this.currentData,
