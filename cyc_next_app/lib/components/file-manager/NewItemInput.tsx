@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { ContextMenuNewItem } from "../StyledComponents";
 import CypressIds from "../tests/CypressIds";
+import { ProjectCommand } from "../../interfaces/IFileManager";
 
 const NewItemInput = ({ handleKeyPress, projectCommand }) => {
     const newItemRef = useRef();
@@ -16,7 +17,7 @@ const NewItemInput = ({ handleKeyPress, projectCommand }) => {
     return (
         <ContextMenuNewItem
             inputRef={newItemRef}
-            defaultValue=''
+            defaultValue={projectCommand === ProjectCommand.create_file ? ".py" : ""}
             data-cy={CypressIds.newFileItem}
             onKeyDown={(event: React.KeyboardEvent) =>
                 handleKeyPress(event, newItemRef.current.value, projectCommand)
