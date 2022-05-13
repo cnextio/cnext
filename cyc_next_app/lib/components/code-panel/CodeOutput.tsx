@@ -264,7 +264,7 @@ const CodeOutputComponent = React.memo(() => {
                                         active: true,
                                         block: "nearest",
                                         inline: "center",
-                                        behavior: "smooth",
+                                        behavior: "auto",
                                         boundary: document.getElementById(codeOutputContentID),
                                     }}
                                 />
