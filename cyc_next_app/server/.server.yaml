@@ -12,7 +12,7 @@ projects:
     open_projects:
         - id: '1'
           name: 'Skywalker'
-          path: 'cnext_sample_projects/Skywalker'
+          path: 'G:\DEV\CycAI\cnext_sample_projects\Skywalker'
     active_project: '1'
     
 # p2n_comm:
