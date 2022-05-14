@@ -457,7 +457,7 @@ export const IndividualCodeOutputContent = styled(Typography)`
     margin: 0px;
     padding: 5px 0px 5px 0px;
     overflow: auto;
-    max-height: 100%;
+    // max-height: 100%;
     font-size: 13px;
     &:hover {
         background-color: ${(props) => props.theme.palette.action.hover};

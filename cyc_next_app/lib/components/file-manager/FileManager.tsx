@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { initCodeText, setFileSaved } from "../../../redux/reducers/CodeEditorRedux";
+import { initCodeText } from "../../../redux/reducers/CodeEditorRedux";
 import {
     setActiveProject,
     setFileMetaData,
@@ -33,8 +33,14 @@ const FileManager = () => {
     const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
-    const codeText = useSelector((state: RootState) => getCodeText(state));
-    const codeLines = useSelector((state: RootState) => getCodeLines(state));
+    // const codeText = useSelector((state: RootState) => getCodeText(state));
+    // const codeLines = useSelector((state: RootState) => getCodeLines(state));
+    const saveCodeTextCounter = useSelector(
+        (state: RootState) => state.codeEditor.saveCodeTextCounter
+    );
+    const saveCodeLineCounter = useSelector(
+        (state: RootState) => state.codeEditor.saveCodeLineCounter
+    );
     const projectConfigs = useSelector((state: RootState) => state.projectManager.configs);
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
     // using this to avoid saving the file when we load code doc for the first time
@@ -187,24 +193,34 @@ const FileManager = () => {
     const SAVE_FILE_DURATION = 10000;
     useEffect(() => {
         clearSaveConditions();
-
-        const state = store.getState();
-        // When changing file, trigger the saveFile & saveState function
+        // const state = store.getState();
+        // When inViewID changed, trigger the saveFile & saveState function
         const saveFileAndState = async () => {
+            const state = store.getState();
+            console.log("FileManager inViewID useEffect", state.projectManager.fileToSave);
             await saveFile(false);
             await saveState(false);
         };
         saveFileAndState();
 
         if (inViewID) {
-            const file: IFileMetadata = state.projectManager.openFiles[inViewID];
-            const projectPath = state.projectManager.activeProject?.path;
-            const message: IMessage = createMessage(ProjectCommand.read_file, "", 1, {
-                project_path: projectPath,
-                path: file.path,
-                timestamp: file.timestamp,
-            });
-            sendMessage(message);
+            const state = store.getState();
+            const codeText = state.codeEditor.codeText;
+            // we will not load the file if it already exists in redux this design will not 
+            // allow client to stay update with server if there is out-of-channel changes
+            // in server but this is good enough for our use case. 
+            if (codeText == null || (codeText && !Object.keys(codeText).includes(inViewID))) {
+                const file: IFileMetadata = state.projectManager.openFiles[inViewID];
+                const projectPath = state.projectManager.activeProject?.path;
+                const message: IMessage = createMessage(ProjectCommand.read_file, "", 1, {
+                    project_path: projectPath,
+                    path: file.path,
+                    timestamp: file.timestamp,
+                });
+                sendMessage(message);
+            } else {
+                dispatch(setServerSynced(true));
+            }
             setSaveTimer(
                 setInterval(() => {
                     setSaveTimeout(true);
@@ -255,7 +271,7 @@ const FileManager = () => {
                 let file: IFileMetadata = state.projectManager.openFiles[filePath];
                 console.log(
                     "FileManager: save file ",
-                    filePath,
+                    filePath
                     // state.projectManager.openFiles,
                     // file
                 );
@@ -285,8 +301,6 @@ const FileManager = () => {
                                 output.type === ContentType.FILE_METADATA &&
                                 output.error == false
                             ) {
-                                //TODO: remove stateSaved variable, use fileToSaveState only
-                                dispatch(setFileSaved(null));
                                 dispatch(setFileToSave(null));
                                 let inViewID = store.getState().projectManager.inViewID;
 
@@ -311,7 +325,7 @@ const FileManager = () => {
         }
     };
     useEffect(() => {
-        console.log("FileManager useEffect: ", fileToSave);
+        // console.log("FileManager useEffect: ", fileToSave);
         saveFile();
     }, [saveTimeout, fileToSave]);
 
@@ -371,7 +385,7 @@ const FileManager = () => {
         }
     };
     useEffect(() => {
-        console.log("FileManager useEffect: ", fileToSaveState);
+        // console.log("FileManager useEffect: ", fileToSaveState);
         saveState();
     }, [saveTimeout, fileToSaveState]);
 
@@ -385,16 +399,17 @@ const FileManager = () => {
     useEffect(() => {
         const state = store.getState();
         if (state.projectManager.serverSynced) {
+            console.log("FileManager codeText useEffect", inViewID);
             dispatch(setFileToSave(inViewID));
         }
-    }, [codeText]);
+    }, [saveCodeTextCounter]);
 
     useEffect(() => {
         const state = store.getState();
         if (state.projectManager.serverSynced) {
             dispatch(setFileToSaveState(inViewID));
         }
-    }, [codeLines]);
+    }, [saveCodeLineCounter]);
 
     const saveConfigs = () => {
         const state = store.getState();
@@ -455,9 +470,6 @@ const FileManager = () => {
 
         // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
         // return () => clearInterval(saveFileTimer);
-        return () => {
-            socket.off(WebAppEndpoint.FileManager);
-        };
     }, []); //run this only once - not on rerender
 
     return null;

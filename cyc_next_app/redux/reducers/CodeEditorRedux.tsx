@@ -26,7 +26,7 @@ type CodeEditorState = {
      * A better design might be to move all codeText, codeLines and fileTimestamp under
      * a same dictionary */
     timestamp: { [id: string]: number };
-    fileSaved: boolean;
+    // fileSaved: boolean;
     runQueue: IRunQueue;
 
     /** This count is used to trigger the update of ResultView view.
@@ -43,18 +43,22 @@ type CodeEditorState = {
 
     lineStatusUpdateCount: number;
     activeLine: string | null;
-    activeGroup: string|null;
+    activeGroup: string | null;
     cAssistInfo: ICAssistInfo | undefined;
     runDict: {} | undefined;
     runningId: string | undefined;
     codeToInsert: ICodeToInsert | undefined;
+    // this number need to be increased whenever codeText is updated
+    saveCodeTextCounter: number;
+    // this number need to be increased whenever codeLine is updated
+    saveCodeLineCounter: number;
 };
 
 const initialState: CodeEditorState = {
     codeText: {},
     codeLines: {},
     timestamp: {},
-    fileSaved: true,
+    // fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP },
     resultUpdateCount: 0,
     maxTextOutputOrder: 0,
@@ -66,6 +70,8 @@ const initialState: CodeEditorState = {
     runDict: undefined,
     runningId: undefined,
     codeToInsert: undefined,
+    saveCodeTextCounter: 0,
+    saveCodeLineCounter: 0,
 };
 
 /**
@@ -152,9 +158,9 @@ export const CodeEditorRedux = createSlice({
             let codeLines: ICodeLine[] = state.codeLines[inViewID];
             let startLineGroupID = codeLines[lineUpdate.updatedStartLineNumber]?.groupID;
             state.codeText[inViewID] = lineUpdate.text;
-            state.fileSaved = false;
+            state.saveCodeTextCounter += 1;
 
-            console.log("CodeEditorRedux line update info: ", lineUpdate, state.fileSaved);
+            console.log("CodeEditorRedux line update info: ", lineUpdate);
             if (lineUpdate.updatedLineCount > 0) {
                 /** if the startLine wasn't changed then we consider the line that got modified to be the next line */
                 // let modifiedStartLineNumber = lineUpdate.startLineChanged
@@ -177,15 +183,11 @@ export const CodeEditorRedux = createSlice({
                     ...addedLines,
                     ...codeLines.slice(lineUpdate.updatedStartLineNumber + 1),
                 ];
-                if (lineUpdate.startLineChanged)
+                if (lineUpdate.startLineChanged) {
                     codeLines[lineUpdate.updatedStartLineNumber].status = LineStatus.EDITED;
+                }
 
-                /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
-                setGroupEdittedStatus(
-                    codeLines,
-                    lineUpdate.updatedStartLineNumber,
-                    startLineGroupID
-                );
+                state.saveCodeLineCounter++;
             } else if (lineUpdate.updatedLineCount < 0) {
                 // let modifiedStartLineNumber = lineUpdate.updatedStartLineNumber;
                 /** if the startLine wasn't changed then we consider the line that got modified to be the line before */
@@ -201,31 +203,29 @@ export const CodeEditorRedux = createSlice({
                         codeLines[lineUpdate.updatedStartLineNumber + 1 + i].result?.type ===
                             ContentType.RICH_OUTPUT
                     ) {
-                        state.resultUpdateCount += 1;
+                        state.resultUpdateCount++;
                     }
                     if (codeLines[lineUpdate.updatedStartLineNumber + 1 + i].textOutput) {
-                        state.textOutputUpdateCount += 1;
+                        state.textOutputUpdateCount++;
                     }
                 }
                 codeLines = [
                     ...codeLines.slice(0, lineUpdate.updatedStartLineNumber + 1),
                     ...codeLines.slice(lineUpdate.updatedStartLineNumber + 1 + deletedLineCount),
                 ];
-                if (lineUpdate.startLineChanged)
+                if (lineUpdate.startLineChanged) {
                     codeLines[lineUpdate.updatedStartLineNumber].status = LineStatus.EDITED;
+                }
 
-                /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
-                setGroupEdittedStatus(
-                    codeLines,
-                    lineUpdate.updatedStartLineNumber,
-                    startLineGroupID
-                );
+                state.saveCodeLineCounter++;
             }
 
+            /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
+            setGroupEdittedStatus(codeLines, lineUpdate.updatedStartLineNumber, startLineGroupID);
             state.codeLines[inViewID] = codeLines;
         },
 
-        //TODO: unify this with setLineGroupStatus
+        //TODO: remove this because no used
         setLineStatus: (state, action) => {
             let lineStatus: ICodeLineStatus = action.payload;
             let inViewID = lineStatus.inViewID;
@@ -233,8 +233,8 @@ export const CodeEditorRedux = createSlice({
             if (lineStatus.status !== undefined) {
                 if (lineStatus.status === LineStatus.EDITED && lineStatus.text !== undefined) {
                     // console.log('CodeEditorRedux: ', lineStatus.status);
-                    state.codeText[inViewID] = lineStatus.text;
-                    state.fileSaved = false;
+                    // state.codeText[inViewID] = lineStatus.text;
+                    // state.fileSaved = false;
                 }
                 const lineRange: ILineRange = lineStatus.lineRange;
                 for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
@@ -248,6 +248,7 @@ export const CodeEditorRedux = createSlice({
                 }
             }
             state.lineStatusUpdateCount++;
+            state.saveCodeLineCounter++;
         },
 
         setLineGroupStatus: (state, action) => {
@@ -277,6 +278,7 @@ export const CodeEditorRedux = createSlice({
                 codeLines[i].groupID = groupID;
             }
             state.lineStatusUpdateCount++;
+            state.saveCodeLineCounter++;
         },
 
         /**
@@ -336,6 +338,7 @@ export const CodeEditorRedux = createSlice({
                         codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
                     }
                     state.textOutputUpdateCount += 1;
+                    state.saveCodeLineCounter++;
                 } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
                     let content = resultMessage.content;
                     if (resultMessage?.subType === SubContentType.APPLICATION_JSON) {
@@ -356,6 +359,7 @@ export const CodeEditorRedux = createSlice({
                         codeLines[line].result = newResult;
                     }
                     state.resultUpdateCount += 1;
+                    state.saveCodeLineCounter++;
                 }
             }
         },
@@ -379,9 +383,9 @@ export const CodeEditorRedux = createSlice({
             state.activeGroup = codeLines[lineNumber].groupID;
         },
 
-        setFileSaved: (state, action) => {
-            state.fileSaved = true;
-        },
+        // setFileSaved: (state, action) => {
+        //     state.fileSaved = true;
+        // },
 
         /**
          * Set run queue with a new queue. If the queue is in running state, the new queue will be rejected
