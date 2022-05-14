@@ -1,8 +1,11 @@
+import { IEditorConfigs } from '../../interfaces/IApp';
+
 interface LanguageServerOptions {
     serverUri: `ws://${string}` | `wss://${string}`;
     rootUri: string;
     documentUri: string;
     languageId: string;
+    editorConfig: IEditorConfigs;
 }
 
 declare function languageServer(

@@ -1,16 +1,22 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
 import {
     IDirectoryMetadata,
     IDirListResult,
     IFileMetadata,
     IProjectMetadata,
-} from "../../lib/interfaces/IFileManager";
-import { IConfigs, IShorcutKey, ViewMode } from "../../lib/interfaces/IApp";
+} from '../../lib/interfaces/IFileManager';
+import { IConfigs, IShorcutKey, ViewMode, IEditorConfigs } from '../../lib/interfaces/IApp';
 
 const originalShortcutKeys: IShorcutKey = {
-    run_queue: "Mod-l",
-    set_group: "Mod-k",
-    set_ungroup: "Mod-j",
+    run_queue: 'Mod-l',
+    set_group: 'Mod-k',
+    set_ungroup: 'Mod-j',
+};
+
+const editorConfigs: IEditorConfigs = {
+    lint: false,
+    hover: false,
+    autocompletion: false,
 };
 
 type ProjectManagerState = {
@@ -50,11 +56,12 @@ const initialState: ProjectManagerState = {
     configs: {
         view_mode: ViewMode.VERTICAL,
         shortcut_keys: originalShortcutKeys,
+        editor: editorConfigs,
     },
 };
 
 export const ProjectManagerRedux = createSlice({
-    name: "projectManager",
+    name: 'projectManager',
     initialState: initialState,
     reducers: {
         setActiveProject: (state, action) => {
@@ -103,7 +110,7 @@ export const ProjectManagerRedux = createSlice({
         setFileToOpen: (state, action) => {
             let path = action.payload;
             if (Object.keys(state.openFiles).includes(path)) {
-                console.log("ProjectManagerRedux setFileToOpen file already open: ", path);
+                console.log('ProjectManagerRedux setFileToOpen file already open: ', path);
                 state.inViewID = path;
                 state.serverSynced = false;
             } else {

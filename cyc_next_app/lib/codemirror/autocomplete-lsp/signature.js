@@ -11,7 +11,7 @@ class SignaturePlugin {
         this.setSignature = setSignature;
         this.restartTimeout = -1;
         this.curPos = this.view.state.selection.main.head;
-        this.enableRunning = true;
+        this.enableRunning = false;
         this.countDocChanges = countDocChanges;
         this.currentData = null;
     }
@@ -26,9 +26,6 @@ class SignaturePlugin {
             if (oldLineText.length !== updateLineText.length) {
                 this.enableRunning = true;
             }
-
-            console.log('oldLineText', oldLineText);
-            console.log('updateLineText', updateLineText);
 
             this.curPos = pos;
             this.restartTimeout = setTimeout(() => this.startGetSignature(sState, pos), 20);
