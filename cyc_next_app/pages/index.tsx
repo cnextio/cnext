@@ -1,10 +1,14 @@
-import { createTheme, StyledEngineProvider, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import type { NextPage } from 'next';
+import {
+    createTheme,
+    StyledEngineProvider,
+    ThemeProvider as MuiThemeProvider,
+} from "@mui/material/styles";
+import type { NextPage } from "next";
 import React from "react";
-import Helmet from 'react-helmet';
-import { Provider } from 'react-redux';
-import store from '../redux/store/index';
-import Main from '../lib/components/Main';
+import Helmet from "react-helmet";
+import { Provider } from "react-redux";
+import store from "../redux/store/index";
+import Main from "../lib/components/Main";
 import ErrorBoundary from "../lib/components/error-boundary/ErrorBoundary";
 import { createGlobalStyle, ThemeProvider as StyledThemeProvider } from "styled-components";
 const GlobalStyle = createGlobalStyle`

@@ -852,6 +852,7 @@ export const FooterItem = styled.a`
 export const FotterItemText = styled.span`
     font-size: 14px;
     color: white;
+    cursor: pointer;
 `;
 
 export const FooterBar = styled(BottomNavigation)`

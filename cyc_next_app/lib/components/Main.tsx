@@ -9,7 +9,11 @@ const Main: FC = (props: any) => {
     return (
         // macbook pro 13 height
         // move this to style files
-        <Box display='flex' sx={{ flexDirection: "column" }} style={{ height: "100vh" }}>
+        <Box
+            display='flex'
+            sx={{ flexDirection: "column" }}
+            style={{ height: "calc(100vh - 32px)" }}
+        >
             {console.log("MainPanel render")}
             {/* <CssBaseline /> */}
             {/* <TopPanel>
