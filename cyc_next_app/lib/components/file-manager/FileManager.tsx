@@ -395,9 +395,17 @@ const FileManager = () => {
                                 Object.keys(codeLine.result?.content).includes(
                                     SubContentType.TEXT_HTML
                                 )
-                            )
-                                return { ...codeLine, result: null };
-                            else return codeLine;
+                            ) {
+                                let updatedResult = {...codeLine.result};
+                                updatedResult.content = {
+                                    "text/html":
+                                        "<div>This result is too big to save. Please rerun the command!</div>",
+                                };
+                                return {
+                                    ...codeLine,
+                                    result: updatedResult,
+                                };
+                            } else return codeLine;
                         }
                     );
                     const timestamp = state.codeEditor.timestamp[filePath];
@@ -415,28 +423,6 @@ const FileManager = () => {
                     dispatch(setSavingStateFile(filePath));
                     sendMessage(message);
                     setSaveTimeout(false);
-
-                    // return new Promise((resolve) => {
-                    //     socket.on(WebAppEndpoint.FileManager, (result: string) => {
-                    //         console.log("FileManager save_state got results...", result);
-                    //         try {
-                    //             const output = JSON.parse(result);
-                    //             if (
-                    //                 output.command_name === ProjectCommand.save_state &&
-                    //                 output.type === ContentType.FILE_METADATA &&
-                    //                 output.error == false
-                    //             ) {
-                    //                 //TODO: remove stateSaved variable, use fileToSaveState only
-                    //                 console.log("FileManager save_state set empty...");
-                    //                 dispatch(setFileToSaveState(null));
-                    //                 resolve(output);
-                    //             }
-                    //             resolve(null);
-                    //         } catch {
-                    //             resolve(null);
-                    //         }
-                    //     });
-                    // });
                 }
             }
         }
