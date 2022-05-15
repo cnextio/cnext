@@ -36,6 +36,8 @@ const CodeToolbar = () => {
     // const fileSaved = useSelector((state: RootState) => state.codeEditor.fileSaved);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
+    const savingFile = useSelector((state: RootState) => state.projectManager.savingFile);
+    const savingStateFile = useSelector((state: RootState) => state.projectManager.savingStateFile);
     const [displayState, setDisplayState] = useState<{ [id: string]: {} }>({});
     const dispatch = useDispatch();
 
@@ -70,7 +72,12 @@ const CodeToolbar = () => {
                     selected={id == inViewID}
                     component="span"
                     onClick={() => onClick(id)}
-                    fileSaved={!fileToSave.includes(id) && !fileToSaveState.includes(id)}
+                    fileSaved={
+                        !fileToSave.includes(id) &&
+                        savingFile !== id &&
+                        !fileToSaveState.includes(id) &&
+                        savingStateFile !== id
+                    }
                     onMouseEnter={(event) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
                         let newDisplay = { ...displayState };

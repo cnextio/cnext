@@ -456,6 +456,8 @@ export const CodeEditorRedux = createSlice({
                 codeLine.textOutput = undefined;
                 state.textOutputUpdateCount = 0;
                 state.resultUpdateCount = 0;
+                state.saveCodeTextCounter++;
+                state.saveCodeLineCounter++;
             }
         },
     },
