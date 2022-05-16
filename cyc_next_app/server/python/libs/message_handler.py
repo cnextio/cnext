@@ -90,9 +90,10 @@ class BaseMessageHandler:
         return result
 
     @staticmethod
-    def _create_error_message(webapp_endpoint, trace, metadata=None):
+    def _create_error_message(webapp_endpoint, trace, command_name=None, metadata=None):
         return Message(**{
             "webapp_endpoint": webapp_endpoint,
+            "command_name": command_name,
             "type": ContentType.STRING,
             "content": trace,
             "error": True,

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import {
     PlotContainer as SingleResult,
     ResultViewContainer as StyledResultView,
@@ -16,7 +16,7 @@ const ResultPanel = React.memo((props: any) => {
     const [readyToScroll, setReadyToScroll] = useState(false);
     const [showDashboard, setShowDashboard] = useState(false);
     const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
-    const activeGroup= useSelector((state: RootState) => state.codeEditor.activeGroup);
+    const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
     /** this is used to trigger the rerender of this component whenever there is a new result update */
     const resultUpdateCount = useSelector((state: RootState) => state.codeEditor.resultUpdateCount);
     /** this will make sure that the output will be updated each time
@@ -32,7 +32,7 @@ const ResultPanel = React.memo((props: any) => {
             codeLine.lineID === activeLine ||
             (codeLine.groupID != null && codeLine.groupID === activeGroup)
         );
-    }
+    };
 
     const resultPanelId = "ResultPanel";
     const renderResult = () => {
@@ -40,18 +40,17 @@ const ResultPanel = React.memo((props: any) => {
         const inViewID = state.projectManager.inViewID;
         const groupIDSet = new Set();
         if (inViewID && state.codeEditor?.codeLines != null) {
-            const codeLines: ICodeLine[] = state.codeEditor?.codeLines[inViewID];            
+            const codeLines: ICodeLine[] = state.codeEditor?.codeLines[inViewID];
             const codeWithResult: ICodeLine[] = codeLines?.filter((codeLine) => {
                 /** only display one result in a group */
-                if(codeLine.groupID==null){
+                if (codeLine.groupID == null) {
                     return codeLine.result?.type === ContentType.RICH_OUTPUT;
-                }
-                else if (!groupIDSet.has(codeLine.groupID)) {
+                } else if (!groupIDSet.has(codeLine.groupID)) {
                     groupIDSet.add(codeLine.groupID);
                     return codeLine.result?.type === ContentType.RICH_OUTPUT;
                 } else {
                     return false;
-                }                
+                }
             });
             console.log("ResultPanel render");
             if (showDashboard) {
@@ -87,7 +86,6 @@ const ResultPanel = React.memo((props: any) => {
             }
         } else return null;
     };
-
     return renderResult();
 });
 
