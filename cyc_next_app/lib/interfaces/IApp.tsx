@@ -281,10 +281,17 @@ export interface IShorcutKey {
     set_ungroup: string;
 }
 
+export interface IEditorConfigs {
+    lint: boolean;
+    hover: boolean;
+    autocompletion: boolean;
+}
+
 export interface IConfigs {
     experiment_manager?: IExperimentManagerConfig;
     view_mode: ViewMode | undefined;
     shortcut_keys: IShorcutKey;
+    editor: IEditorConfigs;
 }
 
 export enum DFViewMode {

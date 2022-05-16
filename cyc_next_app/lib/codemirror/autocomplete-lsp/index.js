@@ -8,9 +8,12 @@ import { rootUri, documentUri, languageId, serverUri } from './source';
 import { CompletionTriggerKind } from 'vscode-languageserver-protocol';
 import { signatureTooltip } from './signature';
 import { baseTheme } from './theme';
+import store from '../../../redux/store';
 
 function languageServer(options) {
     let plugin = null;
+    console.log('storetest', store.getState().projectManager.configs.editor);
+    let config = store.getState().projectManager.configs.editor;
     return [
         serverUri.of(options.serverUri),
         rootUri.of(options.rootUri),
@@ -18,6 +21,8 @@ function languageServer(options) {
         languageId.of(options.languageId),
         ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view))),
         signatureTooltip(async (view, pos) => {
+            if (!config.autocompletion) return null;
+
             var _a;
             return (_a =
                 plugin === null || plugin === void 0
@@ -44,6 +49,8 @@ function languageServer(options) {
             override: [
                 async (context) => {
                     if (plugin == null) return null;
+                    if (!config.autocompletion) return null;
+
                     const { state, pos, explicit } = context;
                     const line = state.doc.lineAt(pos);
                     let [trigKind, trigChar] = getTrigger(plugin, line, explicit);
