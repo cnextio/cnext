@@ -48,7 +48,8 @@ function languageServer(options) {
         autocompletion({
             override: [
                 async (context) => {
-                    if (plugin == null || !configs.autocompletion) return null;
+                    if (plugin == null ) return null;
+
                     const { state, pos, explicit } = context;
                     const line = state.doc.lineAt(pos);
                     let [trigKind, trigChar] = getTrigger(plugin, line, explicit);

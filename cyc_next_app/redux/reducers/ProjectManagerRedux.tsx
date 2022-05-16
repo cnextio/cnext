@@ -14,9 +14,9 @@ const originalShortcutKeys: IShorcutKey = {
 };
 
 const editorConfigs: IEditorConfigs = {
-    lint: false,
-    hover: false,
-    autocompletion: false,
+    lint: true,
+    hover: true,
+    autocompletion: true,
 };
 
 type ProjectManagerState = {
