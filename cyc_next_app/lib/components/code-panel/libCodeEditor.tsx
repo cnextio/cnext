@@ -65,7 +65,7 @@ const editStatusGutter = (inViewID: string|null, lines: ICodeLine[]|null) => gut
             let lineNumber = view.state.doc.lineAt(line.from).number-1;
             // console.log(lines.length);
             if(lines && lineNumber<lines.length){       
-                console.log("editStatusGutter: ", lineNumber, lines[lineNumber].status);                         
+                // console.log("editStatusGutter: ", lineNumber, lines[lineNumber].status);                         
                 switch(lines[lineNumber].status){
                     case LineStatus.EDITED: return editedMarker;
                     case LineStatus.EXECUTING: return executingMarker;

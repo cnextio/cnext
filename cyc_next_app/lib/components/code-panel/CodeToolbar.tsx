@@ -11,7 +11,7 @@ import { IconButton, stepConnectorClasses } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFileToClose, setInView } from '../../../redux/reducers/ProjectManagerRedux';
-import store from '../../../redux/store';
+import store, { RootState } from '../../../redux/store';
 
 const FileMenu = () => {
     return (
@@ -30,10 +30,14 @@ const FileCloseIcon = (props) => {
 };
 
 const CodeToolbar = () => {
-    const openFiles = useSelector((state) => state.projectManager.openFiles);
-    const executorID = useSelector((state) => state.projectManager.executorID);
-    const inViewID = useSelector((state) => state.projectManager.inViewID);
-    const fileSaved = useSelector((state) => state.codeEditor.fileSaved);
+    const openFiles = useSelector((state: RootState) => state.projectManager.openFiles);
+    const executorID = useSelector((state: RootState) => state.projectManager.executorID);
+    const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+    // const fileSaved = useSelector((state: RootState) => state.codeEditor.fileSaved);
+    const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
+    const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
+    const savingFile = useSelector((state: RootState) => state.projectManager.savingFile);
+    const savingStateFile = useSelector((state: RootState) => state.projectManager.savingStateFile);
     const [displayState, setDisplayState] = useState<{ [id: string]: {} }>({});
     const dispatch = useDispatch();
 
@@ -66,9 +70,14 @@ const CodeToolbar = () => {
                 <FileNameTab
                     // toolbarName={name}
                     selected={id == inViewID}
-                    component='span'
+                    component="span"
                     onClick={() => onClick(id)}
-                    fileSaved={id != inViewID || fileSaved}
+                    fileSaved={
+                        !fileToSave.includes(id) &&
+                        savingFile !== id &&
+                        !fileToSaveState.includes(id) &&
+                        savingStateFile !== id
+                    }
                     onMouseEnter={(event) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
                         let newDisplay = { ...displayState };
@@ -99,7 +108,7 @@ const CodeToolbar = () => {
                         />
                     </FileNameTabContainer>
                 </FileNameTab>
-                <PanelDivider orientation='vertical' color='light' />
+                <PanelDivider orientation="vertical" color="light" />
             </Fragment>
         );
     };
