@@ -14,14 +14,12 @@ const Main: FC = (props: any) => {
             sx={{ flexDirection: "column" }}
             style={{ height: "calc(100vh - 32px)" }}
         >
-            {console.log("MainPanel render")}
             {/* <CssBaseline /> */}
             {/* <TopPanel>
                 <LogoComponent />
                 <AppBarComponent />
             </TopPanel> */}
             <MainPanel>
-                {console.log(props)}
                 <MiniSidebar {...props} />
                 <WorkingPanel {...props} />
                 <FooterBar {...props} />
