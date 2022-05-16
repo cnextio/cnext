@@ -48,21 +48,22 @@ function languageServer(options) {
         autocompletion({
             override: [
                 async (context) => {
-                    if (plugin == null) return null;
                     if (!config.autocompletion) return null;
+                    
+                    if (plugin != null) {
+                        const { state, pos, explicit } = context;
+                        const line = state.doc.lineAt(pos);
+                        let [trigKind, trigChar] = getTrigger(plugin, line, explicit);
 
-                    const { state, pos, explicit } = context;
-                    const line = state.doc.lineAt(pos);
-                    let [trigKind, trigChar] = getTrigger(plugin, line, explicit);
-
-                    return await plugin.requestCompletion_CodeEditor(
-                        context,
-                        offsetToPos(state.doc, pos),
-                        {
-                            triggerKind: trigKind,
-                            triggerCharacter: trigChar,
-                        }
-                    );
+                        return await plugin.requestCompletion_CodeEditor(
+                            context,
+                            offsetToPos(state.doc, pos),
+                            {
+                                triggerKind: trigKind,
+                                triggerCharacter: trigChar,
+                            }
+                        );
+                    }
                 },
             ],
         }),
