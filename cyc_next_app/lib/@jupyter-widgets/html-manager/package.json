@@ -39,7 +39,7 @@
     "@jupyter-widgets/base": "^4.1.0",
     "@jupyter-widgets/controls": "^3.1.0",
     "@jupyter-widgets/output": "^4.1.0",
-    "@jupyter-widgets/schema": "^0.4.1",
+    "@jupyter-widgets/schema": "^0.4.2",
     "@jupyterlab/outputarea": "^3.0.0",
     "@jupyterlab/rendermime": "^3.0.0",
     "@jupyterlab/rendermime-interfaces": "^3.0.0",

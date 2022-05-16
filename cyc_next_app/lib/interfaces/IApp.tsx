@@ -104,7 +104,7 @@ export const SubContentType = StandardMimeType;
 export enum CommandType {
     MLFLOW = "mlflow",
     MLFLOW_CLIENT = "mlflow_client",
-    MLFLOW_COMBINE = "mlflow_combine",
+    MLFLOW_OTHERS = "mlflow_others",
 }
 
 export enum WebAppEndpoint {

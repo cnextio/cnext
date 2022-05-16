@@ -23,6 +23,8 @@ type ProjectManagerState = {
     fileToOpen: string | null;
     fileToSave: string[];
     fileToSaveState: string[];
+    savingFile: null | string;
+    savingStateFile: null | string;
     showProjectExplore: boolean;
     serverSynced: boolean;
     configs: IConfigs;
@@ -39,6 +41,8 @@ const initialState: ProjectManagerState = {
     fileToOpen: null,
     fileToSave: [],
     fileToSaveState: [],
+    savingFile: null,
+    savingStateFile: null,
     showProjectExplore: false,
     serverSynced: false,
     // configs: {
@@ -113,24 +117,49 @@ export const ProjectManagerRedux = createSlice({
             }
         },
 
-        setFileToSave: (state, action) => {
+        addFileToSave: (state, action) => {
             if (action.payload) {
                 state.fileToSave.push(action.payload);
                 state.fileToSave = [...new Set(state.fileToSave)];
                 // console.log("ProjectManagerRedux: ", state.fileToSave);
-            } else {
-                state.fileToSave = [];
             }
         },
 
-        setFileToSaveState: (state, action) => {
+        /** Remove the first item from the list */
+        removeFileToSave: (state) => {
+            state.fileToSave.shift();
+            state.fileToSave = [...new Set(state.fileToSave)];
+        },
+
+        /** set savingFile and remove it from fileToSave  if not null*/
+        setSavingFile: (state, action) => {
+            state.savingFile = action.payload;
+            if (state.savingFile != null)
+                state.fileToSave = state.fileToSave.filter(function (e) {
+                    return e !== state.savingFile;
+                });
+        },
+
+        addFileToSaveState: (state, action) => {
             if (action.payload) {
                 state.fileToSaveState.push(action.payload);
                 state.fileToSaveState = [...new Set(state.fileToSaveState)];
-                // console.log("ProjectManagerRedux: ", state.fileToSaveState);
-            } else {
-                state.fileToSaveState = [];
             }
+        },
+
+        /** Remove the first item from the list */
+        removeFileToSaveState: (state) => {
+            state.fileToSaveState.shift();
+            state.fileToSaveState = [...new Set(state.fileToSaveState)];
+        },
+
+        /** set savingStateFile and remove it from fileToSaveState if not null */
+        setSavingStateFile: (state, action) => {
+            state.savingStateFile = action.payload;
+            if (state.savingStateFile != null)
+                state.fileToSaveState = state.fileToSaveState.filter(function (e) {
+                    return e !== state.savingStateFile;
+                });
         },
 
         setShowProjectExplorer: (state, action) => {
@@ -163,8 +192,12 @@ export const {
     setOpenDir,
     setFileToClose,
     setFileToOpen,
-    setFileToSave,
-    setFileToSaveState,
+    addFileToSave,
+    // removeFileToSave,
+    setSavingFile,
+    addFileToSaveState,
+    // removeFileToSaveState,
+    setSavingStateFile,
     setShowProjectExplorer,
     setFileMetaData,
     setServerSynced,

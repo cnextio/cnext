@@ -79,20 +79,21 @@ class BaseMessageHandler:
             if message['content']['data']['text/plain'] is not None:
                 result = message['content']['data']['text/plain']
                 result = json.loads(result)
-        elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
-            # log.info('Stream result: %s' % result)
-            if 'text' in message['content']:
-                result = message['content']['text']
-                result = json.loads(result)
+        # elif message['header']['msg_type'] == IPythonConstants.MessageType.STREAM:
+        #     # log.info('Stream result: %s' % result)
+        #     if 'text' in message['content']:
+        #         result = message['content']['text']
+        #         result = json.loads(result)
         elif message['header']['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA:
             if SubContentType.APPLICATION_PLOTLY in message['content']['data']:
                 result = message['content']['data'][SubContentType.APPLICATION_PLOTLY]
         return result
 
     @staticmethod
-    def _create_error_message(webapp_endpoint, trace, metadata=None):
+    def _create_error_message(webapp_endpoint, trace, command_name=None, metadata=None):
         return Message(**{
             "webapp_endpoint": webapp_endpoint,
+            "command_name": command_name,
             "type": ContentType.STRING,
             "content": trace,
             "error": True,
@@ -114,5 +115,5 @@ class BaseMessageHandler:
         raise "Abstract function must be implemented by subclass"
 
     def shutdown(self):
-        self.user_space.shutdown()
+        self.user_space.shutdown_executor()
         pass

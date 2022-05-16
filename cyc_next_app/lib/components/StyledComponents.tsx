@@ -239,11 +239,10 @@ export const WorkingPanelSplitPanel = styled(SplitPane)`
 `;
 
 export const StyledCodePanel = styled.div`
-    background-color: ${(props) => props.theme.palette.background.paper};
+    display: flex;
     flex-direction: column;
-    align-items: center;
-    // border: 1px solid ${(props) => props.theme.palette.divider};
-    // width: 30%;
+    background-color: ${(props) => props.theme.palette.background.paper};
+    // align-items: center;
     height: 100%;
     overflow: hidden;
     // overflow: auto;
@@ -401,16 +400,20 @@ export const CodeEditMarker = styled.div`
     border: 2px;
 `;
 export const CodeOutputContainer = styled.div`
-    // display: flex;
+    display: flex;
+    flex-direction: column;
     padding: 0px 10px 0px 10px;
     color: ${(props) => props.theme.palette.text.secondary};
-    // flex-grow: 1;
     height: 100%;
     width: 100%;
-    max-height: 80%; //have to keep this 80% otherwise scroll to view will mess the frame up
 `;
-export const CodeOutputHeader = styled(Typography)`
-    // height: 10px;
+
+export const CodeOutputHeader = styled.div`
+    height: 30px;
+`;
+
+export const CodeOutputHeaderText = styled(Typography)`
+    // height: 30px;
     // text-decoration: underline;
     font-size: 12px;
     border-bottom-style: solid;
@@ -418,8 +421,9 @@ export const CodeOutputHeader = styled(Typography)`
 `;
 // need this compoent to make the text output respect tab character
 export const CodeOutputContent = styled.div`
-    overflow: auto;
-    max-height: 90%;
+    overflow: auto;    
+    height: 100%;
+    flex-grow: 1;
 `;
 // export const IndividualCodeOutputContent = styled.pre`
 //     margin: 0px;
@@ -434,7 +438,7 @@ export const IndividualCodeOutputContent = styled(Typography)`
     margin: 0px;
     padding: 5px 0px 5px 0px;
     overflow: auto;
-    max-height: 100%;
+    // max-height: 100%;
     font-size: 13px;
     &:hover {
         background-color: ${(props) => props.theme.palette.action.hover};

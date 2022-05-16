@@ -71,6 +71,8 @@ class ExperimentManagerCommand(str, Enum):
     get_metric_plots = 'get_metric_plots'
     load_artifacts_to_local = "load_artifacts_to_local"
     set_tracking_uri = 'set_tracking_uri'
+    ## get data for a list of runs #
+    get_runs_data = 'get_runs_data'
 
 
 class KernelManagerCommand(str, Enum):
@@ -133,7 +135,7 @@ class SubContentType(str, Enum):
 class CommandType(str, Enum):
     MFLOW = 'mlflow'  # use mlflow object to call the function #
     MLFLOW_CLIENT = 'mlflow_client'  # use mlflow.client object to call the function #
-    MLFLOW_COMBINE = 'mlflow_combine'  # use combine a set of mlflow functions #
+    MLFLOW_OTHERS = 'mlflow_others'  # commands that requires more than standard mlflow api #
 
     def __str__(self):
         return str(self.value)
