@@ -83,7 +83,7 @@ const ResultContent = React.memo(({ codeResult }) => {
                 />
             );
         } else if (SubContentType.TEXT_HTML in codeResult?.result?.content) {
-            console.log("ResultContent: ", codeResult?.result?.content[SubContentType.TEXT_HTML]);
+            // console.log("ResultContent: ", codeResult?.result?.content[SubContentType.TEXT_HTML]);
             return ReactHtmlParser(
                 codeResult?.result?.content[SubContentType.TEXT_HTML].toString("base64"),
                 {

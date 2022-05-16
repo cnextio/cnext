@@ -159,7 +159,7 @@ def main(argv):
                             log.error("Failed to execute the command %s",
                                       traceback.format_exc())
                             message = BaseMessageHandler._create_error_message(
-                                message.webapp_endpoint, traceback.format_exc())
+                                message.webapp_endpoint, traceback.format_exc(), message.command_name)
                             # send_to_node(message)
                             BaseMessageHandler.send_message(
                                 p2n_queue, message.toJSON())
