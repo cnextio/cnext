@@ -275,16 +275,21 @@ interface IExperimentManagerConfig {
     mlflow_tracking_uri: string;
 }
 
-export interface IShorcutKey {
+export interface IEditorShortcutKey {
     run_queue: string;
     set_group: string;
     set_ungroup: string;
 }
 
+export interface IAppShortcutKey {
+    suggesstion_enable: string;
+}
+
 export interface IConfigs {
-    experiment_manager?: IExperimentManagerConfig;
     view_mode: ViewMode | undefined;
-    shortcut_keys: IShorcutKey;
+    code_editor_shortcut: IEditorShortcutKey;
+    app_shortcut?: IAppShortcutKey;
+    experiment_manager?: IExperimentManagerConfig;
 }
 
 export enum DFViewMode {

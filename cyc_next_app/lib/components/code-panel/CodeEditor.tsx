@@ -103,7 +103,7 @@ const CodeEditor = () => {
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
 
     const shortcutKeysConfig = useSelector(
-        (state: RootState) => state.projectManager.configs.shortcut_keys
+        (state: RootState) => state.projectManager.configs.code_editor_shortcut
     );
 
     const lineStatusUpdate = useSelector(
@@ -578,7 +578,7 @@ const CodeEditor = () => {
                         updatedStartLineNumber: changeStartLineNumber,
                         updatedLineCount: updatedLineCount,
                         startLineChanged: true,
-                            // changeStartLine.text != inViewCodeText[changeStartLineNumber],
+                        // changeStartLine.text != inViewCodeText[changeStartLineNumber],
                     };
                     dispatch(updateLines(updatedLineInfo));
                 }

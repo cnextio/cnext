@@ -5,12 +5,16 @@ import {
     IFileMetadata,
     IProjectMetadata,
 } from "../../lib/interfaces/IFileManager";
-import { IConfigs, IShorcutKey, ViewMode } from "../../lib/interfaces/IApp";
+import { IAppShortcutKey, IConfigs, IEditorShortcutKey, ViewMode } from "../../lib/interfaces/IApp";
 
-const originalShortcutKeys: IShorcutKey = {
+const originalEditorShortcutKeys: IEditorShortcutKey = {
     run_queue: "Mod-l",
     set_group: "Mod-k",
     set_ungroup: "Mod-j",
+};
+
+const originalAppShortcutKeys: IAppShortcutKey = {
+    suggesstion_enable: "shift + a",
 };
 
 type ProjectManagerState = {
@@ -53,7 +57,8 @@ const initialState: ProjectManagerState = {
     // },
     configs: {
         view_mode: ViewMode.VERTICAL,
-        shortcut_keys: originalShortcutKeys,
+        code_editor_shortcut: originalEditorShortcutKeys,
+        app_shortcut: originalAppShortcutKeys,
     },
 };
 

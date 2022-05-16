@@ -11,6 +11,7 @@ import { RootState } from "../../redux/store";
 import SplitPane from "react-split-pane-v2";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interfaces/IApp";
 import socket from "./Socket";
+import HotkeyComponent from "./hotkeys/HotKeys";
 
 const WorkingPanel = () => {
     const showProjectExplore = useSelector(
@@ -63,6 +64,7 @@ const WorkingPanel = () => {
             </SplitPane>
             <DFManager />
             <FileManager />
+            <HotkeyComponent />
         </StyledWorkingPanel>
     );
 };

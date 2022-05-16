@@ -28,7 +28,6 @@ import {
 } from "../../interfaces/IApp";
 import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
 import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
-import { ifElse } from "../libs";
 import socket from "../Socket";
 
 const FileManager = () => {
