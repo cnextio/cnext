@@ -70,7 +70,7 @@ class MessageHandler(BaseMessageHandler):
         else:
             content = ipython_msg.content['traceback']
         return self._create_error_message(
-            WebappEndpoint.CodeEditor, content, message.metadata)
+            WebappEndpoint.CodeEditor, content, message.command_name, message.metadata)
 
     def _process_stream_message(self, message, ipython_msg):
         message.error = False
@@ -132,7 +132,7 @@ class MessageHandler(BaseMessageHandler):
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
             error_message = BaseMessageHandler._create_error_message(
-                client_message.webapp_endpoint, trace, {})
+                client_message.webapp_endpoint, trace, client_message.command_name, {})
             self._send_to_node(error_message)
 
     def handle_message(self, message):
@@ -144,7 +144,7 @@ class MessageHandler(BaseMessageHandler):
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))            
-            error_message = BaseMessageHandler._create_error_message(message.webapp_endpoint, trace, {})
+            error_message = BaseMessageHandler._create_error_message(message.webapp_endpoint, trace, message.command_name, {})
             self._send_to_node(error_message)
 
     def _get_active_dfs_status(self):
