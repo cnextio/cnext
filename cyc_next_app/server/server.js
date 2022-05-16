@@ -61,6 +61,8 @@ class PythonProcess {
             './python/',
         ].join(path.delimiter);
 
+        console.log('Environment path: ', process.env.PATH);
+
         let pyshellOpts = {
             stdio: ['pipe', 'pipe', 'pipe', 'pipe'], // stdin, stdout, stderr, custom
             mode: 'text',

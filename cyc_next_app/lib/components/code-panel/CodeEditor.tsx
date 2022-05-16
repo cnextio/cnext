@@ -253,6 +253,8 @@ const CodeEditor = () => {
         );
         // console.log('CodeEditor useEffect codeText', view, codeText[0], serverSynced);
         if (serverSynced && codeReloading && view) {
+            // make sure that codeeditor content is set first before setting codeReloading to false to avoid
+            // unnecessary calls to updatedLines
             setViewCodeText(store.getState(), view);
             setCodeReloading(false);
             scrollToPrevPos(store.getState());
@@ -490,19 +492,18 @@ const CodeEditor = () => {
             const inViewCodeText = state.codeEditor.codeText[inViewID];
             /** do nothing if the update is due to code reloading from external source */
             if (codeReloading) return;
-
             let doc = viewUpdate.state.doc;
             let serverSynced = store.getState().projectManager.serverSynced;
-            viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
-                console.log(
-                    "CodeEditor render onCodeMirrorChange",
-                    fromA,
-                    toA,
-                    fromB,
-                    toB,
-                    inserted
-                );
-            });
+            // viewUpdate.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+            //     console.log(
+            //         "CodeEditor render onCodeMirrorChange",
+            //         fromA,
+            //         toA,
+            //         fromB,
+            //         toB,
+            //         inserted
+            //     );
+            // });
             if (serverSynced && inViewID) {
                 // let startText = viewUpdate.startState.doc.text;
                 // let text = viewUpdate.state.doc.text;
@@ -559,18 +560,27 @@ const CodeEditor = () => {
                     };
                     dispatch(updateLines(updatedLineInfo));
                 } else {
-                    let lineStatus: ICodeLineStatus;
-                    lineStatus = {
+                    // let lineStatus: ICodeLineStatus;
+                    // lineStatus = {
+                    //     inViewID: inViewID,
+                    //     text: text,
+                    //     lineRange: {
+                    //         fromLine: changeStartLineNumber,
+                    //         toLine: changeStartLineNumber + 1,
+                    //     },
+                    //     status: LineStatus.EDITED,
+                    //     generated: false,
+                    // };
+                    // dispatch(setLineStatus(lineStatus));
+                    let updatedLineInfo: ILineUpdate = {
                         inViewID: inViewID,
                         text: text,
-                        lineRange: {
-                            fromLine: changeStartLineNumber,
-                            toLine: changeStartLineNumber + 1,
-                        },
-                        status: LineStatus.EDITED,
-                        generated: false,
+                        updatedStartLineNumber: changeStartLineNumber,
+                        updatedLineCount: updatedLineCount,
+                        startLineChanged: true,
+                            // changeStartLine.text != inViewCodeText[changeStartLineNumber],
                     };
-                    dispatch(setLineStatus(lineStatus));
+                    dispatch(updateLines(updatedLineInfo));
                 }
                 handleCAsisstTextUpdate();
             }

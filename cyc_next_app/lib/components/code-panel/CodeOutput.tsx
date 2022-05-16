@@ -2,9 +2,10 @@ import React, { Fragment, useEffect, useRef, useState } from "react";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 import {
     CodeOutputContainer,
-    CodeOutputHeader,
+    CodeOutputHeaderText,
     CodeOutputContent,
     IndividualCodeOutputContent,
+    CodeOutputHeader,
 } from "../StyledComponents";
 import { Box, Typography } from "@mui/material";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../interfaces/IDataFrameStatus";
@@ -221,8 +222,10 @@ const CodeOutputComponent = React.memo(() => {
     return (
         <CodeOutputContainer>
             {console.log("Render CodeOutputAreaComponent")}
-            <CodeOutputHeader variant="overline" component="span">
-                Output
+            <CodeOutputHeader>
+                <CodeOutputHeaderText variant="overline" component="span">
+                    Output
+                </CodeOutputHeaderText>
             </CodeOutputHeader>
             <CodeOutputContent ref={codeOutputRef} id={codeOutputContentID}>
                 {textOutputUpdateCount > 0 &&
@@ -261,11 +264,8 @@ const CodeOutputComponent = React.memo(() => {
                                         active: true,
                                         block: "nearest",
                                         inline: "center",
-                                        behavior: "smooth",
-                                        boundary:
-                                            document.getElementById(
-                                                codeOutputContentID
-                                            ),
+                                        behavior: "auto",
+                                        boundary: document.getElementById(codeOutputContentID),
                                     }}
                                 />
                             )}
