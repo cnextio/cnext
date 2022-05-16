@@ -47,7 +47,7 @@ const FileExplorer = (props: any) => {
     // const [clickedItemParent, setClickedItemParent] = useState<string|null>(null);
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
-    const [projectCommand, setProjectCommand] = useState<
+    const [command, setProjectCommand] = useState<
         ProjectCommand.create_file | ProjectCommand.create_folder | null
     >(null);
     const [expanded, setExpanded] = useState<Array<string>>([]);
@@ -213,7 +213,7 @@ const FileExplorer = (props: any) => {
         setContextMenuPos(null);
     };
 
-    const validateFileName = (name: string) => {
+    const isNameNotEmpty = (name: string) => {
         return name.split(".")[0].length > 0;
     };
 
@@ -227,12 +227,7 @@ const FileExplorer = (props: any) => {
         const state = store.getState();
         const projectPath = state.projectManager.activeProject?.path;
         if (event.key === "Enter") {
-            if (projectCommand === ProjectCommand.create_file) {
-                if (!validateFileName(value)) {
-                    return;
-                }
-            }
-            if (contextMenuItems) {
+            if (isNameNotEmpty(value) && contextMenuItems) {
                 /** this will create path format that conforms to the style of the client OS
                  * but not that of server OS. The server will have to use os.path.norm to correct
                  * the path */
@@ -305,7 +300,7 @@ const FileExplorer = (props: any) => {
                         label={
                             <NewItemInput
                                 handleKeyPress={handleNewItemKeyPress}
-                                projectCommand={projectCommand}
+                                command={command}
                             />
                         }
                     />
