@@ -41,10 +41,10 @@ class LanguageServerPlugin {
         socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
             try {
                 const notification = JSON.parse(result);
-                console.log(
-                    `received notify from LSP server at ${new Date().toLocaleString()} `,
-                    notification
-                );
+                // console.log(
+                //     `received notify from LSP server at ${new Date().toLocaleString()} `,
+                //     notification
+                // );
                 switch (notification.method) {
                     case 'textDocument/publishDiagnostics':
                         this.processDiagnostics(notification.params);

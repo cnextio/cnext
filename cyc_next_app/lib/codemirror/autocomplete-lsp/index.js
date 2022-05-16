@@ -11,6 +11,7 @@ import { baseTheme } from './theme';
 
 function languageServer(options) {
     let plugin = null;
+    let configs = options.editorConfig;
     return [
         serverUri.of(options.serverUri),
         rootUri.of(options.rootUri),
@@ -18,6 +19,8 @@ function languageServer(options) {
         languageId.of(options.languageId),
         ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view))),
         signatureTooltip(async (view, pos) => {
+            if (!configs.autocompletion) return null;
+
             var _a;
             return (_a =
                 plugin === null || plugin === void 0
@@ -29,6 +32,8 @@ function languageServer(options) {
         }),
         hoverTooltip(
             (view, pos) => {
+                if (!configs.hover) return null;
+
                 var _a;
                 return (_a =
                     plugin === null || plugin === void 0
@@ -38,12 +43,12 @@ function languageServer(options) {
                     ? _a
                     : null;
             },
-            { hoverTime: 1000 }
+            { hoverTime: 2000 }
         ),
         autocompletion({
             override: [
                 async (context) => {
-                    if (plugin == null) return null;
+                    if (plugin == null || !configs.autocompletion) return null;
                     const { state, pos, explicit } = context;
                     const line = state.doc.lineAt(pos);
                     let [trigKind, trigChar] = getTrigger(plugin, line, explicit);
