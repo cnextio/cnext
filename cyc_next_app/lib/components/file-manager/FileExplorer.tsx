@@ -47,6 +47,9 @@ const FileExplorer = (props: any) => {
     // const [clickedItemParent, setClickedItemParent] = useState<string|null>(null);
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
+    const [command, setProjectCommand] = useState<
+        ProjectCommand.create_file | ProjectCommand.create_folder | null
+    >(null);
     const [expanded, setExpanded] = useState<Array<string>>([]);
     const [deleteDialog, setDeleteDialog] = useState(false);
     const dispatch = useDispatch();
@@ -131,8 +134,8 @@ const FileExplorer = (props: any) => {
         const expandingNodes = nodes.filter((node) => !expanded.includes(node));
         setExpanded(nodes);
         const dirID = expandingNodes[0];
-        console.log("FileExplorer handleDirToggle: ", dirID);
-        if (dirID !== null) {
+        console.log("FileExplorer handleDirToggle: ", event, dirID);
+        if (dirID != null) {
             fetchDirChildNodes(dirID);
         }
     };
@@ -184,6 +187,16 @@ const FileExplorer = (props: any) => {
                     // Expanded the folder when creating new file
                     const newExpanded = [...expanded, contextMenuItems.item];
                     setExpanded([...new Set(newExpanded)]); // Remove duplicate expanded note ID
+                    setProjectCommand(ProjectCommand.create_file);
+                    setCreateItemInProgress(true);
+                }
+                break;
+            case FileContextMenuItem.NEW_FOLDER:
+                if (contextMenuItems) {
+                    // Expanded the folder when creating new file
+                    const newExpanded = [...expanded, contextMenuItems.item];
+                    setExpanded([...new Set(newExpanded)]); // Remove duplicate expanded note ID
+                    setProjectCommand(ProjectCommand.create_folder);
                     setCreateItemInProgress(true);
                 }
                 break;
@@ -200,36 +213,39 @@ const FileExplorer = (props: any) => {
         setContextMenuPos(null);
     };
 
-    const validateFileName = (name: string) => {
+    const isNameNotEmpty = (name: string) => {
         return name.split(".")[0].length > 0;
     };
 
     const relativeProjectPath = "";
 
-    const handleNewItemKeyPress = (event: React.KeyboardEvent, value: string) => {
-        // console.log('FileExplorer', event.key);
+    const handleNewItemKeyPress = (
+        event: React.KeyboardEvent,
+        value: string,
+        projectCommand: ProjectCommand.create_file | ProjectCommand.create_folder
+    ) => {
         const state = store.getState();
         const projectPath = state.projectManager.activeProject?.path;
         if (event.key === "Enter") {
-            if (validateFileName(value) && contextMenuItems) {
+            if (isNameNotEmpty(value) && contextMenuItems) {
                 /** this will create path format that conforms to the style of the client OS
                  * but not that of server OS. The server will have to use os.path.norm to correct
                  * the path */
-                let relativeFilePath = path.join(relativeProjectPath, contextMenuItems.item, value);
+                let relativePath = path.join(relativeProjectPath, contextMenuItems.item, value);
                 console.log(
-                    "FileExplorer create file: ",
-                    relativeFilePath,
+                    "FileExplorer create new item: ",
+                    relativePath,
                     contextMenuItems.item,
                     value
                 );
-                let message = createMessage(ProjectCommand.create_file, {
+                let message = createMessage(projectCommand, {
                     project_path: projectPath,
-                    path: relativeFilePath,
+                    path: relativePath,
                 });
                 sendMessage(message);
                 fetchDirChildNodes(contextMenuItems.item);
+                setCreateItemInProgress(false);
             }
-            setCreateItemInProgress(false);
         } else if (event.key === "Escape") {
             setCreateItemInProgress(false);
         }
@@ -281,7 +297,12 @@ const FileExplorer = (props: any) => {
                 {createItemInProgress && contextMenuItems && contextMenuItems["item"] === path ? (
                     <FileItem
                         nodeId='new_item'
-                        label={<NewItemInput handleKeyPress={handleNewItemKeyPress} />}
+                        label={
+                            <NewItemInput
+                                handleKeyPress={handleNewItemKeyPress}
+                                command={command}
+                            />
+                        }
                     />
                 ) : null}
             </Fragment>
