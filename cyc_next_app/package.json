@@ -33,6 +33,7 @@
         "@mui/system": "~5.0.1",
         "@open-rpc/client-js": "^1.6.2",
         "@reduxjs/toolkit": "^1.6.2",
+        "@sentry/nextjs": "^6.19.7",
         "@types/react-plotly.js": "^2.5.0",
         "@uiw/react-codemirror": "~4.6.0",
         "ace-builds": "^1.4.13",
