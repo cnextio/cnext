@@ -329,9 +329,11 @@ export const CodeEditorRedux = createSlice({
                             // msg_id: resultMessage.metadata.msg_id,
                         };
                         // point every line in the group to the same text since this point to the same memory it is not costly
-                        for (let line = fromLine; line < lineRange.toLine; line++) {
-                            codeLines[line].textOutput = newTextOutput;
-                        }
+                        // for (let line = fromLine; line < lineRange.toLine; line++) {
+                        //     codeLines[line].textOutput = newTextOutput;
+                        // }
+                        // assign the result of a group only to the first line
+                        codeLines[fromLine].result = newTextOutput;
                     }
                     state.maxTextOutputOrder += 1;
                     if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
@@ -355,9 +357,11 @@ export const CodeEditorRedux = createSlice({
                         msg_id: resultMessage.metadata.msg_id,
                     };
                     // point every line in the group to the same result since this point to the same memory it is not costly
-                    for (let line = fromLine; line < lineRange.toLine; line++) {
-                        codeLines[line].result = newResult;
-                    }
+                    // for (let line = fromLine; line < lineRange.toLine; line++) {
+                    //     codeLines[line].result = newResult;
+                    // }
+                    // assign the result of a group only to the first line
+                    codeLines[fromLine].result = newResult;
                     state.resultUpdateCount += 1;
                     state.saveCodeLineCounter++;
                 }
