@@ -22,9 +22,9 @@ RUN \
 
 COPY  . .
 
+ENV NODE_ENV=production
 WORKDIR /app/cyc_next_app
 RUN npm i --force
-ENV NODE_ENV=production
 ENV NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT=http://localhost:4000
 RUN npm run build
 
