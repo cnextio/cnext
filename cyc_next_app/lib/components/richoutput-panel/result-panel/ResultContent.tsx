@@ -75,7 +75,7 @@ const ResultContent = React.memo(({ codeResult }) => {
             );
         } else if (SubContentType.APPLICATION_JSON in codeResult?.result?.content) {
             return JSON.stringify(codeResult?.result?.content[SubContentType.APPLICATION_JSON]);
-        } else if (imageMime !== null) {
+        } else if (imageMime != null) {
             console.log("ResultView ", imageMime, codeResult?.result?.content[imageMime]);
             return (
                 <img

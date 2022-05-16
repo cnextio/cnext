@@ -134,8 +134,8 @@ const FileExplorer = (props: any) => {
         const expandingNodes = nodes.filter((node) => !expanded.includes(node));
         setExpanded(nodes);
         const dirID = expandingNodes[0];
-        console.log("FileExplorer handleDirToggle: ", dirID);
-        if (dirID !== null) {
+        console.log("FileExplorer handleDirToggle: ", event, dirID);
+        if (dirID != null) {
             fetchDirChildNodes(dirID);
         }
     };

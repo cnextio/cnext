@@ -29,6 +29,7 @@ class MessageHandler(BaseMessageHandler):
                 norm_project_path = os.path.normpath(metadata['project_path'])
 
             output = None
+            type = None
             if message.command_name == ProjectCommand.list_dir:
                 output = []
                 if 'path' in metadata.keys() and 'project_path' in metadata.keys():
