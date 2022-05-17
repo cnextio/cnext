@@ -97,6 +97,8 @@ export enum StandardMimeType {
     APPLICATION_JSON = "application/json",
     APPLICATION_CNEXT = "application/cnext+json",
     APPLICATION_PLOTLY = "application/vnd.plotly.v1+json",
+    APPLICATION_JAVASCRIPT = "application/javascript",
+    APPLICATION_BOKEH = "application/vnd.bokehjs_load.v0+json",
 }
 
 export const SubContentType = StandardMimeType;

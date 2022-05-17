@@ -102,6 +102,19 @@ def create_file(project_path, relative_file_path):
         raise Exception
 
 
+def create_folder(project_path, relative_folder_path):
+    try:
+        log.info('Create folder %s' % relative_folder_path)
+        folder_path = get_abs_file_path(project_path, relative_folder_path)
+        if exists(folder_path):  # TODO return error here
+            log.info('Folder already exists %s' % folder_path)
+        else:
+            os.mkdir(folder_path)
+        return FileMetadata(relative_folder_path, name=relative_folder_path, timestamp=os.path.getmtime(folder_path))
+    except Exception:
+        raise Exception
+
+
 def delete(project_path, relative_file_path):
     try:
         file_path = get_abs_file_path(project_path, relative_file_path)
