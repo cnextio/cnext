@@ -31,19 +31,21 @@ function languageServer(options) {
                 ? _a
                 : null;
         }),
-        // hoverTooltip(
-        //     (view, pos) => {
-        //         var _a;
-        //         return (_a =
-        //             plugin === null || plugin === void 0
-        //                 ? void 0
-        //                 : plugin.requestHoverTooltip(view, offsetToPos(view.state.doc, pos))) !==
-        //             null && _a !== void 0
-        //             ? _a
-        //             : null;
-        //     },
-        //     { hoverTime: 1000 }
-        // ),
+        hoverTooltip(
+            (view, pos) => {
+                if (!config.hover) return null;
+
+                var _a;
+                return (_a =
+                    plugin === null || plugin === void 0
+                        ? void 0
+                        : plugin.requestHoverTooltip(view, offsetToPos(view.state.doc, pos))) !==
+                    null && _a !== void 0
+                    ? _a
+                    : null;
+            },
+            { hoverTime: 2000 }
+        ),
         autocompletion({
             override: [
                 async (context) => {
