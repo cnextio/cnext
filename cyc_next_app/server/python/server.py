@@ -3,6 +3,7 @@ import traceback
 import threading
 import signal
 import traceback
+import sentry_sdk
 from libs import logs
 import pandas as pd
 from libs import logs
@@ -183,4 +184,15 @@ def main(argv):
 
 
 if __name__ == "__main__":
+
+    # Initialize sentry
+    sentry_sdk.init(
+        "https://630900c4c134464195b97ebbd1cbf8bd@o1238555.ingest.sentry.io/6389587",
+
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        # We recommend adjusting this value in production.
+        traces_sample_rate=0.1
+    )
+
     main(sys.argv[1:])

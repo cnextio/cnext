@@ -54,7 +54,7 @@ const SideBarDivider = () => {
             <Divider style={{ paddingTop: "5px", marginBottom: "5px", width: "80%" }} />
         </SideBarDividerContainer>
     );
-}
+};
 
 const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
@@ -67,7 +67,7 @@ const MiniSidebar = () => {
             name: SideBarName.PROJECT,
             component: <FolderIcon />,
             tooltip: "File Explorer",
-        }
+        },
     ];
 
     const layoutManagerIconList = [
@@ -156,7 +156,7 @@ const MiniSidebar = () => {
         <Fragment>
             <Box>
                 <LogoComponent />
-                <Sidebar variant="permanent">
+                <Sidebar variant='permanent'>
                     <SidebarList>
                         {projectManagerIconList.map((icon, index) => (
                             <SidebarItem
@@ -191,7 +191,7 @@ const MiniSidebar = () => {
                     </SidebarList>
                 </Sidebar>
             </Box>
-            <MainContainerDivider orientation="vertical" />
+            <MainContainerDivider orientation='vertical' />
             <KernelInterruptConfirmation
                 openDialog={openKernelInterruptDialog}
                 confirm={handleKernelInterruptDialogClose}

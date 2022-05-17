@@ -20,8 +20,8 @@ class MessageHandler(BaseMessageHandler):
         try:
             metadata = message.metadata
             if 'path' in metadata.keys():
-                ## avoid creating `./` when the path is empty
-                if metadata['path']=="":
+                # avoid creating `./` when the path is empty
+                if metadata['path'] == "":
                     norm_path = metadata['path']
                 else:
                     norm_path = os.path.normpath(metadata['path'])
@@ -29,6 +29,7 @@ class MessageHandler(BaseMessageHandler):
                 norm_project_path = os.path.normpath(metadata['project_path'])
 
             output = None
+            type = None
             if message.command_name == ProjectCommand.list_dir:
                 output = []
                 if 'path' in metadata.keys() and 'project_path' in metadata.keys():
@@ -37,8 +38,14 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.create_file:
                 if 'path' in metadata.keys() and 'project_path' in metadata.keys():
                     files.create_file(norm_project_path, norm_path)
-                output = projects.open_file(metadata['path'])
-                type = ContentType.FILE_METADATA
+                    output = projects.open_file(metadata['path'])
+                    type = ContentType.FILE_METADATA
+            elif message.command_name == ProjectCommand.create_folder:
+                if 'path' in metadata.keys() and 'project_path' in metadata.keys():
+                    file_metadata = files.create_folder(
+                        norm_project_path, norm_path)
+                    output = file_metadata.path
+                    type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.delete:
                 if 'path' in metadata.keys() and 'project_path' in metadata.keys():
                     files.delete(norm_project_path, norm_path)
