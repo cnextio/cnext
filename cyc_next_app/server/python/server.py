@@ -192,10 +192,7 @@ if __name__ == "__main__":
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
         # We recommend adjusting this value in production.
-        traces_sample_rate=1.0
+        traces_sample_rate=0.1
     )
-
-    # Test sentry
-    # division_by_zero = 1 / 0
 
     main(sys.argv[1:])

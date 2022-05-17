@@ -26,7 +26,7 @@ const FileContextMenu = ({ contextMenuPos, handleClose, handleSelection, context
 
     return (
         <ContextMenu
-            open={contextMenuPos !== null}
+            open={contextMenuPos != null}
             onClose={handleClose}
             anchorReference='anchorPosition'
             anchorPosition={

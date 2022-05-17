@@ -35,7 +35,7 @@ class MessageHandler(BaseMessageHandler):
         try:
             metadata = message.metadata
             if 'path' in metadata.keys():
-                # avoid creating `./` when the path is empty
+                ## avoid creating `./` when the path is empty
                 if metadata['path'] == "":
                     norm_path = metadata['path']
                 else:
@@ -97,10 +97,6 @@ class MessageHandler(BaseMessageHandler):
                 type = ContentType.PROJECT_METADATA
             elif message.command_name == ProjectCommand.get_project_config:
                 result = projects.get_project_config()
-                type = ContentType.PROJECT_METADATA
-            elif message.command_name == ProjectCommand.add_project:
-                path = message.content
-                result = projects.add_project(path)
                 type = ContentType.PROJECT_METADATA
 
             # create reply message

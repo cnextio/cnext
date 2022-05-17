@@ -43,7 +43,7 @@ def close_file(path):
                 config = read_config(config_path)
                 if hasattr(config, 'open_files'):
                     for f in config.open_files:
-                        # do not include the file that is being closed
+                        ## do not include the file that is being closed
                         if(f['path'] != path):
                             open_files.append(f)
                 config.open_files = open_files
@@ -134,7 +134,3 @@ def get_project_config():
         data = json.loads(config_file_data.read())
         return data
     return
-
-
-def add_project(path):
-    return None

@@ -47,9 +47,6 @@ const FileManager = () => {
         (state: RootState) => state.codeEditor.saveCodeLineCounter
     );
     const projectConfigs = useSelector((state: RootState) => state.projectManager.configs);
-    const addProjectStatus = useSelector(
-        (state: RootState) => state.projectManager.addProjectStatus
-    );
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
     // using this to avoid saving the file when we load code doc for the first time
     // const [codeTextInit, setcodeTextInit] = useState(0);
@@ -496,20 +493,6 @@ const FileManager = () => {
             event.preventDefault();
         }
     });
-
-    /**
-     * Add project when user handle add project in sidebar
-     */
-    const addProject = (path: string) => {
-        let message: IMessage = createMessage(ProjectCommand.add_project, path, 1, {});
-        sendMessage(message);
-    };
-
-    useEffect(() => {
-        if (addProjectStatus) {
-            addProject(path);
-        }
-    }, [addProjectStatus]);
 
     useEffect(() => {
         setupSocket();
