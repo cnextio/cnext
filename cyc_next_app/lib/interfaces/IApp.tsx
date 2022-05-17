@@ -282,7 +282,7 @@ export interface IEditorShortcutKey {
 }
 
 export interface IAppShortcutKey {
-    suggesstion_enable: string;
+    suggestion_enable: string;
 }
 
 export interface IConfigs {

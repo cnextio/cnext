@@ -14,7 +14,7 @@ const originalEditorShortcutKeys: IEditorShortcutKey = {
 };
 
 const originalAppShortcutKeys: IAppShortcutKey = {
-    suggesstion_enable: "shift + a",
+    suggestion_enable: "shift + a",
 };
 
 type ProjectManagerState = {
