@@ -8,30 +8,37 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 
 import { useRef } from "react";
 
-const ScriptComponent = ({scripts}) => {
+const ScriptComponent = ({ children, script }) => {
     const instance = useRef();
 
     useEffect(() => {
         var scriptElem = document.createElement("script");
-        if (scripts.attribs.src != null) scriptElem.src = scripts.attribs.src;
-        if (scripts.children != null) {
-            for (let node of scripts.children) {
-                var textNode = document.createTextNode(scripts.children[0].data);
-                scriptElem.appendChild(textNode);
+        console.log("ResultContent script ", script);
+        if (script != null) {
+            if (script.attribs != null && script.attribs.src != null)
+                scriptElem.src = script.attribs.src;
+            if (script.children != null) {
+                for (let node of script.children) {
+                    var textNode = document.createTextNode(node.data);
+                    scriptElem.appendChild(textNode);
+                }
             }
         }
-        console.log("ResultContent text ", scriptElem);
-        scriptElem.onload = function () {
-            console.log("ResultContent script load");
-        };
-        instance.current?.appendChild(scriptElem)
-    }, [scripts]);
+        if (children != null) {
+            scriptElem.appendChild(document.createTextNode(children));
+        }
+        // console.log("ResultContent scriptElem ", scriptElem);
+        // scriptElem.onload = function () {
+        //     console.log("ResultContent script load");
+        // };
+        instance.current?.appendChild(scriptElem);
+    }, [script]);
 
     return (
         <>
             <div ref={instance}></div>
         </>
-    )
+    );
 };
 
 const ResultContent = React.memo(({ codeResult }) => {
@@ -68,36 +75,61 @@ const ResultContent = React.memo(({ codeResult }) => {
     const createResultContent = () => {
         const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
         // console.log("ResultContent: ", codeResult?.result);
-        if (SubContentType.APPLICATION_PLOTLY in codeResult?.result?.content) {
-            return React.createElement(
-                PlotlyWithNoSSR,
-                setPlotlyLayout(codeResult?.result?.content[SubContentType.APPLICATION_PLOTLY])
-            );
-        } else if (SubContentType.APPLICATION_JSON in codeResult?.result?.content) {
-            return JSON.stringify(codeResult?.result?.content[SubContentType.APPLICATION_JSON]);
-        } else if (imageMime != null) {
-            console.log("ResultView ", imageMime, codeResult?.result?.content[imageMime]);
-            return (
-                <img
-                    src={"data:" + imageMime + ";base64," + codeResult?.result?.content[imageMime]}
-                />
-            );
-        } else if (SubContentType.TEXT_HTML in codeResult?.result?.content) {
-            // console.log("ResultContent: ", codeResult?.result?.content[SubContentType.TEXT_HTML]);
-            return ReactHtmlParser(
-                codeResult?.result?.content[SubContentType.TEXT_HTML].toString("base64"),
-                {
-                    replace: function (domNode) {
-                        // console.log("ResultContent domNode ", domNode);
-                        if (domNode.type === "script") {
-                            return (<ScriptComponent scripts={domNode}/>)
+        let components = Object.keys(codeResult?.result?.content).map((key, index)=>{
+            const imageMime = getMimeWithImage([key]);
+            if (key === SubContentType.APPLICATION_JAVASCRIPT) {
+                return (
+                    <ScriptComponent script={null}>
+                        {codeResult?.result?.content[
+                            SubContentType.APPLICATION_JAVASCRIPT
+                        ].toString("base64")}
+                    </ScriptComponent>
+                );
+            } else if (key === SubContentType.APPLICATION_BOKEH) {
+                return (
+                    <ScriptComponent script={null}>
+                        {codeResult?.result?.content[SubContentType.APPLICATION_BOKEH].toString(
+                            "base64"
+                        )}
+                    </ScriptComponent>
+                );
+            } else if (key===SubContentType.APPLICATION_PLOTLY) {
+                return React.createElement(
+                    PlotlyWithNoSSR,
+                    setPlotlyLayout(codeResult?.result?.content[SubContentType.APPLICATION_PLOTLY])
+                );
+            } else if (key === SubContentType.APPLICATION_JSON) {
+                return JSON.stringify(codeResult?.result?.content[SubContentType.APPLICATION_JSON]);
+            } else if (imageMime != null) {
+                // console.log("ResultView ", imageMime, codeResult?.result?.content[imageMime]);
+                return (
+                    <img
+                        src={
+                            "data:" +
+                            imageMime +
+                            ";base64," +
+                            codeResult?.result?.content[imageMime]
                         }
-                    },
-                }
-            );
-        }
-
-        return null;
+                    />
+                );
+            } else if (key === SubContentType.TEXT_HTML) {
+                // console.log("ResultContent text/html content: ", codeResult?.result?.content);
+                let htmlElem = ReactHtmlParser(
+                    codeResult?.result?.content[SubContentType.TEXT_HTML].toString("base64"),
+                    {
+                        replace: function (domNode) {
+                            console.log("ResultContent domNode ", domNode);
+                            if (domNode.type === "script") {
+                                return <ScriptComponent children={null} script={domNode} />;
+                            }
+                        },
+                    }
+                );
+                // console.log("ResultContent text/html: ", htmlElem);
+                return htmlElem;
+            } 
+        });
+        return <div>{components}</div>;
     };
 
     // useEffect(() => {
