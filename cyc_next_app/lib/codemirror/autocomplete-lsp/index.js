@@ -12,7 +12,6 @@ import store from '../../../redux/store';
 
 function languageServer(options) {
     let plugin = null;
-    console.log('storetest', store.getState().projectManager.configs.editor);
     let config = store.getState().projectManager.configs.editor;
     return [
         serverUri.of(options.serverUri),
@@ -49,7 +48,7 @@ function languageServer(options) {
             override: [
                 async (context) => {
                     if (!config.autocompletion) return null;
-                    
+
                     if (plugin != null) {
                         const { state, pos, explicit } = context;
                         const line = state.doc.lineAt(pos);
