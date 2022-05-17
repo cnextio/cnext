@@ -160,7 +160,7 @@ def main(argv):
                             log.error("Failed to execute the command %s",
                                       traceback.format_exc())
                             message = BaseMessageHandler._create_error_message(
-                                message.webapp_endpoint, traceback.format_exc())
+                                message.webapp_endpoint, traceback.format_exc(), message.command_name)
                             # send_to_node(message)
                             BaseMessageHandler.send_message(
                                 p2n_queue, message.toJSON())
@@ -187,7 +187,8 @@ if __name__ == "__main__":
 
     config = read_config('.server.yaml')
 
-    sentry_enable_status = config.sentry['enable'] if config.sentry.get('enable') else False
+    sentry_enable_status = config.sentry['enable'] if config.sentry.get(
+        'enable') else False
 
     if sentry_enable_status:
         # Initialize sentry
@@ -197,7 +198,7 @@ if __name__ == "__main__":
             # Set traces_sample_rate to 1.0 to capture 100%
             # of transactions for performance monitoring.
             # We recommend adjusting this value in production.
-            traces_sample_rate=1.0
+            traces_sample_rate=0.1
         )
         # Test sentry
         # division_by_zero = 1 / 0

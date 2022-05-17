@@ -457,10 +457,19 @@ export const IndividualCodeOutputContent = styled(Typography)`
     margin: 0px;
     padding: 5px 0px 5px 0px;
     overflow: auto;
-    // max-height: 100%;
     font-size: 13px;
     &:hover {
         background-color: ${(props) => props.theme.palette.action.hover};
+    }
+    code {
+        display: inline-block;
+        white-space: pre-wrap; /* Since CSS 2.1 */
+        white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+        white-space: -pre-wrap; /* Opera 4-6 */
+        white-space: -o-pre-wrap; /* Opera 7 */
+        max-width: 100%;
+        // word-break: break-all;
+        word-wrap: break-word;
     }
 `;
 
@@ -718,11 +727,16 @@ export const ResultViewContainer = styled.div`
 export const PlotContainer = styled(Paper)`
     background-color: ${(props) => props.theme.palette.background.paper};
     margin: 1px;
-    overflow: hidden;
+    overflow: auto;
     width: fit-content;
     border-color: ${(props) => (props.focused ? props.theme.palette.primary.light : null)};
     border-width: ${(props) => (props.focused ? "2px" : null)};
     margin-bottom: 8px;
+    svg {
+        width: 1000px;
+        height: 1000px;
+        overflow: scroll
+    }
 `;
 
 export const SmallVizContainer = styled(MuiTableContainer)`

@@ -329,9 +329,11 @@ export const CodeEditorRedux = createSlice({
                             // msg_id: resultMessage.metadata.msg_id,
                         };
                         // point every line in the group to the same text since this point to the same memory it is not costly
-                        for (let line = fromLine; line < lineRange.toLine; line++) {
-                            codeLines[line].textOutput = newTextOutput;
-                        }
+                        // for (let line = fromLine; line < lineRange.toLine; line++) {
+                        //     codeLines[line].textOutput = newTextOutput;
+                        // }
+                        // assign the result of a group only to the first line
+                        codeLines[fromLine].textOutput = newTextOutput;
                     }
                     state.maxTextOutputOrder += 1;
                     if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
@@ -340,6 +342,7 @@ export const CodeEditorRedux = createSlice({
                     state.textOutputUpdateCount += 1;
                     state.saveCodeLineCounter++;
                 } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
+                    let oldContent = codeLines[fromLine].result?.content;
                     let content = resultMessage.content;
                     if (resultMessage?.subType === SubContentType.APPLICATION_JSON) {
                         try {
@@ -351,13 +354,15 @@ export const CodeEditorRedux = createSlice({
                     let newResult = {
                         type: resultMessage.type,
                         subType: resultMessage.subType,
-                        content: content,
+                        content: Object.assign({}, oldContent, content),
                         msg_id: resultMessage.metadata.msg_id,
                     };
                     // point every line in the group to the same result since this point to the same memory it is not costly
-                    for (let line = fromLine; line < lineRange.toLine; line++) {
-                        codeLines[line].result = newResult;
-                    }
+                    // for (let line = fromLine; line < lineRange.toLine; line++) {
+                    //     codeLines[line].result = newResult;
+                    // }
+                    // assign the result of a group only to the first line
+                    codeLines[fromLine].result = newResult;
                     state.resultUpdateCount += 1;
                     state.saveCodeLineCounter++;
                 }

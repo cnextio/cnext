@@ -24,7 +24,7 @@ export const modelManagerSlice = createSlice({
         // this function will add the initial data of the dataframe including: df name, column names, row data
         setModelInfo: (state, action) => {
             state.modelInfo = action.payload;
-            if (Object.keys(state.modelInfo).length > 0) {
+            if (state.modelInfo!=null && Object.keys(state.modelInfo).length > 0) {
                 const modelNameList = Object.keys(state.modelInfo);
                 if (state.activeModel == null || !modelNameList.includes(state.activeModel)) {
                     state.activeModel = modelNameList[0];

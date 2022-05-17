@@ -1,6 +1,6 @@
 {
     "name": "cnext",
-    "version": "0.4.9",
+    "version": "0.4.10",
     "private": true,
     "scripts": {
         "dev": "next dev",
@@ -85,6 +85,7 @@
         "@types/react-scroll-into-view-if-needed": "^2.1.1",
         "@types/shortid": "0.0.29",
         "@types/styled-components": "^5.1.14",
+        "@types/react-beforeunload": "^2.1.1",
         "babel-plugin-styled-components": "^1.13.2",
         "eslint": "7.32.0",
         "eslint-config-next": "11.1.2",
