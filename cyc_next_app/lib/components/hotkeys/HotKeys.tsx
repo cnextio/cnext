@@ -18,11 +18,11 @@ export default class HotkeysComponent extends React.Component {
     }
 
     onKeyUp(keyName, e, handle) {
-        console.log("test:onKeyUp", keyName, e, handle);
+        console.log("App shortcut:onKeyUp", keyName, e, handle);
     }
 
     onKeyDown(keyName, e, handle) {
-        console.log("test:onKeyDown", keyName, e, handle);
+        console.log("App shortcut:onKeyDown", keyName, e, handle);
     }
 
     render() {
