@@ -205,7 +205,7 @@ export const FileExplorerHeaderName = styled(Typography)`
 export const FileTree = styled(TreeView)`
     padding: 0px 0px 0px 10px;
     max-width: 100%;
-    height: 80%;
+    height: 100%;
     .MuiTreeItem-group {
         margin-left: 5px;
     }
