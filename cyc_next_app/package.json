@@ -12,7 +12,10 @@
     },
     "dependencies": {
         "@codemirror/autocomplete": "^0.19.3",
+        "@codemirror/lang-javascript": "^0.19.2",
+        "@codemirror/lang-json": "^0.19.2",
         "@codemirror/lang-python": "^0.19.2",
+        "@codemirror/lang-sql": "^0.19.2",
         "@codemirror/language": "^0.19.3",
         "@codemirror/lint": "^0.19.2",
         "@codemirror/state": "^0.19.2",
