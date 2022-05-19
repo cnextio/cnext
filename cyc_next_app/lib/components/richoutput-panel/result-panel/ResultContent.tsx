@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import ReactHtmlParser from "html-react-parser";
+
 import { SubContentType } from "../../../interfaces/IApp";
 const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
 });
 
 import { useRef } from "react";
+import { createPortal } from "react-dom";
 
 const ScriptComponent = ({ children, script }) => {
     const instance = useRef();
@@ -34,10 +36,16 @@ const ScriptComponent = ({ children, script }) => {
         instance.current?.appendChild(scriptElem);
     }, [script]);
 
+    return <div ref={instance}></div>;
+};
+
+const IFrameComponent = ({ children }) => {
+    const [contentRef, setContentRef] = useState(null);
+    const mountNode = contentRef?.contentDocument?.body;
     return (
-        <>
-            <div ref={instance}></div>
-        </>
+        <iframe style={{width: "800px", height: "500px"}} ref={setContentRef}>
+            {mountNode && createPortal(children, mountNode)}
+        </iframe>
     );
 };
 
@@ -73,9 +81,9 @@ const ResultContent = React.memo(({ codeResult }) => {
     };
 
     const createResultContent = () => {
-        const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
+        // const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
         // console.log("ResultContent: ", codeResult?.result);
-        let components = Object.keys(codeResult?.result?.content).map((key, index)=>{
+        let jsxElements = Object.keys(codeResult?.result?.content).map((key, index) => {
             const imageMime = getMimeWithImage([key]);
             if (key === SubContentType.APPLICATION_JAVASCRIPT) {
                 return (
@@ -93,7 +101,7 @@ const ResultContent = React.memo(({ codeResult }) => {
                         )}
                     </ScriptComponent>
                 );
-            } else if (key===SubContentType.APPLICATION_PLOTLY) {
+            } else if (key === SubContentType.APPLICATION_PLOTLY) {
                 return React.createElement(
                     PlotlyWithNoSSR,
                     setPlotlyLayout(codeResult?.result?.content[SubContentType.APPLICATION_PLOTLY])
@@ -113,23 +121,29 @@ const ResultContent = React.memo(({ codeResult }) => {
                     />
                 );
             } else if (key === SubContentType.TEXT_HTML) {
-                // console.log("ResultContent text/html content: ", codeResult?.result?.content);
-                let htmlElem = ReactHtmlParser(
-                    codeResult?.result?.content[SubContentType.TEXT_HTML].toString("base64"),
-                    {
-                        replace: function (domNode) {
-                            console.log("ResultContent domNode ", domNode);
-                            if (domNode.type === "script") {
-                                return <ScriptComponent children={null} script={domNode} />;
-                            }
-                        },
-                    }
+                const htmlRegex = new RegExp("<!DOCTYPE html>");
+                const htmlContent = codeResult?.result?.content[SubContentType.TEXT_HTML];
+                console.log("ResultContent text/html content: ", htmlContent);
+                let isFullPage = htmlRegex.test(htmlContent);
+                let jsxElements = ReactHtmlParser(htmlContent.toString("base64"), {
+                    replace: function (domNode) {
+                        console.log("ResultContent domNode ", domNode);
+                        if (domNode.type === "script") {
+                            return <ScriptComponent children={null} script={domNode} />;
+                        }
+                    },
+                });
+
+                return isFullPage ? (
+                    <IFrameComponent
+                        children={jsxElements}
+                    ></IFrameComponent>
+                ) : (
+                    jsxElements
                 );
-                // console.log("ResultContent text/html: ", htmlElem);
-                return htmlElem;
-            } 
+            }
         });
-        return <div>{components}</div>;
+        return <div>{jsxElements}</div>;
     };
 
     // useEffect(() => {
