@@ -422,7 +422,7 @@ export const CodeOutputHeaderText = styled(Typography)`
 `;
 // need this compoent to make the text output respect tab character
 export const CodeOutputContent = styled.div`
-    overflow: auto;    
+    overflow: auto;
     height: 100%;
     flex-grow: 1;
 `;
@@ -709,7 +709,7 @@ export const PlotContainer = styled(Paper)`
     svg {
         width: 1000px;
         height: 1000px;
-        overflow: scroll
+        overflow: scroll;
     }
 `;
 
@@ -850,27 +850,28 @@ export const ImageMimeCell = styled.img`
     max-height: 150px;
 `;
 
-export const FooterNavigation = styled(Box)`
+export const FooterNavigation = styled.div`
     position: fixed;
     left: 0;
     bottom: 0;
     width: 100%;
-    justify-content: start;
     border-top: solid 1px #bfbfbf;
     z-index: 1;
     background-color: #bfbfbf;
-    height: 32px;
+    height: 24px;
 `;
 
 export const FooterItem = styled.a`
     height: 100%;
-    margin-left: 8px;
 `;
 
 export const FotterItemText = styled.span`
-    font-size: 14px;
+    font-size: 13px;
     color: white;
     cursor: pointer;
+    display: inline-flex;
+    float: left;
+    margin: 0 12px 8px 8px;
 `;
 
 export const FooterBar = styled(BottomNavigation)`

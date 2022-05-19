@@ -6,7 +6,12 @@ const FooterBarComponent = () => {
         <FooterNavigation>
             <FooterItem>
                 <FotterItemText>
-                    Suggestion: <b>ON</b>
+                    Code AutoCompletion: <b>ON</b>
+                </FotterItemText>
+            </FooterItem>
+            <FooterItem>
+                <FotterItemText>
+                    Lint: <b>ON</b>
                 </FotterItemText>
             </FooterItem>
         </FooterNavigation>

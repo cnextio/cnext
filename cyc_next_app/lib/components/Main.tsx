@@ -12,7 +12,7 @@ const Main: FC = (props: any) => {
         <Box
             display='flex'
             sx={{ flexDirection: "column" }}
-            style={{ height: "calc(100vh - 32px)" }}
+            style={{ height: "calc(100vh - 24px)" }}
         >
             {/* <CssBaseline /> */}
             {/* <TopPanel>
