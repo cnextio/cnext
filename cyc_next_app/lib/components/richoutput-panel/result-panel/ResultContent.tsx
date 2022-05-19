@@ -15,7 +15,7 @@ const ScriptComponent = ({ children, script }) => {
 
     useEffect(() => {
         var scriptElem = document.createElement("script");
-        console.log("ResultContent script ", script);
+        // console.log("ResultContent script ", script);
         if (script != null) {
             if (script.attribs != null && script.attribs.src != null)
                 scriptElem.src = script.attribs.src;
@@ -123,11 +123,11 @@ const ResultContent = React.memo(({ codeResult }) => {
             } else if (key === SubContentType.TEXT_HTML) {
                 const htmlRegex = new RegExp("<!DOCTYPE html>");
                 const htmlContent = codeResult?.result?.content[SubContentType.TEXT_HTML];
-                console.log("ResultContent text/html content: ", htmlContent);
+                // console.log("ResultContent text/html content: ", htmlContent);
                 let isFullPage = htmlRegex.test(htmlContent);
                 let jsxElements = ReactHtmlParser(htmlContent.toString("base64"), {
                     replace: function (domNode) {
-                        console.log("ResultContent domNode ", domNode);
+                        // console.log("ResultContent domNode ", domNode);
                         if (domNode.type === "script") {
                             return <ScriptComponent children={null} script={domNode} />;
                         }
