@@ -6,12 +6,12 @@ const FooterBarComponent = () => {
         <FooterNavigation>
             <FooterItem>
                 <FotterItemText>
-                    Code AutoCompletion: <b>ON</b>
+                    Code AutoCompletion: ON
                 </FotterItemText>
             </FooterItem>
             <FooterItem>
                 <FotterItemText>
-                    Lint: <b>ON</b>
+                    Lint: ON
                 </FotterItemText>
             </FooterItem>
         </FooterNavigation>

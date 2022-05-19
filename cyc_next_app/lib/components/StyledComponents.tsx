@@ -858,7 +858,7 @@ export const FooterNavigation = styled.div`
     border-top: solid 1px #bfbfbf;
     z-index: 1;
     background-color: #bfbfbf;
-    height: 24px;
+    height: 22px;
 `;
 
 export const FooterItem = styled.a`
@@ -866,7 +866,7 @@ export const FooterItem = styled.a`
 `;
 
 export const FotterItemText = styled.span`
-    font-size: 13px;
+    font-size: 11px;
     color: white;
     cursor: pointer;
     display: inline-flex;
