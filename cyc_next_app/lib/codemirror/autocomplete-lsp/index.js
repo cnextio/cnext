@@ -12,7 +12,7 @@ import store from '../../../redux/store';
 
 function languageServer(options) {
     let plugin = null;
-    let config = store.getState().projectManager.configs.editor;
+    let config = () => store.getState().projectManager.configs.editor;
     return [
         serverUri.of(options.serverUri),
         rootUri.of(options.rootUri),
@@ -20,7 +20,7 @@ function languageServer(options) {
         languageId.of(options.languageId),
         ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view))),
         signatureTooltip(async (view, pos) => {
-            if (!config.autocompletion) return null;
+            if (!config().autocompletion) return null;
 
             var _a;
             return (_a =
@@ -33,7 +33,7 @@ function languageServer(options) {
         }),
         hoverTooltip(
             (view, pos) => {
-                if (!config.hover) return null;
+                if (!config().hover) return null;
 
                 var _a;
                 return (_a =
@@ -49,7 +49,7 @@ function languageServer(options) {
         autocompletion({
             override: [
                 async (context) => {
-                    if (!config.autocompletion) return null;
+                    if (!config().autocompletion) return null;
 
                     if (plugin != null) {
                         const { state, pos, explicit } = context;
