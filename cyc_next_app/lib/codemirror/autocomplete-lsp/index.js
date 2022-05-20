@@ -12,7 +12,7 @@ import store from '../../../redux/store';
 
 function languageServer(options) {
     let plugin = null;
-    let config = () => store.getState().projectManager.configs.editor;
+    let config = () => store.getState().projectManager.configs.code_editor;
     return [
         serverUri.of(options.serverUri),
         rootUri.of(options.rootUri),

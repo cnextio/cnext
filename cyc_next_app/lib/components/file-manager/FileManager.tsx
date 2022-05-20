@@ -238,10 +238,15 @@ const FileManager = () => {
         if (inViewID) {
             const state = store.getState();
             const codeText = state.codeEditor.codeText;
-            // we will not load the file if it already exists in redux this design will not
-            // allow client to stay update with server if there is out-of-channel changes
-            // in server but this is good enough for our use case.
-            if (codeText == null || (codeText && !Object.keys(codeText).includes(inViewID))) {
+            // we will not load the file if it already exists (except for config.json) 
+            // in redux this design will not allow client to stay update with server 
+            // if there is out-of-channel changes in server but this is good enough 
+            // for our use case.
+            if (
+                codeText == null ||
+                (codeText && !Object.keys(codeText).includes(inViewID)) ||
+                isConfigFile(inViewID)
+            ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 const projectPath = state.projectManager.activeProject?.path;
                 const message: IMessage = createMessage(ProjectCommand.read_file, "", 1, {
@@ -284,11 +289,15 @@ const FileManager = () => {
         }
     }, [fileToOpen]);
 
+    const isConfigFile = (filePath: string) => {
+        return filePath === "config.json";
+    }
+
     const reloadConfigIfChanged = (fileToSave: string[]) => {
         let state = store.getState();
         try {
             for (let filePath of fileToSave) {
-                if (filePath === "config.json") {
+                if (isConfigFile(filePath)) {
                     let codeText = state.codeEditor.codeText[filePath];
                     let config = JSON.parse(codeText.join("\n"));
                     console.log("FileManager reload config: ", config);
