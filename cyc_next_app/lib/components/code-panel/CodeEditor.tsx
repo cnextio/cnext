@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { IMessage, WebAppEndpoint, ContentType, CommandName } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
@@ -843,9 +843,13 @@ const CodeEditor = () => {
     };
 
     return (
-        <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>
-            {console.log("CodeEditor render")}
-        </StyledCodeEditor>
+        <Fragment>
+            {inViewID != null && (
+                <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>
+                    {console.log("CodeEditor render")}
+                </StyledCodeEditor>
+            )}
+        </Fragment>
     );
 };
 
