@@ -11,7 +11,7 @@ class SignaturePlugin {
         this.setSignature = setSignature;
         this.restartTimeout = -1;
         this.curPos = this.view.state.selection.main.head;
-        this.enableRunning = false;
+        this.running = false;
         this.countDocChanges = countDocChanges;
         this.currentData = null;
     }
@@ -20,13 +20,6 @@ class SignaturePlugin {
         let sState = update.state;
         let pos = sState.selection.main.head;
         if (pos !== 0 && this.curPos != pos) {
-            let oldLineText = update.startState.doc.lineAt(pos).text;
-            let updateLineText = update.state.doc.lineAt(pos).text;
-
-            if (oldLineText.length !== updateLineText.length) {
-                this.enableRunning = true;
-            }
-
             this.curPos = pos;
             this.restartTimeout = setTimeout(() => this.startGetSignature(sState, pos), 20);
         }
@@ -50,12 +43,11 @@ class SignaturePlugin {
                     this.view.dispatch({
                         effects: closeSignatureEffect.of(null),
                     });
-                    this.enableRunning = false;
                     return;
                 }
 
                 // send source request when needed
-                if (context.matchBefore(/[(,]+$/) && this.enableRunning) {
+                if (context.matchBefore(/[(,]+$/)) {
                     let data = await this.source(this.view, this.curPos);
                     if (data) {
                         this.currentData = {
@@ -70,7 +62,7 @@ class SignaturePlugin {
                     this.view.dispatch({
                         effects: closeSignatureEffect.of(null),
                     });
-                } else if (this.currentData && this.enableRunning) {
+                } else if (this.currentData) {
                     this.view.dispatch({
                         effects: this.setSignature.of({
                             ...this.currentData,
