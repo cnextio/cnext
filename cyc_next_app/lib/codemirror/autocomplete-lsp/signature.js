@@ -9,27 +9,54 @@ class SignaturePlugin {
         this.view = view;
         this.source = source;
         this.setSignature = setSignature;
-        this.restartTimeout = -1;
+        this.signatureTimeout = -1;
         this.curPos = this.view.state.selection.main.head;
-        this.running = false;
         this.countDocChanges = countDocChanges;
         this.currentData = null;
+        this.moved = null;
+        view.dom.addEventListener('mousedown', (this.mousedown = this.mousedown.bind(this)));
+        view.dom.addEventListener('mousemove', (this.mousemove = this.mousemove.bind(this)));
+        view.dom.addEventListener('mouseup', (this.mouseup = this.mouseup.bind(this)));
     }
 
     update(update) {
         let sState = update.state;
         let pos = sState.selection.main.head;
+
         if (pos !== 0 && this.curPos != pos) {
             this.curPos = pos;
-            this.restartTimeout = setTimeout(() => this.startGetSignature(sState, pos), 20);
+            this.signatureTimeout = setTimeout(() => this.startGetSignature(sState, pos), 100);
         }
     }
 
     startGetSignature(state, pos) {
-        clearTimeout(this.restartTimeout);
+        clearTimeout(this.signatureTimeout);
         const line = state.doc.lineAt(pos);
         const context = new CompletionContext(state, pos, true);
         this.excuteSource(context, line, pos - line.from - 1);
+    }
+
+    mousemove() {
+        if (this.moved) {
+            clearTimeout(this.signatureTimeout);
+            this.view.dispatch({
+                effects: closeSignatureEffect.of(null),
+            });
+            this.signatureTimeout = -1;
+        }
+    }
+
+    mouseup() {
+        this.moved = false;
+    }
+
+    mousedown() {
+        this.moved = true;
+        clearTimeout(this.signatureTimeout);
+        this.view.dispatch({
+            effects: closeSignatureEffect.of(null),
+        });
+        this.signatureTimeout = -1;
     }
 
     async excuteSource(context, line, cursorIndexInLine) {
@@ -82,7 +109,7 @@ class SignaturePlugin {
     }
 
     destroy() {
-        clearTimeout(this.hoverTimeout);
+        clearTimeout(this.signatureTimeout);
     }
 }
 
