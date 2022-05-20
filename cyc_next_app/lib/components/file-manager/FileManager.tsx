@@ -284,6 +284,22 @@ const FileManager = () => {
         }
     }, [fileToOpen]);
 
+    const reloadConfigIfChanged = (fileToSave: string[]) => {
+        let state = store.getState();
+        try {
+            for (let filePath of fileToSave) {
+                if (filePath === "config.json") {
+                    let codeText = state.codeEditor.codeText[filePath];
+                    let config = JSON.parse(codeText.join("\n"));
+                    console.log("FileManager reload config: ", config);
+                    dispatch(setProjectConfig(config));
+                }
+            }
+        } catch (error) {
+            //don't want to log this because there might be a lot of this when user typing in the string
+            //console.error(error);
+        }        
+    };
     /**
      * This function will be called in two cases
      *  1. when `fileToSave` and `saveTimeout` changes. However, files will only be saved
@@ -361,6 +377,7 @@ const FileManager = () => {
     };
     useEffect(() => {
         // console.log("FileManager useEffect: ", fileToSave);
+        reloadConfigIfChanged(fileToSave);
         saveFile();
     }, [saveTimeout, fileToSave]);
 
