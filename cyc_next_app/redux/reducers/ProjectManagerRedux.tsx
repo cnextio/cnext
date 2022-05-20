@@ -13,7 +13,7 @@ const originalShortcutKeys: IShorcutKey = {
     set_ungroup: "Mod-j",
 };
 
-const editorConfigs: IEditorConfigs = {
+const codeEditorConfigs: IEditorConfigs = {
     lint: true,
     hover: true,
     autocompletion: true,
@@ -53,7 +53,7 @@ const initialState: ProjectManagerState = {
     configs: {
         view_mode: ViewMode.VERTICAL,
         shortcut_keys: originalShortcutKeys,
-        editor: editorConfigs,
+        code_editor: codeEditorConfigs,
     },
 };
 

@@ -293,7 +293,7 @@ export interface IConfigs {
     experiment_manager?: IExperimentManagerConfig;
     view_mode: ViewMode | undefined;
     shortcut_keys: IShorcutKey;
-    editor: IEditorConfigs;
+    code_editor: IEditorConfigs;
 }
 
 export enum DFViewMode {
