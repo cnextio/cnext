@@ -430,7 +430,7 @@ class HoverPlugin {
         this.checkHover = this.checkHover.bind(this);
         view.dom.addEventListener('mouseleave', (this.mouseleave = this.mouseleave.bind(this)));
         view.dom.addEventListener('mousemove', (this.mousemove = this.mousemove.bind(this)));
-        view.dom.addEventListener('click', (this.mousclick = this.mousclick.bind(this)));
+        view.dom.addEventListener('mousedown', (this.mousclick = this.mousclick.bind(this)));
     }
     update() {
         if (this.pending) {
