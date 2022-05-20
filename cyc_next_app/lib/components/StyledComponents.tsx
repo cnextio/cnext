@@ -203,12 +203,8 @@ export const FileExplorerHeaderName = styled(Typography)`
 `;
 
 export const FileTree = styled(TreeView)`
-    padding: 0px 0px 0px 10px;
     max-width: 100%;
     height: 100%;
-    .MuiTreeItem-group {
-        margin-left: 5px;
-    }
 `;
 
 export const FileItem = styled(TreeItem)`
@@ -216,8 +212,11 @@ export const FileItem = styled(TreeItem)`
         font-size: 14px;
         line-height: 2em;
     }
+    .MuiTreeItem-group {
+        margin-left: 10px;
+    }
     .MuiTreeItem-content {
-        padding-left: 5px;
+        // margin-left: 5px;
     }
     color: ${(props) => props.theme.palette.text.secondary};
     width: 100%;
@@ -259,7 +258,7 @@ export const StyledCodePanel = styled.div`
 
 export const CodeToolbar = styled.div`
     display: flex;
-    --var-height: 40px;
+    --var-height: 30px;
     height: calc(var(--var-height));
     align-items: center;
     background-color: ${(props) => props.theme.palette.grey.A200};
