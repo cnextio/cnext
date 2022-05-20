@@ -363,7 +363,8 @@ const CodeEditor = () => {
     function setRunQueue(): boolean {
         const executorID = store.getState().projectManager.executorID;
         let inViewID = store.getState().projectManager.inViewID;
-        if (view && inViewID === executorID) {
+        // if (view && inViewID === executorID) {
+        if (view) {
             const doc = view.state.doc;
             const state = view.state;
             const anchor = state.selection.ranges[0].anchor;
