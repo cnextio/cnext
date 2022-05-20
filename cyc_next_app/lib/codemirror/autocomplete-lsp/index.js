@@ -1,6 +1,6 @@
 //using a customized version of autocomplete instead of @codemirror/autocomplete
 import { autocompletion } from './autocomplete';
-import { hoverTooltip } from '@codemirror/tooltip';
+import { hoverTooltip } from '../tooltip';
 import { ViewPlugin } from '@codemirror/view';
 import LanguageServerPlugin from './ls-plugin';
 import DFFilterPlugin from './df-plugin';
