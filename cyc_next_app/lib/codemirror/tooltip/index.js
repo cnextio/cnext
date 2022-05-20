@@ -440,12 +440,21 @@ class HoverPlugin {
         }
     }
     get active() {
-        if (this.view.state.hasOwnProperty('field')) return this.view.state.field(this.field);
-        else return null;
+        // there is exception when the field is not present in view.state
+        // can't catch it with if condition on field so have to use try
+        try{
+            return this.view.state.field(this.field);
+        }
+        catch (error) {
+            if (error instanceof RangeError){
+                return null;
+            }
+        }
+        // return this.view.state.field(this.field);
     }
     checkHover() {
         this.hoverTimeout = -1;
-        if (this.active) return;
+        if (this.active != null) return;
         let hovered = Date.now() - this.lastMove.time;
         if (hovered < this.hoverTime)
             this.hoverTimeout = setTimeout(this.checkHover, this.hoverTime - hovered);
@@ -499,7 +508,7 @@ class HoverPlugin {
         };
         if (this.hoverTimeout < 0) this.hoverTimeout = setTimeout(this.checkHover, this.hoverTime);
         let tooltip = this.active;
-        if ((tooltip && !isInTooltip(this.lastMove.target)) || this.pending) {
+        if ((tooltip != null && !isInTooltip(this.lastMove.target)) || this.pending) {
             let { pos } = tooltip || this.pending,
                 end =
                     (_a = tooltip === null || tooltip === void 0 ? void 0 : tooltip.end) !== null &&
@@ -527,13 +536,13 @@ class HoverPlugin {
     mouseleave() {
         clearTimeout(this.hoverTimeout);
         this.hoverTimeout = -1;
-        if (this.active) this.view.dispatch({ effects: this.setHover.of(null) });
+        if (this.active != null) this.view.dispatch({ effects: this.setHover.of(null) });
     }
 
     mousclick() {
         clearTimeout(this.hoverTimeout);
         this.hoverTimeout = -1;
-        if (this.active) this.view.dispatch({ effects: this.setHover.of(null) });
+        if (this.active != null) this.view.dispatch({ effects: this.setHover.of(null) });
     }
 
     destroy() {
