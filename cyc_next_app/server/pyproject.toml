@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cnext"
-version = "0.4.10"
-description = "improve your AI work follow"
+version = "0.4.11"
+description = "The data-centric workspace for AI & DS"
 authors = ["cycai company"]
 license = "MIT"
 
