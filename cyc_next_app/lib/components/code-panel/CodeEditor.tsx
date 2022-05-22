@@ -256,7 +256,7 @@ const CodeEditor = () => {
      * */
     useEffect(() => {
         console.log("CodeEditor useEffect inViewID ", inViewID);
-        if (inViewID) {
+        if (inViewID != null) {
             resetEditorState(inViewID, view);
             setCodeReloading(true);
         }
@@ -268,7 +268,7 @@ const CodeEditor = () => {
      */
     useEffect(() => {
         console.log(
-            "CodeEditor useEffect serverSynced, mustReload, view",
+            "CodeEditor useEffect serverSynced, codeReloading, view",
             serverSynced,
             codeReloading,
             view
@@ -307,11 +307,22 @@ const CodeEditor = () => {
     }, [cAssistInfo]);
 
     useEffect(() => {
-        console.log("CodeEditor useEffect editorRef.current ", editorRef.current);
-        if (editorRef.current) {
-            setContainer(editorRef.current);
+        console.log(
+            "CodeEditor useEffect editorRef.current inViewID container",
+            editorRef.current,
+            inViewID,
+            container
+        );
+        if (editorRef.current != null) {
+            if (inViewID != null) {
+                if (container == null) {
+                    setContainer(editorRef.current);
+                }
+            } else {
+                setContainer(null);
+            }
         }
-    }, [editorRef.current]);
+    }, [inViewID, editorRef.current]);
 
     useEffect(() => {
         if (runQueue.status !== RunQueueStatus.STOP) {
@@ -843,13 +854,9 @@ const CodeEditor = () => {
     };
 
     return (
-        <Fragment>
-            {inViewID != null && (
-                <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>
-                    {console.log("CodeEditor render")}
-                </StyledCodeEditor>
-            )}
-        </Fragment>
+        <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>
+            {console.log("CodeEditor render")}
+        </StyledCodeEditor>
     );
 };
 
