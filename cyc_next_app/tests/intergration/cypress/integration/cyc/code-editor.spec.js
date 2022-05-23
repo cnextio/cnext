@@ -18,15 +18,15 @@ describe('Test Code Editor', () => {
         cy.wait(WAIT_1S);
     });
 
-    it('Check print console', () => {
-        cy.get('@editor').type(codeCheckConsole);
-        if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}l');
-        } else {
-            cy.get('@editor').type('{ctrl}l');
-        }
-        cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
-    });
+    // it('Check print console', () => {
+    //     cy.get('@editor').type(codeCheckConsole);
+    //     if (isMacOSPlatform()) {
+    //         cy.get('@editor').type('{command}l');
+    //     } else {
+    //         cy.get('@editor').type('{ctrl}l');
+    //     }
+    //     cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
+    // });
 
     it('Check autocompletion', () => {
         cy.get('@editor').type(codeTestDF);
@@ -79,6 +79,28 @@ describe('Test Code Editor', () => {
         cy.get('@editor').type('df.drop("');
         cy.wait(WAIT_1S);
         cy.get('.cm-tooltip-autocomplete').should('be.visible');
+
+        cy.wait(WAIT_1S);
+        cy.get('@editor').type('{backspace}');
+        cy.get('@editor').type('labels,axis');
+        cy.get('.cm-activeLine').click(15, 0);
+        cy.get('.cm-tooltip-signature').should('not.exist');
+
+        cy.wait(WAIT_500MLS);
+        cy.get('.cm-activeLine').click();
+        cy.get('@editor').type('{backspace}');
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{backspace}');
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{backspace}');
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{backspace}');
+        cy.get('.cm-tooltip-signature').should('be.visible');
+        cy.wait(WAIT_500MLS);
+
+        cy.get('.cm-activeLine').click(65, 0);
+        cy.wait(WAIT_500MLS);
+        cy.get('.cm-tooltip-signature').should('not.exist');
     });
 
     afterEach(() => {
