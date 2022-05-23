@@ -97,7 +97,7 @@ describe('Test DataFrame', () => {
             cy.get('@editor').type('{ctrl}k');
             cy.get('@editor').type('{ctrl}l');
         }
-        cy.wait(WAIT_500MLS);
+        cy.wait(WAIT_3S);
         cy.get('[data-cy="df-stats-checkbox"]').should('be.visible').click();
         cy.wait(WAIT_3S);
         cy.get(
