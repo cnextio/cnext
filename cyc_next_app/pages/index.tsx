@@ -8,8 +8,6 @@ import store from '../redux/store/index';
 import Main from '../lib/components/Main';
 import ErrorBoundary from "../lib/components/error-boundary/ErrorBoundary";
 import { createGlobalStyle, ThemeProvider as StyledThemeProvider } from "styled-components";
-import LoginButton from '../lib/components/user-manager/Login';
-import LogoutButton from '../lib/components/user-manager/Logout';
 const GlobalStyle = createGlobalStyle`
   body {
     height: 100vh;
