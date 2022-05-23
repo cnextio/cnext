@@ -1,12 +1,9 @@
-import {
-    codeTestDF,
-} from '../data/code-text';
+import { codeTestDF } from '../data/code-text';
 import { removeText, isMacOSPlatform } from './shared';
 const WAIT_500MLS = Cypress.env('wait_500mls');
 const WAIT_1S = Cypress.env('wait_1s');
 const WAIT_3S = Cypress.env('wait_3s');
 const WAIT_5S = Cypress.env('wait_5s');
-
 
 describe('Test DataFrame', () => {
     before(() => {
@@ -68,6 +65,7 @@ describe('Test DataFrame', () => {
             cy.get('@editor').type('{ctrl}k');
             cy.get('@editor').type('{ctrl}l');
         }
+        cy.wait(WAIT_500MLS);
 
         cy.get('#RichOuputViewHeader_DATA').should('be.visible').click();
         let lines = cy
@@ -99,11 +97,13 @@ describe('Test DataFrame', () => {
             cy.get('@editor').type('{ctrl}k');
             cy.get('@editor').type('{ctrl}l');
         }
-        cy.wait(WAIT_500MLS);
+        cy.wait(WAIT_3S);
         cy.get('[data-cy="df-stats-checkbox"]').should('be.visible').click();
-        cy.wait(WAIT_5S);
-        cy.get('.MuiTableHead-root > .MuiTableRow-root > :nth-child(2) > .MuiTableContainer-root > .js-plotly-plot > .plot-container').should('be.visible');
-    })
+        cy.wait(WAIT_3S);
+        cy.get(
+            '.MuiTableHead-root > .MuiTableRow-root > :nth-child(2) > .MuiTableContainer-root > .js-plotly-plot > .plot-container'
+        ).should('be.visible');
+    });
 
     afterEach(() => {
         cy.wait(WAIT_1S);
