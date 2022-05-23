@@ -43,8 +43,6 @@ const AccountButton = ({ icon, selected, handleClick }) => {
 const Account = () => {
     const [accountMenuOpen, setAccountMenuOpen] = useState<boolean>(false);
     const [accountMenu, setAccountMenu] = useState<IContextMenu | undefined>();
-    const [loginDialogOpen, setLoginDialogOpen] = useState<boolean>(false);
-    const [logoutDialogOpen, setLogoutDialogOpen] = useState<boolean>(false);
     const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
 
     const openAccountMenu = (event: React.MouseEvent) => {
@@ -72,10 +70,10 @@ const Account = () => {
         setAccountMenuOpen(false);
         switch (item.name) {
             case AccountContextMenuItem.LOGIN:
-                if (!isAuthenticated) setLoginDialogOpen(true);
+                if (!isAuthenticated) loginWithRedirect();
                 break;
             case AccountContextMenuItem.LOGOUT:
-                if (isAuthenticated) setLogoutDialogOpen(true);
+                if (isAuthenticated) logout()
                 break;
         }
     };
@@ -83,11 +81,11 @@ const Account = () => {
     const closeAccountMenuItem = () => {
         setAccountMenuOpen(false);
     };
-
+    
     return (
         <>
             <AccountButton
-                key={null}
+                key={'account'}
                 icon={{
                     name: "Account",
                     component: <AccountIcon user={user} isAuthenticated={isAuthenticated} />,
@@ -104,8 +102,6 @@ const Account = () => {
                 handleClose={closeAccountMenuItem}
                 handleSelection={selectAccountMenuItem}
             />
-            {loginDialogOpen && loginWithRedirect()}
-            {logoutDialogOpen && logout()}
         </>
     );
 };
