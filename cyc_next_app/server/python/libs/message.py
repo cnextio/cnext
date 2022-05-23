@@ -62,6 +62,7 @@ class ProjectCommand(str, Enum):
     save_state = 'save_state'
     save_project_config = 'save_project_config'
     get_project_config = 'get_project_config'
+    add_project = 'add_project'
 
 
 class ExperimentManagerCommand(str, Enum):
@@ -134,7 +135,8 @@ class SubContentType(str, Enum):
 class CommandType(str, Enum):
     MFLOW = 'mlflow'  # use mlflow object to call the function #
     MLFLOW_CLIENT = 'mlflow_client'  # use mlflow.client object to call the function #
-    MLFLOW_OTHERS = 'mlflow_others'  # commands that requires more than standard mlflow api #
+    # commands that requires more than standard mlflow api #
+    MLFLOW_OTHERS = 'mlflow_others'
 
     def __str__(self):
         return str(self.value)

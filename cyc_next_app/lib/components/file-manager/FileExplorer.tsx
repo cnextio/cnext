@@ -41,8 +41,13 @@ const FileExplorer = (props: any) => {
     const activeProject: IProjectMetadata = useSelector(
         (state) => state.projectManager.activeProject
     );
+
     const openDirs: { [id: string]: IDirectoryMetadata[] } = useSelector(
         (state) => state.projectManager.openDirs
+    );
+
+    const addProjectPath: null | string = useSelector(
+        (state) => state.projectManager.addProjectPath
     );
     // const [clickedItemParent, setClickedItemParent] = useState<string|null>(null);
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
@@ -99,6 +104,11 @@ const FileExplorer = (props: any) => {
             socket.off(WebAppEndpoint.FileExplorer);
         };
     }, []);
+
+    useEffect(() => {
+        if (addProjectPath != null) {
+        }
+    }, [addProjectPath]);
 
     const createMessage = (command: ProjectCommand, metadata: {}): IMessage => {
         let message: IMessage = {

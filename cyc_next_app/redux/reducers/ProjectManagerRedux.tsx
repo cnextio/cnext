@@ -28,6 +28,7 @@ type ProjectManagerState = {
     showProjectExplore: boolean;
     serverSynced: boolean;
     configs: IConfigs;
+    addProjectPath: null | string;
 };
 
 const initialState: ProjectManagerState = {
@@ -55,6 +56,7 @@ const initialState: ProjectManagerState = {
         view_mode: ViewMode.VERTICAL,
         shortcut_keys: originalShortcutKeys,
     },
+    addProjectPath: null,
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -173,6 +175,10 @@ export const ProjectManagerRedux = createSlice({
                 state.configs = { ...state.configs, ...action.payload };
             }
         },
+
+        setAddProject: (state, action) => {
+            state.addProjectPath = action.payload;
+        },
     },
 });
 
@@ -195,6 +201,7 @@ export const {
     setServerSynced,
     setScrollPos,
     setProjectConfig,
+    setAddProject,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;
