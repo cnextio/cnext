@@ -24,8 +24,6 @@ const Home: NextPage = () => {
                 clientId="MoyhDEIlW3YI87mLieDmgodcFOl0htLQ"
                 redirectUri={"http://localhost:3000"}
             >
-                {/* <LoginButton />
-                <LogoutButton /> */}
                 <Provider store={store}>
                     <React.Fragment>
                         <GlobalStyle />
