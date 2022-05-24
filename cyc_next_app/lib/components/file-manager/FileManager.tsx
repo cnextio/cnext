@@ -37,6 +37,7 @@ const FileManager = () => {
     const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
+    const addProjectPath = useSelector((state: RootState) => state.projectManager.addProjectPath);
     // const codeText = useSelector((state: RootState) => getCodeText(state));
     // const codeLines = useSelector((state: RootState) => getCodeLines(state));
     const saveCodeTextCounter = useSelector(
@@ -162,6 +163,10 @@ const FileManager = () => {
                                 };
                                 fileMetadata.timestamp = fmResult.content["timestamp"];
                                 dispatch(setFileMetaData(fileMetadata));
+                            }
+                        case ProjectCommand.add_project:
+                            if (fmResult.content != null) {
+                                dispatch(setActiveProject(fmResult.content));
                             }
                     }
                 } else {
@@ -430,6 +435,19 @@ const FileManager = () => {
         // console.log("FileManager useEffect: ", fileToSaveState);
         saveState();
     }, [saveTimeout, fileToSaveState]);
+
+    useEffect(() => {
+        if (addProjectPath != null) {
+            let message: IMessage = createMessage(
+                ProjectCommand.add_project,
+                addProjectPath,
+                1,
+                {}
+            );
+            console.log("FileManager send:", message.command_name, message.content);
+            sendMessage(message);
+        }
+    }, [addProjectPath]);
 
     /**
      * Use fileToSave and fileToSaveState instead of codeText to trigger saveFile and saveState so we can control

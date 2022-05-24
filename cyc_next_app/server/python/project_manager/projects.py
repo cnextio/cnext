@@ -1,4 +1,5 @@
 import os
+import uuid
 from os.path import exists
 import simplejson as json
 import traceback
@@ -137,11 +138,62 @@ def get_project_config():
 
 
 def add_project(path):
-    if active_project:
-        config_path = active_project.config_path
-        config = read_config(config_path)
-        print(config)
-        if not os.path.exists(path):
+    project_name = path.split('/')[-1]
 
-            # os.mkdir(path)
-            project_name = path.split('/')[-1]
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    try:
+        # Update .server.yaml config
+        config = read_config('.server.yaml')
+        config_dict = config.__dict__
+        new_project_id = str(uuid.uuid1())
+        new_project = {
+            'id': new_project_id,
+            'name': project_name,
+            'path': path
+        }
+        config_dict['projects']['open_projects'].append(new_project)
+        config_dict['projects']['active_project'] = new_project_id
+        save_config(
+            config_dict, '/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cyc_next_app/server/.server.yaml')
+
+        # Assign project
+        project_active = ProjectMetadata(
+            path=path,
+            name=project_name,
+            id=new_project_id,
+            data_path=os.path.join(path, '.cnext'),
+            config_path=None
+        )
+        project_active.config_path = os.path.join(
+            project_active.data_path, 'cnext.yaml')
+
+        # Set activate project
+        set_active_project(project_active)
+
+        # Create main.py file
+        main_file_path = os.path.join(path, 'main.py')
+        if not os.path.exists(main_file_path):
+            with open(main_file_path, 'w'):
+                pass
+
+        # Create cnext.yaml if not exsists
+        cnext_config_folder_path = os.path.join(path, '.cnext')
+        if not os.path.exists(cnext_config_folder_path):
+            os.mkdir(cnext_config_folder_path)
+        cnext_config_path = os.path.join(
+            cnext_config_folder_path, 'cnext.yaml')
+        if not os.path.exists(cnext_config_path):
+            content = {
+                'executor': 'main.py',
+                'open_files': {
+                    'executor': True,
+                    'name': 'main.py',
+                    'path': 'main.py'
+                }
+            }
+            save_config(content, cnext_config_path)
+        return project_active
+    except Exception as ex:
+        raise ex

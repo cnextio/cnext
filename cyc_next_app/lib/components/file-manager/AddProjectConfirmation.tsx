@@ -16,7 +16,7 @@ const AddProjectConfirmation = ({ openDialog, confirm }) => {
     const dispatch = useDispatch();
 
     const isFile = (name: string) => {
-        return name.split(".")[1].length > 0;
+        return name.split(".")[1];
     };
 
     const handleClickApprove = () => {
@@ -33,10 +33,6 @@ const AddProjectConfirmation = ({ openDialog, confirm }) => {
         setTxtError(null);
         dispatch(setAddProject(projectPath));
         return confirm(true);
-    };
-
-    const onChangeValue = (e) => {
-        setProjectPath(e.target.value);
     };
 
     return (
@@ -60,7 +56,7 @@ const AddProjectConfirmation = ({ openDialog, confirm }) => {
                     value={projectPath}
                     error={txtError != null ? true : false}
                     helperText={txtError}
-                    onChange={(e) => onChangeValue(e)}
+                    onChange={(e) => setProjectPath(e.target.value)}
                     style={{ width: 400 }}
                 />
                 <Button
