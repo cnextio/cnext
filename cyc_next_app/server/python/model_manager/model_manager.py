@@ -2,14 +2,16 @@ import importlib
 import os
 import tempfile
 import threading
+import time
 import traceback
 import socket
 import netron
+import requests
 
 from libs.message_handler import BaseMessageHandler
 from libs import logs
 from libs.message import Message, WebappEndpoint, ModelManagerCommand
-from model_manager.interfaces import ModelInfo
+from model_manager.interfaces import ModelInfo, NetronStatus
 from user_space.ipython.constants import IPythonConstants
 log = logs.get_logger(__name__)
 
@@ -70,7 +72,7 @@ class MessageHandler(BaseMessageHandler):
             args[0].execution_lock.release()
             return {'status': args[0].execution_status, 'result': result}
         return _complete_waiting_execution_wrapper
-    
+
     @_complete_waiting_execution
     def _save_model(self, modelInfo: ModelInfo):
         MODEL_PATH = None
@@ -91,16 +93,30 @@ class MessageHandler(BaseMessageHandler):
             self.user_space.execute(code, None, self._message_handler_callback)
         return MODEL_PATH
 
+    def _start_netron_server(self, model_path) -> NetronStatus:
+        self.netron_address = (self.netron_host, self.netron_port)
+        netron.stop(self.netron_address)
+        netron.start(model_path, self.netron_address, browse=False)
+        # wait until the server is available or timeout
+        TIMEOUT = 5000
+        SLEEP_TIME = 50
+        time_pass = 0
+        while (time_pass := time_pass+SLEEP_TIME) < TIMEOUT:
+            response = requests.get(
+                'http://%s:%d' % (self.netron_address[0], self.netron_address[1]))
+            if response.status_code == 200:
+                return NetronStatus.OK
+            else:
+                time.sleep(SLEEP_TIME);
+        return NetronStatus.ERROR 
+
     def _display_model(self, modelInfo: ModelInfo):
-        # torch.nn.Module, tensorflow.keras.Model        
+        # torch.nn.Module, tensorflow.keras.Model
         output = self._save_model(modelInfo)
         # log.info("Code to run: {}".format(code))
         if output['status'] == IPythonConstants.IOBufMessageStatus.OK:
-            MODEL_PATH = output['result']
-            self.netron_address = (self.netron_host, self.netron_port)
-            netron.stop(self.netron_address)
-            netron.start(MODEL_PATH, self.netron_address, browse=False)
-            return {'address': self.netron_address}
+            netron_status = self._start_netron_server(output['result'])
+            return {'address': self.netron_address, 'status': netron_status}
 
     def handle_message(self, message):
         # send_reply = False

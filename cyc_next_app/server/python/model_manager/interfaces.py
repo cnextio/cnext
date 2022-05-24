@@ -7,3 +7,7 @@ class ModelInfo:
         self.obj_class = None
         self.base_class = None
         self.__dict__.update(entries)
+
+class NetronStatus:
+    OK = 'ok'
+    ERROR = 'error'

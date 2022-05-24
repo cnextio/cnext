@@ -9,6 +9,7 @@ import {
     IModelInfo,
     IModelViewerInfo,
     ModelManagerCommand,
+    NetronStatus,
 } from "../../../interfaces/IModelManager";
 import socket from "../../Socket";
 import { DataToolbar as ModelManagerToolbar } from "../../StyledComponents";
@@ -17,8 +18,11 @@ import ReplayIcon from "@mui/icons-material/Replay";
 
 const ModelManager = () => {
     const dispatch = useDispatch();
-    const activeModel = useSelector((state: RootState) => state.modelManager.activeModel);
-    const reloadCounter = useSelector((state: RootState) => state.modelManager.reloadCounter);
+    // const activeModel = useSelector((state: RootState) => state.modelManager.activeModel);
+    const modelInfoReloadCounter = useSelector((state: RootState) => state.modelManager.modelInfoReloadCounter);
+    const modelInfoUpdatedCounter = useSelector(
+        (state: RootState) => state.modelManager.modelInfoUpdatedCounter
+    );
 
     const createMessage = (
         command: ModelManagerCommand,
@@ -85,6 +89,7 @@ const ModelManager = () => {
 
     const displayModel = () => {
         const state = store.getState();
+        const activeModel = state.modelManager.activeModel;
         if (activeModel != null) {
             let activeModelInfo = state.modelManager.modelInfo[activeModel];
             const message = createMessage(ModelManagerCommand.display_model, activeModelInfo);
@@ -94,11 +99,11 @@ const ModelManager = () => {
 
     useEffect(() => {
         displayModel();
-    }, [activeModel]);
+    }, [modelInfoUpdatedCounter]);
 
     useEffect(() => {
         reload_active_models_info();
-    }, [reloadCounter]);
+    }, [modelInfoReloadCounter]);
 
     return null;
 };
@@ -106,13 +111,13 @@ const ModelManager = () => {
 const ReloadButton = () => {
     const dispatch = useDispatch();
 
-    const clickHandler = () => {
+    const reload = () => {
         dispatch(setReload(null));
     }
     
     return (
         <IconButton
-            onClick={clickHandler}
+            onClick={reload}
             aria-label="Back"
             size="medium"
             color="default"
@@ -130,13 +135,13 @@ const ModelPanel = () => {
     const createModelViewerComponent = () => {
         const state = store.getState();
         const modelViewerInfo = state.modelManager.modelViewerInfo;
-        if (modelViewerCounter > 0 && modelViewerInfo != null) {
+        if (modelViewerCounter > 0 && modelViewerInfo != null && modelViewerInfo.status===NetronStatus.OK) {
             const address = `http://${modelViewerInfo.address[0]}:${modelViewerInfo.address[1]}`;
             console.log("ModelManager: ", address);
             return (
                 <iframe
                     key={modelViewerCounter}
-                    style={{ width: "100%", height: "100%", border: "none", paddingLeft: "35px" }}
+                    style={{ width: "100%", height: "100%", border: "none", paddingLeft: "25px" }}
                     src={address}
                 />
             );
@@ -148,8 +153,8 @@ const ModelPanel = () => {
         <Fragment>
             <ModelManager />
             <ModelManagerToolbar>
-                <ReloadButton />
                 <ModelExplorer />
+                <ReloadButton />
             </ModelManagerToolbar>
             {createModelViewerComponent()}
         </Fragment>

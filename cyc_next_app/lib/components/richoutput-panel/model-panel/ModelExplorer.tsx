@@ -16,9 +16,7 @@ const ModelExplorer = () => {
     const modelInfo = useSelector((state: RootState) => state.modelManager.modelInfo);
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        
-    }, []);
+    useEffect(() => {}, []);
 
     function handleChange({ target }) {
         // console.log('Handle change: ', target);
