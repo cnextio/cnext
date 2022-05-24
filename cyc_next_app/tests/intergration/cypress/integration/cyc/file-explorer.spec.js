@@ -1,9 +1,7 @@
-
 const WAIT_500MLS = Cypress.env('wait_500mls');
 const WAIT_1S = Cypress.env('wait_1s');
 const WAIT_2S = Cypress.env('wait_2s');
 const WAIT_3S = Cypress.env('wait_3s');
-
 
 describe('Check File Explorer', () => {
     before(() => {
@@ -18,8 +16,8 @@ describe('Check File Explorer', () => {
         cy.wait(WAIT_2S);
         cy.get('[data-cy="project-root"]').rightclick();
         cy.wait(WAIT_1S);
-        cy.get(".MuiMenuItem-root").contains('New file').click();
-        cy.get('[data-cy="new-file-item').type("test").type('{enter}');
+        cy.get('.MuiMenuItem-root').contains('New file').click();
+        cy.get('[data-cy="new-file-item').type('test').type('{enter}');
         cy.wait(WAIT_1S);
 
         // Delete file

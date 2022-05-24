@@ -91,7 +91,16 @@ export const MainPanel = styled.div`
 
 export const Sidebar = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
-    padding: 10px 0 759px;
+    padding: 0px 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 47px;
+`;
+
+export const AppToolbar = styled.div`
+    background-color: ${(props) => props.theme.palette.background.paper};
+    padding: 10px 0px 0px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -99,16 +108,17 @@ export const Sidebar = styled.div`
     height: 100%;
 `;
 
-export const SidebarList = styled.div`
+export const AppToolbarList = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
     padding: 0px 0px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    // height: 181px;
+    // height: 100px;
     width: 47px;
 `;
-export const SidebarListItem = styled.div`
+
+export const AppToolbarItem = styled.div`
     padding: 0px 0px;
     display: flex;
     align-items: center;

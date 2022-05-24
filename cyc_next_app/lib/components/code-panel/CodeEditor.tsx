@@ -260,6 +260,7 @@ const CodeEditor = () => {
             resetEditorState(inViewID, view);
             setCodeReloading(true);
         }
+        setLangExtensions(getLangExtenstions(inViewID));
     }, [inViewID]);
 
     /**

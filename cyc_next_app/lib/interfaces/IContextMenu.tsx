@@ -1,8 +1,10 @@
+import { AccountContextMenuItem } from "./IAccount";
+
 export interface IMenuItem {
-    name: MetricPlotContextMenuItems|undefined;
+    name: MetricPlotContextMenuItems | AccountContextMenuItem | undefined;
     text: string;
     disable: boolean;
-    metadata?: {}|undefined;
+    metadata?: {} | undefined;
 }
 
 export interface IMenuPosision {
@@ -16,7 +18,7 @@ export interface IContextMenu {
 }
 
 export enum MetricPlotContextMenuItems {
-    LOAD_CHECKPOINT = 'Load checkpoint',
-    LOAD_MODEL = 'Load model',
-    COPY_CHECKPOINT_PATH = 'Copy checkpoint path',
+    LOAD_CHECKPOINT = "Load checkpoint",
+    LOAD_MODEL = "Load model",
+    COPY_CHECKPOINT_PATH = "Copy checkpoint path",
 }
