@@ -39,23 +39,23 @@ class LanguageServerPlugin {
         });
 
         // listener notify from server
-        if (this.lint) {
-            socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
-                try {
-                    const notification = JSON.parse(result);
-                    // console.log(
-                    //     `received notify from LSP server at ${new Date().toLocaleString()} `,
-                    //     notification
-                    // );
-                    switch (notification.method) {
-                        case 'textDocument/publishDiagnostics':
+        socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
+            try {
+                const notification = JSON.parse(result);
+                // console.log(
+                //     `received notify from LSP server at ${new Date().toLocaleString()} `,
+                //     notification
+                // );
+                switch (notification.method) {
+                    case 'textDocument/publishDiagnostics':
+                        if (this.lint) {
                             this.processDiagnostics(notification.params);
-                    }
-                } catch (error) {
-                    console.error(error);
+                        }
                 }
-            });
-        }
+            } catch (error) {
+                console.error(error);
+            }
+        });
 
         socket.on('connect', () => {
             this.initializeLS({ documentText: this.view.state.doc.toString() });
