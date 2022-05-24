@@ -16,7 +16,7 @@ import DFFilterPlugin from './df-plugin';
  * if `dfFilter=true`, no connection to server is needed.
  */
 class LanguageServerPlugin {
-    constructor(view) {
+    constructor(view, lint) {
         this.view = view;
         this.signatureData = null;
         this.rootUri = this.view.state.facet(rootUri);
@@ -27,6 +27,7 @@ class LanguageServerPlugin {
         this.setupLSConnection();
 
         this.dfPlugin = new DFFilterPlugin();
+        this.lint = lint;
     }
 
     async setupLSConnection() {
@@ -38,21 +39,23 @@ class LanguageServerPlugin {
         });
 
         // listener notify from server
-        socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
-            try {
-                const notification = JSON.parse(result);
-                // console.log(
-                //     `received notify from LSP server at ${new Date().toLocaleString()} `,
-                //     notification
-                // );
-                switch (notification.method) {
-                    case 'textDocument/publishDiagnostics':
-                        this.processDiagnostics(notification.params);
+        if (this.lint) {
+            socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
+                try {
+                    const notification = JSON.parse(result);
+                    // console.log(
+                    //     `received notify from LSP server at ${new Date().toLocaleString()} `,
+                    //     notification
+                    // );
+                    switch (notification.method) {
+                        case 'textDocument/publishDiagnostics':
+                            this.processDiagnostics(notification.params);
+                    }
+                } catch (error) {
+                    console.error(error);
                 }
-            } catch (error) {
-                console.error(error);
-            }
-        });
+            });
+        }
 
         socket.on('connect', () => {
             this.initializeLS({ documentText: this.view.state.doc.toString() });
