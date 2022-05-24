@@ -85,6 +85,7 @@ export enum ContentType {
     COLUMN_CARDINAL = "column_cardinal",
     RICH_OUTPUT = "rich_output",
     NONE = "none",
+    PROJECT_METADATA = "project_metadata",
 }
 
 export enum StandardMimeType {

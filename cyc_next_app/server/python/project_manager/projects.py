@@ -166,6 +166,7 @@ def add_project(path):
             data_path=os.path.join(path, '.cnext'),
             config_path=None
         )
+
         project_active.config_path = os.path.join(
             project_active.data_path, 'cnext.yaml')
 

@@ -17,6 +17,7 @@ import {
     // removeFileToSaveState,
     setSavingStateFile,
     setSavingFile,
+    setAddProject,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import {
@@ -165,8 +166,10 @@ const FileManager = () => {
                                 dispatch(setFileMetaData(fileMetadata));
                             }
                         case ProjectCommand.add_project:
-                            if (fmResult.content != null) {
-                                dispatch(setActiveProject(fmResult.content));
+                            if (fmResult.type == ContentType.PROJECT_METADATA) {
+                                if (fmResult.content != null) {
+                                    dispatch(setActiveProject(fmResult.content));
+                                }
                             }
                     }
                 } else {
@@ -446,6 +449,7 @@ const FileManager = () => {
             );
             console.log("FileManager send:", message.command_name, message.content);
             sendMessage(message);
+            dispatch(setAddProject(null));
         }
     }, [addProjectPath]);
 
