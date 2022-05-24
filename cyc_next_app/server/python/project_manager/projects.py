@@ -67,7 +67,7 @@ def open_file(path):
             config_path = active_project.config_path  # active_project.path+'/.cnext.yaml'
             if exists(config_path):
                 config = read_config(config_path)
-                if hasattr(config, 'open_files'):
+                if hasattr(config, 'open_files') and isinstance(config.open_files, list):
                     open_files = config.open_files
                 ## Note that we dont set the timestamp when open the file #
                 file = FileMetadata(path,
@@ -145,7 +145,8 @@ def add_project(path):
 
     try:
         # Update .server.yaml config
-        config = read_config('.server.yaml')
+        config = read_config(
+            '.server.yaml')
         config_dict = config.__dict__
         new_project_id = str(uuid.uuid1())
         new_project = {
@@ -155,8 +156,7 @@ def add_project(path):
         }
         config_dict['projects']['open_projects'].append(new_project)
         config_dict['projects']['active_project'] = new_project_id
-        save_config(
-            config_dict, '/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cyc_next_app/server/.server.yaml')
+        save_config(config_dict, '.server.yaml')
 
         # Assign project
         project_active = ProjectMetadata(
