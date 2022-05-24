@@ -24,10 +24,11 @@ class LanguageServerPlugin {
         this.languageId = this.view.state.facet(languageId);
         this.documentVersion = 0;
         this.changesTimeout = 0;
+        this.lint = lint;
+
         this.setupLSConnection();
 
         this.dfPlugin = new DFFilterPlugin();
-        this.lint = lint;
     }
 
     async setupLSConnection() {
