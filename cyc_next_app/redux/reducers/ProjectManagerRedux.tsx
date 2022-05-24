@@ -45,16 +45,14 @@ const initialState: ProjectManagerState = {
     savingStateFile: null,
     showProjectExplore: false,
     serverSynced: false,
-    // configs: {
-    //     experiment_manager: {
-    //         local_tmp_dir: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.tmp",
-    //         mlflow_tracking_uri: "/Users/bachbui/works/cycai/cnext-working-dir/Skywalker/.mlflow",
-    //     },
-    //     view_mode: ViewMode.VERTICAL,
-    // },
     configs: {
         view_mode: ViewMode.VERTICAL,
         shortcut_keys: originalShortcutKeys,
+        code_editor: {
+            lint: true,
+            autocompletion: true,
+            hover: true,
+        },
     },
     addProjectPath: null,
 };
@@ -70,7 +68,8 @@ export const ProjectManagerRedux = createSlice({
         setOpenFiles: (state, action) => {
             state.openFiles = {};
             let files: IFileMetadata[] = action.payload;
-            files.map((file: IFileMetadata) => {
+            console.log("ProjectManagerRedux: ", files);
+            files?.map((file: IFileMetadata) => {
                 let id = file.path;
                 state.openFiles[id] = file;
                 if (file.executor == true) {
@@ -113,6 +112,7 @@ export const ProjectManagerRedux = createSlice({
                 state.inViewID = path;
                 state.serverSynced = false;
             } else {
+                console.log("ProjectManagerRedux setFileToOpen: ", path);
                 state.fileToOpen = action.payload;
             }
         },
