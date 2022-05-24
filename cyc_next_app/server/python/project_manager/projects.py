@@ -173,27 +173,27 @@ def add_project(path):
         set_active_project(project_active)
 
         # Create main.py file
-        # main_file_path = os.path.join(path, 'main.py')
-        # if not os.path.exists(main_file_path):
-        #     with open(main_file_path, 'w'):
-        #         pass
+        main_file_path = os.path.join(path, 'main.py')
+        if not os.path.exists(main_file_path):
+            with open(main_file_path, 'w'):
+                pass
 
         # Create cnext.yaml if not exsists
-        # cnext_config_folder_path = os.path.join(path, '.cnext')
-        # if not os.path.exists(cnext_config_folder_path):
-        #     os.mkdir(cnext_config_folder_path)
-        # cnext_config_path = os.path.join(
-        #     cnext_config_folder_path, 'cnext.yaml')
-        # if not os.path.exists(cnext_config_path):
-        #     content = {
-        #         'executor': 'main.py',
-        #         'open_files': {
-        #             'executor': True,
-        #             'name': 'main.py',
-        #             'path': 'main.py'
-        #         }
-        #     }
-        #     save_config(content, cnext_config_path)
+        cnext_config_folder_path = os.path.join(path, '.cnext')
+        if not os.path.exists(cnext_config_folder_path):
+            os.mkdir(cnext_config_folder_path)
+        cnext_config_path = os.path.join(
+            cnext_config_folder_path, 'cnext.yaml')
+        if not os.path.exists(cnext_config_path):
+            content = {
+                'executor': 'main.py',
+                'open_files': [{
+                    'executor': True,
+                    'name': 'main.py',
+                    'path': 'main.py'
+                }]
+            }
+            save_config(content, cnext_config_path)
         return project_active
     except Exception as ex:
         raise ex
