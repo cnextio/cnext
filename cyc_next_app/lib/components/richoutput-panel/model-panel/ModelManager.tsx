@@ -18,7 +18,7 @@ import ReplayIcon from "@mui/icons-material/Replay";
 
 const ModelManager = () => {
     const dispatch = useDispatch();
-    // const activeModel = useSelector((state: RootState) => state.modelManager.activeModel);
+    const activeModel = useSelector((state: RootState) => state.modelManager.activeModel);
     const modelInfoReloadCounter = useSelector((state: RootState) => state.modelManager.modelInfoReloadCounter);
     const modelInfoUpdatedCounter = useSelector(
         (state: RootState) => state.modelManager.modelInfoUpdatedCounter
@@ -98,8 +98,9 @@ const ModelManager = () => {
     };
 
     useEffect(() => {
+        /** call this when model info is updated even when activeModel has not changed or when activeModel changed */
         displayModel();
-    }, [modelInfoUpdatedCounter]);
+    }, [modelInfoUpdatedCounter, activeModel]);
 
     useEffect(() => {
         reload_active_models_info();

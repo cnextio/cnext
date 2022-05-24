@@ -272,6 +272,7 @@ export const CodeToolbar = styled.div`
     height: calc(var(--var-height));
     align-items: center;
     background-color: ${(props) => props.theme.palette.grey.A200};
+    overflow: auto;
 `;
 
 export const FileNameTabContainer = styled.div`
