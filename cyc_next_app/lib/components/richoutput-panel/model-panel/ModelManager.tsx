@@ -1,6 +1,6 @@
 import { Message } from "@lumino/messaging";
 import { IconButton } from "@mui/material";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInfo, setModelViewerInfo, setReload } from "../../../../redux/reducers/ModelManagerRedux";
 import store, { RootState } from "../../../../redux/store";
@@ -19,7 +19,9 @@ import ReplayIcon from "@mui/icons-material/Replay";
 const ModelManager = () => {
     const dispatch = useDispatch();
     const activeModel = useSelector((state: RootState) => state.modelManager.activeModel);
-    const modelInfoReloadCounter = useSelector((state: RootState) => state.modelManager.modelInfoReloadCounter);
+    const modelInfoReloadCounter = useSelector(
+        (state: RootState) => state.modelManager.modelInfoReloadCounter
+    );
     const modelInfoUpdatedCounter = useSelector(
         (state: RootState) => state.modelManager.modelInfoUpdatedCounter
     );
@@ -81,7 +83,6 @@ const ModelManager = () => {
 
     useEffect(() => {
         setupSocket();
-        reload_active_models_info();
         return () => {
             socket.off(WebAppEndpoint.ModelManager);
         };
@@ -97,14 +98,20 @@ const ModelManager = () => {
         }
     };
 
+    /** use this to avoid calling displayModel when this component has just been reloaded */
+    const firstRender = useRef(true);
     useEffect(() => {
         /** call this when model info is updated even when activeModel has not changed or when activeModel changed */
+        if (firstRender.current) {
+            firstRender.current = false;
+            return;
+        }
         displayModel();
-    }, [modelInfoUpdatedCounter, activeModel]);
+    }, [modelInfoUpdatedCounter]);
 
     useEffect(() => {
         reload_active_models_info();
-    }, [modelInfoReloadCounter]);
+    }, [modelInfoReloadCounter, activeModel]);
 
     return null;
 };
@@ -132,6 +139,13 @@ const ModelPanel = () => {
     const modelViewerCounter = useSelector(
         (state: RootState) => state.modelManager.modelViewerCounter
     );
+    
+    /** use this to avoid showing the model when this component has just been reloaded 
+     * instead wait until the modelInfo has been updated first */
+    const firstRender = useRef(true);
+    useEffect(() => {
+        firstRender.current = false;
+    }, []);
 
     const createModelViewerComponent = () => {
         const state = store.getState();
@@ -150,6 +164,7 @@ const ModelPanel = () => {
             return null;
         }
     };
+
     return (
         <Fragment>
             <ModelManager />
@@ -157,7 +172,7 @@ const ModelPanel = () => {
                 <ModelExplorer />
                 <ReloadButton />
             </ModelManagerToolbar>
-            {createModelViewerComponent()}
+            {!firstRender.current && createModelViewerComponent()}
         </Fragment>
     );
 };
