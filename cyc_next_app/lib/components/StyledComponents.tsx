@@ -92,7 +92,16 @@ export const MainPanel = styled.div`
 
 export const Sidebar = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
-    padding: 10px 0 759px;
+    padding: 0px 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 47px;
+`;
+
+export const AppToolbar = styled.div`
+    background-color: ${(props) => props.theme.palette.background.paper};
+    padding: 10px 0px 0px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -100,16 +109,17 @@ export const Sidebar = styled.div`
     height: 100%;
 `;
 
-export const SidebarList = styled.div`
+export const AppToolbarList = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
     padding: 0px 0px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    // height: 181px;
+    // height: 100px;
     width: 47px;
 `;
-export const SidebarListItem = styled.div`
+
+export const AppToolbarItem = styled.div`
     padding: 0px 0px;
     display: flex;
     align-items: center;
@@ -195,12 +205,8 @@ export const FileExplorerHeaderName = styled(Typography)`
 `;
 
 export const FileTree = styled(TreeView)`
-    padding: 0px 0px 0px 10px;
     max-width: 100%;
-    height: 80%;
-    .MuiTreeItem-group {
-        margin-left: 5px;
-    }
+    height: 100%;
 `;
 
 export const FileItem = styled(TreeItem)`
@@ -208,8 +214,11 @@ export const FileItem = styled(TreeItem)`
         font-size: 14px;
         line-height: 2em;
     }
+    .MuiTreeItem-group {
+        margin-left: 10px;
+    }
     .MuiTreeItem-content {
-        padding-left: 5px;
+        // margin-left: 5px;
     }
     color: ${(props) => props.theme.palette.text.secondary};
     width: 100%;
@@ -251,10 +260,11 @@ export const StyledCodePanel = styled.div`
 
 export const CodeToolbar = styled.div`
     display: flex;
-    --var-height: 40px;
+    --var-height: 30px;
     height: calc(var(--var-height));
     align-items: center;
     background-color: ${(props) => props.theme.palette.grey.A200};
+    overflow: auto;
 `;
 
 export const FileNameTabContainer = styled.div`
@@ -481,7 +491,7 @@ export const StyledRichOutputPanel = styled.div`
 export const DataToolbar = styled.div`
     display: flex;
     height: 45px;
-    padding: 5px 10px 0px 10px;
+    padding: 5px 10px 0px 20px;
     align-self: stretch;
 `;
 

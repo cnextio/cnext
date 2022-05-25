@@ -182,7 +182,10 @@ const ExperimentManager = (props: any) => {
                 if (!emResult.error) {
                     switch (emResult.command_name) {
                         case ExperimentManagerCommand.list_experiments:
-                            console.log("ExperimentView got list experiment: ", emResult.content);
+                            console.log(
+                                "ExperimentManager got list experiment: ",
+                                emResult.content
+                            );
                             let expDict = {};
                             for (let exp of emResult.content["experiments"]) {
                                 expDict[exp["_experiment_id"]] = exp;
@@ -191,7 +194,7 @@ const ExperimentManager = (props: any) => {
                             dispatch(setExpDict(expDict));
                             break;
                         case ExperimentManagerCommand.list_run_infos:
-                            console.log("ExperimentView got list run: ", emResult.content);
+                            console.log("ExperimentManager got list run: ", emResult.content);
                             let runDict = {};
                             let runningRunId;
                             for (let run of emResult.content["runs"]) {
@@ -206,7 +209,7 @@ const ExperimentManager = (props: any) => {
                             dispatch(setRunningRun(runningRunId));
                             break;
                         case ExperimentManagerCommand.get_metric_plots:
-                            console.log("ExperimentView got metric plots: ");
+                            console.log("ExperimentManager got metric plots: ");
                             // console.log('ExperimentView got metric plots: ', emResult.content);
                             setMetricPlot(emResult.content);
                             break;

@@ -1,6 +1,6 @@
 {
     "name": "cnext",
-    "version": "0.4.10",
+    "version": "0.4.13",
     "private": true,
     "scripts": {
         "dev": "next dev",
@@ -11,8 +11,12 @@
         "test": "jest config ./jest.config.js --watch"
     },
     "dependencies": {
+        "@auth0/auth0-react": "^1.10.1",
         "@codemirror/autocomplete": "^0.19.3",
+        "@codemirror/lang-javascript": "^0.19.2",
+        "@codemirror/lang-json": "^0.19.2",
         "@codemirror/lang-python": "^0.19.2",
+        "@codemirror/lang-sql": "^0.19.2",
         "@codemirror/language": "^0.19.3",
         "@codemirror/lint": "^0.19.2",
         "@codemirror/state": "^0.19.2",

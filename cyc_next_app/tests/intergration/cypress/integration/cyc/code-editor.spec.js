@@ -1,12 +1,8 @@
-import {
-    codeCheckConsole,
-    codeTestDF,
-} from '../data/code-text';
+import { codeCheckConsole, codeTestDF } from '../data/code-text';
 import { removeText, isMacOSPlatform } from './shared';
 const WAIT_500MLS = Cypress.env('wait_500mls');
 const WAIT_1S = Cypress.env('wait_1s');
 const WAIT_3S = Cypress.env('wait_3s');
-
 
 describe('Test Code Editor', () => {
     before(() => {
@@ -22,15 +18,15 @@ describe('Test Code Editor', () => {
         cy.wait(WAIT_1S);
     });
 
-    it('Check print console', () => {
-        cy.get('@editor').type(codeCheckConsole);
-        if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}l');
-        } else {
-            cy.get('@editor').type('{ctrl}l');
-        }
-        cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
-    });
+    // it('Check print console', () => {
+    //     cy.get('@editor').type(codeCheckConsole);
+    //     if (isMacOSPlatform()) {
+    //         cy.get('@editor').type('{command}l');
+    //     } else {
+    //         cy.get('@editor').type('{ctrl}l');
+    //     }
+    //     cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
+    // });
 
     it('Check autocompletion', () => {
         cy.get('@editor').type(codeTestDF);
@@ -57,7 +53,9 @@ describe('Test Code Editor', () => {
 
         // make sure have signature tooltip
         cy.get('@editor').type('p');
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('(');
+        cy.wait(WAIT_1S);
         cy.get('.cm-tooltip-signature').should('be.visible');
 
         cy.get('@editor').type('{esc}');
@@ -79,7 +77,30 @@ describe('Test Code Editor', () => {
         cy.get('@editor').type('{rightArrow}');
         cy.get('@editor').type('{enter}');
         cy.get('@editor').type('df.drop("');
+        cy.wait(WAIT_1S);
         cy.get('.cm-tooltip-autocomplete').should('be.visible');
+
+        cy.wait(WAIT_1S);
+        cy.get('@editor').type('{backspace}');
+        cy.get('@editor').type('labels,axis');
+        cy.get('.cm-activeLine').click(15, 0);
+        cy.get('.cm-tooltip-signature').should('not.exist');
+
+        cy.wait(WAIT_500MLS);
+        cy.get('.cm-activeLine').click();
+        cy.get('@editor').type('{backspace}');
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{backspace}');
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{backspace}');
+        cy.wait(WAIT_500MLS);
+        cy.get('@editor').type('{backspace}');
+        cy.get('.cm-tooltip-signature').should('be.visible');
+        cy.wait(WAIT_500MLS);
+
+        cy.get('.cm-activeLine').click(65, 0);
+        cy.wait(WAIT_500MLS);
+        cy.get('.cm-tooltip-signature').should('not.exist');
     });
 
     afterEach(() => {
