@@ -182,59 +182,72 @@ class MessageHandler(BaseMessageHandler):
         output = {'df_id': df_id, 'shape': shape, 'columns': columns}
         return output
 
+    def _process_error_message(self, ipython_message, client_message):
+        # log.error("Error %s" % (msg_ipython.content['traceback']))
+        if isinstance(ipython_message.content['traceback'], list):
+            content = '\n'.join(ipython_message.content['traceback'])
+        else:
+            content = ipython_message.content['traceback']
+        return self._create_error_message(
+            WebappEndpoint.DFManager, content, client_message.command_name, client_message.metadata)
+
     MAX_PLOTLY_SIZE = 1024*1024  # 1MB
 
-    def _create_return_message(self, ipython_message, stream_type, client_message, error=False):
-        result = self.get_execute_result(ipython_message)
-        if result is not None:
-            ipython_message = IpythonResultMessage(**ipython_message)
-            message = Message(**{'webapp_endpoint': WebappEndpoint.DFManager,
-                                 'command_name': client_message.command_name})
-            # Add header message from ipython to message metadata
-            if message.metadata == None:
-                message.metadata = {}
-            message.metadata.update(client_message.metadata)
-            message.metadata.update(dict((k, ipython_message.header[k])
-                                         for k in ('msg_id', 'msg_type', 'session')))
-            message.metadata.update({'stream_type': stream_type})
+    def _create_return_message(self, ipython_message, stream_type, client_message):
+        ipython_message = IpythonResultMessage(**ipython_message)
+        message = None
+        if self._is_error_message(ipython_message.header):
+            message = self._process_error_message(
+                ipython_message, client_message)
+        else:
+            result = self.get_execute_result(ipython_message)            
+            if result is not None:           
+                message = Message(**{'webapp_endpoint': WebappEndpoint.DFManager,
+                                    'command_name': client_message.command_name})
+                # Add header message from ipython to message metadata
+                if message.metadata == None:
+                    message.metadata = {}
+                message.metadata.update(client_message.metadata)
+                message.metadata.update(dict((k, ipython_message.header[k])
+                                            for k in ('msg_id', 'msg_type', 'session')))
+                message.metadata.update({'stream_type': stream_type})
 
-            if client_message.command_name == DFManagerCommand.plot_column_histogram:
-                if total_size(result) < MessageHandler.MAX_PLOTLY_SIZE:
+                if client_message.command_name == DFManagerCommand.plot_column_histogram:
+                    if total_size(result) < MessageHandler.MAX_PLOTLY_SIZE:
+                        message.content = result
+                        message.type = ContentType.RICH_OUTPUT
+                        message.sub_type = SubContentType.APPLICATION_PLOTLY
+                    else:
+                        message.content = "Warning: column histogram plot size is bigger than 1MB -> discard it"
+                        message.type = ContentType.STRING
+                        message.sub_type = SubContentType.NONE
+
+                elif client_message.command_name == DFManagerCommand.plot_column_quantile:
                     message.content = result
                     message.type = ContentType.RICH_OUTPUT
                     message.sub_type = SubContentType.APPLICATION_PLOTLY
-                else:
-                    message.content = "Warning: column histogram plot size is bigger than 1MB -> discard it"
-                    message.type = ContentType.STRING
+
+                elif client_message.command_name == DFManagerCommand.get_table_data:
+                    # log.info('DFManagerCommand.get_table_data: %s' % result)
+                    log.info('DFManagerCommand.get_table_data')
+                    message.content = result
+                    message.type = ContentType.PANDAS_DATAFRAME
                     message.sub_type = SubContentType.NONE
-                message.error = error
 
-            elif client_message.command_name == DFManagerCommand.plot_column_quantile:
-                message.content = result
-                message.type = ContentType.RICH_OUTPUT
-                message.sub_type = SubContentType.APPLICATION_PLOTLY
-                message.error = error
-
-            elif client_message.command_name == DFManagerCommand.get_table_data:
-                # log.info('DFManagerCommand.get_table_data: %s' % result)
-                log.info('DFManagerCommand.get_table_data')
-                message.content = result
-                message.type = ContentType.PANDAS_DATAFRAME
-                message.sub_type = SubContentType.NONE
-                message.error = error
-
-            elif client_message.command_name == DFManagerCommand.get_df_metadata:
-                log.info('DFManagerCommand.get_df_metadata: %s' % result)
-                message.content = result
-                message.type = ContentType.DICT
-                message.sub_type = SubContentType.NONE
-                message.error = error
-
-            return message
+                elif client_message.command_name == DFManagerCommand.get_df_metadata:
+                    log.info('DFManagerCommand.get_df_metadata: %s' % result)
+                    message.content = result
+                    message.type = ContentType.DICT
+                    message.sub_type = SubContentType.NONE
+                
+                message.error = False
+            
+        return message
 
     def message_handler_callback(self, ipython_message, stream_type, client_message):
         try:
             # if self.request_metadata is not None:
+            log.info('message_handler_callback: %s' % ipython_message)
             message = self._create_return_message(
                 ipython_message=ipython_message, stream_type=stream_type, client_message=client_message)
             if message != None:
