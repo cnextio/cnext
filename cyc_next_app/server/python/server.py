@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
     # Initialize sentry
     sentry_sdk.init(
-        "https://630900c4c134464195b97ebbd1cbf8bd@o1238555.ingest.sentry.io/6389587",
+        "https://318e8d1b2b0b43fbbbd38ea0426378b4@o1259763.ingest.sentry.io/6435268",
 
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
