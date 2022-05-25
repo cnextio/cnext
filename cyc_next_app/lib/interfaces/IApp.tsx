@@ -284,7 +284,9 @@ export interface IEditorShortcutKey {
 }
 
 export interface IAppShortcutKey {
-    suggestion_enable: string;
+    autocompletion_tooggle: string;
+    lint_tooggle: string;
+    hover_tooggle: string;
 }
 export interface IEditorConfigs {
     lint: boolean;

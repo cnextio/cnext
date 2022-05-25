@@ -20,7 +20,9 @@ const originalEditorShortcutKeys: IEditorShortcutKey = {
 };
 
 const originalAppShortcutKeys: IAppShortcutKey = {
-    suggestion_enable: 'shift + a',
+    autocompletion_tooggle: 'shift + a',
+    lint_tooggle: 'shift + l',
+    hover_tooggle: 'shift + h',
 };
 
 const codeEditorConfigs: IEditorConfigs = {
