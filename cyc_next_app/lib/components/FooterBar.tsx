@@ -1,17 +1,73 @@
-import React from "react";
-import { FooterNavigation, FooterItem, FotterItemText } from "./StyledComponents";
+import React, { useEffect, useState } from 'react';
+import { FooterNavigation, FooterItem, FotterItemText } from './StyledComponents';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { setProjectConfig } from '../../redux/reducers/ProjectManagerRedux';
 
 const FooterBarComponent = () => {
+    const [config, setConfig] = useState({ lint: false, hover: false, autocompletion: false });
+
+    const rootConfig = useSelector(
+        (rootState: RootState) => rootState.projectManager.configs.code_editor
+    );
+    const dispatch = useDispatch();
+
+    const procressChange = (type: string) => {
+        let updateObj = { ...config };
+        switch (type) {
+            case 'hover':
+                updateObj = { ...config, hover: config.hover ? false : true };
+                break;
+            case 'lint':
+                updateObj = { ...config, lint: config.lint ? false : true };
+                break;
+            case 'autocompletion':
+                updateObj = { ...config, autocompletion: config.autocompletion ? false : true };
+                break;
+
+            default:
+        }
+
+        dispatch(
+            setProjectConfig({
+                code_editor: {
+                    ...updateObj,
+                },
+            })
+        );
+    };
+
+    useEffect(() => {
+        setConfig({ ...rootConfig });
+    }, [rootConfig]);
+
     return (
         <FooterNavigation>
             <FooterItem>
-                <FotterItemText>
-                    Code AutoCompletion: ON
+                <FotterItemText
+                    onClick={() => {
+                        procressChange('autocompletion');
+                    }}
+                >
+                    Code AutoCompletion: {config.autocompletion ? 'ON' : 'OFF'}
                 </FotterItemText>
             </FooterItem>
             <FooterItem>
-                <FotterItemText>
-                    Lint: ON
+                <FotterItemText
+                    onClick={() => {
+                        procressChange('lint');
+                    }}
+                >
+                    Lint: {config.lint ? 'ON' : 'OFF'}
+                </FotterItemText>
+            </FooterItem>
+            <FooterItem>
+                <FotterItemText
+                    onClick={() => {
+                        procressChange('hover');
+                    }}
+                >
+                    Hover: {config.hover ? 'ON' : 'OFF'}
                 </FotterItemText>
             </FooterItem>
         </FooterNavigation>
