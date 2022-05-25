@@ -179,7 +179,7 @@ const FileExplorer = (props: any) => {
      * @param clickedItem
      * @param parentItem
      */
-    const handleItemContextMenu = (
+    const openContextMenu = (
         event: React.MouseEvent,
         clickedItem: string,
         parentItem: string,
@@ -208,7 +208,7 @@ const FileExplorer = (props: any) => {
         });
     };
 
-    const handleContextMenuSelection = (item: FileContextMenuItem) => {
+    const selectContextMenuItem = (item: FileContextMenuItem) => {
         switch (item) {
             case FileContextMenuItem.NEW_FILE:
                 if (contextMenuItems) {
@@ -237,7 +237,7 @@ const FileExplorer = (props: any) => {
         setContextMenuPos(null);
     };
 
-    const handleContextMenuClose = () => {
+    const closeContextMenu = () => {
         setContextMenuPos(null);
     };
 
@@ -302,11 +302,11 @@ const FileExplorer = (props: any) => {
                                 <FileItem
                                     nodeId={value.path}
                                     label={value.name}
-                                    onDoubleClick={() => {
+                                    onClick={() => {
                                         value.is_file ? dispatch(setFileToOpen(value.path)) : null;
                                     }}
                                     onContextMenu={(event: React.MouseEvent) => {
-                                        handleItemContextMenu(
+                                        openContextMenu(
                                             event,
                                             value.path,
                                             path,
@@ -396,8 +396,8 @@ const FileExplorer = (props: any) => {
             ) : null}
             <FileContextMenu
                 contextMenuPos={contextMenuPos}
-                handleClose={handleContextMenuClose}
-                handleSelection={handleContextMenuSelection}
+                handleClose={closeContextMenu}
+                handleSelection={selectContextMenuItem}
                 contextMenuItem={contextMenuItems}
             />
             {deleteDialog && contextMenuItems?.item != null && (

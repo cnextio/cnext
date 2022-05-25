@@ -1,6 +1,6 @@
 //using a customized version of autocomplete instead of @codemirror/autocomplete
 import { autocompletion } from './autocomplete';
-import { hoverTooltip } from '@codemirror/tooltip';
+import { hoverTooltip } from '../tooltip';
 import { ViewPlugin } from '@codemirror/view';
 import LanguageServerPlugin from './ls-plugin';
 import DFFilterPlugin from './df-plugin';
@@ -8,9 +8,11 @@ import { rootUri, documentUri, languageId, serverUri } from './source';
 import { CompletionTriggerKind } from 'vscode-languageserver-protocol';
 import { signatureTooltip } from './signature';
 import { baseTheme } from './theme';
+import store from '../../../redux/store';
 
 function languageServer(options) {
     let plugin = null;
+    let config = () => store.getState().projectManager.configs.code_editor;
     return [
         serverUri.of(options.serverUri),
         rootUri.of(options.rootUri),
@@ -18,6 +20,8 @@ function languageServer(options) {
         languageId.of(options.languageId),
         ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view))),
         signatureTooltip(async (view, pos) => {
+            if (!config().autocompletion) return null;
+
             var _a;
             return (_a =
                 plugin === null || plugin === void 0
@@ -27,35 +31,40 @@ function languageServer(options) {
                 ? _a
                 : null;
         }),
-        // hoverTooltip(
-        //     (view, pos) => {
-        //         var _a;
-        //         return (_a =
-        //             plugin === null || plugin === void 0
-        //                 ? void 0
-        //                 : plugin.requestHoverTooltip(view, offsetToPos(view.state.doc, pos))) !==
-        //             null && _a !== void 0
-        //             ? _a
-        //             : null;
-        //     },
-        //     { hoverTime: 1000 }
-        // ),
+        hoverTooltip(
+            (view, pos) => {
+                if (!config().hover) return null;
+
+                var _a;
+                return (_a =
+                    plugin === null || plugin === void 0
+                        ? void 0
+                        : plugin.requestHoverTooltip(view, offsetToPos(view.state.doc, pos))) !==
+                    null && _a !== void 0
+                    ? _a
+                    : null;
+            },
+            { hoverTime: 1000 }
+        ),
         autocompletion({
             override: [
                 async (context) => {
-                    if (plugin == null) return null;
-                    const { state, pos, explicit } = context;
-                    const line = state.doc.lineAt(pos);
-                    let [trigKind, trigChar] = getTrigger(plugin, line, explicit);
+                    if (!config().autocompletion) return null;
 
-                    return await plugin.requestCompletion_CodeEditor(
-                        context,
-                        offsetToPos(state.doc, pos),
-                        {
-                            triggerKind: trigKind,
-                            triggerCharacter: trigChar,
-                        }
-                    );
+                    if (plugin != null) {
+                        const { state, pos, explicit } = context;
+                        const line = state.doc.lineAt(pos);
+                        let [trigKind, trigChar] = getTrigger(plugin, line, explicit);
+
+                        return await plugin.requestCompletion_CodeEditor(
+                            context,
+                            offsetToPos(state.doc, pos),
+                            {
+                                triggerKind: trigKind,
+                                triggerCharacter: trigChar,
+                            }
+                        );
+                    }
                 },
             ],
         }),

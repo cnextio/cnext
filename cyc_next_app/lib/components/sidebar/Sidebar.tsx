@@ -8,14 +8,15 @@ import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
 import AddIcon from "@mui/icons-material/Add";
 
 import {
-    Sidebar,
-    SidebarList,
-    SidebarListItem,
+    AppToolbar,
+    AppToolbarList,
+    AppToolbarItem as StyledAppToolbarItem,
     SidebarButton as StyledSidebarButton,
     SideBarDividerContainer,
     MainContainerDivider,
+    Sidebar,
 } from "../StyledComponents";
-import LogoComponent from "../Logo";
+import Logo from "./Logo";
 import { useDispatch } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
 import {
@@ -32,10 +33,11 @@ import { restartKernel, interruptKernel } from "../kernel-manager/KernelManager"
 import KernelInterruptConfirmation from "../kernel-manager/KernelInterruptConfirmation";
 import KernelRestartComfirmation from "../kernel-manager/KernelRestartConfirmation";
 import AddProjectConfirmation from "../file-manager/AddProjectConfirmation";
+import Account from "../user-manager/Account";
 
-const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
+const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
-        <SidebarListItem key={icon.name} selected={selectedIcon === icon.name}>
+        <StyledAppToolbarItem key={icon.name} selected={selectedIcon === icon.name}>
             <Tooltip title={icon.tooltip} placement='right-end'>
                 <StyledSidebarButton
                     id={"sidebar_" + icon.name}
@@ -44,7 +46,7 @@ const SidebarItem = ({ icon, selectedIcon, handleClick }) => {
                     {icon.component}
                 </StyledSidebarButton>
             </Tooltip>
-        </SidebarListItem>
+        </StyledAppToolbarItem>
     );
 };
 
@@ -170,43 +172,44 @@ const MiniSidebar = () => {
 
     return (
         <Fragment>
-            <Box>
-                <LogoComponent />
-                <Sidebar variant='permanent'>
-                    <SidebarList>
+            <Sidebar>
+                <Logo />
+                <AppToolbar variant='permanent'>
+                    <AppToolbarList>
                         {projectManagerIconList.map((icon, index) => (
-                            <SidebarItem
+                            <AppToolbarItem
                                 key={index}
                                 icon={icon}
                                 selectedIcon={selectedIcon}
                                 handleClick={handleClick}
                             />
                         ))}
-                    </SidebarList>
+                    </AppToolbarList>
                     <SideBarDivider />
-                    <SidebarList>
+                    <AppToolbarList>
                         {layoutManagerIconList.map((icon, index) => (
-                            <SidebarItem
+                            <AppToolbarItem
                                 key={index}
                                 icon={icon}
                                 selectedIcon={selectedIcon}
                                 handleClick={handleClick}
                             />
                         ))}
-                    </SidebarList>
+                    </AppToolbarList>
                     <SideBarDivider />
-                    <SidebarList>
+                    <AppToolbarList>
                         {executorManagerIconList.map((icon, index) => (
-                            <SidebarItem
+                            <AppToolbarItem
                                 key={index}
                                 selectedIcon={selectedIcon}
                                 icon={icon}
                                 handleClick={handleClick}
                             />
                         ))}
-                    </SidebarList>
-                </Sidebar>
-            </Box>
+                    </AppToolbarList>
+                </AppToolbar>
+                <Account />
+            </Sidebar>
             <MainContainerDivider orientation='vertical' />
             <KernelInterruptConfirmation
                 openDialog={openKernelInterruptDialog}

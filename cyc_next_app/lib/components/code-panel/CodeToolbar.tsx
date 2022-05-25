@@ -96,7 +96,7 @@ const CodeToolbar = () => {
                     }}
                 >
                     {name}
-                    {id === executorID && <ExecutorIcon />}
+                    {/* {id === executorID && <ExecutorIcon />} */}
                     <FileNameTabContainer>
                         <FileCloseIcon
                             style={

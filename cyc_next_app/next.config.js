@@ -28,5 +28,3 @@ moduleExports = {
         ignoreBuildErrors: true,
     },
 };
-
-module.exports = withSentryConfig(moduleExports, sentryWebpackPluginOptions);

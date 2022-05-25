@@ -1,12 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { IModelInfo, IModelViewerInfo } from "../../lib/interfaces/IModelManager";
+import { IModelInfo, IModelViewerInfo, NetronStatus } from "../../lib/interfaces/IModelManager";
 
 export type ModelManagerState = {
     modelInfo: { [id: string]: IModelInfo };
     activeModel: string | null;
     modelViewerInfo: IModelViewerInfo|null; 
+    /** this is used to request ModelViewer to display the model */
     modelViewerCounter: number;
-    reloadCounter: number;
+    /** this is used to trigger a reload of model information */
+    modelInfoReloadCounter: number;
+    /** this is used to request new model display from the server */
+    modelInfoUpdatedCounter: number;
 };
 
 const initialState: ModelManagerState = {
@@ -14,7 +18,8 @@ const initialState: ModelManagerState = {
     activeModel: null,
     modelViewerInfo: null,
     modelViewerCounter: 0,
-    reloadCounter: 0,
+    modelInfoReloadCounter: 0,
+    modelInfoUpdatedCounter: 0
 };
 
 export const modelManagerSlice = createSlice({
@@ -29,6 +34,7 @@ export const modelManagerSlice = createSlice({
                 if (state.activeModel == null || !modelNameList.includes(state.activeModel)) {
                     state.activeModel = modelNameList[0];
                 }
+                state.modelInfoUpdatedCounter++;
             } else {
                 state.activeModel = null;
             }
@@ -50,7 +56,7 @@ export const modelManagerSlice = createSlice({
         },
 
         setReload: (state, action) => {
-            state.reloadCounter += 1;
+            state.modelInfoReloadCounter += 1;
         }
     },
 });

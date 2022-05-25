@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { IMessage, WebAppEndpoint, ContentType, CommandName } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
@@ -8,9 +8,11 @@ import { basicSetup } from "../../codemirror/basic-setup";
 import { bracketMatching } from "@codemirror/matchbrackets";
 import { defaultHighlightStyle } from "@codemirror/highlight";
 import { python } from "../../codemirror/grammar/lang-cnext-python";
-import { keymap, ViewUpdate } from "@codemirror/view";
+import { sql } from "@codemirror/lang-sql";
+import { json } from "@codemirror/lang-json";
+import { EditorView, keymap, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { completionKeymap } from "../../codemirror/autocomplete-lsp/autocomplete";
-import { indentUnit } from "@codemirror/language";
+import { indentUnit, LanguageSupport } from "@codemirror/language";
 import { lineNumbers } from "@codemirror/gutter";
 import { StyledCodeEditor } from "../StyledComponents";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
@@ -40,7 +42,7 @@ import {
     ICodeActiveLine,
     ICodeToInsert,
 } from "../../interfaces/ICodeEditor";
-import { EditorState, Transaction, TransactionSpec } from "@codemirror/state";
+import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import {
     ICodeGenResult,
@@ -65,7 +67,7 @@ import {
     getLineRangeOfGroup,
     getNonGeneratedLinesInRange,
     isPromise,
-    resetEditorState,
+    // resetEditorState,
     scrollToPrevPos,
     setFlashingEffect,
     setGenLineDeco,
@@ -77,7 +79,7 @@ import {
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
 
-const ls = languageServer({
+const pyLanguageServer = languageServer({
     serverUri: "ws://localhost:3001/python",
     rootUri: "file:///",
     documentUri: "file:///",
@@ -117,15 +119,13 @@ const CodeEditor = () => {
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
-    const extensions = [
+
+    const defaultExtensions = [
         basicSetup,
         lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
-        cAssistExtraOptsPlugin.extension,
         bracketMatching(),
         defaultHighlightStyle.fallback,
-        python(),
-        ls,
         keymap.of([
             { key: shortcutKeysConfig.run_queue, run: setRunQueue },
             { key: shortcutKeysConfig.set_group, run: setGroup },
@@ -135,14 +135,36 @@ const CodeEditor = () => {
         indentUnit.of("    "),
     ];
 
+    const getLangExtenstions = (inViewID: string | null) => {
+        if (inViewID == null) return [];
+        const nameSplit = inViewID.split(".");
+        const fileExt = nameSplit[nameSplit.length - 1];
+        const fileLangExtensions: { [name: string]: Extension[] } = {
+            py: [python(), pyLanguageServer, cAssistExtraOptsPlugin.extension],
+            sql: [sql()],
+            json: [json()],
+        };
+        return fileLangExtensions[fileExt];
+    };
+
+    const [langExtensions, setLangExtensions] = useState(getLangExtenstions(inViewID));
+
     const { view, container, setContainer } = useCodeMirror({
         basicSetup: false,
         container: editorRef.current,
-        extensions: extensions,
+        extensions: [...defaultExtensions, ...langExtensions],
         height: "100%",
         theme: "light",
         onChange: onCodeMirrorChange,
     });
+
+    const resetEditorState = (inViewID: string, view: EditorView | undefined) => {
+        if (view != null) {
+            let fileLangExtensions = getLangExtenstions(inViewID);
+            setLangExtensions(fileLangExtensions);
+            view.setState(EditorState.create({ doc: "" }));
+        }
+    };
 
     // function getCodeLineStatus(state: RootState) {
     //     let inViewID = state.projectManager.inViewID;
@@ -234,10 +256,11 @@ const CodeEditor = () => {
      * */
     useEffect(() => {
         console.log("CodeEditor useEffect inViewID ", inViewID);
-        if (inViewID) {
-            resetEditorState(view, extensions);
+        if (inViewID != null) {
+            resetEditorState(inViewID, view);
             setCodeReloading(true);
         }
+        setLangExtensions(getLangExtenstions(inViewID));
     }, [inViewID]);
 
     /**
@@ -246,7 +269,7 @@ const CodeEditor = () => {
      */
     useEffect(() => {
         console.log(
-            "CodeEditor useEffect serverSynced, mustReload, view",
+            "CodeEditor useEffect serverSynced, codeReloading, view",
             serverSynced,
             codeReloading,
             view
@@ -285,11 +308,22 @@ const CodeEditor = () => {
     }, [cAssistInfo]);
 
     useEffect(() => {
-        console.log("CodeEditor useEffect editorRef.current ", editorRef.current);
-        if (editorRef.current) {
-            setContainer(editorRef.current);
+        console.log(
+            "CodeEditor useEffect editorRef.current inViewID container",
+            editorRef.current,
+            inViewID,
+            container
+        );
+        if (editorRef.current != null) {
+            if (inViewID != null) {
+                if (container == null) {
+                    setContainer(editorRef.current);
+                }
+            } else {
+                setContainer(null);
+            }
         }
-    }, [editorRef.current]);
+    }, [inViewID, editorRef.current]);
 
     useEffect(() => {
         if (runQueue.status !== RunQueueStatus.STOP) {
@@ -341,7 +375,8 @@ const CodeEditor = () => {
     function setRunQueue(): boolean {
         const executorID = store.getState().projectManager.executorID;
         let inViewID = store.getState().projectManager.inViewID;
-        if (view && inViewID === executorID) {
+        // if (view && inViewID === executorID) {
+        if (view) {
             const doc = view.state.doc;
             const state = view.state;
             const anchor = state.selection.ranges[0].anchor;
@@ -578,7 +613,7 @@ const CodeEditor = () => {
                         updatedStartLineNumber: changeStartLineNumber,
                         updatedLineCount: updatedLineCount,
                         startLineChanged: true,
-                            // changeStartLine.text != inViewCodeText[changeStartLineNumber],
+                        // changeStartLine.text != inViewCodeText[changeStartLineNumber],
                     };
                     dispatch(updateLines(updatedLineInfo));
                 }

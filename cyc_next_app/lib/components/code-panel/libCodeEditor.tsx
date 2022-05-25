@@ -1,9 +1,15 @@
-import { lineNumbers, gutter, GutterMarker } from "@codemirror/gutter";
-import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
+import { gutter, GutterMarker } from "@codemirror/gutter";
+import { StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import { setActiveLine } from "../../../redux/reducers/CodeEditorRedux";
 import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
-import { ICodeActiveLine, ICodeLine, ILineRange, IRunningCommandContent, IRunQueue, LineStatus } from "../../interfaces/ICodeEditor";
+import {
+    ICodeActiveLine,
+    ICodeLine,
+    ILineRange,
+    IRunningCommandContent,
+    LineStatus,
+} from "../../interfaces/ICodeEditor";
 import { ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
 import { python } from "../../codemirror/grammar/lang-cnext-python";
@@ -11,72 +17,76 @@ import store from "../../../redux/store";
 import { RootState } from "../../../redux/store";
 
 const markerDiv = () => {
-    let statusDiv = document.createElement('div');
-    statusDiv.style.width = '2px';
-    statusDiv.style.height = '100%';        
+    let statusDiv = document.createElement("div");
+    statusDiv.style.width = "2px";
+    statusDiv.style.height = "100%";
     return statusDiv;
-}
+};
 
-const executedColor = '#42a5f5';
-const editedMarker = new class extends GutterMarker {
-    toDOM() { 
+const executedColor = "#42a5f5";
+const editedMarker = new (class extends GutterMarker {
+    toDOM() {
         return markerDiv();
     }
-}
+})();
 
-const executingMarker = new class extends GutterMarker {
-    toDOM() { 
+const executingMarker = new (class extends GutterMarker {
+    toDOM() {
         let statusDiv = markerDiv();
-        statusDiv.animate([
-            {backgroundColor: ''},
-            {backgroundColor: executedColor, offset: 0.5}], 
-            {duration: 2000, iterations: Infinity});
+        statusDiv.animate(
+            [{ backgroundColor: "" }, { backgroundColor: executedColor, offset: 0.5 }],
+            { duration: 2000, iterations: Infinity }
+        );
         return statusDiv;
     }
-}
+})();
 
-const executedMarker = new class extends GutterMarker {
-    toDOM() { 
+const executedMarker = new (class extends GutterMarker {
+    toDOM() {
         let statusDiv = markerDiv();
         statusDiv.style.backgroundColor = executedColor;
         return statusDiv;
     }
-}
+})();
 
-const getCodeLine = (state: RootState): (ICodeLine[]|null) => {
+const getCodeLine = (state: RootState): ICodeLine[] | null => {
     let inViewID = state.projectManager.inViewID;
     if (inViewID) {
         return ifElse(state.codeEditor.codeLines, inViewID, null);
     }
     return null;
-}
+};
 
-/** 
- * This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror 
- * intenal, we can't dictate when it will be called. To cope with this, we have to check the object existence carefully 
- * and rely on useEffect to force this to be called again when `codeLines` updated 
-*/ 
-const editStatusGutter = (inViewID: string|null, lines: ICodeLine[]|null) => gutter({
-    lineMarker(view, line) {
-        // let inViewID = store.getState().projectManager.inViewID;
-        if (inViewID) {
-            // let lines = getCodeLine(store.getState());
-            // line.number in state.doc is 1 based, so convert to 0 base
-            let lineNumber = view.state.doc.lineAt(line.from).number-1;
-            // console.log(lines.length);
-            if(lines && lineNumber<lines.length){       
-                // console.log("editStatusGutter: ", lineNumber, lines[lineNumber].status);                         
-                switch(lines[lineNumber].status){
-                    case LineStatus.EDITED: return editedMarker;
-                    case LineStatus.EXECUTING: return executingMarker;
-                    case LineStatus.EXECUTED: return executedMarker;
+/**
+ * This function should only be called after `codeLines` has been updated. However because this is controlled by CodeMirror
+ * intenal, we can't dictate when it will be called. To cope with this, we have to check the object existence carefully
+ * and rely on useEffect to force this to be called again when `codeLines` updated
+ */
+const editStatusGutter = (inViewID: string | null, lines: ICodeLine[] | null) =>
+    gutter({
+        lineMarker(view, line) {
+            // let inViewID = store.getState().projectManager.inViewID;
+            if (inViewID) {
+                // let lines = getCodeLine(store.getState());
+                // line.number in state.doc is 1 based, so convert to 0 base
+                let lineNumber = view.state.doc.lineAt(line.from).number - 1;
+                // console.log(lines.length);
+                if (lines && lineNumber < lines.length) {
+                    // console.log("editStatusGutter: ", lineNumber, lines[lineNumber].status);
+                    switch (lines[lineNumber].status) {
+                        case LineStatus.EDITED:
+                            return editedMarker;
+                        case LineStatus.EXECUTING:
+                            return executingMarker;
+                        case LineStatus.EXECUTED:
+                            return executedMarker;
+                    }
                 }
             }
-        }
-        return null;
-    },
-    initialSpacer: () => executedMarker
-})
+            return null;
+        },
+        initialSpacer: () => executedMarker,
+    });
 
 const getCodeText = (state: RootState) => {
     // let state = store.getState();
@@ -94,16 +104,15 @@ const getJoinedCodeText = (state: RootState) => {
 };
 
 const scrollToPrevPos = (state) => {
-    let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;
+    let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
     let inViewID = state.projectManager.inViewID;
-    if(inViewID){
+    if (inViewID) {
         let openFile = state.projectManager.openFiles[inViewID];
-        if (openFile && openFile.scroll_pos){
+        if (openFile && openFile.scroll_pos) {
             scrollEl.scrollTop = openFile.scroll_pos;
         }
     }
-    
-}
+};
 
 const setViewCodeText = (state, view) => {
     console.log("CodeEditor setViewCodeText");
@@ -111,181 +120,200 @@ const setViewCodeText = (state, view) => {
     if (view) {
         let transactionSpec: TransactionSpec = {
             changes: {
-                from: 0, 
-                to: 0, 
-                insert: codeText
-            }
-        };                
+                from: 0,
+                to: 0,
+                insert: codeText,
+            },
+        };
         let transaction: Transaction = view.state.update(transactionSpec);
-        view.dispatch(transaction);                                 
+        view.dispatch(transaction);
     }
-}
-
-const resetEditorState = (view, extensions) => {
-    if(view)
-        view.setState(EditorState.create({doc: '', extensions: extensions}));
-}
+};
 
 enum GenLineEffectType {
     FLASHING,
-    SOLID
-};
+    SOLID,
+}
 
-const genLineFlashCSS = Decoration.line({attributes: {class: "cm-genline-flash"}});
+const genLineFlashCSS = Decoration.line({ attributes: { class: "cm-genline-flash" } });
 
-const genLineSolidCSS = Decoration.line({attributes: {class: "cm-genline-solid"}});
+const genLineSolidCSS = Decoration.line({ attributes: { class: "cm-genline-solid" } });
 
 /** Implement the decoration for magic generated code lines */
-/** 
+/**
  * Implement the flashing effect after line is inserted.
- * This function also reset magicInfo after the animation completes. 
+ * This function also reset magicInfo after the animation completes.
  * */
 const setFlashingEffect = (reduxState: RootState, view: EditorView, cAssistInfo: ICAssistInfo) => {
-    console.log('CodeEditor cAssist _setFlashingEffect', cAssistInfo, view);    
-    if(cAssistInfo && view){
-        view.dispatch({effects: [StateEffect.appendConfig.of([genLineDeco(reduxState, view)])]});
-        view.dispatch({effects: [GenLineStateEffect.of({
-            lineInfo: cAssistInfo.insertedLinesInfo, 
-            type: GenLineEffectType.FLASHING})]});             
-    }        
-}
+    console.log("CodeEditor cAssist _setFlashingEffect", cAssistInfo, view);
+    if (cAssistInfo && view) {
+        view.dispatch({ effects: [StateEffect.appendConfig.of([genLineDeco(reduxState, view)])] });
+        view.dispatch({
+            effects: [
+                GenLineStateEffect.of({
+                    lineInfo: cAssistInfo.insertedLinesInfo,
+                    type: GenLineEffectType.FLASHING,
+                }),
+            ],
+        });
+    }
+};
 
 /** note that this lineNumber is 1-based */
-const GenLineStateEffect = StateEffect.define<{lineInfo?: IInsertLinesInfo, type: GenLineEffectType}>()
-const genLineDeco = (reduxState: RootState, view: EditorView) => StateField.define<DecorationSet>({
-    create() {
-        return Decoration.none;
-    },
-    update(lineBackgrounds, tr) {
-        lineBackgrounds = lineBackgrounds.map(tr.changes)
-        if (view){                                           
-            for (let effect of tr.effects) {
-                if (effect.is(GenLineStateEffect)) {
-                    // console.log('Magic generatedCodeDeco update ', effect.value.type);     
-                    if (effect.value.type === GenLineEffectType.FLASHING) {
-                        if (effect.value.lineInfo !== undefined){
-                            let lineInfo = effect.value.lineInfo;
-                            for (let i=lineInfo.fromLine; i<lineInfo.toLine; i++){
-                                /** convert line number to 1-based */
-                                let line = view.state.doc.line(i+1);
-                                // console.log('Magics line from: ', line, line.from);
-                                lineBackgrounds = lineBackgrounds.update({
-                                    add: [genLineFlashCSS.range(line.from)]
-                                })
-                                // console.log('Magic _setFlashingEffect generatedCodeDeco update ', line.from);                         
-                            }                            
-                        }                        
-                    } else { /** effect.value.type is SOLID */
-                        let inViewID = reduxState.projectManager.inViewID;
-                        if (inViewID) {
-                            let lines: ICodeLine[]|null = getCodeLine(reduxState);
-                            if (lines) {
-                                for (let l=0; l < lines.length; l++){
-                                    if (lines[l].generated === true){
-                                        console.log('CodeEditor Magic generatedCodeDeco ', effect.value.type);     
-                                        let line = view.state.doc.line(l+1);
-                                        lineBackgrounds = lineBackgrounds.update({
-                                            add: [genLineSolidCSS.range(line.from)]
-                                        })
-                                    }                            
+const GenLineStateEffect = StateEffect.define<{
+    lineInfo?: IInsertLinesInfo;
+    type: GenLineEffectType;
+}>();
+const genLineDeco = (reduxState: RootState, view: EditorView) =>
+    StateField.define<DecorationSet>({
+        create() {
+            return Decoration.none;
+        },
+        update(lineBackgrounds, tr) {
+            lineBackgrounds = lineBackgrounds.map(tr.changes);
+            if (view) {
+                for (let effect of tr.effects) {
+                    if (effect.is(GenLineStateEffect)) {
+                        // console.log('Magic generatedCodeDeco update ', effect.value.type);
+                        if (effect.value.type === GenLineEffectType.FLASHING) {
+                            if (effect.value.lineInfo !== undefined) {
+                                let lineInfo = effect.value.lineInfo;
+                                for (let i = lineInfo.fromLine; i < lineInfo.toLine; i++) {
+                                    /** convert line number to 1-based */
+                                    let line = view.state.doc.line(i + 1);
+                                    // console.log('Magics line from: ', line, line.from);
+                                    lineBackgrounds = lineBackgrounds.update({
+                                        add: [genLineFlashCSS.range(line.from)],
+                                    });
+                                    // console.log('Magic _setFlashingEffect generatedCodeDeco update ', line.from);
                                 }
                             }
-                        }    
-                    }
-                }
-            }                       
-        }
-        return lineBackgrounds;
-    },
-    provide: f => EditorView.decorations.from(f)
-});
-
-const setGenLineDeco = (reduxState: RootState, view: EditorView|undefined) => {
-    if (view) {
-        // console.log('CodeEditor set gencode solid')
-        view.dispatch({effects: [StateEffect.appendConfig.of([genLineDeco(reduxState, view)])]});
-        view.dispatch({effects: [GenLineStateEffect.of({type: GenLineEffectType.SOLID})]});             
-    }
-}
-
-const groupedLinesCSS = Decoration.line({attributes: {class: "cm-groupedline"}});
-const GroupedLineStateEffect = StateEffect.define<{}>()
-const groupedLineDeco = (reduxState, view: EditorView) => StateField.define<DecorationSet>({
-    create() {
-        return Decoration.none;
-    },
-    update(lineBackgrounds, tr) {
-        if (view){                               
-            lineBackgrounds = lineBackgrounds.map(tr.changes)
-            for (let effect of tr.effects) {
-                if (effect.is(GroupedLineStateEffect)) {
-                    // console.log('Magic generatedCodeDeco update ', effect.value.type);     
-                    let inViewID = reduxState.projectManager.inViewID;
-                    if (inViewID) {
-                        let lines: ICodeLine[]|null = getCodeLine(reduxState);
-                        if (lines) {
-                            for (let ln=0; ln < lines.length; ln++){
-                                if (lines[ln].groupID && !lines[ln].generated){
-                                    // console.log('CodeEditor grouped line deco');
-                                    /** convert to 1-based */     
-                                    let line = view.state.doc.line(ln+1);
-                                    lineBackgrounds = lineBackgrounds.update({
-                                        add: [groupedLinesCSS.range(line.from)]
-                                    })
-                                }                            
+                        } else {
+                            /** effect.value.type is SOLID */
+                            let inViewID = reduxState.projectManager.inViewID;
+                            if (inViewID) {
+                                let lines: ICodeLine[] | null = getCodeLine(reduxState);
+                                if (lines) {
+                                    for (let l = 0; l < lines.length; l++) {
+                                        if (lines[l].generated === true) {
+                                            console.log(
+                                                "CodeEditor Magic generatedCodeDeco ",
+                                                effect.value.type
+                                            );
+                                            let line = view.state.doc.line(l + 1);
+                                            lineBackgrounds = lineBackgrounds.update({
+                                                add: [genLineSolidCSS.range(line.from)],
+                                            });
+                                        }
+                                    }
+                                }
                             }
                         }
-                    }    
+                    }
                 }
-            }           
-            return lineBackgrounds
-        }
-    },
-    provide: f => EditorView.decorations.from(f)
-});
-const setGroupedLineDeco = (reduxState, view: EditorView|undefined) => {
+            }
+            return lineBackgrounds;
+        },
+        provide: (f) => EditorView.decorations.from(f),
+    });
+
+const setGenLineDeco = (reduxState: RootState, view: EditorView | undefined) => {
     if (view) {
         // console.log('CodeEditor set gencode solid')
-        view.dispatch({effects: [StateEffect.appendConfig.of([groupedLineDeco(reduxState, view)])]});
-        view.dispatch({effects: [GroupedLineStateEffect.of({})]});             
+        view.dispatch({ effects: [StateEffect.appendConfig.of([genLineDeco(reduxState, view)])] });
+        view.dispatch({ effects: [GenLineStateEffect.of({ type: GenLineEffectType.SOLID })] });
     }
-}
+};
+
+const groupedLinesCSS = Decoration.line({ attributes: { class: "cm-groupedline" } });
+const GroupedLineStateEffect = StateEffect.define<{}>();
+const groupedLineDeco = (reduxState, view: EditorView) =>
+    StateField.define<DecorationSet>({
+        create() {
+            return Decoration.none;
+        },
+        update(lineBackgrounds, tr) {
+            if (view) {
+                lineBackgrounds = lineBackgrounds.map(tr.changes);
+                for (let effect of tr.effects) {
+                    if (effect.is(GroupedLineStateEffect)) {
+                        // console.log('Magic generatedCodeDeco update ', effect.value.type);
+                        let inViewID = reduxState.projectManager.inViewID;
+                        if (inViewID) {
+                            let lines: ICodeLine[] | null = getCodeLine(reduxState);
+                            if (lines) {
+                                for (let ln = 0; ln < lines.length; ln++) {
+                                    if (lines[ln].groupID && !lines[ln].generated) {
+                                        // console.log('CodeEditor grouped line deco');
+                                        /** convert to 1-based */
+                                        let line = view.state.doc.line(ln + 1);
+                                        lineBackgrounds = lineBackgrounds.update({
+                                            add: [groupedLinesCSS.range(line.from)],
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return lineBackgrounds;
+            }
+        },
+        provide: (f) => EditorView.decorations.from(f),
+    });
+const setGroupedLineDeco = (reduxState, view: EditorView | undefined) => {
+    if (view != null) {
+        // console.log('CodeEditor set gencode solid')
+        view.dispatch({
+            effects: [StateEffect.appendConfig.of([groupedLineDeco(reduxState, view)])],
+        });
+        view.dispatch({ effects: [GroupedLineStateEffect.of({})] });
+    }
+};
 
 /**
-     * Get the line range of the group that contains lineNumber
-     * @param lineNumber 
-     * @returns line range which is from fromLine to toLine excluding toLine
-     */
- const getLineRangeOfGroup = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
+ * Get the line range of the group that contains lineNumber
+ * @param lineNumber
+ * @returns line range which is from fromLine to toLine excluding toLine
+ */
+const getLineRangeOfGroup = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
     let groupID = codeLines[lineNumber].groupID;
     let fromLine = lineNumber;
     let toLine = lineNumber;
-    if (groupID === undefined){
-        toLine = fromLine+1;
+    if (groupID === undefined) {
+        toLine = fromLine + 1;
     } else {
-        while(fromLine>0 && codeLines[fromLine-1].groupID && codeLines[fromLine-1].groupID === groupID){
+        while (
+            fromLine > 0 &&
+            codeLines[fromLine - 1].groupID &&
+            codeLines[fromLine - 1].groupID === groupID
+        ) {
             fromLine -= 1;
         }
-        while(toLine<codeLines.length && codeLines[toLine].groupID && codeLines[toLine].groupID === groupID){
+        while (
+            toLine < codeLines.length &&
+            codeLines[toLine].groupID &&
+            codeLines[toLine].groupID === groupID
+        ) {
             toLine += 1;
         }
-    }        
-    return {fromLine: fromLine, toLine: toLine};
-}    
+    }
+    return { fromLine: fromLine, toLine: toLine };
+};
 /** */
 
 const scrollTimer = (dispatch, scrollEl: HTMLElement) => {
     scrollEl.onscroll = null;
     setTimeout(() => {
-        scrollEl.onscroll = ((event) => scrollTimer(dispatch, scrollEl));
+        scrollEl.onscroll = (event) => scrollTimer(dispatch, scrollEl);
         dispatch(setScrollPos(scrollEl.scrollTop));
     }, 100);
-}
+};
 
-function onMouseDown(event, view: EditorView, dispatch){
+function onMouseDown(event, view: EditorView, dispatch) {
     try {
         // console.log('CodeEditor onMouseDown', view, event, dispatch);
-        if (view) {
+        if (view != null) {
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
             let pos = view.posAtDOM(event.target);
@@ -301,19 +329,19 @@ function onMouseDown(event, view: EditorView, dispatch){
                 // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
             }
         }
-    } catch(error) {
+    } catch (error) {
         console.log(error);
         console.trace();
     }
 }
 
 const setHTMLEventHandler = (container, view: EditorView, dispatch) => {
-    if (container){                
-        container.onmousedown = (event) => onMouseDown(event, view, dispatch);  
-        let scrollEl = document.querySelector('div.cm-scroller') as HTMLElement;
+    if (container) {
+        container.onmousedown = (event) => onMouseDown(event, view, dispatch);
+        let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
         if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(dispatch, scrollEl);
     }
-}
+};
 
 const isPromise = (object) => {
     if (Promise && Promise.resolve) {
@@ -321,12 +349,12 @@ const isPromise = (object) => {
     } else {
         throw "Promise not supported in your environment"; // Most modern browsers support Promises
     }
-}
+};
 
 /** Functions that support runQueue */
 // const getRunningCommandContent = (view: EditorView, runqueue: IRunQueue): IRunningCommandContent|undefined => {
 //     let content: IRunningCommandContent|undefined;
-//     if (view){ 
+//     if (view){
 //         const doc = view.state.doc;
 //         if (!runqueue.runAllAtOnce){
 //             const lineNumber = runqueue.runningLine;
@@ -334,8 +362,8 @@ const isPromise = (object) => {
 //             if (lineNumber){
 //                 /** convert lineNumber to 1-based */
 //                 let line = doc.line(lineNumber+1);
-//                 let text = line.text; 
-//                 /** Note that lines that are being run in lineRange must exclude toLine*/        
+//                 let text = line.text;
+//                 /** Note that lines that are being run in lineRange must exclude toLine*/
 //                 content = {lineRange: {fromLine: lineNumber, toLine: lineNumber+1}, content: text, runAllAtOnce: runqueue.runAllAtOnce};
 //                 // convert the line number to 0-based index, which is what we use internally
 //                 console.log('CodeEditor getRunningCommandContent code line to run: ', content);
@@ -350,76 +378,93 @@ const isPromise = (object) => {
 //                 content = {lineRange: {fromLine: runqueue.fromLine, toLine: runqueue.toLine}, content: text, runAllAtOnce: runqueue.runAllAtOnce};
 //                 console.log('CodeEditor getRunningCommandContent code group to run: ', content);
 //             }
-//         }        
-        
+//         }
+
 //     }
 //     return content;
 // }
-const getRunningCommandContent = (view: EditorView, lineRange: ILineRange): IRunningCommandContent|undefined => {
-    let content: IRunningCommandContent|undefined;
-    if (view){ 
+const getRunningCommandContent = (
+    view: EditorView,
+    lineRange: ILineRange
+): IRunningCommandContent | undefined => {
+    let content: IRunningCommandContent | undefined;
+    if (view) {
         const doc = view.state.doc;
-        if (lineRange.fromLine!==undefined && lineRange.toLine!==undefined && lineRange.fromLine<lineRange.toLine){
+        if (
+            lineRange.fromLine !== undefined &&
+            lineRange.toLine !== undefined &&
+            lineRange.fromLine < lineRange.toLine
+        ) {
             /** convert line number to 1-based */
-            let fromPos = doc.line(lineRange.fromLine+1).from;
+            let fromPos = doc.line(lineRange.fromLine + 1).from;
             /** runqueue.toLine won't be executed so getting line at toLine is equivalent getting toLine-1 in 1-based */
             let toPos = doc.line(lineRange.toLine).to;
             let text = doc.sliceString(fromPos, toPos);
-            content = {lineRange: {fromLine: lineRange.fromLine, toLine: lineRange.toLine}, content: text};
-            console.log('CodeEditor getRunningCommandContent code group to run: ', content);
-        }        
+            content = {
+                lineRange: { fromLine: lineRange.fromLine, toLine: lineRange.toLine },
+                content: text,
+            };
+            console.log("CodeEditor getRunningCommandContent code group to run: ", content);
+        }
     }
     return content;
-}
+};
 
 /**
  * This will return undefined if a code line in the range is generated or already in another group
- * @param view 
- * @param fromPos 
- * @param toPos 
- * @returns 
+ * @param view
+ * @param fromPos
+ * @param toPos
+ * @returns
  */
-const getNonGeneratedLinesInRange = (codeLines: ICodeLine[]|null, view: EditorView, fromPos: number, toPos: number): ILineRange|undefined => {
-    if (codeLines && view){ 
+const getNonGeneratedLinesInRange = (
+    codeLines: ICodeLine[] | null,
+    view: EditorView,
+    fromPos: number,
+    toPos: number
+): ILineRange | undefined => {
+    if (codeLines && view) {
         const doc = view.state.doc;
         let pos = fromPos;
         /** minus 1 to convert to 0-based */
-        let fromLine;            
+        let fromLine;
         let toLine;
-        while(pos<=toPos){
+        while (pos <= toPos) {
             console.log("Group ", fromPos, toPos, doc.lineAt(pos));
             let line = doc.lineAt(pos);
             /** minus 1 to convert to 0-based */
-            if(codeLines[line.number-1].groupID===undefined && !codeLines[line.number-1].generated && line){
-                if (fromLine === undefined){
+            if (
+                codeLines[line.number - 1].groupID === undefined &&
+                !codeLines[line.number - 1].generated &&
+                line
+            ) {
+                if (fromLine === undefined) {
                     /** minus 1 to convert to 0-based */
-                    fromLine = line.number-1;
+                    fromLine = line.number - 1;
                 }
                 /** minus 1 to convert to 0-based */
-                toLine = line.number-1;
+                toLine = line.number - 1;
                 /** add 1 for line break */
-                pos = line.to+1;
+                pos = line.to + 1;
             } else {
                 fromLine = toLine = undefined;
                 break;
             }
-                
         }
-        if(fromLine!==undefined && toLine!==undefined){
+        if (fromLine !== undefined && toLine !== undefined) {
             /** the operating range will exclude toLine => add 1 to the value here*/
-            return {fromLine: fromLine, toLine: toLine+1};
-        }
-        else{
-            return undefined;            
+            return { fromLine: fromLine, toLine: toLine + 1 };
+        } else {
+            return undefined;
         }
     }
-}
+};
 
 export const notStartWithSpace = (text: string): boolean => {
     return !/^\s/.test(text);
-}
+};
 
-/** 
+/**
  * check if the text line is an Expression instead of a Statement
  * */
 export const textShouldBeExec = (text: string): boolean => {
@@ -430,20 +475,20 @@ export const textShouldBeExec = (text: string): boolean => {
     cursor.firstChild();
     let childName = cursor.name;
     /** not start with space */
-    return (parentName=='Script' && childName=='ExpressionStatement' && notStartWithSpace(text))
-}
+    return parentName == "Script" && childName == "ExpressionStatement" && notStartWithSpace(text);
+};
 
 export {
-    editedMarker, 
-    executedMarker, 
-    executingMarker, 
-    editStatusGutter, 
-    getCodeLine, 
-    getCodeText, 
+    editedMarker,
+    executedMarker,
+    executingMarker,
+    editStatusGutter,
+    getCodeLine,
+    getCodeText,
     getJoinedCodeText,
     scrollToPrevPos,
     setViewCodeText,
-    resetEditorState,
+    // resetEditorState,
     GenLineStateEffect as genLineStateEffect,
     GenLineEffectType as GenCodeEffectType,
     genLineFlashCSS as genCodeFlashCSS,
@@ -456,5 +501,5 @@ export {
     setHTMLEventHandler,
     isPromise,
     getRunningCommandContent,
-    getNonGeneratedLinesInRange
-}
+    getNonGeneratedLinesInRange,
+};
