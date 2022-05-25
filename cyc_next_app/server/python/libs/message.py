@@ -63,6 +63,7 @@ class ProjectCommand(str, Enum):
     save_project_config = 'save_project_config'
     get_project_config = 'get_project_config'
     add_project = 'add_project'
+    list_projects = 'list_projects'
 
 
 class ExperimentManagerCommand(str, Enum):
@@ -104,6 +105,7 @@ class ContentType(str, Enum):
     RICH_OUTPUT = 'rich_output'
     PLOTLY_FIG = 'plotly_fig'  # It is used for code editor basekernel
     IPYTHON_MSG = 'ipython_msg'
+    PROJECT_LIST = 'project_list'
     NONE = 'none'
 
     def __str__(self):

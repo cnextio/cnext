@@ -5,6 +5,7 @@ import {
     FileExplorerHeaderName,
     FileTree,
     FileItem,
+    ProjectItem,
 } from "../StyledComponents";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -24,6 +25,7 @@ import {
     setInView,
     setOpenDir,
     setOpenFiles,
+    setProjects,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import FileContextMenu from "./FileContextMenu";
 import NewItemInput from "./NewItemInput";
@@ -45,6 +47,8 @@ const FileExplorer = (props: any) => {
     const openDirs: { [id: string]: IDirectoryMetadata[] } = useSelector(
         (state) => state.projectManager.openDirs
     );
+
+    const projects = useSelector((state) => state.projectManager.projects);
 
     const addProjectPath: null | string = useSelector(
         (state) => state.projectManager.addProjectPath
@@ -92,6 +96,18 @@ const FileExplorer = (props: any) => {
                             dispatch(setInView(openFiles[0].path));
                         }
                         break;
+                    case ProjectCommand.list_projects:
+                        console.log("FileExplorer got list projects result: ", fmResult.content);
+                        if (fmResult.type == ContentType.PROJECT_LIST) {
+                            let projects = [];
+                            for (let project of fmResult.content) {
+                                if (project["id"] !== activeProject.id) {
+                                    projects.push(project);
+                                }
+                            }
+                            dispatch(setProjects(projects));
+                        }
+                        break;
                 }
             } catch (error) {
                 throw error;
@@ -99,6 +115,8 @@ const FileExplorer = (props: any) => {
         });
     };
     useEffect(() => {
+        const message: IMessage = createMessage(ProjectCommand.list_projects, {});
+        sendMessage(message);
         setupSocket();
         return () => {
             socket.off(WebAppEndpoint.FileExplorer);
@@ -106,9 +124,9 @@ const FileExplorer = (props: any) => {
     }, []);
 
     useEffect(() => {
-        if (addProjectPath != null) {
+        if (projects.length > 0) {
         }
-    }, [addProjectPath]);
+    }, [projects]);
 
     const createMessage = (command: ProjectCommand, metadata: {}): IMessage => {
         let message: IMessage = {
@@ -340,36 +358,41 @@ const FileExplorer = (props: any) => {
                 <FileExplorerHeaderName variant='overline'>File Manager</FileExplorerHeaderName>
             </FileExporerHeader>
             {activeProject ? (
-                <FileTree
-                    aria-label='file system navigator'
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpandIcon={<ChevronRightIcon />}
-                    sx={{
-                        height: 240,
-                        flexGrow: 1,
-                        maxWidth: 400,
-                        overflowY: "auto",
-                    }}
-                    expanded={expanded}
-                    onNodeToggle={handleDirToggle}
-                >
-                    <FileItem
-                        nodeId={relativeProjectPath}
-                        data-cy={CypressIds.projectRoot}
-                        label={activeProject.name}
-                        onContextMenu={(event: React.MouseEvent) => {
-                            handleItemContextMenu(
-                                event,
-                                relativeProjectPath,
-                                relativeProjectPath,
-                                false,
-                                false
-                            );
+                <div>
+                    <FileTree
+                        aria-label='file system navigator'
+                        defaultCollapseIcon={<ExpandMoreIcon />}
+                        defaultExpandIcon={<ChevronRightIcon />}
+                        sx={{
+                            height: 240,
+                            flexGrow: 1,
+                            maxWidth: 400,
+                            overflowY: "auto",
                         }}
+                        expanded={expanded}
+                        onNodeToggle={handleDirToggle}
                     >
-                        {generateFileItems(relativeProjectPath)}
-                    </FileItem>
-                </FileTree>
+                        <FileItem
+                            nodeId={relativeProjectPath}
+                            data-cy={CypressIds.projectRoot}
+                            label={activeProject.name}
+                            onContextMenu={(event: React.MouseEvent) => {
+                                handleItemContextMenu(
+                                    event,
+                                    relativeProjectPath,
+                                    relativeProjectPath,
+                                    false,
+                                    false
+                                );
+                            }}
+                        >
+                            {generateFileItems(relativeProjectPath)}
+                        </FileItem>
+                    </FileTree>
+                    {projects?.map((item) => (
+                        <ProjectItem>{item?.name}</ProjectItem>
+                    ))}
+                </div>
             ) : null}
             <FileContextMenu
                 contextMenuPos={contextMenuPos}

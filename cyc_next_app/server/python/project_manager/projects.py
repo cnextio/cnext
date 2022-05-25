@@ -198,3 +198,9 @@ def add_project(path):
         return project_active
     except Exception as ex:
         raise ex
+
+
+def list_projects():
+    config = read_config('.server.yaml')
+    config_dict = config.__dict__
+    return config_dict['projects']['open_projects']
