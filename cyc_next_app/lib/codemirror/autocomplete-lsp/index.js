@@ -33,7 +33,7 @@ function languageServer(options) {
         }),
         hoverTooltip(
             (view, pos) => {
-                if (!config().hover) return null;
+                if (!config().autocompletion) return null;
 
                 var _a;
                 return (_a =
