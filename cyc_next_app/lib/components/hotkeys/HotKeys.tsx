@@ -43,10 +43,10 @@ class HotkeysComponent extends React.Component {
         const { setProjectConfig } = this.props;
 
         switch (type) {
-            case 'hover_tooggle':
-                updateObj = { ...this.state.config, hover: this.state.config.hover ? false : true };
+            // case 'hover_tooggle':
+            //     updateObj = { ...this.state.config, hover: this.state.config.hover ? false : true };
 
-                break;
+            //     break;
 
             case 'lint_tooggle':
                 updateObj = { ...this.state.config, lint: this.state.config.lint ? false : true };
