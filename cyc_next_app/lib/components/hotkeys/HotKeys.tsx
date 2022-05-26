@@ -44,6 +44,7 @@ const HotkeysComponent = () => {
                 updateObj = {
                     ...configs.code_editor,
                     autocompletion: configs.code_editor.autocompletion ? false : true,
+                    hover: configs.code_editor.hover ? false : true,
                 };
                 break;
 
