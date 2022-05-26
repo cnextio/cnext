@@ -18,7 +18,7 @@ function languageServer(options) {
         rootUri.of(options.rootUri),
         documentUri.of(options.documentUri),
         languageId.of(options.languageId),
-        ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view))),
+        ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view, config))),
         signatureTooltip(async (view, pos) => {
             if (!config().autocompletion) return null;
 
@@ -33,7 +33,7 @@ function languageServer(options) {
         }),
         hoverTooltip(
             (view, pos) => {
-                if (!config().hover) return null;
+                if (!config().autocompletion) return null;
 
                 var _a;
                 return (_a =
