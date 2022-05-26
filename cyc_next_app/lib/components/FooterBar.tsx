@@ -59,7 +59,7 @@ const FooterBarComponent = () => {
                         procressChange("lint");
                     }}
                 >
-                    Lint: {config.lint ? "ON" : "OFF"}
+                    Code Analysis: {config.lint ? "ON" : "OFF"}
                 </FotterItemText>
             </FooterItem>
         </FooterNavigation>
