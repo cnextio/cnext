@@ -26,6 +26,7 @@ import {
     setOpenDir,
     setOpenFiles,
     setProjects,
+    setActiveProject,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import FileContextMenu from "./FileContextMenu";
 import NewItemInput from "./NewItemInput";
@@ -98,14 +99,14 @@ const FileExplorer = (props: any) => {
                         break;
                     case ProjectCommand.list_projects:
                         console.log("FileExplorer got list projects result: ", fmResult.content);
+                        let activeProject = store.getState().projectManager.activeProject;
                         if (fmResult.type == ContentType.PROJECT_LIST) {
-                            let projects = [];
-                            for (let project of fmResult.content) {
-                                if (project["id"] !== activeProject.id) {
-                                    projects.push(project);
-                                }
+                            if (activeProject != null) {
+                                let projectList = fmResult?.content.filter((item) => {
+                                    return item["id"] !== activeProject.id;
+                                });
+                                dispatch(setProjects(projectList));
                             }
-                            dispatch(setProjects(projects));
                         }
                         break;
                 }
@@ -122,11 +123,6 @@ const FileExplorer = (props: any) => {
             socket.off(WebAppEndpoint.FileExplorer);
         };
     }, []);
-
-    useEffect(() => {
-        if (projects.length > 0) {
-        }
-    }, [projects]);
 
     const createMessage = (command: ProjectCommand, metadata: {}): IMessage => {
         let message: IMessage = {
@@ -279,6 +275,19 @@ const FileExplorer = (props: any) => {
         }
     };
 
+    const changeActiveProject = (project) => {
+        if (project != null) {
+            dispatch(setActiveProject(project));
+        }
+    };
+
+    useEffect(() => {
+        if (activeProject != null) {
+            const message: IMessage = createMessage(ProjectCommand.list_projects, {});
+            sendMessage(message);
+        }
+    }, [activeProject]);
+
     const generateFileItems = (path: string) => {
         return (
             <Fragment>
@@ -390,7 +399,9 @@ const FileExplorer = (props: any) => {
                         </FileItem>
                     </FileTree>
                     {projects?.map((item) => (
-                        <ProjectItem>{item?.name}</ProjectItem>
+                        <ProjectItem onClick={() => changeActiveProject(item)}>
+                            {item?.name}
+                        </ProjectItem>
                     ))}
                 </div>
             ) : null}
