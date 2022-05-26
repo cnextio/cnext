@@ -15,9 +15,6 @@ const FooterBarComponent = () => {
     const procressChange = (type: string) => {
         let updateObj = { ...config };
         switch (type) {
-            // case 'hover':
-            //     updateObj = { ...config, hover: config.hover ? false : true };
-            //     break;
             case 'lint':
                 updateObj = { ...config, lint: config.lint ? false : true };
                 break;
@@ -65,15 +62,6 @@ const FooterBarComponent = () => {
                     Lint: {config.lint ? 'ON' : 'OFF'}
                 </FotterItemText>
             </FooterItem>
-            {/* <FooterItem>
-                <FotterItemText
-                    onClick={() => {
-                        procressChange('hover');
-                    }}
-                >
-                    Hover: {config.hover ? 'ON' : 'OFF'}
-                </FotterItemText>
-            </FooterItem> */}
         </FooterNavigation>
     );
 };

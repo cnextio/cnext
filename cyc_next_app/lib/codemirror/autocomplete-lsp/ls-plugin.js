@@ -16,7 +16,7 @@ import DFFilterPlugin from './df-plugin';
  * if `dfFilter=true`, no connection to server is needed.
  */
 class LanguageServerPlugin {
-    constructor(view) {
+    constructor(view, config) {
         this.view = view;
         this.signatureData = null;
         this.rootUri = this.view.state.facet(rootUri);
@@ -24,6 +24,9 @@ class LanguageServerPlugin {
         this.languageId = this.view.state.facet(languageId);
         this.documentVersion = 0;
         this.changesTimeout = 0;
+        // this.lint = lint;
+        this.config = config;
+
         this.setupLSConnection();
 
         this.dfPlugin = new DFFilterPlugin();
@@ -47,7 +50,9 @@ class LanguageServerPlugin {
                 // );
                 switch (notification.method) {
                     case 'textDocument/publishDiagnostics':
-                        this.processDiagnostics(notification.params);
+                        if (this.config().lint) {
+                            this.processDiagnostics(notification.params);
+                        }
                 }
             } catch (error) {
                 console.error(error);
