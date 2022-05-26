@@ -1,10 +1,10 @@
-import React from 'react';
-import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from './IFileManager';
-import { IGetCardinalResult } from './ICAssist';
-import { ExperimentManagerCommand } from './IExperimentManager';
-import { DataFrameUpdateType } from './IDataFrameStatus';
-import { KernelManagerCommand } from './IKernelManager';
-import { ModelManagerCommand } from './IModelManager';
+import React from "react";
+import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from "./IFileManager";
+import { IGetCardinalResult } from "./ICAssist";
+import { ExperimentManagerCommand } from "./IExperimentManager";
+import { DataFrameUpdateType } from "./IDataFrameStatus";
+import { KernelManagerCommand } from "./IKernelManager";
+import { ModelManagerCommand } from "./IModelManager";
 
 export type RecvCodeOutput = (output: IMessage) => void;
 
@@ -55,75 +55,75 @@ export interface IMessage {
 // };
 
 export enum CommandName {
-    exec_line = 'exec_line',
-    exec_grouped_lines = 'exec_grouped_lines',
+    exec_line = "exec_line",
+    exec_grouped_lines = "exec_grouped_lines",
     /** this command contained the updated information of the dataframe status. It is used
      * for the server to inform client about changes in the status */
-    update_df_status = 'update_df_status',
+    update_df_status = "update_df_status",
     /** this command contained the information of the dataframe status. It is used
      * when we need to reload the all active data status e.g. when reloading the page */
-    reload_df_status = 'reload_df_status',
-    plot_column_histogram = 'plot_column_histogram',
-    get_countna = 'get_countna',
-    plot_countna = 'plot_countna',
-    get_table_data = 'get_table_data',
-    get_df_metadata = 'get_df_metadata',
-    plot_column_quantile = 'plot_column_quantile',
-    get_cardinal = 'get_cardinal' /** get number of elements of a column given some filters */,
+    reload_df_status = "reload_df_status",
+    plot_column_histogram = "plot_column_histogram",
+    get_countna = "get_countna",
+    plot_countna = "plot_countna",
+    get_table_data = "get_table_data",
+    get_df_metadata = "get_df_metadata",
+    plot_column_quantile = "plot_column_quantile",
+    get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
 }
 
 export enum ContentType {
-    COMMAND = 'command',
-    STRING = 'str',
-    DICT = 'dict',
-    PANDAS_DATAFRAME = 'pandas_dataframe',
-    PLOTLY_FIG = 'plotly_fig',
-    MATPLOTLIB_FIG = 'matplotlib_fig',
-    DIR_LIST = 'dir_list',
-    FILE_METADATA = 'file_metadata',
-    FILE_CONTENT = 'file_content',
-    COLUMN_CARDINAL = 'column_cardinal',
-    RICH_OUTPUT = 'rich_output',
-    NONE = 'none',
+    COMMAND = "command",
+    STRING = "str",
+    DICT = "dict",
+    PANDAS_DATAFRAME = "pandas_dataframe",
+    PLOTLY_FIG = "plotly_fig",
+    MATPLOTLIB_FIG = "matplotlib_fig",
+    DIR_LIST = "dir_list",
+    FILE_METADATA = "file_metadata",
+    FILE_CONTENT = "file_content",
+    COLUMN_CARDINAL = "column_cardinal",
+    RICH_OUTPUT = "rich_output",
+    NONE = "none",
 }
 
 export enum StandardMimeType {
-    IMAGE_PNG = 'image/png',
-    IMAGE_JPG = 'image/jpg',
-    IMAGE_JPEG = 'image/jpeg',
-    IMAGE_SVG = 'image/svg+xml',
-    IMAGE_PLOTLY = 'image/plotly+json',
-    TEXT_HTML = 'text/html',
-    APPLICATION_JSON = 'application/json',
-    APPLICATION_CNEXT = 'application/cnext+json',
-    APPLICATION_PLOTLY = 'application/vnd.plotly.v1+json',
-    APPLICATION_JAVASCRIPT = 'application/javascript',
-    APPLICATION_BOKEH = 'application/vnd.bokehjs_load.v0+json',
+    IMAGE_PNG = "image/png",
+    IMAGE_JPG = "image/jpg",
+    IMAGE_JPEG = "image/jpeg",
+    IMAGE_SVG = "image/svg+xml",
+    IMAGE_PLOTLY = "image/plotly+json",
+    TEXT_HTML = "text/html",
+    APPLICATION_JSON = "application/json",
+    APPLICATION_CNEXT = "application/cnext+json",
+    APPLICATION_PLOTLY = "application/vnd.plotly.v1+json",
+    APPLICATION_JAVASCRIPT = "application/javascript",
+    APPLICATION_BOKEH = "application/vnd.bokehjs_load.v0+json",
 }
 
 export const SubContentType = StandardMimeType;
 
 export enum CommandType {
-    MLFLOW = 'mlflow',
-    MLFLOW_CLIENT = 'mlflow_client',
-    MLFLOW_OTHERS = 'mlflow_others',
+    MLFLOW = "mlflow",
+    MLFLOW_CLIENT = "mlflow_client",
+    MLFLOW_OTHERS = "mlflow_others",
 }
 
 export enum WebAppEndpoint {
-    DFManager = 'DFManager',
-    ModelManager = 'ModelManager',
-    CodeEditor = 'CodeEditor',
-    FileManager = 'FileManager',
-    MagicCommandGen = 'MagicCommandGen',
-    FileExplorer = 'FileExplorer',
-    ExperimentManager = 'ExperimentManager',
-    PlotManager = 'PlotManager',
-    KernelManager = 'KernelManager',
-    LanguageServer = 'LanguageServer',
-    LanguageServerNotifier = 'LanguageServerNotifier',
-    LanguageServerHover = 'LanguageServerHover',
-    LanguageServerCompletion = 'LanguageServerCompletion',
-    LanguageServerSignature = 'LanguageServerSignature',
+    DFManager = "DFManager",
+    ModelManager = "ModelManager",
+    CodeEditor = "CodeEditor",
+    FileManager = "FileManager",
+    MagicCommandGen = "MagicCommandGen",
+    FileExplorer = "FileExplorer",
+    ExperimentManager = "ExperimentManager",
+    PlotManager = "PlotManager",
+    KernelManager = "KernelManager",
+    LanguageServer = "LanguageServer",
+    LanguageServerNotifier = "LanguageServerNotifier",
+    LanguageServerHover = "LanguageServerHover",
+    LanguageServerCompletion = "LanguageServerCompletion",
+    LanguageServerSignature = "LanguageServerSignature",
 }
 
 export interface ITableData {
@@ -155,29 +155,29 @@ export interface IMetaData {
 }
 
 export enum ReviewType {
-    col = 'col',
-    row = 'row',
-    cell = 'cell',
+    col = "col",
+    row = "row",
+    cell = "cell",
 }
 
 export enum ReviewRequestType {
-    repeat = 'repeat',
-    next = 'next',
-    prev = 'prev',
-    index = 'index',
+    repeat = "repeat",
+    next = "next",
+    prev = "prev",
+    index = "index",
 }
 
 export enum FilterType {
-    loc = 'loc',
-    iloc = 'iloc',
-    col = 'col',
+    loc = "loc",
+    iloc = "iloc",
+    col = "col",
 }
 
 export enum FileMimeType {
-    FILE_PNG = 'file/png',
-    FILE_JPG = 'file/jpg',
-    URL_PNG = 'url/png',
-    URL_JPG = 'url/jpg',
+    FILE_PNG = "file/png",
+    FILE_JPG = "file/jpg",
+    URL_PNG = "url/png",
+    URL_JPG = "url/jpg",
 }
 
 export const CNextMimeType = { ...FileMimeType, ...StandardMimeType };
@@ -190,17 +190,17 @@ export interface DFFilter {
 }
 
 export enum ViewMode {
-    HORIZONTAL = 'horizontal',
-    VERTICAL = 'vertical',
+    HORIZONTAL = "horizontal",
+    VERTICAL = "vertical",
 }
 
 export enum SideBarName {
-    PROJECT = 'Projects',
-    INBOX = 'Inbox',
-    CLEAR_STATE = 'ClearState',
-    CHANGE_LAYOUT = 'ChangeLayout',
-    RESTART_KERNEL = 'RestartKernel',
-    INTERRUPT_KERNEL = 'InterruptKernel',
+    PROJECT = "Projects",
+    INBOX = "Inbox",
+    CLEAR_STATE = "ClearState",
+    CHANGE_LAYOUT = "ChangeLayout",
+    RESTART_KERNEL = "RestartKernel",
+    INTERRUPT_KERNEL = "InterruptKernel",
 }
 
 // export interface IDFUpdates {
@@ -305,13 +305,13 @@ export interface IConfigs {
     app_shortcut?: IAppShortcutKey;
     experiment_manager?: IExperimentManagerConfig;
     code_editor: IEditorConfigs;
-    dataframe_manager: IDataFrameManagerConfigs
+    dataframe_manager: IDataFrameManagerConfigs;
 }
 
 export enum DFViewMode {
-    TABLE_VIEW = 'Table View',
-    SUMMARY_VIEW = 'Summary View',
-    GRID_VIEW = 'Grid View',
+    TABLE_VIEW = "Table View",
+    SUMMARY_VIEW = "Summary View",
+    GRID_VIEW = "Grid View",
 }
 
 // export class DFUpdates {
