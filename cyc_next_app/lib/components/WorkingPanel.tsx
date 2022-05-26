@@ -44,10 +44,10 @@ const WorkingPanel = () => {
         <StyledWorkingPanel>
             {/* have to do complicated inline style because of this 
 			https://newbedev.com/absolute-positioning-ignoring-padding-of-parent */}
-            <SplitPane split='vertical'>
+            <SplitPane split="vertical">
                 {console.log("WorkingPanel render")}
                 {showProjectExplore && (
-                    <Pane size='20%'>
+                    <Pane size="20%">
                         <FileExplorer />
                     </Pane>
                 )}

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { FooterNavigation, FooterItem, FotterItemText } from './StyledComponents';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../redux/store';
-import { setProjectConfig } from '../../redux/reducers/ProjectManagerRedux';
+import React, { useEffect, useState } from "react";
+import { FooterNavigation, FooterItem, FotterItemText } from "./StyledComponents";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../redux/store";
+import { setProjectConfig } from "../../redux/reducers/ProjectManagerRedux";
 
 const FooterBarComponent = () => {
     const [config, setConfig] = useState({ lint: false, hover: false, autocompletion: false });
@@ -15,10 +15,10 @@ const FooterBarComponent = () => {
     const procressChange = (type: string) => {
         let updateObj = { ...config };
         switch (type) {
-            case 'lint':
+            case "lint":
                 updateObj = { ...config, lint: config.lint ? false : true };
                 break;
-            case 'autocompletion':
+            case "autocompletion":
                 updateObj = { ...config, autocompletion: config.autocompletion ? false : true };
                 break;
 
@@ -43,19 +43,19 @@ const FooterBarComponent = () => {
             <FooterItem>
                 <FotterItemText
                     onClick={() => {
-                        procressChange('autocompletion');
+                        procressChange("autocompletion");
                     }}
                 >
-                    Autocompletion: {config.autocompletion ? 'ON' : 'OFF'}
+                    Autocompletion: {config.autocompletion ? "ON" : "OFF"}
                 </FotterItemText>
             </FooterItem>
             <FooterItem>
                 <FotterItemText
                     onClick={() => {
-                        procressChange('lint');
+                        procressChange("lint");
                     }}
                 >
-                    Lint: {config.lint ? 'ON' : 'OFF'}
+                    Lint: {config.lint ? "ON" : "OFF"}
                 </FotterItemText>
             </FooterItem>
         </FooterNavigation>
