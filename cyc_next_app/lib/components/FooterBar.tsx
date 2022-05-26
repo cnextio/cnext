@@ -22,7 +22,11 @@ const FooterBarComponent = () => {
                 updateObj = { ...config, lint: config.lint ? false : true };
                 break;
             case 'autocompletion':
-                updateObj = { ...config, autocompletion: config.autocompletion ? false : true };
+                updateObj = {
+                    ...config,
+                    autocompletion: config.autocompletion ? false : true,
+                    hover: config.hover ? false : true,
+                };
                 break;
 
             default:
