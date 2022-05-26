@@ -8,13 +8,7 @@
  * */
 
 import React, { useEffect } from "react";
-import {
-    IMessage,
-    WebAppEndpoint,
-    CommandName,
-    ContentType,
-    IDFUpdates,
-} from "../../interfaces/IApp";
+import { IMessage, WebAppEndpoint, CommandName, ContentType } from "../../interfaces/IApp";
 import { DataFrameUpdateType, IAllDataFrameStatus } from "../../interfaces/IDataFrameStatus";
 import socket from "../Socket";
 import {
@@ -30,6 +24,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import store, { RootState } from "../../../redux/store";
 import { getLastUpdate, hasDefinedStats } from "./libDataFrameManager";
+import { setTextOutput } from "../../../redux/reducers/RichOutputRedux";
 
 const DataFrameManager = () => {
     const dispatch = useDispatch();
@@ -368,39 +363,43 @@ _tmp()`;
         socket.on(WebAppEndpoint.DFManager, (result: string) => {
             try {
                 let message: IMessage = JSON.parse(result);
-                console.log("DataFrameManager got results for command ", message.command_name);
-                if (message.type === ContentType.STRING || message.error === true) {
-                    // let inViewID = store.getState().projectManager.inViewID;
-                    // if (inViewID) {
-                    //     let result: ICodeResultMessage = {
-                    //         inViewID: inViewID,
-                    //         content: message.content,
-                    //         type: message.type,
-                    //         subType: message.sub_type,
-                    //         metadata: message.metadata,
-                    //     };
-                    //     dispatch(addResult(result));
-                    // }
-                    //TODO: display this on CodeOutput
-                    console.log("DataFrameManager: got text output ", message);
-                } else if (message.command_name == CommandName.update_df_status) {
-                    handleActiveDFStatus(message);
-                } else if (message.command_name == CommandName.reload_df_status) {
-                    console.log("DataFrameManager reload_df_status:", message);
-                    handleActiveDFStatus(message, true);
-                } else if (message.command_name == CommandName.get_table_data) {
-                    handleGetTableData(message);
-                } else if (message.command_name == CommandName.plot_column_histogram) {
-                    handlePlotColumnHistogram(message);
-                } else if (message.command_name == CommandName.plot_column_quantile) {
-                    handlePlotColumnQuantile(message);
-                    // } else if (message.command_name == CommandName.get_countna) {
-                    //     handleGetCountna(message);
-                } else if (message.command_name == CommandName.get_df_metadata) {
-                    handleGetDFMetadata(message);
+                console.log("DataFrameManager got results for command ", message);
+                if (!message.error) {
+                    if (message.type === ContentType.STRING || message.error === true) {
+                        // let inViewID = store.getState().projectManager.inViewID;
+                        // if (inViewID) {
+                        //     let result: ICodeResultMessage = {
+                        //         inViewID: inViewID,
+                        //         content: message.content,
+                        //         type: message.type,
+                        //         subType: message.sub_type,
+                        //         metadata: message.metadata,
+                        //     };
+                        //     dispatch(addResult(result));
+                        // }
+                        //TODO: display this on CodeOutput
+                        console.log("DataFrameManager: got text output ", message);
+                    } else if (message.command_name == CommandName.update_df_status) {
+                        handleActiveDFStatus(message);
+                    } else if (message.command_name == CommandName.reload_df_status) {
+                        console.log("DataFrameManager reload_df_status:", message);
+                        handleActiveDFStatus(message, true);
+                    } else if (message.command_name == CommandName.get_table_data) {
+                        handleGetTableData(message);
+                    } else if (message.command_name == CommandName.plot_column_histogram) {
+                        handlePlotColumnHistogram(message);
+                    } else if (message.command_name == CommandName.plot_column_quantile) {
+                        handlePlotColumnQuantile(message);
+                        // } else if (message.command_name == CommandName.get_countna) {
+                        //     handleGetCountna(message);
+                    } else if (message.command_name == CommandName.get_df_metadata) {
+                        handleGetDFMetadata(message);
+                    } else {
+                        // console.log("dispatch text output");
+                        dispatch(setTextOutput(message))
+                    }
                 } else {
-                    console.log("dispatch text output");
-                    // props.recvCodeOutput(codeOutput);
+                    dispatch(setTextOutput(message));
                 }
             } catch {}
         });

@@ -294,12 +294,18 @@ export interface IEditorConfigs {
     autocompletion: boolean;
 }
 
+export interface IDataFrameManagerConfigs {
+    auto_display_data: boolean;
+    show_exec_text: boolean;
+}
+
 export interface IConfigs {
     view_mode: ViewMode | undefined;
     code_editor_shortcut: IEditorShortcutKey;
     app_shortcut?: IAppShortcutKey;
     experiment_manager?: IExperimentManagerConfig;
     code_editor: IEditorConfigs;
+    dataframe_manager: IDataFrameManagerConfigs
 }
 
 export enum DFViewMode {

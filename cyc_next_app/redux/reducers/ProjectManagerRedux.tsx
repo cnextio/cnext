@@ -5,12 +5,14 @@ import {
     IFileMetadata,
     IProjectMetadata,
 } from '../../lib/interfaces/IFileManager';
+
 import {
     IAppShortcutKey,
     IConfigs,
     IEditorShortcutKey,
     ViewMode,
     IEditorConfigs,
+    IDataFrameManagerConfigs,
 } from '../../lib/interfaces/IApp';
 
 const originalEditorShortcutKeys: IEditorShortcutKey = {
@@ -29,6 +31,11 @@ const codeEditorConfigs: IEditorConfigs = {
     lint: true,
     hover: true,
     autocompletion: true,
+};
+
+const dataframeManagerConfigs: IDataFrameManagerConfigs = {
+    show_exec_text: false,
+    auto_display_data: true,
 };
 
 type ProjectManagerState = {
@@ -67,6 +74,7 @@ const initialState: ProjectManagerState = {
         code_editor_shortcut: originalEditorShortcutKeys,
         app_shortcut: originalAppShortcutKeys,
         code_editor: codeEditorConfigs,
+        dataframe_manager: dataframeManagerConfigs,
     },
 };
 
