@@ -49,7 +49,7 @@ const FooterBarComponent = () => {
                         procressChange('autocompletion');
                     }}
                 >
-                    Autocomplete: {config.autocompletion ? 'ON' : 'OFF'}
+                    Autocompletion: {config.autocompletion ? 'ON' : 'OFF'}
                 </FotterItemText>
             </FooterItem>
             <FooterItem>
