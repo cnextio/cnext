@@ -1,7 +1,7 @@
 import React from 'react';
 import Hotkeys from 'react-hot-keys';
-import store, { RootState } from '../../../redux/store';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
+import { useDispatch, useSelector } from 'react-redux';
 import { setProjectConfig } from '../../../redux/reducers/ProjectManagerRedux';
 
 const HotkeysComponent = () => {
@@ -33,20 +33,11 @@ const HotkeysComponent = () => {
         let updateObj = { ...configs.code_editor };
 
         switch (type) {
-            case 'hover_tooggle':
-                updateObj = {
-                    ...configs.code_editor,
-                    hover: configs.code_editor.hover ? false : true,
-                };
-
-                break;
-
             case 'lint_tooggle':
                 updateObj = {
                     ...configs.code_editor,
                     lint: configs.code_editor.lint ? false : true,
                 };
-
                 break;
 
             case 'autocompletion_tooggle':
@@ -54,7 +45,6 @@ const HotkeysComponent = () => {
                     ...configs.code_editor,
                     autocompletion: configs.code_editor.autocompletion ? false : true,
                 };
-
                 break;
 
             default:
@@ -72,4 +62,4 @@ const HotkeysComponent = () => {
     return <Hotkeys keyName={hotKeys} onKeyDown={onKeyDown} onKeyUp={onKeyUp}></Hotkeys>;
 };
 
-export default connect(null, { setProjectConfig })(HotkeysComponent);
+export default HotkeysComponent;

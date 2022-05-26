@@ -15,9 +15,9 @@ const FooterBarComponent = () => {
     const procressChange = (type: string) => {
         let updateObj = { ...config };
         switch (type) {
-            case 'hover':
-                updateObj = { ...config, hover: config.hover ? false : true };
-                break;
+            // case 'hover':
+            //     updateObj = { ...config, hover: config.hover ? false : true };
+            //     break;
             case 'lint':
                 updateObj = { ...config, lint: config.lint ? false : true };
                 break;
@@ -49,7 +49,7 @@ const FooterBarComponent = () => {
                         procressChange('autocompletion');
                     }}
                 >
-                    Code AutoCompletion: {config.autocompletion ? 'ON' : 'OFF'}
+                    Autocompletion: {config.autocompletion ? 'ON' : 'OFF'}
                 </FotterItemText>
             </FooterItem>
             <FooterItem>
@@ -61,7 +61,7 @@ const FooterBarComponent = () => {
                     Lint: {config.lint ? 'ON' : 'OFF'}
                 </FotterItemText>
             </FooterItem>
-            <FooterItem>
+            {/* <FooterItem>
                 <FotterItemText
                     onClick={() => {
                         procressChange('hover');
@@ -69,7 +69,7 @@ const FooterBarComponent = () => {
                 >
                     Hover: {config.hover ? 'ON' : 'OFF'}
                 </FotterItemText>
-            </FooterItem>
+            </FooterItem> */}
         </FooterNavigation>
     );
 };
