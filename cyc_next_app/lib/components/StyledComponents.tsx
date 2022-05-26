@@ -199,7 +199,7 @@ export const FileExplorerHeaderName = styled(Typography)`
     height: calc(var(--var-height));
     line-height: calc(var(--var-height));
     padding: 0px 10px 0px 10px;
-    font-size: 12px;
+    font-size: 11px;
     color: ${(props) => props.theme.palette.text.secondary};
     background-color: ${(props) => props.theme.palette.grey.A200};
     border-width: 1px;
@@ -219,7 +219,7 @@ export const FileTree = styled(TreeView)`
 
 export const FileItem = styled(TreeItem)`
     .MuiTreeItem-label {
-        font-size: 14px;
+        font-size: 13px;
         line-height: 2em;
     }
     .MuiTreeItem-group {
@@ -444,7 +444,7 @@ export const CodeOutputHeader = styled.div`
 export const CodeOutputHeaderText = styled(Typography)`
     // height: 30px;
     // text-decoration: underline;
-    font-size: 12px;
+    font-size: 11px;
     border-bottom-style: solid;
     border-width: 1px;
 `;
@@ -637,7 +637,7 @@ export const StyledTableViewHeader = styled.div`
 
 export const RichOuputViewHeaderButton = styled(Typography)`
     margin: 0px 10px 0px 0px;
-    font-size: 12px;
+    font-size: 11px;
     border-bottom-style: ${(props) => (props.selected ? "solid" : "none")};
     border-width: 1px;
     &:hover {
