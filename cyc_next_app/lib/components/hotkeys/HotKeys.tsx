@@ -1,85 +1,75 @@
 import React from 'react';
 import Hotkeys from 'react-hot-keys';
-import store from '../../../redux/store';
-import { connect, useDispatch } from 'react-redux';
+import store, { RootState } from '../../../redux/store';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { setProjectConfig } from '../../../redux/reducers/ProjectManagerRedux';
 
-class HotkeysComponent extends React.Component {
-    constructor(props) {
-        super(props);
+const HotkeysComponent = () => {
+    let configs = useSelector((state: RootState) => state.projectManager.configs);
+    const dispath = useDispatch();
 
-        let state = store.getState();
-        let appShortcut = state.projectManager.configs.app_shortcut;
-        let config = state.projectManager.configs.code_editor;
-        let appShortcutList = [];
-        for (let value of Object.values(appShortcut)) {
-            appShortcutList.push(value);
-        }
-        this.state = {
-            hotKeys: appShortcutList.join(','),
-            appShortcut,
-            config,
-        };
+    let appShortcutList = [];
+    for (let value of Object.values(configs.app_shortcut || [])) {
+        appShortcutList.push(value);
     }
+    let hotKeys = appShortcutList.join(',');
 
-    onKeyUp(keyName, e, handle) {
-        // console.log('App shortcut:onKeyUp', keyName, e, handle);
-    }
+    const onKeyUp = (keyName, e, handle) => {
+        console.log('App shortcut:onKeyUp', keyName, e, handle);
+    };
 
-    onKeyDown(keyName, e, handle) {
+    const onKeyDown = (keyName, e, handle) => {
         // console.log('App shortcut:onKeyDown', keyName, e, handle);
-        for (const [key, value] of Object.entries(this.state.appShortcut)) {
+        for (const [key, value] of Object.entries(configs.app_shortcut || [])) {
             let valueStr = value.replaceAll(' ', '');
-            console.log(`${keyName}: ${valueStr}`);
 
             if (keyName.toString() == valueStr) {
-                this.procressChange(key);
+                procressChange(key);
             }
         }
-    }
+    };
 
-    procressChange = (type: string) => {
-        let updateObj = { ...this.state.config };
-        const { setProjectConfig } = this.props;
+    const procressChange = (type: string) => {
+        let updateObj = { ...configs.code_editor };
 
         switch (type) {
             case 'hover_tooggle':
-                updateObj = { ...this.state.config, hover: this.state.config.hover ? false : true };
+                updateObj = {
+                    ...configs.code_editor,
+                    hover: configs.code_editor.hover ? false : true,
+                };
 
                 break;
 
             case 'lint_tooggle':
-                updateObj = { ...this.state.config, lint: this.state.config.lint ? false : true };
+                updateObj = {
+                    ...configs.code_editor,
+                    lint: configs.code_editor.lint ? false : true,
+                };
 
                 break;
 
             case 'autocompletion_tooggle':
                 updateObj = {
-                    ...this.state.config,
-                    autocompletion: this.state.config.autocompletion ? false : true,
+                    ...configs.code_editor,
+                    autocompletion: configs.code_editor.autocompletion ? false : true,
                 };
 
                 break;
 
             default:
         }
-        this.setState({ ...this.state, config: updateObj });
-        setProjectConfig({
-            code_editor: {
-                ...updateObj,
-            },
-        });
+
+        dispath(
+            setProjectConfig({
+                code_editor: {
+                    ...updateObj,
+                },
+            })
+        );
     };
 
-    render() {
-        return (
-            <Hotkeys
-                keyName={this.state.hotKeys}
-                onKeyDown={this.onKeyDown.bind(this)}
-                onKeyUp={this.onKeyUp.bind(this)}
-            ></Hotkeys>
-        );
-    }
-}
+    return <Hotkeys keyName={hotKeys} onKeyDown={onKeyDown} onKeyUp={onKeyUp}></Hotkeys>;
+};
 
 export default connect(null, { setProjectConfig })(HotkeysComponent);
