@@ -14,7 +14,7 @@ from libs import logs
 from libs.message import DFManagerCommand
 from libs.json_serializable import ipython_internal_output
 from libs.message import SubContentType
-from user_space.ipython.constants import IPythonInteral
+from user_space.ipython.constants import IPythonInteral, IpythonResultMessage
 from user_space.user_space import ExecutionMode
 
 log = logs.get_logger(__name__)
@@ -93,8 +93,8 @@ class MessageHandler(BaseMessageHandler):
                 # message.metadata = message.metadata.replace("'", '"')
                 output_messages = self.user_space.execute(
                     "{}._get_cardinal({})".format(IPythonInteral.CASSIST.value, message.metadata))
-
-                output = self.get_execute_result(output_messages)
+                ipython_message = IpythonResultMessage(**output_messages)
+                output = self.get_execute_result(ipython_message)
                 if output is not None:
                     # log.info("get table data")
                     log.info('cAssist get cardinal: %s' % output)

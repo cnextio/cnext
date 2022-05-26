@@ -272,6 +272,7 @@ export const CodeToolbar = styled.div`
     height: calc(var(--var-height));
     align-items: center;
     background-color: ${(props) => props.theme.palette.grey.A200};
+    overflow: auto;
 `;
 
 export const FileNameTabContainer = styled.div`
@@ -510,7 +511,7 @@ export const StyledRichOutputPanel = styled.div`
 export const DataToolbar = styled.div`
     display: flex;
     height: 45px;
-    padding: 5px 10px 0px 10px;
+    padding: 5px 10px 0px 20px;
     align-self: stretch;
 `;
 

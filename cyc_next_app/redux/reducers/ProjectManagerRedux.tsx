@@ -5,7 +5,7 @@ import {
     IFileMetadata,
     IProjectMetadata,
 } from "../../lib/interfaces/IFileManager";
-import { IConfigs, IShorcutKey, ViewMode, IEditorConfigs } from '../../lib/interfaces/IApp';
+import { IConfigs, IShorcutKey, ViewMode, IEditorConfigs, IDataFrameManagerConfigs } from '../../lib/interfaces/IApp';
 
 const originalShortcutKeys: IShorcutKey = {
     run_queue: "Mod-l",
@@ -17,6 +17,11 @@ const codeEditorConfigs: IEditorConfigs = {
     lint: true,
     hover: true,
     autocompletion: true,
+};
+
+const dataframeManagerConfigs: IDataFrameManagerConfigs = {
+    show_exec_text: false,
+    auto_display_data: true,
 };
 
 type ProjectManagerState = {
@@ -54,6 +59,7 @@ const initialState: ProjectManagerState = {
         view_mode: ViewMode.VERTICAL,
         shortcut_keys: originalShortcutKeys,
         code_editor: codeEditorConfigs,
+        dataframe_manager: dataframeManagerConfigs,
     },
 };
 

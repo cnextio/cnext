@@ -274,7 +274,7 @@ const FileExplorer = (props: any) => {
                                 <FileItem
                                     nodeId={value.path}
                                     label={value.name}
-                                    onDoubleClick={() => {
+                                    onClick={() => {
                                         value.is_file ? dispatch(setFileToOpen(value.path)) : null;
                                     }}
                                     onContextMenu={(event: React.MouseEvent) => {

@@ -23,20 +23,17 @@ const CodeOutputComponent = React.memo(() => {
     // const dfUpdateCount = useSelector((state: RootState) => state.dataFrames.dfUpdateCount);
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
-    const serverSynced = useSelector(
-        (state: RootState) => state.projectManager.serverSynced
-    );
+    const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const textOutputUpdateCount = useSelector(
         (state: RootState) => state.codeEditor.textOutputUpdateCount
     );
-    let [outputContent, setOutputContent] = useState<
-        (ICodeResultContent | undefined)[]
-    >([]);
+    const roTextOutputUpdateCount = useSelector(
+        (state: RootState) => state.richOutput.textOutputUpdateCount
+    );
+    let [outputContent, setOutputContent] = useState<(ICodeResultContent | undefined)[]>([]);
     const codeOutputRef = useRef(null);
 
-    function getOrderedTextOuput(
-        state: RootState
-    ): (ICodeResultContent | undefined)[] {
+    function getOrderedTextOuput(state: RootState): (ICodeResultContent | undefined)[] {
         const inViewID = state.projectManager.inViewID;
         const groupIDSet = new Set();
         if (inViewID != null) {
@@ -53,13 +50,8 @@ const CodeOutputComponent = React.memo(() => {
                     }
                 })
                 .sort((item1: ICodeLine, item2: ICodeLine) => {
-                    if (
-                        item1.textOutput?.order != null &&
-                        item2.textOutput?.order != null
-                    ) {
-                        return (
-                            item1.textOutput?.order - item2.textOutput?.order
-                        );
+                    if (item1.textOutput?.order != null && item2.textOutput?.order != null) {
+                        return item1.textOutput?.order - item2.textOutput?.order;
                     } else {
                         return -1;
                     }
@@ -85,8 +77,7 @@ const CodeOutputComponent = React.memo(() => {
             activeDataFrame in state.dataFrames.dfUpdates
         ) {
             // console.log('Check update: ', state.dataFrames.dfUpdates[activeDataFrame]);
-            const activeDataFrameStatus =
-                state.dataFrames.dfUpdates[activeDataFrame];
+            const activeDataFrameStatus = state.dataFrames.dfUpdates[activeDataFrame];
             if (activeDataFrameStatus.is_updated && !activeDataFrameStatus.is_showed) {
                 return activeDataFrameStatus;
             }
@@ -183,6 +174,7 @@ const CodeOutputComponent = React.memo(() => {
                 const state: RootState = store.getState();
                 let textOutputs = getOrderedTextOuput(state);
                 setOutputContent(textOutputs);
+                lastItemIsROTextOutput.current = false;
             } catch (error) {
                 // TODO: process json error
                 console.error(error);
@@ -212,11 +204,39 @@ const CodeOutputComponent = React.memo(() => {
             //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
             if (newOutputContent != null) {
                 setOutputContent((outputContent) => [...outputContent, newOutputContent]);
+                lastItemIsROTextOutput.current = false;
             }
             dispatch(setDFStatusShowed(true));
         }
     };
     useEffect(handleDFUpdates, [activeDFStatus]);
+
+    const lastItemIsROTextOutput = useRef(true);
+    /** only keep the last richout put text */
+    const handleROTextOutput = () => {
+        const state = store.getState();
+        const newOutputContent = {
+            type: "text",
+            content: state.richOutput.textOutput,
+        };
+        if (!lastItemIsROTextOutput.current) {
+            /** append to the last item */
+            setOutputContent((outputContent) => [...outputContent, newOutputContent]);
+            lastItemIsROTextOutput.current = true;
+        } else {
+            /** update the last item */
+            setOutputContent((outputContent) => [
+                ...outputContent.filter((item, index) => index < outputContent.length - 1),
+                newOutputContent,
+            ]);
+        }
+    };
+    useEffect(() => {
+        const state = store.getState();
+        if (state.projectManager.configs.dataframe_manager.show_exec_text) {
+            handleROTextOutput();
+        }
+    }, [roTextOutputUpdateCount]);
 
     const codeOutputContentID = "CodeOutputContent";
     return (

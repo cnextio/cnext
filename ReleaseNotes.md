@@ -1,3 +1,17 @@
+# v0.4.14
+
+##### NEW
+
+-   Add configs for dataframe manager.
+
+##### IMPROVED
+
+-
+
+##### FIXED
+
+-   Fix bugs and improve stability for model visualization.
+
 # v0.4.12 - v0.4.13
 
 ##### NEW

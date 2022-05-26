@@ -6,10 +6,16 @@ export interface IModelInfo {
 }
 
 export interface IModelViewerInfo {
-    address: [number, number]
+    address: [string, number];
+    status: NetronStatus;
 }
 
 export enum ModelManagerCommand {
     get_active_models_info = "get_active_models_info",
     display_model = "display_model"
+};
+
+export enum NetronStatus {
+    OK = "ok",
+    ERROR = "error"
 };
