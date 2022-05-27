@@ -422,7 +422,7 @@ const FileExplorer = (props: any) => {
                         <ProjectItem onClick={() => changeActiveProject(item)}>
                             <LockIcon
                                 style={{
-                                    fontSize: "18px",
+                                    fontSize: "16px",
                                     marginBottom: "-3px",
                                     marginRight: "4px",
                                 }}
