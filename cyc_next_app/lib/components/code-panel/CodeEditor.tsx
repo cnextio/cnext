@@ -79,6 +79,8 @@ import {
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
 
+import { foldGutter, foldKeymap } from "../../codemirror/fold";
+
 const pyLanguageServer = languageServer({
     serverUri: "ws://localhost:3001/python",
     rootUri: "file:///",
@@ -126,11 +128,13 @@ const CodeEditor = () => {
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
         bracketMatching(),
         defaultHighlightStyle.fallback,
+        foldGutter(),
         keymap.of([
             { key: shortcutKeysConfig.run_queue, run: setRunQueue },
             { key: shortcutKeysConfig.set_group, run: setGroup },
             { key: shortcutKeysConfig.set_ungroup, run: setUnGroup },
             ...completionKeymap,
+            ...foldKeymap,
         ]),
         indentUnit.of("    "),
     ];

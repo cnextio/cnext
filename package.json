@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@codemirror/fold": "^0.19.4"
+  }
+}
