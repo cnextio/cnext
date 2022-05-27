@@ -226,6 +226,10 @@ const setGenLineDeco = (reduxState: RootState, view: EditorView | undefined) => 
 };
 
 const groupedLinesCSS = Decoration.line({ attributes: { class: "cm-groupedline" } });
+/** style for the first line in a group */
+const groupedFirstLinesCSS = Decoration.line({ attributes: { class: "cm-groupedfirstline" } });
+/** style for the first line behind a group */
+const noneGroupedFirstLinesCSS = Decoration.line({ attributes: { class: "cm-nongroupedfirstline" } });
 const GroupedLineStateEffect = StateEffect.define<{}>();
 const groupedLineDeco = (reduxState, view: EditorView) =>
     StateField.define<DecorationSet>({
@@ -242,15 +246,32 @@ const groupedLineDeco = (reduxState, view: EditorView) =>
                         if (inViewID) {
                             let lines: ICodeLine[] | null = getCodeLine(reduxState);
                             if (lines) {
+                                let currentGroupID = null;
                                 for (let ln = 0; ln < lines.length; ln++) {
-                                    if (lines[ln].groupID && !lines[ln].generated) {
-                                        // console.log('CodeEditor grouped line deco');
-                                        /** convert to 1-based */
-                                        let line = view.state.doc.line(ln + 1);
-                                        lineBackgrounds = lineBackgrounds.update({
-                                            add: [groupedLinesCSS.range(line.from)],
-                                        });
-                                    }
+                                    /** convert to 1-based */
+                                    let line = view.state.doc.line(ln + 1);
+                                    if (!lines[ln].generated)
+                                        if (lines[ln].groupID) {
+                                            if (lines[ln].groupID != currentGroupID) {
+                                                lineBackgrounds = lineBackgrounds.update({
+                                                    add: [groupedFirstLinesCSS.range(line.from)],
+                                                });
+                                            } else {
+                                                // console.log('CodeEditor grouped line deco');
+                                                lineBackgrounds = lineBackgrounds.update({
+                                                    add: [groupedLinesCSS.range(line.from)],
+                                                });
+                                            }
+                                        } else {
+                                            if (lines[ln].groupID != currentGroupID) {
+                                                lineBackgrounds = lineBackgrounds.update({
+                                                    add: [
+                                                        noneGroupedFirstLinesCSS.range(line.from),
+                                                    ],
+                                                });
+                                            }
+                                        }
+                                    currentGroupID = lines[ln].groupID;
                                 }
                             }
                         }

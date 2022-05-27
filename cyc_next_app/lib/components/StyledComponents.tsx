@@ -350,7 +350,7 @@ export const StyledCodeEditor = styled.div`
 
     .cm-genline-flash {
         background-color: #fff3f9;
-        animation: ${backgroundTransitionToColor('#fff3f9', 'white')} 1s ease 0s;
+        animation: ${backgroundTransitionToColor("#fff3f9", "white")} 1s ease 0s;
     }
 
     .cm-genline-solid {
@@ -359,6 +359,16 @@ export const StyledCodeEditor = styled.div`
 
     .cm-groupedline {
         background-color: rgb(218, 255, 237, 0.5);
+    }
+
+    .cm-groupedfirstline {
+        border-top: 1px dotted rgb(153, 179, 171, 0.5);
+        background-color: rgb(218, 255, 237, 0.5);
+    }
+
+    .cm-nongroupedfirstline {
+        border-top: 1px dotted rgb(153, 179, 171, 0.5);
+        background-color: white;
     }
 
     .cm-cassist-selection {
