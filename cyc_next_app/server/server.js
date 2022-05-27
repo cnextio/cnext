@@ -218,14 +218,14 @@ try {
     });
 
     const initialize = () => {
-        codeExecutor.send2executor(
-            JSON.stringify({
-                webapp_endpoint: FileManager,
-                command_name: "add_project",
-                // content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
-                content: `/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cyc_next_app/test`,
-            })
-        );
+        // codeExecutor.send2executor(
+        //     JSON.stringify({
+        //         webapp_endpoint: FileManager,
+        //         command_name: "add_project",
+        //         // content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
+        //         content: `/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cyc_next_app/test`,
+        //     })
+        // );
     };
 
     initialize();

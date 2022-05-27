@@ -28,6 +28,7 @@ export enum ProjectCommand {
     get_project_config = "get_project_config",
     add_project = "add_project",
     list_projects = "list_projects",
+    set_active_project = "set_active_project",
 }
 
 export interface IFileMetadata {

@@ -124,12 +124,12 @@ const FileExplorer = (props: any) => {
         };
     }, []);
 
-    const createMessage = (command: ProjectCommand, metadata: {}): IMessage => {
+    const createMessage = (command: ProjectCommand, metadata: {}, content = null): IMessage => {
         let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.FileExplorer,
             command_name: command,
             seq_number: 1,
-            content: null,
+            content: content,
             type: ContentType.STRING,
             error: false,
             metadata: metadata,
@@ -283,6 +283,13 @@ const FileExplorer = (props: any) => {
 
     useEffect(() => {
         if (activeProject != null) {
+            const msgSetActiveProject: IMessage = createMessage(
+                ProjectCommand.set_active_project,
+                {},
+                activeProject
+            );
+            sendMessage(msgSetActiveProject);
+
             const message: IMessage = createMessage(ProjectCommand.list_projects, {});
             sendMessage(message);
         }
@@ -386,7 +393,7 @@ const FileExplorer = (props: any) => {
                             data-cy={CypressIds.projectRoot}
                             label={activeProject.name}
                             onContextMenu={(event: React.MouseEvent) => {
-                                handleItemContextMenu(
+                                openContextMenu(
                                     event,
                                     relativeProjectPath,
                                     relativeProjectPath,

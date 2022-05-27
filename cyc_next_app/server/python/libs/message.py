@@ -64,6 +64,7 @@ class ProjectCommand(str, Enum):
     get_project_config = 'get_project_config'
     add_project = 'add_project'
     list_projects = 'list_projects'
+    set_active_project = 'set_active_project'
 
 
 class ExperimentManagerCommand(str, Enum):
