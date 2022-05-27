@@ -23,18 +23,18 @@ import {
     TextField,
     Typography,
     BottomNavigation,
-} from '@mui/material';
+} from "@mui/material";
 // import { TabsUnstyled } from '@mui/base';
 // import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import BoltIcon from '@mui/icons-material/Bolt';
-import CloseIcon from '@mui/icons-material/Close';
-import SplitPane from 'react-split-pane-v2';
-import styled, { keyframes } from 'styled-components';
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import BoltIcon from "@mui/icons-material/Bolt";
+import CloseIcon from "@mui/icons-material/Close";
+import SplitPane from "react-split-pane-v2";
+import styled, { keyframes } from "styled-components";
 // import { CSSTransition } from 'react-transition-group';
-import { ToastContainer } from 'react-toastify';
-import CodeMirror from '@uiw/react-codemirror';
-import { TreeView, TreeItem } from '@mui/lab';
+import { ToastContainer } from "react-toastify";
+import CodeMirror from "@uiw/react-codemirror";
+import { TreeView, TreeItem } from "@mui/lab";
 
 export const TopPanel = styled.div`
     display: flex;
@@ -227,7 +227,7 @@ export const FileItem = styled(TreeItem)`
 export const ProjectItem = styled.p`
     font-size: 14px;
     line-height: 2em;
-    padding-left: 16px;
+    padding-left: 8px;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     line-height: 1.5;
     letter-spacing: 0.00938em;
@@ -364,7 +364,7 @@ export const StyledCodeEditor = styled.div`
 
     .cm-genline-flash {
         background-color: #fff3f9;
-        animation: ${backgroundTransitionToColor('#fff3f9', 'white')} 1s ease 0s;
+        animation: ${backgroundTransitionToColor("#fff3f9", "white")} 1s ease 0s;
     }
 
     .cm-genline-solid {
@@ -409,7 +409,7 @@ export const StyledCodeMirror = styled(CodeMirror)`
 
     .cm-gencode-flash {
         background-color: #fff3f9;
-        animation: ${backgroundTransitionToColor('#fff3f9', 'white')} 1s ease 0s;
+        animation: ${backgroundTransitionToColor("#fff3f9", "white")} 1s ease 0s;
     }
 
     .cm-gencode-solid {
@@ -632,7 +632,7 @@ export const StyledTableViewHeader = styled.div`
 export const RichOuputViewHeaderButton = styled(Typography)`
     margin: 0px 10px 0px 0px;
     font-size: 11px;
-    border-bottom-style: ${(props) => (props.selected ? 'solid' : 'none')};
+    border-bottom-style: ${(props) => (props.selected ? "solid" : "none")};
     border-width: 1px;
     &:hover {
         cursor: pointer;
@@ -691,9 +691,9 @@ export const DataTableIndexCell = styled(TableCell)`
         1s linear 0s;
 `;
 export const DataTableCell = styled(TableCell)`
-    font-weight: ${(props) => (props.head ? 'bold' : 'normal')};
-    vertical-align: ${(props) => (props.head ? 'bottom' : 'center')};
-    text-align: ${(props) => (props.head ? 'left' : 'right')};
+    font-weight: ${(props) => (props.head ? "bold" : "normal")};
+    vertical-align: ${(props) => (props.head ? "bottom" : "center")};
+    text-align: ${(props) => (props.head ? "left" : "right")};
     font-size: 13px;
     animation: ${(props) =>
             props.review ? backgroundTransition(props.theme.palette.primary.light) : null}
@@ -728,7 +728,7 @@ export const PlotContainer = styled(Paper)`
     overflow: auto;
     width: fit-content;
     border-color: ${(props) => (props.focused ? props.theme.palette.primary.light : null)};
-    border-width: ${(props) => (props.focused ? '2px' : null)};
+    border-width: ${(props) => (props.focused ? "2px" : null)};
     margin-bottom: 8px;
     svg {
         width: 1000px;
@@ -832,7 +832,7 @@ export const StyledGridView = styled.div`
 
 export const DataGridItem = styled(Paper)`
     padding: 10px;
-    textalign: 'center';
+    textalign: "center";
     color: ${(props) => props.theme.palette.text.secondary};
 `;
 
@@ -931,7 +931,7 @@ function backgroundTransitionToColor(color1, color2) {
     `;
 }
 
-import Pane from 'react-split-pane-v2';
+import Pane from "react-split-pane-v2";
 
 export const FilePane = styled(Pane)`
     animation: ${slidein()} 1s easein 0s;

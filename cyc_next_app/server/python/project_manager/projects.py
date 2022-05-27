@@ -96,7 +96,7 @@ def set_project_dir(path):
 def set_active_project(project: ProjectMetadata):
     global active_project
     active_project = project
-    return True
+    return project
 
 
 def get_active_project():
@@ -148,21 +148,32 @@ def add_project(path):
         config = read_config(
             '.server.yaml')
         config_dict = config.__dict__
-        new_project_id = str(uuid.uuid1())
-        new_project = {
-            'id': new_project_id,
-            'name': project_name,
-            'path': path
-        }
-        config_dict['projects']['open_projects'].append(new_project)
-        config_dict['projects']['active_project'] = new_project_id
-        save_config(config_dict, '.server.yaml')
+        exist_project = [
+            project for project in config_dict['projects']['open_projects'] if project['path'] == path]
+        if len(exist_project) > 0:
+            project_id = exist_project[0]['id']
+        else:
+            project_id = str(uuid.uuid1())
+            new_project = {
+                'id': project_id,
+                'name': project_name,
+                'path': path
+            }
+            config_dict['projects']['open_projects'].append(new_project)
+            config_dict['projects']['active_project'] = project_id
+            save_config(config_dict, '.server.yaml')
+
+            # Create main.py file
+            main_file_path = os.path.join(path, 'main.py')
+            if not os.path.exists(main_file_path):
+                with open(main_file_path, 'w'):
+                    pass
 
         # Assign project
         project_active = ProjectMetadata(
             path=path,
             name=project_name,
-            id=new_project_id,
+            id=project_id,
             data_path=os.path.join(path, '.cnext'),
             config_path=None
         )
@@ -172,12 +183,6 @@ def add_project(path):
 
         # Set activate project
         set_active_project(project_active)
-
-        # Create main.py file
-        main_file_path = os.path.join(path, 'main.py')
-        if not os.path.exists(main_file_path):
-            with open(main_file_path, 'w'):
-                pass
 
         # Create cnext.yaml if not exsists
         cnext_config_folder_path = os.path.join(path, '.cnext')

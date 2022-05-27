@@ -9,6 +9,7 @@ import {
 } from "../StyledComponents";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import LockIcon from "@mui/icons-material/Lock";
 import { useDispatch, useSelector } from "react-redux";
 import {
     FileContextMenuItem,
@@ -109,6 +110,14 @@ const FileExplorer = (props: any) => {
                             }
                         }
                         break;
+                    case ProjectCommand.set_active_project:
+                        console.log(
+                            "FileExplorer got set active project result: ",
+                            fmResult.content
+                        );
+                        if (fmResult.type == ContentType.PROJECT_METADATA) {
+                            setExpanded([]);
+                        }
                 }
             } catch (error) {
                 throw error;
@@ -158,6 +167,7 @@ const FileExplorer = (props: any) => {
         const expandingNodes = nodes.filter((node) => !expanded.includes(node));
         setExpanded(nodes);
         const dirID = expandingNodes[0];
+        console.log("expandingNodes", expandingNodes);
         console.log("FileExplorer handleDirToggle: ", event, dirID);
         if (dirID != null) {
             fetchDirChildNodes(dirID);
@@ -283,6 +293,8 @@ const FileExplorer = (props: any) => {
 
     useEffect(() => {
         if (activeProject != null) {
+            // Set active project
+            console.log("ActiveProject", activeProject);
             const msgSetActiveProject: IMessage = createMessage(
                 ProjectCommand.set_active_project,
                 {},
@@ -290,6 +302,7 @@ const FileExplorer = (props: any) => {
             );
             sendMessage(msgSetActiveProject);
 
+            // Get all available projects
             const message: IMessage = createMessage(ProjectCommand.list_projects, {});
             sendMessage(message);
         }
@@ -407,6 +420,13 @@ const FileExplorer = (props: any) => {
                     </FileTree>
                     {projects?.map((item) => (
                         <ProjectItem onClick={() => changeActiveProject(item)}>
+                            <LockIcon
+                                style={{
+                                    fontSize: "18px",
+                                    marginBottom: "-3px",
+                                    marginRight: "4px",
+                                }}
+                            />
                             {item?.name}
                         </ProjectItem>
                     ))}

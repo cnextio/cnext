@@ -101,9 +101,6 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.add_project:
                 result = projects.add_project(message.content)
                 type = ContentType.PROJECT_METADATA
-            elif message.command_name == ProjectCommand.set_active_project:
-                result = projects.set_active_project(message.content)
-                type = ContentType.PROJECT_METADATA
 
             # create reply message
             message.type = type
