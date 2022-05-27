@@ -5,18 +5,26 @@ import {
     IFileMetadata,
     IProjectMetadata,
 } from "../../lib/interfaces/IFileManager";
+
 import {
+    IAppShortcutKey,
     IConfigs,
-    IShorcutKey,
+    IEditorShortcutKey,
     ViewMode,
     IEditorConfigs,
     IDataFrameManagerConfigs,
 } from "../../lib/interfaces/IApp";
 
-const originalShortcutKeys: IShorcutKey = {
+const originalEditorShortcutKeys: IEditorShortcutKey = {
     run_queue: "Mod-l",
     set_group: "Mod-k",
     set_ungroup: "Mod-j",
+};
+
+const originalAppShortcutKeys: IAppShortcutKey = {
+    autocompletion_tooggle: "shift + a",
+    lint_tooggle: "shift + l",
+    hover_tooggle: "shift + h",
 };
 
 const codeEditorConfigs: IEditorConfigs = {
@@ -65,7 +73,8 @@ const initialState: ProjectManagerState = {
     serverSynced: false,
     configs: {
         view_mode: ViewMode.VERTICAL,
-        shortcut_keys: originalShortcutKeys,
+        code_editor_shortcut: originalEditorShortcutKeys,
+        app_shortcut: originalAppShortcutKeys,
         code_editor: codeEditorConfigs,
         dataframe_manager: dataframeManagerConfigs,
     },

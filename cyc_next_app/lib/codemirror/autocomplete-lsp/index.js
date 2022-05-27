@@ -44,7 +44,7 @@ function languageServer(options) {
                     ? _a
                     : null;
             },
-            { hoverTime: 1000 }
+            { hoverTime: 100 }
         ),
         autocompletion({
             override: [
