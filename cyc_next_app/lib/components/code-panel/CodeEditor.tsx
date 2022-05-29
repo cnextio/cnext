@@ -40,13 +40,14 @@ import {
     RunQueueStatus,
     ILineRange,
     ICodeActiveLine,
-    ICodeToInsert,
+    ICodeToInsertInfo,
+    CodeInsertMode,
 } from "../../interfaces/ICodeEditor";
 import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import {
     ICodeGenResult,
-    CodeGenStatus,
+    CodeInsertStatus,
     ICAssistInfo,
     LINE_SEP,
     CASSIST_STARTER,
@@ -112,6 +113,8 @@ const CodeEditor = () => {
         (state: RootState) => state.codeEditor.lineStatusUpdateCount
     );
 
+    // const [cmUpdatedCounter, setCMUpdatedCounter] = useState(0);
+
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
     const editorRef = useRef();
@@ -130,6 +133,14 @@ const CodeEditor = () => {
             { key: shortcutKeysConfig.run_queue, run: setRunQueue },
             { key: shortcutKeysConfig.set_group, run: setGroup },
             { key: shortcutKeysConfig.set_ungroup, run: setUnGroup },
+            {
+                key: shortcutKeysConfig.insert_group_below,
+                run: () => insertBelow(CodeInsertMode.GROUP),
+            },
+            {
+                key: shortcutKeysConfig.insert_line_below,
+                run: () => insertBelow(CodeInsertMode.LINE),
+            },
             ...completionKeymap,
         ]),
         indentUnit.of("    "),
@@ -339,18 +350,110 @@ const CodeEditor = () => {
     }, [codeToInsert]);
 
     /** handle code insertions requested by other components */
-    const handleCodeToInsert = (codeToInsert: ICodeToInsert) => {
-        if (view && codeToInsert) {
+    const handleCodeToInsert = (codeToInsert: ICodeToInsertInfo | undefined) => {
+        if (view && codeToInsert && inViewID)
+            if (codeToInsert.status === CodeInsertStatus.TOINSERT) {
+                let fromPos;
+                if (codeToInsert.fromPos == null) {
+                    const state = view.state;
+                    const doc = view.state.doc;
+                    const anchor = state.selection.ranges[0].anchor;
+                    fromPos = doc.lineAt(anchor).from;
+                } else {
+                    fromPos = codeToInsert.fromPos;
+                }
+                // console.log("CodeEditor handleCodeToInsert", codeToInsert, fromPos);
+                insertCodeToView(codeToInsert.code, fromPos);
+                dispatch(setCodeToInsert({ ...codeToInsert, status: CodeInsertStatus.INSERTING }));
+            } else if (
+                codeToInsert.status === CodeInsertStatus.INSERTING &&
+                codeToInsert.fromPos != null
+            ) {
+                // const state = view.state;
+                const doc = view.state.doc;
+                if (codeToInsert.mode === CodeInsertMode.GROUP) {
+                    /** line inserted after fromPost */
+                    const instertedLine = doc.lineAt(codeToInsert.fromPos + 1).number - 1; //** convert to 0-based */
+                    let lineStatus: ICodeLineGroupStatus = {
+                        inViewID: inViewID,
+                        fromLine: instertedLine,
+                        toLine: instertedLine + 1,
+                        status: LineStatus.EDITED,
+                        setGroup: SetLineGroupCommand.NEW,
+                    };
+                    dispatch(setLineGroupStatus(lineStatus));
+                    // console.log("CodeEditor handleCodeToInsert ", lineStatus);
+                } else if (codeToInsert.mode === CodeInsertMode.LINE) {
+                    /** line inserted after fromPost */
+                    const instertedLine = doc.lineAt(codeToInsert.fromPos + 1).number - 1; //** convert to 0-based */
+                    let lineStatus: ICodeLineGroupStatus = {
+                        inViewID: inViewID,
+                        fromLine: instertedLine,
+                        toLine: instertedLine + 1,
+                        status: LineStatus.EDITED,
+                        setGroup: SetLineGroupCommand.UNDEF,
+                    };
+                    dispatch(setLineGroupStatus(lineStatus));
+                    // console.log("CodeEditor handleCodeToInsert ", lineStatus);
+                } else if (codeToInsert.mode === CodeInsertMode.LINEANDGROUP) {
+                    /** line inserted after fromPost */
+                    const instertedLine = doc.lineAt(codeToInsert.fromPos + 1).number - 1; //** convert to 0-based */
+                    let lineStatus: ICodeLineGroupStatus = {
+                        inViewID: inViewID,
+                        fromLine: instertedLine,
+                        toLine: instertedLine + 1,
+                        status: LineStatus.EDITED,
+                        setGroup: SetLineGroupCommand.UNDEF,
+                    };
+                    dispatch(setLineGroupStatus(lineStatus));
+                    lineStatus = {
+                        inViewID: inViewID,
+                        fromLine: instertedLine + 1,
+                        toLine: instertedLine + 2,
+                        status: LineStatus.EDITED,
+                        setGroup: SetLineGroupCommand.NEW,
+                    };
+                    dispatch(setLineGroupStatus(lineStatus));
+                    // console.log("CodeEditor handleCodeToInsert ", lineStatus);
+                }
+                dispatch(setCodeToInsert(null));
+            }
+    };
+
+    function insertBelow(mode: CodeInsertMode): boolean {
+        if (view && inViewID) {
+            const codeLines = store.getState().codeEditor.codeLines[inViewID];
             const state = view.state;
             const doc = view.state.doc;
             const anchor = state.selection.ranges[0].anchor;
-            let fromPos = doc.lineAt(anchor).from;
-            let toPos = fromPos;
-            console.log("CodeEditor handleCodeToInsert", codeToInsert, fromPos, toPos);
-            insertCodeToView(codeToInsert.code, fromPos, toPos);
-            dispatch(setCodeToInsert(null));
+            let curLineNumber = doc.lineAt(anchor).number; // 1-based
+            let fromPos: number;
+            let curGroupID = codeLines[curLineNumber - 1].groupID;
+            while (
+                curGroupID != null &&
+                curLineNumber < codeLines.length + 1 /** note that curLineNumber is 1-based */ &&
+                codeLines[curLineNumber - 1].groupID === curGroupID
+            ) {
+                curLineNumber += 1;
+            }
+            if (curLineNumber === 1 || curGroupID == null) {
+                /** insert from the end of the current line */
+                fromPos = doc.line(curLineNumber).to;
+            } else {
+                /** insert from the end of the prev line */
+                fromPos = doc.line(curLineNumber - 1).to;
+            }
+            let newCodeToInsert = {
+                code: "\n",
+                fromPos: fromPos,
+                status: CodeInsertStatus.TOINSERT,
+                mode: mode,
+            };
+            dispatch(setCodeToInsert(newCodeToInsert));
+            console.log("CodeEditor insertGroupBelow ", newCodeToInsert);
         }
-    };
+        return true;
+    }
 
     const createMessage = (content: IRunningCommandContent) => {
         let message: IMessage = {
@@ -618,6 +721,7 @@ const CodeEditor = () => {
                     dispatch(updateLines(updatedLineInfo));
                 }
                 handleCAsisstTextUpdate();
+                // setCMUpdatedCounter(cmUpdatedCounter + 1);
             }
         } catch (error) {
             throw error;
@@ -698,12 +802,12 @@ const CodeEditor = () => {
                      * Note: if cAssistInfo status is CodeGenStatus.INSERTED, we also reset the cAssistInfo content
                      * */
                     if (
-                        cAssistInfo === undefined ||
-                        (cAssistInfo && cAssistInfo.status === CodeGenStatus.INSERTED)
+                        cAssistInfo == null ||
+                        (cAssistInfo && cAssistInfo.status === CodeInsertStatus.INSERTED)
                     ) {
                         let parsedCAText = parseCAssistText(cursor, text);
                         let newCAssistInfo: ICAssistInfo | undefined = {
-                            status: CodeGenStatus.INSERTING,
+                            status: CodeInsertStatus.INSERTING,
                             cAssistText: newMagicText,
                             plotData: parsedCAText,
                             /** generatedLine.number in state.doc is 1 based, so convert to 0 base
@@ -732,7 +836,7 @@ const CodeEditor = () => {
                         }
                     } else if (
                         cAssistInfo &&
-                        cAssistInfo.status === CodeGenStatus.INSERTING &&
+                        cAssistInfo.status === CodeInsertStatus.INSERTING &&
                         cAssistInfo.insertedLinesInfo
                     ) {
                         /** The second time _handleMagic being called is after new code has been inserted */
@@ -746,9 +850,10 @@ const CodeEditor = () => {
                             setGroup: SetLineGroupCommand.NEW,
                         };
                         dispatch(setLineGroupStatus(lineStatus));
+
                         // console.log('Magics after inserted lineStatus: ', lineStatus);
-                        let newCAssistInfo = { ...cAssistInfo };
-                        newCAssistInfo.status = CodeGenStatus.INSERTED;
+                        let newCAssistInfo = { ...cAssistInfo, status: CodeInsertStatus.INSERTED };
+                        // newCAssistInfo.status = CodeInsertStatus.INSERTED;
                         console.log("CodeEditor cAssist after inserted: ", newCAssistInfo);
                         // setCAssistInfo(newCAssistInfo);
                         let cAssistInfoRedux: ICAssistInfoRedux = {
@@ -763,13 +868,17 @@ const CodeEditor = () => {
         }
     };
 
-    function insertCodeToView(code: string, insertFrom: number, insertTo: number) {
+    // useEffect(() => {
+    //     handleCAsisstTextUpdate();
+    // }, [cmUpdatedCounter]);
+
+    function insertCodeToView(code: string, insertFrom: number) {
         if (view) {
             let state: EditorState = view.state;
             let transactionSpec: TransactionSpec = {
                 changes: {
                     from: insertFrom,
-                    to: insertTo,
+                    to: insertFrom, // only insert not replace anything
                     insert: code,
                 },
             };
@@ -822,31 +931,18 @@ const CodeEditor = () => {
                         fromLine,
                         codeText
                     );
-                    insertCodeToView(
-                        isLineGenerated ? genCode : genCode + LINE_SEP,
-                        insertFrom,
-                        insertTo
-                    );
-                    // let transactionSpec: TransactionSpec = {
-                    //   changes: {
-                    //     from: insertFrom,
-                    //     to: insertTo,
-                    //     insert: isLineGenerated ? genCode : genCode + LINE_SEP,
-                    //   },
-                    // };
-                    // let transaction: Transaction = state.update(transactionSpec);
-                    // view.dispatch(transaction);
+                    insertCodeToView(isLineGenerated ? genCode : genCode + LINE_SEP, insertFrom);
                 }
             }
         };
 
         if (view && cAssistInfo) {
-            if (cAssistInfo.status === CodeGenStatus.INSERTING) {
+            if (cAssistInfo.status === CodeInsertStatus.INSERTING) {
                 if (cAssistInfo.genCode !== undefined) {
                     insertCode(cAssistInfo.genCode);
                 }
             } else if (
-                cAssistInfo.status === CodeGenStatus.INSERTED &&
+                cAssistInfo.status === CodeInsertStatus.INSERTED &&
                 cAssistInfo.insertedLinesInfo !== undefined
             ) {
                 setFlashingEffect(store.getState(), view, cAssistInfo);

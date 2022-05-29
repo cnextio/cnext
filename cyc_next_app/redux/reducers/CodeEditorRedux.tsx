@@ -13,9 +13,8 @@ import {
     ICodeActiveLine,
     ICodeText,
     ILineRange,
-    ICodeToInsert,
+    ICodeToInsertInfo,
 } from "../../lib/interfaces/ICodeEditor";
-import { ifElseDict } from "../../lib/components/libs";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 
@@ -47,7 +46,7 @@ type CodeEditorState = {
     cAssistInfo: ICAssistInfo | undefined;
     runDict: {} | undefined;
     runningId: string | undefined;
-    codeToInsert: ICodeToInsert | undefined;
+    codeToInsert: ICodeToInsertInfo | undefined;
     // this number need to be increased whenever codeText is updated
     saveCodeTextCounter: number;
     // this number need to be increased whenever codeLine is updated

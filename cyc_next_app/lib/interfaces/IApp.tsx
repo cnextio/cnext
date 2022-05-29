@@ -281,6 +281,8 @@ export interface IEditorShortcutKey {
     run_queue: string;
     set_group: string;
     set_ungroup: string;
+    insert_group_below: string;
+    insert_line_below: string;
 }
 
 export interface IAppShortcutKey {
