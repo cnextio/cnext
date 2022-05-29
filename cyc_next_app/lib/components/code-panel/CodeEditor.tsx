@@ -79,8 +79,6 @@ import {
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
-import { uuid } from "@jupyter-widgets/base";
-import shortid from "shortid";
 
 const pyLanguageServer = languageServer({
     serverUri: "ws://localhost:3001/python",
