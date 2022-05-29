@@ -64,7 +64,7 @@ export interface IInsertLinesInfo {
 }
 
 export interface ICAssistInfo {
-	status: CodeGenStatus,
+	status: CodeInsertStatus,
 	cAssistLineNumber: number,
     insertedLinesInfo: IInsertLinesInfo,
 	cAssistText?: string,
@@ -79,7 +79,8 @@ export interface ICAssistInfoRedux {
 	cAssistInfo: ICAssistInfo;
 }
 
-export enum CodeGenStatus {
+export enum CodeInsertStatus {
+    TOINSERT,
 	INSERTING,
 	INSERTED
 }
