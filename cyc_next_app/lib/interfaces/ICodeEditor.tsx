@@ -1,5 +1,5 @@
 import { ContentType } from "./IApp";
-import { ICAssistInfo } from "./ICAssist";
+import { CodeInsertStatus, ICAssistInfo } from "./ICAssist";
 
 export interface ICodeDoc {
     text: Object;
@@ -165,8 +165,16 @@ export enum RunQueueStatus {
     RUNNING,
 }
 
+export enum CodeInsertMode {
+    LINE,
+    GROUP,
+    LINEANDGROUP /** insert one line and one group */,
+}
 /** This is used for other components to inser code to CodeEditor */
-export interface ICodeToInsert {
+export interface ICodeToInsertInfo {
     code: string;
+    fromPos?: number;
+    status: CodeInsertStatus;
+    mode: CodeInsertMode;
 }
 /** */
