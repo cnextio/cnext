@@ -17,7 +17,6 @@ import {
     // removeFileToSaveState,
     setSavingStateFile,
     setSavingFile,
-    setAddProject,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import {
@@ -38,7 +37,6 @@ const FileManager = () => {
     const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
-    const addProjectPath = useSelector((state: RootState) => state.projectManager.addProjectPath);
     // const codeText = useSelector((state: RootState) => getCodeText(state));
     // const codeLines = useSelector((state: RootState) => getCodeLines(state));
     const saveCodeTextCounter = useSelector(
@@ -165,12 +163,6 @@ const FileManager = () => {
                                 fileMetadata.timestamp = fmResult.content["timestamp"];
                                 dispatch(setFileMetaData(fileMetadata));
                             }
-                        case ProjectCommand.add_project:
-                            if (fmResult.type == ContentType.PROJECT_METADATA) {
-                                if (fmResult.content != null) {
-                                    dispatch(setActiveProject(fmResult.content));
-                                }
-                            }
                     }
                 } else {
                     //TODO: send error to ouput
@@ -245,9 +237,9 @@ const FileManager = () => {
         if (inViewID) {
             const state = store.getState();
             const codeText = state.codeEditor.codeText;
-            // we will not load the file if it already exists (except for config.json) 
-            // in redux this design will not allow client to stay update with server 
-            // if there is out-of-channel changes in server but this is good enough 
+            // we will not load the file if it already exists (except for config.json)
+            // in redux this design will not allow client to stay update with server
+            // if there is out-of-channel changes in server but this is good enough
             // for our use case.
             if (
                 codeText == null ||
@@ -298,7 +290,7 @@ const FileManager = () => {
 
     const isConfigFile = (filePath: string) => {
         return filePath === "config.json";
-    }
+    };
 
     const reloadConfigIfChanged = (fileToSave: string[]) => {
         let state = store.getState();
@@ -314,7 +306,7 @@ const FileManager = () => {
         } catch (error) {
             //don't want to log this because there might be a lot of this when user typing in the string
             //console.error(error);
-        }        
+        }
     };
     /**
      * This function will be called in two cases
@@ -464,20 +456,6 @@ const FileManager = () => {
         // console.log("FileManager useEffect: ", fileToSaveState);
         saveState();
     }, [saveTimeout, fileToSaveState]);
-
-    useEffect(() => {
-        if (addProjectPath != null) {
-            let message: IMessage = createMessage(
-                ProjectCommand.add_project,
-                addProjectPath,
-                1,
-                {}
-            );
-            console.log("FileManager send:", message.command_name, message.content);
-            sendMessage(message);
-            dispatch(setAddProject(null));
-        }
-    }, [addProjectPath]);
 
     /**
      * Use fileToSave and fileToSaveState instead of codeText to trigger saveFile and saveState so we can control

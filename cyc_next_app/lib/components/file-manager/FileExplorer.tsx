@@ -6,6 +6,7 @@ import {
     FileTree,
     FileItem,
     ProjectItem,
+    ErrorText,
 } from "../StyledComponents";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -34,6 +35,10 @@ import NewItemInput from "./NewItemInput";
 import DeleteConfirmation from "./DeleteConfirmation";
 import store from "../../../redux/store";
 import CypressIds from "../tests/CypressIds";
+import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import AddBoxIcon from "@mui/icons-material/AddBox";
+import NoteAddIcon from "@mui/icons-material/NoteAdd";
+import Tooltip from "@mui/material/Tooltip";
 
 interface ContextMenuInfo {
     parent: string;
@@ -52,14 +57,15 @@ const FileExplorer = (props: any) => {
 
     const projects = useSelector((state) => state.projectManager.projects);
 
-    const addProjectPath: null | string = useSelector(
-        (state) => state.projectManager.addProjectPath
-    );
-    // const [clickedItemParent, setClickedItemParent] = useState<string|null>(null);
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
+    const [createProjectInProgress, setCreateProjectInprogress] = useState<boolean>(false);
+    const [txtError, setTxtError] = useState<string | null>(null);
     const [command, setProjectCommand] = useState<
-        ProjectCommand.create_file | ProjectCommand.create_folder | null
+        | ProjectCommand.create_file
+        | ProjectCommand.create_folder
+        | ProjectCommand.add_project
+        | null
     >(null);
     const [expanded, setExpanded] = useState<Array<string>>([]);
     const [deleteDialog, setDeleteDialog] = useState(false);
@@ -118,6 +124,12 @@ const FileExplorer = (props: any) => {
                         if (fmResult.type == ContentType.PROJECT_METADATA) {
                             setExpanded([]);
                         }
+                    case ProjectCommand.add_project:
+                        if (fmResult.type == ContentType.PROJECT_METADATA) {
+                            if (fmResult.content != null) {
+                                dispatch(setActiveProject(fmResult.content));
+                            }
+                        }
                 }
             } catch (error) {
                 throw error;
@@ -132,6 +144,11 @@ const FileExplorer = (props: any) => {
             socket.off(WebAppEndpoint.FileExplorer);
         };
     }, []);
+
+    useEffect(() => {
+        const message: IMessage = createMessage(ProjectCommand.list_projects, {});
+        sendMessage(message);
+    }, [activeProject]);
 
     const createMessage = (command: ProjectCommand, metadata: {}, content = null): IMessage => {
         let message: IMessage = {
@@ -253,6 +270,43 @@ const FileExplorer = (props: any) => {
 
     const relativeProjectPath = "";
 
+    const isFile = (name: string) => {
+        return name.split(".")[1];
+    };
+
+    const validateProjectPath = (projectPath: string) => {
+        if (projectPath == "") {
+            setTxtError("The path is empty");
+            return false;
+        }
+
+        if (isFile(projectPath)) {
+            setTxtError("The path is not folder");
+            return false;
+        }
+
+        setTxtError(null);
+        return true;
+    };
+
+    const handleNewProjectKeyPress = (event: React.KeyboardEvent, value: string) => {
+        const projectPath = value;
+        if (event.key === "Enter") {
+            let validateProject = validateProjectPath(projectPath);
+            if (validateProject) {
+                /** this will create path format that conforms to the style of the client OS
+                 * but not that of server OS. The server will have to use os.path.norm to correct
+                 * the path */
+                console.log("FileExplorer create new project: ", projectPath);
+                let message = createMessage(ProjectCommand.add_project, {}, projectPath);
+                sendMessage(message);
+                setCreateProjectInprogress(false);
+            }
+        } else if (event.key === "Escape") {
+            setCreateProjectInprogress(false);
+        }
+    };
+
     const handleNewItemKeyPress = (
         event: React.KeyboardEvent,
         value: string,
@@ -291,22 +345,22 @@ const FileExplorer = (props: any) => {
         }
     };
 
-    useEffect(() => {
-        if (activeProject != null) {
-            // Set active project
-            console.log("ActiveProject", activeProject);
-            const msgSetActiveProject: IMessage = createMessage(
-                ProjectCommand.set_active_project,
-                {},
-                activeProject
-            );
-            sendMessage(msgSetActiveProject);
+    // useEffect(() => {
+    //     if (activeProject != null) {
+    //         // Set active project
+    //         console.log("ActiveProject", activeProject);
+    //         const msgSetActiveProject: IMessage = createMessage(
+    //             ProjectCommand.set_active_project,
+    //             {},
+    //             activeProject
+    //         );
+    //         sendMessage(msgSetActiveProject);
 
-            // Get all available projects
-            const message: IMessage = createMessage(ProjectCommand.list_projects, {});
-            sendMessage(message);
-        }
-    }, [activeProject]);
+    //         // Get all available projects
+    //         const message: IMessage = createMessage(ProjectCommand.list_projects, {});
+    //         sendMessage(message);
+    //     }
+    // }, [activeProject]);
 
     const generateFileItems = (path: string) => {
         return (
@@ -381,10 +435,23 @@ const FileExplorer = (props: any) => {
         setDeleteDialog(false);
     };
 
+    const handleAddProjectBtn = () => {
+        setCreateProjectInprogress(true);
+    };
+
     return (
         <Fragment>
             <FileExporerHeader>
                 <FileExplorerHeaderName variant='overline'>File Manager</FileExplorerHeaderName>
+                <Tooltip title='Add project' placement='bottom-end' onClick={handleAddProjectBtn}>
+                    <AddBoxIcon fontSize='small' style={{ marginLeft: 40, cursor: "pointer" }} />
+                </Tooltip>
+                <Tooltip title='Add folder' placement='bottom-end'>
+                    <CreateNewFolderIcon fontSize='small' style={{ cursor: "pointer" }} />
+                </Tooltip>
+                <Tooltip title='Add file' placement='bottom-end'>
+                    <NoteAddIcon fontSize='small' style={{ cursor: "pointer" }} />
+                </Tooltip>
             </FileExporerHeader>
             {activeProject ? (
                 <div>
@@ -417,6 +484,20 @@ const FileExplorer = (props: any) => {
                         >
                             {generateFileItems(relativeProjectPath)}
                         </FileItem>
+                        {createProjectInProgress ? (
+                            <Fragment>
+                                <FileItem
+                                    nodeId='new_project'
+                                    label={
+                                        <NewItemInput
+                                            handleKeyPress={handleNewProjectKeyPress}
+                                            command={null}
+                                        />
+                                    }
+                                />
+                                {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
+                            </Fragment>
+                        ) : null}
                     </FileTree>
                     {projects?.map((item) => (
                         <ProjectItem onClick={() => changeActiveProject(item)}>

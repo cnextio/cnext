@@ -1,11 +1,9 @@
 import * as React from "react";
-import Box from "@mui/material/Box";
 import FolderIcon from "@mui/icons-material/Folder";
 import PauseIcon from "@mui/icons-material/Pause";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
-import AddIcon from "@mui/icons-material/Add";
 
 import {
     AppToolbar,
@@ -32,7 +30,6 @@ import Divider from "@mui/material/Divider";
 import { restartKernel, interruptKernel } from "../kernel-manager/KernelManager";
 import KernelInterruptConfirmation from "../kernel-manager/KernelInterruptConfirmation";
 import KernelRestartComfirmation from "../kernel-manager/KernelRestartConfirmation";
-import AddProjectConfirmation from "../file-manager/AddProjectConfirmation";
 import Account from "../user-manager/Account";
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
@@ -62,15 +59,9 @@ const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
     const [openKernelInterruptDialog, setOpenKernelInterruptDialog] = useState(false);
     const [openKernelRestartDialog, setOpenKernelRestartDialog] = useState(false);
-    const [openAddProjectDialog, setOpenAddProjectDialog] = useState(false);
     const dispatch = useDispatch();
 
     const projectManagerIconList = [
-        {
-            name: SideBarName.ADD_PROJECT,
-            component: <AddIcon />,
-            tooltip: "Add Project",
-        },
         {
             name: SideBarName.PROJECT,
             component: <FolderIcon />,
@@ -129,8 +120,6 @@ const MiniSidebar = () => {
             setOpenKernelRestartDialog(true);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
             setOpenKernelInterruptDialog(true);
-        } else if (name === SideBarName.ADD_PROJECT) {
-            setOpenAddProjectDialog(true);
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -152,14 +141,6 @@ const MiniSidebar = () => {
             restartKernel();
         }
         setOpenKernelRestartDialog(false);
-    };
-
-    const handleAddProjectDialogClose = (confirm: boolean) => {
-        if (confirm) {
-            console.log();
-            // restartKernel();
-        }
-        setOpenAddProjectDialog(false);
     };
 
     useEffect(() => {
@@ -218,10 +199,6 @@ const MiniSidebar = () => {
             <KernelRestartComfirmation
                 openDialog={openKernelRestartDialog}
                 confirm={handleKernelRestartDialogClose}
-            />
-            <AddProjectConfirmation
-                openDialog={openAddProjectDialog}
-                confirm={handleAddProjectDialogClose}
             />
         </Fragment>
     );

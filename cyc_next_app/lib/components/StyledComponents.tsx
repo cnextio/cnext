@@ -909,6 +909,14 @@ export const FooterBar = styled(BottomNavigation)`
     height: 40px;
 `;
 
+export const ErrorText = styled.span`
+    color: #ee3c3c;
+    font-size: 13px;
+    font-style: italic;
+    margin-left: 28px;
+    display: block;
+`;
+
 function backgroundTransition(color) {
     return keyframes`
       50% {
