@@ -381,6 +381,12 @@ export const StyledCodeEditor = styled.div`
             outline: 0px solid ${(props) => props.theme.palette.grey.A400};
         }
     }
+
+    .cm-foldGutter {
+        font-size: 11px;
+        padding-right: 2px;
+        padding-top: 3px;
+    }
 `;
 
 export const StyledCodeMirror = styled(CodeMirror)`

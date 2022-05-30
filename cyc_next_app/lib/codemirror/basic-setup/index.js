@@ -63,7 +63,7 @@ const basicSetup = [
     /*@__PURE__*/ highlightActiveLineGutter(),
     /*@__PURE__*/ highlightSpecialChars(),
     /*@__PURE__*/ history(),
-    /*@__PURE__*/ foldGutter(),
+    /*@__PURE__*/ foldGutter({ openText: "\u25bc", closedText: "\u25b6" }),
     /*@__PURE__*/ drawSelection(),
     /*@__PURE__*/ EditorState.allowMultipleSelections.of(true),
     /*@__PURE__*/ indentOnInput(),
