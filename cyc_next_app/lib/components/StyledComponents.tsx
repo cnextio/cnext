@@ -384,8 +384,8 @@ export const StyledCodeEditor = styled.div`
 
     .cm-foldGutter {
         font-size: 11px;
-        padding-right: 2px;
-        padding-top: 3px;
+        // padding-right: 2px;
+        // padding-top: 3px;
     }
 `;
 
