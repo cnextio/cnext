@@ -98,9 +98,6 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.get_project_config:
                 result = projects.get_project_config()
                 type = ContentType.PROJECT_METADATA
-            elif message.command_name == ProjectCommand.add_project:
-                result = projects.add_project(message.content)
-                type = ContentType.PROJECT_METADATA
 
             # create reply message
             message.type = type
