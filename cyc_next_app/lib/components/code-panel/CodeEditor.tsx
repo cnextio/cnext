@@ -12,7 +12,7 @@ import { sql } from "@codemirror/lang-sql";
 import { json } from "@codemirror/lang-json";
 import { EditorView, keymap, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { completionKeymap } from "../../codemirror/autocomplete-lsp/autocomplete";
-import { indentUnit, LanguageSupport } from "@codemirror/language";
+import { foldService, indentUnit } from "@codemirror/language";
 import { lineNumbers } from "@codemirror/gutter";
 import { StyledCodeEditor } from "../StyledComponents";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
@@ -123,6 +123,35 @@ const CodeEditor = () => {
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
+    const getGroupedLineFoldRange = (state: EditorState, lineStart: number, lineEnd: number) => {
+        if (state && inViewID) {
+            const codeLines = store.getState().codeEditor.codeLines[inViewID];
+            const doc = state.doc;
+            /** compare doc and codeLines to avoid bug when codeLines has been loaded but doc has not */
+            if (codeLines != null && doc.lines === codeLines.length) {
+                const startLine: number = doc.lineAt(lineStart).number - 1; // 0-based
+                let endLine: number = startLine;
+                let curGroupID = codeLines[startLine].groupID;
+                console.log("CodeEditor getGroupedLineFoldRange: ", lineStart, lineEnd, codeLines);
+                if (
+                    curGroupID != null &&
+                    (startLine === 0 ||
+                        (startLine > 0 && curGroupID != codeLines[startLine - 1].groupID))
+                ) {
+                    /** start of a group */
+                    while (
+                        endLine < codeLines.length - 1 &&
+                        codeLines[endLine + 1].groupID === curGroupID
+                    ) {
+                        endLine += 1;
+                    }
+                    return { from: lineEnd, to: doc.line(endLine + 1).to }; // convert to 1-based
+                }
+            }
+        }
+        return null;
+    };
+
     const defaultExtensions = [
         basicSetup,
         lineNumbers(),
@@ -144,6 +173,7 @@ const CodeEditor = () => {
             ...completionKeymap,
         ]),
         indentUnit.of("    "),
+        foldService.of(getGroupedLineFoldRange),
     ];
 
     const getLangExtenstions = (inViewID: string | null) => {
