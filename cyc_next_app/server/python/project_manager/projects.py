@@ -7,6 +7,7 @@ from project_manager.interfaces import ProjectMetadata
 from libs import logs
 from libs.config import read_config, save_config
 from project_manager.interfaces import FileMetadata
+from project_manager.interfaces import CNEXT_PROJECT_CONFIG_FILE, CNEXT_PROJECT_FOLDER, WORKSPACE_CONFIG_PATH, WorkspaceInfo
 
 log = logs.get_logger(__name__)
 
@@ -140,18 +141,18 @@ def get_project_config():
 def add_project(path):
     project_name = path.split('/')[-1]
 
-    if not os.path.exists(path):
-        os.mkdir(path)
-
     try:
+        if not os.path.exists(path):
+            os.mkdir(path)
+
         # Update .server.yaml config
-        config = read_config(
-            '.server.yaml')
-        config_dict = config.__dict__
+        config = read_config(WORKSPACE_CONFIG_PATH)
+        workspace_info = WorkspaceInfo(config.__dict__)
+        # config_dict = config.__dict__
         exist_project = [
-            project for project in config_dict['projects']['open_projects'] if project['path'] == path]
+            project for project in workspace_info.open_projects if project.path == path]
         if len(exist_project) > 0:
-            project_id = exist_project[0]['id']
+            project_id = exist_project[0].id
         else:
             project_id = str(uuid.uuid1())
             new_project = {
@@ -159,9 +160,9 @@ def add_project(path):
                 'name': project_name,
                 'path': path
             }
-            config_dict['projects']['open_projects'].append(new_project)
-            config_dict['projects']['active_project'] = project_id
-            save_config(config_dict, '.server.yaml')
+            workspace_info.open_projects.append(new_project)
+            workspace_info.active_project = project_id
+            save_config(workspace_info, WORKSPACE_CONFIG_PATH)
 
             # Create main.py file
             main_file_path = os.path.join(path, 'main.py')
@@ -170,26 +171,26 @@ def add_project(path):
                     pass
 
         # Assign project
-        project_active = ProjectMetadata(
+        active_project = ProjectMetadata(
             path=path,
             name=project_name,
             id=project_id,
-            data_path=os.path.join(path, '.cnext'),
+            data_path=os.path.join(path, CNEXT_PROJECT_FOLDER),
             config_path=None
         )
 
-        project_active.config_path = os.path.join(
-            project_active.data_path, 'cnext.yaml')
+        active_project.config_path = os.path.join(
+            active_project.data_path, CNEXT_PROJECT_CONFIG_FILE)
 
         # Set activate project
-        set_active_project(project_active)
+        set_active_project(active_project)
 
         # Create cnext.yaml if not exsists
-        cnext_config_folder_path = os.path.join(path, '.cnext')
-        if not os.path.exists(cnext_config_folder_path):
-            os.mkdir(cnext_config_folder_path)
+        cnext_project_path = os.path.join(path, CNEXT_PROJECT_FOLDER)
+        if not os.path.exists(cnext_project_path):
+            os.mkdir(cnext_project_path)
         cnext_config_path = os.path.join(
-            cnext_config_folder_path, 'cnext.yaml')
+            cnext_project_path, CNEXT_PROJECT_CONFIG_FILE)
         if not os.path.exists(cnext_config_path):
             content = {
                 'executor': 'main.py',
@@ -200,9 +201,75 @@ def add_project(path):
                 }]
             }
             save_config(content, cnext_config_path)
-        return project_active
+        return active_project
     except Exception as ex:
         raise ex
+
+# def add_project(path):
+#     project_name = path.split('/')[-1]
+
+#     try:
+#         if not os.path.exists(path):
+#             os.mkdir(path)
+
+#         # Update .server.yaml config
+#         config = read_config(WORKSPACE_CONFIG_PATH)
+#         config_dict = config.__dict__
+#         exist_project = [
+#             project for project in config_dict['projects']['open_projects'] if project['path'] == path]
+#         if len(exist_project) > 0:
+#             project_id = exist_project[0]['id']
+#         else:
+#             project_id = str(uuid.uuid1())
+#             new_project = {
+#                 'id': project_id,
+#                 'name': project_name,
+#                 'path': path
+#             }
+#             config_dict['projects']['open_projects'].append(new_project)
+#             config_dict['projects']['active_project'] = project_id
+#             save_config(config_dict, '.server.yaml')
+
+#             # Create main.py file
+#             main_file_path = os.path.join(path, 'main.py')
+#             if not os.path.exists(main_file_path):
+#                 with open(main_file_path, 'w'):
+#                     pass
+
+#         # Assign project
+#         project_active = ProjectMetadata(
+#             path=path,
+#             name=project_name,
+#             id=project_id,
+#             data_path=os.path.join(path, '.cnext'),
+#             config_path=None
+#         )
+
+#         project_active.config_path = os.path.join(
+#             project_active.data_path, 'cnext.yaml')
+
+#         # Set activate project
+#         set_active_project(project_active)
+
+#         # Create cnext.yaml if not exsists
+#         cnext_config_folder_path = os.path.join(path, '.cnext')
+#         if not os.path.exists(cnext_config_folder_path):
+#             os.mkdir(cnext_config_folder_path)
+#         cnext_config_path = os.path.join(
+#             cnext_config_folder_path, 'cnext.yaml')
+#         if not os.path.exists(cnext_config_path):
+#             content = {
+#                 'executor': 'main.py',
+#                 'open_files': [{
+#                     'executor': True,
+#                     'name': 'main.py',
+#                     'path': 'main.py'
+#                 }]
+#             }
+#             save_config(content, cnext_config_path)
+#         return project_active
+#     except Exception as ex:
+#         raise ex
 
 
 def list_projects():

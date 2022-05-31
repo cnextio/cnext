@@ -1,6 +1,22 @@
 import os
 import simplejson as json
 
+## path to the workspace config file # 
+WORKSPACE_CONFIG_PATH = '.server.yaml'
+## name of the folder where cnext stores project related information #
+CNEXT_PROJECT_FOLDER = '.cnext'
+## name of the file where cnext stores project related config #
+CNEXT_PROJECT_CONFIG_FILE = 'cnext.yaml'
+
+class JsonSerializable:
+    def __init__(self, obj):
+        self.obj = obj
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
+
+    def __repr__(self) -> str:
+        return self.toJSON()
 
 class DirMetatdata:
     # def __init__(self, **entries):
@@ -67,11 +83,33 @@ class ProjectMetadata:
         self.name = None
         self.id = None
         self.__dict__.update(entries)
-        self.data_path = os.path.join(self.path, '.cnext')
-        self.config_path = os.path.join(self.data_path, 'cnext.yaml')
+        self.data_path = os.path.join(self.path, CNEXT_PROJECT_FOLDER)
+        self.config_path = os.path.join(
+            self.data_path, CNEXT_PROJECT_CONFIG_FILE)
 
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
 
     def __repr__(self) -> str:
         return self.toJSON()
+
+
+class OpenProjectInfo(JsonSerializable):
+    def __init__(self, **entries):
+        self.id = None
+        self.name = None
+        self.path = None
+        self.__dict__.update(entries)
+
+
+class WorkspaceInfo(JsonSerializable):
+    """ Infomation about the projects added to this workspace
+    """
+    def __init__(self, config: dict):
+        self.active_project = None
+        self.open_projects = []
+        if 'active_project' in config:
+            self.active_project = config['active_project']
+        if 'open_projects' in config and isinstance(config['open_projects'], list):
+            for project in config['open_projects']:
+                self.open_projects.append(OpenProjectInfo(**project))
