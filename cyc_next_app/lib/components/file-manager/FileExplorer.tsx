@@ -121,11 +121,11 @@ const FileExplorer = (props: any) => {
                             "FileExplorer got set active project result: ",
                             fmResult.content
                         );
-                        if (fmResult.type == ContentType.PROJECT_METADATA) {
+                        if (fmResult.type === ContentType.PROJECT_METADATA) {
                             setExpanded([]);
                         }
                     case ProjectCommand.add_project:
-                        if (fmResult.type == ContentType.PROJECT_METADATA) {
+                        if (fmResult.type === ContentType.PROJECT_METADATA) {
                             if (fmResult.content != null) {
                                 dispatch(setActiveProject(fmResult.content));
                             }
