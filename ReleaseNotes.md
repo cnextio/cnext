@@ -1,8 +1,9 @@
-# v0.4.14 - v0.4.15
+# v0.4.14 - v0.4.16
 
 ##### NEW
 
 -   Add configs for dataframe manager.
+-   Implement grouped lines folding
 
 ##### IMPROVED
 
