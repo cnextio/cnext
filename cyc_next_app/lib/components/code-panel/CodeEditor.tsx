@@ -145,7 +145,9 @@ const CodeEditor = () => {
                     ) {
                         endLine += 1;
                     }
-                    return { from: lineEnd, to: doc.line(endLine + 1).to }; // convert to 1-based
+                    if (lineEnd < doc.line(endLine + 1).to) {
+                        return { from: lineEnd, to: doc.line(endLine + 1).to }; // convert to 1-based
+                    }
                 }
             }
         }
