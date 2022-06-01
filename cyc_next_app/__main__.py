@@ -57,10 +57,6 @@ def build():
     os.system('npm i')
 
 
-def download(extract_to):
-    download_and_unzip(DOWNLOAD_PATH, extract_to)
-
-
 def download_and_unzip(url, extract_to='.'):
     http_response = urlopen(url)
     zipfile = ZipFile(BytesIO(http_response.read()))
@@ -78,7 +74,7 @@ def build_path():
         os.chdir(path)
         folder_name = os.path.basename(path)
         print('Your sample project will download in', folder_name)
-        download(path)
+        download_and_unzip(DOWNLOAD_PATH, path)
     else:
         print('Your path isn\'t correct, Please try again')
         build_path()
