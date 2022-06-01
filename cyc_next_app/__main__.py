@@ -4,12 +4,19 @@ from subprocess import Popen
 from contextlib import contextmanager
 import time
 
+from urllib.request import urlopen
+from io import BytesIO
+from zipfile import ZipFile
+
 
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
 server_path = os.path.join(web_path, 'server')
-FILE_NAME = '.server.yaml'
-CHANGE_LINE_NUMBER = 14
-FIELD_LENGTH = 10
+FILE_NAME = 'workspace.yaml'
+CHANGE_LINE_NUMBER = 4
+FIELD_LENGTH = 6
+WITHOUT_PROJECT = 0
+HAVE_PROJECT = 1
+DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/9ee7cba2573c.zip'
 
 
 def change_path(path):
@@ -29,11 +36,20 @@ def change_path(path):
     # Convert `string_list` to a single string
     my_file.write(new_file_contents)
     my_file.close()
-    print('map path done!')
+    print('map path for sample project done!')
 
 
-def main():
-    path()
+def ask():
+    answer = input('Would you like to start with a sample project? (Y/N) :')
+    if(answer == 'y' or answer == 'Y'):
+        return HAVE_PROJECT
+    elif (answer == 'n' or answer == 'N'):
+        return WITHOUT_PROJECT
+    else:
+        ask()
+
+
+def build():
     os.chdir(web_path)
     os.system('npm i --force')
     os.system('npm run build')
@@ -41,16 +57,40 @@ def main():
     os.system('npm i')
 
 
-def path():
-    path = input('Please enter your project directory\'s path:')
+def download(extract_to):
+    download_and_unzip(DOWNLOAD_PATH, extract_to)
+
+
+def download_and_unzip(url, extract_to='.'):
+    http_response = urlopen(url)
+    zipfile = ZipFile(BytesIO(http_response.read()))
+    zipfile.extractall(path=extract_to)
+    skywaler_path = os.path.join(
+        extract_to, zipfile.namelist()[0], 'Skywalker')
+    change_path(skywaler_path)
+
+
+def build_path():
+    path = input(
+        'Please enter the directory\'s path to store the sample project in: ')
     print('Checking your path: ' + path)
     if os.path.isdir(path):
         os.chdir(path)
         folder_name = os.path.basename(path)
-        print('folder_name', folder_name)
-        change_path(path)
+        print('Your sample project will download in', folder_name)
+        download(path)
     else:
         print('Your path isn\'t correct, Please try again')
+        build_path()
+
+
+def main():
+    status = ask()
+    if(status == WITHOUT_PROJECT):
+        build()
+    else:
+        build_path()
+        build()
 
 
 @contextmanager
