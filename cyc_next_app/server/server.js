@@ -42,9 +42,11 @@ const LSPExecutor = [
     LanguageServerCompletion,
 ];
 
+const ServerConfigPath = "server.yaml";
+
 try {
     let file;
-    file = fs.readFileSync(".server.yaml", "utf8");
+    file = fs.readFileSync(ServerConfigPath, "utf8");
     config = YAML.parse(file);
 } catch (error) {
     console.log(error.stack);

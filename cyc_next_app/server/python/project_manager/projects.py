@@ -139,13 +139,13 @@ def get_project_config():
 
 
 def add_project(path):
-    project_name = path.split('/')[-1]
-
     try:
+        project_name = path.split('/')[-1]
+
         if not os.path.exists(path):
             os.mkdir(path)
 
-        # Update .server.yaml config
+        # Update server.yaml config
         config = read_config(WORKSPACE_CONFIG_PATH)
         workspace_info = WorkspaceInfo(config.__dict__)
         # config_dict = config.__dict__
@@ -212,7 +212,7 @@ def add_project(path):
 #         if not os.path.exists(path):
 #             os.mkdir(path)
 
-#         # Update .server.yaml config
+#         # Update server.yaml config
 #         config = read_config(WORKSPACE_CONFIG_PATH)
 #         config_dict = config.__dict__
 #         exist_project = [
@@ -228,7 +228,7 @@ def add_project(path):
 #             }
 #             config_dict['projects']['open_projects'].append(new_project)
 #             config_dict['projects']['active_project'] = project_id
-#             save_config(config_dict, '.server.yaml')
+#             save_config(config_dict, 'server.yaml')
 
 #             # Create main.py file
 #             main_file_path = os.path.join(path, 'main.py')
@@ -273,6 +273,6 @@ def add_project(path):
 
 
 def list_projects():
-    config = read_config('.server.yaml')
+    config = read_config(WORKSPACE_CONFIG_PATH)
     config_dict = config.__dict__
-    return config_dict['projects']['open_projects']
+    return config_dict['open_projects']

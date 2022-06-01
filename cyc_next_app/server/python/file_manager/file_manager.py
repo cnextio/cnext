@@ -8,24 +8,20 @@ from libs import logs
 from libs.config import read_config
 from libs.message import ProjectCommand
 from project_manager import files, projects
+from project_manager.interfaces import WorkspaceInfo
 
 log = logs.get_logger(__name__)
 
 
 class MessageHandler(BaseMessageHandler):
-    def __init__(self, p2n_queue, user_space, config):
+    def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceInfo):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
-        open_projects = []
         active_project: projects.ProjectMetadata = None
-        if hasattr(config, 'projects'):
-            if 'open_projects' in config.projects:
-                if isinstance(config.projects['open_projects'], list):
-                    open_projects = config.projects['open_projects']
-            if 'active_project' in config.projects:
-                for project_config in open_projects:
-                    if config.projects['active_project'] == project_config['id']:
-                        active_project = projects.ProjectMetadata(
-                            **project_config)
+        open_projects = workspace_info.open_projects
+        if workspace_info.active_project is not None:
+            for project in open_projects:
+                if workspace_info.active_project == project.id:
+                    active_project = project
         if active_project:
             projects.set_active_project(active_project)
 
