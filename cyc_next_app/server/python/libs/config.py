@@ -4,6 +4,7 @@ from libs import logs
 import simplejson as json
 
 log = logs.get_logger(__name__)
+yaml.emitter.Emitter.process_tag = lambda self, *args, **kw: None
 
 class Config:
     def __init__(self, **entries): 
