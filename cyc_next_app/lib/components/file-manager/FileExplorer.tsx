@@ -327,7 +327,7 @@ const FileExplorer = (props: any) => {
     return (
         <Fragment>
             <FileExporerHeader>
-                <FileExplorerHeaderName variant='overline'>File Manager</FileExplorerHeaderName>
+                <FileExplorerHeaderName variant='overline'>Projects</FileExplorerHeaderName>
             </FileExporerHeader>
             {activeProject ? (
                 <FileTree
