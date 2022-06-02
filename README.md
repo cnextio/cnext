@@ -58,6 +58,12 @@ Step 6 `run` command `cnext-run`
 
 ## Release Note
 
+# v0.4.17
+
+##### NEW
+
+-   Show failed execution status marker
+
 # v0.4.14 - v0.4.16
 
 ##### NEW
