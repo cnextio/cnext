@@ -320,7 +320,7 @@ export const CodeContainer = styled.div`
 
 export const StyledCodeEditor = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
-    padding: 0px 0px 10px 0px;
+    padding: 0px 0px 0px 0px;
     align-self: stretch;
     height: 100%;
     width: 100%;
@@ -421,8 +421,6 @@ export const StyledCodeMirror = styled(CodeMirror)`
 export const CodeEditMarker = styled.div`
     height: 10px;
     width: 10px;
-    // background-color: ${(props) =>
-        props.edited ? props.theme.palette.primary.light : props.theme.palette.success.light};
     background-color: green;
     border: 2px;
 `;

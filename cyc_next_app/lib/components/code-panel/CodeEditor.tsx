@@ -247,16 +247,24 @@ const CodeEditor = () => {
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
                     handleResultData(codeOutput);
-                    let lineStatus: ICodeLineStatus = {
-                        inViewID: inViewID,
-                        lineRange: codeOutput.metadata?.line_range,
-                        status: LineStatus.EXECUTED,
-                    };
-
                     if (
                         codeOutput.metadata?.msg_type === "execute_reply" &&
                         codeOutput.content?.status != null
                     ) {
+                        let lineStatus: ICodeLineStatus
+                        if (codeOutput.content?.status === 'ok') {
+                            lineStatus = {
+                                inViewID: inViewID,
+                                lineRange: codeOutput.metadata?.line_range,
+                                status: LineStatus.EXECUTED_SUCCESS,
+                            };
+                        } else {
+                            lineStatus = {
+                                inViewID: inViewID,
+                                lineRange: codeOutput.metadata?.line_range,
+                                status: LineStatus.EXECUTED_FAILED,
+                            };
+                        }
                         // TODO: check the status output
                         // console.log('CodeEditor socket ', lineStatus);
                         dispatch(setLineStatus(lineStatus));

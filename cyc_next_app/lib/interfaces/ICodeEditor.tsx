@@ -16,7 +16,8 @@ export interface ICodeDoc {
 export enum LineStatus {
     EDITED,
     EXECUTING,
-    EXECUTED,
+    EXECUTED_SUCCESS,
+    EXECUTED_FAILED,
 }
 
 // export interface ICodeResult {

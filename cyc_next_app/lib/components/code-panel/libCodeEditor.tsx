@@ -23,7 +23,8 @@ const markerDiv = () => {
     return statusDiv;
 };
 
-const executedColor = "#42a5f5";
+const executedOkColor = "#42a5f5";
+const executedFailedColor = "#f30c0c";
 const editedMarker = new (class extends GutterMarker {
     toDOM() {
         return markerDiv();
@@ -34,17 +35,25 @@ const executingMarker = new (class extends GutterMarker {
     toDOM() {
         let statusDiv = markerDiv();
         statusDiv.animate(
-            [{ backgroundColor: "" }, { backgroundColor: executedColor, offset: 0.5 }],
+            [{ backgroundColor: "" }, { backgroundColor: executedOkColor, offset: 0.5 }],
             { duration: 2000, iterations: Infinity }
         );
         return statusDiv;
     }
 })();
 
-const executedMarker = new (class extends GutterMarker {
+const executedOkMarker = new (class extends GutterMarker {
     toDOM() {
         let statusDiv = markerDiv();
-        statusDiv.style.backgroundColor = executedColor;
+        statusDiv.style.backgroundColor = executedOkColor;
+        return statusDiv;
+    }
+})();
+
+const executedFailedMarker = new (class extends GutterMarker {
+    toDOM() {
+        let statusDiv = markerDiv();
+        statusDiv.style.backgroundColor = executedFailedColor;
         return statusDiv;
     }
 })();
@@ -78,14 +87,16 @@ const editStatusGutter = (inViewID: string | null, lines: ICodeLine[] | null) =>
                             return editedMarker;
                         case LineStatus.EXECUTING:
                             return executingMarker;
-                        case LineStatus.EXECUTED:
-                            return executedMarker;
+                        case LineStatus.EXECUTED_SUCCESS:
+                            return executedOkMarker;
+                        case LineStatus.EXECUTED_FAILED:
+                            return executedFailedMarker;
                     }
                 }
             }
             return null;
         },
-        initialSpacer: () => executedMarker,
+        initialSpacer: () => executedOkMarker,
     });
 
 const getCodeText = (state: RootState) => {
@@ -501,7 +512,7 @@ export const textShouldBeExec = (text: string): boolean => {
 
 export {
     editedMarker,
-    executedMarker,
+    executedOkMarker,
     executingMarker,
     editStatusGutter,
     getCodeLine,
