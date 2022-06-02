@@ -18,7 +18,7 @@ const sentryWebpackPluginOptions = {
     // https://github.com/getsentry/sentry-webpack-plugin#options.
 };
 
-moduleExports = {
+module.exports = {
     reactStrictMode: true,
     typescript: {
         // !! WARN !!
