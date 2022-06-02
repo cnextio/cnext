@@ -10,41 +10,37 @@ import {
     LINE_SEP,
     ICAssistExtraOpt,
     CAssistOptType,
+    ArgCommand,
 } from "../interfaces/ICAssist";
 import store from "../../redux/store";
 import { ifElse } from "../components/libs";
-import {
-    CommandName,
-    ContentType,
-    IMessage,
-    WebAppEndpoint,
-} from "../interfaces/IApp";
+import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interfaces/IApp";
 import socket from "../components/Socket";
 // import shortid from "shortid";
 
-export function socketInit(codeOutputComponent) {
-    socket.emit("ping", WebAppEndpoint.MagicCommandGen);
-    socket.on(WebAppEndpoint.MagicCommandGen, (result: string) => {
-        console.log(`${WebAppEndpoint.MagicCommandGen} got results...`);
-        try {
-            let codeOutput: IMessage = JSON.parse(result);
-            if (
-                codeOutput.type == ContentType.STRING ||
-                codeOutput.error == true
-            ) {
-                codeOutputComponent(codeOutput); //TODO: move this to redux
-            } else {
-                if (codeOutput.type == ContentType.COLUMN_CARDINAL) {
-                    resolve(message);
-                    // clearTimeout(timer);
-                } else {
-                    console.log("dispatch text output:", codeOutput);
-                    codeOutputComponent(codeOutput);
-                }
-            }
-        } catch {}
-    });
-}
+// export function socketInit() {
+//     socket.emit("ping", WebAppEndpoint.MagicCommandGen);
+//     socket.on(WebAppEndpoint.MagicCommandGen, (result: string) => {
+//         console.log(`${WebAppEndpoint.MagicCommandGen} got results...`);
+//         try {
+//             let codeOutput: IMessage = JSON.parse(result);
+//             if (
+//                 codeOutput.type == ContentType.STRING ||
+//                 codeOutput.error == true
+//             ) {
+//                 // codeOutputComponent(codeOutput); //TODO: move this to redux
+//             } else {
+//                 if (codeOutput.type == ContentType.COLUMN_CARDINAL) {
+//                     resolve(message);
+//                     // clearTimeout(timer);
+//                 } else {
+//                     console.log("dispatch text output:", codeOutput);
+//                     // codeOutputComponent(codeOutput);
+//                 }
+//             }
+//         } catch {}
+//     });
+// }
 
 const TMP_DF_PREFIX = "_tmp_df";
 class PlotCommand {
@@ -82,7 +78,7 @@ class PlotCommand {
         let selectCols: string = "";
         let groupbyCols: string | undefined;
         // let command: string|undefined;
-        let res: {} | undefined;
+        let res: ArgCommand | undefined;
         if (this.xs) {
             groupbyCols = "";
             for (let c of this.xs) {
@@ -96,10 +92,7 @@ class PlotCommand {
             // let tmpDFName = TMP_DF_PREFIX + '_' + shortid();
             let tmpDFName = TMP_DF_PREFIX;
             let command = `${tmpDFName} = ${this.df}[[${selectCols}]].groupby([${groupbyCols}]).agg(['${this.aggType}'])`;
-            command =
-                command +
-                LINE_SEP +
-                `${tmpDFName} = ${tmpDFName}.reset_index()`;
+            command = command + LINE_SEP + `${tmpDFName} = ${tmpDFName}.reset_index()`;
             command =
                 command +
                 LINE_SEP +
@@ -116,7 +109,7 @@ class PlotCommand {
         let sizeDim;
         let shapeDim;
         let aggCommand;
-        let figSize = 'width=450, height=300';
+        let figSize = "width=450, height=300";
 
         if (this.aggType) {
             aggCommand = this._getAggCommand();
@@ -218,7 +211,7 @@ function createGetDimStatsMessage(
     let message: IMessage = {
         webapp_endpoint: WebAppEndpoint.MagicCommandGen,
         command_name: CommandName.get_cardinal,
-        seq_number: 1,
+        // seq_number: 1,
         content: null,
         type: ContentType.STRING,
         error: false,
@@ -231,10 +224,7 @@ function createGetDimStatsMessage(
 
 function sendMessage(message: IMessage, timeout = 10000) {
     return new Promise((resolve, reject) => {
-        console.log(
-            `send ${WebAppEndpoint.MagicCommandGen} message: `,
-            message
-        );
+        console.log(`send ${WebAppEndpoint.MagicCommandGen} message: `, message);
         // let timer;
 
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
@@ -243,15 +233,14 @@ function sendMessage(message: IMessage, timeout = 10000) {
             console.log(`${WebAppEndpoint.MagicCommandGen} got results...`);
             try {
                 let codeOutput: IMessage = JSON.parse(result);
-                if (
-                    codeOutput.type == ContentType.STRING ||
-                    codeOutput.error == true
-                ) {
+                if (codeOutput.type == ContentType.STRING || codeOutput.error == true) {
                     // codeOutputComponent(codeOutput); //TODO: move this to redux
                 } else {
                     if (codeOutput.type == ContentType.COLUMN_CARDINAL) {
-                        let result: IGetCardinalResult = codeOutput.content;
-                        resolve(result.cardinals);
+                        if (codeOutput.content != null) {
+                            let result = codeOutput.content as IGetCardinalResult;
+                            resolve(result.cardinals);
+                        }
                         // clearTimeout(timer);
                     } else {
                         console.log("dispatch text output:", codeOutput);
@@ -377,7 +366,7 @@ function handleXMultivariatePlot(
     df_id: string,
     x: string[],
     y: string[],
-    allColMetadata,
+    allColMetadata: { [x: string]: { type: string; }; },
     dimStats: IDimStatsResult
 ): ICodeGenResult {
     let result: ICodeGenResult;
@@ -418,13 +407,7 @@ function handleXMultivariatePlot(
         // 2. consider groupby if y cardinality max > 1
         // 3. consider Line when y cardinality is 1 and x is monotonic
         if (dimStats.groupby_all.max > 1) {
-            plot = new PlotCommand(
-                PlotType.BAR,
-                df_id,
-                y,
-                x,
-                AggregateType.MEAN
-            );
+            plot = new PlotCommand(PlotType.BAR, df_id, y, x, AggregateType.MEAN);
         } else if (
             dimStats.groupby_x0.max === 1 &&
             dimStats.unique_counts[x[0]] > LINE_MIN_X_UNIQUE &&
@@ -460,11 +443,7 @@ export function cAssistGetPlotCommand(
     if (dfMetadata) {
         let allColMetadata = dfMetadata.columns;
         console.log("cAssistGetPlotCommand: ", plotData, allColMetadata);
-        if (
-            plotData.x == null &&
-            plotData.y &&
-            isColExist(plotData.y, allColMetadata)
-        ) {
+        if (plotData.x == null && plotData.y && isColExist(plotData.y, allColMetadata)) {
             return handleUnivariatePlot(plotData.df, plotData.y);
         } else if (
             plotData.x &&
@@ -472,11 +451,7 @@ export function cAssistGetPlotCommand(
             isColExist(plotData.x, allColMetadata) &&
             isColExist(plotData.y, allColMetadata)
         ) {
-            let message = createGetDimStatsMessage(
-                plotData.df,
-                plotData.y[0],
-                plotData.x
-            );
+            let message = createGetDimStatsMessage(plotData.df, plotData.y[0], plotData.x);
             let y = plotData.y;
             let x = plotData.x;
             let df_id = plotData.df;
@@ -493,13 +468,7 @@ export function cAssistGetPlotCommand(
                 // } else {
                 //     return _handle_x_multivariate_plot2(df_id, x, y, allColMetadata, dimStats);
                 // }
-                return handleXMultivariatePlot(
-                    df_id,
-                    x,
-                    y,
-                    allColMetadata,
-                    dimStats
-                );
+                return handleXMultivariatePlot(df_id, x, y, allColMetadata, dimStats);
             });
         }
     }
