@@ -22,12 +22,14 @@ export enum ProjectCommand {
     create_folder = "create_folder",
     remove_folder = "remove_folder",
     set_working_dir = "set_working_dir",
-    get_active_project = "get_active_project",
+    // get_active_project = "get_active_project",
     save_state = "save_state",
     save_project_config = "save_project_config",
     get_project_config = "get_project_config",
     add_project = "add_project",
     list_projects = "list_projects",
+    get_working_config = "get_working_config",
+    set_working_config = "set_working_config",
     set_active_project = "set_active_project",
 }
 

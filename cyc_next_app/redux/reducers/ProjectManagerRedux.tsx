@@ -13,6 +13,7 @@ import {
     ViewMode,
     IEditorConfigs,
     IDataFrameManagerConfigs,
+    IWorkSpaceConfig,
 } from "../../lib/interfaces/IApp";
 
 const originalEditorShortcutKeys: IEditorShortcutKey = {
@@ -54,6 +55,7 @@ type ProjectManagerState = {
     serverSynced: boolean;
     configs: IConfigs;
     projects: Object[];
+    workingSpace: IWorkSpaceConfig;
 };
 
 const initialState: ProjectManagerState = {
@@ -78,6 +80,10 @@ const initialState: ProjectManagerState = {
         dataframe_manager: dataframeManagerConfigs,
     },
     projects: [],
+    workingSpace: {
+        active_project: null,
+        open_projects: [],
+    },
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -202,6 +208,10 @@ export const ProjectManagerRedux = createSlice({
         setProjects: (state, action) => {
             state.projects = action.payload;
         },
+
+        setWorkingSpace: (state, action) => {
+            state.workingSpace = action.payload;
+        },
     },
 });
 
@@ -225,6 +235,7 @@ export const {
     setScrollPos,
     setProjectConfig,
     setProjects,
+    setWorkingSpace,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;

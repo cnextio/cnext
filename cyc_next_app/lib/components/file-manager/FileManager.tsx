@@ -17,6 +17,7 @@ import {
     // removeFileToSaveState,
     setSavingStateFile,
     setSavingFile,
+    setWorkingSpace,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import {
@@ -110,26 +111,33 @@ const FileManager = () => {
                             dispatch(setOpenFiles(fmResult.content));
                             dispatch(setInView(fmResult.metadata["path"]));
                             break;
-                        case ProjectCommand.get_active_project:
-                            console.log("FileManager got active project result: ", fmResult);
+                        // case ProjectCommand.get_active_project:
+                        //     console.log("FileManager got active project result: ", fmResult);
 
-                            // Send get open files message
-                            let message: IMessage = createMessage(
-                                ProjectCommand.get_open_files,
-                                "",
-                                1
-                            );
-                            sendMessage(message);
-                            dispatch(setActiveProject(fmResult.content));
+                        //     // Send get open files message
+                        //     let message: IMessage = createMessage(
+                        //         ProjectCommand.get_open_files,
+                        //         "",
+                        //         1
+                        //     );
+                        //     sendMessage(message);
+                        //     dispatch(setActiveProject(fmResult.content));
 
-                            // Send get project configs message
-                            let messageProjectConfig: IMessage = createMessage(
-                                ProjectCommand.get_project_config,
-                                "",
-                                1
+                        //     // Send get project configs message
+                        //     let messageProjectConfig: IMessage = createMessage(
+                        //         ProjectCommand.get_project_config,
+                        //         "",
+                        //         1
+                        //     );
+                        //     sendMessage(messageProjectConfig);
+                        //     break;
+                        case ProjectCommand.get_working_config:
+                            console.log("FileManager got working config: ", fmResult);
+                            let activeProject = fmResult.content["open_projects"].filter(
+                                (project) => project["id"] === fmResult.content["active_project"]
                             );
-                            sendMessage(messageProjectConfig);
-                            break;
+                            dispatch(setActiveProject(activeProject[0]));
+                            dispatch(setWorkingSpace(fmResult.content));
                         case ProjectCommand.get_project_config:
                             console.log("FileManager got project configs result: ", fmResult);
                             if (fmResult.content != null) {
@@ -521,8 +529,10 @@ const FileManager = () => {
 
     useEffect(() => {
         setupSocket();
-        let message: IMessage = createMessage(ProjectCommand.get_active_project, "", 1);
+        let message: IMessage = createMessage(ProjectCommand.get_working_config, "", 1);
         sendMessage(message);
+        // let message: IMessage = createMessage(ProjectCommand.get_active_project, "", 1);
+        // sendMessage(message);
 
         return () => {
             socket.off(WebAppEndpoint.FileManager);

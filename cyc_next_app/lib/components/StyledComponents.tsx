@@ -334,7 +334,7 @@ export const CodeContainer = styled.div`
 
 export const StyledCodeEditor = styled.div`
     background-color: ${(props) => props.theme.palette.background.paper};
-    padding: 0px 0px 10px 0px;
+    padding: 0px 0px 0px 0px;
     align-self: stretch;
     height: 100%;
     width: 100%;

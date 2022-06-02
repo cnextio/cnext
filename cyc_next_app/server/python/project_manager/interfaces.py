@@ -3,12 +3,13 @@ import simplejson as json
 
 ## path to the server config file #
 SERVER_CONFIG_PATH = 'server.yaml'
-## path to the workspace config file # 
+## path to the workspace config file #
 WORKSPACE_CONFIG_PATH = 'workspace.yaml'
 ## name of the folder where cnext stores project related information #
 CNEXT_PROJECT_FOLDER = '.cnext'
 ## name of the file where cnext stores project related config #
 CNEXT_PROJECT_CONFIG_FILE = 'cnext.yaml'
+
 
 class JsonSerializable:
     def __init__(self, obj):
@@ -19,6 +20,7 @@ class JsonSerializable:
 
     def __repr__(self) -> str:
         return self.toJSON()
+
 
 class DirMetatdata:
     # def __init__(self, **entries):
@@ -107,12 +109,13 @@ class ProjectMetadata(JsonSerializable):
 class WorkspaceInfo(JsonSerializable):
     """ Infomation about the projects added to this workspace
     """
+
     def __init__(self, config: dict):
         self.active_project = None
         self.open_projects = []
         # if 'projects' not in config:
         #     return
-        projects_config = config#['projects']
+        projects_config = config  # ['projects']
         if 'active_project' in projects_config:
             self.active_project = projects_config['active_project']
         if 'open_projects' in projects_config and isinstance(projects_config['open_projects'], list):
