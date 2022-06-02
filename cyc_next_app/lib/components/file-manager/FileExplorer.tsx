@@ -20,6 +20,7 @@ import {
     IProjectMetadata,
     ProjectCommand,
 } from "../../interfaces/IFileManager";
+import { IWorkSpaceConfig } from "../../interfaces/IApp";
 import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 import {
@@ -29,6 +30,7 @@ import {
     setOpenFiles,
     setProjects,
     setActiveProject,
+    setWorkingSpace,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import FileContextMenu from "./FileContextMenu";
 import NewItemInput from "./NewItemInput";
@@ -55,7 +57,9 @@ const FileExplorer = (props: any) => {
         (state) => state.projectManager.openDirs
     );
 
-    const projects = useSelector((state) => state.projectManager.projects);
+    const workingConfig: IWorkSpaceConfig = useSelector(
+        (state) => state.projectManager.workingSpace
+    );
 
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
@@ -104,24 +108,25 @@ const FileExplorer = (props: any) => {
                             dispatch(setInView(openFiles[0].path));
                         }
                         break;
-                    case ProjectCommand.list_projects:
-                        console.log("FileExplorer got list projects result: ", fmResult.content);
-                        let activeProject = store.getState().projectManager.activeProject;
-                        if (fmResult.type == ContentType.PROJECT_LIST) {
-                            if (activeProject != null) {
-                                let projectList = fmResult?.content.filter((item) => {
-                                    return item["id"] !== activeProject.id;
-                                });
-                                dispatch(setProjects(projectList));
-                            }
-                        }
-                        break;
+                    // case ProjectCommand.list_projects:
+                    //     console.log("FileExplorer got list projects result: ", fmResult.content);
+                    //     let activeProject = store.getState().projectManager.activeProject;
+                    //     if (fmResult.type == ContentType.PROJECT_LIST) {
+                    //         if (activeProject != null) {
+                    //             let projectList = fmResult?.content.filter((item) => {
+                    //                 return item["id"] !== activeProject.id;
+                    //             });
+                    //             dispatch(setProjects(projectList));
+                    //         }
+                    //     }
+                    //     break;
                     case ProjectCommand.set_active_project:
                         console.log(
                             "FileExplorer got set active project result: ",
                             fmResult.content
                         );
-                        if (fmResult.type === ContentType.PROJECT_METADATA) {
+                        if (fmResult.type === ContentType.WORKING_SPACE_METADATA) {
+                            dispatch(setWorkingSpace(fmResult.content));
                             setExpanded([]);
                         }
                     case ProjectCommand.add_project:
@@ -137,8 +142,8 @@ const FileExplorer = (props: any) => {
         });
     };
     useEffect(() => {
-        const message: IMessage = createMessage(ProjectCommand.list_projects, {});
-        sendMessage(message);
+        // const message: IMessage = createMessage(ProjectCommand.list_projects, {});
+        // sendMessage(message);
         setupSocket();
         return () => {
             socket.off(WebAppEndpoint.FileExplorer);
@@ -146,9 +151,11 @@ const FileExplorer = (props: any) => {
     }, []);
 
     useEffect(() => {
-        const message: IMessage = createMessage(ProjectCommand.list_projects, {});
-        sendMessage(message);
-    }, [activeProject]);
+        let projectList = workingConfig.open_projects.filter((item) => {
+            return item["id"] !== activeProject.id;
+        });
+        setProjects(projectList);
+    }, [workingConfig]);
 
     const createMessage = (command: ProjectCommand, metadata: {}, content = null): IMessage => {
         let message: IMessage = {
@@ -339,27 +346,28 @@ const FileExplorer = (props: any) => {
         }
     };
 
-    const changeActiveProject = (project) => {
-        if (project != null) {
-            dispatch(setActiveProject(project));
-        }
+    const changeActiveProject = (projectId: string) => {
+        const msgSetActiveProject: IMessage = createMessage(
+            ProjectCommand.set_active_project,
+            {},
+            projectId
+        );
+        sendMessage(msgSetActiveProject);
     };
 
     // useEffect(() => {
-    //     if (activeProject != null) {
-    //         // Set active project
-    //         console.log("ActiveProject", activeProject);
-    //         const msgSetActiveProject: IMessage = createMessage(
-    //             ProjectCommand.set_active_project,
-    //             {},
-    //             activeProject
-    //         );
-    //         sendMessage(msgSetActiveProject);
+    //     console.log(activeProject);
+    //     // Set active project
+    //     // const msgSetActiveProject: IMessage = createMessage(
+    //     //     ProjectCommand.set_active_project,
+    //     //     {},
+    //     //     activeProject
+    //     // );
+    //     // sendMessage(msgSetActiveProject);
 
-    //         // Get all available projects
-    //         const message: IMessage = createMessage(ProjectCommand.list_projects, {});
-    //         sendMessage(message);
-    //     }
+    //     // // Get all available projects
+    //     // const message: IMessage = createMessage(ProjectCommand.list_projects, {});
+    //     // sendMessage(message);
     // }, [activeProject]);
 
     const generateFileItems = (path: string) => {
@@ -453,7 +461,7 @@ const FileExplorer = (props: any) => {
                     <NoteAddIcon fontSize='small' style={{ cursor: "pointer" }} />
                 </Tooltip>
             </FileExporerHeader>
-            {activeProject ? (
+            {workingConfig.active_project != null ? (
                 <div>
                     <FileTree
                         aria-label='file system navigator'
@@ -499,18 +507,21 @@ const FileExplorer = (props: any) => {
                             </Fragment>
                         ) : null}
                     </FileTree>
-                    {projects?.map((item) => (
-                        <ProjectItem onClick={() => changeActiveProject(item)}>
-                            <LockIcon
-                                style={{
-                                    fontSize: "16px",
-                                    marginBottom: "-3px",
-                                    marginRight: "4px",
-                                }}
-                            />
-                            {item?.name}
-                        </ProjectItem>
-                    ))}
+                    {workingConfig.open_projects.map(
+                        (item) =>
+                            item.id !== activeProject.id && (
+                                <ProjectItem onClick={() => changeActiveProject(item.id)}>
+                                    <LockIcon
+                                        style={{
+                                            fontSize: "16px",
+                                            marginBottom: "-3px",
+                                            marginRight: "4px",
+                                        }}
+                                    />
+                                    {item?.name}
+                                </ProjectItem>
+                            )
+                    )}
                 </div>
             ) : null}
             <FileContextMenu

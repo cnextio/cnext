@@ -16,14 +16,14 @@ log = logs.get_logger(__name__)
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceInfo):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
-        active_project: projects.ProjectMetadata = None
-        open_projects = workspace_info.open_projects
-        if workspace_info.active_project is not None:
-            for project in open_projects:
-                if workspace_info.active_project == project.id:
-                    active_project = project
-        if active_project:
-            projects.set_active_project(active_project)
+        # active_project: projects.ProjectMetadata = None
+        # open_projects = workspace_info.open_projects
+        # if workspace_info.active_project is not None:
+        #     for project in open_projects:
+        #         if workspace_info.active_project == project.id:
+        #             active_project = project
+        # if active_project:
+        #     projects.set_active_project(active_project)
 
     def handle_message(self, message):
         log.info('FileManager handle message: %s %s %s' %
@@ -80,9 +80,9 @@ class MessageHandler(BaseMessageHandler):
                 if 'path' in metadata.keys():
                     result = projects.open_file(norm_path)
                 type = ContentType.FILE_METADATA
-            elif message.command_name == ProjectCommand.get_active_project:
-                result = projects.get_active_project()
-                type = ContentType.PROJECT_METADATA
+            # elif message.command_name == ProjectCommand.get_active_project:
+            #     result = projects.get_active_project()
+            #     type = ContentType.PROJECT_METADATA
             elif message.command_name == ProjectCommand.save_state:
                 if 'path' in metadata.keys() and 'project_path' in metadata.keys():
                     result = files.save_state(
@@ -94,6 +94,9 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.get_project_config:
                 result = projects.get_project_config()
                 type = ContentType.PROJECT_METADATA
+            elif message.command_name == ProjectCommand.get_working_config:
+                result = projects.get_workspace_config()
+                type = ContentType.WORKING_SPACE_METADATA
 
             # create reply message
             message.type = type

@@ -87,6 +87,7 @@ export enum ContentType {
     NONE = "none",
     PROJECT_METADATA = "project_metadata",
     PROJECT_LIST = "project_list",
+    WORKING_SPACE_METADATA = "working_space_metadata",
 }
 
 export enum StandardMimeType {
@@ -314,6 +315,18 @@ export enum DFViewMode {
     TABLE_VIEW = "Table View",
     SUMMARY_VIEW = "Summary View",
     GRID_VIEW = "Grid View",
+}
+
+interface WorkSpaceOpenProject {
+    id: String;
+    config_path: String | null;
+    data_path: String | null;
+    name: String;
+    path: String;
+}
+export interface IWorkSpaceConfig {
+    active_project: string | null;
+    open_projects: WorkSpaceOpenProject[] | [];
 }
 
 // export class DFUpdates {

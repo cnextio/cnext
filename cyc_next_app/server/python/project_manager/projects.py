@@ -94,10 +94,11 @@ def set_project_dir(path):
     return True
 
 
-def set_active_project(project: ProjectMetadata):
-    global active_project
-    active_project = project
-    return project
+def set_active_project(project_id: str):
+    config = read_config(WORKSPACE_CONFIG_PATH)
+    config_dict = config.__dict__
+    config_dict['active_project'] = project_id
+    return save_workspace_config(config=config_dict)
 
 
 def get_active_project():
@@ -128,7 +129,7 @@ def save_project_config(content):
 
 
 def get_project_config():
-    active_project = get_active_project()
+    # active_project = get_active_project()
     config_file_path = os.path.join(
         active_project.path, FILE_CONFIG)
     if os.path.exists(config_file_path):
@@ -183,7 +184,7 @@ def add_project(path):
             active_project.data_path, CNEXT_PROJECT_CONFIG_FILE)
 
         # Set activate project
-        set_active_project(active_project)
+        # set_active_project(active_project)
 
         # Create .cnext/cnext.yaml if not exsists
         cnext_project_path = os.path.join(path, CNEXT_PROJECT_FOLDER)
@@ -200,9 +201,16 @@ def add_project(path):
         raise ex
 
 
-def list_projects():
+def get_workspace_config():
     config = read_config(WORKSPACE_CONFIG_PATH)
-    open_projects = []
-    if hasattr(config, 'open_projects') and isinstance(config.open_projects, list):
-        open_projects = config.open_projects
-    return open_projects
+    return config.__dict__
+    # open_projects = []
+    # if hasattr(config, 'open_projects') and isinstance(config.open_projects, list):
+    #     open_projects = config.open_projects
+    # return open_projects
+
+
+def save_workspace_config(config):
+    workspace_info = WorkspaceInfo(config)
+    save_config(workspace_info, WORKSPACE_CONFIG_PATH)
+    return workspace_info
