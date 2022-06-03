@@ -108,18 +108,6 @@ const FileExplorer = (props: any) => {
                             dispatch(setInView(openFiles[0].path));
                         }
                         break;
-                    // case ProjectCommand.list_projects:
-                    //     console.log("FileExplorer got list projects result: ", fmResult.content);
-                    //     let activeProject = store.getState().projectManager.activeProject;
-                    //     if (fmResult.type == ContentType.PROJECT_LIST) {
-                    //         if (activeProject != null) {
-                    //             let projectList = fmResult?.content.filter((item) => {
-                    //                 return item["id"] !== activeProject.id;
-                    //             });
-                    //             dispatch(setProjects(projectList));
-                    //         }
-                    //     }
-                    //     break;
                     case ProjectCommand.set_active_project:
                         console.log(
                             "FileExplorer got set active project result: ",
@@ -142,8 +130,6 @@ const FileExplorer = (props: any) => {
         });
     };
     useEffect(() => {
-        // const message: IMessage = createMessage(ProjectCommand.list_projects, {});
-        // sendMessage(message);
         setupSocket();
         return () => {
             socket.off(WebAppEndpoint.FileExplorer);
@@ -151,10 +137,17 @@ const FileExplorer = (props: any) => {
     }, []);
 
     useEffect(() => {
-        let projectList = workingConfig.open_projects.filter((item) => {
-            return item["id"] !== activeProject.id;
+        let projects: IProjectMetadata[] = [];
+        let activeProject: IProjectMetadata | null = null;
+        workingConfig.open_projects.forEach((project: IProjectMetadata) => {
+            if (project.id === workingConfig.active_project) {
+                activeProject = project;
+            } else {
+                projects.push(project);
+            }
         });
-        setProjects(projectList);
+        setProjects(projects);
+        dispatch(setActiveProject(activeProject));
     }, [workingConfig]);
 
     const createMessage = (command: ProjectCommand, metadata: {}, content = null): IMessage => {
@@ -355,21 +348,6 @@ const FileExplorer = (props: any) => {
         sendMessage(msgSetActiveProject);
     };
 
-    // useEffect(() => {
-    //     console.log(activeProject);
-    //     // Set active project
-    //     // const msgSetActiveProject: IMessage = createMessage(
-    //     //     ProjectCommand.set_active_project,
-    //     //     {},
-    //     //     activeProject
-    //     // );
-    //     // sendMessage(msgSetActiveProject);
-
-    //     // // Get all available projects
-    //     // const message: IMessage = createMessage(ProjectCommand.list_projects, {});
-    //     // sendMessage(message);
-    // }, [activeProject]);
-
     const generateFileItems = (path: string) => {
         return (
             <Fragment>
@@ -479,7 +457,7 @@ const FileExplorer = (props: any) => {
                         <FileItem
                             nodeId={relativeProjectPath}
                             data-cy={CypressIds.projectRoot}
-                            label={activeProject.name}
+                            label={activeProject?.name}
                             onContextMenu={(event: React.MouseEvent) => {
                                 openContextMenu(
                                     event,

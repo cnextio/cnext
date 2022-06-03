@@ -19,14 +19,14 @@ FILE_CONFIG = 'config.json'
 def get_open_files():
     open_files = []
     try:
-        if active_project:
-            config_path = active_project.config_path  # active_project.path+'/.cnext.yaml'
-            if exists(config_path):
-                config = read_config(config_path)
-                if hasattr(config, 'open_files'):
-                    open_files = config.open_files
-            else:
-                log.error("Config file does not exist %s" % (config_path))
+        active_project = get_active_project()
+        config_path = active_project['config_path']
+        if exists(config_path):
+            config = read_config(config_path)
+            if hasattr(config, 'open_files'):
+                open_files = config.open_files
+        else:
+            log.error("Config file does not exist %s" % (config_path))
         return open_files
     # except yaml.YAMLError as error:
     #     log.error("%s" % (error))
@@ -39,19 +39,18 @@ def get_open_files():
 def close_file(path):
     open_files = []
     try:
-        if active_project:
-            config_path = active_project.config_path  # active_project.path+'/.cnext.yaml'
-            if exists(config_path):
-                config = read_config(config_path)
-                if hasattr(config, 'open_files'):
-                    for f in config.open_files:
-                        # do not include the file that is being closed
-                        if(f['path'] != path):
-                            open_files.append(f)
-                config.open_files = open_files
-                save_config(config.__dict__, config_path)
-            else:
-                log.error("Config file does not exist %s" % (config_path))
+        active_project = get_active_project()
+        config_path = active_project['config_path']
+        if exists(config_path):
+            config = read_config(config_path)
+            if hasattr(config, 'open_files'):
+                for f in config.open_files:
+                    if(f['path'] != path):
+                        open_files.append(f)
+            config.open_files = open_files
+            save_config(config.__dict__, config_path)
+        else:
+            log.error("Config file does not exist %s" % (config_path))
         return open_files
     # except yaml.YAMLError as error:
     #     log.error("%s" % (error))
@@ -64,21 +63,21 @@ def close_file(path):
 def open_file(path):
     open_files = []
     try:
-        if active_project:
-            config_path = active_project.config_path  # active_project.path+'/.cnext.yaml'
-            if exists(config_path):
-                config = read_config(config_path)
-                if hasattr(config, 'open_files') and isinstance(config.open_files, list):
-                    open_files = config.open_files
+        active_project = get_active_project()
+        config_path = active_project['config_path']
+        if exists(config_path):
+            config = read_config(config_path)
+            if hasattr(config, 'open_files') and isinstance(config.open_files, list):
+                open_files = config.open_files
                 ## Note that we dont set the timestamp when open the file #
-                file = FileMetadata(path,
-                                    name=path.split('/')[-1],
-                                    executor=(config.executor == path))
-                open_files.append(file.__dict__)
-                config.open_files = open_files
-                save_config(config.__dict__, config_path)
-            else:
-                log.error("Config file does not exist %s" % (config_path))
+            file = FileMetadata(path,
+                                name=path.split('/')[-1],
+                                executor=(config.executor == path))
+            open_files.append(file.__dict__)
+            config.open_files = open_files
+            save_config(config.__dict__, config_path)
+        else:
+            log.error("Config file does not exist %s" % (config_path))
         return open_files
     # except yaml.YAMLError as error:
     #     log.error("%s" % (error))
@@ -102,7 +101,14 @@ def set_active_project(project_id: str):
 
 
 def get_active_project():
-    return active_project
+    config = read_config(WORKSPACE_CONFIG_PATH)
+    config_dict = config.__dict__
+    active_project = [project for project in config_dict['open_projects']
+                      if project['id'] == config_dict['active_project']]
+    if len(active_project) == 0:
+        log.error("Not found active project!")
+        raise Exception
+    return active_project[0]
 
 
 def set_working_dir(path):
@@ -118,7 +124,7 @@ def save_project_config(content):
         # config_file_path = os.path.join(project_path, FILE_CONFIG)
         active_project = get_active_project()
         config_file_path = os.path.join(
-            active_project.path, FILE_CONFIG)
+            active_project['path'], FILE_CONFIG)
         os.makedirs(os.path.dirname(config_file_path), exist_ok=True)
         with open(config_file_path, 'w') as outfile:
             outfile.write(json.dumps(content, indent=4))
@@ -129,9 +135,9 @@ def save_project_config(content):
 
 
 def get_project_config():
-    # active_project = get_active_project()
+    active_project = get_active_project()
     config_file_path = os.path.join(
-        active_project.path, FILE_CONFIG)
+        active_project['path'], FILE_CONFIG)
     if os.path.exists(config_file_path):
         config_file_data = open(config_file_path, "r")
         data = json.loads(config_file_data.read())
