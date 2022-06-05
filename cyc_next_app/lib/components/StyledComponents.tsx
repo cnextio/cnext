@@ -265,6 +265,10 @@ export const CodeToolbar = styled.div`
     align-items: center;
     background-color: ${(props) => props.theme.palette.grey.A200};
     overflow: auto;
+
+    ::-webkit-scrollbar {
+        height: 0px;
+    }
 `;
 
 export const FileNameTabContainer = styled.div`

@@ -6,6 +6,7 @@ import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import {
     ICodeActiveLine,
     ICodeLine,
+    ICodeLineStatus,
     ILineRange,
     IRunningCommandContent,
     LineStatus,
@@ -25,9 +26,18 @@ const markerDiv = () => {
 
 const executedOkColor = "#42a5f5";
 const executedFailedColor = "#f30c0c";
+const executingColor = "#F59242";
 const editedMarker = new (class extends GutterMarker {
     toDOM() {
         return markerDiv();
+    }
+})();
+
+const inqueueMarker = new (class extends GutterMarker {
+    toDOM() {
+        let statusDiv = markerDiv();
+        statusDiv.style.backgroundColor = executingColor;
+        return statusDiv;
     }
 })();
 
@@ -35,7 +45,7 @@ const executingMarker = new (class extends GutterMarker {
     toDOM() {
         let statusDiv = markerDiv();
         statusDiv.animate(
-            [{ backgroundColor: "" }, { backgroundColor: executedOkColor, offset: 0.5 }],
+            [{ backgroundColor: "" }, { backgroundColor: executingColor, offset: 0.5 }],
             { duration: 2000, iterations: Infinity }
         );
         return statusDiv;
@@ -57,6 +67,61 @@ const executedFailedMarker = new (class extends GutterMarker {
         return statusDiv;
     }
 })();
+
+const setAnchor = (view: EditorView, pos: number) => {
+    if (view) {
+        view.dispatch({
+            selection: { anchor: pos, head: pos },
+        });
+    }
+};
+
+import {
+    setLineStatus as setLineStatusRedux
+} from "../../../redux/reducers/CodeEditorRedux";
+
+const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
+    let lineStatus: ICodeLineStatus = {
+        inViewID: inViewID,
+        lineRange: lineRange,
+        status: status,
+    };
+    store.dispatch(setLineStatusRedux(lineStatus));
+};
+
+/** curLineNumber is 0-based */
+const setAnchorToNextGroup = (
+    codeLines: ICodeLine[],
+    view: EditorView,
+    anchorLineNumber: number
+) => {
+    let originGroupID = codeLines[anchorLineNumber].groupID;
+    console.log("CodeEditor setAnchorToNextGroup: ", anchorLineNumber, originGroupID);
+    if (originGroupID != null) {
+        let curlineNumber = anchorLineNumber;
+        let curGroupID: string | undefined = originGroupID;
+        while (
+            curlineNumber < codeLines.length-1 &&
+            (curGroupID == null || curGroupID === originGroupID)
+        ) {
+            curlineNumber += 1;
+            curGroupID = codeLines[curlineNumber]?.groupID;
+        }
+        console.log(
+            "CodeEditor setAnchorToNextGroup: ",
+            anchorLineNumber,
+            originGroupID,
+            curlineNumber,
+            curGroupID
+        );
+        if (view && curGroupID !== originGroupID) {
+            let startOfNextGroup = view.state.doc.line(curlineNumber + 1).to; // convert to 1-based
+            view.dispatch({
+                selection: { anchor: startOfNextGroup, head: startOfNextGroup },
+            });
+        }
+    }
+};
 
 const getCodeLine = (state: RootState): ICodeLine[] | null => {
     let inViewID = state.projectManager.inViewID;
@@ -91,6 +156,8 @@ const editStatusGutter = (inViewID: string | null, lines: ICodeLine[] | null) =>
                             return executedOkMarker;
                         case LineStatus.EXECUTED_FAILED:
                             return executedFailedMarker;
+                        case LineStatus.INQUEUE:
+                            return inqueueMarker;
                     }
                 }
             }
@@ -114,7 +181,7 @@ const getJoinedCodeText = (state: RootState) => {
     return codeText;
 };
 
-const scrollToPrevPos = (state) => {
+const scrollToPrevPos = (state: RootState) => {
     let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
     let inViewID = state.projectManager.inViewID;
     if (inViewID) {
@@ -125,7 +192,7 @@ const scrollToPrevPos = (state) => {
     }
 };
 
-const setViewCodeText = (state, view) => {
+const setViewCodeText = (state: RootState, view: EditorView) => {
     console.log("CodeEditor setViewCodeText");
     let codeText = getJoinedCodeText(state);
     if (view) {
@@ -240,9 +307,11 @@ const groupedLinesCSS = Decoration.line({ attributes: { class: "cm-groupedline" 
 /** style for the first line in a group */
 const groupedFirstLinesCSS = Decoration.line({ attributes: { class: "cm-groupedfirstline" } });
 /** style for the first line behind a group */
-const noneGroupedFirstLinesCSS = Decoration.line({ attributes: { class: "cm-nongroupedfirstline" } });
+const noneGroupedFirstLinesCSS = Decoration.line({
+    attributes: { class: "cm-nongroupedfirstline" },
+});
 const GroupedLineStateEffect = StateEffect.define<{}>();
-const groupedLineDeco = (reduxState, view: EditorView) =>
+const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
     StateField.define<DecorationSet>({
         create() {
             return Decoration.none;
@@ -293,7 +362,7 @@ const groupedLineDeco = (reduxState, view: EditorView) =>
         },
         provide: (f) => EditorView.decorations.from(f),
     });
-const setGroupedLineDeco = (reduxState, view: EditorView | undefined) => {
+const setGroupedLineDeco = (reduxState: RootState, view: EditorView | undefined) => {
     if (view != null) {
         // console.log('CodeEditor set gencode solid')
         view.dispatch({
@@ -362,8 +431,7 @@ function onMouseDown(event, view: EditorView, dispatch) {
             }
         }
     } catch (error) {
-        console.log(error);
-        console.trace();
+        console.error(error);
     }
 }
 
@@ -515,6 +583,7 @@ export {
     executedOkMarker,
     executingMarker,
     editStatusGutter,
+    setLineStatus,
     getCodeLine,
     getCodeText,
     getJoinedCodeText,
@@ -534,4 +603,6 @@ export {
     isPromise,
     getRunningCommandContent,
     getNonGeneratedLinesInRange,
+    setAnchor,
+    setAnchorToNextGroup,
 };
