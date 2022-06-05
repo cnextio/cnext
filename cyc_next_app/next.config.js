@@ -10,7 +10,7 @@ const sentryWebpackPluginOptions = {
     dsn: "https://25a5df08f7ea47be8a9922441cba00d1@o1259763.ingest.sentry.io/6435278",
     authToken: "19f6f8e90778487cb1c2333518a47def664d5734769b40ac857e4bede4222f2d",
     tracesSampleRate: 0.1,
-    silent: true, // Suppresses all logs
+    silent: false, // Suppresses all logs
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options.
 };
