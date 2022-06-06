@@ -56,6 +56,8 @@ type ProjectManagerState = {
     configs: IConfigs;
     projects: Object[];
     workingSpace: IWorkSpaceConfig;
+    pathToAddProject: null | string;
+    projectToSetActive: null | string;
 };
 
 const initialState: ProjectManagerState = {
@@ -84,6 +86,8 @@ const initialState: ProjectManagerState = {
         active_project: null,
         open_projects: [],
     },
+    pathToAddProject: null,
+    projectToSetActive: null,
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -212,6 +216,14 @@ export const ProjectManagerRedux = createSlice({
         setWorkingSpace: (state, action) => {
             state.workingSpace = action.payload;
         },
+
+        setPathToAddProject: (state, action) => {
+            state.pathToAddProject = action.payload;
+        },
+
+        setProjectToSetActive: (state, action) => {
+            state.projectToSetActive = action.payload;
+        },
     },
 });
 
@@ -236,6 +248,8 @@ export const {
     setProjectConfig,
     setProjects,
     setWorkingSpace,
+    setPathToAddProject,
+    setProjectToSetActive,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;

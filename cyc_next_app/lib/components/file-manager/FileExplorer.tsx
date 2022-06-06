@@ -31,6 +31,8 @@ import {
     setProjects,
     setActiveProject,
     setWorkingSpace,
+    setPathToAddProject,
+    setProjectToSetActive,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import FileContextMenu from "./FileContextMenu";
 import NewItemInput from "./NewItemInput";
@@ -108,21 +110,24 @@ const FileExplorer = (props: any) => {
                             dispatch(setInView(openFiles[0].path));
                         }
                         break;
-                    case ProjectCommand.set_active_project:
-                        console.log(
-                            "FileExplorer got set active project result: ",
-                            fmResult.content
-                        );
-                        if (fmResult.type === ContentType.WORKING_SPACE_METADATA) {
-                            dispatch(setWorkingSpace(fmResult.content));
-                            setExpanded([]);
-                        }
-                    case ProjectCommand.add_project:
-                        if (fmResult.type === ContentType.PROJECT_METADATA) {
-                            if (fmResult.content != null) {
-                                dispatch(setActiveProject(fmResult.content));
-                            }
-                        }
+                    // case ProjectCommand.set_active_project:
+                    //     console.log(
+                    //         "FileExplorer got set active project result: ",
+                    //         fmResult.content
+                    //     );
+                    //     if (fmResult.type === ContentType.WORKING_SPACE_METADATA) {
+                    //         dispatch(setWorkingSpace(fmResult.content));
+                    //         setExpanded([]);
+                    //     }
+                    //     break;
+                    // case ProjectCommand.add_project:
+                    //     if (fmResult.type === ContentType.PROJECT_METADATA) {
+                    //         if (fmResult.content != null) {
+                    //             dispatch(setActiveProject(fmResult.content));
+                    //             dispatch(setPathToAddProject(null));
+                    //         }
+                    //     }
+                    //     break;
                 }
             } catch (error) {
                 throw error;
@@ -149,6 +154,12 @@ const FileExplorer = (props: any) => {
         setProjects(projects);
         dispatch(setActiveProject(activeProject));
     }, [workingConfig]);
+
+    useEffect(() => {
+        if (activeProject) {
+            setExpanded([]);
+        }
+    }, [activeProject]);
 
     const createMessage = (command: ProjectCommand, metadata: {}, content = null): IMessage => {
         let message: IMessage = {
@@ -297,9 +308,10 @@ const FileExplorer = (props: any) => {
                 /** this will create path format that conforms to the style of the client OS
                  * but not that of server OS. The server will have to use os.path.norm to correct
                  * the path */
-                console.log("FileExplorer create new project: ", projectPath);
-                let message = createMessage(ProjectCommand.add_project, {}, projectPath);
-                sendMessage(message);
+                // console.log("FileExplorer create new project: ", projectPath);
+                // let message = createMessage(ProjectCommand.add_project, {}, projectPath);
+                // sendMessage(message);
+                dispatch(setPathToAddProject(projectPath));
                 setCreateProjectInprogress(false);
             }
         } else if (event.key === "Escape") {
@@ -340,12 +352,7 @@ const FileExplorer = (props: any) => {
     };
 
     const changeActiveProject = (projectId: string) => {
-        const msgSetActiveProject: IMessage = createMessage(
-            ProjectCommand.set_active_project,
-            {},
-            projectId
-        );
-        sendMessage(msgSetActiveProject);
+        dispatch(setProjectToSetActive(projectId));
     };
 
     const generateFileItems = (path: string) => {

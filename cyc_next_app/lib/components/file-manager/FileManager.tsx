@@ -18,6 +18,8 @@ import {
     setSavingStateFile,
     setSavingFile,
     setWorkingSpace,
+    setPathToAddProject,
+    setProjectToSetActive,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import {
@@ -38,6 +40,12 @@ const FileManager = () => {
     const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
+    const pathToAddProject = useSelector(
+        (state: RootState) => state.projectManager.pathToAddProject
+    );
+    const projectToSetActive = useSelector(
+        (state: RootState) => state.projectManager.projectToSetActive
+    );
     // const codeText = useSelector((state: RootState) => getCodeText(state));
     // const codeLines = useSelector((state: RootState) => getCodeLines(state));
     const saveCodeTextCounter = useSelector(
@@ -138,6 +146,7 @@ const FileManager = () => {
                             );
                             dispatch(setActiveProject(activeProject[0]));
                             dispatch(setWorkingSpace(fmResult.content));
+                            break;
                         case ProjectCommand.get_project_config:
                             console.log("FileManager got project configs result: ", fmResult);
                             if (fmResult.content != null) {
@@ -158,6 +167,7 @@ const FileManager = () => {
                                     fileMetadata.timestamp = fmResult.content["timestamp"];
                                 dispatch(setFileMetaData(fileMetadata));
                             }
+                            break;
                         case ProjectCommand.save_state:
                             //remove the first item from the list
                             dispatch(setSavingStateFile(null));
@@ -171,6 +181,25 @@ const FileManager = () => {
                                 fileMetadata.timestamp = fmResult.content["timestamp"];
                                 dispatch(setFileMetaData(fileMetadata));
                             }
+                            break;
+                        case ProjectCommand.add_project:
+                            if (fmResult.type === ContentType.PROJECT_METADATA) {
+                                if (fmResult.content != null) {
+                                    dispatch(setActiveProject(fmResult.content));
+                                    dispatch(setPathToAddProject(null));
+                                }
+                            }
+                            break;
+                        case ProjectCommand.set_active_project:
+                            console.log(
+                                "FileExplorer got set active project result: ",
+                                fmResult.content
+                            );
+                            if (fmResult.type === ContentType.WORKING_SPACE_METADATA) {
+                                dispatch(setWorkingSpace(fmResult.content));
+                                dispatch(setProjectToSetActive(null));
+                            }
+                            break;
                     }
                 } else {
                     //TODO: send error to ouput
@@ -506,6 +535,24 @@ const FileManager = () => {
             saveConfigs();
         }
     }, [projectConfigs]);
+
+    useEffect(() => {
+        if (pathToAddProject != null) {
+            let message = createMessage(ProjectCommand.add_project, pathToAddProject, 1);
+            sendMessage(message);
+        }
+    }, [pathToAddProject]);
+
+    useEffect(() => {
+        if (projectToSetActive != null) {
+            const msgSetActiveProject: IMessage = createMessage(
+                ProjectCommand.set_active_project,
+                projectToSetActive,
+                1
+            );
+            sendMessage(msgSetActiveProject);
+        }
+    }, [projectToSetActive]);
 
     useBeforeunload((event) => {
         let state = store.getState();
