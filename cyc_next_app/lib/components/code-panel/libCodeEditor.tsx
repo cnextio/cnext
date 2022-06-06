@@ -9,7 +9,9 @@ import {
     ICodeLineStatus,
     ILineRange,
     IRunningCommandContent,
+    IRunQueue,
     LineStatus,
+    RunQueueStatus,
 } from "../../interfaces/ICodeEditor";
 import { ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
@@ -491,8 +493,8 @@ const getRunningCommandContent = (
     if (view) {
         const doc = view.state.doc;
         if (
-            lineRange.fromLine !== undefined &&
-            lineRange.toLine !== undefined &&
+            lineRange.fromLine != null &&
+            lineRange.toLine != null &&
             lineRange.fromLine < lineRange.toLine
         ) {
             /** convert line number to 1-based */
@@ -501,7 +503,7 @@ const getRunningCommandContent = (
             let toPos = doc.line(lineRange.toLine).to;
             let text = doc.sliceString(fromPos, toPos);
             content = {
-                lineRange: { fromLine: lineRange.fromLine, toLine: lineRange.toLine },
+                lineRange: lineRange,
                 content: text,
             };
             console.log("CodeEditor getRunningCommandContent code group to run: ", content);
@@ -576,6 +578,10 @@ export const textShouldBeExec = (text: string): boolean => {
     let childName = cursor.name;
     /** not start with space */
     return parentName == "Script" && childName == "ExpressionStatement" && notStartWithSpace(text);
+};
+
+export const isRunQueueBusy = (runQueue: IRunQueue) => {
+    return runQueue.queue.length > 0 || runQueue.status === RunQueueStatus.RUNNING;
 };
 
 export {
