@@ -28,7 +28,7 @@ import {
 import FileContextMenu from "./FileContextMenu";
 import NewItemInput from "./NewItemInput";
 import DeleteConfirmation from "./DeleteConfirmation";
-import store from "../../../redux/store";
+import store, { RootState } from "../../../redux/store";
 import CypressIds from "../tests/CypressIds";
 
 interface ContextMenuInfo {
@@ -38,11 +38,11 @@ interface ContextMenuInfo {
 }
 
 const FileExplorer = (props: any) => {
-    const activeProject: IProjectMetadata = useSelector(
-        (state) => state.projectManager.activeProject
+    const activeProject: IProjectMetadata | null = useSelector(
+        (state: RootState) => state.projectManager.activeProject
     );
     const openDirs: { [id: string]: IDirectoryMetadata[] } = useSelector(
-        (state) => state.projectManager.openDirs
+        (state: RootState) => state.projectManager.openDirs
     );
     // const [clickedItemParent, setClickedItemParent] = useState<string|null>(null);
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
@@ -292,11 +292,11 @@ const FileExplorer = (props: any) => {
                             );
                         })
                 ) : (
-                    <FileItem nodeId='stub' />
+                    <FileItem nodeId="stub" />
                 )}
                 {createItemInProgress && contextMenuItems && contextMenuItems["item"] === path ? (
                     <FileItem
-                        nodeId='new_item'
+                        nodeId="new_item"
                         label={
                             <NewItemInput
                                 handleKeyPress={handleNewItemKeyPress}
@@ -327,11 +327,11 @@ const FileExplorer = (props: any) => {
     return (
         <Fragment>
             <FileExporerHeader>
-                <FileExplorerHeaderName variant='overline'>Projects</FileExplorerHeaderName>
+                <FileExplorerHeaderName variant="overline">Projects</FileExplorerHeaderName>
             </FileExporerHeader>
             {activeProject ? (
                 <FileTree
-                    aria-label='file system navigator'
+                    aria-label="file system navigator"
                     defaultCollapseIcon={<ExpandMoreIcon />}
                     defaultExpandIcon={<ChevronRightIcon />}
                     sx={{
