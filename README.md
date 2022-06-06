@@ -18,6 +18,20 @@
 
 ### Run npm i
 
+## Map .server.yaml
+
+## From cyc_next_app
+
+### Run npm run dev
+
+### From /server
+
+### Run Poetry install
+
+### Run Poetry shell
+
+### Run npm start
+
 # CNext Instructions
 
 [Website] - [Documentation] - [Docker Image] - [Overview Video]
