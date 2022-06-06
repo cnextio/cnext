@@ -26,9 +26,9 @@
 
 ### From /server
 
-### Run Poetry install
+### Run poetry install
 
-### Run Poetry shell
+### Run poetry shell
 
 ### Run npm start
 
