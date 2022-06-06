@@ -53,6 +53,7 @@ import {
     ICodeToInsertInfo,
     CodeInsertMode,
     IRunQueueItem,
+    IRunQueue,
 } from "../../interfaces/ICodeEditor";
 import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
 import { useCodeMirror } from "@uiw/react-codemirror";
@@ -89,6 +90,7 @@ import {
     setAnchor,
     setAnchorToNextGroup,
     setLineStatus,
+    isRunQueueBusy,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
@@ -136,7 +138,7 @@ const CodeEditor = () => {
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
-
+    
     const getGroupedLineFoldRange = (state: EditorState, lineStart: number, lineEnd: number) => {
         if (state && inViewID) {
             const codeLines = store.getState().codeEditor.codeLines[inViewID];
@@ -222,6 +224,8 @@ const CodeEditor = () => {
         height: "100%",
         theme: "light",
         onChange: onCodeMirrorChange,
+        /** do not allow edit when there are items in the run queue */
+        readOnly: isRunQueueBusy(runQueue),
     });
 
     const resetEditorState = (inViewID: string, view: EditorView | undefined) => {
@@ -608,20 +612,14 @@ const CodeEditor = () => {
         let inViewID = runQueueItem.inViewID;
         let lineRange = runQueueItem.lineRange;
         if (inViewID && view && lineRange.toLine != null && lineRange.fromLine != null) {
-            let rangeToRun: ILineRange[] = [
-                { fromLine: lineRange.fromLine, toLine: lineRange.toLine },
-            ];
-            console.log("CodeEditor execLines: ", rangeToRun);
-            for (let lineRange of rangeToRun) {
-                let content: IRunningCommandContent | undefined = getRunningCommandContent(
-                    view,
-                    lineRange
-                );
-                if (content && inViewID) {
-                    console.log("CodeEditor execLines: ", content, lineRange);
-                    sendMessage(content);
-                    setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);
-                }
+            let content: IRunningCommandContent | undefined = getRunningCommandContent(
+                view,
+                lineRange
+            );
+            if (content && inViewID) {
+                console.log("CodeEditor execLines: ", content, lineRange);
+                sendMessage(content);
+                setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);
             }
         }
     };
@@ -690,7 +688,7 @@ const CodeEditor = () => {
         try {
             console.log("CodeEditor onCodeMirrorChange");
             const state = store.getState();
-            let inViewID = store.getState().projectManager.inViewID;
+            let inViewID = state.projectManager.inViewID;
             /** do nothing if the update is due to code reloading from external source */
             if (codeReloading) return;
             let doc = viewUpdate.state.doc;
