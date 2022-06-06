@@ -1,3 +1,23 @@
+# Setup dev
+
+## Clone cnext-app
+
+## Clone cnext-sample-project
+
+## Clone cycdataframe
+
+## Install npm
+
+## Install poetry
+
+## From cnext-app/cyc_next_app
+
+### Run npm i --force
+
+### Goto /server
+
+### Run npm i
+
 # CNext Instructions
 
 [Website] - [Documentation] - [Docker Image] - [Overview Video]
