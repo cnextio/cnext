@@ -119,33 +119,17 @@ const FileManager = () => {
                             dispatch(setOpenFiles(fmResult.content));
                             dispatch(setInView(fmResult.metadata["path"]));
                             break;
-                        // case ProjectCommand.get_active_project:
-                        //     console.log("FileManager got active project result: ", fmResult);
-
-                        //     // Send get open files message
-                        //     let message: IMessage = createMessage(
-                        //         ProjectCommand.get_open_files,
-                        //         "",
-                        //         1
-                        //     );
-                        //     sendMessage(message);
-                        //     dispatch(setActiveProject(fmResult.content));
-
-                        //     // Send get project configs message
-                        //     let messageProjectConfig: IMessage = createMessage(
-                        //         ProjectCommand.get_project_config,
-                        //         "",
-                        //         1
-                        //     );
-                        //     sendMessage(messageProjectConfig);
-                        //     break;
                         case ProjectCommand.get_working_config:
                             console.log("FileManager got working config: ", fmResult);
-                            let activeProject = fmResult.content["open_projects"].filter(
-                                (project) => project["id"] === fmResult.content["active_project"]
-                            );
-                            dispatch(setActiveProject(activeProject[0]));
-                            dispatch(setWorkingSpace(fmResult.content));
+                            const workingSpaceConfig = fmResult.content;
+                            if (workingSpaceConfig.hasOwnProperty("open_projects")) {
+                                let activeProject = workingSpaceConfig["open_projects"].filter(
+                                    (project) =>
+                                        project["id"] === workingSpaceConfig["active_project"]
+                                );
+                                dispatch(setActiveProject(activeProject[0]));
+                                dispatch(setWorkingSpace(fmResult.content));
+                            }
                             break;
                         case ProjectCommand.get_project_config:
                             console.log("FileManager got project configs result: ", fmResult);
@@ -185,7 +169,13 @@ const FileManager = () => {
                         case ProjectCommand.add_project:
                             if (fmResult.type === ContentType.PROJECT_METADATA) {
                                 if (fmResult.content != null) {
-                                    dispatch(setActiveProject(fmResult.content));
+                                    const workingSpaceConfig = fmResult.content;
+                                    let activeProject = workingSpaceConfig["open_projects"].filter(
+                                        (project) =>
+                                            project["id"] === workingSpaceConfig["active_project"]
+                                    );
+                                    dispatch(setActiveProject(activeProject[0]));
+                                    dispatch(setWorkingSpace(workingSpaceConfig));
                                     dispatch(setPathToAddProject(null));
                                 }
                             }
