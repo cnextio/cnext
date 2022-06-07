@@ -219,7 +219,7 @@ const FileManager = () => {
                     }
                 }
             } catch (error) {
-                throw error;
+                console.error(error)
             }
         });
     };
