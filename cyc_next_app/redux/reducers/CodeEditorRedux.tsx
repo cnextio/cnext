@@ -14,6 +14,7 @@ import {
     ICodeText,
     ILineRange,
     ICodeToInsertInfo,
+    IRunQueueItem,
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
@@ -42,7 +43,7 @@ type CodeEditorState = {
 
     lineStatusUpdateCount: number;
     activeLine: string | null;
-    activeGroup: string | null;
+    activeGroup: string | undefined;
     cAssistInfo: ICAssistInfo | undefined;
     runDict: {} | undefined;
     runningId: string | undefined;
@@ -58,13 +59,13 @@ const initialState: CodeEditorState = {
     codeLines: {},
     timestamp: {},
     // fileSaved: true,
-    runQueue: { status: RunQueueStatus.STOP },
+    runQueue: { status: RunQueueStatus.STOP, queue: [] },
     resultUpdateCount: 0,
     maxTextOutputOrder: 0,
     textOutputUpdateCount: 0,
     lineStatusUpdateCount: 0,
     activeLine: null,
-    activeGroup: null,
+    activeGroup: undefined,
     cAssistInfo: undefined,
     runDict: undefined,
     runningId: undefined,
@@ -99,6 +100,42 @@ function setGroupEdittedStatus(
             if (codeLines[i].groupID == groupID) codeLines[i].status = LineStatus.EDITED;
         for (let i = aroundLine; i >= 0; i--)
             if (codeLines[i].groupID == groupID) codeLines[i].status = LineStatus.EDITED;
+    }
+}
+
+function setLineStatusInternal(state: CodeEditorState, lineStatus: ICodeLineStatus) {
+    let inViewID = lineStatus.inViewID;
+    let codeLines: ICodeLine[] = state.codeLines[inViewID];
+    if (lineStatus.status !== undefined) {
+        if (lineStatus.status === LineStatus.EDITED && lineStatus.text !== undefined) {
+            // console.log('CodeEditorRedux: ', lineStatus.status);
+            // state.codeText[inViewID] = lineStatus.text;
+            // state.fileSaved = false;
+        }
+        const lineRange: ILineRange = lineStatus.lineRange;
+        for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
+            codeLines[ln].status = lineStatus.status;
+        }
+    }
+    if (lineStatus.generated !== undefined) {
+        const lineRange: ILineRange = lineStatus.lineRange;
+        for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
+            codeLines[ln].generated = lineStatus.generated;
+        }
+    }
+    state.lineStatusUpdateCount++;
+    state.saveCodeLineCounter++;
+}
+
+function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem: IRunQueueItem){
+    let inViewID = runQueueItem.inViewID;
+    let lineRange = runQueueItem.lineRange;
+    let codeLines = state.codeLines[inViewID];
+    if (lineRange.fromLine != null && lineRange.toLine != null) {
+        for (let l = lineRange.fromLine; l < lineRange.toLine; l++) {
+            codeLines[l].textOutput = undefined;
+            state.textOutputUpdateCount += 1;
+        }
     }
 }
 
@@ -227,27 +264,7 @@ export const CodeEditorRedux = createSlice({
         //TODO: remove this because no used
         setLineStatus: (state, action) => {
             let lineStatus: ICodeLineStatus = action.payload;
-            let inViewID = lineStatus.inViewID;
-            let codeLines: ICodeLine[] = state.codeLines[inViewID];
-            if (lineStatus.status !== undefined) {
-                if (lineStatus.status === LineStatus.EDITED && lineStatus.text !== undefined) {
-                    // console.log('CodeEditorRedux: ', lineStatus.status);
-                    // state.codeText[inViewID] = lineStatus.text;
-                    // state.fileSaved = false;
-                }
-                const lineRange: ILineRange = lineStatus.lineRange;
-                for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
-                    codeLines[ln].status = lineStatus.status;
-                }
-            }
-            if (lineStatus.generated !== undefined) {
-                const lineRange: ILineRange = lineStatus.lineRange;
-                for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
-                    codeLines[ln].generated = lineStatus.generated;
-                }
-            }
-            state.lineStatusUpdateCount++;
-            state.saveCodeLineCounter++;
+            setLineStatusInternal(state, lineStatus);            
         },
 
         setLineGroupStatus: (state, action) => {
@@ -368,15 +385,8 @@ export const CodeEditorRedux = createSlice({
             }
         },
 
-        clearRunQueueTextOutput: (state, action) => {
-            let inViewID = action.payload;
-            let codeLines = state.codeLines[inViewID];
-            if (state.runQueue.fromLine != null && state.runQueue.toLine != null) {
-                for (let l = state.runQueue.fromLine; l < state.runQueue.toLine; l++) {
-                    codeLines[l].textOutput = undefined;
-                    state.textOutputUpdateCount += 1;
-                }
-            }
+        clearRunningLineTextOutput: (state, action) => {
+            clearRunningLineTextOutputInternal(state, action.payload);
         },
 
         setActiveLine: (state, action) => {
@@ -398,20 +408,44 @@ export const CodeEditorRedux = createSlice({
          * i.e. lines from fromLine to toLine excluding toLine
          * @returns `true` if the run queue is not running, `false` otherwise.
          */
-        setRunQueue: (state, action) => {
-            console.log("CodeEditorRedux setRunQueue current status: ", state.runQueue.status);
-            if (state.runQueue.status === RunQueueStatus.STOP) {
-                let range: ILineRange = action.payload;
-                state.runQueue = {
-                    status: RunQueueStatus.RUNNING,
-                    fromLine: range.fromLine,
-                    toLine: range.toLine,
-                    runningLine: range.fromLine,
-                    // runAllAtOnce: data.runAllAtOnce,
-                };
-                // return true;
+        addToRunQueue: (state, action) => {
+            console.log("CodeEditorRedux pushRunQueue current status: ", action.payload);
+            let runQueueItem: IRunQueueItem = action.payload;
+            // let newRange: ILineRange = runQueueItem.lineRange;
+            // let inViewID: string = runQueueItem.inViewID;
+            let runQueue = state.runQueue.queue;
+            state.runQueue = { ...state.runQueue, queue: [...runQueue, runQueueItem] };
+            let lineStatus: ICodeLineStatus = {
+                ... runQueueItem,
+                status: LineStatus.INQUEUE
             }
-            // return false;
+            setLineStatusInternal(state, lineStatus);
+            clearRunningLineTextOutputInternal(state, runQueueItem);
+        },
+
+        clearRunQueue: (state) => {
+            for (let runQueueItem of state.runQueue.queue){
+                let lineStatus: ICodeLineStatus = {
+                    ...runQueueItem,
+                    status: LineStatus.EDITED,
+                };
+                setLineStatusInternal(state, lineStatus);
+            }
+            state.runQueue = { ...state.runQueue, queue: [] };
+        },
+
+        removeFromRunQueue: (state) => {
+            // console.log("CodeEditorRedux pushRunQueue current status: ", action.payload);
+            state.runQueue.queue.shift();
+        },
+
+        setRunQueueStatus: (state, action) => {
+            console.log(
+                "CodeEditorRedux setRunQueueStatus current status: ",
+                state.runQueue.status,
+                action.payload
+            );
+            state.runQueue = { ...state.runQueue, status: action.payload };
         },
 
         /** Inform the run queue that the current line execution has been completed */
@@ -475,13 +509,15 @@ export const {
     setLineStatus,
     setLineGroupStatus,
     setActiveLine,
-    setFileSaved,
-    setRunQueue,
+    addToRunQueue,
+    clearRunQueue,
+    setRunQueueStatus,
+    removeFromRunQueue,
     compeleteRunLine,
     updateCAssistInfo,
     compeleteRunQueue,
     setCodeToInsert,
-    clearRunQueueTextOutput,
+    clearRunningLineTextOutput,
     clearTextOutputs,
 } = CodeEditorRedux.actions;
 
