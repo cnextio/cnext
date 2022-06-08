@@ -157,6 +157,7 @@ const FileExplorer = (props: any) => {
     useEffect(() => {
         if (activeProject) {
             setExpanded([]);
+            dispatch(setOpenFiles([])); // Close all files when changing active project
         }
     }, [activeProject]);
 
