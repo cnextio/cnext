@@ -18,7 +18,7 @@ import { commentKeymap } from "@codemirror/comment";
 import { lintKeymap } from "@codemirror/lint";
 import { defaultKeymap } from "@codemirror/commands";
 import { historyKeymap } from "@codemirror/history";
-import { foldKeymap } from "@codemirror/fold";
+import { foldKeymap, foldAll, unfoldAll, foldCode, unfoldCode } from "@codemirror/fold";
 import { foldService, indentUnit } from "@codemirror/language";
 import { lineNumbers } from "@codemirror/gutter";
 import { StyledCodeEditor } from "../StyledComponents";
@@ -190,6 +190,10 @@ const CodeEditor = () => {
                 key: shortcutKeysConfig.insert_line_below,
                 run: () => insertBelow(CodeInsertMode.LINE),
             },
+            { key: "Mod-Shift-f", run: foldAll },
+            { key: "Mod-Shift-u", run: unfoldAll },
+            { key: "Mod-Shift-c", run: foldCode },
+            { key: "Mod-Shift-v", run: unfoldCode },
             ...completionKeymap,
             ...closeBracketsKeymap,
             ...defaultKeymap,
