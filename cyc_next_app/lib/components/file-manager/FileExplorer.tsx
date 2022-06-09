@@ -30,14 +30,13 @@ import {
     setOpenFiles,
     setProjects,
     setActiveProject,
-    setWorkingSpace,
     setPathToAddProject,
     setProjectToSetActive,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import FileContextMenu from "./FileContextMenu";
 import NewItemInput from "./NewItemInput";
 import DeleteConfirmation from "./DeleteConfirmation";
-import store from "../../../redux/store";
+import store, { RootState } from "../../../redux/store";
 import CypressIds from "../tests/CypressIds";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import AddBoxIcon from "@mui/icons-material/AddBox";
@@ -52,15 +51,15 @@ interface ContextMenuInfo {
 
 const FileExplorer = (props: any) => {
     const activeProject: IProjectMetadata = useSelector(
-        (state) => state.projectManager.activeProject
+        (state: RootState) => state.projectManager.activeProject
     );
 
     const openDirs: { [id: string]: IDirectoryMetadata[] } = useSelector(
-        (state) => state.projectManager.openDirs
+        (state: RootState) => state.projectManager.openDirs
     );
 
     const workingConfig: IWorkSpaceConfig = useSelector(
-        (state) => state.projectManager.workingSpace
+        (state: RootState) => state.projectManager.workingSpace
     );
 
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
@@ -158,6 +157,7 @@ const FileExplorer = (props: any) => {
     useEffect(() => {
         if (activeProject) {
             setExpanded([]);
+            dispatch(setOpenFiles([])); // Close all files when changing active project
         }
     }, [activeProject]);
 
@@ -446,21 +446,21 @@ const FileExplorer = (props: any) => {
                     <NoteAddIcon fontSize='small' style={{ cursor: "pointer" }} />
                 </Tooltip>
             </FileExporerHeader>
-            {workingConfig.active_project != null ? (
-                <div>
-                    <FileTree
-                        aria-label='file system navigator'
-                        defaultCollapseIcon={<ExpandMoreIcon />}
-                        defaultExpandIcon={<ChevronRightIcon />}
-                        sx={{
-                            height: 240,
-                            flexGrow: 1,
-                            maxWidth: 400,
-                            overflowY: "auto",
-                        }}
-                        expanded={expanded}
-                        onNodeToggle={handleDirToggle}
-                    >
+            <div>
+                <FileTree
+                    aria-label='file system navigator'
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}
+                    sx={{
+                        height: 240,
+                        flexGrow: 1,
+                        maxWidth: 400,
+                        overflowY: "auto",
+                    }}
+                    expanded={expanded}
+                    onNodeToggle={handleDirToggle}
+                >
+                    {activeProject != null ? (
                         <FileItem
                             nodeId={relativeProjectPath}
                             data-cy={CypressIds.projectRoot}
@@ -477,38 +477,38 @@ const FileExplorer = (props: any) => {
                         >
                             {generateFileItems(relativeProjectPath)}
                         </FileItem>
-                        {createProjectInProgress ? (
-                            <Fragment>
-                                <FileItem
-                                    nodeId='new_project'
-                                    label={
-                                        <NewItemInput
-                                            handleKeyPress={handleNewProjectKeyPress}
-                                            command={null}
-                                        />
-                                    }
-                                />
-                                {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
-                            </Fragment>
-                        ) : null}
-                    </FileTree>
-                    {workingConfig.open_projects.map(
-                        (item) =>
-                            item.id !== activeProject.id && (
-                                <ProjectItem onClick={() => changeActiveProject(item.id)}>
-                                    <LockIcon
-                                        style={{
-                                            fontSize: "16px",
-                                            marginBottom: "-3px",
-                                            marginRight: "4px",
-                                        }}
+                    ) : null}
+                    {createProjectInProgress ? (
+                        <Fragment>
+                            <FileItem
+                                nodeId='new_project'
+                                label={
+                                    <NewItemInput
+                                        handleKeyPress={handleNewProjectKeyPress}
+                                        command={null}
                                     />
-                                    {item?.name}
-                                </ProjectItem>
-                            )
-                    )}
-                </div>
-            ) : null}
+                                }
+                            />
+                            {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
+                        </Fragment>
+                    ) : null}
+                </FileTree>
+                {workingConfig.open_projects.map(
+                    (item) =>
+                        item.id !== activeProject.id && (
+                            <ProjectItem onClick={() => changeActiveProject(item.id)}>
+                                <LockIcon
+                                    style={{
+                                        fontSize: "16px",
+                                        marginBottom: "-3px",
+                                        marginRight: "4px",
+                                    }}
+                                />
+                                {item?.name}
+                            </ProjectItem>
+                        )
+                )}
+            </div>
             <FileContextMenu
                 contextMenuPos={contextMenuPos}
                 handleClose={closeContextMenu}

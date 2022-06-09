@@ -202,7 +202,7 @@ def add_project(path):
             with open(cnext_config_path, 'w'):
                 pass
 
-        return active_project
+        return workspace_info
     except Exception as ex:
         raise ex
 

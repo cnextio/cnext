@@ -1,29 +1,14 @@
-import React, { FC, Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState } from "react";
 import {
     CodeToolbar as StyledCodeToolbar,
     FileNameTab,
     PanelDivider,
-    ExecutorIcon as StyledExecutorIcon,
     FileCloseIcon as StyledFileCloseIcon,
     FileNameTabContainer,
-} from '../StyledComponents';
-import { IconButton, stepConnectorClasses } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import { useDispatch, useSelector } from 'react-redux';
-import { setFileToClose, setInView } from '../../../redux/reducers/ProjectManagerRedux';
-import store, { RootState } from '../../../redux/store';
-
-const FileMenu = () => {
-    return (
-        <IconButton size='large' color='default'>
-            <MenuIcon style={{ width: '18px', height: '18px' }} />
-        </IconButton>
-    );
-};
-
-const ExecutorIcon = () => {
-    return <StyledExecutorIcon color='primary' fontSize='small' />;
-};
+} from "../StyledComponents";
+import { useDispatch, useSelector } from "react-redux";
+import { setFileToClose, setInView } from "../../../redux/reducers/ProjectManagerRedux";
+import store, { RootState } from "../../../redux/store";
 
 const FileCloseIcon = (props) => {
     return <StyledFileCloseIcon fontSize='small' {...props} />;
@@ -70,7 +55,7 @@ const CodeToolbar = () => {
                 <FileNameTab
                     // toolbarName={name}
                     selected={id == inViewID}
-                    component="span"
+                    component='span'
                     onClick={() => onClick(id)}
                     fileSaved={
                         !fileToSave.includes(id) &&
@@ -108,7 +93,7 @@ const CodeToolbar = () => {
                         />
                     </FileNameTabContainer>
                 </FileNameTab>
-                <PanelDivider orientation="vertical" color="light" />
+                <PanelDivider orientation='vertical' color='light' />
             </Fragment>
         );
     };
@@ -116,7 +101,9 @@ const CodeToolbar = () => {
     return (
         <StyledCodeToolbar>
             {/* always display executor first */}
-            {executorID && _getFileNameComponent(executorID, openFiles[executorID].name)}
+            {Object.keys(openFiles).length > 0 &&
+                executorID &&
+                _getFileNameComponent(executorID, openFiles[executorID].name)}
             {Object.keys(openFiles).map((id: string) => {
                 // {console.log(key, openFiles[key].name)}
                 if (id !== executorID) {
