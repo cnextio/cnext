@@ -5,6 +5,7 @@ import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
 import { KernelManagerCommand } from "./IKernelManager";
 import { ModelManagerCommand } from "./IModelManager";
+import { ICodeResultContent } from "./ICodeEditor";
 
 export type RecvCodeOutput = (output: IMessage) => void;
 
@@ -21,7 +22,8 @@ export interface IMessage {
         | ProjectCommand
         | ExperimentManagerCommand
         | KernelManagerCommand
-        | ModelManagerCommand; // 'code_area_command'|'updated_dataframe_list'|
+        | ModelManagerCommand // 'code_area_command'|'updated_dataframe_list'|
+        | ICodeResultContent;
     // for commands that requires more than one command
     type: ContentType | CommandType; // the object type of the output content
     content:
