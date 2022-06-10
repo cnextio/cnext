@@ -279,6 +279,10 @@ export const CodeToolbar = styled.div`
     align-items: center;
     background-color: ${(props) => props.theme.palette.grey.A200};
     overflow: auto;
+
+    ::-webkit-scrollbar {
+        height: 0px;
+    }
 `;
 
 export const FileNameTabContainer = styled.div`
@@ -375,6 +379,16 @@ export const StyledCodeEditor = styled.div`
         background-color: rgb(218, 255, 237, 0.5);
     }
 
+    .cm-groupedfirstline {
+        border-top: 1px dotted rgb(153, 179, 171, 0.5);
+        background-color: rgb(218, 255, 237, 0.5);
+    }
+
+    .cm-nongroupedfirstline {
+        border-top: 1px dotted rgb(153, 179, 171, 0.5);
+        background-color: white;
+    }
+
     .cm-cassist-selection {
         border-color: ${(props) => props.theme.palette.grey.A400};
         border-radius: 4px;
@@ -384,6 +398,12 @@ export const StyledCodeEditor = styled.div`
         &:focus {
             outline: 0px solid ${(props) => props.theme.palette.grey.A400};
         }
+    }
+
+    .cm-foldGutter {
+        font-size: 11px;
+        // padding-right: 2px;
+        // padding-top: 3px;
     }
 `;
 
@@ -419,8 +439,6 @@ export const StyledCodeMirror = styled(CodeMirror)`
 export const CodeEditMarker = styled.div`
     height: 10px;
     width: 10px;
-    // background-color: ${(props) =>
-        props.edited ? props.theme.palette.primary.light : props.theme.palette.success.light};
     background-color: green;
     border: 2px;
 `;

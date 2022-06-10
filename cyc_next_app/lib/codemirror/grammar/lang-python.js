@@ -1,5 +1,12 @@
 import { parser } from '@lezer/python';
-import { LRLanguage, indentNodeProp, continuedIndent, foldNodeProp, foldInside, LanguageSupport } from '@codemirror/language';
+import {
+    LRLanguage,
+    indentNodeProp,
+    continuedIndent,
+    foldNodeProp,
+    foldInside,
+    LanguageSupport,
+} from "@codemirror/language";
 import { styleTags, tags } from '@codemirror/highlight';
 import { snippetCompletion, ifNotIn, completeFromList } from '@codemirror/autocomplete';
 /// A collection of Python-related
@@ -44,14 +51,15 @@ const pythonLanguage = LRLanguage.define({
     parser: parser.configure({
         props: [
             indentNodeProp.add({
-                Body: continuedIndent()
+                Body: continuedIndent(),
             }),
             foldNodeProp.add({
-                "Body ArrayExpression DictionaryExpression": foldInside
+                "Body ArrayExpression DictionaryExpression": foldInside,
             }),
             styleTags({
                 "async '*' '**' FormatConversion": tags.modifier,
-                "for while if elif else try except finally return raise break continue with pass assert await yield": tags.controlKeyword,
+                "for while if elif else try except finally return raise break continue with pass assert await yield":
+                    tags.controlKeyword,
                 "in not and or is del": tags.operatorKeyword,
                 "import from def class global nonlocal lambda": tags.definitionKeyword,
                 "with as print": tags.keyword,
@@ -60,7 +68,9 @@ const pythonLanguage = LRLanguage.define({
                 None: tags.null,
                 VariableName: tags.variableName,
                 "CallExpression/VariableName": tags.function(tags.variableName),
-                "FunctionDefinition/VariableName": tags.function(tags.definition(tags.variableName)),
+                "FunctionDefinition/VariableName": tags.function(
+                    tags.definition(tags.variableName)
+                ),
                 "ClassDefinition/VariableName": tags.definition(tags.className),
                 PropertyName: tags.propertyName,
                 "CallExpression/MemberExpression/ProperyName": tags.function(tags.propertyName),
@@ -79,15 +89,15 @@ const pythonLanguage = LRLanguage.define({
                 "[ ]": tags.squareBracket,
                 "{ }": tags.brace,
                 ".": tags.derefOperator,
-                ", ;": tags.separator
-            })
+                ", ;": tags.separator,
+            }),
         ],
     }),
     languageData: {
         closeBrackets: { brackets: ["(", "[", "{", "'", '"', "'''", '"""'] },
         commentTokens: { line: "#" },
-        indentOnInput: /^\s*[\}\]\)]$/
-    }
+        indentOnInput: /^\s*[\}\]\)]$/,
+    },
 });
 /// Python language support.
 function python() {

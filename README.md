@@ -47,7 +47,7 @@ Step 3: `run` command `pip install cnext`
 
 Step 4: `run` command `cnext-init`
 
--   Input `Enter path to the cnext sample project created in  Step 1` and hit `Enter` (Example `C:/Skywalker`)
+-   Input `Enter path to the cnext sample project created in Step 1` and hit `Enter` (Example `C:/Skywalker`)
     ​
 
 Step 6 `run` command `cnext-run`
@@ -55,6 +55,61 @@ Step 6 `run` command `cnext-run`
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 3000)
 -   Stop application: `Ctrl + c | Command + c`
 -   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine, by default they are 3000 and 4000 respectively)
+
+## Release Note
+
+# v0.4.18
+
+##### NEW
+
+-   Show failed execution status marker
+
+# v0.4.14 - v0.4.16
+
+##### NEW
+
+-   Add configs for dataframe manager.
+-   Implement grouped lines folding
+
+##### IMPROVED
+
+-
+
+##### FIXED
+
+-   Fix bugs and improve stability for model visualization.
+
+# v0.4.12 - v0.4.13
+
+##### NEW
+
+-   Allow code to be executed on any file.
+-   Improve code suggestion behavior.
+-   Load config dynamically from "config.json".
+
+##### IMPROVED
+
+-
+
+##### FIXED
+
+-
+
+# v0.4.10
+
+##### NEW
+
+-   Assign result of a group to only the first line.
+-   Add support for full-html-page results using iframe.
+-   Add support for .sql and .json files.
+
+##### IMPROVED
+
+-   Improve the ability to support results with javascript. you can now run bokeh plot.
+
+##### FIXED
+
+-
 
 ## License
 

@@ -5,10 +5,13 @@ import {
     PanelDivider,
     FileCloseIcon as StyledFileCloseIcon,
     FileNameTabContainer,
-} from "../StyledComponents";
-import { useDispatch, useSelector } from "react-redux";
-import { setFileToClose, setInView } from "../../../redux/reducers/ProjectManagerRedux";
-import store, { RootState } from "../../../redux/store";
+} from '../StyledComponents';
+import { IconButton, stepConnectorClasses } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { useDispatch, useSelector } from 'react-redux';
+import { setFileToClose, setInView } from '../../../redux/reducers/ProjectManagerRedux';
+import store, { RootState } from '../../../redux/store';
+import { isRunQueueBusy } from './libCodeEditor';
 
 const FileCloseIcon = (props) => {
     return <StyledFileCloseIcon fontSize='small' {...props} />;
@@ -23,6 +26,7 @@ const CodeToolbar = () => {
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
     const savingFile = useSelector((state: RootState) => state.projectManager.savingFile);
     const savingStateFile = useSelector((state: RootState) => state.projectManager.savingStateFile);
+    const runQueueBusy = useSelector((state: RootState) => isRunQueueBusy(state.codeEditor.runQueue));
     const [displayState, setDisplayState] = useState<{ [id: string]: {} }>({});
     const dispatch = useDispatch();
 
@@ -53,10 +57,11 @@ const CodeToolbar = () => {
         return (
             <Fragment key={id}>
                 <FileNameTab
-                    // toolbarName={name}
+                    // toolbarName={name}                
                     selected={id == inViewID}
-                    component='span'
-                    onClick={() => onClick(id)}
+                    component="span"
+                    /** not allow switching tab when the runQueue is busy */
+                    onClick={() => runQueueBusy?null:onClick(id)}
                     fileSaved={
                         !fileToSave.includes(id) &&
                         savingFile !== id &&
