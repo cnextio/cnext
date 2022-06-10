@@ -8,7 +8,7 @@ const sentryWebpackPluginOptions = {
     //   release, url, org, project, authToken, configFile, stripPrefix,
     //   urlPrefix, include, ignore
     dsn: "https://25a5df08f7ea47be8a9922441cba00d1@o1259763.ingest.sentry.io/6435278",
-    authToken: "19f6f8e90778487cb1c2333518a47def664d5734769b40ac857e4bede4222f2d",
+    authToken: process.env.SENTRY_AUTH_TOKEN,
     tracesSampleRate: 0.1,
     silent: false, // Suppresses all logs
     // For all available options, see:
