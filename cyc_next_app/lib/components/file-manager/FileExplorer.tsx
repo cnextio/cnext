@@ -460,7 +460,7 @@ const FileExplorer = (props: any) => {
                     expanded={expanded}
                     onNodeToggle={handleDirToggle}
                 >
-                    {activeProject != null ? (
+                    {activeProject != null && (
                         <FileItem
                             nodeId={relativeProjectPath}
                             data-cy={CypressIds.projectRoot}
@@ -477,37 +477,39 @@ const FileExplorer = (props: any) => {
                         >
                             {generateFileItems(relativeProjectPath)}
                         </FileItem>
-                    ) : null}
-                    {createProjectInProgress ? (
-                        <Fragment>
-                            <FileItem
-                                nodeId='new_project'
-                                label={
-                                    <NewItemInput
-                                        handleKeyPress={handleNewProjectKeyPress}
-                                        command={null}
-                                    />
-                                }
-                            />
-                            {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
-                        </Fragment>
-                    ) : null}
+                    )}
                 </FileTree>
                 {workingConfig.open_projects.map(
                     (item) =>
                         item.id !== activeProject.id && (
-                            <ProjectItem onClick={() => changeActiveProject(item.id)}>
-                                <LockIcon
-                                    style={{
-                                        fontSize: "16px",
-                                        marginBottom: "-3px",
-                                        marginRight: "4px",
-                                    }}
-                                />
-                                {item?.name}
-                            </ProjectItem>
+                            <Tooltip title={item?.path} placement='bottom-end'>
+                                <ProjectItem onDoubleClick={() => changeActiveProject(item.id)}>
+                                    <LockIcon
+                                        style={{
+                                            fontSize: "16px",
+                                            marginBottom: "-3px",
+                                            marginRight: "4px",
+                                        }}
+                                    />
+                                    {item?.name}
+                                </ProjectItem>
+                            </Tooltip>
                         )
                 )}
+                {createProjectInProgress ? (
+                    <Fragment>
+                        <FileItem
+                            nodeId='new_project'
+                            label={
+                                <NewItemInput
+                                    handleKeyPress={handleNewProjectKeyPress}
+                                    command={ProjectCommand.add_project}
+                                />
+                            }
+                        />
+                        {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
+                    </Fragment>
+                ) : null}
             </div>
             <FileContextMenu
                 contextMenuPos={contextMenuPos}
