@@ -18,6 +18,7 @@ const NewItemInput = ({ handleKeyPress, command }) => {
         <ContextMenuNewItem
             inputRef={newItemRef}
             defaultValue={command == ProjectCommand.create_file ? ".py" : ""}
+            placeholder={command === ProjectCommand.add_project ? "project path" : ""}
             data-cy={CypressIds.newFileItem}
             onKeyDown={(event: React.KeyboardEvent) =>
                 handleKeyPress(event, newItemRef.current.value, command)

@@ -15,7 +15,6 @@ import {
     ILineRange,
     ICodeToInsert,
 } from "../../lib/interfaces/ICodeEditor";
-import { ifElseDict } from "../../lib/components/libs";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 
@@ -465,6 +464,26 @@ export const CodeEditorRedux = createSlice({
                 state.saveCodeLineCounter++;
             }
         },
+
+        resetCodeEditor: (state, action) => {
+            state.codeText = {};
+            state.codeLines = {};
+            state.timestamp = {};
+            // fileSaved: true,
+            state.runQueue = { status: RunQueueStatus.STOP };
+            state.resultUpdateCount = 0;
+            state.maxTextOutputOrder = 0;
+            state.textOutputUpdateCount = 0;
+            state.lineStatusUpdateCount = 0;
+            state.activeLine = null;
+            state.activeGroup = null;
+            state.cAssistInfo = undefined;
+            state.runDict = undefined;
+            state.runningId = undefined;
+            state.codeToInsert = undefined;
+            state.saveCodeTextCounter = 0;
+            state.saveCodeLineCounter = 0;
+        },
     },
 });
 
@@ -476,7 +495,7 @@ export const {
     setLineStatus,
     setLineGroupStatus,
     setActiveLine,
-    setFileSaved,
+    // setFileSaved,
     setRunQueue,
     compeleteRunLine,
     updateCAssistInfo,
@@ -484,6 +503,7 @@ export const {
     setCodeToInsert,
     clearRunQueueTextOutput,
     clearTextOutputs,
+    resetCodeEditor,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

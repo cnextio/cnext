@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useBeforeunload } from "react-beforeunload";
-import { initCodeText } from "../../../redux/reducers/CodeEditorRedux";
+import { initCodeText, resetCodeEditor } from "../../../redux/reducers/CodeEditorRedux";
 import {
     setActiveProject,
     setFileMetaData,
@@ -177,6 +177,7 @@ const FileManager = () => {
                                     dispatch(setActiveProject(activeProject[0]));
                                     dispatch(setWorkingSpace(workingSpaceConfig));
                                     dispatch(setPathToAddProject(null));
+                                    dispatch(resetCodeEditor(null));
                                 }
                             }
                             break;
@@ -188,6 +189,7 @@ const FileManager = () => {
                             if (fmResult.type === ContentType.WORKING_SPACE_METADATA) {
                                 dispatch(setWorkingSpace(fmResult.content));
                                 dispatch(setProjectToSetActive(null));
+                                dispatch(resetCodeEditor(null));
                             }
                             break;
                     }

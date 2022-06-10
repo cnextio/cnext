@@ -27,6 +27,7 @@ import {
     compeleteRunQueue,
     setCodeToInsert,
     clearRunQueueTextOutput,
+    resetCodeEditor,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,

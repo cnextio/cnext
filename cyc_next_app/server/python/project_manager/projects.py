@@ -69,13 +69,16 @@ def open_file(path):
             config = read_config(config_path)
             if hasattr(config, 'open_files') and isinstance(config.open_files, list):
                 open_files = config.open_files
-                ## Note that we dont set the timestamp when open the file #
-            file = FileMetadata(path,
-                                name=path.split('/')[-1],
-                                executor=(config.executor == path))
-            open_files.append(file.__dict__)
-            config.open_files = open_files
-            save_config(config.__dict__, config_path)
+            ## Note that we dont set the timestamp when open the file #
+            file_existed = [
+                file_item for file_item in config.open_files if file_item['path'] == path]
+            if len(file_existed) == 0:
+                file = FileMetadata(path,
+                                    name=path.split('/')[-1],
+                                    executor=(config.executor == path))
+                open_files.append(file.__dict__)
+                config.open_files = open_files
+                save_config(config.__dict__, config_path)
         else:
             log.error("Config file does not exist %s" % (config_path))
         return open_files
