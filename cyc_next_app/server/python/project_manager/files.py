@@ -97,7 +97,7 @@ def create_file(project_path, relative_file_path):
         else:
             with open(file_path, 'w') as file:
                 pass
-        return FileMetadata(relative_file_path, name=relative_file_path.split('/')[-1], timestamp=os.path.getmtime(file_path))
+        return FileMetadata(path=relative_file_path, name=relative_file_path.split('/')[-1], timestamp=os.path.getmtime(file_path))
     except Exception:
         raise Exception
 
@@ -110,7 +110,7 @@ def create_folder(project_path, relative_folder_path):
             log.info('Folder already exists %s' % folder_path)
         else:
             os.mkdir(folder_path)
-        return FileMetadata(relative_folder_path, name=relative_folder_path, timestamp=os.path.getmtime(folder_path))
+        return FileMetadata(path=relative_folder_path, name=relative_folder_path, timestamp=os.path.getmtime(folder_path))
     except Exception:
         raise Exception
 
@@ -135,7 +135,7 @@ def save_file(project_path, relative_file_path, content):
         file_name = relative_file_path.split('/')[-1]
         with open(file_path, 'w') as file:
             file.write(content)
-        return FileMetadata(relative_file_path, name=file_name, timestamp=os.path.getmtime(file_path))
+        return FileMetadata(path=relative_file_path, name=file_name, timestamp=os.path.getmtime(file_path))
     except Exception:
         raise Exception
 
@@ -152,7 +152,7 @@ def save_state(project_path, relative_file_path, content):
         with open(state_file_path, 'w') as outfile:
             outfile.write(json.dumps(content))
         # TODO return the relative state path instead
-        return FileMetadata(relative_file_path, name=state_file_name, timestamp=os.path.getmtime(state_file_path))
+        return FileMetadata(path=relative_file_path, name=state_file_name, timestamp=os.path.getmtime(state_file_path))
     except Exception as ex:
         log.error("Save state error: {}".format(ex))
         raise Exception

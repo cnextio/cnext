@@ -128,9 +128,11 @@ const FileManager = () => {
                             openFiles = fmResult.content as IFileMetadata[];
                             if (openFiles != null) {
                                 dispatch(setOpenFiles(openFiles));
-                                if (openFiles.length > 0) {
-                                    dispatch(setInView(openFiles[0].path));
-                                }
+                                // if (openFiles.length > 0) {
+                                //     dispatch(setInView(openFiles[0].path));
+                                // } else {
+                                //     dispatch(setInView(null));
+                                // }
                             }
                             break;
                         case ProjectCommand.open_file:
@@ -141,6 +143,8 @@ const FileManager = () => {
                                 dispatch(setOpenFiles(openFiles));
                                 if (openFiles.length > 0) {
                                     dispatch(setInView(fmResult.metadata["path"]));
+                                } else {
+                                    dispatch(setInView(null));
                                 }
                             }
                             break;

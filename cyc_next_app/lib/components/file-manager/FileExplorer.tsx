@@ -88,6 +88,7 @@ const FileExplorer = (props: any) => {
             console.log("FileExplorer got results...", result);
             try {
                 let fmResult: IMessage = JSON.parse(result);
+                let openFiles = [];
                 if (!fmResult.error) {
                     switch (fmResult.command_name) {
                         case ProjectCommand.list_dir:
@@ -105,15 +106,21 @@ const FileExplorer = (props: any) => {
                             break;
                         case ProjectCommand.create_file:
                             console.log("FileExplorer got create_file: ", fmResult);
-                            dispatch(setOpenFiles(fmResult.content));
-                            dispatch(setInView(fmResult.metadata["path"]));
+                            openFiles = fmResult.content as IFileMetadata[];
+                            if (openFiles != null) {
+                                dispatch(setOpenFiles(openFiles));
+                                if (openFiles.length > 0) {
+                                    dispatch(setInView(fmResult.metadata["path"]));
+                                } else {
+                                    dispatch(setInView(null));
+                                }
+                            }
                             break;
                         case ProjectCommand.delete:
                             console.log("FileExplorer got delete result: ", fmResult);
-                            let openFiles = fmResult.content as IFileMetadata[];
-                            dispatch(setOpenFiles(openFiles));
-                            if (openFiles.length > 0) {
-                                dispatch(setInView(openFiles[0].path));
+                            openFiles = fmResult.content as IFileMetadata[];
+                            if (openFiles != null) {
+                                dispatch(setOpenFiles(openFiles));
                             }
                             break;
                     }
@@ -503,7 +510,7 @@ const FileExplorer = (props: any) => {
                         <NewItemInput
                             handleKeyPress={handleNewProjectKeyPress}
                             command={ProjectCommand.add_project}
-                            style={{marginLeft: "10px"}}
+                            style={{ marginLeft: "10px" }}
                         />
                         {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
                     </Fragment>

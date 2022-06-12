@@ -44,28 +44,29 @@ class DirMetatdata:
         return self.toJSON()
 
 
-class FileMetadata:
-    # def __init__(self, **entries):
-    #     self.path = None
-    #     self.name = None
-    #     # self.type = None
-    #     self.executor = None
-    #     self.timestamp = None
-    #     self.__dict__.update(entries)
-
-    def __init__(self, path, name, timestamp=None, executor=False):
-        self.path = path
-        self.name = name
+class FileMetadata(JsonSerializable):
+    def __init__(self, **entries):
+        self.path = None
+        self.name = None
         # self.type = None
-        self.executor = executor
-        if timestamp != None:
-            self.timestamp = timestamp
+        self.executor = None
+        self.timestamp = None
+        self.__dict__.update(entries)
 
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
+    # def __init__(self, path, name, timestamp=None, executor=False):
+    #     self.path = path
+    #     self.name = name
+    #     # self.type = None
+    #     self.executor = executor
+        
+    #     if timestamp != None:
+    #         self.timestamp = timestamp
 
-    def __repr__(self) -> str:
-        return self.toJSON()
+    # def toJSON(self):
+    #     return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
+
+    # def __repr__(self) -> str:
+    #     return self.toJSON()
 
 
 class FileContent:
@@ -83,6 +84,14 @@ class FileContent:
 
 
 class ProjectMetadata(JsonSerializable):
+    def __init__(self, config):
+        self.open_files = []
+        if 'open_files' in config and isinstance(config['open_files'], list):
+            for file in config['open_files']:
+                self.open_files.append(FileMetadata(**file))
+        
+
+class ProjectInfoInWorkspace(JsonSerializable):
     def __init__(self, **entries):
         self.path = None
         self.name = None
@@ -92,33 +101,17 @@ class ProjectMetadata(JsonSerializable):
         # self.config_path = os.path.join(
         #     self.data_path, CNEXT_PROJECT_METADATA_FILE)
 
-    # def toJSON(self):
-    #     return json.dumps(self, default=lambda o: o.__dict__, ignore_nan=True)
 
-    # def __repr__(self) -> str:
-    #     return self.toJSON()
-
-
-# class ProjectMetadata(JsonSerializable):
-#     def __init__(self, **entries):
-#         self.id = None
-#         self.name = None
-#         self.path = None
-#         self.__dict__.update(entries)
-
-
-class WorkspaceInfo(JsonSerializable):
+class WorkspaceMetadata(JsonSerializable):
     """ Infomation about the projects added to this workspace
     """
 
     def __init__(self, config: dict):
         self.active_project = None
         self.open_projects = []
-        # if 'projects' not in config:
-        #     return
-        projects_config = config  # ['projects']
+        projects_config = config 
         if 'active_project' in projects_config:
             self.active_project = projects_config['active_project']
         if 'open_projects' in projects_config and isinstance(projects_config['open_projects'], list):
             for project in projects_config['open_projects']:
-                self.open_projects.append(ProjectMetadata(**project))
+                self.open_projects.append(ProjectInfoInWorkspace(**project))

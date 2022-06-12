@@ -45,8 +45,12 @@ const CodeToolbar = () => {
     useEffect(() => {
         let inViewID = store.getState().projectManager.inViewID;
         let keys = Object.keys(openFiles);
-        if (inViewID == null && keys.length > 0) {
-            dispatch(setInView(openFiles[keys[0]]["path"]));
+        if(keys.length > 0){
+            if (inViewID == null) {
+                dispatch(setInView(openFiles[keys[0]]["path"]));
+            }
+        } else {
+            dispatch(setInView(null));
         }
     }, [openFiles]);
 
