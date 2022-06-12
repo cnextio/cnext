@@ -1,13 +1,16 @@
 import React, { Fragment, useEffect, useState } from "react";
 import path from "path";
 import {
-    CodeToolbar as FileExporerHeader,
+    ProjectToolbar,
     FileExplorerHeaderName,
     FileTree,
     FileItem,
+    ProjectItem,
+    ErrorText,
 } from "../StyledComponents";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import LockIcon from "@mui/icons-material/Lock";
 import { useDispatch, useSelector } from "react-redux";
 import {
     FileContextMenuItem,
@@ -15,8 +18,10 @@ import {
     IDirListResult,
     IFileMetadata,
     IProjectMetadata,
+    IWorkspaceMetadata,
     ProjectCommand,
 } from "../../interfaces/IFileManager";
+// import { IWorkSpaceConfig as IWorkSpaceMetadata } from "../../interfaces/IApp";
 import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 import {
@@ -24,12 +29,25 @@ import {
     setInView,
     setOpenDir,
     setOpenFiles,
+    setProjects,
+    setProjectToAdd,
+    setProjectToSetActive,
+    setServerSynced,
+    // setActiveProject,
+    // setPathToAddProject,
+    // setProjectToSetActive,
+    setWorkspaceMetadata,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import FileContextMenu from "./FileContextMenu";
 import NewItemInput from "./NewItemInput";
 import DeleteConfirmation from "./DeleteConfirmation";
 import store, { RootState } from "../../../redux/store";
 import CypressIds from "../tests/CypressIds";
+import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import AddBoxIcon from "@mui/icons-material/AddBox";
+import NoteAddIcon from "@mui/icons-material/NoteAdd";
+import Tooltip from "@mui/material/Tooltip";
+import { resetCodeEditor } from "../../../redux/reducers/CodeEditorRedux";
 
 interface ContextMenuInfo {
     parent: string;
@@ -41,16 +59,26 @@ const FileExplorer = (props: any) => {
     const activeProject: IProjectMetadata | null = useSelector(
         (state: RootState) => state.projectManager.activeProject
     );
+
     const openDirs: { [id: string]: IDirectoryMetadata[] } = useSelector(
         (state: RootState) => state.projectManager.openDirs
     );
-    // const [clickedItemParent, setClickedItemParent] = useState<string|null>(null);
+
+    const workspaceMetadata: IWorkspaceMetadata = useSelector(
+        (state: RootState) => state.projectManager.workspaceMetadata
+    );
+
     const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
+    const [createProjectInProgress, setCreateProjectInprogress] = useState<boolean>(false);
+    const [txtError, setTxtError] = useState<string | null>(null);
     const [command, setProjectCommand] = useState<
-        ProjectCommand.create_file | ProjectCommand.create_folder | null
+        | ProjectCommand.create_file
+        | ProjectCommand.create_folder
+        | ProjectCommand.add_project
+        | null
     >(null);
-    const [expanded, setExpanded] = useState<Array<string>>([]);
+    const [expandedDirs, setExpandedDirs] = useState<Array<string>>([]);
     const [deleteDialog, setDeleteDialog] = useState(false);
     const dispatch = useDispatch();
 
@@ -60,39 +88,43 @@ const FileExplorer = (props: any) => {
             console.log("FileExplorer got results...", result);
             try {
                 let fmResult: IMessage = JSON.parse(result);
-                switch (fmResult.command_name) {
-                    case ProjectCommand.list_dir:
-                        console.log("FileExplorer got list dir: ", fmResult.content);
-                        if (fmResult.type == ContentType.DIR_LIST) {
-                            const dirs: IDirectoryMetadata[] | null = fmResult.content;
-                            if (dirs) {
-                                const data: IDirListResult = {
-                                    id: fmResult.metadata["path"],
-                                    dirs: dirs,
-                                };
-                                dispatch(setOpenDir(data));
+                if (!fmResult.error) {
+                    switch (fmResult.command_name) {
+                        case ProjectCommand.list_dir:
+                            console.log("FileExplorer got list dir: ", fmResult.content);
+                            if (fmResult.type == ContentType.DIR_LIST) {
+                                const dirs: IDirectoryMetadata[] | null = fmResult.content;
+                                if (dirs) {
+                                    const data: IDirListResult = {
+                                        id: fmResult.metadata["path"],
+                                        dirs: dirs,
+                                    };
+                                    dispatch(setOpenDir(data));
+                                }
                             }
-                        }
-                        break;
-                    case ProjectCommand.create_file:
-                        console.log("FileExplorer got create_file: ", fmResult);
-                        dispatch(setOpenFiles(fmResult.content));
-                        dispatch(setInView(fmResult.metadata["path"]));
-                        break;
-                    case ProjectCommand.delete:
-                        console.log("FileExplorer got delete result: ", fmResult);
-                        let openFiles: IFileMetadata[] = fmResult.content;
-                        dispatch(setOpenFiles(openFiles));
-                        if (openFiles.length > 0) {
-                            dispatch(setInView(openFiles[0].path));
-                        }
-                        break;
+                            break;
+                        case ProjectCommand.create_file:
+                            console.log("FileExplorer got create_file: ", fmResult);
+                            dispatch(setOpenFiles(fmResult.content));
+                            dispatch(setInView(fmResult.metadata["path"]));
+                            break;
+                        case ProjectCommand.delete:
+                            console.log("FileExplorer got delete result: ", fmResult);
+                            let openFiles = fmResult.content as IFileMetadata[];
+                            dispatch(setOpenFiles(openFiles));
+                            if (openFiles.length > 0) {
+                                dispatch(setInView(openFiles[0].path));
+                            }
+                            break;
+                    }
+                } else {
                 }
             } catch (error) {
-                throw error;
+                console.error(error);
             }
         });
     };
+
     useEffect(() => {
         setupSocket();
         return () => {
@@ -100,12 +132,32 @@ const FileExplorer = (props: any) => {
         };
     }, []);
 
-    const createMessage = (command: ProjectCommand, metadata: {}): IMessage => {
+    useEffect(() => {
+        let projects: IProjectMetadata[] = [];
+        let activeProject: IProjectMetadata | null = null;
+        workspaceMetadata.open_projects.forEach((project: IProjectMetadata) => {
+            if (project.id === workspaceMetadata.active_project) {
+                activeProject = project;
+            } else {
+                projects.push(project);
+            }
+        });
+        setProjects(projects);
+    }, [workspaceMetadata]);
+
+    useEffect(() => {
+        if (activeProject) {
+            setExpandedDirs([]);
+            // TODO: make sure the files have been saved before close
+            // dispatch(setOpenFiles([])); // Close all files when changing active project
+        }
+    }, [activeProject]);
+
+    const createMessage = (command: ProjectCommand, metadata: {}, content = null): IMessage => {
         let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.FileExplorer,
             command_name: command,
-            seq_number: 1,
-            content: null,
+            content: content,
             type: ContentType.STRING,
             error: false,
             metadata: metadata,
@@ -131,9 +183,10 @@ const FileExplorer = (props: any) => {
     };
 
     const handleDirToggle = (event, nodes) => {
-        const expandingNodes = nodes.filter((node) => !expanded.includes(node));
-        setExpanded(nodes);
+        const expandingNodes = nodes.filter((node) => !expandedDirs.includes(node));
+        setExpandedDirs(nodes);
         const dirID = expandingNodes[0];
+        console.log("expandingNodes", expandingNodes);
         console.log("FileExplorer handleDirToggle: ", event, dirID);
         if (dirID != null) {
             fetchDirChildNodes(dirID);
@@ -185,8 +238,8 @@ const FileExplorer = (props: any) => {
             case FileContextMenuItem.NEW_FILE:
                 if (contextMenuItems) {
                     // Expanded the folder when creating new file
-                    const newExpanded = [...expanded, contextMenuItems.item];
-                    setExpanded([...new Set(newExpanded)]); // Remove duplicate expanded note ID
+                    const newExpanded = [...expandedDirs, contextMenuItems.item];
+                    setExpandedDirs([...new Set(newExpanded)]); // Remove duplicate expanded note ID
                     setProjectCommand(ProjectCommand.create_file);
                     setCreateItemInProgress(true);
                 }
@@ -194,8 +247,8 @@ const FileExplorer = (props: any) => {
             case FileContextMenuItem.NEW_FOLDER:
                 if (contextMenuItems) {
                     // Expanded the folder when creating new file
-                    const newExpanded = [...expanded, contextMenuItems.item];
-                    setExpanded([...new Set(newExpanded)]); // Remove duplicate expanded note ID
+                    const newExpanded = [...expandedDirs, contextMenuItems.item];
+                    setExpandedDirs([...new Set(newExpanded)]); // Remove duplicate expanded note ID
                     setProjectCommand(ProjectCommand.create_folder);
                     setCreateItemInProgress(true);
                 }
@@ -218,6 +271,38 @@ const FileExplorer = (props: any) => {
     };
 
     const relativeProjectPath = "";
+
+    // const isFile = (name: string) => {
+    //     return name.split(".")[1];
+    // };
+
+    const checkProjectPath = (projectPath: string) => {
+        if (projectPath == "") {
+            setTxtError("The path is empty");
+            return false;
+        }
+
+        // if (isFile(projectPath)) {
+        //     setTxtError("The path is not folder");
+        //     return false;
+        // }
+
+        setTxtError(null);
+        return true;
+    };
+
+    const handleNewProjectKeyPress = (event: React.KeyboardEvent, value: string) => {
+        const projectPath = value;
+        if (event.key === "Enter") {
+            let isValidPath = checkProjectPath(projectPath);
+            if (isValidPath) {
+                dispatch(setProjectToAdd(projectPath));
+                setCreateProjectInprogress(false);
+            }
+        } else if (event.key === "Escape") {
+            setCreateProjectInprogress(false);
+        }
+    };
 
     const handleNewItemKeyPress = (
         event: React.KeyboardEvent,
@@ -251,7 +336,33 @@ const FileExplorer = (props: any) => {
         }
     };
 
-    const generateFileItems = (path: string) => {
+    const changeActiveProject = (projectId: string) => {
+        let currentProjectID = store.getState().projectManager.activeProject?.id;
+        if (projectId != null && projectId != currentProjectID) {
+            dispatch(setProjectToSetActive(projectId));
+        }
+    };
+
+    const handleDeleteDialogClose = (confirm) => {
+        if (confirm && contextMenuItems) {
+            const state = store.getState();
+            const projectPath = state.projectManager.activeProject?.path;
+            let message = createMessage(ProjectCommand.delete, {
+                project_path: projectPath,
+                path: contextMenuItems.item,
+                is_file: contextMenuItems.is_file,
+            });
+            sendMessage(message);
+            fetchDirChildNodes(contextMenuItems.parent);
+        }
+        setDeleteDialog(false);
+    };
+
+    const handleAddProjectBtn = () => {
+        setCreateProjectInprogress(true);
+    };
+
+    const renderFileItems = (path: string) => {
         return (
             <Fragment>
                 {Object.keys(openDirs).includes(path) ? (
@@ -287,7 +398,7 @@ const FileExplorer = (props: any) => {
                                         );
                                     }}
                                 >
-                                    {!value.is_file && generateFileItems(value.path)}
+                                    {!value.is_file && renderFileItems(value.path)}
                                 </FileItem>
                             );
                         })
@@ -309,58 +420,95 @@ const FileExplorer = (props: any) => {
         );
     };
 
-    const handleDeleteDialogClose = (confirm) => {
-        if (confirm && contextMenuItems) {
-            const state = store.getState();
-            const projectPath = state.projectManager.activeProject?.path;
-            let message = createMessage(ProjectCommand.delete, {
-                project_path: projectPath,
-                path: contextMenuItems.item,
-                is_file: contextMenuItems.is_file,
-            });
-            sendMessage(message);
-            fetchDirChildNodes(contextMenuItems.parent);
+    const renderProjectItem = (projectItem: IProjectMetadata) => {
+        if (projectItem.id !== activeProject?.id) {
+            return (
+                <Tooltip enterDelay={2000} title={projectItem?.path} placement="bottom-end">
+                    <ProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)}>
+                        <LockIcon
+                            style={{
+                                fontSize: "16px",
+                                marginBottom: "-3px",
+                                marginRight: "4px",
+                            }}
+                        />
+                        {projectItem?.name}
+                    </ProjectItem>
+                </Tooltip>
+            );
+        } else {
+            return (
+                <Tooltip enterDelay={2000} title={projectItem?.path} placement="bottom-end">
+                    <FileTree
+                        aria-label="file system navigator"
+                        defaultCollapseIcon={<ExpandMoreIcon />}
+                        defaultExpandIcon={<ChevronRightIcon />}
+                        sx={{
+                            height: 240,
+                            flexGrow: 1,
+                            maxWidth: 400,
+                            overflowY: "auto",
+                        }}
+                        expanded={expandedDirs}
+                        onNodeToggle={handleDirToggle}
+                    >
+                        {activeProject != null && (
+                            <FileItem
+                                nodeId={relativeProjectPath}
+                                data-cy={CypressIds.projectRoot}
+                                label={activeProject?.name}
+                                onContextMenu={(event: React.MouseEvent) => {
+                                    openContextMenu(
+                                        event,
+                                        relativeProjectPath,
+                                        relativeProjectPath,
+                                        false,
+                                        false
+                                    );
+                                }}
+                            >
+                                {renderFileItems(relativeProjectPath)}
+                            </FileItem>
+                        )}
+                    </FileTree>
+                </Tooltip>
+            );
         }
-        setDeleteDialog(false);
     };
 
     return (
         <Fragment>
-            <FileExporerHeader>
+            <ProjectToolbar>
                 <FileExplorerHeaderName variant="overline">Projects</FileExplorerHeaderName>
-            </FileExporerHeader>
-            {activeProject ? (
-                <FileTree
-                    aria-label="file system navigator"
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpandIcon={<ChevronRightIcon />}
-                    sx={{
-                        height: 240,
-                        flexGrow: 1,
-                        maxWidth: 400,
-                        overflowY: "auto",
-                    }}
-                    expanded={expanded}
-                    onNodeToggle={handleDirToggle}
+                <Tooltip
+                    title="Add project"
+                    enterDelay={500}
+                    placement="bottom-end"
+                    onClick={handleAddProjectBtn}
+                    style={{ marginLeft: "auto" }}
                 >
-                    <FileItem
-                        nodeId={relativeProjectPath}
-                        data-cy={CypressIds.projectRoot}
-                        label={activeProject.name}
-                        onContextMenu={(event: React.MouseEvent) => {
-                            openContextMenu(
-                                event,
-                                relativeProjectPath,
-                                relativeProjectPath,
-                                false,
-                                false
-                            );
-                        }}
-                    >
-                        {generateFileItems(relativeProjectPath)}
-                    </FileItem>
-                </FileTree>
-            ) : null}
+                    <AddBoxIcon fontSize="small" style={{ cursor: "pointer" }} />
+                </Tooltip>
+                {/* <Tooltip title="Add folder" enterDelay={500} placement="bottom-end">
+                    <CreateNewFolderIcon fontSize="small" style={{ cursor: "pointer" }} />
+                </Tooltip>
+                <Tooltip title="Add file" enterDelay={500} placement="bottom-end">
+                    <NoteAddIcon fontSize="small" style={{ cursor: "pointer" }} />
+                </Tooltip> */}
+            </ProjectToolbar>
+            <div>
+                {workspaceMetadata.open_projects.map((item) => renderProjectItem(item))}
+                {createProjectInProgress ? (
+                    <Fragment>
+                        <NewItemInput
+                            handleKeyPress={handleNewProjectKeyPress}
+                            command={ProjectCommand.add_project}
+                            style={{marginLeft: "10px"}}
+                        />
+                        {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
+                    </Fragment>
+                ) : null}
+            </div>
             <FileContextMenu
                 contextMenuPos={contextMenuPos}
                 handleClose={closeContextMenu}

@@ -104,6 +104,11 @@ export enum AggregateType {
     VAR = 'var',
 }
 
+export interface ArgCommand {
+    command: string;
+    tmp_df_id: string;
+}
+
 export const CASSIST_STARTER = '#!';
 
 export const NumericalTypes = ['int64', 'float64'];

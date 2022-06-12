@@ -1,22 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useBeforeunload } from "react-beforeunload";
-import { initCodeText } from "../../../redux/reducers/CodeEditorRedux";
+import {
+    initCodeText,
+    resetCodeEditor as resetCodeEditorRedux,
+} from "../../../redux/reducers/CodeEditorRedux";
 import {
     setActiveProject,
-    setFileMetaData,
+    setFileMetadata,
     setFileToClose,
     setFileToOpen,
     addFileToSave,
     addFileToSaveState,
     setInView,
     setOpenFiles,
-    setProjectConfig,
+    setProjectSetting,
     setServerSynced,
     // removeFileToSave,
     // removeFileToSaveState,
     setSavingStateFile,
     setSavingFile,
+    setWorkspaceMetadata,
+    setProjectToAdd,
+    setProjectToSetActive,
+    resetProjectRedux,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import {
@@ -27,7 +34,7 @@ import {
     WebAppEndpoint,
 } from "../../interfaces/IApp";
 import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
-import { ProjectCommand, IFileMetadata } from "../../interfaces/IFileManager";
+import { ProjectCommand, IFileMetadata, IWorkspaceMetadata } from "../../interfaces/IFileManager";
 import socket from "../Socket";
 
 const FileManager = () => {
@@ -37,6 +44,15 @@ const FileManager = () => {
     const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
+    const workspaceMetadata: IWorkspaceMetadata = useSelector(
+        (state: RootState) => state.projectManager.workspaceMetadata
+    );
+    const projectToAdd = useSelector(
+        (state: RootState) => state.projectManager.projectToAdd
+    );
+    const projectToSetActive = useSelector(
+        (state: RootState) => state.projectManager.projectToSetActive
+    );
     // const codeText = useSelector((state: RootState) => getCodeText(state));
     // const codeLines = useSelector((state: RootState) => getCodeLines(state));
     const saveCodeTextCounter = useSelector(
@@ -54,6 +70,16 @@ const FileManager = () => {
     // const [savingFile, setSavingFile] = useState<string | null>(null);
     // const [savingStateFile, setSavingStateFile] = useState<string | null>(null);
 
+    const resetProjectStates = (workspaceMetadata: IWorkspaceMetadata) => {
+        if (
+            workspaceMetadata.active_project !== store.getState().projectManager.activeProject?.id
+        ) {
+            dispatch(resetCodeEditorRedux());
+            dispatch(resetProjectRedux());
+            // dispatch(setInView(null));
+        }
+    };
+
     const setupSocket = () => {
         socket.emit("ping", WebAppEndpoint.FileManager);
         socket.on(WebAppEndpoint.FileManager, (result: string) => {
@@ -63,6 +89,7 @@ const FileManager = () => {
                 let state = store.getState();
                 /** can't use inViewID from useSelector because this function is defined only once */
                 let inViewID = state.projectManager.inViewID;
+                let openFiles;
                 if (!fmResult.error) {
                     switch (fmResult.command_name) {
                         case ProjectCommand.get_open_files:
@@ -70,7 +97,7 @@ const FileManager = () => {
                             dispatch(setOpenFiles(fmResult.content));
                             break;
                         case ProjectCommand.read_file:
-                            if (inViewID) {
+                            if (inViewID != null) {
                                 // console.log('Get file content: ', fmResult.content);
                                 console.log("FileManager got read_file result: ", fmResult);
                                 if (fmResult.type === ContentType.FILE_CONTENT) {
@@ -88,7 +115,7 @@ const FileManager = () => {
                                         ...store.getState().projectManager.openFiles[inViewID],
                                     };
                                     fileMetadata.timestamp = fmResult.content["timestamp"];
-                                    dispatch(setFileMetaData(fileMetadata));
+                                    dispatch(setFileMetadata(fileMetadata));
                                 }
                                 /** make sure that this is only set to true after redux state has been updated.
                                  * Otherwise the save action will be triggered */
@@ -98,42 +125,36 @@ const FileManager = () => {
                         case ProjectCommand.close_file:
                             console.log("FileManager got close_file result: ", fmResult);
                             dispatch(setFileToClose(null));
-                            let openFiles: IFileMetadata[] = fmResult.content;
-                            dispatch(setOpenFiles(openFiles));
-                            if (openFiles.length > 0) {
-                                dispatch(setInView(openFiles[0].path));
+                            openFiles = fmResult.content as IFileMetadata[];
+                            if (openFiles != null) {
+                                dispatch(setOpenFiles(openFiles));
+                                if (openFiles.length > 0) {
+                                    dispatch(setInView(openFiles[0].path));
+                                }
                             }
                             break;
                         case ProjectCommand.open_file:
                             console.log("FileManager got open_file result: ", fmResult);
                             dispatch(setFileToOpen(null));
-                            dispatch(setOpenFiles(fmResult.content));
-                            dispatch(setInView(fmResult.metadata["path"]));
+                            openFiles = fmResult.content as IFileMetadata[];
+                            if (openFiles != null) {
+                                dispatch(setOpenFiles(openFiles));
+                                if (openFiles.length > 0) {
+                                    dispatch(setInView(fmResult.metadata["path"]));
+                                }
+                            }
                             break;
-                        case ProjectCommand.get_active_project:
-                            console.log("FileManager got active project result: ", fmResult);
-
-                            // Send get open files message
-                            let message: IMessage = createMessage(
-                                ProjectCommand.get_open_files,
-                                "",
-                                1
-                            );
-                            sendMessage(message);
-                            dispatch(setActiveProject(fmResult.content));
-
-                            // Send get project configs message
-                            let messageProjectConfig: IMessage = createMessage(
-                                ProjectCommand.get_project_config,
-                                "",
-                                1
-                            );
-                            sendMessage(messageProjectConfig);
+                        case ProjectCommand.get_workspace_metadata:
+                            console.log("FileManager got working config: ", fmResult);
+                            const workspaceMetadata = fmResult.content as IWorkspaceMetadata;
+                            /** reset the state if the active project is different */
+                            resetProjectStates(workspaceMetadata);
+                            dispatch(setWorkspaceMetadata(workspaceMetadata));
                             break;
-                        case ProjectCommand.get_project_config:
+                        case ProjectCommand.get_project_settings:
                             console.log("FileManager got project configs result: ", fmResult);
                             if (fmResult.content != null) {
-                                dispatch(setProjectConfig(fmResult.content));
+                                dispatch(setProjectSetting(fmResult.content));
                             }
                             break;
                         case ProjectCommand.save_file:
@@ -148,8 +169,9 @@ const FileManager = () => {
                                 };
                                 if (fmResult.content)
                                     fileMetadata.timestamp = fmResult.content["timestamp"];
-                                dispatch(setFileMetaData(fileMetadata));
+                                dispatch(setFileMetadata(fileMetadata));
                             }
+                            break;
                         case ProjectCommand.save_state:
                             //remove the first item from the list
                             dispatch(setSavingStateFile(null));
@@ -161,8 +183,33 @@ const FileManager = () => {
                                     ...store.getState().projectManager.openFiles[inViewID],
                                 };
                                 fileMetadata.timestamp = fmResult.content["timestamp"];
-                                dispatch(setFileMetaData(fileMetadata));
+                                dispatch(setFileMetadata(fileMetadata));
                             }
+                            break;
+                        case ProjectCommand.set_active_project:
+                            console.log(
+                                "FileManager got set active project result: ",
+                                fmResult.content
+                            );
+                            if (fmResult.type === ContentType.WORKSPACE_METADATA) {
+                                const workspaceMetadata = fmResult.content as IWorkspaceMetadata;
+                                /** reset the state if the active project is different */
+                                resetProjectStates(workspaceMetadata);
+                                dispatch(setWorkspaceMetadata(workspaceMetadata));
+                            }
+                            break;
+                        case ProjectCommand.add_project:
+                            console.log(
+                                "FileManager got set active project result: ",
+                                fmResult.content
+                            );
+                            if (fmResult.type === ContentType.WORKSPACE_METADATA) {
+                                const workspaceMetadata = fmResult.content as IWorkspaceMetadata;
+                                /** reset the state if the active project is different */
+                                resetProjectStates(workspaceMetadata);
+                                dispatch(setWorkspaceMetadata(workspaceMetadata));
+                            }
+                            break;
                     }
                 } else {
                     //TODO: send error to ouput
@@ -182,7 +229,7 @@ const FileManager = () => {
                     }
                 }
             } catch (error) {
-                throw error;
+                console.error(error);
             }
         });
     };
@@ -194,15 +241,13 @@ const FileManager = () => {
 
     const createMessage = (
         command_name: ProjectCommand,
-        content: string | ICodeLine[] | IConfigs | null,
-        seq_number: number,
+        content: string | ICodeLine[] | IConfigs | null = null,
         metadata: {} = {}
     ): IMessage => {
         let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.FileManager,
             command_name: command_name,
             type: ContentType.COMMAND,
-            seq_number: seq_number,
             content: content,
             metadata: metadata,
             error: false,
@@ -234,28 +279,27 @@ const FileManager = () => {
         // When inViewID changed, trigger the saveFile & saveState function
         saveFileAndState();
 
-        if (inViewID) {
+        if (inViewID != null) {
             const state = store.getState();
             const codeText = state.codeEditor.codeText;
-            // we will not load the file if it already exists (except for config.json) 
-            // in redux this design will not allow client to stay update with server 
-            // if there is out-of-channel changes in server but this is good enough 
+            // we will not load the file if it already exists (except for config.json)
+            // in redux this design will not allow client to stay update with server
+            // if there is out-of-channel changes in server but this is good enough
             // for our use case.
             if (
                 codeText == null ||
-                (codeText && !Object.keys(codeText).includes(inViewID)) ||
-                isConfigFile(inViewID)
+                (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
+                isSettingsFile(inViewID)
             ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 const projectPath = state.projectManager.activeProject?.path;
-                const message: IMessage = createMessage(ProjectCommand.read_file, "", 1, {
+                const message: IMessage = createMessage(ProjectCommand.read_file, "", {
                     project_path: projectPath,
                     path: file.path,
                     timestamp: file.timestamp,
                 });
                 sendMessage(message);
-            } else {
-                dispatch(setServerSynced(true));
+                dispatch(setServerSynced(false));
             }
             setSaveTimer(
                 setInterval(() => {
@@ -270,7 +314,7 @@ const FileManager = () => {
             // When changing file, trigger the saveFile & saveState function
             saveFileAndState();
 
-            let message: IMessage = createMessage(ProjectCommand.close_file, "", 1, {
+            let message: IMessage = createMessage(ProjectCommand.close_file, "", {
                 path: fileToClose,
             });
             sendMessage(message);
@@ -281,32 +325,64 @@ const FileManager = () => {
         if (fileToOpen) {
             console.log("FileManager file to open: ", fileToOpen);
             // TODO: make sure the file is saved before being closed
-            let message: IMessage = createMessage(ProjectCommand.open_file, "", 1, {
+            let message: IMessage = createMessage(ProjectCommand.open_file, "", {
                 path: fileToOpen,
             });
             sendMessage(message);
         }
     }, [fileToOpen]);
 
-    const isConfigFile = (filePath: string) => {
+    useEffect(() => {
+        if (workspaceMetadata.active_project != null) {
+            // Send get open files message
+            let message: IMessage = createMessage(ProjectCommand.get_open_files);
+            sendMessage(message);
+
+            // Send get project configs message
+            let messageProjectSettings: IMessage = createMessage(
+                ProjectCommand.get_project_settings
+            );
+            sendMessage(messageProjectSettings);
+        }
+    }, [workspaceMetadata]);
+
+    useEffect(() => {
+        let currentProjectID = store.getState().projectManager.activeProject?.id;
+        if (projectToSetActive != null && projectToSetActive != currentProjectID) {
+            const message: IMessage = createMessage(
+                ProjectCommand.set_active_project,
+                projectToSetActive
+            );
+            sendMessage(message);
+        }
+    }, [projectToSetActive]);
+
+    useEffect(() => {
+        if (projectToAdd != null) {
+            let message = createMessage(ProjectCommand.add_project, projectToAdd);
+            sendMessage(message);
+        }
+    }, [projectToAdd]);
+
+    const isSettingsFile = (filePath: string) => {
         return filePath === "config.json";
-    }
+    };
 
     const reloadConfigIfChanged = (fileToSave: string[]) => {
         let state = store.getState();
         try {
             for (let filePath of fileToSave) {
-                if (isConfigFile(filePath)) {
+                if (isSettingsFile(filePath)) {
                     let codeText = state.codeEditor.codeText[filePath];
                     let config = JSON.parse(codeText.join("\n"));
                     console.log("FileManager reload config: ", config);
-                    dispatch(setProjectConfig(config));
+                    dispatch(setProjectSetting(config));
                 }
             }
         } catch (error) {
             //don't want to log this because there might be a lot of this when user typing in the string
             //console.error(error);
-        }        
+        }
     };
     /**
      * This function will be called in two cases
@@ -338,7 +414,6 @@ const FileManager = () => {
                 let message: IMessage = createMessage(
                     ProjectCommand.save_file,
                     codeText.join("\n"),
-                    1,
                     {
                         project_path: projectPath,
                         path: file.path,
@@ -349,37 +424,6 @@ const FileManager = () => {
                 dispatch(setSavingFile(filePath));
                 sendMessage(message);
                 setSaveTimeout(false);
-
-                // return new Promise((resolve) => {
-                //     socket.on(WebAppEndpoint.FileManager, (result: string) => {
-                //         console.log("FileManager saveFile got results...", result);
-                //         try {
-                //             const output = JSON.parse(result);
-                //             if (
-                //                 output.command_name === ProjectCommand.save_file &&
-                //                 output.type === ContentType.FILE_METADATA &&
-                //                 output.error == false
-                //             ) {
-                //                 dispatch(setFileToSave(null));
-                //                 let inViewID = store.getState().projectManager.inViewID;
-
-                //                 /** update file timestamp */
-                //                 if (inViewID) {
-                //                     let fileMetadata = {
-                //                         ...store.getState().projectManager.openFiles[inViewID],
-                //                     };
-                //                     fileMetadata.timestamp = output.content["timestamp"];
-                //                     dispatch(setFileMetaData(fileMetadata));
-                //                 }
-
-                //                 resolve(output);
-                //             }
-                //             resolve(null);
-                //         } catch {
-                //             resolve(null);
-                //         }
-                //     });
-                // });
             }
         }
     };
@@ -421,7 +465,7 @@ const FileManager = () => {
                                     SubContentType.TEXT_HTML
                                 )
                             ) {
-                                let updatedResult = {...codeLine.result};
+                                let updatedResult = { ...codeLine.result };
                                 updatedResult.content = {
                                     "text/html":
                                         "<div>This result is too big to save. Please rerun the command!</div>",
@@ -438,7 +482,6 @@ const FileManager = () => {
                     const message: IMessage = createMessage(
                         ProjectCommand.save_state,
                         codeLinesSaveState,
-                        1,
                         {
                             project_path: projectPath,
                             path: filePath,
@@ -484,7 +527,7 @@ const FileManager = () => {
     const saveConfigs = () => {
         const state = store.getState();
         const configs = state.projectManager.configs;
-        let message: IMessage = createMessage(ProjectCommand.save_project_config, configs, 1, {});
+        let message: IMessage = createMessage(ProjectCommand.save_project_settings, configs, {});
         console.log("FileManager send:", message.command_name, message.metadata);
         sendMessage(message);
     };
@@ -521,15 +564,14 @@ const FileManager = () => {
 
     useEffect(() => {
         setupSocket();
-        let message: IMessage = createMessage(ProjectCommand.get_active_project, "", 1);
+        let message: IMessage = createMessage(ProjectCommand.get_workspace_metadata, "");
         sendMessage(message);
+        // let message: IMessage = createMessage(ProjectCommand.get_active_project, "");
+        // sendMessage(message);
 
         return () => {
             socket.off(WebAppEndpoint.FileManager);
         };
-
-        // const saveFileTimer = setInterval(() => {saveFile()}, SAVE_FILE_DURATION);
-        // return () => clearInterval(saveFileTimer);
     }, []); //run this only once - not on rerender
 
     return null;

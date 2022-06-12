@@ -1,10 +1,11 @@
 import React from "react";
-import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from "./IFileManager";
+import { ProjectCommand, IFileMetadata, IDirectoryMetadata, IWorkspaceMetadata } from "./IFileManager";
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
 import { KernelManagerCommand } from "./IKernelManager";
 import { ModelManagerCommand } from "./IModelManager";
+import { ICodeResultContent } from "./ICodeEditor";
 
 export type RecvCodeOutput = (output: IMessage) => void;
 
@@ -21,7 +22,8 @@ export interface IMessage {
         | ProjectCommand
         | ExperimentManagerCommand
         | KernelManagerCommand
-        | ModelManagerCommand; // 'code_area_command'|'updated_dataframe_list'|
+        | ModelManagerCommand // 'code_area_command'|'updated_dataframe_list'|
+        | ICodeResultContent;
     // for commands that requires more than one command
     type: ContentType | CommandType; // the object type of the output content
     content:
@@ -31,6 +33,7 @@ export interface IMessage {
         | IFileMetadata[]
         | IGetCardinalResult
         | IDirectoryMetadata
+        | IWorkspaceMetadata
         | null; // the command string and output string|object
     error?: boolean;
     metadata?: object; // store info about the dataframe and columns
@@ -85,6 +88,9 @@ export enum ContentType {
     COLUMN_CARDINAL = "column_cardinal",
     RICH_OUTPUT = "rich_output",
     NONE = "none",
+    PROJECT_METADATA = "project_metadata",
+    PROJECT_LIST = "project_list",
+    WORKSPACE_METADATA = "workspace_metadata",
 }
 
 export enum StandardMimeType {
@@ -138,7 +144,7 @@ export interface IPlot {
     data: {};
 }
 
-export interface IColumnMetaData {
+export interface IColumnMetadata {
     name: string;
     type: string;
     unique: number[];
@@ -148,10 +154,10 @@ export interface IColumnMetaData {
     histogram_plot: IPlot;
 }
 
-export interface IMetaData {
+export interface IMetadata {
     df_id: string;
     shape: number[];
-    columns: { [id: string]: IColumnMetaData };
+    columns: { [id: string]: IColumnMetadata };
 }
 
 export enum ReviewType {
@@ -251,7 +257,7 @@ export interface IDFUpdatesReview {
     col_end_index?: number[];
 }
 
-export interface IColumnMetaData {
+export interface IColumnMetadata {
     name: string;
     type: string;
     countna: number;
@@ -264,7 +270,7 @@ export interface IColumnMetaData {
 export interface IDFMetadata {
     df_id: string;
     shape: [number, number];
-    columns: { [key: string]: IColumnMetaData };
+    columns: { [key: string]: IColumnMetadata };
 }
 
 export interface IDataFrameStatsConfig {
@@ -317,6 +323,19 @@ export enum DFViewMode {
     GRID_VIEW = "Grid View",
 }
 
+interface WorkSpaceOpenProject {
+    id: String;
+    config_path: String | null;
+    data_path: String | null;
+    name: String;
+    path: String;
+}
+
+// export interface IWorkSpaceConfig {
+//     active_project: string | null;
+//     open_projects: WorkSpaceOpenProject[] | [];
+// }
+
 // export class DFUpdates {
 //     update_type: UpdateType = UpdateType.no_update;
 //     update_content: string[] | number[] | [number, number][] = [];
@@ -334,7 +353,7 @@ export enum DFViewMode {
 // export interface IReduxDF {
 //     activeDataFrame: number | null;
 //     tableData: {};
-//     columnMetaData: {};
+//     columnMetadata: {};
 //     columnHistogram: {};
 //     columnDataSummary: {};
 //     dfUpdates: {};

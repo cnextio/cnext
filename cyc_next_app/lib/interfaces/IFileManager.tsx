@@ -1,12 +1,11 @@
-
 export enum FileType {
-    python = 'py',
-    jupyter = 'ipy'
+    python = "py",
+    jupyter = "ipy",
 }
 
 export enum FileStatus {
-    edited = 'edited',
-    saved = 'saved'
+    edited = "edited",
+    saved = "saved",
 }
 
 export enum ProjectCommand {
@@ -23,11 +22,16 @@ export enum ProjectCommand {
     create_folder = "create_folder",
     remove_folder = "remove_folder",
     set_working_dir = "set_working_dir",
-    get_active_project = "get_active_project",
+    // get_active_project = "get_active_project",
     save_state = "save_state",
-    save_project_config = "save_project_config",
-    get_project_config = "get_project_config",
-};
+    save_project_settings = "save_project_settings",
+    get_project_settings = "get_project_settings",
+    add_project = "add_project",
+    list_projects = "list_projects",
+    get_workspace_metadata = "get_workspace_metadata",
+    set_workspace_metadata = "set_workspace_metadata",
+    set_active_project = "set_active_project",
+}
 
 export interface IFileMetadata {
     path: string;
@@ -50,6 +54,11 @@ export interface IDirectoryMetadata {
     is_file: boolean;
 }
 
+export interface IWorkspaceMetadata {
+    active_project: string | null;
+    open_projects: IProjectMetadata[];
+}
+
 export interface IDirListResult {
     id: string;
     dirs: IDirectoryMetadata[];
@@ -61,4 +70,4 @@ export enum FileContextMenuItem {
     RENAME,
     DELETE,
     DIVIDER,
-};
+}

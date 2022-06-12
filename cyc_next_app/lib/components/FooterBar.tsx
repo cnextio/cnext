@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FooterNavigation, FooterItem, FotterItemText } from "./StyledComponents";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
-import { setProjectConfig } from "../../redux/reducers/ProjectManagerRedux";
+import { setProjectSetting } from "../../redux/reducers/ProjectManagerRedux";
 
 const FooterBarComponent = () => {
     const [config, setConfig] = useState({ lint: false, hover: false, autocompletion: false });
@@ -30,7 +30,7 @@ const FooterBarComponent = () => {
         }
 
         dispatch(
-            setProjectConfig({
+            setProjectSetting({
                 code_editor: {
                     ...updateObj,
                 },

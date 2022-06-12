@@ -207,7 +207,7 @@ export const CodeEditorRedux = createSlice({
                     let codeLine: ICodeLine = {
                         lineID: shortid(),
                         status: LineStatus.EDITED,
-                        result: null,
+                        result: undefined,
                         generated: false,
                         /** use the same groupID of updatedStartLineNumber*/
                         groupID: startLineGroupID,
@@ -449,28 +449,28 @@ export const CodeEditorRedux = createSlice({
         },
 
         /** Inform the run queue that the current line execution has been completed */
-        compeleteRunLine: (state, action) => {
-            if (state.runQueue.status === RunQueueStatus.RUNNING) {
-                let runQueue: IRunQueue = state.runQueue;
-                if (
-                    runQueue.runningLine &&
-                    runQueue.toLine &&
-                    runQueue.runningLine < runQueue.toLine - 1
-                ) {
-                    /** do not run line at toLine */
-                    runQueue.runningLine += 1;
-                } else {
-                    runQueue.status = RunQueueStatus.STOP;
-                }
-            }
-        },
+        // compeleteRunLine: (state, action) => {
+        //     if (state.runQueue.status === RunQueueStatus.RUNNING) {
+        //         let runQueue: IRunQueue = state.runQueue;
+        //         if (
+        //             runQueue.runningLine &&
+        //             runQueue.toLine &&
+        //             runQueue.runningLine < runQueue.toLine - 1
+        //         ) {
+        //             /** do not run line at toLine */
+        //             runQueue.runningLine += 1;
+        //         } else {
+        //             runQueue.status = RunQueueStatus.STOP;
+        //         }
+        //     }
+        // },
 
-        compeleteRunQueue: (state, action) => {
-            if (state.runQueue.status === RunQueueStatus.RUNNING) {
-                let runQueue: IRunQueue = state.runQueue;
-                runQueue.status = RunQueueStatus.STOP;
-            }
-        },
+        // compeleteRunQueue: (state, action) => {
+        //     if (state.runQueue.status === RunQueueStatus.RUNNING) {
+        //         let runQueue: IRunQueue = state.runQueue;
+        //         runQueue.status = RunQueueStatus.STOP;
+        //     }
+        // },
 
         updateCAssistInfo: (state, action) => {
             const cAssistInfoRedux: ICAssistInfoRedux = action.payload;
@@ -498,6 +498,26 @@ export const CodeEditorRedux = createSlice({
                 state.saveCodeLineCounter++;
             }
         },
+
+        resetCodeEditor: (state) => {
+            state.codeText = {};
+            state.codeLines = {};
+            state.timestamp = {};
+            // fileSaved: true,
+            state.runQueue = { status: RunQueueStatus.STOP, queue: [] };
+            state.resultUpdateCount = 0;
+            state.maxTextOutputOrder = 0;
+            state.textOutputUpdateCount = 0;
+            state.lineStatusUpdateCount = 0;
+            state.activeLine = null;
+            state.activeGroup = undefined;
+            state.cAssistInfo = undefined;
+            state.runDict = undefined;
+            state.runningId = undefined;
+            state.codeToInsert = undefined;
+            state.saveCodeTextCounter = 0;
+            state.saveCodeLineCounter = 0;
+        },
     },
 });
 
@@ -513,12 +533,13 @@ export const {
     clearRunQueue,
     setRunQueueStatus,
     removeFromRunQueue,
-    compeleteRunLine,
+    // compeleteRunLine,
     updateCAssistInfo,
-    compeleteRunQueue,
+    // compeleteRunQueue,
     setCodeToInsert,
     clearRunningLineTextOutput,
     clearTextOutputs,
+    resetCodeEditor,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

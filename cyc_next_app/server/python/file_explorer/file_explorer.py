@@ -60,6 +60,10 @@ class MessageHandler(BaseMessageHandler):
                 else:  # TODO: handle the case where a dir is deleted and deleted files were opened
                     output = projects.get_open_files()
                 type = ContentType.FILE_METADATA
+            elif message.command_name == ProjectCommand.list_projects:
+                output = projects.list_projects()
+                type = ContentType.PROJECT_LIST
+
             # create reply message
             message.type = type
             message.content = output

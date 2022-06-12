@@ -3,7 +3,7 @@ import { ProjectCommand } from "../../interfaces/IFileManager";
 import { ContextMenuNewItem } from "../StyledComponents";
 import CypressIds from "../tests/CypressIds";
 
-const NewItemInput = ({ handleKeyPress, command }) => {
+const NewItemInput = ({ handleKeyPress, command, ...props }) => {
     const newItemRef = useRef();
 
     useEffect(() => {
@@ -18,10 +18,12 @@ const NewItemInput = ({ handleKeyPress, command }) => {
         <ContextMenuNewItem
             inputRef={newItemRef}
             defaultValue={command == ProjectCommand.create_file ? ".py" : ""}
+            placeholder={command === ProjectCommand.add_project ? "Enter the new project path" : ""}
             data-cy={CypressIds.newFileItem}
             onKeyDown={(event: React.KeyboardEvent) =>
-                handleKeyPress(event, newItemRef.current.value, command)
+                handleKeyPress(event, newItemRef.current?.value, command)
             }
+            {...props}
         />
     );
 };

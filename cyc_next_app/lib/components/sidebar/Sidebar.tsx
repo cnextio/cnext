@@ -1,8 +1,5 @@
 import * as React from "react";
-import Box from "@mui/material/Box";
-import InboxIcon from "@mui/icons-material/Inbox";
 import FolderIcon from "@mui/icons-material/Folder";
-import DeleteIcon from "@mui/icons-material/Delete";
 import PauseIcon from "@mui/icons-material/Pause";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
@@ -38,7 +35,7 @@ import Account from "../user-manager/Account";
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
         <StyledAppToolbarItem key={icon.name} selected={selectedIcon === icon.name}>
-            <Tooltip title={icon.tooltip} placement="right-end">
+            <Tooltip title={icon.tooltip} placement='right-end'>
                 <StyledSidebarButton
                     id={"sidebar_" + icon.name}
                     onClick={() => handleClick(icon.name)}
@@ -158,7 +155,7 @@ const MiniSidebar = () => {
         <Fragment>
             <Sidebar>
                 <Logo />
-                <AppToolbar variant="permanent">
+                <AppToolbar variant='permanent'>
                     <AppToolbarList>
                         {projectManagerIconList.map((icon, index) => (
                             <AppToolbarItem
@@ -194,7 +191,7 @@ const MiniSidebar = () => {
                 </AppToolbar>
                 <Account />
             </Sidebar>
-            <MainContainerDivider orientation="vertical" />
+            <MainContainerDivider orientation='vertical' />
             <KernelInterruptConfirmation
                 openDialog={openKernelInterruptDialog}
                 confirm={handleKernelInterruptDialogClose}

@@ -34,7 +34,8 @@ import zmq
 
 
 from libs.config import read_config
-config = read_config('.server.yaml', {'code_executor_comm': {
+from project_manager.interfaces import SERVER_CONFIG_PATH
+config = read_config(SERVER_CONFIG_PATH, {'code_executor_comm': {
     'host': '127.0.0.1', 'n2p_port': 5001, 'p2n_port': 5002}})
 
 

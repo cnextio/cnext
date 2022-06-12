@@ -14,7 +14,7 @@ import socket from "../Socket";
 import {
     setTableData,
     setColumnHistogramPlot,
-    setMetaData,
+    setMetadata,
     setDFUpdates,
     setActiveDF,
     setColumnQuantilePlot,
@@ -349,7 +349,7 @@ _tmp()`;
             message.content
         );
         let dfMetadata = message.content;
-        dispatch(setMetaData(dfMetadata));
+        dispatch(setMetadata(dfMetadata));
 
         let df_id = message.metadata["df_id"];
         if (df_id != null && isDataFrameUpdated(df_id) && showDefinedStats) {

@@ -8,26 +8,22 @@ from libs import logs
 from libs.config import read_config
 from libs.message import ProjectCommand
 from project_manager import files, projects
+from project_manager.interfaces import WorkspaceInfo
 
 log = logs.get_logger(__name__)
 
 
 class MessageHandler(BaseMessageHandler):
-    def __init__(self, p2n_queue, user_space, config):
+    def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceInfo):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
-        open_projects = []
-        active_project: projects.ProjectMetadata = None
-        if hasattr(config, 'projects'):
-            if 'open_projects' in config.projects:
-                if isinstance(config.projects['open_projects'], list):
-                    open_projects = config.projects['open_projects']
-            if 'active_project' in config.projects:
-                for project_config in open_projects:
-                    if config.projects['active_project'] == project_config['id']:
-                        active_project = projects.ProjectMetadata(
-                            **project_config)
-        if active_project:
-            projects.set_active_project(active_project)
+        # active_project: projects.ProjectMetadata = None
+        # open_projects = workspace_info.open_projects
+        # if workspace_info.active_project is not None:
+        #     for project in open_projects:
+        #         if workspace_info.active_project == project.id:
+        #             active_project = project
+        # if active_project:
+        #     projects.set_active_project(active_project)
 
     def handle_message(self, message):
         log.info('FileManager handle message: %s %s %s' %
@@ -35,7 +31,7 @@ class MessageHandler(BaseMessageHandler):
         try:
             metadata = message.metadata
             if 'path' in metadata.keys():
-                ## avoid creating `./` when the path is empty
+                # avoid creating `./` when the path is empty
                 if metadata['path'] == "":
                     norm_path = metadata['path']
                 else:
@@ -84,20 +80,32 @@ class MessageHandler(BaseMessageHandler):
                 if 'path' in metadata.keys():
                     result = projects.open_file(norm_path)
                 type = ContentType.FILE_METADATA
-            elif message.command_name == ProjectCommand.get_active_project:
-                result = projects.get_active_project()
-                type = ContentType.PROJECT_METADATA
+            # elif message.command_name == ProjectCommand.get_active_project:
+            #     result = projects.get_active_project()
+            #     type = ContentType.PROJECT_METADATA
             elif message.command_name == ProjectCommand.save_state:
                 if 'path' in metadata.keys() and 'project_path' in metadata.keys():
                     result = files.save_state(
                         norm_project_path, norm_path, content=message.content)
                 type = ContentType.FILE_METADATA
-            elif message.command_name == ProjectCommand.save_project_config:
-                result = projects.save_project_config(content=message.content)
+            elif message.command_name == ProjectCommand.save_project_settings:
+                result = projects.save_project_settings(content=message.content)
                 type = ContentType.PROJECT_METADATA
-            elif message.command_name == ProjectCommand.get_project_config:
-                result = projects.get_project_config()
+            elif message.command_name == ProjectCommand.get_project_settings:
+                result = projects.get_project_settings()
                 type = ContentType.PROJECT_METADATA
+            elif message.command_name == ProjectCommand.get_workspace_metadata:
+                result = projects.get_workspace_metadata()
+                type = ContentType.WORKSPACE_METADATA
+            elif message.command_name == ProjectCommand.set_workspace_metadata:
+                result = projects.save_workspace_metadata(message.content)
+                type = ContentType.WORKSPACE_METADATA
+            elif message.command_name == ProjectCommand.set_active_project:
+                result = projects.set_active_project(message.content)
+                type = ContentType.WORKSPACE_METADATA
+            elif message.command_name == ProjectCommand.add_project:
+                result = projects.add_project(message.content)
+                type = ContentType.WORKSPACE_METADATA
 
             # create reply message
             message.type = type

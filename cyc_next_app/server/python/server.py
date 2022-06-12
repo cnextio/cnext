@@ -20,6 +20,7 @@ from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, KernelManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
 from libs.constants import TrackingModelType
+from project_manager.interfaces import SERVER_CONFIG_PATH, WORKSPACE_METADATA_PATH, WorkspaceInfo
 from user_space.user_space import IPythonUserSpace, BaseKernelUserSpace
 import cnextlib.dataframe as cd
 
@@ -30,9 +31,9 @@ log = logs.get_logger(__name__)
 def kernel_control_handler(user_space):
     log.info("Kernel control thread started")
     ## reading config here to get the most updated version #
-    config = read_config('.server.yaml')
+    server_config = read_config(SERVER_CONFIG_PATH)
     n2p_queue = MessageQueuePull(
-        config.n2p_comm['host'], config.n2p_comm['kernel_control_port'])
+        server_config.n2p_comm['host'], server_config.n2p_comm['kernel_control_port'])
     try:
         while True:
             strMessage = n2p_queue.receive_msg()
@@ -42,8 +43,9 @@ def kernel_control_handler(user_space):
                 result = user_space.restart_executor()
                 if result:
                     # get the lastest config to make sure that it is updated with the lastest open project
-                    config = read_config('.server.yaml')
-                    set_executor_working_dir(user_space, config)
+                    workspace_metadata = read_config(WORKSPACE_METADATA_PATH)
+                    workspace_info = WorkspaceInfo(workspace_metadata.__dict__)
+                    set_executor_working_dir(user_space, workspace_info)
             elif message.command_name == KernelManagerCommand.interrupt_kernel:
                 result = user_space.interrupt_executor()
     except:
@@ -78,16 +80,17 @@ class ShutdownSignalHandler:
         sys.exit(0)
 
 
-def get_active_project_path(config):
+def get_active_project_path(workspace_info: WorkspaceInfo):
     project_path = None
-    for project in config.projects['open_projects']:
-        if config.projects['active_project'] == project['id']:
-            project_path = project['path']
+    if workspace_info.active_project is not None:
+        for project in workspace_info.open_projects:
+            if workspace_info.active_project == project.id:
+                project_path = project.path
     return project_path
 
 
-def set_executor_working_dir(user_space, config):
-    project_path = get_active_project_path(config)
+def set_executor_working_dir(user_space, workspace_info: WorkspaceInfo):
+    project_path = get_active_project_path(workspace_info)
     log.info('Project path: {}'.format(project_path))
     if project_path:
         user_space.set_executor_working_dir(project_path)
@@ -96,14 +99,16 @@ def set_executor_working_dir(user_space, config):
 def main(argv):
     try:
         if argv and len(argv) > 0:
-            config = read_config('.server.yaml')
+            server_config = read_config(SERVER_CONFIG_PATH)
+            workspace_metadata = read_config(WORKSPACE_METADATA_PATH)
+            workspace_info = WorkspaceInfo(workspace_metadata.__dict__)
 
             executor_type = argv[0]
             user_space = None
             message_handler = None
             try:
                 p2n_queue = MessageQueuePush(
-                    config.p2n_comm['host'], config.p2n_comm['port'])
+                    server_config.p2n_comm['host'], server_config.p2n_comm['port'])
                 if executor_type == ExecutorType.CODE:
                     user_space = IPythonUserSpace(
                         (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
@@ -121,13 +126,14 @@ def main(argv):
                             p2n_queue, user_space)
                     }
 
-                    set_executor_working_dir(user_space, config)
+                    
+                    set_executor_working_dir(user_space, workspace_info)
 
                 elif executor_type == ExecutorType.NONCODE:
                     user_space = BaseKernelUserSpace()
                     message_handler = {
                         WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, config),
+                        WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, workspace_info),
                         WebappEndpoint.FileExplorer: fe.MessageHandler(
                             p2n_queue, user_space)
                     }

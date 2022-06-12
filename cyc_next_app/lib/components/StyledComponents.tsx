@@ -23,18 +23,18 @@ import {
     TextField,
     Typography,
     BottomNavigation,
-} from '@mui/material';
+} from "@mui/material";
 // import { TabsUnstyled } from '@mui/base';
 // import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import BoltIcon from '@mui/icons-material/Bolt';
-import CloseIcon from '@mui/icons-material/Close';
-import SplitPane from 'react-split-pane-v2';
-import styled, { keyframes } from 'styled-components';
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import BoltIcon from "@mui/icons-material/Bolt";
+import CloseIcon from "@mui/icons-material/Close";
+import SplitPane from "react-split-pane-v2";
+import styled, { keyframes } from "styled-components";
 // import { CSSTransition } from 'react-transition-group';
-import { ToastContainer } from 'react-toastify';
-import CodeMirror from '@uiw/react-codemirror';
-import { TreeView, TreeItem } from '@mui/lab';
+import { ToastContainer } from "react-toastify";
+import CodeMirror from "@uiw/react-codemirror";
+import { TreeView, TreeItem } from "@mui/lab";
 
 export const TopPanel = styled.div`
     display: flex;
@@ -131,14 +131,14 @@ export const AppToolbarItem = styled.div`
     }
     border-left: 4px solid
         ${(props) =>
-            props.selected ? 'rgba(25, 118, 210, 1)' : props.theme.palette.background.paper};
+            props.selected ? "rgba(25, 118, 210, 1)" : props.theme.palette.background.paper};
     background-color: ${(props) =>
-        props.selected ? 'rgba(25, 118, 210, 0.1)' : 'props.theme.palette.background.paper'};
+        props.selected ? "rgba(25, 118, 210, 0.1)" : "props.theme.palette.background.paper"};
     &:hover {
         cursor: pointer;
         background-color: ${(props) =>
-            props.selected ? 'rgba(25, 118, 210, 0.1)' : props.theme.palette.grey.A200};
-        border-left: 4px solid ${(props) => (props.selected ? 'rgba(25, 118, 210, 1)' : 'black')};
+            props.selected ? "rgba(25, 118, 210, 0.1)" : props.theme.palette.grey.A200};
+        border-left: 4px solid ${(props) => (props.selected ? "rgba(25, 118, 210, 1)" : "black")};
     }
 `;
 
@@ -224,6 +224,20 @@ export const FileItem = styled(TreeItem)`
     width: 100%;
 `;
 
+export const ProjectItem = styled.p`
+    font-size: 14px;
+    line-height: 2em;
+    padding-left: 8px;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    line-height: 1.5;
+    letter-spacing: 0.00938em;
+    color: rgba(0, 0, 0, 0.6);
+    font-style: italic;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    cursor: pointer;
+`;
+
 export const ContextMenu = styled(Menu)`
     .MuiMenu-paper {
         background-color: ${(props) => props.theme.palette.grey.A100};
@@ -268,6 +282,24 @@ export const CodeToolbar = styled.div`
 
     ::-webkit-scrollbar {
         height: 0px;
+    }
+`;
+
+export const ProjectToolbar = styled.div`
+    display: flex;
+    --var-height: 30px;
+    height: calc(var(--var-height));
+    align-items: center;
+    background-color: ${(props) => props.theme.palette.grey.A200};
+    overflow: auto;
+
+    ::-webkit-scrollbar {
+        height: 0px;
+    }
+
+    svg:last-child {
+        margin-right: 10px;
+        margin-left: auto;
     }
 `;
 
@@ -415,7 +447,7 @@ export const StyledCodeMirror = styled(CodeMirror)`
 
     .cm-gencode-flash {
         background-color: #fff3f9;
-        animation: ${backgroundTransitionToColor('#fff3f9', 'white')} 1s ease 0s;
+        animation: ${backgroundTransitionToColor("#fff3f9", "white")} 1s ease 0s;
     }
 
     .cm-gencode-solid {
@@ -491,7 +523,7 @@ export const PanelDivider = styled(Divider)`
     // adding display flex here does not work because the divider width becomes 0, no sure why
     align-self: stretch;
     border-color: ${(props) =>
-        props.color == 'light' ? props.theme.palette.grey.A100 : props.theme.palette.divider};
+        props.color == "light" ? props.theme.palette.grey.A100 : props.theme.palette.divider};
 `;
 
 export const StyledRichOutputPanel = styled.div`
@@ -636,7 +668,7 @@ export const StyledTableViewHeader = styled.div`
 export const RichOuputViewHeaderButton = styled(Typography)`
     margin: 0px 10px 0px 0px;
     font-size: 11px;
-    border-bottom-style: ${(props) => (props.selected ? 'solid' : 'none')};
+    border-bottom-style: ${(props) => (props.selected ? "solid" : "none")};
     border-width: 1px;
     &:hover {
         cursor: pointer;
@@ -695,9 +727,9 @@ export const DataTableIndexCell = styled(TableCell)`
         1s linear 0s;
 `;
 export const DataTableCell = styled(TableCell)`
-    font-weight: ${(props) => (props.head ? 'bold' : 'normal')};
-    vertical-align: ${(props) => (props.head ? 'bottom' : 'center')};
-    text-align: ${(props) => (props.head ? 'left' : 'right')};
+    font-weight: ${(props) => (props.head ? "bold" : "normal")};
+    vertical-align: ${(props) => (props.head ? "bottom" : "center")};
+    text-align: ${(props) => (props.head ? "left" : "right")};
     font-size: 13px;
     animation: ${(props) =>
             props.review ? backgroundTransition(props.theme.palette.primary.light) : null}
@@ -732,7 +764,7 @@ export const PlotContainer = styled(Paper)`
     overflow: auto;
     width: fit-content;
     border-color: ${(props) => (props.focused ? props.theme.palette.primary.light : null)};
-    border-width: ${(props) => (props.focused ? '2px' : null)};
+    border-width: ${(props) => (props.focused ? "2px" : null)};
     margin-bottom: 8px;
     svg {
         width: 1000px;
@@ -836,7 +868,7 @@ export const StyledGridView = styled.div`
 
 export const DataGridItem = styled(Paper)`
     padding: 10px;
-    textalign: 'center';
+    textalign: "center";
     color: ${(props) => props.theme.palette.text.secondary};
 `;
 
@@ -851,11 +883,11 @@ export const DataPanelToolbarBtn = styled.div`
     display: flex;
     align-items: center;
     background-color: ${(props) =>
-        props.selected ? 'rgba(25, 118, 210, 0.1)' : 'props.theme.palette.background.paper'};
+        props.selected ? "rgba(25, 118, 210, 0.1)" : "props.theme.palette.background.paper"};
     &:hover {
         cursor: pointer;
         background-color: ${(props) =>
-            props.selected ? 'rgba(25, 118, 210, 0.1)' : props.theme.palette.grey.A200};
+            props.selected ? "rgba(25, 118, 210, 0.1)" : props.theme.palette.grey.A200};
     }
 `;
 
@@ -913,6 +945,14 @@ export const FooterBar = styled(BottomNavigation)`
     height: 40px;
 `;
 
+export const ErrorText = styled.span`
+    color: #ee3c3c;
+    font-size: 13px;
+    font-style: italic;
+    margin-left: 28px;
+    display: block;
+`;
+
 function backgroundTransition(color) {
     return keyframes`
       50% {
@@ -935,7 +975,7 @@ function backgroundTransitionToColor(color1, color2) {
     `;
 }
 
-import Pane from 'react-split-pane-v2';
+import Pane from "react-split-pane-v2";
 
 export const FilePane = styled(Pane)`
     animation: ${slidein()} 1s easein 0s;
