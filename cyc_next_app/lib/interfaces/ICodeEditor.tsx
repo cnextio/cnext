@@ -99,7 +99,7 @@ export enum SetLineGroupCommand {
     UNDEF /** set groupID to undefined */,
 }
 
-export interface CodeResultMessageMetaData {
+export interface CodeResultMessageMetadata {
     df_id?: string;
     msg_id?: string;
     session_id?: string;
@@ -110,7 +110,7 @@ export interface ICodeResultMessage {
     type: ContentType;
     subType: string;
     content: ICodeResultContent;
-    metadata: CodeResultMessageMetaData;
+    metadata: CodeResultMessageMetadata;
 }
 
 export type ICodeResultContent = string | object | IPlotResult;
@@ -146,7 +146,7 @@ export interface IReduxRunQueueMessage {
     runAllAtOnce: boolean;
 }
 
-export enum MessageMetaData {
+export enum MessageMetadata {
     dfID = "df_id",
     colName = "col_name",
     lineNumber = "line_number",

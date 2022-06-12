@@ -4,6 +4,7 @@ import {
     IDirListResult,
     IFileMetadata,
     IProjectMetadata,
+    IWorkspaceMetadata
 } from "../../lib/interfaces/IFileManager";
 
 import {
@@ -13,7 +14,7 @@ import {
     ViewMode,
     IEditorConfigs,
     IDataFrameManagerConfigs,
-    IWorkSpaceConfig,
+    // IWorkSpaceConfig,
 } from "../../lib/interfaces/IApp";
 
 const originalEditorShortcutKeys: IEditorShortcutKey = {
@@ -55,8 +56,8 @@ type ProjectManagerState = {
     serverSynced: boolean;
     configs: IConfigs;
     projects: Object[];
-    workingSpace: IWorkSpaceConfig;
-    pathToAddProject: null | string;
+    workspaceMetadata: IWorkspaceMetadata;
+    projectToAdd: null | string;
     projectToSetActive: null | string;
 };
 
@@ -82,11 +83,11 @@ const initialState: ProjectManagerState = {
         dataframe_manager: dataframeManagerConfigs,
     },
     projects: [],
-    workingSpace: {
+    workspaceMetadata: {
         active_project: null,
         open_projects: [],
     },
-    pathToAddProject: null,
+    projectToAdd: null,
     projectToSetActive: null,
 };
 
@@ -111,7 +112,7 @@ export const ProjectManagerRedux = createSlice({
             });
         },
 
-        setFileMetaData: (state, action) => {
+        setFileMetadata: (state, action) => {
             let file: IFileMetadata = action.payload;
             let id = file.path;
             state.openFiles[id] = file;
@@ -122,7 +123,6 @@ export const ProjectManagerRedux = createSlice({
 
         setInView: (state, action) => {
             state.inViewID = action.payload;
-            state.serverSynced = false;
         },
 
         setServerSynced: (state, action) => {
@@ -143,7 +143,6 @@ export const ProjectManagerRedux = createSlice({
             if (Object.keys(state.openFiles).includes(path)) {
                 console.log("ProjectManagerRedux setFileToOpen file already open: ", path);
                 state.inViewID = path;
-                state.serverSynced = false;
             } else {
                 console.log("ProjectManagerRedux setFileToOpen: ", path);
                 state.fileToOpen = action.payload;
@@ -203,7 +202,7 @@ export const ProjectManagerRedux = createSlice({
             if (state.inViewID) state.openFiles[state.inViewID].scroll_pos = action.payload;
         },
 
-        setProjectConfig: (state, action) => {
+        setProjectSetting: (state, action) => {
             if (action.payload) {
                 state.configs = { ...state.configs, ...action.payload };
             }
@@ -213,17 +212,37 @@ export const ProjectManagerRedux = createSlice({
             state.projects = action.payload;
         },
 
-        setWorkingSpace: (state, action) => {
-            state.workingSpace = action.payload;
+        setWorkspaceMetadata: (state, action) => {
+            const workspaceMetadata = action.payload as IWorkspaceMetadata;
+            state.workspaceMetadata = workspaceMetadata;
+            let activeProjects = workspaceMetadata["open_projects"].filter(
+                (project) => project["id"] === workspaceMetadata["active_project"]
+            );
+            if (activeProjects.length>0){
+               state.activeProject = activeProjects[0]; 
+            }
         },
 
-        setPathToAddProject: (state, action) => {
-            state.pathToAddProject = action.payload;
+        setProjectToAdd: (state, action) => {
+            state.projectToAdd = action.payload;
         },
 
         setProjectToSetActive: (state, action) => {
             state.projectToSetActive = action.payload;
         },
+
+        resetProjectRedux: (state) => {
+            state.openFiles = {};
+            state.inViewID = null;
+            state.openDirs = {};
+            state.fileToClose = null;
+            state.fileToOpen = null;
+            state.fileToSave = [];
+            state.fileToSaveState = [];
+            state.savingFile = null;
+            state.savingStateFile = null;
+            state.serverSynced = false;
+        }
     },
 });
 
@@ -242,14 +261,15 @@ export const {
     // removeFileToSaveState,
     setSavingStateFile,
     setShowProjectExplorer,
-    setFileMetaData,
+    setFileMetadata,
     setServerSynced,
     setScrollPos,
-    setProjectConfig,
+    setProjectSetting,
     setProjects,
-    setWorkingSpace,
-    setPathToAddProject,
+    setWorkspaceMetadata,
+    setProjectToAdd,
     setProjectToSetActive,
+    resetProjectRedux,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;

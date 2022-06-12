@@ -499,7 +499,7 @@ export const CodeEditorRedux = createSlice({
             }
         },
 
-        resetCodeEditor: (state, action) => {
+        resetCodeEditor: (state) => {
             state.codeText = {};
             state.codeLines = {};
             state.timestamp = {};

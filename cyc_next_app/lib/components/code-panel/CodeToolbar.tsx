@@ -5,28 +5,30 @@ import {
     PanelDivider,
     FileCloseIcon as StyledFileCloseIcon,
     FileNameTabContainer,
-} from '../StyledComponents';
-import { IconButton, stepConnectorClasses } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import { useDispatch, useSelector } from 'react-redux';
-import { setFileToClose, setInView } from '../../../redux/reducers/ProjectManagerRedux';
-import store, { RootState } from '../../../redux/store';
-import { isRunQueueBusy } from './libCodeEditor';
+} from "../StyledComponents";
+import { IconButton, stepConnectorClasses } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import { useDispatch, useSelector } from "react-redux";
+import { setFileToClose, setInView } from "../../../redux/reducers/ProjectManagerRedux";
+import store, { RootState } from "../../../redux/store";
+import { isRunQueueBusy } from "./libCodeEditor";
 
 const FileCloseIcon = (props) => {
-    return <StyledFileCloseIcon fontSize='small' {...props} />;
+    return <StyledFileCloseIcon fontSize="small" {...props} />;
 };
 
 const CodeToolbar = () => {
     const openFiles = useSelector((state: RootState) => state.projectManager.openFiles);
-    const executorID = useSelector((state: RootState) => state.projectManager.executorID);
+    // const executorID = useSelector((state: RootState) => state.projectManager.executorID);
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     // const fileSaved = useSelector((state: RootState) => state.codeEditor.fileSaved);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
     const savingFile = useSelector((state: RootState) => state.projectManager.savingFile);
     const savingStateFile = useSelector((state: RootState) => state.projectManager.savingStateFile);
-    const runQueueBusy = useSelector((state: RootState) => isRunQueueBusy(state.codeEditor.runQueue));
+    const runQueueBusy = useSelector((state: RootState) =>
+        isRunQueueBusy(state.codeEditor.runQueue)
+    );
     const [displayState, setDisplayState] = useState<{ [id: string]: {} }>({});
     const dispatch = useDispatch();
 
@@ -42,14 +44,9 @@ const CodeToolbar = () => {
     /** Set inViewID whenever there is a new openFiles */
     useEffect(() => {
         let inViewID = store.getState().projectManager.inViewID;
-        let executorID = store.getState().projectManager.executorID;
         let keys = Object.keys(openFiles);
-        if (inViewID === null) {
-            if (executorID) {
-                dispatch(setInView(executorID));
-            } else if (keys.length > 0) {
-                dispatch(setInView(openFiles[keys[0]]));
-            }
+        if (inViewID == null && keys.length > 0) {
+            dispatch(setInView(openFiles[keys[0]]["path"]));
         }
     }, [openFiles]);
 
@@ -57,11 +54,11 @@ const CodeToolbar = () => {
         return (
             <Fragment key={id}>
                 <FileNameTab
-                    // toolbarName={name}                
+                    // toolbarName={name}
                     selected={id == inViewID}
                     component="span"
                     /** not allow switching tab when the runQueue is busy */
-                    onClick={() => runQueueBusy?null:onClick(id)}
+                    onClick={() => (runQueueBusy ? null : onClick(id))}
                     fileSaved={
                         !fileToSave.includes(id) &&
                         savingFile !== id &&
@@ -86,34 +83,22 @@ const CodeToolbar = () => {
                     }}
                 >
                     {name}
-                    {/* {id === executorID && <ExecutorIcon />} */}
                     <FileNameTabContainer>
                         <FileCloseIcon
-                            style={
-                                id in displayState && id !== executorID
-                                    ? displayState[id]
-                                    : { display: "none" }
-                            }
+                            style={id in displayState ? displayState[id] : { display: "none" }}
                             onClick={(event) => onClose(event, id)}
                         />
                     </FileNameTabContainer>
                 </FileNameTab>
-                <PanelDivider orientation='vertical' color='light' />
+                <PanelDivider orientation="vertical" color="light" />
             </Fragment>
         );
     };
 
     return (
         <StyledCodeToolbar>
-            {/* always display executor first */}
-            {Object.keys(openFiles).length > 0 &&
-                executorID &&
-                _getFileNameComponent(executorID, openFiles[executorID].name)}
             {Object.keys(openFiles).map((id: string) => {
-                // {console.log(key, openFiles[key].name)}
-                if (id !== executorID) {
-                    return _getFileNameComponent(id, openFiles[id].name);
-                }
+                return _getFileNameComponent(id, openFiles[id].name);
             })}
         </StyledCodeToolbar>
     );

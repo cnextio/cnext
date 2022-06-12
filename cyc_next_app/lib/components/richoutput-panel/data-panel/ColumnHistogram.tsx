@@ -16,10 +16,10 @@ export function ColumnHistogram({ df_id, col_name, width = 80, height = 50 }) {
     );
 
     function getColumHistogram(state: RootState) {
-        let dfMetaData = state.dataFrames.metadata[df_id];
-        // console.log('ColumnHistogram: ', df_id, dfMetaData);
-        if (dfMetaData) {
-            let colMetadata = dfMetaData.columns[col_name];
+        let dfMetadata = state.dataFrames.metadata[df_id];
+        // console.log('ColumnHistogram: ', df_id, dfMetadata);
+        if (dfMetadata) {
+            let colMetadata = dfMetadata.columns[col_name];
             if (colMetadata) return colMetadata.histogram_plot;
         }
         return null;

@@ -5,7 +5,7 @@ import {
     IReviewRequest,
     ReviewRequestType,
     IDFUpdatesReview,
-    IMetaData,
+    IMetadata,
     IDataFrameStatsConfig,
     DFViewMode,
 } from "../../lib/interfaces/IApp";
@@ -19,7 +19,7 @@ interface ILoadDataRequest {
 }
 
 export type DataFrameState = {
-    metadata: { [id: string]: IMetaData };
+    metadata: { [id: string]: IMetadata };
     tableData: { [id: string]: ITableData };
     // columnDataSummary: { [id: string]: {} };
     dfUpdates: { [id: string]: IDataFrameStatus };
@@ -80,7 +80,7 @@ export const dataFrameSlice = createSlice({
             // action.payload['updates']?action.payload['updates']:{}
         },
 
-        setMetaData: (state, action) => {
+        setMetadata: (state, action) => {
             // for testing
             // state.data = testTableData
             const df_id = action.payload["df_id"];
@@ -332,7 +332,7 @@ export const dataFrameSlice = createSlice({
 // Action creators are generated for each case reducer function
 export const {
     setTableData,
-    setMetaData,
+    setMetadata,
     setColumnHistogramPlot,
     setDFUpdates,
     setReview,

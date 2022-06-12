@@ -171,7 +171,7 @@ const editStatusGutter = (inViewID: string | null, lines: ICodeLine[] | null) =>
 const getCodeText = (state: RootState) => {
     // let state = store.getState();
     let inViewID = state.projectManager.inViewID;
-    if (inViewID) {
+    if (inViewID != null) {
         return ifElse(state.codeEditor.codeText, inViewID, null);
     }
     return null;

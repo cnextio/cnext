@@ -109,16 +109,12 @@ const CodeEditor = () => {
      * when it is first opened or being selected to be in view */
     // const [serverSynced, setServerSynced] = useState(false);
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
-
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
-
+    const activeProjectID = useSelector((state: RootState) => state.projectManager.activeProject?.id);
     // using this to trigger refresh in gutter
     const codeText = useSelector((state: RootState) => getCodeText(state));
-
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
-
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
-
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
 
     const shortcutKeysConfig = useSelector(
@@ -138,7 +134,7 @@ const CodeEditor = () => {
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
-    
+
     const getGroupedLineFoldRange = (state: EditorState, lineStart: number, lineEnd: number) => {
         if (state && inViewID) {
             const codeLines = store.getState().codeEditor.codeLines[inViewID];
@@ -208,14 +204,15 @@ const CodeEditor = () => {
     ];
 
     const getLangExtenstions = (inViewID: string | null) => {
-        if (inViewID == null) return [];
-        const nameSplit = inViewID.split(".");
-        const fileExt = nameSplit[nameSplit.length - 1];
+        console.log("CodeEditor getLangExtenstions: ", inViewID);
         const fileLangExtensions: { [name: string]: Extension[] } = {
             py: [python(), pyLanguageServer, cAssistExtraOptsPlugin.extension],
             sql: [sql()],
             json: [json()],
         };
+        if (inViewID == null) return [fileLangExtensions["py"]];
+        const nameSplit = inViewID.split(".");
+        const fileExt = nameSplit[nameSplit.length - 1];
         return fileLangExtensions[fileExt];
     };
 
@@ -232,10 +229,9 @@ const CodeEditor = () => {
         readOnly: isRunQueueBusy(runQueue),
     });
 
-    const resetEditorState = (inViewID: string, view: EditorView | undefined) => {
+    const resetEditorState = (inViewID: string | null, view: EditorView | undefined) => {
         if (view != null) {
-            let fileLangExtensions = getLangExtenstions(inViewID);
-            setLangExtensions(fileLangExtensions);
+            setLangExtensions(getLangExtenstions(inViewID));
             view.setState(EditorState.create({ doc: "" }));
         }
     };
@@ -330,7 +326,7 @@ const CodeEditor = () => {
      * */
 
     useEffect(() => {
-        console.log("CodeEditor useEffect container", container);
+        console.log("CodeEditor useEffect container view", container, view);
         if (container && view) {
             setHTMLEventHandler(container, view, dispatch);
         }
@@ -340,12 +336,9 @@ const CodeEditor = () => {
      * Reset the code editor state when the doc is selected to be in view
      * */
     useEffect(() => {
-        console.log("CodeEditor useEffect inViewID ", inViewID);
-        if (inViewID != null) {
-            resetEditorState(inViewID, view);
-            setCodeReloading(true);
-        }
-        setLangExtensions(getLangExtenstions(inViewID));
+        console.log("CodeEditor useEffect inViewID activeProjectID", inViewID, activeProjectID);
+        resetEditorState(inViewID, view);
+        setCodeReloading(true);
     }, [inViewID]);
 
     /**
@@ -359,7 +352,7 @@ const CodeEditor = () => {
             codeReloading,
             view
         );
-        // console.log('CodeEditor useEffect codeText', view, codeText[0], serverSynced);
+        // console.log("CodeEditor useEffect codeText", view, codeReloading, serverSynced);
         if (serverSynced && codeReloading && view) {
             // make sure that codeeditor content is set first before setting codeReloading to false to avoid
             // unnecessary calls to updatedLines
@@ -399,14 +392,8 @@ const CodeEditor = () => {
             inViewID,
             container
         );
-        if (editorRef.current != null) {
-            if (inViewID != null) {
-                if (container == null) {
-                    setContainer(editorRef.current);
-                }
-            } else {
-                setContainer(null);
-            }
+        if (editorRef.current != null && inViewID != null && container == null) {
+            setContainer(editorRef.current);
         }
     }, [inViewID, editorRef.current]);
 
@@ -581,8 +568,8 @@ const CodeEditor = () => {
 
                 if (lineRange) {
                     console.log("CodeEditor setRunQueue: ", lineRange);
-                    dispatch(addToRunQueueRedux({lineRange: lineRange, inViewID: inViewID}));
-                }                
+                    dispatch(addToRunQueueRedux({ lineRange: lineRange, inViewID: inViewID }));
+                }
             }
         } else {
             console.log("CodeEditor can't execute code on none executor file!");
@@ -605,7 +592,7 @@ const CodeEditor = () => {
                     let codeLines = store.getState().codeEditor.codeLines[inViewID];
                     setAnchorToNextGroup(codeLines, view, curLineNumber);
                 }
-            }            
+            }
         } catch (error) {
             console.error(error);
         }

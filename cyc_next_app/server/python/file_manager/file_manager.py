@@ -88,24 +88,24 @@ class MessageHandler(BaseMessageHandler):
                     result = files.save_state(
                         norm_project_path, norm_path, content=message.content)
                 type = ContentType.FILE_METADATA
-            elif message.command_name == ProjectCommand.save_project_config:
-                result = projects.save_project_config(content=message.content)
+            elif message.command_name == ProjectCommand.save_project_settings:
+                result = projects.save_project_settings(content=message.content)
                 type = ContentType.PROJECT_METADATA
-            elif message.command_name == ProjectCommand.get_project_config:
-                result = projects.get_project_config()
+            elif message.command_name == ProjectCommand.get_project_settings:
+                result = projects.get_project_settings()
                 type = ContentType.PROJECT_METADATA
-            elif message.command_name == ProjectCommand.get_working_config:
-                result = projects.get_workspace_config()
-                type = ContentType.WORKING_SPACE_METADATA
-            elif message.command_name == ProjectCommand.set_working_config:
-                result = projects.save_workspace_config(message.content)
-                type = ContentType.WORKING_SPACE_METADATA
+            elif message.command_name == ProjectCommand.get_workspace_metadata:
+                result = projects.get_workspace_metadata()
+                type = ContentType.WORKSPACE_METADATA
+            elif message.command_name == ProjectCommand.set_workspace_metadata:
+                result = projects.save_workspace_metadata(message.content)
+                type = ContentType.WORKSPACE_METADATA
             elif message.command_name == ProjectCommand.set_active_project:
                 result = projects.set_active_project(message.content)
-                type = ContentType.WORKING_SPACE_METADATA
+                type = ContentType.WORKSPACE_METADATA
             elif message.command_name == ProjectCommand.add_project:
                 result = projects.add_project(message.content)
-                type = ContentType.PROJECT_METADATA
+                type = ContentType.WORKSPACE_METADATA
 
             # create reply message
             message.type = type

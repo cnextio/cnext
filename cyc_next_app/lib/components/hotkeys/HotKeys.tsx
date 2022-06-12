@@ -2,7 +2,7 @@ import React from "react";
 import Hotkeys from "react-hot-keys";
 import { RootState } from "../../../redux/store";
 import { useDispatch, useSelector } from "react-redux";
-import { setProjectConfig } from "../../../redux/reducers/ProjectManagerRedux";
+import { setProjectSetting } from "../../../redux/reducers/ProjectManagerRedux";
 
 const HotkeysComponent = () => {
     let configs = useSelector((state: RootState) => state.projectManager.configs);
@@ -52,7 +52,7 @@ const HotkeysComponent = () => {
         }
 
         dispath(
-            setProjectConfig({
+            setProjectSetting({
                 code_editor: {
                     ...updateObj,
                 },

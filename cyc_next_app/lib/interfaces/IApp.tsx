@@ -1,5 +1,5 @@
 import React from "react";
-import { ProjectCommand, IFileMetadata, IDirectoryMetadata } from "./IFileManager";
+import { ProjectCommand, IFileMetadata, IDirectoryMetadata, IWorkspaceMetadata } from "./IFileManager";
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
@@ -33,6 +33,7 @@ export interface IMessage {
         | IFileMetadata[]
         | IGetCardinalResult
         | IDirectoryMetadata
+        | IWorkspaceMetadata
         | null; // the command string and output string|object
     error?: boolean;
     metadata?: object; // store info about the dataframe and columns
@@ -89,7 +90,7 @@ export enum ContentType {
     NONE = "none",
     PROJECT_METADATA = "project_metadata",
     PROJECT_LIST = "project_list",
-    WORKING_SPACE_METADATA = "working_space_metadata",
+    WORKSPACE_METADATA = "workspace_metadata",
 }
 
 export enum StandardMimeType {
@@ -143,7 +144,7 @@ export interface IPlot {
     data: {};
 }
 
-export interface IColumnMetaData {
+export interface IColumnMetadata {
     name: string;
     type: string;
     unique: number[];
@@ -153,10 +154,10 @@ export interface IColumnMetaData {
     histogram_plot: IPlot;
 }
 
-export interface IMetaData {
+export interface IMetadata {
     df_id: string;
     shape: number[];
-    columns: { [id: string]: IColumnMetaData };
+    columns: { [id: string]: IColumnMetadata };
 }
 
 export enum ReviewType {
@@ -256,7 +257,7 @@ export interface IDFUpdatesReview {
     col_end_index?: number[];
 }
 
-export interface IColumnMetaData {
+export interface IColumnMetadata {
     name: string;
     type: string;
     countna: number;
@@ -269,7 +270,7 @@ export interface IColumnMetaData {
 export interface IDFMetadata {
     df_id: string;
     shape: [number, number];
-    columns: { [key: string]: IColumnMetaData };
+    columns: { [key: string]: IColumnMetadata };
 }
 
 export interface IDataFrameStatsConfig {
@@ -329,10 +330,11 @@ interface WorkSpaceOpenProject {
     name: String;
     path: String;
 }
-export interface IWorkSpaceConfig {
-    active_project: string | null;
-    open_projects: WorkSpaceOpenProject[] | [];
-}
+
+// export interface IWorkSpaceConfig {
+//     active_project: string | null;
+//     open_projects: WorkSpaceOpenProject[] | [];
+// }
 
 // export class DFUpdates {
 //     update_type: UpdateType = UpdateType.no_update;
@@ -351,7 +353,7 @@ export interface IWorkSpaceConfig {
 // export interface IReduxDF {
 //     activeDataFrame: number | null;
 //     tableData: {};
-//     columnMetaData: {};
+//     columnMetadata: {};
 //     columnHistogram: {};
 //     columnDataSummary: {};
 //     dfUpdates: {};
