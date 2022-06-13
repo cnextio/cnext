@@ -15,6 +15,7 @@ import {
     ILineRange,
     ICodeToInsertInfo,
     IRunQueueItem,
+    ICodeResult,
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
@@ -127,7 +128,7 @@ function setLineStatusInternal(state: CodeEditorState, lineStatus: ICodeLineStat
     state.saveCodeLineCounter++;
 }
 
-function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem: IRunQueueItem){
+function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem: IRunQueueItem) {
     let inViewID = runQueueItem.inViewID;
     let lineRange = runQueueItem.lineRange;
     let codeLines = state.codeLines[inViewID];
@@ -137,6 +138,12 @@ function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem
             state.textOutputUpdateCount += 1;
         }
     }
+}
+
+const MARDOWN_PREFIX_REG = /^# /g;
+const MARKDOWN_PREFIX_LENGTH = 2;
+function isMarkdownLine(line: string) {
+    return line.match(MARDOWN_PREFIX_REG) != null;
 }
 
 export const CodeEditorRedux = createSlice({
@@ -259,12 +266,54 @@ export const CodeEditorRedux = createSlice({
             /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
             setGroupEdittedStatus(codeLines, lineUpdate.updatedStartLineNumber, startLineGroupID);
             state.codeLines[inViewID] = codeLines;
+
+            let lineNumber = lineUpdate.updatedStartLineNumber;
+            let markdownText: string[] = [];
+            const groupID = codeLines[lineNumber].groupID;
+            let lineText = lineUpdate.text[lineNumber];
+            console.log(
+                "CodeEditorRedux markdownText: ",
+                lineNumber,
+                groupID,
+                lineText,
+                lineUpdate
+            );
+            if (groupID != null) {
+                /** go to the begin of the group */
+                while (lineNumber > 0 && codeLines[lineNumber].groupID === groupID) {
+                    lineNumber--;
+                }
+
+                if (codeLines[lineNumber].groupID !== groupID) {
+                    lineNumber++;
+                }
+                let startMarkdownLine = lineNumber;
+                
+                lineText = lineUpdate.text[lineNumber];
+                /** now go get the markdown text */
+                while (lineNumber < lineUpdate.text.length && isMarkdownLine(lineText)) {
+                    markdownText.push(lineText.slice(MARKDOWN_PREFIX_LENGTH));
+                    lineNumber++;
+                    lineText = lineUpdate.text[lineNumber];
+                }
+                if (markdownText.length > 0) {
+                    let markdownResult: ICodeResult = {
+                        type: ContentType.RICH_OUTPUT,
+                        subType: SubContentType.MARKDOWN,
+                        content: { "text/markdown": markdownText.join("\n") },
+                    };
+                    codeLines[startMarkdownLine].result = markdownResult;
+                    state.resultUpdateCount++;
+                }
+
+                console.log("CodeEditorRedux markdownText: ", markdownText, lineNumber);
+            }
         },
 
         //TODO: remove this because no used
         setLineStatus: (state, action) => {
             let lineStatus: ICodeLineStatus = action.payload;
-            setLineStatusInternal(state, lineStatus);            
+            setLineStatusInternal(state, lineStatus);
         },
 
         setLineGroupStatus: (state, action) => {
@@ -416,15 +465,15 @@ export const CodeEditorRedux = createSlice({
             let runQueue = state.runQueue.queue;
             state.runQueue = { ...state.runQueue, queue: [...runQueue, runQueueItem] };
             let lineStatus: ICodeLineStatus = {
-                ... runQueueItem,
-                status: LineStatus.INQUEUE
-            }
+                ...runQueueItem,
+                status: LineStatus.INQUEUE,
+            };
             setLineStatusInternal(state, lineStatus);
             clearRunningLineTextOutputInternal(state, runQueueItem);
         },
 
         clearRunQueue: (state) => {
-            for (let runQueueItem of state.runQueue.queue){
+            for (let runQueueItem of state.runQueue.queue) {
                 let lineStatus: ICodeLineStatus = {
                     ...runQueueItem,
                     status: LineStatus.EDITED,
@@ -447,30 +496,6 @@ export const CodeEditorRedux = createSlice({
             );
             state.runQueue = { ...state.runQueue, status: action.payload };
         },
-
-        /** Inform the run queue that the current line execution has been completed */
-        // compeleteRunLine: (state, action) => {
-        //     if (state.runQueue.status === RunQueueStatus.RUNNING) {
-        //         let runQueue: IRunQueue = state.runQueue;
-        //         if (
-        //             runQueue.runningLine &&
-        //             runQueue.toLine &&
-        //             runQueue.runningLine < runQueue.toLine - 1
-        //         ) {
-        //             /** do not run line at toLine */
-        //             runQueue.runningLine += 1;
-        //         } else {
-        //             runQueue.status = RunQueueStatus.STOP;
-        //         }
-        //     }
-        // },
-
-        // compeleteRunQueue: (state, action) => {
-        //     if (state.runQueue.status === RunQueueStatus.RUNNING) {
-        //         let runQueue: IRunQueue = state.runQueue;
-        //         runQueue.status = RunQueueStatus.STOP;
-        //     }
-        // },
 
         updateCAssistInfo: (state, action) => {
             const cAssistInfoRedux: ICAssistInfoRedux = action.payload;

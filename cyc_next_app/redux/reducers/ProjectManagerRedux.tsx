@@ -56,7 +56,7 @@ type ProjectManagerState = {
     savingStateFile: null | string;
     showProjectExplore: boolean;
     serverSynced: boolean;
-    configs: IConfigs;
+    settings: IConfigs;
     projects: Object[];
     workspaceMetadata: IWorkspaceMetadata;
     projectToAdd: null | string;
@@ -78,7 +78,7 @@ const initialState: ProjectManagerState = {
     savingStateFile: null,
     showProjectExplore: false,
     serverSynced: false,
-    configs: {
+    settings: {
         view_mode: ViewMode.VERTICAL,
         code_editor_shortcut: originalEditorShortcutKeys,
         app_shortcut: originalAppShortcutKeys,
@@ -134,7 +134,7 @@ export const ProjectManagerRedux = createSlice({
                 state.openOrder.includes(inViewID) &&
                 state.openOrder[state.openOrder.length - 1] !== inViewID
             ) {
-                state.openOrder = state.openOrder.filter((file) => {file===inViewID});
+                state.openOrder = state.openOrder.filter((file) => {return file!==inViewID});
                 state.openOrder.push(inViewID);
             }
         },
@@ -218,7 +218,7 @@ export const ProjectManagerRedux = createSlice({
 
         setProjectSetting: (state, action) => {
             if (action.payload) {
-                state.configs = { ...state.configs, ...action.payload };
+                state.settings = { ...state.settings, ...action.payload };
             }
         },
 

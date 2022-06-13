@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setProjectSetting } from "../../../redux/reducers/ProjectManagerRedux";
 
 const HotkeysComponent = () => {
-    let configs = useSelector((state: RootState) => state.projectManager.configs);
+    let configs = useSelector((state: RootState) => state.projectManager.settings);
     const dispath = useDispatch();
 
     let appShortcutList = [];

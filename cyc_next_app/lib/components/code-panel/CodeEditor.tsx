@@ -120,7 +120,7 @@ const CodeEditor = () => {
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
 
     const shortcutKeysConfig = useSelector(
-        (state: RootState) => state.projectManager.configs.code_editor_shortcut
+        (state: RootState) => state.projectManager.settings.code_editor_shortcut
     );
 
     const lineStatusUpdate = useSelector(

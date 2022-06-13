@@ -24,6 +24,7 @@ import {
     ContentType,
     IConfigs,
     IMessage,
+    SETTING_FILE_PATH,
     SubContentType,
     WebAppEndpoint,
 } from "../../interfaces/IApp";
@@ -58,7 +59,7 @@ const FileManager = () => {
     const saveCodeLineCounter = useSelector(
         (state: RootState) => state.codeEditor.saveCodeLineCounter
     );
-    const projectConfigs = useSelector((state: RootState) => state.projectManager.configs);
+    const projectConfigs = useSelector((state: RootState) => state.projectManager.settings);
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
     // using this to avoid saving the file when we load code doc for the first time
     // const [codeTextInit, setcodeTextInit] = useState(0);
@@ -156,14 +157,13 @@ const FileManager = () => {
                             // setSavingFile(null);
 
                             /** update file timestamp */
-                            if (inViewID) {
-                                let fileMetadata = {
-                                    ...store.getState().projectManager.openFiles[inViewID],
-                                };
-                                if (fmResult.content)
-                                    fileMetadata.timestamp = fmResult.content["timestamp"];
-                                dispatch(setFileMetadata(fileMetadata));
-                            }
+                            let filePath = fmResult.metadata['path'];
+                            let fileMetadata = {
+                                ...store.getState().projectManager.openFiles[filePath],
+                            };
+                            if (fmResult.content)
+                                fileMetadata.timestamp = fmResult.content["timestamp"];
+                            dispatch(setFileMetadata(fileMetadata));
                             break;
                         case ProjectCommand.save_state:
                             //remove the first item from the list
@@ -280,9 +280,9 @@ const FileManager = () => {
             // if there is out-of-channel changes in server but this is good enough
             // for our use case.
             if (
-                codeText == null ||
-                (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
-                isSettingsFile(inViewID)
+                codeText == null
+                || (codeText != null && !Object.keys(codeText).includes(inViewID)) 
+                // || isSettingsFile(inViewID)
             ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 const projectPath = state.projectManager.activeProject?.path;
@@ -360,18 +360,18 @@ const FileManager = () => {
     }, [projectToAdd]);
 
     const isSettingsFile = (filePath: string) => {
-        return filePath === "config.json";
+        return filePath === SETTING_FILE_PATH;
     };
 
-    const reloadConfigIfChanged = (fileToSave: string[]) => {
+    const reloadSettingIfChanged = (fileToSave: string[]) => {
         let state = store.getState();
         try {
             for (let filePath of fileToSave) {
                 if (isSettingsFile(filePath)) {
                     let codeText = state.codeEditor.codeText[filePath];
-                    let config = JSON.parse(codeText.join("\n"));
-                    console.log("FileManager reload config: ", config);
-                    dispatch(setProjectSetting(config));
+                    let settings = JSON.parse(codeText.join("\n"));
+                    console.log("FileManager reload settings: ", settings);
+                    dispatch(setProjectSetting(settings));
                 }
             }
         } catch (error) {
@@ -424,7 +424,7 @@ const FileManager = () => {
     };
     useEffect(() => {
         // console.log("FileManager useEffect: ", fileToSave);
-        reloadConfigIfChanged(fileToSave);
+        reloadSettingIfChanged(fileToSave);
         saveFile();
     }, [saveTimeout, fileToSave]);
 
@@ -521,7 +521,7 @@ const FileManager = () => {
 
     const saveConfigs = () => {
         const state = store.getState();
-        const configs = state.projectManager.configs;
+        const configs = state.projectManager.settings;
         let message: IMessage = createMessage(ProjectCommand.save_project_settings, configs, {});
         console.log("FileManager send:", message.command_name, message.metadata);
         sendMessage(message);
