@@ -60,7 +60,7 @@ class PythonProcess {
         process.env.PYTHONPATH = [
             process.env.PYTHONPATH,
             config.path_to_cnextlib,
-            "./python/",
+            "./python",
         ].join(path.delimiter);
 
         console.log("Environment path: ", process.env.PATH);

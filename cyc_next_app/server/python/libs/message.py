@@ -60,12 +60,12 @@ class ProjectCommand(str, Enum):
     set_project_dir = 'set_project_dir'
     # get_active_project = 'get_active_project'
     save_state = 'save_state'
-    save_project_config = 'save_project_config'
-    get_project_config = 'get_project_config'
+    save_project_settings = 'save_project_settings'
+    get_project_settings = 'get_project_settings'
     add_project = 'add_project'
     list_projects = 'list_projects'
-    get_working_config = 'get_working_config'
-    set_working_config = 'set_working_config'
+    get_workspace_metadata = 'get_workspace_metadata'
+    set_workspace_metadata = 'set_workspace_metadata'
     set_active_project = 'set_active_project'
 
 
@@ -109,7 +109,7 @@ class ContentType(str, Enum):
     PLOTLY_FIG = 'plotly_fig'  # It is used for code editor basekernel
     IPYTHON_MSG = 'ipython_msg'
     PROJECT_LIST = 'project_list'
-    WORKING_SPACE_METADATA = 'working_space_metadata'
+    WORKSPACE_METADATA = 'workspace_metadata'
     NONE = 'none'
 
     def __str__(self):

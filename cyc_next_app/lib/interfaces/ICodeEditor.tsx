@@ -1,5 +1,5 @@
 import { ContentType } from "./IApp";
-import { ICAssistInfo } from "./ICAssist";
+import { CodeInsertStatus, ICAssistInfo } from "./ICAssist";
 
 export interface ICodeDoc {
     text: Object;
@@ -15,8 +15,10 @@ export interface ICodeDoc {
 
 export enum LineStatus {
     EDITED,
+    INQUEUE,
     EXECUTING,
-    EXECUTED,
+    EXECUTED_SUCCESS,
+    EXECUTED_FAILED,
 }
 
 // export interface ICodeResult {
@@ -41,6 +43,11 @@ export interface ICodeLine {
     generated: boolean;
     groupID?: string;
     cAssistInfo?: ICAssistInfo;
+}
+
+export interface IRunQueueItem {
+    inViewID: string;
+    lineRange: ILineRange;
 }
 
 /**
@@ -92,7 +99,7 @@ export enum SetLineGroupCommand {
     UNDEF /** set groupID to undefined */,
 }
 
-export interface CodeResultMessageMetaData {
+export interface CodeResultMessageMetadata {
     df_id?: string;
     msg_id?: string;
     session_id?: string;
@@ -103,7 +110,7 @@ export interface ICodeResultMessage {
     type: ContentType;
     subType: string;
     content: ICodeResultContent;
-    metadata: CodeResultMessageMetaData;
+    metadata: CodeResultMessageMetadata;
 }
 
 export type ICodeResultContent = string | object | IPlotResult;
@@ -139,7 +146,7 @@ export interface IReduxRunQueueMessage {
     runAllAtOnce: boolean;
 }
 
-export enum MessageMetaData {
+export enum MessageMetadata {
     dfID = "df_id",
     colName = "col_name",
     lineNumber = "line_number",
@@ -155,18 +162,27 @@ export interface IStatePlotResults {
 /** CodeEditor run queue  */
 export interface IRunQueue {
     status: RunQueueStatus;
-    fromLine?: number;
-    toLine?: number;
-    runningLine?: number;
-    runAllAtOnce?: boolean /** true if the grouped lines are run all at once, and false if run line by line */;
+    queue: IRunQueueItem[]
+    // fromLine?: number;
+    // toLine?: number;
+    // runningLine?: number;
+    // runAllAtOnce?: boolean /** true if the grouped lines are run all at once, and false if run line by line */;
 }
 export enum RunQueueStatus {
     STOP,
     RUNNING,
 }
 
+export enum CodeInsertMode {
+    LINE,
+    GROUP,
+    LINEANDGROUP /** insert one line and one group */,
+}
 /** This is used for other components to inser code to CodeEditor */
-export interface ICodeToInsert {
+export interface ICodeToInsertInfo {
     code: string;
+    fromPos?: number;
+    status: CodeInsertStatus;
+    mode: CodeInsertMode;
 }
 /** */

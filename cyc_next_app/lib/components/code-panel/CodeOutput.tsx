@@ -281,7 +281,7 @@ const CodeOutputComponent = React.memo(() => {
                             {index === outputContent.length - 1 && (
                                 <ScrollIntoViewIfNeeded
                                     options={{
-                                        active: true,
+                                        // active: true,
                                         block: "nearest",
                                         inline: "center",
                                         behavior: "auto",

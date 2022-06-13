@@ -8,12 +8,9 @@ const sentryWebpackPluginOptions = {
     //   release, url, org, project, authToken, configFile, stripPrefix,
     //   urlPrefix, include, ignore
     dsn: "https://25a5df08f7ea47be8a9922441cba00d1@o1259763.ingest.sentry.io/6435278",
-
-    // Set tracesSampleRate to 1.0 to capture 100%
-    // of transactions for performance monitoring.
-    // We recommend adjusting this value in production
+    authToken: process.env.SENTRY_AUTH_TOKEN,
     tracesSampleRate: 0.1,
-    silent: true, // Suppresses all logs
+    silent: false, // Suppresses all logs
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options.
 };
@@ -28,3 +25,5 @@ module.exports = {
         ignoreBuildErrors: true,
     },
 };
+
+module.exports = withSentryConfig(moduleExports, sentryWebpackPluginOptions);

@@ -1,8 +1,15 @@
-# v0.4.14
+# v0.4.18 - 0.4.19
+
+##### NEW
+
+-   Show failed execution status marker
+
+# v0.4.14 - v0.4.16
 
 ##### NEW
 
 -   Add configs for dataframe manager.
+-   Implement grouped lines folding
 
 ##### IMPROVED
 

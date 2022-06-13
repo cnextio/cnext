@@ -6,8 +6,11 @@ import { IMessage, ViewMode } from "../../interfaces/IApp";
 import CodeOutput from "./CodeOutput";
 import CodeToolbar from "./CodeToolbar";
 import Pane from "react-split-pane-v2";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
 
 const CodePanel = ({ workingPanelViewMode }) => {
+    const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     return (
         <StyledCodePanel>
             {console.log("CodePanel render ")}
@@ -21,7 +24,7 @@ const CodePanel = ({ workingPanelViewMode }) => {
                     }
                 >
                     <Pane>
-                        <CodeEditor />
+                        {inViewID!=null && <CodeEditor />}
                     </Pane>
                     <Pane size="30%">
                         <CodeOutput />

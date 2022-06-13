@@ -9,7 +9,6 @@ log = logs.get_logger(__name__)
 
 MESSSAGE_TIMEOUT = 1
 
-
 class IPythonKernel():
     def __init__(self):
         self.km = jupyter_client.KernelManager()
@@ -77,7 +76,7 @@ class IPythonKernel():
             if self.km.is_alive():
                 self.km.interrupt_kernel()
                 log.info('Interupt kernel')
-                return True
+            return True
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))

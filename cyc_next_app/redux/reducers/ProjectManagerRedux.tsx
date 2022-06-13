@@ -3,7 +3,9 @@ import {
     IDirectoryMetadata,
     IDirListResult,
     IFileMetadata,
+    IProjectInfoInWorkspace,
     IProjectMetadata,
+    IWorkspaceMetadata,
 } from "../../lib/interfaces/IFileManager";
 
 import {
@@ -13,7 +15,7 @@ import {
     ViewMode,
     IEditorConfigs,
     IDataFrameManagerConfigs,
-    IWorkSpaceConfig,
+    // IWorkSpaceConfig,
 } from "../../lib/interfaces/IApp";
 
 const originalEditorShortcutKeys: IEditorShortcutKey = {
@@ -41,7 +43,8 @@ const dataframeManagerConfigs: IDataFrameManagerConfigs = {
 
 type ProjectManagerState = {
     openFiles: { [id: string]: IFileMetadata };
-    activeProject: IProjectMetadata | null;
+    openOrder: string[];
+    activeProject: IProjectInfoInWorkspace | null;
     executorID: string | null;
     inViewID: string | null;
     openDirs: { [id: string]: IDirectoryMetadata[] };
@@ -55,11 +58,14 @@ type ProjectManagerState = {
     serverSynced: boolean;
     configs: IConfigs;
     projects: Object[];
-    workingSpace: IWorkSpaceConfig;
+    workspaceMetadata: IWorkspaceMetadata;
+    projectToAdd: null | string;
+    projectToSetActive: null | string;
 };
 
 const initialState: ProjectManagerState = {
     openFiles: {},
+    openOrder: [],
     activeProject: null,
     executorID: null,
     inViewID: null,
@@ -80,10 +86,12 @@ const initialState: ProjectManagerState = {
         dataframe_manager: dataframeManagerConfigs,
     },
     projects: [],
-    workingSpace: {
+    workspaceMetadata: {
         active_project: null,
         open_projects: [],
     },
+    projectToAdd: null,
+    projectToSetActive: null,
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -96,18 +104,21 @@ export const ProjectManagerRedux = createSlice({
 
         setOpenFiles: (state, action) => {
             state.openFiles = {};
-            let files: IFileMetadata[] = action.payload;
+            let projectMetadata: IProjectMetadata = action.payload;
+            let files: IFileMetadata[] = projectMetadata.open_files;
             console.log("ProjectManagerRedux: ", files);
             files?.map((file: IFileMetadata) => {
                 let id = file.path;
                 state.openFiles[id] = file;
-                if (file.executor == true) {
-                    state.executorID = id;
-                }
             });
+            if (Array.isArray(projectMetadata.open_order)) {
+                state.openOrder = projectMetadata.open_order;
+            } else {
+                state.openOrder = Object.keys(state.openFiles);
+            }
         },
 
-        setFileMetaData: (state, action) => {
+        setFileMetadata: (state, action) => {
             let file: IFileMetadata = action.payload;
             let id = file.path;
             state.openFiles[id] = file;
@@ -117,8 +128,15 @@ export const ProjectManagerRedux = createSlice({
         },
 
         setInView: (state, action) => {
-            state.inViewID = action.payload;
-            state.serverSynced = false;
+            let inViewID = action.payload;
+            state.inViewID = inViewID;
+            if (
+                state.openOrder.includes(inViewID) &&
+                state.openOrder[state.openOrder.length - 1] !== inViewID
+            ) {
+                state.openOrder = state.openOrder.filter((file) => {file===inViewID});
+                state.openOrder.push(inViewID);
+            }
         },
 
         setServerSynced: (state, action) => {
@@ -139,7 +157,6 @@ export const ProjectManagerRedux = createSlice({
             if (Object.keys(state.openFiles).includes(path)) {
                 console.log("ProjectManagerRedux setFileToOpen file already open: ", path);
                 state.inViewID = path;
-                state.serverSynced = false;
             } else {
                 console.log("ProjectManagerRedux setFileToOpen: ", path);
                 state.fileToOpen = action.payload;
@@ -199,7 +216,7 @@ export const ProjectManagerRedux = createSlice({
             if (state.inViewID) state.openFiles[state.inViewID].scroll_pos = action.payload;
         },
 
-        setProjectConfig: (state, action) => {
+        setProjectSetting: (state, action) => {
             if (action.payload) {
                 state.configs = { ...state.configs, ...action.payload };
             }
@@ -209,8 +226,37 @@ export const ProjectManagerRedux = createSlice({
             state.projects = action.payload;
         },
 
-        setWorkingSpace: (state, action) => {
-            state.workingSpace = action.payload;
+        setWorkspaceMetadata: (state, action) => {
+            const workspaceMetadata = action.payload as IWorkspaceMetadata;
+            state.workspaceMetadata = workspaceMetadata;
+            let activeProjects = workspaceMetadata["open_projects"].filter(
+                (project) => project["id"] === workspaceMetadata["active_project"]
+            );
+            if (activeProjects.length > 0) {
+                state.activeProject = activeProjects[0];
+            }
+        },
+
+        setProjectToAdd: (state, action) => {
+            state.projectToAdd = action.payload;
+        },
+
+        setProjectToSetActive: (state, action) => {
+            state.projectToSetActive = action.payload;
+        },
+
+        resetProjectRedux: (state) => {
+            state.openFiles = {};
+            state.openOrder = [];
+            state.inViewID = null;
+            state.openDirs = {};
+            state.fileToClose = null;
+            state.fileToOpen = null;
+            state.fileToSave = [];
+            state.fileToSaveState = [];
+            state.savingFile = null;
+            state.savingStateFile = null;
+            state.serverSynced = false;
         },
     },
 });
@@ -230,12 +276,15 @@ export const {
     // removeFileToSaveState,
     setSavingStateFile,
     setShowProjectExplorer,
-    setFileMetaData,
+    setFileMetadata,
     setServerSynced,
     setScrollPos,
-    setProjectConfig,
+    setProjectSetting,
     setProjects,
-    setWorkingSpace,
+    setWorkspaceMetadata,
+    setProjectToAdd,
+    setProjectToSetActive,
+    resetProjectRedux,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;

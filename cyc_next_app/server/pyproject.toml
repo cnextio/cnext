@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cnext"
-version = "0.4.14"
+version = "0.4.19"
 description = "The data-centric workspace for AI & DS"
 authors = ["cycai company"]
 license = "MIT"
@@ -23,6 +23,7 @@ python-language-server = "^0.36.2"
 cnextlib = "^0.3.1"
 netron = "^5.7.8"
 sentry-sdk = "^1.5.12"
+protobuf = "3.20.1"
 
 [tool.poetry.dev-dependencies]
 
