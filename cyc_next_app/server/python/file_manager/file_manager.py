@@ -9,6 +9,7 @@ from libs.config import read_config
 from libs.message import ProjectCommand
 from project_manager import files, projects
 from project_manager.interfaces import WorkspaceMetadata
+from project_manager.interfaces import FileManagerMessageParams
 
 log = logs.get_logger(__name__)
 
@@ -29,67 +30,51 @@ class MessageHandler(BaseMessageHandler):
         log.info('FileManager handle message: %s %s %s' %
                  (message.command_name, message.type, message.sub_type))
         try:
-            metadata = message.metadata
-            if 'path' in metadata.keys():
-                # avoid creating `./` when the path is empty
-                if metadata['path'] == "":
-                    norm_path = metadata['path']
-                else:
-                    norm_path = os.path.normpath(metadata['path'])
-            if 'project_path' in metadata.keys():
-                norm_project_path = os.path.normpath(metadata['project_path'])
+            messageParams = FileManagerMessageParams(message.metadata)
 
             result = None
             if message.command_name == ProjectCommand.list_dir:
-                result = []
-                if 'path' in metadata.keys() and 'project_path' in metadata.keys():
-                    result = files.list_dir(norm_project_path, norm_path)
-                    type = ContentType.DIR_LIST
+                result = files.list_dir(
+                    messageParams.norm_project_path, messageParams.norm_path)
+                type = ContentType.DIR_LIST
             elif message.command_name == ProjectCommand.get_open_files:
                 result = projects.get_open_files()
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.set_working_dir:
-                if 'path' in metadata.keys():
-                    result = projects.set_working_dir(norm_path=os.path.normpath(metadata['path'])
-                                                      )
+                result = projects.set_working_dir(messageParams.norm_path)
                 type = ContentType.NONE
             elif message.command_name == ProjectCommand.set_project_dir:
-                if 'path' in metadata.keys():
-                    result = projects.set_project_dir(norm_path=os.path.normpath(metadata['path'])
-                                                      )
+                result = projects.set_project_dir(messageParams.norm_path)
                 type = ContentType.NONE
             elif message.command_name == ProjectCommand.read_file:
-                if 'path' in metadata.keys() and 'project_path' in metadata.keys():
-                    timestamp = metadata['timestamp'] if 'timestamp' in metadata else None
-                    result = files.read_file(norm_project_path, norm_path,
-                                             timestamp=timestamp)
-                    if result == None:
-                        type = ContentType.NONE
-                    else:
-                        type = ContentType.FILE_CONTENT
+                result = files.read_file(messageParams.norm_project_path, messageParams.norm_path,
+                                            messageParams.timestamp)
+                if result == None:
+                    type = ContentType.NONE
+                else:
+                    type = ContentType.FILE_CONTENT
             elif message.command_name == ProjectCommand.save_file:
-                if 'path' in metadata.keys():
-                    result = files.save_file(
-                        norm_project_path, norm_path, content=message.content)
+                result = files.save_file(
+                    messageParams.norm_project_path, messageParams.norm_path, content=message.content)
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.close_file:
-                if 'path' in metadata.keys():
-                    result = projects.close_file(norm_path)
+                result = projects.close_file(
+                    messageParams.norm_path, messageParams.open_order)
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.open_file:
-                if 'path' in metadata.keys():
-                    result = projects.open_file(norm_path)
+                result = projects.open_file(
+                    messageParams.norm_path, messageParams.open_order)
                 type = ContentType.FILE_METADATA
             # elif message.command_name == ProjectCommand.get_active_project:
             #     result = projects.get_active_project()
             #     type = ContentType.PROJECT_METADATA
             elif message.command_name == ProjectCommand.save_state:
-                if 'path' in metadata.keys() and 'project_path' in metadata.keys():
-                    result = files.save_state(
-                        norm_project_path, norm_path, content=message.content)
+                result = files.save_state(
+                    messageParams.norm_project_path, messageParams.norm_path, content=message.content)
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.save_project_settings:
-                result = projects.save_project_settings(content=message.content)
+                result = projects.save_project_settings(
+                    content=message.content)
                 type = ContentType.PROJECT_METADATA
             elif message.command_name == ProjectCommand.get_project_settings:
                 result = projects.get_project_settings()

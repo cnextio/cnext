@@ -110,7 +110,9 @@ const CodeEditor = () => {
     // const [serverSynced, setServerSynced] = useState(false);
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
-    const activeProjectID = useSelector((state: RootState) => state.projectManager.activeProject?.id);
+    const activeProjectID = useSelector(
+        (state: RootState) => state.projectManager.activeProject?.id
+    );
     // using this to trigger refresh in gutter
     const codeText = useSelector((state: RootState) => getCodeText(state));
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
@@ -213,7 +215,11 @@ const CodeEditor = () => {
         if (inViewID == null) return [fileLangExtensions["py"]];
         const nameSplit = inViewID.split(".");
         const fileExt = nameSplit[nameSplit.length - 1];
-        return fileLangExtensions[fileExt];
+        if (Object.keys(fileLangExtensions).includes(fileExt)) {
+            return fileLangExtensions[fileExt];
+        } else {
+            return [fileLangExtensions["py"]];
+        }
     };
 
     const [langExtensions, setLangExtensions] = useState(getLangExtenstions(inViewID));

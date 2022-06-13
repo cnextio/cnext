@@ -30,65 +30,85 @@ def get_open_files():
         config_file_path = get_project_metadata_path(active_project)
         if exists(config_file_path):
             config = read_config(config_file_path)
-            if hasattr(config, 'open_files'):
-                open_files = config.open_files
-        else:
-            log.error("Config file does not exist %s" % (config_file_path))
-        return open_files
-    # except yaml.YAMLError as error:
-    #     log.error("%s" % (error))
-    #     return []
-    except Exception as error:
-        log.error("%s - %s" % (error, traceback.format_exc()))
-        raise Exception  # this will be seen in the web app #
-
-
-def close_file(path):
-    open_files = []
-    try:
-        active_project = get_active_project()
-        # config_file_path = active_project['config_path']
-        config_file_path = get_project_metadata_path(active_project)
-        if exists(config_file_path):
-            config = read_config(config_file_path)
-            if hasattr(config, 'open_files'):
-                for f in config.open_files:
-                    if(f['path'] != path):
-                        open_files.append(f)
-            config.open_files = open_files
-            save_config(config.__dict__, config_file_path)
-        else:
-            log.error("Config file does not exist %s" % (config_file_path))
-        return open_files
-    # except yaml.YAMLError as error:
-    #     log.error("%s" % (error))
-    #     return []
-    except Exception as error:
-        log.error("%s - %s" % (error, traceback.format_exc()))
-        raise Exception  # this will be seen in the web app #
-
-
-def open_file(path):
-    try:
-        active_project = get_active_project()
-        # config_path = active_project['config_path']
-        project_metadata_path = get_project_metadata_path(active_project)
-        if exists(project_metadata_path):
-            config = read_config(project_metadata_path)
             project_metadata = ProjectMetadata(config.__dict__)
-            file_existed = [
-                file_item for file_item in project_metadata.open_files if file_item.path == path]
-            if len(file_existed) == 0:
-                ## Note that we dont set the timestamp when open the file #
-                file = FileMetadata(path=path,
-                                    name=path.split('/')[-1])
-                project_metadata.open_files.append(file)
-                # config.open_files = open_files
-                save_config(project_metadata, project_metadata_path)
         else:
-            log.error("Config file does not exist %s" %
-                      (project_metadata_path))
-        return project_metadata.open_files
+            log.error("Config file does not exist %s" % (config_file_path))
+        return project_metadata
+    # except yaml.YAMLError as error:
+    #     log.error("%s" % (error))
+    #     return []
+    except Exception as error:
+        log.error("%s - %s" % (error, traceback.format_exc()))
+        raise Exception  # this will be seen in the web app #
+
+
+def close_file(path, open_order):
+    new_open_files = []
+    try:
+        if path != None:
+            active_project = get_active_project()
+            # config_file_path = active_project['config_path']
+            config_file_path = get_project_metadata_path(active_project)
+            if exists(config_file_path):
+                config = read_config(config_file_path)
+                project_metadata = ProjectMetadata(config.__dict__)
+                for file in project_metadata.open_files:
+                    if(file.path != path):
+                        new_open_files.append(file)                        
+                project_metadata.open_files = new_open_files
+
+                if isinstance(open_order, list):
+                    ## update with the latest order #
+                    project_metadata.open_order = open_order
+                if path in open_order:
+                    ## remove the path #
+                    project_metadata.open_order.remove(path)
+
+                save_config(project_metadata, config_file_path)
+            else:
+                log.error("Config file does not exist %s" % (config_file_path))
+        return project_metadata
+    # except yaml.YAMLError as error:
+    #     log.error("%s" % (error))
+    #     return []
+    except Exception as error:
+        log.error("%s - %s" % (error, traceback.format_exc()))
+        raise Exception  # this will be seen in the web app #
+
+
+def open_file(path, open_order):
+    try:
+        if path != None:
+            active_project = get_active_project()
+            # config_path = active_project['config_path']
+            project_metadata_path = get_project_metadata_path(active_project)
+            if exists(project_metadata_path):
+                config = read_config(project_metadata_path)
+                project_metadata = ProjectMetadata(config.__dict__)
+                file_existed = [
+                    file_item for file_item in project_metadata.open_files if file_item.path == path]
+                if len(file_existed) == 0:
+                    ## Note that we dont set the timestamp when open the file #
+                    file = FileMetadata(path=path,
+                                        name=path.split('/')[-1])
+                    project_metadata.open_files.append(file)
+                    
+                    if isinstance(open_order, list):
+                        ## update with the latest order #
+                        project_metadata.open_order = open_order
+                    if path in project_metadata.open_order:
+                        ## remove path before append it to the end #
+                        project_metadata.open_order.remove(path)
+                    project_metadata.open_order.append(path)
+                    
+                    # config.open_files = open_files
+                    save_config(project_metadata, project_metadata_path)
+            else:
+                log.error("Config file does not exist %s" %
+                          (project_metadata_path))
+            return project_metadata
+        else:
+            return []
     # except yaml.YAMLError as error:
     #     log.error("%s" % (error))
     #     return []

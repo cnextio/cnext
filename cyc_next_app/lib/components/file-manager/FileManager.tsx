@@ -6,23 +6,17 @@ import {
     resetCodeEditor as resetCodeEditorRedux,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
-    setActiveProject,
     setFileMetadata,
     setFileToClose,
     setFileToOpen,
     addFileToSave,
     addFileToSaveState,
-    setInView,
     setOpenFiles,
     setProjectSetting,
     setServerSynced,
-    // removeFileToSave,
-    // removeFileToSaveState,
     setSavingStateFile,
     setSavingFile,
     setWorkspaceMetadata,
-    setProjectToAdd,
-    setProjectToSetActive,
     resetProjectRedux,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
@@ -34,7 +28,12 @@ import {
     WebAppEndpoint,
 } from "../../interfaces/IApp";
 import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
-import { ProjectCommand, IFileMetadata, IWorkspaceMetadata } from "../../interfaces/IFileManager";
+import {
+    ProjectCommand,
+    IFileMetadata,
+    IWorkspaceMetadata,
+    IProjectMetadata,
+} from "../../interfaces/IFileManager";
 import socket from "../Socket";
 
 const FileManager = () => {
@@ -47,9 +46,7 @@ const FileManager = () => {
     const workspaceMetadata: IWorkspaceMetadata = useSelector(
         (state: RootState) => state.projectManager.workspaceMetadata
     );
-    const projectToAdd = useSelector(
-        (state: RootState) => state.projectManager.projectToAdd
-    );
+    const projectToAdd = useSelector((state: RootState) => state.projectManager.projectToAdd);
     const projectToSetActive = useSelector(
         (state: RootState) => state.projectManager.projectToSetActive
     );
@@ -76,7 +73,6 @@ const FileManager = () => {
         ) {
             dispatch(resetCodeEditorRedux());
             dispatch(resetProjectRedux());
-            // dispatch(setInView(null));
         }
     };
 
@@ -89,12 +85,15 @@ const FileManager = () => {
                 let state = store.getState();
                 /** can't use inViewID from useSelector because this function is defined only once */
                 let inViewID = state.projectManager.inViewID;
-                let openFiles;
+                let projectMetadata;
                 if (!fmResult.error) {
                     switch (fmResult.command_name) {
                         case ProjectCommand.get_open_files:
                             console.log("FileManager got open_files result: ", fmResult.content);
-                            dispatch(setOpenFiles(fmResult.content));
+                            projectMetadata = fmResult.content as IProjectMetadata;
+                            if (projectMetadata != null) {
+                                dispatch(setOpenFiles(projectMetadata));
+                            }
                             break;
                         case ProjectCommand.read_file:
                             if (inViewID != null) {
@@ -125,27 +124,17 @@ const FileManager = () => {
                         case ProjectCommand.close_file:
                             console.log("FileManager got close_file result: ", fmResult);
                             dispatch(setFileToClose(null));
-                            openFiles = fmResult.content as IFileMetadata[];
-                            if (openFiles != null) {
-                                dispatch(setOpenFiles(openFiles));
-                                // if (openFiles.length > 0) {
-                                //     dispatch(setInView(openFiles[0].path));
-                                // } else {
-                                //     dispatch(setInView(null));
-                                // }
+                            projectMetadata = fmResult.content as IProjectMetadata;
+                            if (projectMetadata != null) {
+                                dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
                         case ProjectCommand.open_file:
                             console.log("FileManager got open_file result: ", fmResult);
                             dispatch(setFileToOpen(null));
-                            openFiles = fmResult.content as IFileMetadata[];
-                            if (openFiles != null) {
-                                dispatch(setOpenFiles(openFiles));
-                                if (openFiles.length > 0) {
-                                    dispatch(setInView(fmResult.metadata["path"]));
-                                } else {
-                                    dispatch(setInView(null));
-                                }
+                            projectMetadata = fmResult.content as IProjectMetadata;
+                            if (projectMetadata != null) {
+                                dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
                         case ProjectCommand.get_workspace_metadata:
@@ -320,6 +309,7 @@ const FileManager = () => {
 
             let message: IMessage = createMessage(ProjectCommand.close_file, "", {
                 path: fileToClose,
+                open_order: store.getState().projectManager.openOrder
             });
             sendMessage(message);
         }
@@ -331,6 +321,7 @@ const FileManager = () => {
             // TODO: make sure the file is saved before being closed
             let message: IMessage = createMessage(ProjectCommand.open_file, "", {
                 path: fileToOpen,
+                open_order: store.getState().projectManager.openOrder,
             });
             sendMessage(message);
         }

@@ -12,6 +12,7 @@ CNEXT_PROJECT_METADATA_FILE = 'cnext.yaml'
 ## name of the setting file#
 SETTINGS_FILE = 'config.json'
 
+
 class JsonSerializable:
     def __init__(self, obj):
         self.obj = obj
@@ -58,7 +59,7 @@ class FileMetadata(JsonSerializable):
     #     self.name = name
     #     # self.type = None
     #     self.executor = executor
-        
+
     #     if timestamp != None:
     #         self.timestamp = timestamp
 
@@ -86,10 +87,15 @@ class FileContent:
 class ProjectMetadata(JsonSerializable):
     def __init__(self, config):
         self.open_files = []
+        self.open_order = []
         if 'open_files' in config and isinstance(config['open_files'], list):
             for file in config['open_files']:
                 self.open_files.append(FileMetadata(**file))
-        
+        if 'open_order' in config and isinstance(config['open_order'], list) and len(config['open_order']) == len(self.open_files):
+            self.open_order = config['open_order']
+        else:
+            self.open_order = [file.path for file in self.open_files]
+
 
 class ProjectInfoInWorkspace(JsonSerializable):
     def __init__(self, **entries):
@@ -109,9 +115,40 @@ class WorkspaceMetadata(JsonSerializable):
     def __init__(self, config: dict):
         self.active_project = None
         self.open_projects = []
-        projects_config = config 
+        projects_config = config
         if 'active_project' in projects_config:
             self.active_project = projects_config['active_project']
         if 'open_projects' in projects_config and isinstance(projects_config['open_projects'], list):
             for project in projects_config['open_projects']:
                 self.open_projects.append(ProjectInfoInWorkspace(**project))
+
+
+class FileManagerMessageParams:
+    def __init__(self, params: dict):
+        self.norm_path = None
+        self.norm_project_path = None
+        self.open_order = []
+        self.timestamp = None
+        self.path = None
+        self.project_path = None
+        self.is_file = None
+
+        if not isinstance(params, dict):
+            return
+
+        if 'path' in params.keys():
+            self.path = params['path']
+            # avoid creating `./` when the path is empty
+            if params['path'] == "":
+                self.norm_path = params['path']
+            else:
+                self.norm_path = os.path.normpath(params['path'])
+        if 'project_path' in params.keys():
+            self.project_path = params['project_path']
+            self.norm_project_path = os.path.normpath(params['project_path'])
+        if 'open_order' in params.keys() and isinstance(params['open_order'], list):
+            self.open_order = params['open_order']
+        if 'timestamp' in params.keys():
+            self.timestamp = params['timestamp']
+        if 'is_file' in params.keys():
+            self.is_file = params['is_file']

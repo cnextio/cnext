@@ -303,7 +303,7 @@ export const ProjectToolbar = styled.div`
     }
 `;
 
-export const FileNameTabContainer = styled.div`
+export const FileCloseIconContainer = styled.div`
     display: flex;
     width: 22.5px;
     height: 22.5px;
