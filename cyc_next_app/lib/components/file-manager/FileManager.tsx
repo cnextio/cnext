@@ -156,14 +156,14 @@ const FileManager = () => {
                             // setSavingFile(null);
 
                             /** update file timestamp */
-                            if (inViewID) {
-                                let fileMetadata = {
-                                    ...store.getState().projectManager.openFiles[inViewID],
-                                };
-                                if (fmResult.content)
-                                    fileMetadata.timestamp = fmResult.content["timestamp"];
-                                dispatch(setFileMetadata(fileMetadata));
-                            }
+                            let filePath = fmResult.metadata['path'];
+                            let fileMetadata = {
+                                ...store.getState().projectManager.openFiles[filePath],
+                            };
+                            if (fmResult.content)
+                                fileMetadata.timestamp = fmResult.content["timestamp"];
+                            dispatch(setFileMetadata(fileMetadata));
+                            
                             break;
                         case ProjectCommand.save_state:
                             //remove the first item from the list

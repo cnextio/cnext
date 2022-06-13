@@ -134,7 +134,7 @@ export const ProjectManagerRedux = createSlice({
                 state.openOrder.includes(inViewID) &&
                 state.openOrder[state.openOrder.length - 1] !== inViewID
             ) {
-                state.openOrder = state.openOrder.filter((file) => {file===inViewID});
+                state.openOrder = state.openOrder.filter((file) => {return file!==inViewID});
                 state.openOrder.push(inViewID);
             }
         },
