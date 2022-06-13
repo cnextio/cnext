@@ -164,6 +164,7 @@ const FileManager = () => {
                             if (fmResult.content)
                                 fileMetadata.timestamp = fmResult.content["timestamp"];
                             dispatch(setFileMetadata(fileMetadata));
+                            
                             break;
                         case ProjectCommand.save_state:
                             //remove the first item from the list
@@ -280,9 +281,9 @@ const FileManager = () => {
             // if there is out-of-channel changes in server but this is good enough
             // for our use case.
             if (
-                codeText == null
-                || (codeText != null && !Object.keys(codeText).includes(inViewID)) 
-                // || isSettingsFile(inViewID)
+                codeText == null || 
+                (codeText != null && !Object.keys(codeText).includes(inViewID)) || 
+                isSettingsFile(inViewID)
             ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 const projectPath = state.projectManager.activeProject?.path;
