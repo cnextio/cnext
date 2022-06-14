@@ -27,9 +27,9 @@ def change_path(path):
     my_file.close()
 
     project_id = str(uuid.uuid1())
-    string_list[0] = 'active_project:' + ' '  + '"' + project_id + '"' + '\n'
+    string_list[0] = 'active_project: ' + '"' + project_id + '"' + '\n'
     content_2 = string_list[2];
-    string_list[2] = content_2[:FIELD_LENGTH] + 'id :' + '"' + project_id + '"' + '\n'
+    string_list[2] = content_2[:FIELD_LENGTH] + 'id: ' + '"' + project_id + '"' + '\n'
 
     content = string_list[CHANGE_LINE_NUMBER]
     print(string_list[CHANGE_LINE_NUMBER])
