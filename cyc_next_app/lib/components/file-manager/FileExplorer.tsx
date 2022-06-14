@@ -403,11 +403,11 @@ const FileExplorer = (props: any) => {
                             );
                         })
                 ) : (
-                    <FileItem nodeId="stub" />
+                    <FileItem nodeId='stub' />
                 )}
                 {createItemInProgress && contextMenuItems && contextMenuItems["item"] === path ? (
                     <FileItem
-                        nodeId="new_item"
+                        nodeId='new_item'
                         label={
                             <NewItemInput
                                 handleKeyPress={handleNewItemKeyPress}
@@ -423,7 +423,7 @@ const FileExplorer = (props: any) => {
     const renderProjectItem = (projectItem: IProjectMetadata) => {
         if (projectItem.id !== activeProject?.id) {
             return (
-                <Tooltip enterDelay={2000} title={projectItem?.path} placement="bottom-end">
+                <Tooltip title={projectItem?.path} placement='bottom-end'>
                     <ProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)}>
                         <LockIcon
                             style={{
@@ -438,9 +438,9 @@ const FileExplorer = (props: any) => {
             );
         } else {
             return (
-                <Tooltip enterDelay={2000} title={projectItem?.path} placement="bottom-end">
+                <Tooltip title={projectItem?.path} placement='bottom-end'>
                     <FileTree
-                        aria-label="file system navigator"
+                        aria-label='file system navigator'
                         defaultCollapseIcon={<ExpandMoreIcon />}
                         defaultExpandIcon={<ChevronRightIcon />}
                         sx={{
@@ -479,15 +479,15 @@ const FileExplorer = (props: any) => {
     return (
         <Fragment>
             <ProjectToolbar>
-                <FileExplorerHeaderName variant="overline">Projects</FileExplorerHeaderName>
+                <FileExplorerHeaderName variant='overline'>Projects</FileExplorerHeaderName>
                 <Tooltip
-                    title="Add project"
+                    title='Add project'
                     enterDelay={500}
-                    placement="bottom-end"
+                    placement='bottom-end'
                     onClick={handleAddProjectBtn}
                     style={{ marginLeft: "auto" }}
                 >
-                    <AddBoxIcon fontSize="small" style={{ cursor: "pointer" }} />
+                    <AddBoxIcon fontSize='small' style={{ cursor: "pointer" }} />
                 </Tooltip>
                 {/* <Tooltip title="Add folder" enterDelay={500} placement="bottom-end">
                     <CreateNewFolderIcon fontSize="small" style={{ cursor: "pointer" }} />
@@ -503,7 +503,7 @@ const FileExplorer = (props: any) => {
                         <NewItemInput
                             handleKeyPress={handleNewProjectKeyPress}
                             command={ProjectCommand.add_project}
-                            style={{marginLeft: "10px"}}
+                            style={{ marginLeft: "10px" }}
                         />
                         {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
                     </Fragment>
