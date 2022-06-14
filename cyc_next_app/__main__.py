@@ -7,7 +7,7 @@ import time
 from urllib.request import urlopen
 from io import BytesIO
 from zipfile import ZipFile
-
+import uuid
 
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
 server_path = os.path.join(web_path, 'server')
@@ -24,8 +24,13 @@ def change_path(path):
     my_file = open(FILE_NAME)
 
     string_list = my_file.readlines()
-    # Get file's content as a list
     my_file.close()
+
+    project_id = str(uuid.uuid1())
+    string_list[0] = 'active_project:' + ' '  + '"' + project_id + '"' + '\n'
+    content_2 = string_list[2];
+    string_list[2] = content_2[:FIELD_LENGTH] + 'id :' + '"' + project_id + '"' + '\n'
+
     content = string_list[CHANGE_LINE_NUMBER]
     print(string_list[CHANGE_LINE_NUMBER])
     string_list[CHANGE_LINE_NUMBER] = content[:FIELD_LENGTH] + \
@@ -37,6 +42,8 @@ def change_path(path):
     my_file.write(new_file_contents)
     my_file.close()
     print('map path for sample project done!')
+
+    # build uid
 
 
 def ask():
@@ -79,10 +86,20 @@ def build_path():
         print('Your path isn\'t correct, Please try again')
         build_path()
 
+def clear_content():
+    os.chdir(server_path)
+    my_file = open(FILE_NAME, 'w')
+    new_file_contents = ''
+    # Convert `string_list` to a single string
+    my_file.write(new_file_contents)
+    my_file.close()
+
 
 def main():
     status = ask()
     if(status == WITHOUT_PROJECT):
+        # remove all in workspace.yaml
+        clear_content()
         build()
     else:
         build_path()
