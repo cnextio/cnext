@@ -15,6 +15,7 @@ import {
     ViewMode,
     IEditorConfigs,
     IDataFrameManagerConfigs,
+    IRichOutputConfigs,
     // IWorkSpaceConfig,
 } from "../../lib/interfaces/IApp";
 
@@ -25,9 +26,9 @@ const originalEditorShortcutKeys: IEditorShortcutKey = {
 };
 
 const originalAppShortcutKeys: IAppShortcutKey = {
-    autocompletion_tooggle: "shift + a",
-    lint_tooggle: "shift + l",
-    hover_tooggle: "shift + h",
+    autocompletion_on: "shift + a",
+    lint_on: "shift + l",
+    hover_on: "shift + h",
 };
 
 const codeEditorConfigs: IEditorConfigs = {
@@ -39,6 +40,10 @@ const codeEditorConfigs: IEditorConfigs = {
 const dataframeManagerConfigs: IDataFrameManagerConfigs = {
     show_exec_text: false,
     auto_display_data: true,
+};
+
+const richOutputConfigs: IRichOutputConfigs = {
+    show_markdown: false
 };
 
 type ProjectManagerState = {
@@ -60,7 +65,7 @@ type ProjectManagerState = {
     projects: Object[];
     workspaceMetadata: IWorkspaceMetadata;
     projectToAdd: null | string;
-    projectToSetActive: null | string;
+    projectToSetActive: null | string;    
 };
 
 const initialState: ProjectManagerState = {
@@ -84,6 +89,7 @@ const initialState: ProjectManagerState = {
         app_shortcut: originalAppShortcutKeys,
         code_editor: codeEditorConfigs,
         dataframe_manager: dataframeManagerConfigs,
+        rich_output: richOutputConfigs,
     },
     projects: [],
     workspaceMetadata: {

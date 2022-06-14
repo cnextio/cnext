@@ -53,6 +53,7 @@ type CodeEditorState = {
     saveCodeTextCounter: number;
     // this number need to be increased whenever codeLine is updated
     saveCodeLineCounter: number;
+    lastLineUpdate: {[key: string]: ILineUpdate};
 };
 
 const initialState: CodeEditorState = {
@@ -73,6 +74,7 @@ const initialState: CodeEditorState = {
     codeToInsert: undefined,
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
+    lastLineUpdate: {}, /** this is used in MarkdownProcessor */
 };
 
 /**
@@ -138,12 +140,6 @@ function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem
             state.textOutputUpdateCount += 1;
         }
     }
-}
-
-const MARDOWN_PREFIX_REG = /^# /g;
-const MARKDOWN_PREFIX_LENGTH = 2;
-function isMarkdownLine(line: string) {
-    return line.match(MARDOWN_PREFIX_REG) != null;
 }
 
 export const CodeEditorRedux = createSlice({
@@ -266,48 +262,9 @@ export const CodeEditorRedux = createSlice({
             /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
             setGroupEdittedStatus(codeLines, lineUpdate.updatedStartLineNumber, startLineGroupID);
             state.codeLines[inViewID] = codeLines;
-
-            let lineNumber = lineUpdate.updatedStartLineNumber;
-            let markdownText: string[] = [];
-            const groupID = codeLines[lineNumber].groupID;
-            let lineText = lineUpdate.text[lineNumber];
-            console.log(
-                "CodeEditorRedux markdownText: ",
-                lineNumber,
-                groupID,
-                lineText,
-                lineUpdate
-            );
-            if (groupID != null) {
-                /** go to the begin of the group */
-                while (lineNumber > 0 && codeLines[lineNumber].groupID === groupID) {
-                    lineNumber--;
-                }
-
-                if (codeLines[lineNumber].groupID !== groupID) {
-                    lineNumber++;
-                }
-                let startMarkdownLine = lineNumber;
-                
-                lineText = lineUpdate.text[lineNumber];
-                /** now go get the markdown text */
-                while (lineNumber < lineUpdate.text.length && isMarkdownLine(lineText)) {
-                    markdownText.push(lineText.slice(MARKDOWN_PREFIX_LENGTH));
-                    lineNumber++;
-                    lineText = lineUpdate.text[lineNumber];
-                }
-                if (markdownText.length > 0) {
-                    let markdownResult: ICodeResult = {
-                        type: ContentType.RICH_OUTPUT,
-                        subType: SubContentType.MARKDOWN,
-                        content: { "text/markdown": markdownText.join("\n") },
-                    };
-                    codeLines[startMarkdownLine].result = markdownResult;
-                    state.resultUpdateCount++;
-                }
-
-                console.log("CodeEditorRedux markdownText: ", markdownText, lineNumber);
-            }
+            
+            /** this is used in MarkdownProcessor */
+            state.lastLineUpdate[inViewID] = lineUpdate;
         },
 
         //TODO: remove this because no used

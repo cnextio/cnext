@@ -11,6 +11,7 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 
 import { useRef } from "react";
 import { createPortal } from "react-dom";
+import store from "../../../../redux/store";
 
 const ScriptComponent = ({ children, script }) => {
     const instance = useRef();
@@ -85,6 +86,8 @@ const ResultContent = React.memo(({ codeResult }) => {
     const renderResultContent = () => {
         // const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
         // console.log("ResultContent: ", codeResult?.result);
+        const showMarkdown = store.getState().projectManager.settings?.rich_output?.show_markdown;
+        
         let jsxElements = Object.keys(codeResult?.result?.content).map((key, index) => {
             const imageMime = getMimeWithImage([key]);
             if (key === SubContentType.APPLICATION_JAVASCRIPT) {
@@ -141,7 +144,7 @@ const ResultContent = React.memo(({ codeResult }) => {
                 ) : (
                     jsxElements
                 );
-            } else if (key === SubContentType.MARKDOWN) {
+            } else if (showMarkdown && key === SubContentType.MARKDOWN) {
                 return (
                     <ReactMarkdown
                         className="markdown"

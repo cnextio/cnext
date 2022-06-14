@@ -758,20 +758,16 @@ export const ResultViewContainer = styled.div`
     }
 `;
 
-export const PlotContainer = styled(Paper)`
+export const SingleResultContainer = styled(Paper)`
     background-color: ${(props) => props.theme.palette.background.paper};
     margin: 1px;
-    // width: fit-content;
-    // border-color: ${(props) => (props.focused ? props.theme.palette.primary.light : null)};
-    // border-width: ${(props) => (props.focused ? "2px" : null)};
     margin-bottom: 8px;
+    width: ${(props) => (props.showMarkdown ? "100%" : "fit-content")};
+    border-color: ${(props) =>
+        props.showMarkdown ? null : props.focused ? props.theme.palette.primary.light : null};
+    border-width: ${(props) => (props.showMarkdown ? "0px" : props.focused ? "2px" : null)};
     overflow: auto;
-
-    // div > .markdown {
-    //     border-color: ${null};
-    //     border-width: ${null};
-    // }
-
+    
     svg {
         width: 1000px;
         height: 1000px;
