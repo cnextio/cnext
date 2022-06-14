@@ -103,6 +103,7 @@ export interface CodeResultMessageMetadata {
     df_id?: string;
     msg_id?: string;
     session_id?: string;
+    line_range?: ILineRange;
 }
 
 export interface ICodeResultMessage {

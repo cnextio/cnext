@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import {
-    PlotContainer as SingleResult,
+    SingleResultContainer,
     ResultViewContainer as StyledResultView,
 } from "../../StyledComponents";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
@@ -54,13 +54,13 @@ const DashboardView = React.memo((props: any) => {
                         isResizable={true}
                     >
                         {codeWithResult?.map((codeResult: ICodeLine) => (
-                            <SingleResult
+                            <SingleResultContainer
                                 key={codeResult.lineID}
                                 variant="outlined"
                                 focused={codeResult.lineID === activeLine}
                             >
                                 <ResultContent codeResult={codeResult} />
-                            </SingleResult>
+                            </SingleResultContainer>
                         ))}
                     </GridLayout>
                 </StyledResultView>
