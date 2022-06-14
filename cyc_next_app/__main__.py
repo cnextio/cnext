@@ -43,8 +43,6 @@ def change_path(path):
     my_file.close()
     print('map path for sample project done!')
 
-    # build uid
-
 
 def ask():
     answer = input('Would you like to start with a sample project? (Y/N) :')
@@ -70,7 +68,7 @@ def download_and_unzip(url, extract_to='.'):
     zipfile.extractall(path=extract_to)
     skywaler_path = os.path.join(
         extract_to, zipfile.namelist()[0], 'Skywalker')
-    change_path(skywaler_path)
+    change_path(os.path.normpath(skywaler_path).replace(os.sep,'/'))
 
 
 def build_path():
