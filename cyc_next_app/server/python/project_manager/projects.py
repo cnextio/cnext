@@ -3,12 +3,10 @@ import uuid
 from os.path import exists
 import simplejson as json
 import traceback
-from project_manager.interfaces import ProjectMetadata
+from project_manager.interfaces import ProjectInfoInWorkspace
 from libs import logs
 from libs.config import read_config, save_config
-from project_manager.interfaces import FileMetadata
-from project_manager.interfaces import CNEXT_PROJECT_METADATA_FILE, CNEXT_PROJECT_FOLDER, WORKSPACE_METADATA_PATH, WorkspaceInfo
-from project_manager.interfaces import SETTINGS_FILE
+from project_manager.interfaces import FileMetadata, CNEXT_PROJECT_METADATA_FILE, CNEXT_PROJECT_FOLDER, WORKSPACE_METADATA_PATH, WorkspaceMetadata, SETTINGS_FILE, ProjectMetadata
 
 log = logs.get_logger(__name__)
 
@@ -16,6 +14,8 @@ active_project = None
 CNEXT_PROJECT_DIR = ''
 
 ## File #
+
+
 def get_project_metadata_path(project):
     """ Get path to .cnext/cnext.yaml """
     return os.path.join(project['path'], CNEXT_PROJECT_FOLDER, CNEXT_PROJECT_METADATA_FILE)
@@ -30,11 +30,10 @@ def get_open_files():
         config_file_path = get_project_metadata_path(active_project)
         if exists(config_file_path):
             config = read_config(config_file_path)
-            if hasattr(config, 'open_files'):
-                open_files = config.open_files
+            project_metadata = ProjectMetadata(config.__dict__)
         else:
             log.error("Config file does not exist %s" % (config_file_path))
-        return open_files
+        return project_metadata
     # except yaml.YAMLError as error:
     #     log.error("%s" % (error))
     #     return []
@@ -43,23 +42,32 @@ def get_open_files():
         raise Exception  # this will be seen in the web app #
 
 
-def close_file(path):
-    open_files = []
+def close_file(path, open_order):
+    new_open_files = []
     try:
-        active_project = get_active_project()
-        # config_file_path = active_project['config_path']
-        config_file_path = get_project_metadata_path(active_project)
-        if exists(config_file_path):
-            config = read_config(config_file_path)
-            if hasattr(config, 'open_files'):
-                for f in config.open_files:
-                    if(f['path'] != path):
-                        open_files.append(f)
-            config.open_files = open_files
-            save_config(config.__dict__, config_file_path)
-        else:
-            log.error("Config file does not exist %s" % (config_file_path))
-        return open_files
+        if path != None:
+            active_project = get_active_project()
+            # config_file_path = active_project['config_path']
+            config_file_path = get_project_metadata_path(active_project)
+            if exists(config_file_path):
+                config = read_config(config_file_path)
+                project_metadata = ProjectMetadata(config.__dict__)
+                for file in project_metadata.open_files:
+                    if(file.path != path):
+                        new_open_files.append(file)                        
+                project_metadata.open_files = new_open_files
+
+                if isinstance(open_order, list):
+                    ## update with the latest order #
+                    project_metadata.open_order = open_order
+                if path in open_order:
+                    ## remove the path #
+                    project_metadata.open_order.remove(path)
+
+                save_config(project_metadata, config_file_path)
+            else:
+                log.error("Config file does not exist %s" % (config_file_path))
+        return project_metadata
     # except yaml.YAMLError as error:
     #     log.error("%s" % (error))
     #     return []
@@ -68,29 +76,39 @@ def close_file(path):
         raise Exception  # this will be seen in the web app #
 
 
-def open_file(path):
-    open_files = []
+def open_file(path, open_order):
     try:
-        active_project = get_active_project()
-        # config_path = active_project['config_path']
-        config_file_path = get_project_metadata_path(active_project)
-        if exists(config_file_path):
-            config = read_config(config_file_path)
-            if hasattr(config, 'open_files') and isinstance(config.open_files, list):
-                open_files = config.open_files
-            ## Note that we dont set the timestamp when open the file #
-            file_existed = [
-                file_item for file_item in config.open_files if file_item['path'] == path]
-            if len(file_existed) == 0:
-                file = FileMetadata(path,
-                                    name=path.split('/')[-1],
-                                    executor=(config.executor == path))
-                open_files.append(file.__dict__)
-                config.open_files = open_files
-                save_config(config.__dict__, config_file_path)
+        if path != None:
+            active_project = get_active_project()
+            # config_path = active_project['config_path']
+            project_metadata_path = get_project_metadata_path(active_project)
+            if exists(project_metadata_path):
+                config = read_config(project_metadata_path)
+                project_metadata = ProjectMetadata(config.__dict__)
+                file_existed = [
+                    file_item for file_item in project_metadata.open_files if file_item.path == path]
+                if len(file_existed) == 0:
+                    ## Note that we dont set the timestamp when open the file #
+                    file = FileMetadata(path=path,
+                                        name=path.split('/')[-1])
+                    project_metadata.open_files.append(file)
+                    
+                    if isinstance(open_order, list):
+                        ## update with the latest order #
+                        project_metadata.open_order = open_order
+                    if path in project_metadata.open_order:
+                        ## remove path before append it to the end #
+                        project_metadata.open_order.remove(path)
+                    project_metadata.open_order.append(path)
+                    
+                    # config.open_files = open_files
+                    save_config(project_metadata, project_metadata_path)
+            else:
+                log.error("Config file does not exist %s" %
+                          (project_metadata_path))
+            return project_metadata
         else:
-            log.error("Config file does not exist %s" % (config_file_path))
-        return open_files
+            return []
     # except yaml.YAMLError as error:
     #     log.error("%s" % (error))
     #     return []
@@ -100,6 +118,8 @@ def open_file(path):
 ##
 
 ## Project #
+
+
 def set_project_dir(path):
     global CNEXT_PROJECT_DIR
     CNEXT_PROJECT_DIR = path
@@ -133,6 +153,8 @@ def set_working_dir(path):
 ##
 
 ## Project Settings #
+
+
 def get_project_settings_path(project):
     """ Get path to config.json """
     return os.path.join(project['path'], SETTINGS_FILE)
@@ -142,11 +164,11 @@ def save_project_settings(content):
     """ Save config.json"""
     try:
         active_project = get_active_project()
-        config_file_path = get_project_settings_path(active_project)
-        os.makedirs(os.path.dirname(config_file_path), exist_ok=True)
-        with open(config_file_path, 'w') as outfile:
+        settings_file_path = get_project_settings_path(active_project)
+        os.makedirs(os.path.dirname(settings_file_path), exist_ok=True)
+        with open(settings_file_path, 'w') as outfile:
             outfile.write(json.dumps(content, indent=4))
-        return FileMetadata(config_file_path, name=SETTINGS_FILE, timestamp=os.path.getmtime(config_file_path))
+        return FileMetadata(path=settings_file_path, name=SETTINGS_FILE, timestamp=os.path.getmtime(settings_file_path))
     except Exception as ex:
         log.error("Save config error: {}".format(ex))
         raise Exception
@@ -164,6 +186,8 @@ def get_project_settings():
 ##
 
 ## Workspace #
+
+
 def add_project(path):
     try:
         project_name = path.split('/')[-1]
@@ -173,10 +197,10 @@ def add_project(path):
 
         # Update workspace config
         config = read_config(WORKSPACE_METADATA_PATH)
-        workspace_info = WorkspaceInfo(config.__dict__)
+        workspace_metadata = WorkspaceMetadata(config.__dict__)
         # config_dict = config.__dict__
         exist_project = [
-            project for project in workspace_info.open_projects if project.path == path]
+            project for project in workspace_metadata.open_projects if project.path == path]
         if len(exist_project) > 0:
             project_id = exist_project[0].id
         else:
@@ -186,9 +210,9 @@ def add_project(path):
                 'name': project_name,
                 'path': path
             }
-            workspace_info.open_projects.append(new_project)
-            workspace_info.active_project = project_id
-            save_config(workspace_info, WORKSPACE_METADATA_PATH)
+            workspace_metadata.open_projects.append(new_project)
+            workspace_metadata.active_project = project_id
+            save_config(workspace_metadata, WORKSPACE_METADATA_PATH)
 
             # # Create main.py file
             # main_file_path = os.path.join(path, 'main.py')
@@ -197,7 +221,7 @@ def add_project(path):
             #         pass
 
         # Assign project
-        active_project = ProjectMetadata(
+        active_project = ProjectInfoInWorkspace(
             path=path,
             name=project_name,
             id=project_id,
@@ -221,7 +245,7 @@ def add_project(path):
             with open(cnext_config_path, 'w'):
                 pass
 
-        return workspace_info
+        return workspace_metadata
     except Exception as ex:
         raise ex
 
@@ -229,10 +253,10 @@ def add_project(path):
 def get_workspace_metadata():
     config = read_config(WORKSPACE_METADATA_PATH)
     return config.__dict__
-    
+
 
 def save_workspace_metadata(config):
-    workspace_info = WorkspaceInfo(config)
+    workspace_info = WorkspaceMetadata(config)
     save_config(workspace_info, WORKSPACE_METADATA_PATH)
     return workspace_info
 ##

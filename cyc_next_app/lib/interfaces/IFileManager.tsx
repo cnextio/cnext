@@ -43,6 +43,11 @@ export interface IFileMetadata {
 }
 
 export interface IProjectMetadata {
+    open_files: IFileMetadata[];
+    open_order: string[];
+}
+
+export interface IProjectInfoInWorkspace {
     path: string;
     name: string;
     id: string;
@@ -56,7 +61,7 @@ export interface IDirectoryMetadata {
 
 export interface IWorkspaceMetadata {
     active_project: string | null;
-    open_projects: IProjectMetadata[];
+    open_projects: IProjectInfoInWorkspace[];
 }
 
 export interface IDirListResult {

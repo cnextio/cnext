@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { MetricPlots, PlotContainer as SinglePlot } from "../../StyledComponents";
+import { MetricPlots, SingleResultContainer as SinglePlotContainer } from "../../StyledComponents";
 import { IPlotResult } from "../../../interfaces/ICodeEditor";
 import { Layout } from "react-grid-layout";
 
@@ -95,7 +95,7 @@ export const MetricPlot = ({ handleContextMenuSelection: parentHandler, metricPl
             >
                 {metricPlotData
                     ? Object.keys(metricPlotData["plots"]).map((key: string, index: number) => (
-                          <SinglePlot
+                          <SinglePlotContainer
                               key={index}
                               variant='outlined'
                               data-grid={{
@@ -121,7 +121,7 @@ export const MetricPlot = ({ handleContextMenuSelection: parentHandler, metricPl
                                   handleClose={handleContextMenuSelection}
                                   handleSelection={handleContextMenuSelection}
                               />
-                          </SinglePlot>
+                          </SinglePlotContainer>
                       ))
                     : null}
             </GridLayout>

@@ -6,23 +6,17 @@ import {
     resetCodeEditor as resetCodeEditorRedux,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
-    setActiveProject,
     setFileMetadata,
     setFileToClose,
     setFileToOpen,
     addFileToSave,
     addFileToSaveState,
-    setInView,
     setOpenFiles,
     setProjectSetting,
     setServerSynced,
-    // removeFileToSave,
-    // removeFileToSaveState,
     setSavingStateFile,
     setSavingFile,
     setWorkspaceMetadata,
-    setProjectToAdd,
-    setProjectToSetActive,
     resetProjectRedux,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
@@ -30,11 +24,17 @@ import {
     ContentType,
     IConfigs,
     IMessage,
+    SETTING_FILE_PATH,
     SubContentType,
     WebAppEndpoint,
 } from "../../interfaces/IApp";
 import { ICodeText, ICodeLine } from "../../interfaces/ICodeEditor";
-import { ProjectCommand, IFileMetadata, IWorkspaceMetadata } from "../../interfaces/IFileManager";
+import {
+    ProjectCommand,
+    IFileMetadata,
+    IWorkspaceMetadata,
+    IProjectMetadata,
+} from "../../interfaces/IFileManager";
 import socket from "../Socket";
 
 const FileManager = () => {
@@ -47,9 +47,7 @@ const FileManager = () => {
     const workspaceMetadata: IWorkspaceMetadata = useSelector(
         (state: RootState) => state.projectManager.workspaceMetadata
     );
-    const projectToAdd = useSelector(
-        (state: RootState) => state.projectManager.projectToAdd
-    );
+    const projectToAdd = useSelector((state: RootState) => state.projectManager.projectToAdd);
     const projectToSetActive = useSelector(
         (state: RootState) => state.projectManager.projectToSetActive
     );
@@ -61,7 +59,7 @@ const FileManager = () => {
     const saveCodeLineCounter = useSelector(
         (state: RootState) => state.codeEditor.saveCodeLineCounter
     );
-    const projectConfigs = useSelector((state: RootState) => state.projectManager.configs);
+    const projectConfigs = useSelector((state: RootState) => state.projectManager.settings);
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
     // using this to avoid saving the file when we load code doc for the first time
     // const [codeTextInit, setcodeTextInit] = useState(0);
@@ -76,7 +74,6 @@ const FileManager = () => {
         ) {
             dispatch(resetCodeEditorRedux());
             dispatch(resetProjectRedux());
-            // dispatch(setInView(null));
         }
     };
 
@@ -89,12 +86,15 @@ const FileManager = () => {
                 let state = store.getState();
                 /** can't use inViewID from useSelector because this function is defined only once */
                 let inViewID = state.projectManager.inViewID;
-                let openFiles;
+                let projectMetadata;
                 if (!fmResult.error) {
                     switch (fmResult.command_name) {
                         case ProjectCommand.get_open_files:
                             console.log("FileManager got open_files result: ", fmResult.content);
-                            dispatch(setOpenFiles(fmResult.content));
+                            projectMetadata = fmResult.content as IProjectMetadata;
+                            if (projectMetadata != null) {
+                                dispatch(setOpenFiles(projectMetadata));
+                            }
                             break;
                         case ProjectCommand.read_file:
                             if (inViewID != null) {
@@ -125,23 +125,17 @@ const FileManager = () => {
                         case ProjectCommand.close_file:
                             console.log("FileManager got close_file result: ", fmResult);
                             dispatch(setFileToClose(null));
-                            openFiles = fmResult.content as IFileMetadata[];
-                            if (openFiles != null) {
-                                dispatch(setOpenFiles(openFiles));
-                                if (openFiles.length > 0) {
-                                    dispatch(setInView(openFiles[0].path));
-                                }
+                            projectMetadata = fmResult.content as IProjectMetadata;
+                            if (projectMetadata != null) {
+                                dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
                         case ProjectCommand.open_file:
                             console.log("FileManager got open_file result: ", fmResult);
                             dispatch(setFileToOpen(null));
-                            openFiles = fmResult.content as IFileMetadata[];
-                            if (openFiles != null) {
-                                dispatch(setOpenFiles(openFiles));
-                                if (openFiles.length > 0) {
-                                    dispatch(setInView(fmResult.metadata["path"]));
-                                }
+                            projectMetadata = fmResult.content as IProjectMetadata;
+                            if (projectMetadata != null) {
+                                dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
                         case ProjectCommand.get_workspace_metadata:
@@ -163,14 +157,14 @@ const FileManager = () => {
                             // setSavingFile(null);
 
                             /** update file timestamp */
-                            if (inViewID) {
-                                let fileMetadata = {
-                                    ...store.getState().projectManager.openFiles[inViewID],
-                                };
-                                if (fmResult.content)
-                                    fileMetadata.timestamp = fmResult.content["timestamp"];
-                                dispatch(setFileMetadata(fileMetadata));
-                            }
+                            let filePath = fmResult.metadata['path'];
+                            let fileMetadata = {
+                                ...store.getState().projectManager.openFiles[filePath],
+                            };
+                            if (fmResult.content)
+                                fileMetadata.timestamp = fmResult.content["timestamp"];
+                            dispatch(setFileMetadata(fileMetadata));
+                            
                             break;
                         case ProjectCommand.save_state:
                             //remove the first item from the list
@@ -287,8 +281,8 @@ const FileManager = () => {
             // if there is out-of-channel changes in server but this is good enough
             // for our use case.
             if (
-                codeText == null ||
-                (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
+                codeText == null || 
+                (codeText != null && !Object.keys(codeText).includes(inViewID)) || 
                 isSettingsFile(inViewID)
             ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
@@ -316,6 +310,7 @@ const FileManager = () => {
 
             let message: IMessage = createMessage(ProjectCommand.close_file, "", {
                 path: fileToClose,
+                open_order: store.getState().projectManager.openOrder
             });
             sendMessage(message);
         }
@@ -327,6 +322,7 @@ const FileManager = () => {
             // TODO: make sure the file is saved before being closed
             let message: IMessage = createMessage(ProjectCommand.open_file, "", {
                 path: fileToOpen,
+                open_order: store.getState().projectManager.openOrder,
             });
             sendMessage(message);
         }
@@ -365,18 +361,18 @@ const FileManager = () => {
     }, [projectToAdd]);
 
     const isSettingsFile = (filePath: string) => {
-        return filePath === "config.json";
+        return filePath === SETTING_FILE_PATH;
     };
 
-    const reloadConfigIfChanged = (fileToSave: string[]) => {
+    const reloadSettingIfChanged = (fileToSave: string[]) => {
         let state = store.getState();
         try {
             for (let filePath of fileToSave) {
                 if (isSettingsFile(filePath)) {
                     let codeText = state.codeEditor.codeText[filePath];
-                    let config = JSON.parse(codeText.join("\n"));
-                    console.log("FileManager reload config: ", config);
-                    dispatch(setProjectSetting(config));
+                    let settings = JSON.parse(codeText.join("\n"));
+                    console.log("FileManager reload settings: ", settings);
+                    dispatch(setProjectSetting(settings));
                 }
             }
         } catch (error) {
@@ -429,7 +425,7 @@ const FileManager = () => {
     };
     useEffect(() => {
         // console.log("FileManager useEffect: ", fileToSave);
-        reloadConfigIfChanged(fileToSave);
+        reloadSettingIfChanged(fileToSave);
         saveFile();
     }, [saveTimeout, fileToSave]);
 
@@ -526,7 +522,7 @@ const FileManager = () => {
 
     const saveConfigs = () => {
         const state = store.getState();
-        const configs = state.projectManager.configs;
+        const configs = state.projectManager.settings;
         let message: IMessage = createMessage(ProjectCommand.save_project_settings, configs, {});
         console.log("FileManager send:", message.command_name, message.metadata);
         sendMessage(message);

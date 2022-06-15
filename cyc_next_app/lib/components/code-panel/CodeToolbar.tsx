@@ -4,7 +4,7 @@ import {
     FileNameTab,
     PanelDivider,
     FileCloseIcon as StyledFileCloseIcon,
-    FileNameTabContainer,
+    FileCloseIconContainer,
 } from "../StyledComponents";
 import { IconButton, stepConnectorClasses } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -12,9 +12,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { setFileToClose, setInView } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import { isRunQueueBusy } from "./libCodeEditor";
+import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 
 const FileCloseIcon = (props) => {
-    return <StyledFileCloseIcon fontSize="small" {...props} />;
+    return (
+        <FileCloseIconContainer>
+            <StyledFileCloseIcon fontSize="small" {...props} />
+        </FileCloseIconContainer>
+    );
 };
 
 const CodeToolbar = () => {
@@ -43,14 +48,13 @@ const CodeToolbar = () => {
 
     /** Set inViewID whenever there is a new openFiles */
     useEffect(() => {
-        let inViewID = store.getState().projectManager.inViewID;
-        let keys = Object.keys(openFiles);
-        if (inViewID == null && keys.length > 0) {
-            dispatch(setInView(openFiles[keys[0]]["path"]));
-        }
+        // let inViewID = store.getState().projectManager.inViewID;
+        let openOrder = store.getState().projectManager.openOrder;
+        // let keys = Object.keys(openFiles);
+        dispatch(setInView(openOrder[openOrder.length-1]));
     }, [openFiles]);
 
-    const _getFileNameComponent = (id: string, name: string) => {
+    const renderFileNameComponent = (id: string, name: string) => {
         return (
             <Fragment key={id}>
                 <FileNameTab
@@ -83,14 +87,23 @@ const CodeToolbar = () => {
                     }}
                 >
                     {name}
-                    <FileNameTabContainer>
-                        <FileCloseIcon
-                            style={id in displayState ? displayState[id] : { display: "none" }}
-                            onClick={(event) => onClose(event, id)}
-                        />
-                    </FileNameTabContainer>
+                    <FileCloseIcon
+                        style={id in displayState ? displayState[id] : { display: "none" }}
+                        onClick={(event) => onClose(event, id)}
+                    />
                 </FileNameTab>
                 <PanelDivider orientation="vertical" color="light" />
+                {id == inViewID && (
+                    <ScrollIntoViewIfNeeded
+                        options={{
+                            // active: true,
+                            block: "nearest",
+                            inline: "center",
+                            behavior: "auto",
+                            // boundary: document.getElementById(codeOutputContentID),
+                        }}
+                    />
+                )}
             </Fragment>
         );
     };
@@ -98,7 +111,7 @@ const CodeToolbar = () => {
     return (
         <StyledCodeToolbar>
             {Object.keys(openFiles).map((id: string) => {
-                return _getFileNameComponent(id, openFiles[id].name);
+                return renderFileNameComponent(id, openFiles[id].name);
             })}
         </StyledCodeToolbar>
     );

@@ -303,7 +303,7 @@ export const ProjectToolbar = styled.div`
     }
 `;
 
-export const FileNameTabContainer = styled.div`
+export const FileCloseIconContainer = styled.div`
     display: flex;
     width: 22.5px;
     height: 22.5px;
@@ -758,18 +758,30 @@ export const ResultViewContainer = styled.div`
     }
 `;
 
-export const PlotContainer = styled(Paper)`
+export const SingleResultContainer = styled(Paper)`
     background-color: ${(props) => props.theme.palette.background.paper};
     margin: 1px;
-    overflow: auto;
-    width: fit-content;
-    border-color: ${(props) => (props.focused ? props.theme.palette.primary.light : null)};
-    border-width: ${(props) => (props.focused ? "2px" : null)};
     margin-bottom: 8px;
+    width: ${(props) => (props.showMarkdown ? "100%" : "fit-content")};
+    border-color: ${(props) =>
+        props.showMarkdown ? null : props.focused ? props.theme.palette.primary.light : null};
+    border-width: ${(props) => (props.showMarkdown ? "0px" : props.focused ? "2px" : null)};
+    overflow: auto;
+    
     svg {
         width: 1000px;
         height: 1000px;
         overflow: scroll;
+    }
+
+    .markdown {
+        margin: 0px 20px 0px 20px;
+        font-size: 14px;
+        width: 500px;
+        height: 100%;
+        p {
+            line-height: 20px;
+        }
     }
 `;
 

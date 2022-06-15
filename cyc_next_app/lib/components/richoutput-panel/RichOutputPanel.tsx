@@ -8,6 +8,7 @@ import ModelPanel from "./model-panel/ModelManager";
 import DataPanel from "./data-panel/DataPanel";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
+import { MarkdownProcessor } from "./result-panel/MarkdownProcessor";
 
 const RichOutputPanel = () => {
     const [show, setShow] = useState(RichOutputPanelToolbarItems.DATA);
@@ -15,7 +16,8 @@ const RichOutputPanel = () => {
     const resultUpdateCount = useSelector((state: RootState) => state.codeEditor.resultUpdateCount);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
-
+    const showMarkdown = useSelector((state: RootState)=> state.projectManager?.settings?.rich_output?.show_markdown);
+        
     useEffect(() => {
         if (resultUpdateCount > 0) {
             setShow(RichOutputPanelToolbarItems.RESULTS);
@@ -35,6 +37,7 @@ const RichOutputPanel = () => {
             {show === RichOutputPanelToolbarItems.RESULTS && <ResultPanel />}
             {show === RichOutputPanelToolbarItems.EXPERIMENTS && <ExperimentManager />}
             {show === RichOutputPanelToolbarItems.MODEL && <ModelPanel />}
+            {showMarkdown && <MarkdownProcessor />}
         </StyledRichOutputPanel>
     );
 };
