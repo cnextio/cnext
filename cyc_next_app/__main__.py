@@ -9,6 +9,7 @@ from io import BytesIO
 from zipfile import ZipFile
 import uuid
 import shutil
+import yaml
 
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
 server_path = os.path.join(web_path, 'server')
@@ -22,38 +23,14 @@ DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/9
 
 def change_path(path):
     os.chdir(server_path)
-    my_file = open(FILE_NAME)
-
-    string_list = my_file.readlines()
-    my_file.close()
-
     project_id = str(uuid.uuid1())
-    # handler case empty when use teminal
-    if not string_list:
-        # build_all_content
-        my_file = open(FILE_NAME, 'w')
-        line1 ='active_project: "4b9a3cfd-ec55-11ec-b7b8-309c238898ae"\n'
-        line2 = 'open_projects:\n'
-        line3 = '\t- id: "4b9a3cfd-ec55-11ec-b7b8-309c238898ae"\n'
-        line4 = '\tname: "Skywalker"\n'
-        line5 = '\tpath: "' + path + '"'
-        my_file.writelines([line1, line2, line3,line4,line5])
-        my_file.close()
-    else:
-        string_list[0] = 'active_project: ' + '"' + project_id + '"' + '\n'
-        content_2 = string_list[2];
-        string_list[2] = content_2[:FIELD_LENGTH] + 'id: ' + '"' + project_id + '"' + '\n'
-
-        content = string_list[CHANGE_LINE_NUMBER]
-        string_list[CHANGE_LINE_NUMBER] = content[:FIELD_LENGTH] + \
-            'path: ' + '\'' + path + '\'' + '\n'
-        print(string_list[CHANGE_LINE_NUMBER].lstrip().strip())
-        my_file = open(FILE_NAME, 'w')
-        new_file_contents = ''.join(string_list)
-        # Convert `string_list` to a single string
-        my_file.write(new_file_contents)
-        my_file.close()
-        print('Map path for sample project done!')
+    data = {
+        'active_project':project_id,
+        'open_projects':[{"id": project_id,'name':'Skywalker','path':path}],
+    }
+    with open(r'workspace.yaml', 'w') as file:
+        documents = yaml.dump(data, file, default_flow_style=False)
+    print('Map path for sample project done!')
 
 
 def ask():
