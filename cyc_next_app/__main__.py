@@ -8,6 +8,7 @@ from urllib.request import urlopen
 from io import BytesIO
 from zipfile import ZipFile
 import uuid
+import shutil
 
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
 server_path = os.path.join(web_path, 'server')
@@ -32,22 +33,23 @@ def change_path(path):
     string_list[2] = content_2[:FIELD_LENGTH] + 'id: ' + '"' + project_id + '"' + '\n'
 
     content = string_list[CHANGE_LINE_NUMBER]
-    print(string_list[CHANGE_LINE_NUMBER])
     string_list[CHANGE_LINE_NUMBER] = content[:FIELD_LENGTH] + \
         'path: ' + '\'' + path + '\'' + '\n'
-    print(string_list[CHANGE_LINE_NUMBER])
+    print(string_list[CHANGE_LINE_NUMBER].lstrip().strip())
     my_file = open(FILE_NAME, 'w')
     new_file_contents = ''.join(string_list)
     # Convert `string_list` to a single string
     my_file.write(new_file_contents)
     my_file.close()
-    print('map path for sample project done!')
+    print('Map path for sample project done!')
 
 
 def ask():
-    answer = input('Would you like to start with a sample project? (Y/N) :')
+    answer = input('Would you like to start with a sample project? [(y)/n]:')
     if(answer == 'y' or answer == 'Y'):
         return HAVE_PROJECT
+    elif not answer:
+         return HAVE_PROJECT
     elif (answer == 'n' or answer == 'N'):
         return WITHOUT_PROJECT
     else:
@@ -66,8 +68,14 @@ def download_and_unzip(url, extract_to='.'):
     http_response = urlopen(url)
     zipfile = ZipFile(BytesIO(http_response.read()))
     zipfile.extractall(path=extract_to)
-    skywaler_path = os.path.join(
-        extract_to, zipfile.namelist()[0], 'Skywalker')
+
+    # grand per
+    os.chmod(extract_to, 0o444)
+    # cut - paste
+    shutil.copytree(src=os.path.join(extract_to, zipfile.namelist()[0],'Skywalker'), dst=os.path.join(extract_to,'Skywalker') , dirs_exist_ok=True)
+    skywaler_path = os.path.join(extract_to, 'Skywalker')
+    # remove old folder
+    shutil.rmtree(path=os.path.join(extract_to, zipfile.namelist()[0]))
     change_path(os.path.normpath(skywaler_path).replace(os.sep,'/'))
 
 
