@@ -16,6 +16,9 @@ import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
 import store, { RootState } from "../../../redux/store";
 import { getLastUpdate } from "../dataframe-manager/libDataFrameManager";
 import { setDFStatusShowed } from "../../../redux/reducers/DataFramesRedux";
+import dynamic from "next/dynamic";
+
+const Terminal = dynamic(() => import("./Terminal"), { ssr: false });
 
 const CodeOutputComponent = React.memo(() => {
     const activeDFStatus = useSelector((state: RootState) => getActiveDataFrameStatus(state));
@@ -233,22 +236,27 @@ const CodeOutputComponent = React.memo(() => {
     };
     useEffect(() => {
         const state = store.getState();
-        if (state.projectManager.settings.dataframe_manager.show_exec_text) {
+        if (state?.projectManager?.configs?.dataframe_manager?.show_exec_text) {
             handleROTextOutput();
         }
     }, [roTextOutputUpdateCount]);
 
-    const codeOutputContentID = "CodeOutputContent";
+    const [codeOutputContentID, setCodeOutputContentID] = useState(`CodeOutputContent2`)
+    
     return (
         <CodeOutputContainer>
             {console.log("Render CodeOutputAreaComponent")}
             <CodeOutputHeader>
-                <CodeOutputHeaderText variant="overline" component="span">
+                <CodeOutputHeaderText onClick={()=>setCodeOutputContentID(`CodeOutputContent2`)} underline={codeOutputContentID === 'CodeOutputContent2' ? true :false} variant="overline" component="span">
                     Output
                 </CodeOutputHeaderText>
+                <CodeOutputHeaderText onClick={()=>setCodeOutputContentID(`Terminal`)} underline={codeOutputContentID === 'Terminal' ? true :false} variant="overline" component="span">
+                    Teminarl
+                </CodeOutputHeaderText>
             </CodeOutputHeader>
-            <CodeOutputContent ref={codeOutputRef} id={codeOutputContentID}>
-                {textOutputUpdateCount > 0 &&
+          
+           { codeOutputContentID === 'CodeOutputContent2'? <CodeOutputContent ref={codeOutputRef} id='CodeOutputContent2'>
+            {codeOutputContentID} {textOutputUpdateCount > 0 &&
                     outputContent?.map((item, index) => (
                         <Fragment>
                             {item["type"] === "text" && item["content"] !== "" && (
@@ -281,7 +289,7 @@ const CodeOutputComponent = React.memo(() => {
                             {index === outputContent.length - 1 && (
                                 <ScrollIntoViewIfNeeded
                                     options={{
-                                        // active: true,
+                                        active: true,
                                         block: "nearest",
                                         inline: "center",
                                         behavior: "auto",
@@ -291,7 +299,10 @@ const CodeOutputComponent = React.memo(() => {
                             )}
                         </Fragment>
                     ))}
-            </CodeOutputContent>
+            </CodeOutputContent>: null}
+            { codeOutputContentID === 'Terminal' ?  <CodeOutputContent ref={codeOutputRef} id='Terminal'>
+                <Terminal />
+            </CodeOutputContent>: null}
         </CodeOutputContainer>
     );
 });

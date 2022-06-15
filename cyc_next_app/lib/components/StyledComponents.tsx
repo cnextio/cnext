@@ -477,8 +477,9 @@ export const CodeOutputHeaderText = styled(Typography)`
     // height: 30px;
     // text-decoration: underline;
     font-size: 11px;
-    border-bottom-style: solid;
+    border-bottom-style: ${(props) => props.underline  ? `solid` : `none`};
     border-width: 1px;
+    cursor: pointer
 `;
 // need this compoent to make the text output respect tab character
 export const CodeOutputContent = styled.div`
