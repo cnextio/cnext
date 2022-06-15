@@ -16,6 +16,9 @@ import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
 import store, { RootState } from "../../../redux/store";
 import { getLastUpdate } from "../dataframe-manager/libDataFrameManager";
 import { setDFStatusShowed } from "../../../redux/reducers/DataFramesRedux";
+import dynamic from "next/dynamic";
+
+const Terminal = dynamic(() => import("./Terminal"), { ssr: false });
 
 const CodeOutputComponent = React.memo(() => {
     const activeDFStatus = useSelector((state: RootState) => getActiveDataFrameStatus(state));
@@ -238,61 +241,68 @@ const CodeOutputComponent = React.memo(() => {
         }
     }, [roTextOutputUpdateCount]);
 
-    const codeOutputContentID = "CodeOutputContent";
+    const [codeOutputContentID, setCodeOutputContentID] = useState(`CodeOutputContent2`)
     return (
         <CodeOutputContainer>
-            {console.log("Render CodeOutputAreaComponent")}
-            <CodeOutputHeader>
-                <CodeOutputHeaderText variant="overline" component="span">
-                    Output
-                </CodeOutputHeaderText>
-            </CodeOutputHeader>
-            <CodeOutputContent ref={codeOutputRef} id={codeOutputContentID}>
-                {textOutputUpdateCount > 0 &&
-                    outputContent?.map((item, index) => (
-                        <Fragment>
-                            {item["type"] === "text" && item["content"] !== "" && (
-                                <IndividualCodeOutputContent
-                                    key={index}
-                                    component="pre"
-                                    variant="body2"
-                                >
-                                    <Ansi>{item["content"]}</Ansi>
-                                </IndividualCodeOutputContent>
-                            )}
-                            {item["type"] === "df_updates" && (
-                                <IndividualCodeOutputContent
-                                    key={index}
-                                    component="pre"
-                                    variant="body2"
-                                >
-                                    {buildDFReviewsOutputComponent(
-                                        outputContent.length,
-                                        item["content"]["updateType"],
-                                        item["content"]["updateContent"],
-                                        // only the last item and in the review list can be in active review mode
-                                        index === outputContent.length - 1 &&
-                                            updateTypeToReview.includes(
-                                                item["content"]["updateType"]
-                                            )
-                                    )}
-                                </IndividualCodeOutputContent>
-                            )}
-                            {index === outputContent.length - 1 && (
-                                <ScrollIntoViewIfNeeded
-                                    options={{
-                                        // active: true,
-                                        block: "nearest",
-                                        inline: "center",
-                                        behavior: "auto",
-                                        boundary: document.getElementById(codeOutputContentID),
-                                    }}
-                                />
-                            )}
-                        </Fragment>
-                    ))}
-            </CodeOutputContent>
-        </CodeOutputContainer>
+        {console.log("Render CodeOutputAreaComponent")}
+        <CodeOutputHeader>
+            <CodeOutputHeaderText onClick={()=>setCodeOutputContentID(`CodeOutputContent2`)} underline={codeOutputContentID === 'CodeOutputContent2' ? true :false} variant="overline" component="span">
+                Output
+            </CodeOutputHeaderText>
+            <CodeOutputHeaderText onClick={()=>setCodeOutputContentID(`Terminal`)} underline={codeOutputContentID === 'Terminal' ? true :false} variant="overline" component="span">
+                Teminarl
+            </CodeOutputHeaderText>
+        </CodeOutputHeader>
+      
+       { codeOutputContentID === 'CodeOutputContent2'? <CodeOutputContent ref={codeOutputRef} id='CodeOutputContent2'>
+         {textOutputUpdateCount > 0 &&
+                outputContent?.map((item, index) => (
+                    <Fragment>
+                        {item["type"] === "text" && item["content"] !== "" && (
+                            <IndividualCodeOutputContent
+                                key={index}
+                                component="pre"
+                                variant="body2"
+                            >
+                                <Ansi>{item["content"]}</Ansi>
+                            </IndividualCodeOutputContent>
+                        )}
+                        {item["type"] === "df_updates" && (
+                            <IndividualCodeOutputContent
+                                key={index}
+                                component="pre"
+                                variant="body2"
+                            >
+                                {buildDFReviewsOutputComponent(
+                                    outputContent.length,
+                                    item["content"]["updateType"],
+                                    item["content"]["updateContent"],
+                                    // only the last item and in the review list can be in active review mode
+                                    index === outputContent.length - 1 &&
+                                        updateTypeToReview.includes(
+                                            item["content"]["updateType"]
+                                        )
+                                )}
+                            </IndividualCodeOutputContent>
+                        )}
+                        {index === outputContent.length - 1 && (
+                            <ScrollIntoViewIfNeeded
+                                options={{
+                                    active: true,
+                                    block: "nearest",
+                                    inline: "center",
+                                    behavior: "auto",
+                                    boundary: document.getElementById(codeOutputContentID),
+                                }}
+                            />
+                        )}
+                    </Fragment>
+                ))}
+        </CodeOutputContent>: null}
+        { codeOutputContentID === 'Terminal' ?  <CodeOutputContent ref={codeOutputRef} id='Terminal'>
+            <Terminal />
+        </CodeOutputContent>: null}
+    </CodeOutputContainer>
     );
 });
 
