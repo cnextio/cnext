@@ -3,8 +3,9 @@ import {
     IDirectoryMetadata,
     IDirListResult,
     IFileMetadata,
+    IProjectInfoInWorkspace,
     IProjectMetadata,
-    IWorkspaceMetadata
+    IWorkspaceMetadata,
 } from "../../lib/interfaces/IFileManager";
 
 import {
@@ -14,6 +15,7 @@ import {
     ViewMode,
     IEditorConfigs,
     IDataFrameManagerConfigs,
+    IRichOutputConfigs,
     // IWorkSpaceConfig,
 } from "../../lib/interfaces/IApp";
 
@@ -24,9 +26,9 @@ const originalEditorShortcutKeys: IEditorShortcutKey = {
 };
 
 const originalAppShortcutKeys: IAppShortcutKey = {
-    autocompletion_tooggle: "shift + a",
-    lint_tooggle: "shift + l",
-    hover_tooggle: "shift + h",
+    autocompletion_on: "shift + a",
+    lint_on: "shift + l",
+    hover_on: "shift + h",
 };
 
 const codeEditorConfigs: IEditorConfigs = {
@@ -40,9 +42,14 @@ const dataframeManagerConfigs: IDataFrameManagerConfigs = {
     auto_display_data: true,
 };
 
+const richOutputConfigs: IRichOutputConfigs = {
+    show_markdown: false
+};
+
 type ProjectManagerState = {
     openFiles: { [id: string]: IFileMetadata };
-    activeProject: IProjectMetadata | null;
+    openOrder: string[];
+    activeProject: IProjectInfoInWorkspace | null;
     executorID: string | null;
     inViewID: string | null;
     openDirs: { [id: string]: IDirectoryMetadata[] };
@@ -54,15 +61,16 @@ type ProjectManagerState = {
     savingStateFile: null | string;
     showProjectExplore: boolean;
     serverSynced: boolean;
-    configs: IConfigs;
+    settings: IConfigs;
     projects: Object[];
     workspaceMetadata: IWorkspaceMetadata;
     projectToAdd: null | string;
-    projectToSetActive: null | string;
+    projectToSetActive: null | string;    
 };
 
 const initialState: ProjectManagerState = {
     openFiles: {},
+    openOrder: [],
     activeProject: null,
     executorID: null,
     inViewID: null,
@@ -75,12 +83,13 @@ const initialState: ProjectManagerState = {
     savingStateFile: null,
     showProjectExplore: false,
     serverSynced: false,
-    configs: {
+    settings: {
         view_mode: ViewMode.VERTICAL,
         code_editor_shortcut: originalEditorShortcutKeys,
         app_shortcut: originalAppShortcutKeys,
         code_editor: codeEditorConfigs,
         dataframe_manager: dataframeManagerConfigs,
+        rich_output: richOutputConfigs,
     },
     projects: [],
     workspaceMetadata: {
@@ -101,15 +110,18 @@ export const ProjectManagerRedux = createSlice({
 
         setOpenFiles: (state, action) => {
             state.openFiles = {};
-            let files: IFileMetadata[] = action.payload;
+            let projectMetadata: IProjectMetadata = action.payload;
+            let files: IFileMetadata[] = projectMetadata.open_files;
             console.log("ProjectManagerRedux: ", files);
             files?.map((file: IFileMetadata) => {
                 let id = file.path;
                 state.openFiles[id] = file;
-                if (file.executor == true) {
-                    state.executorID = id;
-                }
             });
+            if (Array.isArray(projectMetadata.open_order)) {
+                state.openOrder = projectMetadata.open_order;
+            } else {
+                state.openOrder = Object.keys(state.openFiles);
+            }
         },
 
         setFileMetadata: (state, action) => {
@@ -122,7 +134,15 @@ export const ProjectManagerRedux = createSlice({
         },
 
         setInView: (state, action) => {
-            state.inViewID = action.payload;
+            let inViewID = action.payload;
+            state.inViewID = inViewID;
+            if (
+                state.openOrder.includes(inViewID) &&
+                state.openOrder[state.openOrder.length - 1] !== inViewID
+            ) {
+                state.openOrder = state.openOrder.filter((file) => {return file!==inViewID});
+                state.openOrder.push(inViewID);
+            }
         },
 
         setServerSynced: (state, action) => {
@@ -204,7 +224,7 @@ export const ProjectManagerRedux = createSlice({
 
         setProjectSetting: (state, action) => {
             if (action.payload) {
-                state.configs = { ...state.configs, ...action.payload };
+                state.settings = { ...state.settings, ...action.payload };
             }
         },
 
@@ -218,8 +238,8 @@ export const ProjectManagerRedux = createSlice({
             let activeProjects = workspaceMetadata["open_projects"].filter(
                 (project) => project["id"] === workspaceMetadata["active_project"]
             );
-            if (activeProjects.length>0){
-               state.activeProject = activeProjects[0]; 
+            if (activeProjects.length > 0) {
+                state.activeProject = activeProjects[0];
             }
         },
 
@@ -233,6 +253,7 @@ export const ProjectManagerRedux = createSlice({
 
         resetProjectRedux: (state) => {
             state.openFiles = {};
+            state.openOrder = [];
             state.inViewID = null;
             state.openDirs = {};
             state.fileToClose = null;
@@ -242,7 +263,7 @@ export const ProjectManagerRedux = createSlice({
             state.savingFile = null;
             state.savingStateFile = null;
             state.serverSynced = false;
-        }
+        },
     },
 });
 

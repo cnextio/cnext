@@ -17,6 +17,7 @@ import {
     IDirectoryMetadata,
     IDirListResult,
     IFileMetadata,
+    IProjectInfoInWorkspace,
     IProjectMetadata,
     IWorkspaceMetadata,
     ProjectCommand,
@@ -25,18 +26,13 @@ import {
 import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 import {
+    setActiveProject,
     setFileToOpen,
-    setInView,
     setOpenDir,
     setOpenFiles,
     setProjects,
     setProjectToAdd,
     setProjectToSetActive,
-    setServerSynced,
-    // setActiveProject,
-    // setPathToAddProject,
-    // setProjectToSetActive,
-    setWorkspaceMetadata,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import FileContextMenu from "./FileContextMenu";
 import NewItemInput from "./NewItemInput";
@@ -56,7 +52,7 @@ interface ContextMenuInfo {
 }
 
 const FileExplorer = (props: any) => {
-    const activeProject: IProjectMetadata | null = useSelector(
+    const activeProject: IProjectInfoInWorkspace | null = useSelector(
         (state: RootState) => state.projectManager.activeProject
     );
 
@@ -88,6 +84,7 @@ const FileExplorer = (props: any) => {
             console.log("FileExplorer got results...", result);
             try {
                 let fmResult: IMessage = JSON.parse(result);
+                let projectMetadata;
                 if (!fmResult.error) {
                     switch (fmResult.command_name) {
                         case ProjectCommand.list_dir:
@@ -105,15 +102,17 @@ const FileExplorer = (props: any) => {
                             break;
                         case ProjectCommand.create_file:
                             console.log("FileExplorer got create_file: ", fmResult);
-                            dispatch(setOpenFiles(fmResult.content));
-                            dispatch(setInView(fmResult.metadata["path"]));
+                            // openFiles = fmResult.content as IFileMetadata[];
+                            projectMetadata = fmResult.content as IProjectMetadata;
+                            if (projectMetadata != null) {
+                                dispatch(setOpenFiles(projectMetadata));                                
+                            }
                             break;
                         case ProjectCommand.delete:
                             console.log("FileExplorer got delete result: ", fmResult);
-                            let openFiles = fmResult.content as IFileMetadata[];
-                            dispatch(setOpenFiles(openFiles));
-                            if (openFiles.length > 0) {
-                                dispatch(setInView(openFiles[0].path));
+                            projectMetadata = fmResult.content as IProjectMetadata;
+                            if (projectMetadata != null) {
+                                dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
                     }
@@ -133,11 +132,10 @@ const FileExplorer = (props: any) => {
     }, []);
 
     useEffect(() => {
-        let projects: IProjectMetadata[] = [];
-        let activeProject: IProjectMetadata | null = null;
-        workspaceMetadata.open_projects.forEach((project: IProjectMetadata) => {
+        let projects: IProjectInfoInWorkspace[] = [];
+        workspaceMetadata.open_projects.forEach((project: IProjectInfoInWorkspace) => {
             if (project.id === workspaceMetadata.active_project) {
-                activeProject = project;
+                dispatch(setActiveProject(project));
             } else {
                 projects.push(project);
             }
@@ -326,6 +324,7 @@ const FileExplorer = (props: any) => {
                 let message = createMessage(projectCommand, {
                     project_path: projectPath,
                     path: relativePath,
+                    open_order: store.getState().projectManager.openOrder,
                 });
                 sendMessage(message);
                 fetchDirChildNodes(contextMenuItems.item);
@@ -351,6 +350,7 @@ const FileExplorer = (props: any) => {
                 project_path: projectPath,
                 path: contextMenuItems.item,
                 is_file: contextMenuItems.is_file,
+                open_order: store.getState().projectManager.openOrder,
             });
             sendMessage(message);
             fetchDirChildNodes(contextMenuItems.parent);
@@ -420,7 +420,7 @@ const FileExplorer = (props: any) => {
         );
     };
 
-    const renderProjectItem = (projectItem: IProjectMetadata) => {
+    const renderProjectItem = (projectItem: IProjectInfoInWorkspace) => {
         if (projectItem.id !== activeProject?.id) {
             return (
                 <Tooltip title={projectItem?.path} placement='bottom-end'>

@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import {
-    PlotContainer as SingleResult,
+    SingleResultContainer,
     ResultViewContainer as StyledResultView,
 } from "../../StyledComponents";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
@@ -38,6 +38,7 @@ const ResultPanel = React.memo((props: any) => {
     const renderResult = () => {
         const state: RootState = store.getState();
         const inViewID = state.projectManager.inViewID;
+        const showMarkdown = state.projectManager.settings?.rich_output?.show_markdown;
         const groupIDSet = new Set();
         if (inViewID && state.codeEditor?.codeLines != null) {
             const codeLines: ICodeLine[] = state.codeEditor?.codeLines[inViewID];
@@ -68,17 +69,18 @@ const ResultPanel = React.memo((props: any) => {
                                     boundary: document.getElementById(resultPanelId),
                                 }}
                             >
-                                <SingleResult
+                                <SingleResultContainer
                                     key={codeLine.lineID}
                                     variant="outlined"
                                     focused={isActiveLineOrGroup(codeLine)}
+                                    showMarkdown={showMarkdown}
                                 >
                                     <ResultContent
                                         codeResult={codeLine}
                                         // activeLine={activeLine}
                                         // resultPanelId={resultPanelId}
                                     />
-                                </SingleResult>
+                                </SingleResultContainer>
                             </ScrollIntoViewIfNeeded>
                         ))}
                     </StyledResultView>

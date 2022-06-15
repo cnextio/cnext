@@ -105,6 +105,7 @@ export enum StandardMimeType {
     APPLICATION_PLOTLY = "application/vnd.plotly.v1+json",
     APPLICATION_JAVASCRIPT = "application/javascript",
     APPLICATION_BOKEH = "application/vnd.bokehjs_load.v0+json",
+    MARKDOWN = "text/markdown",
 }
 
 export const SubContentType = StandardMimeType;
@@ -293,9 +294,9 @@ export interface IEditorShortcutKey {
 }
 
 export interface IAppShortcutKey {
-    autocompletion_tooggle: string;
-    lint_tooggle: string;
-    hover_tooggle: string;
+    autocompletion_on: string;
+    lint_on: string;
+    hover_on: string;
 }
 export interface IEditorConfigs {
     lint: boolean;
@@ -308,6 +309,10 @@ export interface IDataFrameManagerConfigs {
     show_exec_text: boolean;
 }
 
+export interface IRichOutputConfigs {
+    show_markdown: boolean;
+}
+
 export interface IConfigs {
     view_mode: ViewMode | undefined;
     code_editor_shortcut: IEditorShortcutKey;
@@ -315,6 +320,7 @@ export interface IConfigs {
     experiment_manager?: IExperimentManagerConfig;
     code_editor: IEditorConfigs;
     dataframe_manager: IDataFrameManagerConfigs;
+    rich_output: IRichOutputConfigs;
 }
 
 export enum DFViewMode {
@@ -331,6 +337,7 @@ interface WorkSpaceOpenProject {
     path: String;
 }
 
+export const SETTING_FILE_PATH = 'config.json'
 // export interface IWorkSpaceConfig {
 //     active_project: string | null;
 //     open_projects: WorkSpaceOpenProject[] | [];

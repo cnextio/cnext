@@ -20,7 +20,7 @@ from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, KernelManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
 from libs.constants import TrackingModelType
-from project_manager.interfaces import SERVER_CONFIG_PATH, WORKSPACE_METADATA_PATH, WorkspaceInfo
+from project_manager.interfaces import SERVER_CONFIG_PATH, WORKSPACE_METADATA_PATH, WorkspaceMetadata
 from user_space.user_space import IPythonUserSpace, BaseKernelUserSpace
 import cnextlib.dataframe as cd
 
@@ -43,9 +43,9 @@ def kernel_control_handler(user_space):
                 result = user_space.restart_executor()
                 if result:
                     # get the lastest config to make sure that it is updated with the lastest open project
-                    workspace_metadata = read_config(WORKSPACE_METADATA_PATH)
-                    workspace_info = WorkspaceInfo(workspace_metadata.__dict__)
-                    set_executor_working_dir(user_space, workspace_info)
+                    workspace_info = read_config(WORKSPACE_METADATA_PATH)
+                    workspace_metadata = WorkspaceMetadata(workspace_info.__dict__)
+                    set_executor_working_dir(user_space, workspace_metadata)
             elif message.command_name == KernelManagerCommand.interrupt_kernel:
                 result = user_space.interrupt_executor()
     except:
@@ -80,7 +80,7 @@ class ShutdownSignalHandler:
         sys.exit(0)
 
 
-def get_active_project_path(workspace_info: WorkspaceInfo):
+def get_active_project_path(workspace_info: WorkspaceMetadata):
     project_path = None
     if workspace_info.active_project is not None:
         for project in workspace_info.open_projects:
@@ -89,7 +89,7 @@ def get_active_project_path(workspace_info: WorkspaceInfo):
     return project_path
 
 
-def set_executor_working_dir(user_space, workspace_info: WorkspaceInfo):
+def set_executor_working_dir(user_space, workspace_info: WorkspaceMetadata):
     project_path = get_active_project_path(workspace_info)
     log.info('Project path: {}'.format(project_path))
     if project_path:
@@ -101,7 +101,7 @@ def main(argv):
         if argv and len(argv) > 0:
             server_config = read_config(SERVER_CONFIG_PATH)
             workspace_metadata = read_config(WORKSPACE_METADATA_PATH)
-            workspace_info = WorkspaceInfo(workspace_metadata.__dict__)
+            workspace_info = WorkspaceMetadata(workspace_metadata.__dict__)
 
             executor_type = argv[0]
             user_space = None
