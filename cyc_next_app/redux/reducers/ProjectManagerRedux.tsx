@@ -4,7 +4,7 @@ import {
     IDirListResult,
     IFileMetadata,
     IProjectMetadata,
-    IWorkspaceMetadata
+    IWorkspaceMetadata,
 } from "../../lib/interfaces/IFileManager";
 
 import {
@@ -215,11 +215,13 @@ export const ProjectManagerRedux = createSlice({
         setWorkspaceMetadata: (state, action) => {
             const workspaceMetadata = action.payload as IWorkspaceMetadata;
             state.workspaceMetadata = workspaceMetadata;
-            let activeProjects = workspaceMetadata["open_projects"].filter(
-                (project) => project["id"] === workspaceMetadata["active_project"]
-            );
-            if (activeProjects.length>0){
-               state.activeProject = activeProjects[0]; 
+            if (workspaceMetadata.hasOwnProperty("open_projects")) {
+                let activeProjects = workspaceMetadata.open_projects.filter(
+                    (project) => project["id"] === workspaceMetadata["active_project"]
+                );
+                if (activeProjects.length > 0) {
+                    state.activeProject = activeProjects[0];
+                }
             }
         },
 
@@ -242,7 +244,7 @@ export const ProjectManagerRedux = createSlice({
             state.savingFile = null;
             state.savingStateFile = null;
             state.serverSynced = false;
-        }
+        },
     },
 });
 

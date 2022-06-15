@@ -484,10 +484,14 @@ const FileExplorer = (props: any) => {
                     title='Add project'
                     enterDelay={500}
                     placement='bottom-end'
-                    onClick={handleAddProjectBtn}
                     style={{ marginLeft: "auto" }}
                 >
-                    <AddBoxIcon fontSize='small' style={{ cursor: "pointer" }} />
+                    <AddBoxIcon
+                        id='add-project-button'
+                        onClick={handleAddProjectBtn}
+                        fontSize='small'
+                        style={{ cursor: "pointer" }}
+                    />
                 </Tooltip>
                 {/* <Tooltip title="Add folder" enterDelay={500} placement="bottom-end">
                     <CreateNewFolderIcon fontSize="small" style={{ cursor: "pointer" }} />
@@ -501,6 +505,7 @@ const FileExplorer = (props: any) => {
                 {createProjectInProgress ? (
                     <Fragment>
                         <NewItemInput
+                            id='new-project-input'
                             handleKeyPress={handleNewProjectKeyPress}
                             command={ProjectCommand.add_project}
                             style={{ marginLeft: "10px" }}
