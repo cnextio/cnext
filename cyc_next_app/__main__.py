@@ -14,8 +14,6 @@ import yaml
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
 server_path = os.path.join(web_path, 'server')
 FILE_NAME = 'workspace.yaml'
-CHANGE_LINE_NUMBER = 4
-FIELD_LENGTH = 6
 WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
 DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/9ee7cba2573c.zip'
