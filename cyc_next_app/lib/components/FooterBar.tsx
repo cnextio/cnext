@@ -8,7 +8,7 @@ const FooterBarComponent = () => {
     const [config, setConfig] = useState({ lint: false, hover: false, autocompletion: false });
 
     const rootConfig = useSelector(
-        (rootState: RootState) => rootState.projectManager.configs.code_editor
+        (rootState: RootState) => rootState.projectManager.settings.code_editor
     );
     const dispatch = useDispatch();
 

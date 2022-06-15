@@ -103,7 +103,7 @@ const MiniSidebar = () => {
 
     const handleClickChangeLayout = () => {
         const state = store.getState();
-        const viewMode = state.projectManager.configs.view_mode;
+        const viewMode = state.projectManager.settings.view_mode;
         if (viewMode === ViewMode.HORIZONTAL) {
             dispatch(setProjectConfig({ view_mode: ViewMode.VERTICAL }));
         } else {

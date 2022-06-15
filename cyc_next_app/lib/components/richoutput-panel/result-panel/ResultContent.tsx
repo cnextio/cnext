@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import ReactHtmlParser from "html-react-parser";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { SubContentType } from "../../../interfaces/IApp";
 const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
@@ -9,6 +11,7 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 
 import { useRef } from "react";
 import { createPortal } from "react-dom";
+import store from "../../../../redux/store";
 
 const ScriptComponent = ({ children, script }) => {
     const instance = useRef();
@@ -43,7 +46,7 @@ const IFrameComponent = ({ children }) => {
     const [contentRef, setContentRef] = useState(null);
     const mountNode = contentRef?.contentDocument?.body;
     return (
-        <iframe style={{width: "800px", height: "500px"}} ref={setContentRef}>
+        <iframe style={{ width: "800px", height: "500px" }} ref={setContentRef}>
             {mountNode && createPortal(children, mountNode)}
         </iframe>
     );
@@ -80,9 +83,11 @@ const ResultContent = React.memo(({ codeResult }) => {
         return null;
     };
 
-    const createResultContent = () => {
+    const renderResultContent = () => {
         // const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
         // console.log("ResultContent: ", codeResult?.result);
+        const showMarkdown = store.getState().projectManager.settings?.rich_output?.show_markdown;
+        
         let jsxElements = Object.keys(codeResult?.result?.content).map((key, index) => {
             const imageMime = getMimeWithImage([key]);
             if (key === SubContentType.APPLICATION_JAVASCRIPT) {
@@ -135,11 +140,17 @@ const ResultContent = React.memo(({ codeResult }) => {
                 });
 
                 return isFullPage ? (
-                    <IFrameComponent
-                        children={jsxElements}
-                    ></IFrameComponent>
+                    <IFrameComponent children={jsxElements}></IFrameComponent>
                 ) : (
                     jsxElements
+                );
+            } else if (showMarkdown && key === SubContentType.MARKDOWN) {
+                return (
+                    <ReactMarkdown
+                        className="markdown"
+                        remarkPlugins={[remarkGfm]}
+                        children={codeResult?.result?.content[SubContentType.MARKDOWN]}
+                    />
                 );
             }
         });
@@ -150,7 +161,7 @@ const ResultContent = React.memo(({ codeResult }) => {
     //     setReadyToScroll(true);
     // }, []);
 
-    return createResultContent();
+    return renderResultContent();
 });
 
 export default ResultContent;

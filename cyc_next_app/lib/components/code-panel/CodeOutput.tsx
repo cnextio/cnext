@@ -233,7 +233,7 @@ const CodeOutputComponent = React.memo(() => {
     };
     useEffect(() => {
         const state = store.getState();
-        if (state.projectManager.configs.dataframe_manager.show_exec_text) {
+        if (state.projectManager.settings.dataframe_manager.show_exec_text) {
             handleROTextOutput();
         }
     }, [roTextOutputUpdateCount]);

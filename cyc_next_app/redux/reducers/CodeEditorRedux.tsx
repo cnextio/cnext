@@ -15,6 +15,7 @@ import {
     ILineRange,
     ICodeToInsertInfo,
     IRunQueueItem,
+    ICodeResult,
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
@@ -52,6 +53,7 @@ type CodeEditorState = {
     saveCodeTextCounter: number;
     // this number need to be increased whenever codeLine is updated
     saveCodeLineCounter: number;
+    lastLineUpdate: {[key: string]: ILineUpdate};
 };
 
 const initialState: CodeEditorState = {
@@ -72,6 +74,7 @@ const initialState: CodeEditorState = {
     codeToInsert: undefined,
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
+    lastLineUpdate: {}, /** this is used in MarkdownProcessor */
 };
 
 /**
@@ -127,7 +130,7 @@ function setLineStatusInternal(state: CodeEditorState, lineStatus: ICodeLineStat
     state.saveCodeLineCounter++;
 }
 
-function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem: IRunQueueItem){
+function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem: IRunQueueItem) {
     let inViewID = runQueueItem.inViewID;
     let lineRange = runQueueItem.lineRange;
     let codeLines = state.codeLines[inViewID];
@@ -259,12 +262,15 @@ export const CodeEditorRedux = createSlice({
             /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
             setGroupEdittedStatus(codeLines, lineUpdate.updatedStartLineNumber, startLineGroupID);
             state.codeLines[inViewID] = codeLines;
+            
+            /** this is used in MarkdownProcessor */
+            state.lastLineUpdate[inViewID] = lineUpdate;
         },
 
         //TODO: remove this because no used
         setLineStatus: (state, action) => {
             let lineStatus: ICodeLineStatus = action.payload;
-            setLineStatusInternal(state, lineStatus);            
+            setLineStatusInternal(state, lineStatus);
         },
 
         setLineGroupStatus: (state, action) => {
@@ -416,15 +422,15 @@ export const CodeEditorRedux = createSlice({
             let runQueue = state.runQueue.queue;
             state.runQueue = { ...state.runQueue, queue: [...runQueue, runQueueItem] };
             let lineStatus: ICodeLineStatus = {
-                ... runQueueItem,
-                status: LineStatus.INQUEUE
-            }
+                ...runQueueItem,
+                status: LineStatus.INQUEUE,
+            };
             setLineStatusInternal(state, lineStatus);
             clearRunningLineTextOutputInternal(state, runQueueItem);
         },
 
         clearRunQueue: (state) => {
-            for (let runQueueItem of state.runQueue.queue){
+            for (let runQueueItem of state.runQueue.queue) {
                 let lineStatus: ICodeLineStatus = {
                     ...runQueueItem,
                     status: LineStatus.EDITED,
@@ -447,30 +453,6 @@ export const CodeEditorRedux = createSlice({
             );
             state.runQueue = { ...state.runQueue, status: action.payload };
         },
-
-        /** Inform the run queue that the current line execution has been completed */
-        // compeleteRunLine: (state, action) => {
-        //     if (state.runQueue.status === RunQueueStatus.RUNNING) {
-        //         let runQueue: IRunQueue = state.runQueue;
-        //         if (
-        //             runQueue.runningLine &&
-        //             runQueue.toLine &&
-        //             runQueue.runningLine < runQueue.toLine - 1
-        //         ) {
-        //             /** do not run line at toLine */
-        //             runQueue.runningLine += 1;
-        //         } else {
-        //             runQueue.status = RunQueueStatus.STOP;
-        //         }
-        //     }
-        // },
-
-        // compeleteRunQueue: (state, action) => {
-        //     if (state.runQueue.status === RunQueueStatus.RUNNING) {
-        //         let runQueue: IRunQueue = state.runQueue;
-        //         runQueue.status = RunQueueStatus.STOP;
-        //     }
-        // },
 
         updateCAssistInfo: (state, action) => {
             const cAssistInfoRedux: ICAssistInfoRedux = action.payload;

@@ -18,9 +18,9 @@ const WorkingPanel = () => {
         (state: RootState) => state.projectManager.showProjectExplore
     );
 
-    const projectConfig = useSelector((state: RootState) => state.projectManager.configs);
+    const projectConfig = useSelector((state: RootState) => state.projectManager.settings);
     let experiment_tracking_uri = useSelector(
-        (state: RootState) => state.projectManager?.configs?.experiment_manager?.mlflow_tracking_uri
+        (state: RootState) => state.projectManager?.settings?.experiment_manager?.mlflow_tracking_uri
     );
     /** TODO: move this to a separate component for config */
     const set_tracking_uri = (tracking_uri: string | undefined) => {
