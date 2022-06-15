@@ -36,7 +36,7 @@ def change_path(path):
         line2 = 'open_projects:\n'
         line3 = '\t- id: "4b9a3cfd-ec55-11ec-b7b8-309c238898ae"\n'
         line4 = '\tname: "Skywalker"\n'
-        line5 = '\tpath: ' + path
+        line5 = '\tpath: "' + path + '"'
         my_file.writelines([line1, line2, line3,line4,line5])
         my_file.close()
     else:
