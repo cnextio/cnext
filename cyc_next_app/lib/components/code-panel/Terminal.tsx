@@ -83,6 +83,7 @@ const Term = () => {
         console.log("ádfdsf", xtermRef.current.terminal),
           xtermRef.current.terminal.fit();
       }}
+      onKey={onTermKey}
       onData={onTermData}
       ref={xtermRef}
       addons={[fitAddon]}
