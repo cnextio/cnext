@@ -13,6 +13,8 @@ const {
     LanguageServerSignature,
     LanguageServerCompletion,
 } = require("./ls/lsp_process");
+const SSHClient = require("ssh2").Client;
+
 const port = process.env.PORT || 4000;
 const server = http.createServer();
 const options = {
@@ -32,8 +34,10 @@ const FileExplorer = "FileExplorer";
 const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
 const KernelManager = "KernelManager";
+const TerminalCommand = "TerminalCommand";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
 const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
+const TerminalExecutor = [TerminalCommand];
 
 const LSPExecutor = [
     LanguageServer,
@@ -57,11 +61,9 @@ class PythonProcess {
 
     // TODO: using clientMessage is hacky solution to send stdout back to client. won't work if there is multiple message being handled simultaneously
     constructor(io, commandStr, args) {
-        process.env.PYTHONPATH = [
-            process.env.PYTHONPATH,
-            config.path_to_cnextlib,
-            "./python",
-        ].join(path.delimiter);
+        process.env.PYTHONPATH = [process.env.PYTHONPATH, config.path_to_cnextlib, "./python"].join(
+            path.delimiter
+        );
 
         console.log("Environment path: ", process.env.PATH);
 
@@ -146,6 +148,8 @@ class PythonProcess {
 // let clientMessage;
 try {
     io.on("connection", (socket) => {
+        let conn = new SSHClient(); // initialize SSH connection
+
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();
             console.log(`Got ping at ${time}: ${message}`);
@@ -173,6 +177,43 @@ try {
                 nonCodeExecutor.send2executor(message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
+            } else if (TerminalExecutor.includes(endpoint)) {
+                conn.on("ready", function () {
+                    socket.emit("data", "\r\n*** SSH CONNECTION ESTABLISHED ***\r\n");
+                    conn.shell(function (err, stream) {
+                        if (err)
+                            return socket.emit(
+                                "data",
+                                "\r\n*** SSH SHELL ERROR: " + err.message + " ***\r\n"
+                            );
+                        socket.on("data", function (data) {
+                            console.log(data);
+                            stream.write(data);
+                        });
+                        stream
+                            .on("data", function (d) {
+                                socket.emit("data", d.toString("binary"));
+                            })
+                            .on("close", function () {
+                                conn.end();
+                            });
+                    });
+                })
+                    .on("close", function () {
+                        socket.emit("data", "\r\n*** SSH CONNECTION CLOSED ***\r\n");
+                    })
+                    .on("error", function (err) {
+                        socket.emit(
+                            "data",
+                            "\r\n*** SSH CONNECTION ERROR: " + err.message + " ***\r\n"
+                        );
+                    })
+                    .connect({
+                        host: "127.0.0.1",
+                        port: 22,
+                        username: "nguyenviet",
+                        password: "vietthai92",
+                    });
             }
         });
         socket.once("disconnect", () => {});
@@ -222,10 +263,10 @@ try {
     const initialize = () => {
         // codeExecutor.send2executor(
         //     JSON.stringify({
-        //         webapp_endpoint: FileManager,
+        //         webapp_endpoint: TerminalCommand,
         //         command_name: "add_project",
         //         // content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
-        //         content: `/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cyc_next_app/test`,
+        //         content: ``,
         //     })
         // );
     };
