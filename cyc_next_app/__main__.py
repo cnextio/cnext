@@ -40,7 +40,7 @@ def change_path(path):
 
 
 def ask():
-    answer = input('Would you like to start with a sample project? [(y)/n]:')
+    answer = input('Would you like to start with a sample project? ((y)/n): ')
     if(answer == 'y' or answer == 'Y'):
         return HAVE_PROJECT
     elif not answer:
