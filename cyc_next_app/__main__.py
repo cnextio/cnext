@@ -10,6 +10,7 @@ from zipfile import ZipFile
 import uuid
 import shutil
 import yaml
+import os
 
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
 server_path = os.path.join(web_path, 'server')
@@ -17,6 +18,13 @@ FILE_NAME = 'workspace.yaml'
 WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
 DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/9ee7cba2573c.zip'
+
+def change_permissions_recursive(path, mode):
+    for root, dirs, files in os.walk(path, topdown=False):
+        for dir in [os.path.join(root,d) for d in dirs]:
+            os.chmod(dir, mode)
+    for file in [os.path.join(root, f) for f in files]:
+            os.chmod(file, mode)
 
 
 def change_path(path):
@@ -57,7 +65,8 @@ def download_and_unzip(url, extract_to='.'):
     zipfile.extractall(path=extract_to)
 
     # grand per
-    os.chmod(extract_to, 0o444)
+    change_permissions_recursive(extract_to, 0o777)
+
     # cut - paste
     shutil.copytree(src=os.path.join(extract_to, zipfile.namelist()[0],'Skywalker'), dst=os.path.join(extract_to,'Skywalker') , dirs_exist_ok=True)
     skywaler_path = os.path.join(extract_to, 'Skywalker')
