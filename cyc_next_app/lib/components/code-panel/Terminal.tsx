@@ -1,15 +1,17 @@
 import React, { useRef, useEffect, useState } from "react";
 import { XTerm } from "xterm-for-react";
 
-const Term = ({ openDialog = true, confirm }) => {
+const Term = () => {
   const xtermRef = useRef(null);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState<string>("");
   function onTermData(data: any) {
     const code = data.charCodeAt(0);
     // If the user hits empty and there is something typed echo it.
+    console.log(data, code, "input data =>");
     if (code === 13 && input.length > 0) {
       // xtermRef.current.terminal.write("\r\nYou typed: '" + input + "'\r\n");
       xtermRef.current.terminal.write("\r\n" + "echo> ");
+      console.log(code, "enter send data");
       setInput("");
     } else if (code < 32 || code === 127) {
       // Disable control Keys such as arrow keys
@@ -19,13 +21,10 @@ const Term = ({ openDialog = true, confirm }) => {
       xtermRef.current.terminal.write(data);
       setInput(input + data);
     }
-    console.log(data, code, "data");
   }
 
   const onTermKey = (data: any) => {
-    // const code = data.charCodeAt(0);
     console.log(data, "key");
-    // if
   };
   useEffect(() => {
     var init_width = 9;
