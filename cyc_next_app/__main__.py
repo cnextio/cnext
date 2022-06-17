@@ -1,4 +1,5 @@
 import os
+from site import abs_paths
 import sys
 from subprocess import Popen
 from contextlib import contextmanager
@@ -79,11 +80,12 @@ def build_path():
     path = input(
         'Please enter the directory\'s path to store the sample project in: ')
     print('Checking your path: ' + path)
-    if os.path.isdir(path):
-        os.chdir(path)
-        folder_name = os.path.basename(path)
+    abs_paths = os.path.abspath(path)
+    if os.path.isdir(abs_paths):
+        os.chdir(abs_paths)
+        folder_name = os.path.basename(abs_paths)
         print('Your sample project will download in', folder_name)
-        download_and_unzip(DOWNLOAD_PATH, path)
+        download_and_unzip(DOWNLOAD_PATH, abs_paths)
     else:
         print('Your path isn\'t correct, Please try again')
         build_path()
