@@ -8,6 +8,8 @@ import socket from "../Socket";
 const Term = () => {
   const xtermRef = useRef(null);
   const [input, setInput] = useState<string>("");
+  const [cursor, setCursor] = useState<number>(0);
+
   const [isMountTerm, setIsMountTerm] = useState<boolean>(false);
   const fitAddon = new FitAddon();
   const socketInit = () => {
@@ -34,14 +36,33 @@ const Term = () => {
 
   function onTermData(data: any) {
     setIsMountTerm(true);
-    console.log("data", data);
 
     const code = data.charCodeAt(0);
+    console.log("code:" + code + "data: " + data);
     const term = xtermRef.current.terminal;
+    if (code == 27) {
+      switch (data.substr(1)) {
+        case "[C": // Right arrow
+          if (cursor < input.length) {
+            console.log("Right");
+
+            setCursor(cursor + 1);
+            term.write(data);
+          }
+          break;
+        case "[D": // Left arrow
+          if (cursor > 0) {
+            console.log("Right");
+            setCursor(cursor - 1);
+            term.write(`\x1b[D`);
+          }
+
+          break;
+      }
+    }
     if (code === 13 && input.length > 0) {
       if (input === "cls" || input === "clear") {
         term.clear();
-        console.log(code, "data=>>>", input, "enter");
         term.write("\r\n" + "~$ ");
       } else {
         term.write("\r\n" + "~$ ");
@@ -54,12 +75,48 @@ const Term = () => {
     } else {
       // Add general key press characters to the terminal
       term.write(data);
+      setCursor((input + data).length);
       setInput(input + data);
     }
   }
+  //   var inputA = "";
+  // //   var cursor = 0;
+  //   function onTermData(data: any) {
+  //     const code = data.charCodeAt(0);
+  //     const term = xtermRef.current.terminal;
+  //     console.log("ata.substr(1)", data, code);
+  //     console.log("ata.substr(1)", data, code, data.substr(1));
 
+  //     if (code == 27) {
+  //       switch (data.substr(1)) {
+  //         case "[C": // Right arrow
+  //           if (cursor < inputA.length) {
+  //             console.log("Right");
+
+  //             cursor += 1;
+  //             term.write(data);
+  //           }
+  //           break;
+  //         case "[D": // Left arrow
+  //           if (cursor > 0) {
+  //             console.log("Right");
+  //             cursor -= 1;
+  //             term.write(`\x1b[D`);
+  //           }
+
+  //           break;
+  //       }
+  //     } else if (code == 13) {
+  //       // CR
+  //     } else {
+  //       term.write(data);
+  //       cursor = data.length;
+  //       inputA = inputA.substr(0, cursor) + data + inputA.substr(cursor);
+  //     }
+  //   }
   const onTermKey = (data: any) => {
-    if (data.domEvent.keyCode === 8) {
+    // press key backSpace and Delete
+    if (data.domEvent.keyCode === 8 || data.domEvent.keyCode === 46) {
       xtermRef.current.terminal.write("\b \b");
       setInput(input.slice(0, -1));
     }
