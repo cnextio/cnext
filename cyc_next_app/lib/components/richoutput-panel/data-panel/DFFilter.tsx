@@ -9,6 +9,7 @@ import { dfFilterLanguageServer } from "../../../codemirror/autocomplete-lsp/ind
 import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
 import store from "../../../../redux/store";
 import { ViewUpdate } from "@codemirror/view";
+import { EditorState, TransactionSpec } from "@codemirror/state";
 
 const ls = dfFilterLanguageServer();
 
@@ -130,17 +131,24 @@ const DFExplorer = React.memo(() => {
         cnextQuery(),
         // python(),
         ls,
+        EditorState.transactionFilter.of((transaction) => {
+            let newLineDetected = false;
+            transaction.changes.iterChanges(
+                (fromA, toA, fromB, toB, inserted) => {
+                   newLineDetected ||=  (inserted.lines > 1);
+                }
+            );
+            if (newLineDetected){
+                return null;
+            } 
+            return transaction;
+        }),
     ];
 
     return (
         <DFFilterForm>
-            {/* <InputLabel sx={{fontSize: '13px', p: '0px'}}>Data Frame</InputLabel> */}
             <DFFilterInput
-                // sx={{ borderBottom: 1 }}
-                // onChange = {onFilterChange}
-                // inputProps = {{style: {padding: '0px 10px', height: '32px'}}}
-                placeholder='Filter...'
-                // value = {filterText}
+                placeholder="Filter..."
                 inputComponent={() => {
                     return (
                         <StyledFilterCodeMirror
@@ -153,11 +161,6 @@ const DFExplorer = React.memo(() => {
                     );
                 }}
             ></DFFilterInput>
-            {/* <StyledFilterCodeMirror
-                            height = "30px"
-                            extensions = {extensions}   
-                            basicSetup = {false}                         
-                        /> */}
         </DFFilterForm>
     );
 });
