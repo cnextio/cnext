@@ -16,26 +16,6 @@ class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
 
-    # @staticmethod
-    # def _is_execute_result(header) -> bool:
-    #     return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
-
-    # @staticmethod
-    # def _is_execute_reply(header) -> bool:
-    #     return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY
-
-    # @staticmethod
-    # def _is_stream_result(header) -> bool:
-    #     return header['msg_type'] == IPythonConstants.MessageType.STREAM
-
-    # @staticmethod
-    # def _is_display_data_result(header) -> bool:
-    #     return header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA
-
-    # @staticmethod
-    # def _is_error_message(header) -> bool:
-    #     return header['msg_type'] == IPythonConstants.MessageType.ERROR
-
     @staticmethod
     def _result_is_plotly_fig(content) -> bool:
         try:
@@ -45,9 +25,6 @@ class MessageHandler(BaseMessageHandler):
             return hasattr(plotly.graph_objs, '_figure') and (type(plotly_figure) == plotly.graph_objs._figure.Figure)
         except Exception:
             return False
-
-    # PRIORITIXED_MIME_LIST = [SubContentType.APPLICATION_PLOTLY, SubContentType.APPLICATION_JSON, SubContentType.IMAGE_PLOTLY,
-    #                          SubContentType.IMAGE_JPG, SubContentType.IMAGE_PNG, SubContentType.IMAGE_SVG, SubContentType.TEXT_HTML]
 
     def _process_rich_ouput(self, message, msg_ipython):
         message.error = False

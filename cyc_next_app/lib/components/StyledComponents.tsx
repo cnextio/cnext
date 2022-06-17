@@ -767,7 +767,7 @@ export const SingleResultContainer = styled(Paper)`
         props.showMarkdown ? null : props.focused ? props.theme.palette.primary.light : null};
     border-width: ${(props) => (props.showMarkdown ? "0px" : props.focused ? "2px" : null)};
     overflow: auto;
-    
+
     svg {
         width: 1000px;
         height: 1000px;
@@ -780,7 +780,7 @@ export const SingleResultContainer = styled(Paper)`
         width: 500px;
         height: 100%;
         p {
-            line-height: 20px;
+            line-height: 18px;
         }
     }
 `;

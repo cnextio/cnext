@@ -43,7 +43,7 @@ const dataframeManagerConfigs: IDataFrameManagerConfigs = {
 };
 
 const richOutputConfigs: IRichOutputConfigs = {
-    show_markdown: false
+    show_markdown: false,
 };
 
 type ProjectManagerState = {
@@ -65,7 +65,7 @@ type ProjectManagerState = {
     projects: Object[];
     workspaceMetadata: IWorkspaceMetadata;
     projectToAdd: null | string;
-    projectToSetActive: null | string;    
+    projectToSetActive: null | string;
 };
 
 const initialState: ProjectManagerState = {
@@ -140,7 +140,9 @@ export const ProjectManagerRedux = createSlice({
                 state.openOrder.includes(inViewID) &&
                 state.openOrder[state.openOrder.length - 1] !== inViewID
             ) {
-                state.openOrder = state.openOrder.filter((file) => {return file!==inViewID});
+                state.openOrder = state.openOrder.filter((file) => {
+                    return file !== inViewID;
+                });
                 state.openOrder.push(inViewID);
             }
         },

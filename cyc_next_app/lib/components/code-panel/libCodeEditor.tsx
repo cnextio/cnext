@@ -488,8 +488,8 @@ const isPromise = (object) => {
 const getRunningCommandContent = (
     view: EditorView,
     lineRange: ILineRange
-): IRunningCommandContent | undefined => {
-    let content: IRunningCommandContent | undefined;
+): IRunningCommandContent | null => {
+    let content: IRunningCommandContent | null = null;
     if (view) {
         const doc = view.state.doc;
         if (
