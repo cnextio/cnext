@@ -1,5 +1,10 @@
 import React from "react";
-import { ProjectCommand, IFileMetadata, IDirectoryMetadata, IWorkspaceMetadata } from "./IFileManager";
+import {
+    ProjectCommand,
+    IFileMetadata,
+    IDirectoryMetadata,
+    IWorkspaceMetadata,
+} from "./IFileManager";
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
@@ -131,6 +136,7 @@ export enum WebAppEndpoint {
     LanguageServerHover = "LanguageServerHover",
     LanguageServerCompletion = "LanguageServerCompletion",
     LanguageServerSignature = "LanguageServerSignature",
+    TerminalCommand = "TerminalCommand",
 }
 
 export interface ITableData {
@@ -337,7 +343,7 @@ interface WorkSpaceOpenProject {
     path: String;
 }
 
-export const SETTING_FILE_PATH = 'config.json'
+export const SETTING_FILE_PATH = "config.json";
 // export interface IWorkSpaceConfig {
 //     active_project: string | null;
 //     open_projects: WorkSpaceOpenProject[] | [];
