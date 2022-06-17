@@ -3,7 +3,7 @@ import { ProjectCommand, IFileMetadata, IDirectoryMetadata, IWorkspaceMetadata }
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
-import { KernelManagerCommand } from "./IKernelManager";
+import { IKernelManagerResultContent, KernelManagerCommand } from "./IKernelManager";
 import { ModelManagerCommand } from "./IModelManager";
 import { ICodeResultContent } from "./ICodeEditor";
 
@@ -34,6 +34,7 @@ export interface IMessage {
         | IGetCardinalResult
         | IDirectoryMetadata
         | IWorkspaceMetadata
+        | IKernelManagerResultContent
         | null; // the command string and output string|object
     error?: boolean;
     metadata?: object; // store info about the dataframe and columns
