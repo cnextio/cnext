@@ -1,3 +1,5 @@
+import glob
+import readline
 import os
 from site import abs_paths
 import sys
@@ -73,21 +75,29 @@ def download_and_unzip(url, extract_to='.'):
     sample_project_path = os.path.join(extract_to, 'Skywalker')
     # remove old folder
     shutil.rmtree(path=os.path.join(extract_to, zipfile.namelist()[0]))
-    change_path(os.path.normpath(sample_project_path).replace(os.sep,'/'))
+    change_path(os.path.normpath(sample_project_path).replace(os.sep, '/'))
 
+
+def complete(text, state):
+    return (glob.glob(text+'*')+[None])[state]
+
+
+readline.set_completer_delims(' \t\n;')
+readline.parse_and_bind("tab: complete")
+readline.set_completer(complete)
 
 def build_path():
     path = input(
-        'Please enter the path to store the sample project in: ')
+        'Please enter the directory to download the sample project: ')
     print('Checking your path: ' + path)
     abs_paths = os.path.abspath(path)
     if os.path.isdir(abs_paths):
         os.chdir(abs_paths)
         folder_name = os.path.basename(abs_paths)
-        print('The sample project will be stored at', folder_name)
+        print('The sample project will be downloaded to', folder_name)
         download_and_unzip(DOWNLOAD_PATH, abs_paths)
     else:
-        print('Your path does not exist or is not a directory, Please try again')
+        print('The path does not exist or is not a directory. Please try again!')
         build_path()
 
 def clear_content():
