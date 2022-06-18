@@ -123,10 +123,10 @@ class PythonProcess {
         this.executor.send(message);
     }
 
-    async send2executor_zmq(message) {
+    async send2kernel_manager(message) {
         try {
             if (this.kernel_control_socket != undefined) {
-                console.log(`send2executor_zmq: ${message}`);
+                console.log(`send2kernel_manager: ${message}`);
                 await this.kernel_control_socket.send(message);
             }
         } catch (err) {
@@ -161,7 +161,7 @@ try {
                 );
                 if (endpoint === KernelManager) {
                     // This is temporary solution, when refactor the nodejs completely conenct to python by ZMQ, we 'll refactor later
-                    codeExecutor.send2executor_zmq(message);
+                    codeExecutor.send2kernel_manager(message);
                 } else {
                     codeExecutor.send2executor(message);
                 }
