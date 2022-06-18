@@ -95,6 +95,7 @@ import {
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
 import { closeBracketsKeymap } from "@codemirror/closebrackets";
+import { IKernelManagerResultContent, KernelManagerCommand } from "../../interfaces/IKernelManager";
 
 const pyLanguageServer = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -113,9 +114,11 @@ const CodeEditor = () => {
     const activeProjectID = useSelector(
         (state: RootState) => state.projectManager.activeProject?.id
     );
-    // using this to trigger refresh in gutter
+    /** using this to trigger refresh in gutter */
     const codeText = useSelector((state: RootState) => getCodeText(state));
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
+    /** using this only when handling kernel interupt or restart */
+    const [runningCodeContent, setRunningCodeContent] = useState <IRunningCommandContent|null>(null);
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
 
@@ -316,6 +319,38 @@ const CodeEditor = () => {
                 console.error(error);
             }
         });
+
+        socket.on(WebAppEndpoint.KernelManager, (result: string) => {
+            console.log("CodeEditor got result ", result);
+            // console.log("CodeEditor: got results...");
+            try {
+                let kmResult: IMessage = JSON.parse(result);
+                let resultContent = kmResult.content as IKernelManagerResultContent;
+
+                let inViewID = store.getState().projectManager.inViewID;
+                if (inViewID) {
+                    /** unlike in handling CodeEditor message, we use info in runningCodeContent
+                     * to set the line status */
+                    if (
+                        (kmResult.command_name === KernelManagerCommand.restart_kernel ||
+                            kmResult.command_name === KernelManagerCommand.interrupt_kernel) &&
+                        resultContent.success === true &&
+                        runningCodeContent != null
+                    ) {
+                        setLineStatus(
+                            inViewID,
+                            runningCodeContent.lineRange,
+                            LineStatus.EXECUTED_FAILED
+                        );
+                        dispatch(clearRunQueue());
+                        dispatch(setRunQueueStatus(RunQueueStatus.STOP));
+                        setRunningCodeContent(null);
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
     };
 
     useEffect(() => {
@@ -409,7 +444,7 @@ const CodeEditor = () => {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
                 dispatch(removeFromRunQueue());
-                execLines(runQueueItem);
+                execLines(runQueueItem);                
             }
         }
     }, [runQueue]);
@@ -609,14 +644,12 @@ const CodeEditor = () => {
         let inViewID = runQueueItem.inViewID;
         let lineRange = runQueueItem.lineRange;
         if (inViewID && view && lineRange.toLine != null && lineRange.fromLine != null) {
-            let content: IRunningCommandContent | undefined = getRunningCommandContent(
-                view,
-                lineRange
-            );
-            if (content && inViewID) {
+            let content: IRunningCommandContent | null = getRunningCommandContent(view, lineRange);
+            if (content != null && inViewID != null) {
                 console.log("CodeEditor execLines: ", content, lineRange);
                 sendMessage(content);
-                setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);
+                setRunningCodeContent(content);
+                setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);                
             }
         }
     };
