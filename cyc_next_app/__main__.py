@@ -37,11 +37,11 @@ def change_path(path):
     }
     with open(r'workspace.yaml', 'w') as file:
         documents = yaml.dump(data, file, default_flow_style=False)
-    print('Map path for sample project done!')
+    print('Adding sample project done!')
 
 
 def ask():
-    answer = input('Would you like to start with a sample project? ((y)/n): ')
+    answer = input('Would you like to download the sample project? [(y)/n]: ')
     if(answer == 'y' or answer == 'Y'):
         return HAVE_PROJECT
     elif not answer:
@@ -70,24 +70,24 @@ def download_and_unzip(url, extract_to='.'):
 
     # cut - paste
     shutil.copytree(src=os.path.join(extract_to, zipfile.namelist()[0],'Skywalker'), dst=os.path.join(extract_to,'Skywalker') , dirs_exist_ok=True)
-    skywaler_path = os.path.join(extract_to, 'Skywalker')
+    sample_project_path = os.path.join(extract_to, 'Skywalker')
     # remove old folder
     shutil.rmtree(path=os.path.join(extract_to, zipfile.namelist()[0]))
-    change_path(os.path.normpath(skywaler_path).replace(os.sep,'/'))
+    change_path(os.path.normpath(sample_project_path).replace(os.sep,'/'))
 
 
 def build_path():
     path = input(
-        'Please enter the directory\'s path to store the sample project in: ')
+        'Please enter the path to store the sample project in: ')
     print('Checking your path: ' + path)
     abs_paths = os.path.abspath(path)
     if os.path.isdir(abs_paths):
         os.chdir(abs_paths)
         folder_name = os.path.basename(abs_paths)
-        print('Your sample project will download in', folder_name)
+        print('The sample project will be stored at', folder_name)
         download_and_unzip(DOWNLOAD_PATH, abs_paths)
     else:
-        print('Your path isn\'t correct, Please try again')
+        print('Your path does not exist or is not a directory, Please try again')
         build_path()
 
 def clear_content():
