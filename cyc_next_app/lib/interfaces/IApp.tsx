@@ -304,18 +304,18 @@ export interface IAppShortcutKey {
     lint_on: string;
     hover_on: string;
 }
-export interface IEditorConfigs {
+export interface IEditorSettings {
     lint: boolean;
     hover: boolean;
     autocompletion: boolean;
 }
 
-export interface IDataFrameManagerConfigs {
+export interface IDataFrameManagerSettings {
     auto_display_data: boolean;
     show_exec_text: boolean;
 }
 
-export interface IRichOutputConfigs {
+export interface IRichOutputSettings {
     show_markdown: boolean;
 }
 
@@ -324,9 +324,9 @@ export interface IConfigs {
     code_editor_shortcut: IEditorShortcutKey;
     app_shortcut?: IAppShortcutKey;
     experiment_manager?: IExperimentManagerConfig;
-    code_editor: IEditorConfigs;
-    dataframe_manager: IDataFrameManagerConfigs;
-    rich_output: IRichOutputConfigs;
+    code_editor: IEditorSettings;
+    dataframe_manager: IDataFrameManagerSettings;
+    rich_output: IRichOutputSettings;
 }
 
 export enum DFViewMode {
