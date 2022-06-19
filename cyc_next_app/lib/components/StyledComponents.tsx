@@ -225,8 +225,18 @@ export const FileItem = styled(TreeItem)`
 `;
 
 export const FileItemLabel = styled.div`
-    font-size: 14px;
+    font-size: 13px;
     line-height: 2em;
+`;
+
+export const Overlay = styled.div`
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    background-color: rgb(238, 238, 238, 0.3);
 `;
 
 export const OpenProjectTree = styled(FileTree)``;
@@ -237,6 +247,7 @@ export const ClosedProjectItem = styled.div`
     padding-left: 8px;
     font-style: italic;
     cursor: pointer;
+    color: ${(props) => props.theme.palette.text.secondary};
 `;
 
 export const ContextMenu = styled(Menu)`
@@ -290,6 +301,7 @@ export const ProjectExplorerContainer = styled.div`
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative;
 `;
 
 export const ProjectToolbar = styled.div`
@@ -330,7 +342,7 @@ export const FileNameTab = styled(Typography)`
     line-height: calc(var(--var-height));
     padding: 0px 5px 0px 10px;
     font-size: 13px;
-
+    
     animation: ${(props) =>
             props.runQueueBusy
                 ? textTransitionToColor("#F59242", props.theme.palette.grey.A200)
@@ -348,6 +360,10 @@ export const FileNameTab = styled(Typography)`
         background-color: ${(props) =>
             props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
     }
+`;
+
+export const FileNameTabContainer = styled.div`
+    position: relative;
 `;
 
 export const ExecutorIcon = styled(BoltIcon)`

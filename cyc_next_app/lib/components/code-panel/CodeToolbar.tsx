@@ -5,17 +5,14 @@ import {
     PanelDivider,
     FileCloseIcon as StyledFileCloseIcon,
     FileCloseIconContainer,
+    FileNameTabContainer,
 } from "../StyledComponents";
-import { IconButton, stepConnectorClasses } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
 import { useDispatch, useSelector } from "react-redux";
 import { setFileToClose, setInView } from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import { isRunQueueBusy } from "./libCodeEditor";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-import { setNotification } from "../../../redux/reducers/NotificationRedux";
-import { OPERATION_DISABLED_MSG } from "../../interfaces/IApp";
-import { runQueueSafe } from "../libs/utils";
+import { OverlayComponent } from "../libs/OverlayComponent";
 
 const FileCloseIcon = (props) => {
     return (
@@ -60,43 +57,52 @@ const CodeToolbar = () => {
     const renderFileNameComponent = (id: string, name: string) => {
         return (
             <Fragment key={id}>
-                <FileNameTab
-                    // toolbarName={name}
-                    selected={id === inViewID}
-                    component="span"
-                    /** not allow switching tab when the runQueue is busy */
-                    onClick={(event: React.MouseEvent) => runQueueSafe(event, () => onClick(id))}
-                    // className={id == inViewID && runQueueBusy ? `ft-runqueuebusy` : ``}
-                    runQueueBusy = {id == inViewID && runQueueBusy}
-                    fileSaved={
-                        !fileToSave.includes(id) &&
-                        savingFile !== id &&
-                        !fileToSaveState.includes(id) &&
-                        savingStateFile !== id
-                    }
-                    onMouseEnter={(event: React.MouseEvent) => {
-                        // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
-                        let newDisplay = { ...displayState };
-                        newDisplay[id] = { display: "inline-block" };
-                        /** need to do the following to avoid race condition */
-                        Object.keys(newDisplay).map((key) => {
-                            key !== id ? (newDisplay[key] = { display: "none" }) : null;
-                        });
-                        setDisplayState(newDisplay);
-                    }}
-                    onMouseLeave={(event: React.MouseEvent) => {
-                        // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
-                        let newDisplay = { ...displayState };
-                        newDisplay[id] = { display: "none" };
-                        setDisplayState(newDisplay);
-                    }}
-                >
-                    {name}
-                    <FileCloseIcon
-                        style={id in displayState ? displayState[id] : { display: "none" }}
-                        onClick={(event: React.MouseEvent) => onClose(event, id)}
-                    />
-                </FileNameTab>
+                <FileNameTabContainer>
+                    <FileNameTab
+                        // toolbarName={name}
+                        selected={id === inViewID}
+                        component="span"
+                        /** not allow switching tab when the runQueue is busy */
+                        // onClick={(event: React.MouseEvent) => runQueueSafe(event, () => onClick(id))}
+                        onClick={() => onClick(id)}
+                        runQueueBusy={id === inViewID && runQueueBusy}
+                        fileSaved={
+                            !fileToSave.includes(id) &&
+                            savingFile !== id &&
+                            !fileToSaveState.includes(id) &&
+                            savingStateFile !== id
+                        }
+                        onMouseEnter={(event: React.MouseEvent) => {
+                            // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
+                            let newDisplay = { ...displayState };
+                            newDisplay[id] = { display: "inline-block" };
+                            /** need to do the following to avoid race condition */
+                            Object.keys(newDisplay).map((key) => {
+                                key !== id ? (newDisplay[key] = { display: "none" }) : null;
+                            });
+                            setDisplayState(newDisplay);
+                        }}
+                        onMouseLeave={(event: React.MouseEvent) => {
+                            // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
+                            let newDisplay = { ...displayState };
+                            newDisplay[id] = { display: "none" };
+                            setDisplayState(newDisplay);
+                        }}
+                    >
+                        {name}
+                        {
+                            <FileCloseIcon
+                                style={
+                                    !runQueueBusy && id in displayState
+                                        ? displayState[id]
+                                        : { display: "none" }
+                                }
+                                onClick={(event: React.MouseEvent) => onClose(event, id)}
+                            />
+                        }
+                    </FileNameTab>
+                    {runQueueBusy && id !== inViewID && <OverlayComponent />}
+                </FileNameTabContainer>
                 <PanelDivider orientation="vertical" color="light" />
                 {id == inViewID && (
                     <ScrollIntoViewIfNeeded

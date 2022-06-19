@@ -43,12 +43,10 @@ import NewItemInput from "./NewItemInput";
 import DeleteConfirmation from "./DeleteConfirmation";
 import store, { RootState } from "../../../redux/store";
 import CypressIds from "../tests/CypressIds";
-import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import AddBoxIcon from "@mui/icons-material/AddBox";
-import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import Tooltip from "@mui/material/Tooltip";
-import { resetCodeEditor } from "../../../redux/reducers/CodeEditorRedux";
-import { runQueueSafe } from "../libs/utils";
+import { isRunQueueBusy } from "../code-panel/libCodeEditor";
+import { OverlayComponent } from "../libs/OverlayComponent";
 
 const NameWithTooltip = ({ children, tooltip }) => {
     return (
@@ -90,7 +88,9 @@ const FileExplorer = (props: any) => {
     const [expandedDirs, setExpandedDirs] = useState<Array<string>>([]);
     const [deleteDialog, setDeleteDialog] = useState(false);
     const dispatch = useDispatch();
-
+    const runQueueBusy = useSelector((state: RootState) =>
+        isRunQueueBusy(state.codeEditor.runQueue)
+    );
     const setupSocket = () => {
         socket.emit("ping", "FileExplorer");
         socket.on(WebAppEndpoint.FileExplorer, (result: string) => {
@@ -405,36 +405,18 @@ const FileExplorer = (props: any) => {
                                             <FileItemLabel>{value.name}</FileItemLabel>
                                         </NameWithTooltip>
                                     }
-                                    onClick={(event: React.MouseEvent) =>
-                                        runQueueSafe(event, () => {
-                                            value.is_file
-                                                ? dispatch(setFileToOpen(value.path))
-                                                : null;
-                                        })
-                                    }
-                                    // onClick={() => {
-                                    //     value.is_file ? dispatch(setFileToOpen(value.path)) : null;
-                                    // }}
-                                    onContextMenu={(event: React.MouseEvent) =>
-                                        runQueueSafe(event, () => {
-                                            openContextMenu(
-                                                event,
-                                                value.path,
-                                                relativeParentPath,
-                                                value.is_file,
-                                                value.deletable
-                                            );
-                                        })
-                                    }
-                                    // onContextMenu={(event: React.MouseEvent) => {
-                                    //     openContextMenu(
-                                    //         event,
-                                    //         value.path,
-                                    //         relativeParentPath,
-                                    //         value.is_file,
-                                    //         value.deletable
-                                    //     );
-                                    // }}
+                                    onClick={() => {
+                                        value.is_file ? dispatch(setFileToOpen(value.path)) : null;
+                                    }}
+                                    onContextMenu={(event: React.MouseEvent) => {
+                                        openContextMenu(
+                                            event,
+                                            value.path,
+                                            relativeParentPath,
+                                            value.is_file,
+                                            value.deletable
+                                        );
+                                    }}
                                 >
                                     {!value.is_file && renderFileItems(projectPath, value.path)}
                                 </FileItem>
@@ -464,10 +446,7 @@ const FileExplorer = (props: any) => {
         if (projectItem.id !== activeProject?.id) {
             return (
                 <ClosedProjectItem
-                    onDoubleClick={(event: React.MouseEvent) =>
-                        runQueueSafe(event, () => changeActiveProject(projectItem?.id))
-                    }
-                    // onDoubleClick={() => changeActiveProject(projectItem?.id)}
+                    onDoubleClick={() => changeActiveProject(projectItem?.id)}
                 >
                     <LockIcon
                         style={{
@@ -500,30 +479,15 @@ const FileExplorer = (props: any) => {
                                     <FileItemLabel>{activeProject?.name}</FileItemLabel>
                                 </NameWithTooltip>
                             }
-                            onContextMenu={(event: React.MouseEvent) =>
-                                runQueueSafe(
+                            onContextMenu={(event: React.MouseEvent) => {
+                                openContextMenu(
                                     event,
-                                    // (event: React.MouseEvent, relativeProjectPath: string)
-                                    () => {
-                                        openContextMenu(
-                                            event,
-                                            relativeProjectPath,
-                                            relativeProjectPath,
-                                            false,
-                                            false
-                                        );
-                                    }
-                                )
-                            }
-                            // onContextMenu={(event: React.MouseEvent) => {
-                            //     openContextMenu(
-                            //         event,
-                            //         relativeProjectPath,
-                            //         relativeProjectPath,
-                            //         false,
-                            //         false
-                            //     );
-                            // }}
+                                    relativeProjectPath,
+                                    relativeProjectPath,
+                                    false,
+                                    false
+                                );
+                            }}
                         >
                             {renderFileItems(projectItem?.path, relativeProjectPath)}
                         </FileItem>
@@ -546,10 +510,7 @@ const FileExplorer = (props: any) => {
                 >
                     <AddBoxIcon
                         id="add-project-button"
-                        onClick={(event: React.MouseEvent) =>
-                            runQueueSafe(event, handleAddProjectBtn)
-                        }
-                        // onClick={handleAddProjectBtn}
+                        onClick={handleAddProjectBtn}
                         fontSize="small"
                         style={{ cursor: "pointer" }}
                     />
@@ -588,6 +549,7 @@ const FileExplorer = (props: any) => {
                     itemName={contextMenuItems?.item}
                 />
             )}
+            {runQueueBusy && <OverlayComponent />}
         </ProjectExplorerContainer>
     );
 };
