@@ -209,6 +209,8 @@ export const FileTree = styled(TreeView)`
     height: 100%;
 `;
 
+export const OpenProjectItem = styled(FileTree)``;
+
 export const FileItem = styled(TreeItem)`
     .MuiTreeItem-label {
         font-size: 13px;
@@ -224,7 +226,7 @@ export const FileItem = styled(TreeItem)`
     width: 100%;
 `;
 
-export const ProjectItem = styled.p`
+export const ClosedProjectItem = styled.div`
     font-size: 14px;
     line-height: 2em;
     padding-left: 8px;
@@ -303,11 +305,19 @@ export const ProjectToolbar = styled.div`
     }
 `;
 
+export const ProjectExplorerContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    height: 100%;
+`;
+
 export const FileCloseIconContainer = styled.div`
     display: flex;
     width: 22.5px;
     height: 22.5px;
 `;
+
 export const FileNameTab = styled(Typography)`
     display: flex;
     align-items: center;

@@ -5,8 +5,10 @@ import {
     FileExplorerHeaderName,
     FileTree,
     FileItem,
-    ProjectItem,
+    ClosedProjectItem,
     ErrorText,
+    ProjectExplorerContainer,
+    OpenProjectItem,
 } from "../StyledComponents";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -424,7 +426,7 @@ const FileExplorer = (props: any) => {
         if (projectItem.id !== activeProject?.id) {
             return (
                 <Tooltip title={projectItem?.path} placement='bottom-end'>
-                    <ProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)}>
+                    <ClosedProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)}>
                         <LockIcon
                             style={{
                                 fontSize: "16px",
@@ -433,22 +435,16 @@ const FileExplorer = (props: any) => {
                             }}
                         />
                         {projectItem?.name}
-                    </ProjectItem>
+                    </ClosedProjectItem>
                 </Tooltip>
             );
         } else {
             return (
                 <Tooltip title={projectItem?.path} placement='bottom-end'>
-                    <FileTree
-                        aria-label='file system navigator'
+                    <OpenProjectItem
+                        aria-label="file system navigator"
                         defaultCollapseIcon={<ExpandMoreIcon />}
                         defaultExpandIcon={<ChevronRightIcon />}
-                        sx={{
-                            height: 240,
-                            flexGrow: 1,
-                            maxWidth: 400,
-                            overflowY: "auto",
-                        }}
                         expanded={expandedDirs}
                         onNodeToggle={handleDirToggle}
                     >
@@ -470,7 +466,7 @@ const FileExplorer = (props: any) => {
                                 {renderFileItems(relativeProjectPath)}
                             </FileItem>
                         )}
-                    </FileTree>
+                    </OpenProjectItem>
                 </Tooltip>
             );
         }
@@ -479,17 +475,17 @@ const FileExplorer = (props: any) => {
     return (
         <Fragment>
             <ProjectToolbar>
-                <FileExplorerHeaderName variant='overline'>Projects</FileExplorerHeaderName>
+                <FileExplorerHeaderName variant="overline">Projects</FileExplorerHeaderName>
                 <Tooltip
-                    title='Add project'
+                    title="Add project"
                     enterDelay={500}
-                    placement='bottom-end'
+                    placement="bottom-end"
                     style={{ marginLeft: "auto" }}
                 >
                     <AddBoxIcon
-                        id='add-project-button'
+                        id="add-project-button"
                         onClick={handleAddProjectBtn}
-                        fontSize='small'
+                        fontSize="small"
                         style={{ cursor: "pointer" }}
                     />
                 </Tooltip>
@@ -500,12 +496,12 @@ const FileExplorer = (props: any) => {
                     <NoteAddIcon fontSize="small" style={{ cursor: "pointer" }} />
                 </Tooltip> */}
             </ProjectToolbar>
-            <div>
+            <ProjectExplorerContainer>
                 {workspaceMetadata.open_projects.map((item) => renderProjectItem(item))}
                 {createProjectInProgress ? (
                     <Fragment>
                         <NewItemInput
-                            id='new-project-input'
+                            id="new-project-input"
                             handleKeyPress={handleNewProjectKeyPress}
                             command={ProjectCommand.add_project}
                             style={{ marginLeft: "10px" }}
@@ -513,7 +509,7 @@ const FileExplorer = (props: any) => {
                         {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
                     </Fragment>
                 ) : null}
-            </div>
+            </ProjectExplorerContainer>
             <FileContextMenu
                 contextMenuPos={contextMenuPos}
                 handleClose={closeContextMenu}
