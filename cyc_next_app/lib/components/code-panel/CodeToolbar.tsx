@@ -13,6 +13,9 @@ import { setFileToClose, setInView } from "../../../redux/reducers/ProjectManage
 import store, { RootState } from "../../../redux/store";
 import { isRunQueueBusy } from "./libCodeEditor";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
+import { setNotification } from "../../../redux/reducers/NotificationRedux";
+import { OPERATION_DISABLED_MSG } from "../../interfaces/IApp";
+import { runQueueSafe } from "../libs/utils";
 
 const FileCloseIcon = (props) => {
     return (
@@ -51,7 +54,7 @@ const CodeToolbar = () => {
         // let inViewID = store.getState().projectManager.inViewID;
         let openOrder = store.getState().projectManager.openOrder;
         // let keys = Object.keys(openFiles);
-        dispatch(setInView(openOrder[openOrder.length-1]));
+        dispatch(setInView(openOrder[openOrder.length - 1]));
     }, [openFiles]);
 
     const renderFileNameComponent = (id: string, name: string) => {
@@ -59,17 +62,19 @@ const CodeToolbar = () => {
             <Fragment key={id}>
                 <FileNameTab
                     // toolbarName={name}
-                    selected={id == inViewID}
+                    selected={id === inViewID}
                     component="span"
                     /** not allow switching tab when the runQueue is busy */
-                    onClick={() => (runQueueBusy ? null : onClick(id))}
+                    onClick={(event: React.MouseEvent) => runQueueSafe(event, () => onClick(id))}
+                    // className={id == inViewID && runQueueBusy ? `ft-runqueuebusy` : ``}
+                    runQueueBusy = {id == inViewID && runQueueBusy}
                     fileSaved={
                         !fileToSave.includes(id) &&
                         savingFile !== id &&
                         !fileToSaveState.includes(id) &&
                         savingStateFile !== id
                     }
-                    onMouseEnter={(event) => {
+                    onMouseEnter={(event: React.MouseEvent) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
                         let newDisplay = { ...displayState };
                         newDisplay[id] = { display: "inline-block" };
@@ -79,7 +84,7 @@ const CodeToolbar = () => {
                         });
                         setDisplayState(newDisplay);
                     }}
-                    onMouseLeave={(event) => {
+                    onMouseLeave={(event: React.MouseEvent) => {
                         // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
                         let newDisplay = { ...displayState };
                         newDisplay[id] = { display: "none" };
@@ -89,7 +94,7 @@ const CodeToolbar = () => {
                     {name}
                     <FileCloseIcon
                         style={id in displayState ? displayState[id] : { display: "none" }}
-                        onClick={(event) => onClose(event, id)}
+                        onClick={(event: React.MouseEvent) => onClose(event, id)}
                     />
                 </FileNameTab>
                 <PanelDivider orientation="vertical" color="light" />

@@ -12,6 +12,7 @@ import SplitPane from "react-split-pane-v2";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interfaces/IApp";
 import socket from "./Socket";
 import HotkeyComponent from "./hotkeys/HotKeys";
+import { Notifier } from "./notifier/Notifier";
 
 const WorkingPanel = () => {
     const showProjectExplore = useSelector(
@@ -20,7 +21,8 @@ const WorkingPanel = () => {
 
     const projectConfig = useSelector((state: RootState) => state.projectManager.settings);
     let experiment_tracking_uri = useSelector(
-        (state: RootState) => state.projectManager?.settings?.experiment_manager?.mlflow_tracking_uri
+        (state: RootState) =>
+            state.projectManager?.settings?.experiment_manager?.mlflow_tracking_uri
     );
     /** TODO: move this to a separate component for config */
     const set_tracking_uri = (tracking_uri: string | undefined) => {
@@ -65,6 +67,7 @@ const WorkingPanel = () => {
             <DFManager />
             <FileManager />
             <HotkeyComponent />
+            <Notifier />
         </StyledWorkingPanel>
     );
 };

@@ -343,7 +343,9 @@ interface WorkSpaceOpenProject {
     path: String;
 }
 
-export const SETTING_FILE_PATH = 'config.json'
+export const SETTING_FILE_PATH = 'config.json';
+export const OPERATION_DISABLED_MSG = "This operation is disabled while code is being executed";
+
 // export interface IWorkSpaceConfig {
 //     active_project: string | null;
 //     open_projects: WorkSpaceOpenProject[] | [];

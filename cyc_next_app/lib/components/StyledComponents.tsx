@@ -229,8 +229,7 @@ export const FileItemLabel = styled.div`
     line-height: 2em;
 `;
 
-export const OpenProjectTree = styled(FileTree)`
-`;
+export const OpenProjectTree = styled(FileTree)``;
 
 export const ClosedProjectItem = styled.div`
     display: flex;
@@ -331,8 +330,16 @@ export const FileNameTab = styled(Typography)`
     line-height: calc(var(--var-height));
     padding: 0px 5px 0px 10px;
     font-size: 13px;
+
+    animation: ${(props) =>
+            props.runQueueBusy
+                ? textTransitionToColor("#F59242", props.theme.palette.grey.A200)
+                : null}
+        2s ease infinite;
+
     color: ${(props) =>
         props.fileSaved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
+
     background-color: ${(props) =>
         props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
     border-width: 1px;
@@ -999,6 +1006,20 @@ function backgroundTransitionToColor(color1, color2) {
       }
       100% {
         background-color: ${color1};
+      }
+    `;
+}
+
+function textTransitionToColor(color1, color2) {
+    return keyframes`
+      0% {
+        color: ${color1};
+      }
+      50% {
+        color: ${color2};
+      }
+      100% {
+        color: ${color1};
       }
     `;
 }
