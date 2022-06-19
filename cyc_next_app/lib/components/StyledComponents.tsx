@@ -314,6 +314,7 @@ export const ProjectToolbar = styled.div`
 
     ::-webkit-scrollbar {
         height: 0px;
+        width: 100%;
     }
 
     svg:last-child {

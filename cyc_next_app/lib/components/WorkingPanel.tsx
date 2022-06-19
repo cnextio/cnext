@@ -12,7 +12,7 @@ import SplitPane from "react-split-pane-v2";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interfaces/IApp";
 import socket from "./Socket";
 import HotkeyComponent from "./hotkeys/HotKeys";
-import { Notifier } from "./notifier/Notifier";
+// import { Notifier } from "./notifier/Notifier";
 
 const WorkingPanel = () => {
     const showProjectExplore = useSelector(
@@ -67,7 +67,7 @@ const WorkingPanel = () => {
             <DFManager />
             <FileManager />
             <HotkeyComponent />
-            <Notifier />
+            {/* <Notifier /> */}
         </StyledWorkingPanel>
     );
 };
