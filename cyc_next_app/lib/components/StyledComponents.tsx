@@ -206,10 +206,8 @@ export const FileExplorerHeaderName = styled(Typography)`
 
 export const FileTree = styled(TreeView)`
     max-width: 100%;
-    height: 100%;
+    // height: 100%;
 `;
-
-export const OpenProjectItem = styled(FileTree)``;
 
 export const FileItem = styled(TreeItem)`
     .MuiTreeItem-label {
@@ -226,17 +224,19 @@ export const FileItem = styled(TreeItem)`
     width: 100%;
 `;
 
-export const ClosedProjectItem = styled.div`
+export const FileItemLabel = styled.div`
     font-size: 14px;
     line-height: 2em;
+`;
+
+export const OpenProjectTree = styled(FileTree)`
+`;
+
+export const ClosedProjectItem = styled.div`
+    display: flex;
+    flex-direction: row;
     padding-left: 8px;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    line-height: 1.5;
-    letter-spacing: 0.00938em;
-    color: rgba(0, 0, 0, 0.6);
     font-style: italic;
-    margin-top: 4px;
-    margin-bottom: 4px;
     cursor: pointer;
 `;
 
@@ -287,6 +287,12 @@ export const CodeToolbar = styled.div`
     }
 `;
 
+export const ProjectExplorerContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+`;
+
 export const ProjectToolbar = styled.div`
     display: flex;
     --var-height: 30px;
@@ -305,7 +311,7 @@ export const ProjectToolbar = styled.div`
     }
 `;
 
-export const ProjectExplorerContainer = styled.div`
+export const ProjectList = styled.div`
     display: flex;
     flex-direction: column;
     overflow: auto;
