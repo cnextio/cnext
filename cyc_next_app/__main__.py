@@ -88,13 +88,13 @@ readline.set_completer(complete)
 
 def build_path():
     path = input(
-        'Please enter the directory to download the sample project: ')
+        'Please enter the directory to store the sample project: ')
     print('Checking your path: ' + path)
     abs_paths = os.path.abspath(path)
     if os.path.isdir(abs_paths):
         os.chdir(abs_paths)
-        folder_name = os.path.basename(abs_paths)
-        print('The sample project will be downloaded to', folder_name)
+        # folder_name = os.path.basename(abs_paths)
+        print('The sample project will be downloaded to', path)
         download_and_unzip(DOWNLOAD_PATH, abs_paths)
     else:
         print('The path does not exist or is not a directory. Please try again!')
