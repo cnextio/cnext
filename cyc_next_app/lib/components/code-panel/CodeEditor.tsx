@@ -31,11 +31,9 @@ import {
     setLineGroupStatus,
     addToRunQueue as addToRunQueueRedux,
     updateCAssistInfo,
-    compeleteRunQueue,
     setCodeToInsert,
-    clearRunningLineTextOutput,
     setRunQueueStatus,
-    removeFromRunQueue,
+    removeFirstItemFromRunQueue,
     clearRunQueue,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
@@ -117,8 +115,6 @@ const CodeEditor = () => {
     /** using this to trigger refresh in gutter */
     const codeText = useSelector((state: RootState) => getCodeText(state));
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
-    /** using this only when handling kernel interupt or restart */
-    const [runningCodeContent, setRunningCodeContent] = useState <IRunningCommandContent|null>(null);
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
 
@@ -288,12 +284,14 @@ const CodeEditor = () => {
                         codeOutput.content?.status != null
                     ) {
                         // let lineStatus: ICodeLineStatus;
+                        dispatch(removeFirstItemFromRunQueue());
                         if (codeOutput.content?.status === "ok") {
                             setLineStatus(
                                 inViewID,
                                 codeOutput.metadata?.line_range,
                                 LineStatus.EXECUTED_SUCCESS
                             );
+                            dispatch(setRunQueueStatus(RunQueueStatus.STOP));
                         } else {
                             setLineStatus(
                                 inViewID,
@@ -311,8 +309,7 @@ const CodeEditor = () => {
                             inViewID: inViewID,
                             lineNumber: codeOutput.metadata.line_range?.fromLine,
                         };
-                        dispatch(setActiveLine(activeLine));
-                        dispatch(setRunQueueStatus(RunQueueStatus.STOP));
+                        dispatch(setActiveLine(activeLine));                                                
                     }
                 }
             } catch (error) {
@@ -326,25 +323,21 @@ const CodeEditor = () => {
             try {
                 let kmResult: IMessage = JSON.parse(result);
                 let resultContent = kmResult.content as IKernelManagerResultContent;
-
                 let inViewID = store.getState().projectManager.inViewID;
-                if (inViewID) {
+                const runQueue = store.getState().codeEditor.runQueue;
+                const runQueueItem = runQueue.queue[0];
+                if (inViewID != null) {
                     /** unlike in handling CodeEditor message, we use info in runningCodeContent
                      * to set the line status */
+                    // console.log("CodeEditor got result: ", kmResult, resultContent, runQueueItem);
                     if (
-                        (kmResult.command_name === KernelManagerCommand.restart_kernel ||
-                            kmResult.command_name === KernelManagerCommand.interrupt_kernel) &&
+                        (kmResult.command_name === KernelManagerCommand.restart_kernel) &&
                         resultContent.success === true &&
-                        runningCodeContent != null
+                        runQueueItem != null
                     ) {
-                        setLineStatus(
-                            inViewID,
-                            runningCodeContent.lineRange,
-                            LineStatus.EXECUTED_FAILED
-                        );
+                        dispatch(removeFirstItemFromRunQueue());
+                        setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
                         dispatch(clearRunQueue());
-                        dispatch(setRunQueueStatus(RunQueueStatus.STOP));
-                        setRunningCodeContent(null);
                     }
                 }
             } catch (error) {
@@ -443,7 +436,6 @@ const CodeEditor = () => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                dispatch(removeFromRunQueue());
                 execLines(runQueueItem);                
             }
         }
@@ -648,7 +640,6 @@ const CodeEditor = () => {
             if (content != null && inViewID != null) {
                 console.log("CodeEditor execLines: ", content, lineRange);
                 sendMessage(content);
-                setRunningCodeContent(content);
                 setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);                
             }
         }
