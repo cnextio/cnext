@@ -48,7 +48,10 @@ class MessageHandler(BaseMessageHandler):
                 message = Message(**{'webapp_endpoint': WebappEndpoint.KernelManager,
                                      'command_name': message.command_name,
                                      'content': {'success': result}})
+                self._send_to_node(message)
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
-            exit(1)
+            error_message = BaseMessageHandler._create_error_message(
+                message.webapp_endpoint, trace, message.command_name, {})
+            self._send_to_node(error_message)
