@@ -20,7 +20,7 @@ server_path = os.path.join(web_path, 'server')
 FILE_NAME = 'workspace.yaml'
 WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
-DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/9ee7cba2573c.zip'
+DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/master.zip'
 
 def change_permissions_recursive(path, mode):
     for root, dirs, files in os.walk(path, topdown=False):
