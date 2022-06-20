@@ -1,39 +1,60 @@
+import glob
+import readline
 import os
+from site import abs_paths
 import sys
 from subprocess import Popen
 from contextlib import contextmanager
 import time
 
+from urllib.request import urlopen
+from io import BytesIO
+from zipfile import ZipFile
+import uuid
+import shutil
+import yaml
+import os
 
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
 server_path = os.path.join(web_path, 'server')
-FILE_NAME = '.server.yaml'
-CHANGE_LINE_NUMBER = 14
-FIELD_LENGTH = 10
+FILE_NAME = 'workspace.yaml'
+WITHOUT_PROJECT = 0
+HAVE_PROJECT = 1
+DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/master.zip'
+
+def change_permissions_recursive(path, mode):
+    for root, dirs, files in os.walk(path, topdown=False):
+        for dir in [os.path.join(root,d) for d in dirs]:
+            os.chmod(dir, mode)
+    for file in [os.path.join(root, f) for f in files]:
+            os.chmod(file, mode)
 
 
 def change_path(path):
     os.chdir(server_path)
-    my_file = open(FILE_NAME)
-
-    string_list = my_file.readlines()
-    # Get file's content as a list
-    my_file.close()
-    content = string_list[CHANGE_LINE_NUMBER]
-    print(string_list[CHANGE_LINE_NUMBER])
-    string_list[CHANGE_LINE_NUMBER] = content[:FIELD_LENGTH] + \
-        'path: ' + '\'' + path + '\'' + '\n'
-    print(string_list[CHANGE_LINE_NUMBER])
-    my_file = open(FILE_NAME, 'w')
-    new_file_contents = ''.join(string_list)
-    # Convert `string_list` to a single string
-    my_file.write(new_file_contents)
-    my_file.close()
-    print('map path done!')
+    project_id = str(uuid.uuid1())
+    data = {
+        'active_project':project_id,
+        'open_projects':[{"id": project_id,'name':'Skywalker','path':path}],
+    }
+    with open(r'workspace.yaml', 'w') as file:
+        documents = yaml.dump(data, file, default_flow_style=False)
+    print('Adding sample project done!')
 
 
-def main():
-    path()
+def ask():
+    answer = input('Would you like to download the sample project? [(y)/n]: ')
+    if(answer == 'y' or answer == 'Y'):
+        return HAVE_PROJECT
+    elif not answer:
+         return HAVE_PROJECT
+    elif (answer == 'n' or answer == 'N'):
+        return WITHOUT_PROJECT
+    else:
+        ask()
+
+
+def build():
     os.chdir(web_path)
     os.system('npm i --force')
     os.system('npm run build')
@@ -41,16 +62,62 @@ def main():
     os.system('npm i')
 
 
-def path():
-    path = input('Please enter your project directory\'s path:')
+def download_and_unzip(url, extract_to='.'):
+    http_response = urlopen(url)
+    zipfile = ZipFile(BytesIO(http_response.read()))
+    zipfile.extractall(path=extract_to)
+
+    # grand per
+    change_permissions_recursive(extract_to, 0o777)
+
+    # cut - paste
+    shutil.copytree(src=os.path.join(extract_to, zipfile.namelist()[0],'Skywalker'), dst=os.path.join(extract_to,'Skywalker') , dirs_exist_ok=True)
+    sample_project_path = os.path.join(extract_to, 'Skywalker')
+    # remove old folder
+    shutil.rmtree(path=os.path.join(extract_to, zipfile.namelist()[0]))
+    change_path(os.path.normpath(sample_project_path).replace(os.sep, '/'))
+
+
+def complete(text, state):
+    return (glob.glob(text+'*')+[None])[state]
+
+
+readline.set_completer_delims(' \t\n;')
+readline.parse_and_bind("tab: complete")
+readline.set_completer(complete)
+
+def build_path():
+    path = input(
+        'Please enter the directory to store the sample project: ')
     print('Checking your path: ' + path)
-    if os.path.isdir(path):
-        os.chdir(path)
-        folder_name = os.path.basename(path)
-        print('folder_name', folder_name)
-        change_path(path)
+    abs_paths = os.path.abspath(path)
+    if os.path.isdir(abs_paths):
+        os.chdir(abs_paths)
+        # folder_name = os.path.basename(abs_paths)
+        print('The sample project will be downloaded to', path)
+        download_and_unzip(DOWNLOAD_PATH, abs_paths)
     else:
-        print('Your path isn\'t correct, Please try again')
+        print('The path does not exist or is not a directory. Please try again!')
+        build_path()
+
+def clear_content():
+    os.chdir(server_path)
+    my_file = open(FILE_NAME, 'w')
+    new_file_contents = ''
+    # Convert `string_list` to a single string
+    my_file.write(new_file_contents)
+    my_file.close()
+
+
+def main():
+    status = ask()
+    if(status == WITHOUT_PROJECT):
+        # remove all in workspace.yaml
+        clear_content()
+        build()
+    else:
+        build_path()
+        build()
 
 
 @contextmanager

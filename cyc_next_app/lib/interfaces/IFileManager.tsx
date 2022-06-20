@@ -57,6 +57,7 @@ export interface IDirectoryMetadata {
     path: string;
     name: string;
     is_file: boolean;
+    deletable?: boolean;
 }
 
 export interface IWorkspaceMetadata {

@@ -31,11 +31,9 @@ import {
     setLineGroupStatus,
     addToRunQueue as addToRunQueueRedux,
     updateCAssistInfo,
-    compeleteRunQueue,
     setCodeToInsert,
-    clearRunningLineTextOutput,
     setRunQueueStatus,
-    removeFromRunQueue,
+    removeFirstItemFromRunQueue,
     clearRunQueue,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
@@ -95,6 +93,7 @@ import {
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
 import { closeBracketsKeymap } from "@codemirror/closebrackets";
+import { IKernelManagerResultContent, KernelManagerCommand } from "../../interfaces/IKernelManager";
 
 const pyLanguageServer = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -113,7 +112,7 @@ const CodeEditor = () => {
     const activeProjectID = useSelector(
         (state: RootState) => state.projectManager.activeProject?.id
     );
-    // using this to trigger refresh in gutter
+    /** using this to trigger refresh in gutter */
     const codeText = useSelector((state: RootState) => getCodeText(state));
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
@@ -285,12 +284,14 @@ const CodeEditor = () => {
                         codeOutput.content?.status != null
                     ) {
                         // let lineStatus: ICodeLineStatus;
+                        dispatch(removeFirstItemFromRunQueue());
                         if (codeOutput.content?.status === "ok") {
                             setLineStatus(
                                 inViewID,
                                 codeOutput.metadata?.line_range,
                                 LineStatus.EXECUTED_SUCCESS
                             );
+                            dispatch(setRunQueueStatus(RunQueueStatus.STOP));
                         } else {
                             setLineStatus(
                                 inViewID,
@@ -308,8 +309,35 @@ const CodeEditor = () => {
                             inViewID: inViewID,
                             lineNumber: codeOutput.metadata.line_range?.fromLine,
                         };
-                        dispatch(setActiveLine(activeLine));
-                        dispatch(setRunQueueStatus(RunQueueStatus.STOP));
+                        dispatch(setActiveLine(activeLine));                                                
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+        socket.on(WebAppEndpoint.KernelManager, (result: string) => {
+            console.log("CodeEditor got result ", result);
+            // console.log("CodeEditor: got results...");
+            try {
+                let kmResult: IMessage = JSON.parse(result);
+                let resultContent = kmResult.content as IKernelManagerResultContent;
+                let inViewID = store.getState().projectManager.inViewID;
+                const runQueue = store.getState().codeEditor.runQueue;
+                const runQueueItem = runQueue.queue[0];
+                if (inViewID != null) {
+                    /** unlike in handling CodeEditor message, we use info in runningCodeContent
+                     * to set the line status */
+                    // console.log("CodeEditor got result: ", kmResult, resultContent, runQueueItem);
+                    if (
+                        (kmResult.command_name === KernelManagerCommand.restart_kernel) &&
+                        resultContent.success === true &&
+                        runQueueItem != null
+                    ) {
+                        dispatch(removeFirstItemFromRunQueue());
+                        setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
+                        dispatch(clearRunQueue());
                     }
                 }
             } catch (error) {
@@ -408,8 +436,7 @@ const CodeEditor = () => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                dispatch(removeFromRunQueue());
-                execLines(runQueueItem);
+                execLines(runQueueItem);                
             }
         }
     }, [runQueue]);
@@ -609,14 +636,11 @@ const CodeEditor = () => {
         let inViewID = runQueueItem.inViewID;
         let lineRange = runQueueItem.lineRange;
         if (inViewID && view && lineRange.toLine != null && lineRange.fromLine != null) {
-            let content: IRunningCommandContent | undefined = getRunningCommandContent(
-                view,
-                lineRange
-            );
-            if (content && inViewID) {
+            let content: IRunningCommandContent | null = getRunningCommandContent(view, lineRange);
+            if (content != null && inViewID != null) {
                 console.log("CodeEditor execLines: ", content, lineRange);
                 sendMessage(content);
-                setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);
+                setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);                
             }
         }
     };
