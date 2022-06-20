@@ -95,7 +95,7 @@ import CypressIds from "../tests/CypressIds";
 import { closeBracketsKeymap } from "@codemirror/closebrackets";
 import { IKernelManagerResultContent, KernelManagerCommand } from "../../interfaces/IKernelManager";
 
-const pyLanguageServer = languageServer({
+let pyLanguageServer = languageServer({
     serverUri: "ws://localhost:3001/python",
     rootUri: "file:///",
     documentUri: "file:///",
@@ -206,6 +206,15 @@ const CodeEditor = () => {
 
     const getLangExtenstions = (inViewID: string | null) => {
         console.log("CodeEditor getLangExtenstions: ", inViewID);
+
+        const path = store.getState().projectManager.activeProject?.path;
+        pyLanguageServer = languageServer({
+            serverUri: "ws://localhost:3001/python",
+            rootUri: "file:///" + path,
+            documentUri: "file:///" + path,
+            languageId: "python",
+        });
+
         const fileLangExtensions: { [name: string]: Extension[] } = {
             py: [python(), pyLanguageServer, cAssistExtraOptsPlugin.extension],
             sql: [sql()],
@@ -309,7 +318,7 @@ const CodeEditor = () => {
                             inViewID: inViewID,
                             lineNumber: codeOutput.metadata.line_range?.fromLine,
                         };
-                        dispatch(setActiveLine(activeLine));                                                
+                        dispatch(setActiveLine(activeLine));
                     }
                 }
             } catch (error) {
@@ -331,7 +340,7 @@ const CodeEditor = () => {
                      * to set the line status */
                     // console.log("CodeEditor got result: ", kmResult, resultContent, runQueueItem);
                     if (
-                        (kmResult.command_name === KernelManagerCommand.restart_kernel) &&
+                        kmResult.command_name === KernelManagerCommand.restart_kernel &&
                         resultContent.success === true &&
                         runQueueItem != null
                     ) {
@@ -349,6 +358,8 @@ const CodeEditor = () => {
     useEffect(() => {
         console.log("CodeEditor init");
         socketInit();
+        resetEditorState(inViewID, view);
+
         return () => {
             socket.off(WebAppEndpoint.CodeEditor);
         };
@@ -436,7 +447,7 @@ const CodeEditor = () => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(runQueueItem);                
+                execLines(runQueueItem);
             }
         }
     }, [runQueue]);
@@ -640,7 +651,7 @@ const CodeEditor = () => {
             if (content != null && inViewID != null) {
                 console.log("CodeEditor execLines: ", content, lineRange);
                 sendMessage(content);
-                setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);                
+                setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);
             }
         }
     };
