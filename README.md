@@ -58,6 +58,20 @@ Step 6 `run` command `cnext-run`
 
 ## Release Note
 
+# v0.4.20
+
+##### NEW
+
+-   Implement add project feature
+
+##### IMPROVED
+
+-   Improve setup script
+
+##### FIXED
+
+-   Bug fixes and usability improvement
+
 # v0.4.18 - 0.4.19
 
 ##### NEW
