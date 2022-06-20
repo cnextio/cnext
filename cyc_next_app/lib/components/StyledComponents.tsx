@@ -236,7 +236,7 @@ export const Overlay = styled.div`
     z-index: 10;
     top: 0;
     left: 0;
-    background-color: rgb(238, 238, 238, 0.3);
+    background-color: rgb(238, 238, 238, 0.1);
 `;
 
 export const OpenProjectTree = styled(FileTree)``;
