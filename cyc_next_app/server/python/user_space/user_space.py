@@ -108,6 +108,8 @@ class _UserSpace(BaseKernelUserSpace):
         Wrapper to block the execution until the execution complete
         '''
         def _result_waiting_execution_wrapper(*args, **kwargs):
+            ## args[0] is self #
+            args[0].result = None
             args[0].execution_lock.acquire()
             log.info('User_space execution lock acquired')
             func(*args, **kwargs)

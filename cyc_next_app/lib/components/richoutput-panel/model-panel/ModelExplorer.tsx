@@ -23,51 +23,53 @@ const ModelExplorer = () => {
         dispatch(setActiveModel(target.value));
     }
 
-    const createComponent = () => {
-        const state = store.getState();
-        let activeModel = state.modelManager.activeModel;
-        let modelNameList = Object.keys(modelInfo);
-        return (
-            <ModelSelectorForm>
-                <ModelSelector
-                    onChange={handleChange}
-                    value={activeModel != null ? activeModel : ""}
-                    IconComponent={SmallArrowIcon}
-                    SelectDisplayProps={{
-                        style: { padding: "0px 10px", lineHeight: "35px" },
-                    }}
-                    // displayEmpty = {true}
-                    renderValue={() => {
-                        return (
-                            <Fragment>
-                                {activeModel != null ? (
-                                    <Typography height="100%" variant="caption" fontSize="14px">
-                                        {activeModel}
-                                    </Typography>
-                                ) : (
-                                    <Typography
-                                        height="100%"
-                                        variant="caption"
-                                        fontSize="12px"
-                                        color="#BFC7CF"
-                                    >
-                                        Model
-                                    </Typography>
-                                )}
-                            </Fragment>
-                        );
-                    }}
-                >
-                    {modelNameList &&
-                        modelNameList.map((item, index) => (
-                            <ModelSelectorMenuItem value={item}>{item}</ModelSelectorMenuItem>
-                        ))}
-                </ModelSelector>
-            </ModelSelectorForm>
-        );
+    const render = () => {
+        if (modelInfo != null) {
+            const state = store.getState();
+            let activeModel = state.modelManager.activeModel;
+            let modelNameList = Object.keys(modelInfo);
+            return (
+                <ModelSelectorForm>
+                    <ModelSelector
+                        onChange={handleChange}
+                        value={activeModel != null ? activeModel : ""}
+                        IconComponent={SmallArrowIcon}
+                        SelectDisplayProps={{
+                            style: { padding: "0px 10px", lineHeight: "35px" },
+                        }}
+                        // displayEmpty = {true}
+                        renderValue={() => {
+                            return (
+                                <Fragment>
+                                    {activeModel != null ? (
+                                        <Typography height="100%" variant="caption" fontSize="14px">
+                                            {activeModel}
+                                        </Typography>
+                                    ) : (
+                                        <Typography
+                                            height="100%"
+                                            variant="caption"
+                                            fontSize="12px"
+                                            color="#BFC7CF"
+                                        >
+                                            Model
+                                        </Typography>
+                                    )}
+                                </Fragment>
+                            );
+                        }}
+                    >
+                        {modelNameList &&
+                            modelNameList.map((item, index) => (
+                                <ModelSelectorMenuItem value={item}>{item}</ModelSelectorMenuItem>
+                            ))}
+                    </ModelSelector>
+                </ModelSelectorForm>
+            );
+        }
     };
 
-    return createComponent();
+    return render();
 };
 
 export default ModelExplorer;
