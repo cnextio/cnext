@@ -2,16 +2,22 @@ import React, { useRef, useEffect, useState } from "react";
 import { XTerm } from "xterm-for-react";
 import { IMessage, ContentType, WebAppEndpoint } from "../../interfaces/IApp";
 import { FitAddon } from "xterm-addon-fit";
-
+import KeyCode from "./KeyCode";
 import socket from "../Socket";
 
+var test = 0;
 const Term = () => {
   const xtermRef = useRef(null);
   const [input, setInput] = useState<string>("");
   const [cursor, setCursor] = useState<number>(0);
+  const [cursorPosition, setCursorPosition] = useState<number>(0);
+  const [history, setHistory] = useState<{ [key: string]: string }>();
 
+  const [pathPrefix, setPathPrefix] = useState<string>(`~$ `);
   const [isMountTerm, setIsMountTerm] = useState<boolean>(false);
   const fitAddon = new FitAddon();
+
+  // Connect Socket
   const socketInit = () => {
     socket.emit("ping", "Terminal");
     socket.on(WebAppEndpoint.Terminal, (result: string) => {
@@ -38,85 +44,102 @@ const Term = () => {
     setIsMountTerm(true);
 
     const code = data.charCodeAt(0);
-    console.log("code:" + code + "data: " + data);
-    const term = xtermRef.current.terminal;
+    console.log(
+      history,
+      "code:" + code + "data: " + data,
+      "27" + data.substr(1)
+    );
+    const term = xtermRef?.current?.terminal;
     if (code == 27) {
       switch (data.substr(1)) {
         case "[C": // Right arrow
           if (cursor < input.length) {
             console.log("Right");
-
-            setCursor(cursor + 1);
+            test = test - 1;
+            setCursorPosition(cursorPosition + 1);
             term.write(data);
           }
           break;
         case "[D": // Left arrow
           if (cursor > 0) {
             console.log("Right");
-            setCursor(cursor - 1);
+            test = test + 1;
+            setCursorPosition(cursorPosition - 1);
             term.write(`\x1b[D`);
           }
 
           break;
+        case "": // ESC
+          // setCursor(cursor + 1);
+          term.write("\x1b[2K\r");
+          term.write(pathPrefix);
+          setInput("");
+
+          break;
+
+        case "[A": // Up
+          term.write(history ? history[`0`] : "");
+          setInput(history ? history[`0`] : "");
+
+          break;
+
+        case "[B": //  Bottom arrow
+          term.write(history ? history[`0`] : "");
+          setInput(history ? history[`0`] : "");
+
+          break;
       }
     }
-    if (code === 13 && input.length > 0) {
+    if (code === KeyCode.Enter && input.length > 0) {
       if (input === "cls" || input === "clear") {
         term.clear();
-        term.write("\r\n" + "~$ ");
+        term.write("\r\n" + pathPrefix);
       } else {
-        term.write("\r\n" + "~$ ");
+        term.write("\r\n" + pathPrefix);
       }
+
+      setHistory({
+        ...history,
+        [history ? Object.keys(history).length : 0]: input,
+      });
+
+      console.log("history", history);
+
       setInput("");
+      test = 0;
+      setCursorPosition(0);
     } else if (code < 32 || code === 127) {
       // Disable control Keys such as arrow keys
 
       return;
     } else {
-      // Add general key press characters to the terminal
       term.write(data);
-      setCursor((input + data).length);
+      // Add general key press characters to the terminal
+      // if (cursorPosition === 0) {
+      //   term.write(data);
+      // } else {
+      //   console.log("input", input);
+      //   console.log("data", data);
+      //   console.log("cursorPosition", cursorPosition);
+      //   console.log("tesst", test);
+      //   console.log(
+      //     "tesst texxt",
+      //     input.substr(0, test) + data + input.substr(test)
+      //   );
+      //   term.write(input.substr(0, test) + data + input.substr(test));
+      //   // term.write(`\u001b[0;5H`);
+      // }
+      // setCursor((input + data).length);
       setInput(input + data);
     }
   }
-  //   var inputA = "";
-  // //   var cursor = 0;
-  //   function onTermData(data: any) {
-  //     const code = data.charCodeAt(0);
-  //     const term = xtermRef.current.terminal;
-  //     console.log("ata.substr(1)", data, code);
-  //     console.log("ata.substr(1)", data, code, data.substr(1));
 
-  //     if (code == 27) {
-  //       switch (data.substr(1)) {
-  //         case "[C": // Right arrow
-  //           if (cursor < inputA.length) {
-  //             console.log("Right");
-
-  //             cursor += 1;
-  //             term.write(data);
-  //           }
-  //           break;
-  //         case "[D": // Left arrow
-  //           if (cursor > 0) {
-  //             console.log("Right");
-  //             cursor -= 1;
-  //             term.write(`\x1b[D`);
-  //           }
-
-  //           break;
-  //       }
-  //     } else if (code == 13) {
-  //       // CR
-  //     } else {
-  //       term.write(data);
-  //       cursor = data.length;
-  //       inputA = inputA.substr(0, cursor) + data + inputA.substr(cursor);
-  //     }
-  //   }
   const onTermKey = (data: any) => {
     // press key backSpace and Delete
-    if (data.domEvent.keyCode === 8 || data.domEvent.keyCode === 46) {
+    if (
+      data.domEvent.keyCode === KeyCode.BackSpace ||
+      data.domEvent.keyCode === KeyCode.Delete
+    ) {
       xtermRef.current.terminal.write("\b \b");
       setInput(input.slice(0, -1));
     }
@@ -131,20 +154,25 @@ const Term = () => {
     const rows = Math.floor(windows_height / init_height) - 2;
 
     if (xtermRef?.current?.terminal && !isMountTerm) {
-      xtermRef.current.terminal.write("~$ ");
+      xtermRef.current.terminal.write(pathPrefix);
     }
   }, [xtermRef.current]);
   return (
-    <XTerm
-      onResize={() => {
-        console.log("ádfdsf", xtermRef.current.terminal),
-          xtermRef.current.terminal.fit();
-      }}
-      onKey={onTermKey}
-      onData={onTermData}
-      ref={xtermRef}
-      addons={[fitAddon]}
-    />
+    <>
+      {cursor}
+      {test}
+      {cursorPosition}
+      <XTerm
+        onResize={() => {
+          console.log("ádfdsf", xtermRef.current.terminal),
+            xtermRef.current.terminal.fit();
+        }}
+        onKey={onTermKey}
+        onData={onTermData}
+        ref={xtermRef}
+        addons={[fitAddon]}
+      />
+    </>
   );
 };
 
