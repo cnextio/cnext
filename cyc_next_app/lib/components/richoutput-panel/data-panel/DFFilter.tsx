@@ -1,4 +1,4 @@
-// import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
+import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
 import React, { useRef } from "react";
 import { useDispatch } from "react-redux";
 import { DFFilterForm, DFFilterInput, StyledFilterCodeMirror } from "../../StyledComponents";
@@ -131,7 +131,7 @@ const DFFilter = React.memo(() => {
         bracketMatching(),
         closeBrackets(),
         syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-        // cnextQuery(),
+        cnextQuery(),
         // python(),
         ls,
         EditorState.transactionFilter.of((transaction) => {

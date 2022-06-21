@@ -1,7 +1,6 @@
 import { parser } from './cnext-query';
 import { LRLanguage, LanguageSupport } from '@codemirror/language';
-import { styleTags, tags } from '@codemirror/highlight';
-
+import { styleTags, tags } from "@lezer/highlight";
 const cnextQueryLanguage = LRLanguage.define({
     parser: parser.configure({
         props: [
