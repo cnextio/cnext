@@ -1,7 +1,7 @@
-import { StateEffect, StateField } from '@codemirror/state';
-import { showTooltip } from '@codemirror/tooltip';
-import { ViewPlugin } from '@codemirror/view';
-import { CompletionContext } from './autocomplete';
+import { StateEffect, StateField } from "@codemirror/state";
+import { showTooltip } from "@codemirror/view";
+import { ViewPlugin } from "@codemirror/view";
+import { CompletionContext } from "@codemirror/autocomplete";
 
 export const closeSignatureEffect = /*@__PURE__*/ StateEffect.define();
 class SignaturePlugin {
@@ -14,9 +14,9 @@ class SignaturePlugin {
         this.countDocChanges = countDocChanges;
         this.currentData = null;
         this.moved = null;
-        view.dom.addEventListener('mousedown', (this.mousedown = this.mousedown.bind(this)));
-        view.dom.addEventListener('mousemove', (this.mousemove = this.mousemove.bind(this)));
-        view.dom.addEventListener('mouseup', (this.mouseup = this.mouseup.bind(this)));
+        view.dom.addEventListener("mousedown", (this.mousedown = this.mousedown.bind(this)));
+        view.dom.addEventListener("mousemove", (this.mousemove = this.mousemove.bind(this)));
+        view.dom.addEventListener("mouseup", (this.mouseup = this.mouseup.bind(this)));
     }
 
     update(update) {
@@ -61,9 +61,9 @@ class SignaturePlugin {
 
     async excuteSource(context, line, cursorIndexInLine) {
         for (let i = cursorIndexInLine; i > 0; i--) {
-            if (line.text[i] === '(') {
+            if (line.text[i] === "(") {
                 const subStr = line.text.substring(i, cursorIndexInLine + 1);
-                const closeIndex = subStr.indexOf(')');
+                const closeIndex = subStr.indexOf(")");
 
                 // detect out side of ')'
                 if (closeIndex !== -1 && closeIndex + i <= cursorIndexInLine) {
@@ -95,7 +95,7 @@ class SignaturePlugin {
                             ...this.currentData,
                             lineNumber: line.number,
                             pos: context.pos,
-                            activeParameter: subStr.split(',').length - 1,
+                            activeParameter: subStr.split(",").length - 1,
                         }),
                     });
                 }
@@ -137,36 +137,36 @@ export const signatureTooltip = (source) => {
                     create: () => {
                         const activeParameter = tooltip.activeParameter;
                         const content = tooltip.textContent;
-                        const start = content.indexOf('(') + 1;
-                        const end = content.indexOf(')');
-                        const paramTexts = content.substring(start, end).split(',');
+                        const start = content.indexOf("(") + 1;
+                        const end = content.indexOf(")");
+                        const paramTexts = content.substring(start, end).split(",");
 
-                        const dom = document.createElement('div');
-                        dom.className = 'cm-tooltip-signature';
+                        const dom = document.createElement("div");
+                        dom.className = "cm-tooltip-signature";
 
-                        const startSpan = document.createElement('span');
-                        startSpan.textContent = '(';
+                        const startSpan = document.createElement("span");
+                        startSpan.textContent = "(";
 
                         // header
-                        const header = document.createElement('div');
+                        const header = document.createElement("div");
                         header.appendChild(startSpan);
                         for (let i = 0; i < paramTexts.length; i++) {
-                            const element = document.createElement('span');
+                            const element = document.createElement("span");
                             if (activeParameter === i)
-                                element.className = 'cm-tooltip-signature-element';
+                                element.className = "cm-tooltip-signature-element";
 
                             if (i !== paramTexts.length - 1)
-                                element.textContent = paramTexts[i] + ',';
-                            else element.textContent = paramTexts[i] + ')';
+                                element.textContent = paramTexts[i] + ",";
+                            else element.textContent = paramTexts[i] + ")";
                             header.append(element);
                         }
                         dom.appendChild(header);
 
                         // content
-                        const container = document.createElement('div');
-                        const textSpan = document.createElement('span');
+                        const container = document.createElement("div");
+                        const textSpan = document.createElement("span");
                         container.textContent = tooltip.documentText;
-                        container.className = 'cm-tooltip-signature-doc';
+                        container.className = "cm-tooltip-signature-doc";
                         container.appendChild(textSpan);
                         dom.appendChild(container);
 

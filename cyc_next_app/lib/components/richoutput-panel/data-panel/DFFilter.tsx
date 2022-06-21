@@ -1,19 +1,22 @@
-import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
+// import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
 import React, { useRef } from "react";
 import { useDispatch } from "react-redux";
 import { DFFilterForm, DFFilterInput, StyledFilterCodeMirror } from "../../StyledComponents";
-import { bracketMatching } from "@codemirror/matchbrackets";
-import { closeBrackets } from "@codemirror/closebrackets";
-import { defaultHighlightStyle } from "@codemirror/highlight";
+// import { bracketMatching } from "@codemirror/matchbrackets";
+// import { closeBrackets } from "@codemirror/closebrackets";
+// import { defaultHighlightStyle } from "@codemirror/highlight";
 import { dfFilterLanguageServer } from "../../../codemirror/autocomplete-lsp/index.js";
 import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
 import store from "../../../../redux/store";
 import { ViewUpdate } from "@codemirror/view";
-import { EditorState, TransactionSpec } from "@codemirror/state";
+import { bracketMatching, defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { EditorState } from "@codemirror/state";
+import { closeBrackets } from "@codemirror/autocomplete";
+// import { EditorState, TransactionSpec } from "@codemirror/state";
 
 const ls = dfFilterLanguageServer();
 
-const DFExplorer = React.memo(() => {
+const DFFilter = React.memo(() => {
     // const dfList = useSelector((state) => _checkDFList(state));
     const dispatch = useDispatch();
     const filterCM = useRef();
@@ -127,20 +130,18 @@ const DFExplorer = React.memo(() => {
         // basicSetup,
         bracketMatching(),
         closeBrackets(),
-        defaultHighlightStyle.fallback,
-        cnextQuery(),
+        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+        // cnextQuery(),
         // python(),
         ls,
         EditorState.transactionFilter.of((transaction) => {
             let newLineDetected = false;
-            transaction.changes.iterChanges(
-                (fromA, toA, fromB, toB, inserted) => {
-                   newLineDetected ||=  (inserted.lines > 1);
-                }
-            );
-            if (newLineDetected){
+            transaction.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+                newLineDetected ||= inserted.lines > 1;
+            });
+            if (newLineDetected) {
                 return null;
-            } 
+            }
             return transaction;
         }),
     ];
@@ -165,8 +166,4 @@ const DFExplorer = React.memo(() => {
     );
 });
 
-export default DFExplorer;
-
-function bracketClosing() {
-    throw new Error("Function not implemented.");
-}
+export default DFFilter;

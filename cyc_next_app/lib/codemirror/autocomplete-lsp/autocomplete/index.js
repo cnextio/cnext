@@ -6,7 +6,7 @@ import {
     Text,
     EditorSelection,
     Prec,
-} from '@codemirror/state';
+} from "@codemirror/state";
 import {
     EditorView,
     Direction,
@@ -15,12 +15,12 @@ import {
     Decoration,
     WidgetType,
     keymap,
-} from '@codemirror/view';
-import { showTooltip } from '@codemirror/tooltip';
-import { syntaxTree, indentUnit } from '@codemirror/language';
-import { codePointAt, codePointSize, fromCodePoint } from '@codemirror/text';
-import { closeSignatureEffect } from '../signature';
-import { MaxInfoWidth } from '../source';
+} from "@codemirror/view";
+import { showTooltip } from "@codemirror/view";
+import { syntaxTree, indentUnit } from "@codemirror/language";
+import { codePointAt, codePointSize, fromCodePoint } from "@codemirror/state";
+import { closeSignatureEffect } from "../signature";
+import { MaxInfoWidth } from "../source";
 
 /**
 An instance of this is passed to completion source functions.
@@ -96,14 +96,14 @@ class CompletionContext {
     [aborted](https://codemirror.net/6/docs/ref/#autocomplete.CompletionContext.aborted).
     */
     addEventListener(type, listener) {
-        if (type == 'abort' && this.abortListeners) this.abortListeners.push(listener);
+        if (type == "abort" && this.abortListeners) this.abortListeners.push(listener);
     }
 }
 function toSet(chars) {
-    let flat = Object.keys(chars).join('');
+    let flat = Object.keys(chars).join("");
     let words = /\w/.test(flat);
-    if (words) flat = flat.replace(/\w/g, '');
-    return `[${words ? '\\w' : ''}${flat.replace(/[^\w\s]/g, '\\$&')}]`;
+    if (words) flat = flat.replace(/\w/g, "");
+    return `[${words ? "\\w" : ""}${flat.replace(/[^\w\s]/g, "\\$&")}]`;
 }
 function prefixMatch(options) {
     let first = Object.create(null),
@@ -112,15 +112,15 @@ function prefixMatch(options) {
         first[label[0]] = true;
         for (let i = 1; i < label.length; i++) rest[label[i]] = true;
     }
-    let source = toSet(first) + toSet(rest) + '*$';
-    return [new RegExp('^' + source), new RegExp(source)];
+    let source = toSet(first) + toSet(rest) + "*$";
+    return [new RegExp("^" + source), new RegExp(source)];
 }
 /**
 Given a a fixed array of options, return an autocompleter that
 completes them.
 */
 function completeFromList(list) {
-    let options = list.map((o) => (typeof o == 'string' ? { label: o } : o));
+    let options = list.map((o) => (typeof o == "string" ? { label: o } : o));
     let [span, match] = options.every((o) => /^\w+$/.test(o.label))
         ? [/\w*$/, /\w+$/]
         : prefixMatch(options);
@@ -176,22 +176,22 @@ function cur(state) {
 function ensureAnchor(expr, start) {
     var _a;
     let { source } = expr;
-    let addStart = start && source[0] != '^',
-        addEnd = source[source.length - 1] != '$';
+    let addStart = start && source[0] != "^",
+        addEnd = source[source.length - 1] != "$";
     if (!addStart && !addEnd) return expr;
     return new RegExp(
-        `${addStart ? '^' : ''}(?:${source})${addEnd ? '$' : ''}`,
-        (_a = expr.flags) !== null && _a !== void 0 ? _a : expr.ignoreCase ? 'i' : ''
+        `${addStart ? "^" : ""}(?:${source})${addEnd ? "$" : ""}`,
+        (_a = expr.flags) !== null && _a !== void 0 ? _a : expr.ignoreCase ? "i" : ""
     );
 }
 function applyCompletion(view, option) {
     let apply = option.completion.apply || option.completion.label;
     let result = option.source;
-    if (typeof apply == 'string') {
+    if (typeof apply == "string") {
         view.dispatch({
             changes: { from: result.from, to: result.to, insert: apply },
             selection: { anchor: result.from + apply.length },
-            userEvent: 'input.complete',
+            userEvent: "input.complete",
         });
     } else {
         apply(view, option.completion, result.from, result.to);
@@ -365,7 +365,7 @@ const completionConfig = /*@__PURE__*/ Facet.define({
                 override: null,
                 maxRenderedOptions: 100,
                 defaultKeymap: true,
-                optionClass: () => '',
+                optionClass: () => "",
                 icons: true,
                 addToOptions: [],
             },
@@ -379,7 +379,7 @@ const completionConfig = /*@__PURE__*/ Facet.define({
     },
 });
 function joinClass(a, b) {
-    return a ? (b ? a + ' ' + b : a) : b;
+    return a ? (b ? a + " " + b : a) : b;
 }
 
 function optionContent(config) {
@@ -392,13 +392,13 @@ function optionContent(config) {
                 // icon.className = 'cm-completion-icon';
                 // icon.setAttribute('aria-hidden', 'true');
                 // return icon;
-                let icon = document.createElement('div');
-                icon.classList.add('cm-completionIcon');
+                let icon = document.createElement("div");
+                icon.classList.add("cm-completionIcon");
                 if (completion.type)
                     icon.classList.add(
-                        ...completion.type.split(/\s+/g).map((cls) => 'cm-completionIcon-' + cls)
+                        ...completion.type.split(/\s+/g).map((cls) => "cm-completionIcon-" + cls)
                     );
-                icon.setAttribute('aria-hidden', 'true');
+                icon.setAttribute("aria-hidden", "true");
                 return icon;
             },
             position: 20,
@@ -406,8 +406,8 @@ function optionContent(config) {
     content.push(
         {
             render(completion, _s, match) {
-                let labelSpan = document.createElement('span');
-                labelSpan.className = 'cm-completionLabel';
+                let labelSpan = document.createElement("span");
+                labelSpan.className = "cm-completionLabel";
                 let { label } = completion,
                     off = 0;
                 for (let j = 1; j < match.length; ) {
@@ -415,9 +415,9 @@ function optionContent(config) {
                         to = match[j++];
                     if (from > off)
                         labelSpan.appendChild(document.createTextNode(label.slice(off, from)));
-                    let span = labelSpan.appendChild(document.createElement('span'));
+                    let span = labelSpan.appendChild(document.createElement("span"));
                     span.appendChild(document.createTextNode(label.slice(from, to)));
-                    span.className = 'cm-completionMatchedText';
+                    span.className = "cm-completionMatchedText";
                     off = to;
                 }
                 if (off < label.length)
@@ -430,8 +430,8 @@ function optionContent(config) {
         {
             render(completion) {
                 if (!completion.detail) return null;
-                let detailSpan = document.createElement('span');
-                detailSpan.className = 'cm-completionDetail';
+                let detailSpan = document.createElement("span");
+                detailSpan.className = "cm-completionDetail";
                 detailSpan.textContent = completion.detail;
                 return detailSpan;
             },
@@ -442,9 +442,9 @@ function optionContent(config) {
 }
 
 function createDocContentDom(option) {
-    let dom = document.createElement('div');
-    dom.id = 'code-doc-content';
-    dom.className = 'cm-tooltip cm-completionInfo';
+    let dom = document.createElement("div");
+    dom.id = "code-doc-content";
+    dom.className = "cm-tooltip cm-completionInfo";
     let { info } = option.completion;
     dom.textContent = info;
     return dom;
@@ -478,11 +478,11 @@ class CompletionTooltip {
         this.optionClass = config.optionClass;
         this.range = rangeAroundSelected(options.length, selected, config.maxRenderedOptions);
 
-        this.dom = document.createElement('div');
-        this.dom.className = 'cm-tooltip-autocomplete';
+        this.dom = document.createElement("div");
+        this.dom.className = "cm-tooltip-autocomplete";
 
         this.list = this.dom.appendChild(this.createListBox(options, cState.id, this.range));
-        this.list.addEventListener('scroll', () => {
+        this.list.addEventListener("scroll", () => {
             if (this.info) this.view.requestMeasure(this.placeInfo);
         });
     }
@@ -513,7 +513,7 @@ class CompletionTooltip {
             this.list = this.dom.appendChild(
                 this.createListBox(open.options, cState.id, this.range)
             );
-            this.list.addEventListener('scroll', () => {
+            this.list.addEventListener("scroll", () => {
                 if (this.info) this.view.requestMeasure(this.placeInfo);
             });
         }
@@ -528,47 +528,47 @@ class CompletionTooltip {
     updateSelectedOption(option, selected) {
         let set = null;
         for (let opt = this.list.firstChild, i = this.range.from; opt; opt = opt.nextSibling, i++) {
-            const matchText = opt.querySelector('.cm-completionMatchedText');
+            const matchText = opt.querySelector(".cm-completionMatchedText");
             //const icon = opt.querySelector('.cm-completion-icon');
             let { info } = option.completion;
 
             if (i == selected) {
-                if (!opt.hasAttribute('aria-selected')) {
-                    opt.setAttribute('aria-selected', 'true');
+                if (!opt.hasAttribute("aria-selected")) {
+                    opt.setAttribute("aria-selected", "true");
                     set = opt;
 
                     if (info) {
-                        const moreBtn = document.createElement('button');
-                        moreBtn.className = 'cm-read-more-btn';
-                        moreBtn.innerHTML = '&#8250;';
-                        moreBtn.setAttribute('title', 'Read more');
+                        const moreBtn = document.createElement("button");
+                        moreBtn.className = "cm-read-more-btn";
+                        moreBtn.innerHTML = "&#8250;";
+                        moreBtn.setAttribute("title", "Read more");
                         moreBtn.onclick = (e) => {
                             e.stopPropagation();
                             this._showMoreClick(option);
                         };
                         opt.appendChild(moreBtn);
                         if (isShowMoreInfo) {
-                            let codeDocContainerDom = this.dom.querySelector('#code-doc-container');
+                            let codeDocContainerDom = this.dom.querySelector("#code-doc-container");
                             this.showMoreInfo(codeDocContainerDom, option);
                         }
                     }
 
                     if (matchText) {
-                        matchText.style.color = '#62ebff';
+                        matchText.style.color = "#62ebff";
                         // icon.setAttribute('src', '../icons/cube-white.svg');
                         // icon.classList.add('cm-completion-icon-selected');
                     }
                 }
             } else {
-                if (opt.hasAttribute('aria-selected')) {
-                    opt.removeAttribute('aria-selected');
+                if (opt.hasAttribute("aria-selected")) {
+                    opt.removeAttribute("aria-selected");
                     if (matchText) {
-                        matchText.style.color = '#0064b7';
+                        matchText.style.color = "#0064b7";
                         // icon.setAttribute('src', '../icons/cube.svg');
                         // icon.setAttribute('class', 'cm-completion-icon');
                     }
 
-                    const btnMore = opt.querySelector('.cm-read-more-btn');
+                    const btnMore = opt.querySelector(".cm-read-more-btn");
                     if (btnMore) opt.removeChild(btnMore);
                 }
             }
@@ -578,7 +578,7 @@ class CompletionTooltip {
     }
 
     measureInfo() {
-        let sel = this.dom.querySelector('[aria-selected]');
+        let sel = this.dom.querySelector("[aria-selected]");
         if (!sel) return null;
         let rect = this.dom.getBoundingClientRect();
         let top = sel.getBoundingClientRect().top - rect.top;
@@ -593,18 +593,18 @@ class CompletionTooltip {
 
     positionInfo(pos) {
         if (this.info && pos) {
-            this.info.style.top = pos.top + 'px';
-            this.info.classList.toggle('cm-completionInfo-left', pos.left);
-            this.info.classList.toggle('cm-completionInfo-right', !pos.left);
+            this.info.style.top = pos.top + "px";
+            this.info.classList.toggle("cm-completionInfo-left", pos.left);
+            this.info.classList.toggle("cm-completionInfo-right", !pos.left);
         }
     }
 
     createListBox(options, id, range) {
-        const ul = document.createElement('ul');
-        ul.className = 'cm-list-options';
+        const ul = document.createElement("ul");
+        ul.className = "cm-list-options";
 
         ul.id = id;
-        ul.setAttribute('role', 'listbox');
+        ul.setAttribute("role", "listbox");
         for (let i = range.from; i < range.to; i++) {
             let { completion, match } = options[i];
 
@@ -614,9 +614,9 @@ class CompletionTooltip {
                 detail: null,
             };
 
-            const li = ul.appendChild(document.createElement('li'));
-            li.id = id + '-' + i;
-            li.setAttribute('role', 'option');
+            const li = ul.appendChild(document.createElement("li"));
+            li.id = id + "-" + i;
+            li.setAttribute("role", "option");
             let cls = this.optionClass(completion);
             if (cls) li.className = cls;
             for (let source of this.optionContent) {
@@ -629,14 +629,14 @@ class CompletionTooltip {
             };
         }
 
-        if (range.from) ul.classList.add('cm-completionListIncompleteTop');
-        if (range.to < options.length) ul.classList.add('cm-completionListIncompleteBottom');
+        if (range.from) ul.classList.add("cm-completionListIncompleteTop");
+        if (range.to < options.length) ul.classList.add("cm-completionListIncompleteBottom");
 
         return ul;
     }
 
     _showMoreClick(option) {
-        let codeDocContainerDom = this.dom.querySelector('#code-doc-container');
+        let codeDocContainerDom = this.dom.querySelector("#code-doc-container");
         if (!codeDocContainerDom) {
             this.showMoreInfo(codeDocContainerDom, option);
             isShowMoreInfo = true;
@@ -649,8 +649,8 @@ class CompletionTooltip {
 
     showMoreInfo(codeDocContainerDom, option) {
         if (!codeDocContainerDom) {
-            codeDocContainerDom = this.dom.appendChild(document.createElement('div'));
-            codeDocContainerDom.id = 'code-doc-container';
+            codeDocContainerDom = this.dom.appendChild(document.createElement("div"));
+            codeDocContainerDom.id = "code-doc-container";
             let { info } = option.completion;
             if (info) codeDocContainerDom.appendChild(createDocContentDom(option));
         }
@@ -791,7 +791,7 @@ class CompletionState {
     static start() {
         return new CompletionState(
             none,
-            'cm-ac-' + Math.floor(Math.random() * 2e6).toString(36),
+            "cm-ac-" + Math.floor(Math.random() * 2e6).toString(36),
             null
         );
     }
@@ -800,7 +800,7 @@ class CompletionState {
         let { state } = tr,
             conf = state.facet(completionConfig);
         let sources =
-            conf.override || state.languageDataAt('autocomplete', cur(state)).map(asSource);
+            conf.override || state.languageDataAt("autocomplete", cur(state)).map(asSource);
         let active = sources.map((source) => {
             let value =
                 this.active.find((s) => s.source == source) ||
@@ -861,16 +861,16 @@ function sameResults(a, b) {
 }
 
 const baseAttrs = {
-    'aria-autocomplete': 'list',
-    'aria-expanded': 'false',
+    "aria-autocomplete": "list",
+    "aria-expanded": "false",
 };
 
 function makeAttrs(id, selected) {
     return {
-        'aria-autocomplete': 'list',
-        'aria-expanded': 'true',
-        'aria-activedescendant': id + '-' + selected,
-        'aria-controls': id,
+        "aria-autocomplete": "list",
+        "aria-expanded": "true",
+        "aria-activedescendant": id + "-" + selected,
+        "aria-controls": id,
     };
 }
 
@@ -882,10 +882,10 @@ function cmpOption(a, b) {
 }
 
 function getUserEvent(tr) {
-    return tr.isUserEvent('input.type')
-        ? 'input'
-        : tr.isUserEvent('delete.backward')
-        ? 'delete'
+    return tr.isUserEvent("input.type")
+        ? "input"
+        : tr.isUserEvent("delete.backward")
+        ? "delete"
         : null;
 }
 
@@ -919,7 +919,7 @@ class ActiveSource {
         return value;
     }
     handleUserEvent(tr, type, conf) {
-        return type == 'delete' || !conf.activateOnTyping
+        return type == "delete" || !conf.activateOnTyping
             ? this.map(tr.changes)
             : new ActiveSource(this.source, 1 /* Pending */);
     }
@@ -953,7 +953,7 @@ class ActiveResult extends ActiveSource {
         if ((this.explicitPos > -1 ? pos < from : pos <= from) || pos > to)
             return new ActiveSource(
                 this.source,
-                type == 'input' && conf.activateOnTyping ? 1 /* Pending */ : 0 /* Inactive */
+                type == "input" && conf.activateOnTyping ? 1 /* Pending */ : 0 /* Inactive */
             );
         let explicitPos = this.explicitPos < 0 ? -1 : tr.changes.mapPos(this.explicitPos);
         if (this.span && (from == to || this.span.test(tr.state.sliceDoc(from, to))))
@@ -1004,7 +1004,7 @@ const CompletionInteractMargin = 75;
 Returns a command that moves the completion selection forward or
 backward by the given amount.
 */
-const moveCompletionSelection = (forward, by = 'option') => {
+const moveCompletionSelection = (forward, by = "option") => {
     return (view) => {
         let cState = view.state.field(completionState, false);
         if (
@@ -1014,23 +1014,23 @@ const moveCompletionSelection = (forward, by = 'option') => {
         )
             return false;
         let step = 1;
-        let tooltip = view.dom.querySelector('.cm-tooltip-autocomplete');
-        if (by == 'page' && tooltip)
+        let tooltip = view.dom.querySelector(".cm-tooltip-autocomplete");
+        if (by == "page" && tooltip)
             step = Math.max(2, Math.floor(tooltip.offsetHeight / tooltip.firstChild.offsetHeight));
         let selected = cState.open.selected + step * (forward ? 1 : -1),
             { length } = cState.open.options;
-        if (selected < 0) selected = by == 'page' ? 0 : length - 1;
-        else if (selected >= length) selected = by == 'page' ? length - 1 : 0;
+        if (selected < 0) selected = by == "page" ? 0 : length - 1;
+        else if (selected >= length) selected = by == "page" ? length - 1 : 0;
         view.dispatch({ effects: setSelectedEffect.of(selected) });
 
         //handler for info dialog
-        let codeDocContainerDom = tooltip.querySelector('#code-doc-container');
+        let codeDocContainerDom = tooltip.querySelector("#code-doc-container");
 
         const option = cState.open.options[selected];
         if (codeDocContainerDom) {
             tooltip.removeChild(codeDocContainerDom);
-            codeDocContainerDom = tooltip.appendChild(document.createElement('div'));
-            codeDocContainerDom.id = 'code-doc-container';
+            codeDocContainerDom = tooltip.appendChild(document.createElement("div"));
+            codeDocContainerDom.id = "code-doc-container";
             let { info } = option.completion;
             if (info) codeDocContainerDom.appendChild(createDocContentDom(option));
         }
@@ -1049,9 +1049,9 @@ const changeCompletionSelection = () => {
         )
             return false;
 
-        let tooltip = view.dom.querySelector('.cm-tooltip-autocomplete');
+        let tooltip = view.dom.querySelector(".cm-tooltip-autocomplete");
         if (tooltip) {
-            let moreBtn = tooltip.querySelector('.cm-read-more-btn');
+            let moreBtn = tooltip.querySelector(".cm-read-more-btn");
             moreBtn.onclick(window.event);
         }
         return true;
@@ -1162,7 +1162,7 @@ const completionPlugin = /*@__PURE__*/ ViewPlugin.fromClass(
                 : -1;
             if (this.composing != 0 /* None */)
                 for (let tr of update.transactions) {
-                    if (getUserEvent(tr) == 'input') this.composing = 2 /* Changed */;
+                    if (getUserEvent(tr) == "input") this.composing = 2 /* Changed */;
                     else if (this.composing == 2 /* Changed */ && tr.selection)
                         this.composing = 3 /* ChangedAndMoved */;
                 }
@@ -1377,8 +1377,8 @@ class Snippet {
 let fieldMarker = /*@__PURE__*/ Decoration.widget({
     widget: /*@__PURE__*/ new (class extends WidgetType {
         toDOM() {
-            let span = document.createElement('span');
-            span.className = 'cm-snippetFieldPosition';
+            let span = document.createElement("span");
+            span.className = "cm-snippetFieldPosition";
             return span;
         }
         ignoreEvent() {
@@ -1387,7 +1387,7 @@ let fieldMarker = /*@__PURE__*/ Decoration.widget({
     })(),
 });
 
-let fieldRange = /*@__PURE__*/ Decoration.mark({ class: 'cm-snippetField' });
+let fieldRange = /*@__PURE__*/ Decoration.mark({ class: "cm-snippetField" });
 class ActiveSnippet {
     constructor(ranges, active) {
         this.ranges = ranges;
@@ -1520,8 +1520,8 @@ Move to the previous snippet field, if available.
 */
 const prevSnippetField = /*@__PURE__*/ moveField(-1);
 const defaultSnippetKeymap = [
-    { key: 'Tab', run: nextSnippetField, shift: prevSnippetField },
-    { key: 'Escape', run: clearSnippet },
+    { key: "Tab", run: nextSnippetField, shift: prevSnippetField },
+    { key: "Escape", run: clearSnippet },
 ];
 /**
 A facet that can be used to configure the key bindings used by
@@ -1570,16 +1570,16 @@ const snippetPointerHandler = /*@__PURE__*/ EditorView.domEventHandlers({
 });
 
 function wordRE(wordChars) {
-    let escaped = wordChars.replace(/[\\[.+*?(){|^$]/g, '\\$&');
+    let escaped = wordChars.replace(/[\\[.+*?(){|^$]/g, "\\$&");
     try {
-        return new RegExp(`[\\p{Alphabetic}\\p{Number}_${escaped}]+`, 'ug');
+        return new RegExp(`[\\p{Alphabetic}\\p{Number}_${escaped}]+`, "ug");
     } catch (_a) {
-        return new RegExp(`[\w${escaped}]`, 'g');
+        return new RegExp(`[\w${escaped}]`, "g");
     }
 }
 
 function mapRE(re, f) {
-    return new RegExp(f(re.source), re.unicode ? 'u' : '');
+    return new RegExp(f(re.source), re.unicode ? "u" : "");
 }
 
 const wordCaches = /*@__PURE__*/ Object.create(null);
@@ -1594,7 +1594,7 @@ function storeWords(doc, wordRE, result, seen, ignoreAt) {
         wordRE.lastIndex = 0;
         while ((m = wordRE.exec(value))) {
             if (!seen[m[0]] && pos + m.index != ignoreAt) {
-                result.push({ type: 'text', label: m[0] });
+                result.push({ type: "text", label: m[0] });
                 seen[m[0]] = true;
                 if (result.length >= 2000 /* MaxList */) return;
             }
@@ -1636,9 +1636,9 @@ A completion source that will scan the document for words (using a
 return those as completions.
 */
 const completeAnyWord = (context) => {
-    let wordChars = context.state.languageDataAt('wordChars', context.pos).join('');
+    let wordChars = context.state.languageDataAt("wordChars", context.pos).join("");
     let re = wordRE(wordChars);
-    let token = context.matchBefore(mapRE(re, (s) => s + '$'));
+    let token = context.matchBefore(mapRE(re, (s) => s + "$"));
     if (!token && !context.explicit) return null;
     let from = token ? token.from : context.pos;
     let options = collectWords(
@@ -1648,7 +1648,7 @@ const completeAnyWord = (context) => {
         50000 /* Range */,
         from
     );
-    return { from, options, span: mapRE(re, (s) => '^' + s) };
+    return { from, options, span: mapRE(re, (s) => "^" + s) };
 };
 
 /**
@@ -1669,15 +1669,15 @@ Basic keybindings for autocompletion.
  - Enter: [`acceptCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.acceptCompletion)
 */
 const completionKeymap = [
-    { key: 'Ctrl-Space', run: startCompletion },
-    { key: 'Escape', run: closeCompletion },
-    { key: 'ArrowDown', run: /*@__PURE__*/ moveCompletionSelection(true) },
-    { key: 'ArrowUp', run: /*@__PURE__*/ moveCompletionSelection(false) },
-    { key: 'ArrowRight', run: /*@__PURE__*/ changeCompletionSelection(true) },
-    { key: 'ArrowLeft', run: /*@__PURE__*/ changeCompletionSelection(false) },
-    { key: 'PageDown', run: /*@__PURE__*/ moveCompletionSelection(true, 'page') },
-    { key: 'PageUp', run: /*@__PURE__*/ moveCompletionSelection(false, 'page') },
-    { key: 'Enter', run: acceptCompletion },
+    { key: "Ctrl-Space", run: startCompletion },
+    { key: "Escape", run: closeCompletion },
+    { key: "ArrowDown", run: /*@__PURE__*/ moveCompletionSelection(true) },
+    { key: "ArrowUp", run: /*@__PURE__*/ moveCompletionSelection(false) },
+    { key: "ArrowRight", run: /*@__PURE__*/ changeCompletionSelection(true) },
+    { key: "ArrowLeft", run: /*@__PURE__*/ changeCompletionSelection(false) },
+    { key: "PageDown", run: /*@__PURE__*/ moveCompletionSelection(true, "page") },
+    { key: "PageUp", run: /*@__PURE__*/ moveCompletionSelection(false, "page") },
+    { key: "Enter", run: acceptCompletion },
 ];
 
 const completionKeymapExt = /*@__PURE__*/ Prec.override(
@@ -1694,9 +1694,9 @@ returns `null`.
 function completionStatus(state) {
     let cState = state.field(completionState, false);
     return cState && cState.active.some((a) => a.state == 1 /* Pending */)
-        ? 'pending'
+        ? "pending"
         : cState && cState.active.some((a) => a.state != 0 /* Inactive */)
-        ? 'active'
+        ? "active"
         : null;
 }
 /**

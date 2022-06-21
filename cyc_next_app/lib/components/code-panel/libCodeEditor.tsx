@@ -1,4 +1,4 @@
-import { gutter, GutterMarker } from "@codemirror/gutter";
+import { gutter, GutterMarker } from "@codemirror/view"
 import { StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import { setActiveLine } from "../../../redux/reducers/CodeEditorRedux";
@@ -15,7 +15,6 @@ import {
 } from "../../interfaces/ICodeEditor";
 import { ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
-import { python } from "../../codemirror/grammar/lang-cnext-python";
 import store from "../../../redux/store";
 import { RootState } from "../../../redux/store";
 
@@ -566,19 +565,6 @@ export const notStartWithSpace = (text: string): boolean => {
     return !/^\s/.test(text);
 };
 
-/**
- * check if the text line is an Expression instead of a Statement
- * */
-export const textShouldBeExec = (text: string): boolean => {
-    let parser = python().language.parser;
-    let tree = parser.parse(text);
-    let cursor = tree.cursor(0, 0);
-    let parentName = cursor.name;
-    cursor.firstChild();
-    let childName = cursor.name;
-    /** not start with space */
-    return parentName == "Script" && childName == "ExpressionStatement" && notStartWithSpace(text);
-};
 
 export const isRunQueueBusy = (runQueue: IRunQueue) => {
     return runQueue.queue.length > 0 || runQueue.status === RunQueueStatus.RUNNING;
