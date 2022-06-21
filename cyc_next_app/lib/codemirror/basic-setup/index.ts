@@ -161,7 +161,7 @@ export const basicSetup: Extension = [
     highlightActiveLineGutter(),
     highlightSpecialChars(),
     history(),
-    foldGutter(),
+    foldGutter({ openText: "\u25bc", closedText: "\u25b6" }),
     drawSelection(),
     dropCursor(),
     EditorState.allowMultipleSelections.of(true),
@@ -173,7 +173,7 @@ export const basicSetup: Extension = [
     rectangularSelection(),
     crosshairCursor(),
     highlightActiveLine(),
-    highlightSelectionMatches(),    
+    highlightSelectionMatches(),
 ];
 
 /// A minimal set of extensions to create a functional editor. Only
