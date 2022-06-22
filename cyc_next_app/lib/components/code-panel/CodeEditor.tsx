@@ -95,7 +95,7 @@ import CypressIds from "../tests/CypressIds";
 import { closeBracketsKeymap } from "@codemirror/closebrackets";
 import { IKernelManagerResultContent, KernelManagerCommand } from "../../interfaces/IKernelManager";
 
-const pyLanguageServer = languageServer({
+let pyLanguageServer = languageServer({
     serverUri: "ws://localhost:3001/python",
     rootUri: "file:///",
     documentUri: "file:///",
@@ -117,6 +117,7 @@ const CodeEditor = () => {
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
+    const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
 
     const shortcutKeysConfig = useSelector(
         (state: RootState) => state.projectManager.settings.code_editor_shortcut
@@ -206,6 +207,15 @@ const CodeEditor = () => {
 
     const getLangExtenstions = (inViewID: string | null) => {
         console.log("CodeEditor getLangExtenstions: ", inViewID);
+
+        const path = store.getState().projectManager.activeProject?.path;
+        pyLanguageServer = languageServer({
+            serverUri: "ws://localhost:3001/python",
+            rootUri: "file:///" + path,
+            documentUri: "file:///" + path,
+            languageId: "python",
+        });
+
         const fileLangExtensions: { [name: string]: Extension[] } = {
             py: [python(), pyLanguageServer, cAssistExtraOptsPlugin.extension],
             sql: [sql()],
@@ -305,11 +315,11 @@ const CodeEditor = () => {
                         // dispatch(setLineStatusRedux(lineStatus));
                         /** set active code line to be the current line after it is excuted so the result will be show accordlingly
                          * not sure if this is a good design but will live with it for now */
-                        let activeLine: ICodeActiveLine = {
-                            inViewID: inViewID,
-                            lineNumber: codeOutput.metadata.line_range?.fromLine,
-                        };
-                        dispatch(setActiveLine(activeLine));                                                
+                        // let activeLine: ICodeActiveLine = {
+                        //     inViewID: inViewID,
+                        //     lineNumber: codeOutput.metadata.line_range?.fromLine,
+                        // };
+                        // dispatch(setActiveLine(activeLine));
                     }
                 }
             } catch (error) {
@@ -331,7 +341,7 @@ const CodeEditor = () => {
                      * to set the line status */
                     // console.log("CodeEditor got result: ", kmResult, resultContent, runQueueItem);
                     if (
-                        (kmResult.command_name === KernelManagerCommand.restart_kernel) &&
+                        kmResult.command_name === KernelManagerCommand.restart_kernel &&
                         resultContent.success === true &&
                         runQueueItem != null
                     ) {
@@ -349,6 +359,8 @@ const CodeEditor = () => {
     useEffect(() => {
         console.log("CodeEditor init");
         socketInit();
+        resetEditorState(inViewID, view);
+
         return () => {
             socket.off(WebAppEndpoint.CodeEditor);
         };
@@ -398,11 +410,13 @@ const CodeEditor = () => {
 
     useEffect(() => {
         try {
-            setHTMLEventHandler(container, view, dispatch);
-            //TODO: improve this
-            setGroupedLineDeco(store.getState(), view);
-            setGenLineDeco(store.getState(), view);
-            console.log("CodeEditor useEffect setGenCodeLineDeco");
+            if (view != null) {
+                setHTMLEventHandler(container, view, dispatch);
+                //TODO: improve this
+                setGroupedLineDeco(store.getState(), view);
+                setGenLineDeco(store.getState(), view);
+                console.log("CodeEditor useEffect setGenCodeLineDeco");
+            }
         } catch {}
     });
 
@@ -436,7 +450,7 @@ const CodeEditor = () => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(runQueueItem);                
+                execLines(runQueueItem);
             }
         }
     }, [runQueue]);
@@ -623,7 +637,7 @@ const CodeEditor = () => {
                     const anchor = state.selection.ranges[0].anchor;
                     let curLineNumber = doc.lineAt(anchor).number - 1; // 0-based
                     let codeLines = store.getState().codeEditor.codeLines[inViewID];
-                    setAnchorToNextGroup(codeLines, view, curLineNumber);
+                    setAnchorToNextGroup(inViewID, codeLines, view, curLineNumber);
                 }
             }
         } catch (error) {
@@ -640,7 +654,7 @@ const CodeEditor = () => {
             if (content != null && inViewID != null) {
                 console.log("CodeEditor execLines: ", content, lineRange);
                 sendMessage(content);
-                setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);                
+                setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);
             }
         }
     };

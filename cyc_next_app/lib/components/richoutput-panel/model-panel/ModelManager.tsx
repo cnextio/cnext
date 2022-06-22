@@ -2,7 +2,11 @@ import { Message } from "@lumino/messaging";
 import { IconButton } from "@mui/material";
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setModelInfo, setModelViewerInfo, setReload } from "../../../../redux/reducers/ModelManagerRedux";
+import {
+    setModelInfo,
+    setModelViewerInfo,
+    setReload,
+} from "../../../../redux/reducers/ModelManagerRedux";
 import store, { RootState } from "../../../../redux/store";
 import { ContentType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import {
@@ -59,12 +63,12 @@ const ModelManager = () => {
                         case ModelManagerCommand.get_active_models_info:
                             let modelInfo = mmResult.content as IModelInfo;
                             // console.log("ModelManager got active model: ", modelInfo);
-                            dispatch(setModelInfo(modelInfo));
-                            // displayModel();
+                            if (modelInfo != null) dispatch(setModelInfo(modelInfo));
                             break;
                         case ModelManagerCommand.display_model:
                             let modelViewerInfo = mmResult.content as IModelViewerInfo;
-                            dispatch(setModelViewerInfo(modelViewerInfo));
+                            if (modelViewerInfo != null)
+                                dispatch(setModelViewerInfo(modelViewerInfo));
                             break;
                     }
                 } else {
@@ -121,15 +125,10 @@ const ReloadButton = () => {
 
     const reload = () => {
         dispatch(setReload(null));
-    }
-    
+    };
+
     return (
-        <IconButton
-            onClick={reload}
-            aria-label="Back"
-            size="medium"
-            color="default"
-        >
+        <IconButton onClick={reload} aria-label="Back" size="medium" color="default">
             {<ReplayIcon fontSize="small" style={{ width: "20px", height: "20px" }} />}
         </IconButton>
     );
@@ -139,8 +138,8 @@ const ModelPanel = () => {
     const modelViewerCounter = useSelector(
         (state: RootState) => state.modelManager.modelViewerCounter
     );
-    
-    /** use this to avoid showing the model when this component has just been reloaded 
+
+    /** use this to avoid showing the model when this component has just been reloaded
      * instead wait until the modelInfo has been updated first */
     const firstRender = useRef(true);
     useEffect(() => {
@@ -150,7 +149,11 @@ const ModelPanel = () => {
     const createModelViewerComponent = () => {
         const state = store.getState();
         const modelViewerInfo = state.modelManager.modelViewerInfo;
-        if (modelViewerCounter > 0 && modelViewerInfo != null && modelViewerInfo.status===NetronStatus.OK) {
+        if (
+            modelViewerCounter > 0 &&
+            modelViewerInfo != null &&
+            modelViewerInfo.status === NetronStatus.OK
+        ) {
             const address = `http://${modelViewerInfo.address[0]}:${modelViewerInfo.address[1]}`;
             console.log("ModelManager: ", address);
             return (

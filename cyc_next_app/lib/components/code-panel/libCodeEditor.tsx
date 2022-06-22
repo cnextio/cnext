@@ -78,9 +78,7 @@ const setAnchor = (view: EditorView, pos: number) => {
     }
 };
 
-import {
-    setLineStatus as setLineStatusRedux
-} from "../../../redux/reducers/CodeEditorRedux";
+import { setLineStatus as setLineStatusRedux } from "../../../redux/reducers/CodeEditorRedux";
 
 const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
     let lineStatus: ICodeLineStatus = {
@@ -91,19 +89,36 @@ const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStat
     store.dispatch(setLineStatusRedux(lineStatus));
 };
 
+/** lineNum is 0 based */
+const setAnchorToLine = (inViewID: string, view: EditorView, lineNumber: number, scrollIntoView: boolean) => {
+    let pos = view.state.doc.line(lineNumber + 1).to; // convert to 1-based
+    if (view != null && inViewID!=null) {
+        view.dispatch({
+            selection: { anchor: pos, head: pos },
+            scrollIntoView: scrollIntoView,
+        });
+        let activeLine: ICodeActiveLine = {
+            inViewID: inViewID,
+            lineNumber: lineNumber,
+        };
+        store.dispatch(setActiveLine(activeLine));   
+    }
+};;
+
 /** curLineNumber is 0-based */
 const setAnchorToNextGroup = (
+    inViewID: string,
     codeLines: ICodeLine[],
     view: EditorView,
     anchorLineNumber: number
 ) => {
     let originGroupID = codeLines[anchorLineNumber].groupID;
-    console.log("CodeEditor setAnchorToNextGroup: ", anchorLineNumber, originGroupID);
+    // console.log("CodeEditor setAnchorToNextGroup: ", anchorLineNumber, originGroupID);
     if (originGroupID != null) {
         let curlineNumber = anchorLineNumber;
         let curGroupID: string | undefined = originGroupID;
         while (
-            curlineNumber < codeLines.length-1 &&
+            curlineNumber < codeLines.length - 1 &&
             (curGroupID == null || curGroupID === originGroupID)
         ) {
             curlineNumber += 1;
@@ -116,11 +131,8 @@ const setAnchorToNextGroup = (
             curlineNumber,
             curGroupID
         );
-        if (view && curGroupID !== originGroupID) {
-            let startOfNextGroup = view.state.doc.line(curlineNumber + 1).to; // convert to 1-based
-            view.dispatch({
-                selection: { anchor: startOfNextGroup, head: startOfNextGroup },
-            });
+        if (view && curGroupID !== originGroupID) {            
+            setAnchorToLine(inViewID, view, curlineNumber, true);
         }
     }
 };
@@ -305,13 +317,8 @@ const setGenLineDeco = (reduxState: RootState, view: EditorView | undefined) => 
     }
 };
 
-const groupedLinesCSS = Decoration.line({ attributes: { class: "cm-groupedline" } });
-/** style for the first line in a group */
-const groupedFirstLinesCSS = Decoration.line({ attributes: { class: "cm-groupedfirstline" } });
-/** style for the first line behind a group */
-const noneGroupedFirstLinesCSS = Decoration.line({
-    attributes: { class: "cm-nongroupedfirstline" },
-});
+const groupLineCSS = (clazz: string) => Decoration.line({ attributes: { class: clazz } });
+
 const GroupedLineStateEffect = StateEffect.define<{}>();
 const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
     StateField.define<DecorationSet>({
@@ -319,6 +326,7 @@ const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
             return Decoration.none;
         },
         update(lineBackgrounds, tr) {
+            const activeGroup = store.getState().codeEditor.activeGroup;
             if (view) {
                 lineBackgrounds = lineBackgrounds.map(tr.changes);
                 for (let effect of tr.effects) {
@@ -332,27 +340,41 @@ const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
                                 for (let ln = 0; ln < lines.length; ln++) {
                                     /** convert to 1-based */
                                     let line = view.state.doc.line(ln + 1);
-                                    if (!lines[ln].generated)
-                                        if (lines[ln].groupID) {
-                                            if (lines[ln].groupID != currentGroupID) {
-                                                lineBackgrounds = lineBackgrounds.update({
-                                                    add: [groupedFirstLinesCSS.range(line.from)],
-                                                });
-                                            } else {
-                                                // console.log('CodeEditor grouped line deco');
-                                                lineBackgrounds = lineBackgrounds.update({
-                                                    add: [groupedLinesCSS.range(line.from)],
-                                                });
-                                            }
+                                    if (!lines[ln].generated && lines[ln].groupID != null) {
+                                        const active_clazz = (activeGroup===lines[ln].groupID)?"active":"";
+                                        if (lines[ln].groupID != currentGroupID) {
+                                            lineBackgrounds = lineBackgrounds.update({
+                                                add: [
+                                                    groupLineCSS(
+                                                        "cm-groupedfirstline " + active_clazz
+                                                    ).range(line.from),
+                                                ],
+                                            });
                                         } else {
-                                            if (lines[ln].groupID != currentGroupID) {
-                                                lineBackgrounds = lineBackgrounds.update({
-                                                    add: [
-                                                        noneGroupedFirstLinesCSS.range(line.from),
-                                                    ],
-                                                });
-                                            }
+                                            // console.log('CodeEditor grouped line deco');
+                                            lineBackgrounds = lineBackgrounds.update({
+                                                add: [
+                                                    groupLineCSS(
+                                                        "cm-groupedline " + active_clazz
+                                                    ).range(line.from),
+                                                ],
+                                            });
                                         }
+                                        if (
+                                            /** this is the last line */
+                                            ln + 1 === lines.length ||
+                                            /** next line belongs to a different group */
+                                            lines[ln].groupID !== lines[ln + 1].groupID
+                                        ) {
+                                            lineBackgrounds = lineBackgrounds.update({
+                                                add: [
+                                                    groupLineCSS(
+                                                        "cm-groupedlastline " + active_clazz
+                                                    ).range(line.from),
+                                                ],
+                                            });
+                                        }
+                                    }
                                     currentGroupID = lines[ln].groupID;
                                 }
                             }
@@ -428,7 +450,7 @@ function onMouseDown(event, view: EditorView, dispatch) {
                     inViewID: inViewID,
                     lineNumber: lineNumber,
                 };
-                dispatch(setActiveLine(activeLine));
+                store.dispatch(setActiveLine(activeLine));
                 // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
             }
         }

@@ -14,7 +14,7 @@ export const MarkdownProcessor = () => {
     const MARKDOWN_PREFIX_LENGTH = 2;
     const isMarkdownLine = (line: string) => {
         return line.match(MARDOWN_PREFIX_REG) != null;
-    }
+    };
 
     useEffect(() => {
         let inViewID = store.getState().projectManager.inViewID;
@@ -22,7 +22,7 @@ export const MarkdownProcessor = () => {
             let codeLines = store.getState().codeEditor.codeLines[inViewID];
             let lineUpdate = store.getState().codeEditor.lastLineUpdate[inViewID];
 
-            if (lineUpdate != null) {
+            if (lineUpdate != null && codeLines != null) {
                 let lineNumber = lineUpdate.updatedStartLineNumber;
                 let markdownText: string[] = [];
                 const groupID = codeLines[lineNumber].groupID;
@@ -58,9 +58,14 @@ export const MarkdownProcessor = () => {
                             type: ContentType.RICH_OUTPUT,
                             subType: SubContentType.MARKDOWN,
                             content: { "text/markdown": markdownText.join("\n") },
-                            metadata: {"line_range": {"fromLine": startMarkdownLine, "toLine": startMarkdownLine}}
+                            metadata: {
+                                line_range: {
+                                    fromLine: startMarkdownLine,
+                                    toLine: startMarkdownLine,
+                                },
+                            },
                         };
-                        dispatch(addResult(markdownResult))
+                        dispatch(addResult(markdownResult));
                         // codeLines[startMarkdownLine].result = markdownResult;
                         // state.resultUpdateCount++;
                     }
