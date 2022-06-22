@@ -34,10 +34,10 @@ const FileExplorer = "FileExplorer";
 const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
 const KernelManager = "KernelManager";
-const TerminalCommand = "TerminalCommand";
+const Terminal = "Terminal";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
 const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
-const TerminalExecutor = [TerminalCommand];
+const TerminalExecutor = [Terminal];
 
 const LSPExecutor = [
     LanguageServer,
@@ -148,8 +148,6 @@ class PythonProcess {
 // let clientMessage;
 try {
     io.on("connection", (socket) => {
-        let conn = new SSHClient(); // initialize SSH connection
-
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();
             console.log(`Got ping at ${time}: ${message}`);
@@ -178,21 +176,24 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
+                console.log("111");
+                let conn = new SSHClient(); // initialize SSH connection
                 conn.on("ready", function () {
-                    socket.emit("data", "\r\n*** SSH CONNECTION ESTABLISHED ***\r\n");
+                    console.log("222");
+                    socket.emit(Terminal, "\r\n*** SSH CONNECTION ESTABLISHED ***\r\n");
                     conn.shell(function (err, stream) {
                         if (err)
                             return socket.emit(
-                                "data",
+                                Terminal,
                                 "\r\n*** SSH SHELL ERROR: " + err.message + " ***\r\n"
                             );
-                        socket.on("data", function (data) {
+                        socket.on(Terminal, function (data) {
                             console.log(data);
                             stream.write(data);
                         });
                         stream
                             .on("data", function (d) {
-                                socket.emit("data", d.toString("binary"));
+                                socket.emit(Terminal, d.toString("binary"));
                             })
                             .on("close", function () {
                                 conn.end();
@@ -200,11 +201,11 @@ try {
                     });
                 })
                     .on("close", function () {
-                        socket.emit("data", "\r\n*** SSH CONNECTION CLOSED ***\r\n");
+                        socket.emit(Terminal, "\r\n*** SSH CONNECTION CLOSED ***\r\n");
                     })
                     .on("error", function (err) {
                         socket.emit(
-                            "data",
+                            Terminal,
                             "\r\n*** SSH CONNECTION ERROR: " + err.message + " ***\r\n"
                         );
                     })

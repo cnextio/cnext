@@ -136,7 +136,7 @@ export enum WebAppEndpoint {
     LanguageServerHover = "LanguageServerHover",
     LanguageServerCompletion = "LanguageServerCompletion",
     LanguageServerSignature = "LanguageServerSignature",
-    TerminalCommand = "TerminalCommand",
+    Terminal = "Terminal",
 }
 
 export interface ITableData {

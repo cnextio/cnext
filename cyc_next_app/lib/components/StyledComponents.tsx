@@ -478,6 +478,7 @@ export const CodeOutputHeaderText = styled(Typography)`
     // text-decoration: underline;
     font-size: 11px;
     border-bottom-style: ${(props) => props.underline  ? `solid` : `none`};
+    margin-right:10px;
     border-width: 1px;
     cursor: pointer
 `;
