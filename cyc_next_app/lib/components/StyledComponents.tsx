@@ -434,17 +434,35 @@ export const StyledCodeEditor = styled.div`
     }
 
     .cm-groupedline {
+        background-color: rgb(218, 255, 237, 0.2);
+    }
+
+    .cm-groupedline.active {
         background-color: rgb(218, 255, 237, 0.5);
     }
 
     .cm-groupedfirstline {
+        // margin-top: 10px;
         border-top: 1px dotted rgb(153, 179, 171, 0.5);
+        background-color: rgb(218, 255, 237, 0.2);
+    }
+
+    .cm-groupedfirstline.active {
+        // margin-top: 10px;
+        border-top: 1px solid rgb(153, 179, 171, 0.5);
         background-color: rgb(218, 255, 237, 0.5);
     }
 
-    .cm-nongroupedfirstline {
-        border-top: 1px dotted rgb(153, 179, 171, 0.5);
-        background-color: white;
+    .cm-groupedlastline {
+        // margin-bottom: 10px;
+        border-bottom: 1px dotted rgb(153, 179, 171, 0.5);
+        background-color: rgb(218, 255, 237, 0.2);
+    }
+
+    .cm-groupedlastline.active {
+        // margin-bottom: 10px;
+        border-bottom: 1px solid rgb(153, 179, 171, 0.5);
+        background-color: rgb(218, 255, 237, 0.5);
     }
 
     .cm-cassist-selection {

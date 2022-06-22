@@ -117,6 +117,7 @@ const CodeEditor = () => {
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
+    const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
 
     const shortcutKeysConfig = useSelector(
         (state: RootState) => state.projectManager.settings.code_editor_shortcut
@@ -314,11 +315,11 @@ const CodeEditor = () => {
                         // dispatch(setLineStatusRedux(lineStatus));
                         /** set active code line to be the current line after it is excuted so the result will be show accordlingly
                          * not sure if this is a good design but will live with it for now */
-                        let activeLine: ICodeActiveLine = {
-                            inViewID: inViewID,
-                            lineNumber: codeOutput.metadata.line_range?.fromLine,
-                        };
-                        dispatch(setActiveLine(activeLine));
+                        // let activeLine: ICodeActiveLine = {
+                        //     inViewID: inViewID,
+                        //     lineNumber: codeOutput.metadata.line_range?.fromLine,
+                        // };
+                        // dispatch(setActiveLine(activeLine));
                     }
                 }
             } catch (error) {
@@ -409,11 +410,13 @@ const CodeEditor = () => {
 
     useEffect(() => {
         try {
-            setHTMLEventHandler(container, view, dispatch);
-            //TODO: improve this
-            setGroupedLineDeco(store.getState(), view);
-            setGenLineDeco(store.getState(), view);
-            console.log("CodeEditor useEffect setGenCodeLineDeco");
+            if (view != null) {
+                setHTMLEventHandler(container, view, dispatch);
+                //TODO: improve this
+                setGroupedLineDeco(store.getState(), view);
+                setGenLineDeco(store.getState(), view);
+                console.log("CodeEditor useEffect setGenCodeLineDeco");
+            }
         } catch {}
     });
 
@@ -634,7 +637,7 @@ const CodeEditor = () => {
                     const anchor = state.selection.ranges[0].anchor;
                     let curLineNumber = doc.lineAt(anchor).number - 1; // 0-based
                     let codeLines = store.getState().codeEditor.codeLines[inViewID];
-                    setAnchorToNextGroup(codeLines, view, curLineNumber);
+                    setAnchorToNextGroup(inViewID, codeLines, view, curLineNumber);
                 }
             }
         } catch (error) {
