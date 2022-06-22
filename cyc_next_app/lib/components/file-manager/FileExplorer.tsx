@@ -5,8 +5,12 @@ import {
     FileExplorerHeaderName,
     FileTree,
     FileItem,
-    ProjectItem,
+    ClosedProjectItem,
     ErrorText,
+    ProjectList,
+    OpenProjectTree,
+    FileItemLabel,
+    ProjectExplorerContainer,
 } from "../StyledComponents";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -39,16 +43,23 @@ import NewItemInput from "./NewItemInput";
 import DeleteConfirmation from "./DeleteConfirmation";
 import store, { RootState } from "../../../redux/store";
 import CypressIds from "../tests/CypressIds";
-import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import AddBoxIcon from "@mui/icons-material/AddBox";
-import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import Tooltip from "@mui/material/Tooltip";
-import { resetCodeEditor } from "../../../redux/reducers/CodeEditorRedux";
+import { isRunQueueBusy } from "../code-panel/libCodeEditor";
+import { OverlayComponent } from "../libs/OverlayComponent";
 
+const NameWithTooltip = ({ children, tooltip }) => {
+    return (
+        <Tooltip title={tooltip} placement="bottom-end" enterDelay={1000} enterNextDelay={1000}>
+            {children}
+        </Tooltip>
+    );
+};
 interface ContextMenuInfo {
     parent: string;
     item: string;
     is_file?: boolean;
+    deletable?: boolean;
 }
 
 const FileExplorer = (props: any) => {
@@ -77,7 +88,9 @@ const FileExplorer = (props: any) => {
     const [expandedDirs, setExpandedDirs] = useState<Array<string>>([]);
     const [deleteDialog, setDeleteDialog] = useState(false);
     const dispatch = useDispatch();
-
+    const runQueueBusy = useSelector((state: RootState) =>
+        isRunQueueBusy(state.codeEditor.runQueue)
+    );
     const setupSocket = () => {
         socket.emit("ping", "FileExplorer");
         socket.on(WebAppEndpoint.FileExplorer, (result: string) => {
@@ -105,7 +118,7 @@ const FileExplorer = (props: any) => {
                             // openFiles = fmResult.content as IFileMetadata[];
                             projectMetadata = fmResult.content as IProjectMetadata;
                             if (projectMetadata != null) {
-                                dispatch(setOpenFiles(projectMetadata));                                
+                                dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
                         case ProjectCommand.delete:
@@ -199,19 +212,19 @@ const FileExplorer = (props: any) => {
     /**
      * Called when context menu opens
      * @param event
-     * @param clickedItem
-     * @param parentItem
+     * @param clickedItemPath
+     * @param parentItemPath
      */
     const openContextMenu = (
         event: React.MouseEvent,
-        clickedItem: string,
-        parentItem: string,
+        clickedItemPath: string,
+        parentItemPath: string,
         is_file: boolean,
-        deletable: boolean
+        deletable?: boolean
     ) => {
         event.preventDefault();
         event.stopPropagation();
-        console.log("FileExplorer: ", clickedItem, parentItem);
+        console.log("FileExplorer: ", clickedItemPath, parentItemPath);
         setContextMenuPos(
             contextMenuPos === null
                 ? {
@@ -224,8 +237,8 @@ const FileExplorer = (props: any) => {
                   null
         );
         setContextMenuItems({
-            parent: parentItem,
-            item: clickedItem,
+            parent: parentItemPath,
+            item: clickedItemPath,
             is_file: is_file,
             deletable: deletable,
         });
@@ -362,11 +375,11 @@ const FileExplorer = (props: any) => {
         setCreateProjectInprogress(true);
     };
 
-    const renderFileItems = (path: string) => {
+    const renderFileItems = (projectPath: string, relativeParentPath: string) => {
         return (
             <Fragment>
-                {Object.keys(openDirs).includes(path) ? (
-                    openDirs[path]
+                {Object.keys(openDirs).includes(relativeParentPath) ? (
+                    openDirs[relativeParentPath]
                         .filter((value) => value.name.substring(0, 1) !== ".")
                         .sort(function (a, b) {
                             if (a.name < b.name) {
@@ -384,7 +397,14 @@ const FileExplorer = (props: any) => {
                             return (
                                 <FileItem
                                     nodeId={value.path}
-                                    label={value.name}
+                                    label={
+                                        <NameWithTooltip
+                                            tooltip={path.join(projectPath, value.path)}
+                                        >
+                                            {/* div is needed here to hold the ref https://mui.com/material-ui/api/tooltip/ */}
+                                            <FileItemLabel>{value.name}</FileItemLabel>
+                                        </NameWithTooltip>
+                                    }
                                     onClick={() => {
                                         value.is_file ? dispatch(setFileToOpen(value.path)) : null;
                                     }}
@@ -392,22 +412,24 @@ const FileExplorer = (props: any) => {
                                         openContextMenu(
                                             event,
                                             value.path,
-                                            path,
+                                            relativeParentPath,
                                             value.is_file,
                                             value.deletable
                                         );
                                     }}
                                 >
-                                    {!value.is_file && renderFileItems(value.path)}
+                                    {!value.is_file && renderFileItems(projectPath, value.path)}
                                 </FileItem>
                             );
                         })
                 ) : (
-                    <FileItem nodeId='stub' />
+                    <FileItem nodeId="stub" />
                 )}
-                {createItemInProgress && contextMenuItems && contextMenuItems["item"] === path ? (
+                {createItemInProgress &&
+                contextMenuItems &&
+                contextMenuItems["item"] === relativeParentPath ? (
                     <FileItem
-                        nodeId='new_item'
+                        nodeId="new_item"
                         label={
                             <NewItemInput
                                 handleKeyPress={handleNewItemKeyPress}
@@ -423,71 +445,75 @@ const FileExplorer = (props: any) => {
     const renderProjectItem = (projectItem: IProjectInfoInWorkspace) => {
         if (projectItem.id !== activeProject?.id) {
             return (
-                <Tooltip title={projectItem?.path} placement='bottom-end'>
-                    <ProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)}>
-                        <LockIcon
-                            style={{
-                                fontSize: "16px",
-                                marginBottom: "-3px",
-                                marginRight: "4px",
-                            }}
-                        />
-                        {projectItem?.name}
-                    </ProjectItem>
-                </Tooltip>
+                <ClosedProjectItem
+                    onDoubleClick={() => changeActiveProject(projectItem?.id)}
+                >
+                    <LockIcon
+                        style={{
+                            fontSize: "15px",
+                            marginTop: "6px",
+                            marginRight: "9px",
+                        }}
+                    />
+                    <NameWithTooltip tooltip={projectItem?.path}>
+                        <FileItemLabel>{projectItem?.name}</FileItemLabel>
+                    </NameWithTooltip>
+                </ClosedProjectItem>
             );
         } else {
             return (
-                <Tooltip title={projectItem?.path} placement='bottom-end'>
-                    <FileTree
-                        aria-label='file system navigator'
-                        defaultCollapseIcon={<ExpandMoreIcon />}
-                        defaultExpandIcon={<ChevronRightIcon />}
-                        sx={{
-                            height: 240,
-                            flexGrow: 1,
-                            maxWidth: 400,
-                            overflowY: "auto",
-                        }}
-                        expanded={expandedDirs}
-                        onNodeToggle={handleDirToggle}
-                    >
-                        {activeProject != null && (
-                            <FileItem
-                                nodeId={relativeProjectPath}
-                                data-cy={CypressIds.projectRoot}
-                                label={activeProject?.name}
-                                onContextMenu={(event: React.MouseEvent) => {
-                                    openContextMenu(
-                                        event,
-                                        relativeProjectPath,
-                                        relativeProjectPath,
-                                        false,
-                                        false
-                                    );
-                                }}
-                            >
-                                {renderFileItems(relativeProjectPath)}
-                            </FileItem>
-                        )}
-                    </FileTree>
-                </Tooltip>
+                <OpenProjectTree
+                    aria-label="file system navigator"
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}
+                    expanded={expandedDirs}
+                    onNodeToggle={handleDirToggle}
+                >
+                    {activeProject != null && (
+                        <FileItem
+                            nodeId={relativeProjectPath}
+                            data-cy={CypressIds.projectRoot}
+                            label={
+                                <NameWithTooltip tooltip={projectItem?.path}>
+                                    {/* div is needed here to hold the ref https://mui.com/material-ui/api/tooltip/ */}
+                                    <FileItemLabel>{activeProject?.name}</FileItemLabel>
+                                </NameWithTooltip>
+                            }
+                            onContextMenu={(event: React.MouseEvent) => {
+                                openContextMenu(
+                                    event,
+                                    relativeProjectPath,
+                                    relativeProjectPath,
+                                    false,
+                                    false
+                                );
+                            }}
+                        >
+                            {renderFileItems(projectItem?.path, relativeProjectPath)}
+                        </FileItem>
+                    )}
+                </OpenProjectTree>
             );
         }
     };
 
     return (
-        <Fragment>
+        <ProjectExplorerContainer>
             <ProjectToolbar>
-                <FileExplorerHeaderName variant='overline'>Projects</FileExplorerHeaderName>
+                <FileExplorerHeaderName variant="overline">Projects</FileExplorerHeaderName>
                 <Tooltip
-                    title='Add project'
+                    title="Add project"
                     enterDelay={500}
-                    placement='bottom-end'
-                    onClick={handleAddProjectBtn}
+                    enterNextDelay={500}
+                    placement="bottom-end"
                     style={{ marginLeft: "auto" }}
                 >
-                    <AddBoxIcon fontSize='small' style={{ cursor: "pointer" }} />
+                    <AddBoxIcon
+                        id="add-project-button"
+                        onClick={handleAddProjectBtn}
+                        fontSize="small"
+                        style={{ cursor: "pointer" }}
+                    />
                 </Tooltip>
                 {/* <Tooltip title="Add folder" enterDelay={500} placement="bottom-end">
                     <CreateNewFolderIcon fontSize="small" style={{ cursor: "pointer" }} />
@@ -496,11 +522,12 @@ const FileExplorer = (props: any) => {
                     <NoteAddIcon fontSize="small" style={{ cursor: "pointer" }} />
                 </Tooltip> */}
             </ProjectToolbar>
-            <div>
+            <ProjectList>
                 {workspaceMetadata.open_projects.map((item) => renderProjectItem(item))}
                 {createProjectInProgress ? (
                     <Fragment>
                         <NewItemInput
+                            id="new-project-input"
                             handleKeyPress={handleNewProjectKeyPress}
                             command={ProjectCommand.add_project}
                             style={{ marginLeft: "10px" }}
@@ -508,7 +535,7 @@ const FileExplorer = (props: any) => {
                         {txtError != null ? <ErrorText>{txtError}</ErrorText> : null}
                     </Fragment>
                 ) : null}
-            </div>
+            </ProjectList>
             <FileContextMenu
                 contextMenuPos={contextMenuPos}
                 handleClose={closeContextMenu}
@@ -522,7 +549,8 @@ const FileExplorer = (props: any) => {
                     itemName={contextMenuItems?.item}
                 />
             )}
-        </Fragment>
+            {runQueueBusy && <OverlayComponent />}
+        </ProjectExplorerContainer>
     );
 };
 

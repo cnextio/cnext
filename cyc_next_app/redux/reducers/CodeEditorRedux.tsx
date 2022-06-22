@@ -438,9 +438,10 @@ export const CodeEditorRedux = createSlice({
                 setLineStatusInternal(state, lineStatus);
             }
             state.runQueue = { ...state.runQueue, queue: [] };
+            state.runQueue.status = RunQueueStatus.STOP;
         },
 
-        removeFromRunQueue: (state) => {
+        removeFirstItemFromRunQueue: (state) => {
             // console.log("CodeEditorRedux pushRunQueue current status: ", action.payload);
             state.runQueue.queue.shift();
         },
@@ -514,10 +515,8 @@ export const {
     addToRunQueue,
     clearRunQueue,
     setRunQueueStatus,
-    removeFromRunQueue,
-    // compeleteRunLine,
+    removeFirstItemFromRunQueue,
     updateCAssistInfo,
-    // compeleteRunQueue,
     setCodeToInsert,
     clearRunningLineTextOutput,
     clearTextOutputs,

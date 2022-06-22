@@ -13,37 +13,40 @@ import {
     IConfigs,
     IEditorShortcutKey,
     ViewMode,
-    IEditorConfigs,
-    IDataFrameManagerConfigs,
-    IRichOutputConfigs,
+    IEditorSettings,
+    IDataFrameManagerSettings,
+    IRichOutputSettings,
     // IWorkSpaceConfig,
 } from "../../lib/interfaces/IApp";
 
-const originalEditorShortcutKeys: IEditorShortcutKey = {
-    run_queue: "Mod-l",
-    set_group: "Mod-k",
-    set_ungroup: "Mod-j",
+const defaultEditorShortcutKeys: IEditorShortcutKey = {
+    run_queue: "Mod-Enter",
+    run_queue_then_move_down: "Shift-Enter",
+    set_group: "Mod-g",
+    set_ungroup: "Mod-u",
+    insert_group_below: "Mod-Shift-g",
+    insert_line_below: "Mod-Shift-l",
 };
 
-const originalAppShortcutKeys: IAppShortcutKey = {
+const defaultAppShortcutKeys: IAppShortcutKey = {
     autocompletion_on: "shift + a",
     lint_on: "shift + l",
     hover_on: "shift + h",
 };
 
-const codeEditorConfigs: IEditorConfigs = {
-    lint: true,
-    hover: true,
-    autocompletion: true,
+const codeEditorSettings: IEditorSettings = {
+    lint: false,
+    autocompletion: false,
+    hover: false,
 };
 
-const dataframeManagerConfigs: IDataFrameManagerConfigs = {
+const dataframeManagerSettings: IDataFrameManagerSettings = {
     show_exec_text: false,
     auto_display_data: true,
 };
 
-const richOutputConfigs: IRichOutputConfigs = {
-    show_markdown: false
+const richOutputSettings: IRichOutputSettings = {
+    show_markdown: false,
 };
 
 type ProjectManagerState = {
@@ -65,7 +68,7 @@ type ProjectManagerState = {
     projects: Object[];
     workspaceMetadata: IWorkspaceMetadata;
     projectToAdd: null | string;
-    projectToSetActive: null | string;    
+    projectToSetActive: null | string;
 };
 
 const initialState: ProjectManagerState = {
@@ -85,11 +88,11 @@ const initialState: ProjectManagerState = {
     serverSynced: false,
     settings: {
         view_mode: ViewMode.VERTICAL,
-        code_editor_shortcut: originalEditorShortcutKeys,
-        app_shortcut: originalAppShortcutKeys,
-        code_editor: codeEditorConfigs,
-        dataframe_manager: dataframeManagerConfigs,
-        rich_output: richOutputConfigs,
+        code_editor_shortcut: defaultEditorShortcutKeys,
+        app_shortcut: defaultAppShortcutKeys,
+        code_editor: codeEditorSettings,
+        dataframe_manager: dataframeManagerSettings,
+        rich_output: richOutputSettings,
     },
     projects: [],
     workspaceMetadata: {
@@ -140,7 +143,9 @@ export const ProjectManagerRedux = createSlice({
                 state.openOrder.includes(inViewID) &&
                 state.openOrder[state.openOrder.length - 1] !== inViewID
             ) {
-                state.openOrder = state.openOrder.filter((file) => {return file!==inViewID});
+                state.openOrder = state.openOrder.filter((file) => {
+                    return file !== inViewID;
+                });
                 state.openOrder.push(inViewID);
             }
         },

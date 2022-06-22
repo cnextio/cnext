@@ -5,6 +5,7 @@ import ProjectManagerRedux from "../reducers/ProjectManagerRedux";
 import ExperimentManagerRedux from "../reducers/ExperimentManagerRedux";
 import ModelManagerRedux from "../reducers/ModelManagerRedux";
 import RichOutputRedux from "../reducers/RichOutputRedux";
+import NotificationRedux from "../reducers/NotificationRedux";
 
 const store = configureStore({
     reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
         experimentManager: ExperimentManagerRedux,
         modelManager: ModelManagerRedux,
         richOutput: RichOutputRedux,
+        notification: NotificationRedux,
     },
 });
 

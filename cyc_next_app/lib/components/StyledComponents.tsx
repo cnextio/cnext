@@ -206,7 +206,7 @@ export const FileExplorerHeaderName = styled(Typography)`
 
 export const FileTree = styled(TreeView)`
     max-width: 100%;
-    height: 100%;
+    // height: 100%;
 `;
 
 export const FileItem = styled(TreeItem)`
@@ -224,18 +224,30 @@ export const FileItem = styled(TreeItem)`
     width: 100%;
 `;
 
-export const ProjectItem = styled.p`
-    font-size: 14px;
+export const FileItemLabel = styled.div`
+    font-size: 13px;
     line-height: 2em;
+`;
+
+export const Overlay = styled.div`
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    background-color: rgb(238, 238, 238, 0.3);
+`;
+
+export const OpenProjectTree = styled(FileTree)``;
+
+export const ClosedProjectItem = styled.div`
+    display: flex;
+    flex-direction: row;
     padding-left: 8px;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    line-height: 1.5;
-    letter-spacing: 0.00938em;
-    color: rgba(0, 0, 0, 0.6);
     font-style: italic;
-    margin-top: 4px;
-    margin-bottom: 4px;
     cursor: pointer;
+    color: ${(props) => props.theme.palette.text.secondary};
 `;
 
 export const ContextMenu = styled(Menu)`
@@ -285,6 +297,13 @@ export const CodeToolbar = styled.div`
     }
 `;
 
+export const ProjectExplorerContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+`;
+
 export const ProjectToolbar = styled.div`
     display: flex;
     --var-height: 30px;
@@ -295,6 +314,7 @@ export const ProjectToolbar = styled.div`
 
     ::-webkit-scrollbar {
         height: 0px;
+        width: 100%;
     }
 
     svg:last-child {
@@ -303,11 +323,19 @@ export const ProjectToolbar = styled.div`
     }
 `;
 
+export const ProjectList = styled.div`
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    height: 100%;
+`;
+
 export const FileCloseIconContainer = styled.div`
     display: flex;
     width: 22.5px;
     height: 22.5px;
 `;
+
 export const FileNameTab = styled(Typography)`
     display: flex;
     align-items: center;
@@ -315,8 +343,16 @@ export const FileNameTab = styled(Typography)`
     line-height: calc(var(--var-height));
     padding: 0px 5px 0px 10px;
     font-size: 13px;
+    
+    animation: ${(props) =>
+            props.runQueueBusy
+                ? textTransitionToColor("#F59242", props.theme.palette.grey.A200)
+                : null}
+        2s ease infinite;
+
     color: ${(props) =>
         props.fileSaved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
+
     background-color: ${(props) =>
         props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
     border-width: 1px;
@@ -325,6 +361,10 @@ export const FileNameTab = styled(Typography)`
         background-color: ${(props) =>
             props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
     }
+`;
+
+export const FileNameTabContainer = styled.div`
+    position: relative;
 `;
 
 export const ExecutorIcon = styled(BoltIcon)`
@@ -769,7 +809,7 @@ export const SingleResultContainer = styled(Paper)`
         props.showMarkdown ? null : props.focused ? props.theme.palette.primary.light : null};
     border-width: ${(props) => (props.showMarkdown ? "0px" : props.focused ? "2px" : null)};
     overflow: auto;
-    
+
     svg {
         width: 1000px;
         height: 1000px;
@@ -782,7 +822,7 @@ export const SingleResultContainer = styled(Paper)`
         width: 500px;
         height: 100%;
         p {
-            line-height: 20px;
+            line-height: 18px;
         }
     }
 `;
@@ -985,6 +1025,20 @@ function backgroundTransitionToColor(color1, color2) {
       }
       100% {
         background-color: ${color1};
+      }
+    `;
+}
+
+function textTransitionToColor(color1, color2) {
+    return keyframes`
+      0% {
+        color: ${color1};
+      }
+      50% {
+        color: ${color2};
+      }
+      100% {
+        color: ${color1};
       }
     `;
 }

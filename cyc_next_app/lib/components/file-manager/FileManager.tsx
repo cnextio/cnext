@@ -59,7 +59,7 @@ const FileManager = () => {
     const saveCodeLineCounter = useSelector(
         (state: RootState) => state.codeEditor.saveCodeLineCounter
     );
-    const projectConfigs = useSelector((state: RootState) => state.projectManager.settings);
+    const projectSettings = useSelector((state: RootState) => state.projectManager.settings);
     // const [codeTextUpdated, setCodeTextUpdated] = useState(false);
     // using this to avoid saving the file when we load code doc for the first time
     // const [codeTextInit, setcodeTextInit] = useState(0);
@@ -520,10 +520,10 @@ const FileManager = () => {
         }
     }, [saveCodeLineCounter]);
 
-    const saveConfigs = () => {
+    const saveSettings = () => {
         const state = store.getState();
-        const configs = state.projectManager.settings;
-        let message: IMessage = createMessage(ProjectCommand.save_project_settings, configs, {});
+        const settings = state.projectManager.settings;
+        let message: IMessage = createMessage(ProjectCommand.save_project_settings, settings, {});
         console.log("FileManager send:", message.command_name, message.metadata);
         sendMessage(message);
     };
@@ -534,9 +534,9 @@ const FileManager = () => {
     useEffect(() => {
         const state = store.getState();
         if (state.projectManager.serverSynced) {
-            saveConfigs();
+            saveSettings();
         }
-    }, [projectConfigs]);
+    }, [projectSettings]);
 
     useBeforeunload((event) => {
         let state = store.getState();

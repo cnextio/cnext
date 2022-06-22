@@ -8,7 +8,7 @@ import {
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
-import { KernelManagerCommand } from "./IKernelManager";
+import { IKernelManagerResultContent, KernelManagerCommand } from "./IKernelManager";
 import { ModelManagerCommand } from "./IModelManager";
 import { ICodeResultContent } from "./ICodeEditor";
 
@@ -39,6 +39,7 @@ export interface IMessage {
         | IGetCardinalResult
         | IDirectoryMetadata
         | IWorkspaceMetadata
+        | IKernelManagerResultContent
         | null; // the command string and output string|object
     error?: boolean;
     metadata?: object; // store info about the dataframe and columns
@@ -292,11 +293,11 @@ interface IExperimentManagerConfig {
 
 export interface IEditorShortcutKey {
     run_queue: string;
-    run_queue_then_move_down: string;
-    set_group: string;
-    set_ungroup: string;
-    insert_group_below: string;
-    insert_line_below: string;
+    run_queue_then_move_down?: string;
+    set_group?: string;
+    set_ungroup?: string;
+    insert_group_below?: string;
+    insert_line_below?: string;
 }
 
 export interface IAppShortcutKey {
@@ -304,18 +305,18 @@ export interface IAppShortcutKey {
     lint_on: string;
     hover_on: string;
 }
-export interface IEditorConfigs {
+export interface IEditorSettings {
     lint: boolean;
     hover: boolean;
     autocompletion: boolean;
 }
 
-export interface IDataFrameManagerConfigs {
+export interface IDataFrameManagerSettings {
     auto_display_data: boolean;
     show_exec_text: boolean;
 }
 
-export interface IRichOutputConfigs {
+export interface IRichOutputSettings {
     show_markdown: boolean;
 }
 
@@ -324,9 +325,9 @@ export interface IConfigs {
     code_editor_shortcut: IEditorShortcutKey;
     app_shortcut?: IAppShortcutKey;
     experiment_manager?: IExperimentManagerConfig;
-    code_editor: IEditorConfigs;
-    dataframe_manager: IDataFrameManagerConfigs;
-    rich_output: IRichOutputConfigs;
+    code_editor: IEditorSettings;
+    dataframe_manager: IDataFrameManagerSettings;
+    rich_output: IRichOutputSettings;
 }
 
 export enum DFViewMode {
@@ -344,6 +345,8 @@ interface WorkSpaceOpenProject {
 }
 
 export const SETTING_FILE_PATH = "config.json";
+export const OPERATION_DISABLED_MSG = "This component is disabled while code is being executed";
+
 // export interface IWorkSpaceConfig {
 //     active_project: string | null;
 //     open_projects: WorkSpaceOpenProject[] | [];
