@@ -3,7 +3,7 @@ version: '3'
 services:
     server:
         build:
-            context: ./cyc_next_app/server
+            context: ./cnext_app/server
             dockerfile: Dockerfile
 
         container_name: server
@@ -12,7 +12,7 @@ services:
 
     web:
         build:
-            context: ./cyc_next_app
+            context: ./cnext_app
             dockerfile: Dockerfile
 
         container_name: web
@@ -23,7 +23,7 @@ services:
 
     cypress:
         image: cypress
-        build: ./cyc_next_app/tests/intergration
+        build: ./cnext_app/tests/intergration
         container_name: cypress
         depends_on:
             - web
@@ -32,5 +32,5 @@ services:
             - CYPRESS_baseUrl=http://web:3000
         command: npx cypress run --record --key 5a02471d-2779-4256-bd4b-58ec1efa6929
         volumes:
-            - ./cyc_next_app/tests/intergration/cypress:/app/cypress
-            - ./cyc_next_app/tests/intergration/cypress.json:/app/cypress.json
+            - ./cnext_app/tests/intergration/cypress:/app/cypress
+            - ./cnext_app/tests/intergration/cypress.json:/app/cypress.json
