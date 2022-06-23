@@ -5,8 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "cypress": "cypress open",
-        "cyp": "cypress run --config-file ./cypress.config.js"
+        "cypress": "cypress open"
     },
     "keywords": [],
     "author": "cyc ai members",

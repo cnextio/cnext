@@ -22,20 +22,21 @@ WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
 DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/master.zip'
 
+
 def change_permissions_recursive(path, mode):
     for root, dirs, files in os.walk(path, topdown=False):
-        for dir in [os.path.join(root,d) for d in dirs]:
+        for dir in [os.path.join(root, d) for d in dirs]:
             os.chmod(dir, mode)
     for file in [os.path.join(root, f) for f in files]:
-            os.chmod(file, mode)
+        os.chmod(file, mode)
 
 
 def change_path(path):
     os.chdir(server_path)
     project_id = str(uuid.uuid1())
     data = {
-        'active_project':project_id,
-        'open_projects':[{"id": project_id,'name':'Skywalker','path':path}],
+        'active_project': project_id,
+        'open_projects': [{"id": project_id, 'name': 'Skywalker', 'path': path}],
     }
     with open(r'workspace.yaml', 'w') as file:
         documents = yaml.dump(data, file, default_flow_style=False)
@@ -47,7 +48,7 @@ def ask():
     if(answer == 'y' or answer == 'Y'):
         return HAVE_PROJECT
     elif not answer:
-         return HAVE_PROJECT
+        return HAVE_PROJECT
     elif (answer == 'n' or answer == 'N'):
         return WITHOUT_PROJECT
     else:
@@ -71,7 +72,8 @@ def download_and_unzip(url, extract_to='.'):
     change_permissions_recursive(extract_to, 0o777)
 
     # cut - paste
-    shutil.copytree(src=os.path.join(extract_to, zipfile.namelist()[0],'Skywalker'), dst=os.path.join(extract_to,'Skywalker') , dirs_exist_ok=True)
+    shutil.copytree(src=os.path.join(extract_to, zipfile.namelist()[
+                    0], 'Skywalker'), dst=os.path.join(extract_to, 'Skywalker'), dirs_exist_ok=True)
     sample_project_path = os.path.join(extract_to, 'Skywalker')
     # remove old folder
     shutil.rmtree(path=os.path.join(extract_to, zipfile.namelist()[0]))
@@ -86,6 +88,7 @@ readline.set_completer_delims(' \t\n;')
 readline.parse_and_bind("tab: complete")
 readline.set_completer(complete)
 
+
 def build_path():
     path = input(
         'Please enter the directory to store the sample project: ')
@@ -99,6 +102,7 @@ def build_path():
     else:
         print('The path does not exist or is not a directory. Please try again!')
         build_path()
+
 
 def clear_content():
     os.chdir(server_path)

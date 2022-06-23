@@ -19,7 +19,13 @@ const Term = () => {
 
     // Connect Socket
     const socketInit = () => {
+        console.log("test");
+
         socket.emit("ping", "Terminal");
+        socket.on("res-data", (data) => {
+            const term = xtermRef?.current?.terminal;
+            term.write(data);
+        });
         socket.on(WebAppEndpoint.Terminal, (result: string) => {
             try {
                 let message: IMessage = JSON.parse(result);
@@ -32,7 +38,21 @@ const Term = () => {
             } catch {}
         });
     };
-
+    const sendMessage = (message: any) => {
+        console.log(`${WebAppEndpoint.Terminal} send message: `, JSON.stringify(message));
+        socket.emit(WebAppEndpoint.Terminal, JSON.stringify(message));
+    };
+    const createMessage = (command_name: any, content: any, metadata: {} = {}): IMessage => {
+        let message: IMessage = {
+            webapp_endpoint: WebAppEndpoint.Terminal,
+            command_name: command_name,
+            type: ContentType.COMMAND,
+            content: content,
+            metadata: metadata,
+            error: false,
+        };
+        return message;
+    };
     useEffect(() => {
         socketInit();
         return () => {
@@ -93,6 +113,9 @@ const Term = () => {
             } else {
                 term.write("\r\n" + pathPrefix);
             }
+            // sendMessage({ content: input });
+            socket.emit(WebAppEndpoint.Terminal, JSON.stringify({ content: input }));
+            console.log("WebAppEndpoint.Terminal", WebAppEndpoint.Terminal);
 
             setHistory({
                 ...history,
@@ -155,9 +178,6 @@ const Term = () => {
     }, [xtermRef.current]);
     return (
         <>
-            {cursor}
-            {test}
-            {cursorPosition}
             <XTerm
                 onResize={() => {
                     console.log("ádfdsf", xtermRef.current.terminal),

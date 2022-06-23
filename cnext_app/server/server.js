@@ -5,6 +5,8 @@ const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
+const exec = require("child_process").exec;
+
 const { PythonShell } = require("python-shell");
 const {
     LSPProcess,
@@ -155,6 +157,7 @@ try {
         });
 
         socket.onAny((endpoint, message) => {
+            console.log("endpoint",endpoint, message);
             //TODO: use enum
             if (CodeExecutor.includes(endpoint)) {
                 console.log(
@@ -176,45 +179,16 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                console.log("111");
-                let conn = new SSHClient(); // initialize SSH connection
-                conn.on("ready", function () {
-                    console.log("222");
-                    socket.emit(Terminal, "\r\n*** SSH CONNECTION ESTABLISHED ***\r\n");
-                    conn.shell(function (err, stream) {
-                        if (err)
-                            return socket.emit(
-                                Terminal,
-                                "\r\n*** SSH SHELL ERROR: " + err.message + " ***\r\n"
-                            );
-                        socket.on(Terminal, function (data) {
-                            console.log(data);
-                            stream.write(data);
-                        });
-                        stream
-                            .on("data", function (d) {
-                                socket.emit(Terminal, d.toString("binary"));
-                            })
-                            .on("close", function () {
-                                conn.end();
-                            });
-                    });
-                })
-                    .on("close", function () {
-                        socket.emit(Terminal, "\r\n*** SSH CONNECTION CLOSED ***\r\n");
-                    })
-                    .on("error", function (err) {
-                        socket.emit(
-                            Terminal,
-                            "\r\n*** SSH CONNECTION ERROR: " + err.message + " ***\r\n"
-                        );
-                    })
-                    .connect({
-                        host: "127.0.0.1",
-                        port: 22,
-                        username: "nguyenviet",
-                        password: "vietthai92",
-                    });
+                exec(JSON.parse(message).content, { shell: "powershell.exe" }, (e, stdout, stderr) => {
+                    try {
+                        if (e instanceof Error) {
+                            console.error(e);
+                            throw e;
+                        }
+                        console.log("stdout", stdout);
+                        socket.emit("res-data", stdout);
+                    } catch (error) {}
+                });
             }
         });
         socket.once("disconnect", () => {});
@@ -267,7 +241,7 @@ try {
         //         webapp_endpoint: TerminalCommand,
         //         command_name: "add_project",
         //         // content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
-        //         content: ``,
+        //         content: `/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cnext_app/test`,
         //     })
         // );
     };
