@@ -250,7 +250,7 @@ const CodeOutputComponent = React.memo(() => {
                 Output
             </CodeOutputHeaderText>
             <CodeOutputHeaderText onClick={()=>setCodeOutputContentID(`Terminal`)} underline={codeOutputContentID === 'Terminal' ? true :false} variant="overline" component="span">
-                Teminarl
+                Terminal
             </CodeOutputHeaderText>
         </CodeOutputHeader>
       

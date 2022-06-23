@@ -23,8 +23,11 @@ const Term = () => {
 
         socket.emit("ping", "Terminal");
         socket.on("res-data", (data) => {
-            const term = xtermRef?.current?.terminal;
-            term.write(data);
+            if (xtermRef?.current?.terminal) {
+                const term = xtermRef?.current?.terminal;
+                term.write(data);
+                term.write("\r\n" + pathPrefix);
+            }
         });
         socket.on(WebAppEndpoint.Terminal, (result: string) => {
             try {
@@ -109,7 +112,7 @@ const Term = () => {
         if (code === KeyCode.Enter && input.length > 0) {
             if (input === "cls" || input === "clear") {
                 term.clear();
-                term.write("\r\n" + pathPrefix);
+                // term.write("\r\n" + pathPrefix);
             } else {
                 term.write("\r\n" + pathPrefix);
             }

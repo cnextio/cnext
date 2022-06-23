@@ -5,7 +5,8 @@ const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
-const exec = require("child_process").exec;
+const { exec, spawn } = require("child_process");
+const execProcess = require("process");
 
 const { PythonShell } = require("python-shell");
 const {
@@ -157,7 +158,7 @@ try {
         });
 
         socket.onAny((endpoint, message) => {
-            console.log("endpoint",endpoint, message);
+            console.log("endpoint", endpoint, message);
             //TODO: use enum
             if (CodeExecutor.includes(endpoint)) {
                 console.log(
@@ -179,16 +180,24 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                exec(JSON.parse(message).content, { shell: "powershell.exe" }, (e, stdout, stderr) => {
-                    try {
-                        if (e instanceof Error) {
-                            console.error(e);
-                            throw e;
-                        }
-                        console.log("stdout", stdout);
-                        socket.emit("res-data", stdout);
-                    } catch (error) {}
-                });
+                exec(
+                    JSON.parse(message).content,
+                    { shell: process.platform === "win32" ? "powershell.exe" : "/bin/sh" },
+                    (e, stdout, stderr) => {
+                        try {
+                            if (e instanceof Error) {
+                                console.error(e);
+                                throw e;
+                            }
+                            console.log(
+                                `This process is pid ${process.platform} ${execProcess.pid}`
+                            );
+
+                            console.log("stdout", stdout.pid);
+                            socket.emit("res-data", stdout);
+                        } catch (error) {}
+                    }
+                );
             }
         });
         socket.once("disconnect", () => {});
