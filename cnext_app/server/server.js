@@ -182,20 +182,24 @@ try {
             } else if (TerminalExecutor.includes(endpoint)) {
                 exec(
                     JSON.parse(message).content,
-                    { shell: process.platform === "win32" ? "powershell.exe" : "/bin/sh" },
+                    {
+                        // cwd: `C:\cyc_next\cnext_app\cnext_app`,
+                        shell: process.platform === "win32" ? "powershell.exe" : "/bin/sh",
+                    },
                     (e, stdout, stderr) => {
                         try {
                             if (e instanceof Error) {
                                 console.error(e);
                                 throw e;
                             }
-                            console.log(
-                                `This process is pid ${process.platform} ${execProcess.pid}`
-                            );
+                            console.log(`This process is pid ${process.cwd()} ${execProcess.pid}`);
 
-                            console.log("stdout", stdout.pid);
+                            console.log("stdout", stdout);
                             socket.emit("res-data", stdout);
-                        } catch (error) {}
+                        } catch (error) {
+                            socket.emit("res-data", error);
+                            console.log("errorrr", error);
+                        }
                     }
                 );
             }

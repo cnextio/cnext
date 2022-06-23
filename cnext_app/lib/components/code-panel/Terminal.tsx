@@ -2,6 +2,9 @@ import React, { useRef, useEffect, useState } from "react";
 import { XTerm } from "xterm-for-react";
 import { IMessage, ContentType, WebAppEndpoint } from "../../interfaces/IApp";
 import { FitAddon } from "xterm-addon-fit";
+import { SearchAddon } from "xterm-addon-search";
+import c from "ansi-colors";
+
 import KeyCode from "./KeyCode";
 import socket from "../Socket";
 
@@ -16,17 +19,28 @@ const Term = () => {
     const [pathPrefix, setPathPrefix] = useState<string>(`~$ `);
     const [isMountTerm, setIsMountTerm] = useState<boolean>(false);
     const fitAddon = new FitAddon();
-
+    const searchAddon = new SearchAddon();
     // Connect Socket
     const socketInit = () => {
         console.log("test");
 
         socket.emit("ping", "Terminal");
         socket.on("res-data", (data) => {
+            console.log("data loi", data);
+
             if (xtermRef?.current?.terminal) {
                 const term = xtermRef?.current?.terminal;
-                term.write(data);
-                term.write("\r\n" + pathPrefix);
+                if (data?.code ===1) {
+                    term.write(
+                        c.red(
+                            `${data.cmd}: The term ${data.cmd} is not recognized as the name of  a cmdlet, function, \r\n script file, or operable program`
+                        )
+                    );
+                    term.write("\r\n" + pathPrefix);
+                } else {
+                    term.write(data);
+                    term.write("\r\n" + pathPrefix);
+                }
             }
         });
         socket.on(WebAppEndpoint.Terminal, (result: string) => {
@@ -124,6 +138,8 @@ const Term = () => {
                 ...history,
                 [history ? Object.keys(history).length : 0]: input,
             });
+            // searchAddon.findNext("'ls'");
+            // console.log("searchAddon", searchAddon);
 
             console.log("history", history);
 
@@ -186,10 +202,15 @@ const Term = () => {
                     console.log("ádfdsf", xtermRef.current.terminal),
                         xtermRef.current.terminal.fit();
                 }}
+                options={{
+                    fontSize: 16,
+                    fontWeight: 900,
+                    theme: { background: "black", foreground: "white" },
+                }}
                 onKey={onTermKey}
                 onData={onTermData}
                 ref={xtermRef}
-                addons={[fitAddon]}
+                addons={[fitAddon, searchAddon]}
             />
         </>
     );
