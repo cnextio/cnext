@@ -151,16 +151,21 @@ class PythonProcess {
 try {
     io.on("connection", (socket) => {
         // Init Shell bash
-        var sh = spawn("bash");
-
+        var sh = process.platform === "win32" ? spawn("powershell.exe") : spawn("/bin/sh");
+        let cmd = "";
         // Handle bash stream
         sh.stdout.on("data", function (data) {
-            console.log(data.toString());
-            io.emit("res-data", data.toString());
+            if (data.toString() !== "" && cmd !== data.toString()) {
+                io.emit("res-data", data.toString());
+            }
+            cmd = "";
         });
 
         sh.stderr.on("data", function (data) {
-            io.emit("res-data", data.toString());
+            if (data.toString() !== "" && cmd !== data.toString()) {
+                io.emit("res-data", { type: `error`, message: data.toString() });
+            }
+            cmd = "";
         });
 
         sh.on("exit", function (code) {
@@ -196,6 +201,7 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
+                cmd = JSON.parse(message).content + `\n`;
                 sh.stdin.write(JSON.parse(message).content + "\n");
             }
         });

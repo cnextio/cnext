@@ -9,6 +9,7 @@ import KeyCode from "./KeyCode";
 import socket from "../Socket";
 
 var test = 0;
+let currentHistory = 0;
 const Term = () => {
     const xtermRef = useRef(null);
     const [input, setInput] = useState<string>("");
@@ -33,15 +34,8 @@ const Term = () => {
                 const term = xtermRef?.current?.terminal;
                 if (data?.type === `error`) {
                     term.write("\r\n");
-                    term.write(c.red(`${data.name}${data.message}`));
+                    term.write(c.red(`${data.message}`));
                     // term.write("\r\n" + pathPrefix);
-                }
-                if (data?.type === `path`) {
-                    console.log("change path");
-                    // setPathPrefix(data => );
-                    term.write(pathPrefix);
-                    // updatePath(`${data.path}> `)
-                    // setPathPrefix(`${data.path}> `);
                 } else {
                     term.write(data);
                     console.log("pathPrefix", pathPrefix);
@@ -66,17 +60,7 @@ const Term = () => {
         console.log(`${WebAppEndpoint.Terminal} send message: `, JSON.stringify(message));
         socket.emit(WebAppEndpoint.Terminal, JSON.stringify(message));
     };
-    const createMessage = (command_name: any, content: any, metadata: {} = {}): IMessage => {
-        let message: IMessage = {
-            webapp_endpoint: WebAppEndpoint.Terminal,
-            command_name: command_name,
-            type: ContentType.COMMAND,
-            content: content,
-            metadata: metadata,
-            error: false,
-        };
-        return message;
-    };
+
     useEffect(() => {
         socketInit();
         return () => {
@@ -94,7 +78,7 @@ const Term = () => {
         const term = xtermRef?.current?.terminal;
         if (code == 27) {
             switch (data.substr(1)) {
-                case "[C": // Right arrow
+                case KeyCode.ArrowRight: // Right arrow
                     if (cursor < input.length) {
                         console.log("Right");
                         test = test - 1;
@@ -102,7 +86,7 @@ const Term = () => {
                         term.write(data);
                     }
                     break;
-                case "[D": // Left arrow
+                case KeyCode.ArrowLeft: // Left arrow
                     if (cursor > 0) {
                         console.log("Right");
                         test = test + 1;
@@ -114,17 +98,21 @@ const Term = () => {
                 case "": // ESC
                     // setCursor(cursor + 1);
                     term.write("\x1b[2K\r");
-                    term.write(pathPrefix);
                     setInput("");
-
+                    sendMessage({ content: `escape` });
                     break;
 
-                case "[A": // Up
-                    term.write(`${Math.random()}`);
+                case KeyCode.ArrowUp: // Up
+                    if (currentHistory <= Object.keys(history || {}).length) {
+                        currentHistory = currentHistory + 1;
+                    }
+
+                    term.write(history ? history[`${Math.abs(currentHistory)}`] : "");
                     setInput(history ? history[`0`] : "");
                     break;
 
-                case "[B": //  Bottom arrow
+                case KeyCode.ArrowDown: //  Bottom arrow
+                    currentHistory = currentHistory - 1;
                     term.write(history ? history[`0`] : "");
                     setInput(history ? history[`0`] : "");
 
@@ -136,7 +124,7 @@ const Term = () => {
                 term.write("\x1bc");
             }
 
-            socket.emit(WebAppEndpoint.Terminal, JSON.stringify({ content: input }));
+            sendMessage({ content: input });
             term.write("\r\n");
             // sendMessage({ content: input });
 
@@ -165,6 +153,8 @@ const Term = () => {
 
     const onTermKey = (data: any) => {
         // press key backSpace and Delete
+        console.log(`keyCode`, data);
+
         if (
             data.domEvent.keyCode === KeyCode.BackSpace ||
             data.domEvent.keyCode === KeyCode.Delete
@@ -194,7 +184,7 @@ const Term = () => {
                 options={{
                     fontSize: 16,
                     fontWeight: 900,
-                    theme: { background: "white", foreground: "#00294d" },
+                    theme: { background: "white", foreground: "#000000", cursor: "#000000" },
                 }}
                 onKey={onTermKey}
                 onData={onTermData}
