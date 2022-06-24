@@ -5,8 +5,7 @@ const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
-const { exec, spawn } = require("child_process");
-const execProcess = require("process");
+const spawn = require("child_process").spawn;
 
 const { PythonShell } = require("python-shell");
 const {
@@ -151,6 +150,23 @@ class PythonProcess {
 // let clientMessage;
 try {
     io.on("connection", (socket) => {
+        // Init Shell bash
+        var sh = spawn("bash");
+
+        // Handle bash stream
+        sh.stdout.on("data", function (data) {
+            console.log(data.toString());
+            io.emit("res-data", data.toString());
+        });
+
+        sh.stderr.on("data", function (data) {
+            io.emit("res-data", data.toString());
+        });
+
+        sh.on("exit", function (code) {
+            io.broadcast("** Shell exited: " + code + " **");
+        });
+
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();
             console.log(`Got ping at ${time}: ${message}`);
@@ -180,23 +196,7 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                // exec(JSON.parse(message).content, { cwd: "" }, (e, stdout, stderr) => {
-                // let child = child_process.spawn("foo; bar; blah", { shell: true });
-                const cmd = spawn("ls", { shell: true });
-                cmd.stdout.on("data", (data) => {
-                    socket.emit("res-data", data);
-                });
-                // exec("ls & cd python", { cwd: "" }, (e, stdout, stderr) => {
-                // exec(JSON.parse(message).content, { shell: "powershell.exe" }, (e, stdout, stderr) => {
-                try {
-                    if (e instanceof Error) {
-                        console.error(e);
-                        throw e;
-                    }
-                    console.log("stdout", stdout);
-                    socket.emit("res-data", stdout);
-                } catch (error) {}
-                // });
+                sh.stdin.write(JSON.parse(message).content + "\n");
             }
         });
         socket.once("disconnect", () => {});
