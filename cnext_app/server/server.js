@@ -5,8 +5,8 @@ const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
-// const exec = require("child_process").exec;
-const spawn = require("child_process").spawn;
+const { exec, spawn } = require("child_process");
+const execProcess = require("process");
 
 const { PythonShell } = require("python-shell");
 const {
