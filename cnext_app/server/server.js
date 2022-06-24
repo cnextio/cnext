@@ -157,7 +157,7 @@ try {
         });
 
         socket.onAny((endpoint, message) => {
-            console.log("endpoint",endpoint, message);
+            console.log("endpoint", endpoint, message);
             //TODO: use enum
             if (CodeExecutor.includes(endpoint)) {
                 console.log(
@@ -179,7 +179,9 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                exec(JSON.parse(message).content, { shell: "powershell.exe" }, (e, stdout, stderr) => {
+                // exec(JSON.parse(message).content, { cwd: "" }, (e, stdout, stderr) => {
+                exec("ls & cd python", { cwd: "" }, (e, stdout, stderr) => {
+                    // exec(JSON.parse(message).content, { shell: "powershell.exe" }, (e, stdout, stderr) => {
                     try {
                         if (e instanceof Error) {
                             console.error(e);
