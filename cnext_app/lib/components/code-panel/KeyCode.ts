@@ -6,5 +6,5 @@ export default {
     ArrowLeft: "[C",
     ArrowUp: "[A",
     ArrowDown: "[B",
-    Escape: "[C",
+    Escape: "Escape",
 };

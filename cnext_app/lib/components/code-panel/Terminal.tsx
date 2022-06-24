@@ -28,7 +28,7 @@ const Term = () => {
     const socketInit = () => {
         socket.emit("ping", "Terminal");
         socket.on("res-data", (data) => {
-            console.log("ResponseTerm", data);
+            console.log("ResponseTerm 1", data);
 
             if (xtermRef?.current?.terminal) {
                 const term = xtermRef?.current?.terminal;
@@ -38,8 +38,6 @@ const Term = () => {
                     // term.write("\r\n" + pathPrefix);
                 } else {
                     term.write(data);
-                    console.log("pathPrefix", pathPrefix);
-
                     // term.write("\r\n" + pathPrefix);
                 }
             }
@@ -88,19 +86,19 @@ const Term = () => {
                     break;
                 case KeyCode.ArrowLeft: // Left arrow
                     if (cursor > 0) {
-                        console.log("Right");
+                        console.log("ArrowLeft");
                         test = test + 1;
                         setCursorPosition(cursorPosition - 1);
                         term.write(`\x1b[D`);
                     }
 
                     break;
-                case "": // ESC
-                    // setCursor(cursor + 1);
-                    term.write("\x1b[2K\r");
-                    setInput("");
-                    sendMessage({ content: `escape` });
-                    break;
+                // case "": // ESC
+                //     // setCursor(cursor + 1);
+                //     term.write("\x1b[2K\r");
+                //     setInput("");
+                //     sendMessage({ content: `cd` });
+                //     break;
 
                 case KeyCode.ArrowUp: // Up
                     if (currentHistory <= Object.keys(history || {}).length) {
@@ -154,21 +152,20 @@ const Term = () => {
     const onTermKey = (data: any) => {
         // press key backSpace and Delete
         console.log(`keyCode`, data);
-
-        if (
-            data.domEvent.keyCode === KeyCode.BackSpace ||
-            data.domEvent.keyCode === KeyCode.Delete
-        ) {
-            xtermRef.current.terminal.write("\b \b");
+        const key = data.domEvent;
+        const term = xtermRef?.current?.terminal;
+        if (key.keyCode === KeyCode.BackSpace || key.keyCode === KeyCode.Delete) {
+            term.write("\b \b"); // delete text
             setInput(input.slice(0, -1));
+        } else if (key.key === KeyCode.Escape) {
+            term.write("\x1b[2K\r"); // remove line
+            sendMessage({ content: `cd` });
         }
     };
     useEffect(() => {
         if (xtermRef?.current?.terminal && !isMountTerm) {
             setIsMountTerm(true);
             socket.emit(WebAppEndpoint.Terminal, JSON.stringify({ content: input, type: "path" }));
-
-            // xtermRef.current.terminal.write(pathPrefix);
         }
     }, [xtermRef.current]);
     const onResize = () => {
