@@ -434,35 +434,35 @@ export const StyledCodeEditor = styled.div`
     }
 
     .cm-groupedline {
-        background-color: rgb(218, 255, 237, 0.2);
+        background-color: rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedline.active {
-        background-color: rgb(218, 255, 237, 0.5);
+        background-color: rgb(218, 255, 237, 0.6);
     }
 
     .cm-groupedfirstline {
         // margin-top: 10px;
         border-top: 1px dotted rgb(153, 179, 171, 0.5);
-        background-color: rgb(218, 255, 237, 0.2);
+        background-color: rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedfirstline.active {
         // margin-top: 10px;
-        border-top: 1px solid rgb(153, 179, 171, 0.5);
-        background-color: rgb(218, 255, 237, 0.5);
+        border-top: 1px solid rgb(153, 179, 171, 0.6);
+        background-color: rgb(218, 255, 237, 0.6);
     }
 
     .cm-groupedlastline {
         // margin-bottom: 10px;
         border-bottom: 1px dotted rgb(153, 179, 171, 0.5);
-        background-color: rgb(218, 255, 237, 0.2);
+        background-color: rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedlastline.active {
         // margin-bottom: 10px;
-        border-bottom: 1px solid rgb(153, 179, 171, 0.5);
-        background-color: rgb(218, 255, 237, 0.5);
+        border-bottom: 1px solid rgb(153, 179, 171, 0.6);
+        background-color: rgb(218, 255, 237, 0.6);
     }
 
     .cm-cassist-selection {
