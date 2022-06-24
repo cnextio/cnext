@@ -10,24 +10,24 @@ readme = "README.md"  # Markdown files are supported
 homepage = "https://cyc-ai.com/"
 
 packages = [
-    { include = "cyc_next_app" },
+    { include = "cnext_app" },
 ]
 
 exclude = [
-    "cyc_next_app/tsconfig.json",
-    "cyc_next_app/README.md",
-    "cyc_next_app/Dockerfile",
-    "cyc_next_app/Dockerfile-poetry",
-    "cyc_next_app/.dockerignore",
-    "cyc_next_app/server/Dockerfile",
-    "cyc_next_app/server/Dockerfile-conda",
-    "cyc_next_app/server/.dockerignore",
+    "cnext_app/tsconfig.json",
+    "cnext_app/README.md",
+    "cnext_app/Dockerfile",
+    "cnext_app/Dockerfile-poetry",
+    "cnext_app/.dockerignore",
+    "cnext_app/server/Dockerfile",
+    "cnext_app/server/Dockerfile-conda",
+    "cnext_app/server/.dockerignore",
 ]
 
 [tool.poetry.scripts]
-cnext-init = "cyc_next_app.__main__:main"
-cnext-path = "cyc_next_app.__main__:path"
-cnext-run = "cyc_next_app.__main__:start"
+cnext-init = "cnext_app.__main__:main"
+cnext-path = "cnext_app.__main__:path"
+cnext-run = "cnext_app.__main__:start"
 
 [tool.poetry.dependencies]
 python = ">=3.9"
