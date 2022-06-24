@@ -5,7 +5,8 @@ const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
-const exec = require("child_process").exec;
+// const exec = require("child_process").exec;
+const spawn = require("child_process").spawn;
 
 const { PythonShell } = require("python-shell");
 const {
@@ -180,17 +181,22 @@ try {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
                 // exec(JSON.parse(message).content, { cwd: "" }, (e, stdout, stderr) => {
-                exec("ls & cd python", { cwd: "" }, (e, stdout, stderr) => {
-                    // exec(JSON.parse(message).content, { shell: "powershell.exe" }, (e, stdout, stderr) => {
-                    try {
-                        if (e instanceof Error) {
-                            console.error(e);
-                            throw e;
-                        }
-                        console.log("stdout", stdout);
-                        socket.emit("res-data", stdout);
-                    } catch (error) {}
+                // let child = child_process.spawn("foo; bar; blah", { shell: true });
+                const cmd = spawn("ls", { shell: true });
+                cmd.stdout.on("data", (data) => {
+                    socket.emit("res-data", data);
                 });
+                // exec("ls & cd python", { cwd: "" }, (e, stdout, stderr) => {
+                // exec(JSON.parse(message).content, { shell: "powershell.exe" }, (e, stdout, stderr) => {
+                try {
+                    if (e instanceof Error) {
+                        console.error(e);
+                        throw e;
+                    }
+                    console.log("stdout", stdout);
+                    socket.emit("res-data", stdout);
+                } catch (error) {}
+                // });
             }
         });
         socket.once("disconnect", () => {});
