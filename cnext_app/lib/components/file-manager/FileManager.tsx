@@ -36,6 +36,7 @@ import {
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
 import socket from "../Socket";
+import { restartKernel } from "../kernel-manager/KernelManager";
 
 const FileManager = () => {
     const dispatch = useDispatch();
@@ -339,6 +340,9 @@ const FileManager = () => {
                 ProjectCommand.get_project_settings
             );
             sendMessage(messageProjectSettings);
+            
+            // Restart the kernel
+            restartKernel();
         }
     }, [workspaceMetadata]);
 

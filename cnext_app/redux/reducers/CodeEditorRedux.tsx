@@ -500,6 +500,7 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = undefined;
             state.saveCodeTextCounter = 0;
             state.saveCodeLineCounter = 0;
+            state.lastLineUpdate = {};
         },
     },
 });

@@ -599,7 +599,7 @@ export const StyledRichOutputPanel = styled.div`
 export const DataToolbar = styled.div`
     display: flex;
     height: 45px;
-    padding: 5px 10px 0px 20px;
+    padding: 5px 5px 0px 10px;
     align-self: stretch;
 `;
 
