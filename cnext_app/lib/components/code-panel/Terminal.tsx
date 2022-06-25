@@ -10,12 +10,13 @@ import socket from "../Socket";
 
 var test = 0;
 let currentHistory = 0;
+let history: string[] = [];
 const Term = () => {
     const xtermRef = useRef(null);
     const [input, setInput] = useState<string>("");
     const [cursor, setCursor] = useState<number>(0);
     const [cursorPosition, setCursorPosition] = useState<number>(0);
-    const [history, setHistory] = useState<{ [key: string]: string }>();
+    // const [history, setHistory] = useState<{ [key: string]: string }>();
 
     const [pathPrefix, setPathPrefix] = useState<string>(``);
     const [isMountTerm, setIsMountTerm] = useState<boolean>(false);
@@ -93,26 +94,27 @@ const Term = () => {
                     }
 
                     break;
-                // case "": // ESC
-                //     // setCursor(cursor + 1);
-                //     term.write("\x1b[2K\r");
-                //     setInput("");
-                //     sendMessage({ content: `cd` });
-                //     break;
-
                 case KeyCode.ArrowUp: // Up
-                    if (currentHistory <= Object.keys(history || {}).length) {
-                        currentHistory = currentHistory + 1;
+                    if (history.length > 0) {
+                        if (currentHistory <= history.length && currentHistory > 0) {
+                            currentHistory = currentHistory - 1;
+                        } else if (currentHistory === 0) {
+                            currentHistory = history.length - 1;
+                        }
+                        // term.write("\x1b[2K\r");
+                        // sendMessage({ content: `cd` });
+                        term.write(history[currentHistory]);
+                        setInput(history[currentHistory]);
                     }
 
-                    term.write(history ? history[`${Math.abs(currentHistory)}`] : "");
-                    setInput(history ? history[`0`] : "");
                     break;
 
                 case KeyCode.ArrowDown: //  Bottom arrow
-                    currentHistory = currentHistory - 1;
-                    term.write(history ? history[`0`] : "");
-                    setInput(history ? history[`0`] : "");
+                    if (currentHistory > 0 && history.length) {
+                        currentHistory = currentHistory - 1;
+                        term.write(history[currentHistory]);
+                        setInput(history[currentHistory]);
+                    }
 
                     break;
             }
@@ -126,14 +128,13 @@ const Term = () => {
             term.write("\r\n");
             // sendMessage({ content: input });
 
-            setHistory({
-                ...history,
-                [history ? Object.keys(history).length : 0]: input,
-            });
-            // searchAddon.findNext("'ls'");
-            // console.log("searchAddon", searchAddon);
-
-            console.log("history", history);
+            if (currentHistory === history.length) {
+                history = [...history, input];
+            } else {
+                history.splice(history.length - 1, 0, history[currentHistory]); // splice(toIndex, 0, element)
+            }
+            currentHistory = history.length;
+            console.log(`history`, history);
 
             setInput("");
             test = 0;
