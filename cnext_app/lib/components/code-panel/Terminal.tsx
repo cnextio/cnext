@@ -18,7 +18,7 @@ const Term = () => {
     const [cursorPosition, setCursorPosition] = useState<number>(0);
     // const [history, setHistory] = useState<{ [key: string]: string }>();
 
-    const [pathPrefix, setPathPrefix] = useState<string>(``);
+    const [pathPrefix, setPathPrefix] = useState<string>(`$ `);
     const [isMountTerm, setIsMountTerm] = useState<boolean>(false);
     const fitAddon = new FitAddon();
     const searchAddon = new SearchAddon();
@@ -27,15 +27,27 @@ const Term = () => {
     const socketInit = () => {
         socket.emit("ping", "Terminal");
         socket.on("res-data", (data) => {
+            console.log(`res-data`, data);
+
             const term = xtermRef?.current?.terminal;
             if (term) {
                 if (data?.type === `error`) {
                     term.write("\r\n");
-                    term.write(c.red(`${data.message}`));
-                    // term.write("\r\n" + pathPrefix);
+                    // bash
+                    const lines = data.message.split(/\n/);
+                    lines.forEach((l) => term.write(c.red(l + "\r\n")));
+
+                    // PS
+                    // term.write(c.red(`${data.message}`));
+                    term.write("\r\n" + pathPrefix);
                 } else {
-                    term.write(data);
-                    // term.write("\r\n" + pathPrefix);
+                    // bash
+                    const lines = data.split(/\n/);
+                    lines.forEach((l) => term.write(l + "\r\n"));
+
+                    // PS
+                    // term.write(data.replace("/\n/", "\r\n"));
+                    term.write("\r\n" + pathPrefix);
                 }
             }
         });
@@ -108,7 +120,11 @@ const Term = () => {
                         } else if (currentHistory === 0) {
                             currentHistory = history.length - 1;
                         }
-                        term.write(history[currentHistory]);
+                        term.write("\x1b[2K\r"); // remove line
+                        sendMessage({ content: `cd` });
+                        setTimeout(() => {
+                            term.write(history[currentHistory]);
+                        }, 200);
                         setInput(history[currentHistory]);
                     }
 
@@ -117,7 +133,10 @@ const Term = () => {
                 case KeyCode.ArrowDown: //  Bottom arrow
                     if (currentHistory < history.length && currentHistory > 0 && history.length) {
                         currentHistory = currentHistory + 1;
-                        term.write(history[currentHistory]);
+                        setTimeout(() => {
+                            term.write(history[currentHistory]);
+                        }, 200);
+                        // term.write(history[currentHistory]);
                         setInput(history[currentHistory]);
                     }
 
@@ -167,13 +186,14 @@ const Term = () => {
             setInput(input.slice(0, -1));
         } else if (key.key === KeyCode.Escape) {
             term.write("\x1b[2K\r"); // remove line
-            sendMessage({ content: `cd` });
+            sendMessage({ content: `pwd` });
         }
     };
     useEffect(() => {
         if (xtermRef?.current?.terminal && !isMountTerm) {
             setIsMountTerm(true);
-            socket.emit(WebAppEndpoint.Terminal, JSON.stringify({ content: input, type: "path" }));
+            xtermRef?.current?.terminal.write("\r\n" + pathPrefix);
+            socket.emit(WebAppEndpoint.Terminal, JSON.stringify({ content: `` }));
         }
     }, [xtermRef.current]);
     const onResize = () => {
@@ -183,7 +203,6 @@ const Term = () => {
     };
     return (
         <>
-            {pathPrefix}
             <XTerm
                 onResize={onResize}
                 options={{
