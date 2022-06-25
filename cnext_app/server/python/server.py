@@ -75,8 +75,9 @@ def main(argv):
     try:
         if argv and len(argv) > 0:
             server_config = read_config(SERVER_CONFIG_PATH)
-            workspace_metadata = read_config(WORKSPACE_METADATA_PATH)
-            workspace_info = WorkspaceMetadata(workspace_metadata.__dict__)
+            # workspace_metadata = read_config(WORKSPACE_METADATA_PATH)
+            workspace_metadata = WorkspaceMetadata(
+                read_config(WORKSPACE_METADATA_PATH).__dict__)
 
             executor_type = argv[0]
             user_space = None
@@ -98,13 +99,13 @@ def main(argv):
                             p2n_queue, user_space)
                     }
 
-                    set_executor_working_dir(user_space, workspace_info)
+                    # set_executor_working_dir(user_space, workspace_metadata)
 
                 elif executor_type == ExecutorType.NONCODE:
                     user_space = BaseKernelUserSpace()
                     message_handler = {
                         WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, workspace_info),
+                        WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, workspace_metadata),
                         WebappEndpoint.FileExplorer: fe.MessageHandler(
                             p2n_queue, user_space)
                     }
