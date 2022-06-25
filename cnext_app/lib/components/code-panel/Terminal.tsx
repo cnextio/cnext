@@ -23,16 +23,12 @@ const Term = () => {
     const fitAddon = new FitAddon();
     const searchAddon = new SearchAddon();
     // Connect Socket
-    const updatePath = (data) => {
-        setPathPrefix(data);
-    };
+
     const socketInit = () => {
         socket.emit("ping", "Terminal");
         socket.on("res-data", (data) => {
-            console.log("ResponseTerm 1", data);
-
-            if (xtermRef?.current?.terminal) {
-                const term = xtermRef?.current?.terminal;
+            const term = xtermRef?.current?.terminal;
+            if (term) {
                 if (data?.type === `error`) {
                     term.write("\r\n");
                     term.write(c.red(`${data.message}`));
@@ -83,7 +79,6 @@ const Term = () => {
 
     function onTermData(data: any) {
         setIsMountTerm(true);
-
         const code = data.charCodeAt(0);
         console.log(history, "code:" + code + "data: " + data, "27" + data.substr(1));
         const term = xtermRef?.current?.terminal;
@@ -113,8 +108,6 @@ const Term = () => {
                         } else if (currentHistory === 0) {
                             currentHistory = history.length - 1;
                         }
-                        // term.write("\x1b[2K\r");
-                        // sendMessage({ content: `cd` });
                         term.write(history[currentHistory]);
                         setInput(history[currentHistory]);
                     }
@@ -122,8 +115,8 @@ const Term = () => {
                     break;
 
                 case KeyCode.ArrowDown: //  Bottom arrow
-                    if (currentHistory > 0 && history.length) {
-                        currentHistory = currentHistory - 1;
+                    if (currentHistory < history.length && currentHistory > 0 && history.length) {
+                        currentHistory = currentHistory + 1;
                         term.write(history[currentHistory]);
                         setInput(history[currentHistory]);
                     }
@@ -145,8 +138,9 @@ const Term = () => {
             } else {
                 history = moveArrayItemToNewIndex(history, currentHistory, history.length - 1);
             }
-            currentHistory = history.length;
             console.log(`history`, history);
+
+            currentHistory = history.length;
             setInput("");
             test = 0;
             setCursorPosition(0);
@@ -163,10 +157,12 @@ const Term = () => {
 
     const onTermKey = (data: any) => {
         // press key backSpace and Delete
-        console.log(`keyCode`, data);
         const key = data.domEvent;
         const term = xtermRef?.current?.terminal;
-        if (key.keyCode === KeyCode.BackSpace || key.keyCode === KeyCode.Delete) {
+        if (
+            (key.keyCode === KeyCode.BackSpace || key.keyCode === KeyCode.Delete) &&
+            input.length > 0
+        ) {
             term.write("\b \b"); // delete text
             setInput(input.slice(0, -1));
         } else if (key.key === KeyCode.Escape) {
