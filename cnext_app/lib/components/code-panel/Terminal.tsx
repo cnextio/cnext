@@ -146,10 +146,12 @@ const Term = () => {
         if (code === KeyCode.Enter && input.length > 0) {
             if (input === "cls" || input === "clear") {
                 term.write("\x1bc");
+                term.write("\r\n" + pathPrefix);
+            } else {
+                sendMessage({ content: input });
+                term.write("\r\n");
             }
 
-            sendMessage({ content: input });
-            term.write("\r\n");
             // sendMessage({ content: input });
 
             if (currentHistory === history.length) {

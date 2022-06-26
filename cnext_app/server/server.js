@@ -6,7 +6,7 @@ const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
 const spawn = require("child_process").spawn;
-
+const execProcess = require("process");
 const { PythonShell } = require("python-shell");
 const {
     LSPProcess,
@@ -154,7 +154,9 @@ try {
         var sh = spawn("bash");
         // Handle bash stream
         sh.stdout.on("data", function (data) {
+            console.log("res-data", data.toString());
             io.emit("res-data", data.toString());
+
             // PS
             // if (data.toString() !== "" && cmd !== data.toString()) {
             // }
