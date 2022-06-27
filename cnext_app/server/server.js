@@ -162,6 +162,7 @@ try {
         });
 
         sh.on("exit", function (code) {
+            io.emit("kill-process", "SIGINT");
             socket.broadcast.emit("** Shell exited: " + code + " **");
         });
 
