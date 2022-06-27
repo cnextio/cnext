@@ -7,4 +7,5 @@ export default {
     ArrowUp: "[A",
     ArrowDown: "[B",
     Escape: "Escape",
+    ControlC: `c`,
 };

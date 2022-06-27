@@ -141,6 +141,8 @@ const Term = () => {
                     }
 
                     break;
+                case KeyCode.ArrowDown: //  Bottom arrow
+                    break;
             }
         }
         if (code === KeyCode.Enter && input.length > 0) {
@@ -180,6 +182,8 @@ const Term = () => {
         // press key backSpace and Delete
         const key = data.domEvent;
         const term = xtermRef?.current?.terminal;
+        console.log(key, "key");
+
         if (
             (key.keyCode === KeyCode.BackSpace || key.keyCode === KeyCode.Delete) &&
             input.length > 0
@@ -189,6 +193,9 @@ const Term = () => {
         } else if (key.key === KeyCode.Escape) {
             term.write("\x1b[2K\r"); // remove line
             sendMessage({ content: `pwd` });
+        } else if (key.key === KeyCode.ControlC) {
+            console.log("send control C");
+            sendMessage({ content: `KeyCode.ControlC` });
         }
     };
     useEffect(() => {
