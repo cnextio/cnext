@@ -37,6 +37,7 @@ const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
 const KernelManager = "KernelManager";
 const Terminal = "Terminal";
+const ResponseTerminal = "Terminal";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
 const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
 const TerminalExecutor = [Terminal];
@@ -152,22 +153,25 @@ try {
     io.on("connection", (socket) => {
         // Init Shell bash
         var sh = spawn("bash");
+
+        let cmdHistory = ""; // save history command newest
         // Handle bash stream
         sh.stdout.on("data", function (data) {
-            console.log("res-data", data.toString());
-            io.emit("res-data", data.toString());
-            console.log("res-data", process.cwd());
+            if (cmdHistory.type === "path") {
+                io.emit(ResponseTerminal, { type: `path`, message: data.toString() });
+            } else {
+                io.emit(ResponseTerminal, data.toString());
+            }
             // PS
-            // if (data.toString() !== "" && cmd !== data.toString()) {
-            // }
         });
 
         sh.stderr.on("data", function (data) {
-            io.emit("res-data", { type: `error`, message: data.toString() });
+            io.emit(ResponseTerminal, { type: `error`, message: data.toString() });
         });
 
         sh.on("exit", function (code) {
-            io.broadcast("** Shell exited: " + code + " **");
+            io.emit("kill-process", "SIGINT");
+            socket.broadcast.emit("** Shell exited: " + code + " **");
         });
 
         socket.on("ping", (message) => {
@@ -199,8 +203,13 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                cmd = JSON.parse(message).content + `\n`;
-                sh.stdin.write(JSON.parse(message).content + "\n");
+                let msgParsed = JSON.parse(message);
+                if (msgParsed.type === "KILL_PROCESS") {
+                    sh.kill("SIGINT");
+                } else {
+                    cmdHistory = JSON.parse(message);
+                    sh.stdin.write(JSON.parse(message).content + "\n");
+                }
             }
         });
         socket.once("disconnect", () => {});

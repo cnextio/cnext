@@ -7,10 +7,12 @@ import c from "ansi-colors";
 
 import KeyCode from "./KeyCode";
 import socket from "../Socket";
+const ResponseTerminal = "Terminal";
 
 var test = 0;
 let currentHistory = 0;
 let history: string[] = [];
+let pathPrefix = "";
 const Term = () => {
     const xtermRef = useRef(null);
     const [input, setInput] = useState<string>("");
@@ -18,7 +20,7 @@ const Term = () => {
     const [cursorPosition, setCursorPosition] = useState<number>(0);
     // const [history, setHistory] = useState<{ [key: string]: string }>();
 
-    const [pathPrefix, setPathPrefix] = useState<string>(`$ `);
+    // const [pathPrefix, setPathPrefix] = useState<string>(`$ `);
     const [isMountTerm, setIsMountTerm] = useState<boolean>(false);
     const fitAddon = new FitAddon();
     const searchAddon = new SearchAddon();
@@ -26,8 +28,8 @@ const Term = () => {
 
     const socketInit = () => {
         socket.emit("ping", "Terminal");
-        socket.on("res-data", (data) => {
-            console.log(`res-data`, data);
+        socket.on(ResponseTerminal, (data) => {
+            console.log(`on res-data`, data);
 
             const term = xtermRef?.current?.terminal;
             if (term) {
@@ -40,14 +42,17 @@ const Term = () => {
                     // PS
                     // term.write(c.red(`${data.message}`));
                     term.write("\r\n" + pathPrefix);
+                } else if (data?.type === `path`) {
+                    const lines = data.message.split(/\n/);
+                    pathPrefix = lines;
+                    // setPathPrefix(lines);
+                    wirtePS();
                 } else {
+                    console.log(`data`, data);
+
                     // bash
                     const lines = data.split(/\n/);
-                    // lines.forEach((l) => term.write(l + "\r\n"));
-                    term.write(c.red(`${lines}`));
-                    // PS
-                    // term.write(data.replace("/\n/", "\r\n"));
-                    // term.write("\r\n" + pathPrefix);
+                    lines.forEach((l) => term.write(l + "\r\n"));
                 }
             }
         });
@@ -67,16 +72,25 @@ const Term = () => {
         console.log(`${WebAppEndpoint.Terminal} send message: `, JSON.stringify(message));
         socket.emit(WebAppEndpoint.Terminal, JSON.stringify(message));
     };
-
+    const getPS = () => {
+        socket.emit(
+            WebAppEndpoint.Terminal,
+            JSON.stringify({
+                content: "echo `id -u -n`@`hostname` $(basename `pwd`)",
+                type: "path",
+            })
+        );
+    };
     useEffect(() => {
         socketInit();
         return () => {
             socket.off(WebAppEndpoint.Terminal);
         };
     }, []); //TODO: run this only once - not on rerender
-    useEffect(() => {
-        console.log(pathPrefix);
-    }, [pathPrefix]); //
+    const wirtePS = () => {
+        const term = xtermRef?.current?.terminal;
+        term.write(`${pathPrefix}`);
+    };
 
     const moveArrayItemToNewIndex = (arr: string[], old_index: number, new_index: number) => {
         if (new_index >= arr.length) {
@@ -121,10 +135,9 @@ const Term = () => {
                             currentHistory = history.length - 1;
                         }
                         term.write("\x1b[2K\r"); // remove line
-                        sendMessage({ content: `cd` });
-                        setTimeout(() => {
-                            term.write(history[currentHistory]);
-                        }, 200);
+                        wirtePS();
+                        term.write(history[currentHistory]);
+
                         setInput(history[currentHistory]);
                     }
 
@@ -133,10 +146,8 @@ const Term = () => {
                 case KeyCode.ArrowDown: //  Bottom arrow
                     if (currentHistory < history.length && currentHistory > 0 && history.length) {
                         currentHistory = currentHistory + 1;
-                        setTimeout(() => {
-                            term.write(history[currentHistory]);
-                        }, 200);
-                        // term.write(history[currentHistory]);
+                        wirtePS();
+                        term.write(history[currentHistory]);
                         setInput(history[currentHistory]);
                     }
 
@@ -146,11 +157,14 @@ const Term = () => {
             }
         }
         if (code === KeyCode.Enter && input.length > 0) {
-            if (input === "cls" || input === "clear") {
+            if (KeyCode.Clear.includes(input)) {
                 term.write("\x1bc");
-                term.write("\r\n" + pathPrefix);
+                wirtePS();
             } else {
                 sendMessage({ content: input });
+                if (input.includes("cd")) {
+                    getPS();
+                }
                 term.write("\r\n");
             }
 
@@ -161,7 +175,6 @@ const Term = () => {
             } else {
                 history = moveArrayItemToNewIndex(history, currentHistory, history.length - 1);
             }
-            console.log(`history`, history);
 
             currentHistory = history.length;
             setInput("");
@@ -193,18 +206,20 @@ const Term = () => {
         } else if (key.key === KeyCode.Escape) {
             term.write("\x1b[2K\r"); // remove line
             sendMessage({ content: `pwd` });
-        } else if (key.key === KeyCode.ControlC) {
-            sendMessage({ content: `KILL_PROCESS` });
+        } else if (key.keyCode === KeyCode.ControlC && key.ctrlKey) {
+            console.log(123);
+
+            sendMessage({ content: `KILL_PROCESS`, type: "KILL_PROCESS" });
+            wirtePS();
+            setTimeout(() => {
+                socketInit();
+            }, 2000);
         }
     };
     useEffect(() => {
         if (xtermRef?.current?.terminal && !isMountTerm) {
             setIsMountTerm(true);
-            // xtermRef?.current?.terminal.write("\r\n" + pathPrefix);
-            socket.emit(
-                WebAppEndpoint.Terminal,
-                JSON.stringify({ content: "echo `id -u -n`@`hostname` $(basename `pwd`)" })
-            );
+            getPS();
         }
     }, [xtermRef.current]);
     const onResize = () => {

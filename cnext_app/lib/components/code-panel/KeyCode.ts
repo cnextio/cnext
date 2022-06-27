@@ -7,5 +7,6 @@ export default {
     ArrowUp: "[A",
     ArrowDown: "[B",
     Escape: "Escape",
-    ControlC: `c`,
+    ControlC: 67,
+    Clear: ['cls','clear']
 };
