@@ -166,7 +166,7 @@ try {
         });
 
         sh.stderr.on("data", function (data) {
-            io.emit(ResponseTerminal, { type: `error`, message: data.toString() });
+            io.emit(ResponseTerminal, { cmd: cmdHistory, type: `error`, message: data.toString() });
         });
 
         sh.on("exit", function (code) {
@@ -203,11 +203,11 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
+                cmdHistory = JSON.parse(message);
                 let msgParsed = JSON.parse(message);
                 if (msgParsed.type === "KILL_PROCESS") {
                     sh.kill("SIGINT");
                 } else {
-                    cmdHistory = JSON.parse(message);
                     sh.stdin.write(JSON.parse(message).content + "\n");
                 }
             }

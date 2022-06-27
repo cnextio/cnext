@@ -34,18 +34,22 @@ const Term = () => {
             const term = xtermRef?.current?.terminal;
             if (term) {
                 if (data?.type === `error`) {
-                    term.write("\r\n");
+                    // term.write("\r\n");
                     // bash
                     const lines = data.message.split(/\n/);
                     lines.forEach((l) => term.write(c.red(l + "\r\n")));
 
                     // PS
                     // term.write(c.red(`${data.message}`));
-                    term.write("\r\n" + pathPrefix);
+                    if (!data.cmd.content || !data?.cmd?.content.includes("cd")) {
+                        wirtePS();
+                    }
                 } else if (data?.type === `path`) {
                     const lines = data.message.split(/\n/);
-                    pathPrefix = lines;
+                    pathPrefix = lines[0];
                     // setPathPrefix(lines);
+                    console.log(`wirtePS`, lines);
+
                     wirtePS();
                 } else {
                     console.log(`data`, data);
@@ -53,6 +57,7 @@ const Term = () => {
                     // bash
                     const lines = data.split(/\n/);
                     lines.forEach((l) => term.write(l + "\r\n"));
+                    wirtePS();
                 }
             }
         });
@@ -89,7 +94,7 @@ const Term = () => {
     }, []); //TODO: run this only once - not on rerender
     const wirtePS = () => {
         const term = xtermRef?.current?.terminal;
-        term.write(`${pathPrefix}`);
+        term.write(c.blue(`${pathPrefix}> `));
     };
 
     const moveArrayItemToNewIndex = (arr: string[], old_index: number, new_index: number) => {
@@ -166,6 +171,7 @@ const Term = () => {
                     getPS();
                 }
                 term.write("\r\n");
+                // wirtePS();
             }
 
             // sendMessage({ content: input });
@@ -210,6 +216,7 @@ const Term = () => {
             console.log(123);
 
             sendMessage({ content: `KILL_PROCESS`, type: "KILL_PROCESS" });
+            term.write("\r\n");
             wirtePS();
             setTimeout(() => {
                 socketInit();
