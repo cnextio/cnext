@@ -1,4 +1,4 @@
-# v0.4.20 - 0.4.21
+# v0.4.20 - 0.4.22
 
 ##### NEW
 
@@ -7,6 +7,7 @@
 ##### IMPROVED
 
 -   Improve setup script
+-   Improve usability
 
 ##### FIXED
 
