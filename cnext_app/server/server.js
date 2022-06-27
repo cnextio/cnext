@@ -154,12 +154,7 @@ try {
         var sh = spawn("bash");
         // Handle bash stream
         sh.stdout.on("data", function (data) {
-            console.log("res-data", data.toString());
             io.emit("res-data", data.toString());
-
-            // PS
-            // if (data.toString() !== "" && cmd !== data.toString()) {
-            // }
         });
 
         sh.stderr.on("data", function (data) {
@@ -167,7 +162,7 @@ try {
         });
 
         sh.on("exit", function (code) {
-            io.broadcast("** Shell exited: " + code + " **");
+            socket.broadcast.emit("** Shell exited: " + code + " **");
         });
 
         socket.on("ping", (message) => {
@@ -199,8 +194,12 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                cmd = JSON.parse(message).content + `\n`;
-                sh.stdin.write(JSON.parse(message).content + "\n");
+                let msgParsed = JSON.parse(message).content;
+                if (msgParsed === "KILL_PROCESS") {
+                    sh.kill("SIGINT");
+                } else {
+                    sh.stdin.write(JSON.parse(message).content + "\n");
+                }
             }
         });
         socket.once("disconnect", () => {});
