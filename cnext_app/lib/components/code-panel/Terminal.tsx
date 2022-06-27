@@ -43,11 +43,11 @@ const Term = () => {
                 } else {
                     // bash
                     const lines = data.split(/\n/);
-                    lines.forEach((l) => term.write(l + "\r\n"));
-
+                    // lines.forEach((l) => term.write(l + "\r\n"));
+                    term.write(c.red(`${lines}`));
                     // PS
                     // term.write(data.replace("/\n/", "\r\n"));
-                    term.write("\r\n" + pathPrefix);
+                    // term.write("\r\n" + pathPrefix);
                 }
             }
         });
@@ -201,8 +201,11 @@ const Term = () => {
     useEffect(() => {
         if (xtermRef?.current?.terminal && !isMountTerm) {
             setIsMountTerm(true);
-            xtermRef?.current?.terminal.write("\r\n" + pathPrefix);
-            socket.emit(WebAppEndpoint.Terminal, JSON.stringify({ content: `` }));
+            // xtermRef?.current?.terminal.write("\r\n" + pathPrefix);
+            socket.emit(
+                WebAppEndpoint.Terminal,
+                JSON.stringify({ content: "echo `id -u -n`@`hostname` $(basename `pwd`)" })
+            );
         }
     }, [xtermRef.current]);
     const onResize = () => {

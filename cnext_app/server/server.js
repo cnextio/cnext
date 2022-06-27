@@ -156,7 +156,7 @@ try {
         sh.stdout.on("data", function (data) {
             console.log("res-data", data.toString());
             io.emit("res-data", data.toString());
-
+            console.log("res-data", process.cwd());
             // PS
             // if (data.toString() !== "" && cmd !== data.toString()) {
             // }
@@ -164,6 +164,7 @@ try {
 
         sh.stderr.on("data", function (data) {
             io.emit("res-data", { type: `error`, message: data.toString() });
+
         });
 
         sh.on("exit", function (code) {
