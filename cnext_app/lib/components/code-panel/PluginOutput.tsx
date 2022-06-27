@@ -31,61 +31,12 @@ const CodeOutputComponent = React.memo(() => {
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
-    const textOutputUpdateCount = useSelector(
-        (state: RootState) => state.codeEditor.textOutputUpdateCount
-    );
     const roTextOutputUpdateCount = useSelector(
         (state: RootState) => state.richOutput.textOutputUpdateCount
     );
-    const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
-    const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
-    /** use this to reload the output when inViewID changed */
-    const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
-    const [outputContent, setOutputContent] = useState<(ITextOuput | undefined)[]>([]);
-    const [lastItemIsROTextOutput, setLastItemIsROTextOutput] = useState<boolean>(false);
-    const [roOutputFocused, setRoOutputFocused] = useState<boolean>(false);
-    // const codeOutputRef = useRef(null);
-
-    function getOrderedTextOuput(state: RootState): (ITextOuput | undefined)[] {
-        const inViewID = state.projectManager.inViewID;
-        const groupIDSet = new Set();
-        if (inViewID != null) {
-            let textOutputs = state.codeEditor.codeLines[inViewID]
-                ?.filter((codeLine: ICodeLine) => {
-                    /** only display one text output in a group like jupyter notebook */
-                    if (codeLine.groupID == null) {
-                        return codeLine.textOutput != null; //true; //codeLine.textOutput != null;
-                    } else if (!groupIDSet.has(codeLine.groupID)) {
-                        groupIDSet.add(codeLine.groupID);
-                        return codeLine.textOutput != null; //true; //codeLine.textOutput != null
-                    } else {
-                        return false;
-                    }
-                })
-                // .sort((item1: ICodeLine, item2: ICodeLine) => {
-                //     if (item1.textOutput?.order != null && item2.textOutput?.order != null) {
-                //         return item1.textOutput?.order - item2.textOutput?.order;
-                //     } else {
-                //         return -1;
-                //     }
-                // })
-                .map((item: ICodeLine) => {
-                    // return item.textOutput?.content;
-                    return {
-                        type: "text",
-                        content:
-                            item.textOutput?.content == null || item.textOutput?.content === ""
-                                ? "\n"
-                                : item.textOutput?.content,
-                        groupID: item.groupID,
-                        lineID: item.lineID,
-                    } as ITextOuput;
-                });
-            return textOutputs;
-        } else {
-            return [];
-        }
-    }
+    let [outputContent, setOutputContent] = useState<(ITextOuput | null)[]>([]);
+    let [lastItemIsROTextOutput, setLastItemIsROTextOutput] = useState<boolean>(false);
+    const codeOutputRef = useRef(null);
 
     function getActiveDataFrameStatus(state: RootState) {
         const activeDataFrame = state.dataFrames.activeDataFrame;
@@ -185,22 +136,6 @@ const CodeOutputComponent = React.memo(() => {
         );
     };
 
-    /** Get an ordered code execution text outputs and set the state */
-    const handleTextOutput = () => {
-        if (serverSynced) {
-            try {
-                const state: RootState = store.getState();
-                let textOutputs = getOrderedTextOuput(state);
-                setOutputContent(textOutputs);
-                setLastItemIsROTextOutput(false);
-            } catch (error) {
-                // TODO: process json error
-                console.error(error);
-            }
-        }
-    };
-    useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced, inViewID]);
-
     /** Get an df update messages */
     const handleDFUpdates = () => {
         // const state = store.getState();
@@ -221,7 +156,7 @@ const CodeOutputComponent = React.memo(() => {
             };
             //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
             if (newOutputContent != null) {
-                setOutputContent((outputContent) => [...outputContent, newOutputContent]);
+                setOutputContent((newOutputContent) => [...outputContent, newOutputContent]);
                 setLastItemIsROTextOutput(false);
             }
             dispatch(setDFStatusShowed(true));
@@ -235,21 +170,14 @@ const CodeOutputComponent = React.memo(() => {
      */
     const handleROTextOutput = () => {
         const state = store.getState();
-        const newOutputContent: ITextOuput = {
+        const newOutputContent: ITextOuput | null = {
             type: "text",
             content: state.richOutput.textOutput,
+            // groupID: activeGroup,
+            // lineID: activeLine
         };
-        if (!lastItemIsROTextOutput) {
-            /** append to the last item */
-            setOutputContent((outputContent) => [...outputContent, newOutputContent]);
-            setLastItemIsROTextOutput(true);
-        } else {
-            /** update the last item */
-            setOutputContent((outputContent) => [
-                ...outputContent.filter((item, index) => index < outputContent.length - 1),
-                newOutputContent,
-            ]);
-        }
+        setOutputContent(newOutputContent);
+        setLastItemIsROTextOutput(true);
     };
     useEffect(() => {
         const state = store.getState();
@@ -257,16 +185,6 @@ const CodeOutputComponent = React.memo(() => {
             handleROTextOutput();
         }
     }, [roTextOutputUpdateCount]);
-
-    const isFocused = (item: ITextOuput, lastItem: boolean) => {
-        // TODO: implement scoll to rich-output text and df updates
-        return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;
-        // return roOutputFocused && lastItemIsROTextOutput && lastItem
-        //     ? true
-        //     : item?.groupID != null
-        //     ? item?.groupID === activeGroup
-        //     : item?.lineID === activeLine;
-    };
 
     const codeOutputContentID = "CodeOutputContent";
     return (
@@ -277,45 +195,59 @@ const CodeOutputComponent = React.memo(() => {
                     Output
                 </CodeOutputHeaderText>
             </CodeOutputHeader>
-            <CodeOutputContent id={codeOutputContentID}>
-                {outputContent?.map((item, index) => (
-                    <ScrollIntoViewIfNeeded
-                        active={isFocused(item, index === outputContent.length - 1)}
-                        options={{
-                            block: "end",
-                            inline: "center",
-                            behavior: "smooth",
-                            boundary: document.getElementById(codeOutputContentID),
-                        }}
-                    >
-                        {item?.type === "text" && (
-                            <IndividualCodeOutputContent
-                                key={index}
-                                component="pre"
-                                variant="body2"
-                                focused={isFocused(item, index === outputContent.length - 1)}
-                            >
-                                <Ansi>{item.content}</Ansi>
-                            </IndividualCodeOutputContent>
-                        )}
-                        {item?.type === "df_updates" && (
-                            <IndividualCodeOutputContent
-                                key={index}
-                                component="pre"
-                                variant="body2"
-                            >
-                                {renderDFReviewsOutputComponent(
-                                    outputContent.length,
-                                    item["content"]["updateType"],
-                                    item["content"]["updateContent"],
-                                    // only the last item and in the review list can be in active review mode
-                                    index === outputContent.length - 1 &&
-                                        updateTypeToReview.includes(item["content"]["updateType"])
-                                )}
-                            </IndividualCodeOutputContent>
-                        )}
-                    </ScrollIntoViewIfNeeded>
-                ))}
+            <CodeOutputContent ref={codeOutputRef} id={codeOutputContentID}>
+                {
+                    //textOutputUpdateCount > 0 &&
+                    outputContent?.map((item, index) => (
+                        <Fragment>
+                            {(item?.groupID != null
+                                ? item?.groupID === activeGroup
+                                : item?.lineID === activeLine) && (
+                                <ScrollIntoViewIfNeeded
+                                    options={{
+                                        // active: true,
+                                        block: "nearest",
+                                        inline: "center",
+                                        behavior: "auto",
+                                        boundary: document.getElementById(codeOutputContentID),
+                                    }}
+                                />
+                            )}
+                            {item?.type === "text" && (
+                                <IndividualCodeOutputContent
+                                    key={index}
+                                    component="pre"
+                                    variant="body2"
+                                    focused={
+                                        item.groupID != null
+                                            ? item.groupID === activeGroup
+                                            : item.lineID === activeLine
+                                    }
+                                >
+                                    <Ansi>{item.content}</Ansi>
+                                </IndividualCodeOutputContent>
+                            )}
+                            {item?.type === "df_updates" && (
+                                <IndividualCodeOutputContent
+                                    key={index}
+                                    component="pre"
+                                    variant="body2"
+                                >
+                                    {renderDFReviewsOutputComponent(
+                                        outputContent.length,
+                                        item["content"]["updateType"],
+                                        item["content"]["updateContent"],
+                                        // only the last item and in the review list can be in active review mode
+                                        index === outputContent.length - 1 &&
+                                            updateTypeToReview.includes(
+                                                item["content"]["updateType"]
+                                            )
+                                    )}
+                                </IndividualCodeOutputContent>
+                            )}
+                        </Fragment>
+                    ))
+                }
             </CodeOutputContent>
         </CodeOutputContainer>
     );

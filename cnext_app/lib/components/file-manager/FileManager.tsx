@@ -191,6 +191,8 @@ const FileManager = () => {
                                 /** reset the state if the active project is different */
                                 resetProjectStates(workspaceMetadata);
                                 dispatch(setWorkspaceMetadata(workspaceMetadata));
+                                // Restart the kernel
+                                // restartKernel();
                             }
                             break;
                         case ProjectCommand.add_project:
@@ -339,10 +341,7 @@ const FileManager = () => {
             let messageProjectSettings: IMessage = createMessage(
                 ProjectCommand.get_project_settings
             );
-            sendMessage(messageProjectSettings);
-            
-            // Restart the kernel
-            restartKernel();
+            sendMessage(messageProjectSettings);            
         }
     }, [workspaceMetadata]);
 

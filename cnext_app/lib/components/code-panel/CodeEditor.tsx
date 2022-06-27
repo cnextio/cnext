@@ -84,11 +84,11 @@ import {
     setGroupedLineDeco,
     setHTMLEventHandler,
     setViewCodeText,
-    textShouldBeExec as isExpression,
     setAnchor,
     setAnchorToNextGroup,
     setLineStatus,
     isRunQueueBusy,
+    groupedLineGutter,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
@@ -131,7 +131,7 @@ const CodeEditor = () => {
 
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
-    const editorRef = useRef();
+    const editorRef = useRef<HTMLDivElement>();
 
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
@@ -172,6 +172,7 @@ const CodeEditor = () => {
         basicSetup,
         lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
+        groupedLineGutter(),
         bracketMatching(),
         defaultHighlightStyle.fallback,
         keymap.of([

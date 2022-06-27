@@ -434,17 +434,25 @@ export const StyledCodeEditor = styled.div`
     }
 
     .cm-groupedline {
-        background-color: rgb(218, 255, 237, 0.3);
+        background-color: white;//rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedline.active {
         background-color: rgb(218, 255, 237, 0.6);
     }
 
+    .cm-groupedfirstlinegutter {
+        // margin-top: 19.2px;
+    }
+
+    .cm-groupedlastlinegutter {
+        // margin-bottom: 19.1903px;
+    }
+
     .cm-groupedfirstline {
-        // margin-top: 10px;
-        border-top: 1px dotted rgb(153, 179, 171, 0.5);
-        background-color: rgb(218, 255, 237, 0.3);
+        // margin-top: 18.2px;
+        border-top: 1px dashed rgb(153, 179, 171, 0.5);
+        background-color: white;//rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedfirstline.active {
@@ -454,9 +462,9 @@ export const StyledCodeEditor = styled.div`
     }
 
     .cm-groupedlastline {
-        // margin-bottom: 10px;
-        border-bottom: 1px dotted rgb(153, 179, 171, 0.5);
-        background-color: rgb(218, 255, 237, 0.3);
+        // margin-bottom: 18.2px;
+        border-bottom: 1px dashed rgb(153, 179, 171, 0.5);
+        background-color: white;//rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedlastline.active {
@@ -478,8 +486,6 @@ export const StyledCodeEditor = styled.div`
 
     .cm-foldGutter {
         font-size: 11px;
-        // padding-right: 2px;
-        // padding-top: 3px;
     }
 `;
 
@@ -542,7 +548,7 @@ export const CodeOutputHeaderText = styled(Typography)`
 export const CodeOutputContent = styled.div`
     overflow: auto;
     height: 100%;
-    flex-grow: 1;
+    // flex-grow: 1;
 `;
 // export const IndividualCodeOutputContent = styled.pre`
 //     margin: 0px;
@@ -554,13 +560,21 @@ export const CodeOutputContent = styled.div`
 //     }
 // `;
 export const IndividualCodeOutputContent = styled(Typography)`
-    margin: 0px;
+    margin-bottom: 10px;
     padding: 5px 0px 5px 0px;
     overflow: auto;
     font-size: 13px;
     &:hover {
-        background-color: ${(props) => props.theme.palette.action.hover};
+        background-color: ${(props) =>
+            !props.focused ? props.theme.palette.action.hover : "rgb(218, 255, 237, 0.6)"};
     }
+
+    background-color: ${(props) => (props.focused ? "rgb(218, 255, 237, 0.6)" : null)};
+    border-top: ${(props) =>
+        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+    border-bottom: ${(props) =>
+        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+
     code {
         display: inline-block;
         white-space: pre-wrap; /* Since CSS 2.1 */
@@ -818,12 +832,19 @@ export const ResultViewContainer = styled.div`
 
 export const SingleResultContainer = styled(Paper)`
     background-color: ${(props) => props.theme.palette.background.paper};
-    margin: 1px;
-    margin-bottom: 8px;
-    width: ${(props) => (props.showMarkdown ? "100%" : "fit-content")};
-    border-color: ${(props) =>
-        props.showMarkdown ? null : props.focused ? props.theme.palette.primary.light : null};
-    border-width: ${(props) => (props.showMarkdown ? "0px" : props.focused ? "2px" : null)};
+    margin: 0px;
+    margin-bottom: 10px;
+    width: 100%;
+
+    border-top: ${(props) =>
+        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+    border-bottom: ${(props) =>
+        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+    border-left: 0px;
+    border-right: 0px;
+    border-radius: 0;
+    background-color: ${(props) => (props.focused ? "rgb(218, 255, 237, 0.6)" : null)};
+
     overflow: auto;
 
     svg {

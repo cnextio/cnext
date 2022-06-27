@@ -53,7 +53,7 @@ type CodeEditorState = {
     saveCodeTextCounter: number;
     // this number need to be increased whenever codeLine is updated
     saveCodeLineCounter: number;
-    lastLineUpdate: {[key: string]: ILineUpdate};
+    lastLineUpdate: { [key: string]: ILineUpdate };
 };
 
 const initialState: CodeEditorState = {
@@ -74,7 +74,7 @@ const initialState: CodeEditorState = {
     codeToInsert: undefined,
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
-    lastLineUpdate: {}, /** this is used in MarkdownProcessor */
+    lastLineUpdate: {} /** this is used in MarkdownProcessor */,
 };
 
 /**
@@ -184,7 +184,7 @@ export const CodeEditorRedux = createSlice({
                 );
                 state.resultUpdateCount += 1;
 
-                state.maxTextOutputOrder = getMaxTextOutputOrder(codeLines);
+                // state.maxTextOutputOrder = getMaxTextOutputOrder(codeLines);
                 state.textOutputUpdateCount += 1;
             }
             state.codeLines[reduxFileID] = codeLines;
@@ -262,7 +262,7 @@ export const CodeEditorRedux = createSlice({
             /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
             setGroupEdittedStatus(codeLines, lineUpdate.updatedStartLineNumber, startLineGroupID);
             state.codeLines[inViewID] = codeLines;
-            
+
             /** this is used in MarkdownProcessor */
             state.lastLineUpdate[inViewID] = lineUpdate;
         },
