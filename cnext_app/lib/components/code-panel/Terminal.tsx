@@ -194,8 +194,7 @@ const Term = () => {
             term.write("\x1b[2K\r"); // remove line
             sendMessage({ content: `pwd` });
         } else if (key.key === KeyCode.ControlC) {
-            console.log("send control C");
-            sendMessage({ content: `KeyCode.ControlC` });
+            sendMessage({ content: `KILL_PROCESS` });
         }
     };
     useEffect(() => {

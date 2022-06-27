@@ -164,7 +164,6 @@ try {
 
         sh.stderr.on("data", function (data) {
             io.emit("res-data", { type: `error`, message: data.toString() });
-
         });
 
         sh.on("exit", function (code) {
