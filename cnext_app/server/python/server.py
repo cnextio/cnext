@@ -99,7 +99,7 @@ def main(argv):
                             p2n_queue, user_space)
                     }
 
-                    # set_executor_working_dir(user_space, workspace_metadata)
+                    set_executor_working_dir(user_space, workspace_metadata)
 
                 elif executor_type == ExecutorType.NONCODE:
                     user_space = BaseKernelUserSpace()
