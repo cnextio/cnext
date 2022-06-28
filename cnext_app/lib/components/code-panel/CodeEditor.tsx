@@ -94,6 +94,8 @@ import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
 import { closeBracketsKeymap } from "@codemirror/closebrackets";
 import { IKernelManagerResultContent, KernelManagerCommand } from "../../interfaces/IKernelManager";
+import { groupWidget } from "./libGroupWidget";
+import { getGroupFoldRange } from "./libGroupFold";
 
 let pyLanguageServer = languageServer({
     serverUri: "ws://localhost:3001/python",
@@ -137,42 +139,13 @@ const CodeEditor = () => {
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
-    const getGroupedLineFoldRange = (state: EditorState, lineStart: number, lineEnd: number) => {
-        if (state && inViewID) {
-            const codeLines = store.getState().codeEditor.codeLines[inViewID];
-            const doc = state.doc;
-            /** compare doc and codeLines to avoid bug when codeLines has been loaded but doc has not */
-            if (codeLines != null && doc.lines === codeLines.length) {
-                const startLine: number = doc.lineAt(lineStart).number - 1; // 0-based
-                let endLine: number = startLine;
-                let curGroupID = codeLines[startLine].groupID;
-                console.log("CodeEditor getGroupedLineFoldRange: ", lineStart, lineEnd, codeLines);
-                if (
-                    curGroupID != null &&
-                    (startLine === 0 ||
-                        (startLine > 0 && curGroupID != codeLines[startLine - 1].groupID))
-                ) {
-                    /** start of a group */
-                    while (
-                        endLine < codeLines.length - 1 &&
-                        codeLines[endLine + 1].groupID === curGroupID
-                    ) {
-                        endLine += 1;
-                    }
-                    if (lineEnd < doc.line(endLine + 1).to) {
-                        return { from: lineEnd, to: doc.line(endLine + 1).to }; // convert to 1-based
-                    }
-                }
-            }
-        }
-        return null;
-    };
-
     const defaultExtensions = [
         basicSetup,
+        foldService.of(getGroupFoldRange),
         lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
-        groupedLineGutter(),
+        groupWidget(),
+        // groupedLineGutter(),
         bracketMatching(),
         defaultHighlightStyle.fallback,
         keymap.of([
@@ -203,7 +176,6 @@ const CodeEditor = () => {
             ...lintKeymap,
         ]),
         indentUnit.of("    "),
-        foldService.of(getGroupedLineFoldRange),
     ];
 
     const getLangExtenstions = (inViewID: string | null) => {

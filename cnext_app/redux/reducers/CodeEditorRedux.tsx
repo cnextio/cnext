@@ -80,18 +80,18 @@ const initialState: CodeEditorState = {
 /**
  * Return the max text ouput order from the list
  */
-function getMaxTextOutputOrder(codeLines: ICodeLine[]) {
-    let maxTextOutputOrder: number = 0;
-    codeLines
-        .filter((codeLine) => codeLine.hasOwnProperty("textOutput") && codeLine.textOutput !== null)
-        .map((item) => {
-            maxTextOutputOrder =
-                item.textOutput?.order == null || maxTextOutputOrder > item.textOutput?.order
-                    ? maxTextOutputOrder
-                    : item.textOutput?.order;
-        });
-    return maxTextOutputOrder;
-}
+// function getMaxTextOutputOrder(codeLines: ICodeLine[]) {
+//     let maxTextOutputOrder: number = 0;
+//     codeLines
+//         .filter((codeLine) => codeLine.hasOwnProperty("textOutput") && codeLine.textOutput !== null)
+//         .map((item) => {
+//             maxTextOutputOrder =
+//                 item.textOutput?.order == null || maxTextOutputOrder > item.textOutput?.order
+//                     ? maxTextOutputOrder
+//                     : item.textOutput?.order;
+//         });
+//     return maxTextOutputOrder;
+// }
 
 function setGroupEdittedStatus(
     codeLines: ICodeLine[],
@@ -114,6 +114,11 @@ function setLineStatusInternal(state: CodeEditorState, lineStatus: ICodeLineStat
             // console.log('CodeEditorRedux: ', lineStatus.status);
             // state.codeText[inViewID] = lineStatus.text;
             // state.fileSaved = false;
+        }
+        if(lineStatus.status===LineStatus.EXECUTING){
+            /** clear the result before executing */
+            codeLines[lineStatus.lineRange.fromLine].result = undefined;
+            state.resultUpdateCount++;
         }
         const lineRange: ILineRange = lineStatus.lineRange;
         for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
@@ -357,10 +362,10 @@ export const CodeEditorRedux = createSlice({
                         // assign the result of a group only to the first line
                         codeLines[fromLine].textOutput = newTextOutput;
                     }
-                    state.maxTextOutputOrder += 1;
-                    if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
-                        codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
-                    }
+                    // state.maxTextOutputOrder += 1;
+                    // if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
+                    //     codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
+                    // }
                     state.textOutputUpdateCount += 1;
                     state.saveCodeLineCounter++;
                 } else if (resultMessage.type === ContentType.RICH_OUTPUT) {

@@ -434,7 +434,7 @@ export const StyledCodeEditor = styled.div`
     }
 
     .cm-groupedline {
-        background-color: white;//rgb(218, 255, 237, 0.3);
+        background-color: white; //rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedline.active {
@@ -451,8 +451,9 @@ export const StyledCodeEditor = styled.div`
 
     .cm-groupedfirstline {
         // margin-top: 18.2px;
+        // padding-top: 18.2px;
         border-top: 1px dashed rgb(153, 179, 171, 0.5);
-        background-color: white;//rgb(218, 255, 237, 0.3);
+        background-color: white; //rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedfirstline.active {
@@ -462,9 +463,9 @@ export const StyledCodeEditor = styled.div`
     }
 
     .cm-groupedlastline {
-        // margin-bottom: 18.2px;
+        // padding-bottom: 18.2px;
         border-bottom: 1px dashed rgb(153, 179, 171, 0.5);
-        background-color: white;//rgb(218, 255, 237, 0.3);
+        background-color: white; //rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedlastline.active {
@@ -482,6 +483,11 @@ export const StyledCodeEditor = styled.div`
         &:focus {
             outline: 0px solid ${(props) => props.theme.palette.grey.A400};
         }
+    }
+
+    .cm-groupwidget {
+        height: 18px;
+        width: 100%;
     }
 
     .cm-foldGutter {
@@ -653,7 +659,7 @@ export const DFFilterInput = styled(OutlinedInput)`
 
 export const StyledFilterCodeMirror = styled(CodeMirror)`
     // height = "100%"
-
+    width: 100%;
     .cm-tooltip.cm-completionInfo {
         position: absolute;
         margin: 1px -4px;
@@ -835,7 +841,6 @@ export const SingleResultContainer = styled(Paper)`
     margin: 0px;
     margin-bottom: 10px;
     width: 100%;
-
     border-top: ${(props) =>
         props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
     border-bottom: ${(props) =>
@@ -861,6 +866,15 @@ export const SingleResultContainer = styled(Paper)`
         p {
             line-height: 18px;
         }
+    }
+
+    table,
+    th,
+    td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 5px 10px;
+        font-size: 12px;
     }
 `;
 

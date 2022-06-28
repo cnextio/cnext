@@ -341,7 +341,7 @@ const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
                                     let line = view.state.doc.line(ln + 1);
                                     if (!lines[ln].generated && lines[ln].groupID != null) {
                                         const active_clazz = (activeGroup===lines[ln].groupID)?"active":"";
-                                        if (lines[ln].groupID != currentGroupID && ln>0) {
+                                        if (lines[ln].groupID != currentGroupID) {
                                             lineBackgrounds = lineBackgrounds.update({
                                                 add: [
                                                     groupLineCSS(

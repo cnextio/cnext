@@ -90,8 +90,9 @@ const ResultContent = React.memo(({ codeResult }) => {
         // const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
         // console.log("ResultContent: ", codeResult?.result);
         const showMarkdown = store.getState().projectManager.settings?.rich_output?.show_markdown;
-        
-        let jsxElements = Object.keys(codeResult?.result?.content).map((key, index) => {
+        const contentKeys = Object.keys(codeResult?.result?.content);
+        // console.log("ResultContent contentKeys: ", contentKeys);
+        let jsxElements = contentKeys?.map((key, index) => {
             const imageMime = getMimeWithImage([key]);
             if (key === SubContentType.APPLICATION_JAVASCRIPT) {
                 return (
@@ -153,6 +154,14 @@ const ResultContent = React.memo(({ codeResult }) => {
                         className="markdown"
                         remarkPlugins={[remarkGfm]}
                         children={codeResult?.result?.content[SubContentType.MARKDOWN]}
+                    />
+                );
+            } else if (key === SubContentType.TEXT_PLAIN && contentKeys.length === 1) {
+            /** only display text/plain when it is the only content */
+                return (
+                    <pre
+                        style={{ fontSize: "12px" }}
+                        children={codeResult?.result?.content[SubContentType.TEXT_PLAIN]}
                     />
                 );
             }
