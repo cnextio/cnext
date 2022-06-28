@@ -58,7 +58,7 @@ Thumbs.db
 .next/
 
 package-lock.json
-cyc_next_app/package-lock.json
-cyc_next_app/server/package-lock.json
-cyc_next_app/server/.server.yaml
+cnext_app/package-lock.json
+cnext_app/server/package-lock.json
+cnext_app/server/.server.yaml
 */workspace.code-workspace

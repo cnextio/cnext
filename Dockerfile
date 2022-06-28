@@ -23,12 +23,12 @@ RUN \
 COPY  . .
 
 ENV NODE_ENV=production
-WORKDIR /app/cyc_next_app
+WORKDIR /app/cnext_app
 RUN npm i --force
 ENV NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT=http://localhost:4000
 RUN npm run build
 
-WORKDIR /app/cyc_next_app/server
+WORKDIR /app/cnext_app/server
 ENV CLIENT_URL=http://localhost:3000
 RUN git clone https://kiwing:QTmTLMdSUT3HPSEQpe7N@bitbucket.org/robotdreamers/cnext_sample_projects.git
 RUN /bin/bash -c "poetry install"

@@ -1,0 +1,100 @@
+@precedence {
+  cond,
+  trail,
+  power @right,
+  prefix,
+  times @left,
+  plus @left,
+  shift @left,
+  bitand @left,
+  xor @left,
+  bitor @left,
+  compare @left,
+  and @left,
+  or @left
+}
+
+@top Script { (statement) }
+
+@skip { space }
+
+statement[@isGroup=Statement] { simpleStatement }
+
+simpleStatement {
+  QueryStatement {SimpleQueryExpression+} 
+}
+
+commaSep<expr> { expr ("," expr)* ","? }
+
+SimpleQueryExpression {"[" ((IndexExpression) |  ColumnFilterExpression 
+                        | (IndexExpression "," ColumnFilterExpression)) "]" }
+IndexExpression {(IndexSlicingExpression | BooleanIndexExpression)}
+IndexSlicingExpression {(Number (":" Number)?)}
+BooleanIndexExpression {indexTest}
+ColumnFilterExpression {"[" commaSep<ColumnNameExpression>? "]"}
+ColumnNameExpression {shortString}
+ColumnValueExpression {shortString | Number}
+
+IndexSelectorExpression {
+    ColumnValueExpression |
+    identifier |
+    ("[" commaSep<ColumnValueExpression>? "]") |
+    @specialize[@name=Boolean]<identifier, "True" | "False">
+}
+
+kw<term> { @specialize[@name={term}]<identifier, term> }
+
+parenthesizedIndexTest { "(" indexTest ")" }
+
+indexTest { binaryTest | unaryTest | booleanIndexTest | parenthesizedIndexTest }
+
+binaryTest {
+    indexTest !or kw<"|"> indexTest |
+    indexTest !and kw<"&"> indexTest 
+}
+
+unaryTest { kw<"not"> indexTest }
+
+booleanIndexTest {
+  (ColumnNameExpression | kw<"index">) !compare (CompareOp | kw<"isin"> ) IndexSelectorExpression |
+  (ColumnNameExpression | kw<"index">) (kw<"isna"> | kw<"notna">)
+}
+
+@skip {} {
+  String { shortString }
+}
+
+@tokens { 
+  CompareOp { "<" | ">" | $[<>=!] "=" | "<>" }
+
+  @precedence {
+    shortString, identifier
+  }
+
+  identifierChar { std.asciiLetter | $[_\u{a1}-\u{10ffff}] }
+
+  word { identifierChar (std.digit | identifierChar)* }
+
+  identifier { word }
+
+  stringPrefix { $[rRuUbB] | $[bB] $[rR] | $[rR] $[bR] }
+
+  shortString { stringPrefix? ("'" (!['\\\n\r] | "\\" _)* "'"? | '"' (!["\\\n\r] | "\\" _)* '"'?) }
+
+  Number {
+    (std.digit ("_" | std.digit)* ("." std.digit ("_" | std.digit)*)? | "." std.digit ("_" | std.digit)*)
+      ($[eE] $[+\-]? std.digit ("_" | std.digit)*)? $[jJ]? |
+    "0" $[bB] $[_01]+ |
+    "0" $[oO] $[_0-7]+ |
+    "0" $[xX] $[_0-9a-fA-F]+
+  }
+
+  space { ($[ \t\f] | "\\" $[\n\r])+ }
+
+  "..."[@name=Ellipsis]
+
+  "(" ")" "[" "]" "{" "}"
+
+  "." "," ";" ":" "@" "*" "**"
+
+}

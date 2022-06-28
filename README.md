@@ -58,7 +58,7 @@ Step 6 `run` command `cnext-run`
 
 ## Release Note
 
-# v0.4.20
+# v0.4.20 - 0.4.22
 
 ##### NEW
 
@@ -67,6 +67,7 @@ Step 6 `run` command `cnext-run`
 ##### IMPROVED
 
 -   Improve setup script
+-   Improve usability
 
 ##### FIXED
 
