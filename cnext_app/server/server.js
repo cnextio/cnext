@@ -12,6 +12,7 @@ const {
     LanguageServerHover,
     LanguageServerSignature,
     LanguageServerCompletion,
+    LanguageServerDefinition,
 } = require("./ls/lsp_process");
 const port = process.env.PORT || 4000;
 const server = http.createServer();
@@ -40,6 +41,7 @@ const LSPExecutor = [
     LanguageServerHover,
     LanguageServerSignature,
     LanguageServerCompletion,
+    LanguageServerDefinition,
 ];
 
 const ServerConfigPath = "server.yaml";
@@ -57,11 +59,9 @@ class PythonProcess {
 
     // TODO: using clientMessage is hacky solution to send stdout back to client. won't work if there is multiple message being handled simultaneously
     constructor(io, commandStr, args) {
-        process.env.PYTHONPATH = [
-            process.env.PYTHONPATH,
-            config.path_to_cnextlib,
-            "./python",
-        ].join(path.delimiter);
+        process.env.PYTHONPATH = [process.env.PYTHONPATH, config.path_to_cnextlib, "./python"].join(
+            path.delimiter
+        );
 
         console.log("Environment path: ", process.env.PATH);
 
@@ -172,6 +172,7 @@ try {
                 );
                 nonCodeExecutor.send2executor(message);
             } else if (LSPExecutor.includes(endpoint)) {
+                console.log("sendMessageToLsp", message);
                 lspExecutor.sendMessageToLsp(message);
             }
         });

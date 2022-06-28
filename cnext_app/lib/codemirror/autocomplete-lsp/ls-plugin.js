@@ -1,15 +1,15 @@
 const timeout = 10000;
 const changesDelay = 3000;
 
-import { setParamOptions } from './autocomplete';
-import { setDiagnostics } from '@codemirror/lint';
-import socket from '../../components/Socket';
-import { WebAppEndpoint } from '../../interfaces/IApp';
-import { DiagnosticSeverity, SignatureHelpTriggerKind } from 'vscode-languageserver-protocol';
+import { setParamOptions } from "./autocomplete";
+import { setDiagnostics } from "@codemirror/lint";
+import socket from "../../components/Socket";
+import { WebAppEndpoint } from "../../interfaces/IApp";
+import { DiagnosticSeverity, SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
 
-import { rootUri, documentUri, languageId } from './source';
-import { formatContents, sortResults } from './helper';
-import DFFilterPlugin from './df-plugin';
+import { rootUri, documentUri, languageId } from "./source";
+import { formatContents, sortResults } from "./helper";
+import DFFilterPlugin from "./df-plugin";
 
 /**
  * `dfFilter` option is added to support dfFilter component.
@@ -33,11 +33,11 @@ class LanguageServerPlugin {
     }
 
     async setupLSConnection() {
-        console.log('setupLSConnection');
+        console.log("setupLSConnection");
         this.ready = false;
-        socket.emit('ping', WebAppEndpoint.LanguageServer);
-        socket.on('pong', (message) => {
-            console.log('Get pong from server when init LSP');
+        socket.emit("ping", WebAppEndpoint.LanguageServer);
+        socket.on("pong", (message) => {
+            console.log("Get pong from server when init LSP");
         });
 
         // listener notify from server
@@ -49,7 +49,7 @@ class LanguageServerPlugin {
                 //     notification
                 // );
                 switch (notification.method) {
-                    case 'textDocument/publishDiagnostics':
+                    case "textDocument/publishDiagnostics":
                         if (this.config().lint) {
                             this.processDiagnostics(notification.params);
                         }
@@ -59,7 +59,7 @@ class LanguageServerPlugin {
             }
         });
 
-        socket.on('connect', () => {
+        socket.on("connect", () => {
             this.initializeLS({ documentText: this.view.state.doc.toString() });
         });
 
@@ -69,13 +69,13 @@ class LanguageServerPlugin {
 
     async requestLS(channel, method, params, time) {
         if (!time) time = timeout;
-        const rpcMessage = { jsonrpc: '2.0', id: 0, method: method, params: params };
+        const rpcMessage = { jsonrpc: "2.0", id: 0, method: method, params: params };
 
         return new Promise((resolve, reject) => {
-            // console.log(
-            //     `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
-            //     rpcMessage
-            // );
+            console.log(
+                `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
+                rpcMessage
+            );
             socket.emit(channel, JSON.stringify(rpcMessage));
 
             setTimeout(() => {
@@ -85,10 +85,10 @@ class LanguageServerPlugin {
             if (channel) {
                 socket.once(channel, (result) => {
                     const response = JSON.parse(result.toString());
-                    // console.log(
-                    //     `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,
-                    //     response
-                    // );
+                    console.log(
+                        `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,
+                        response
+                    );
                     resolve(response);
                 });
             }
@@ -108,17 +108,17 @@ class LanguageServerPlugin {
     }
 
     destroy() {
-        console.log('LanguageServerPlugin destroy');
+        console.log("LanguageServerPlugin destroy");
     }
 
     async initializeLS({ documentText }) {
-        console.log('initializeLS');
-        const result = await this.requestLS(WebAppEndpoint.LanguageServer, 'initialize', {
+        console.log("initializeLS");
+        const result = await this.requestLS(WebAppEndpoint.LanguageServer, "initialize", {
             capabilities: {
                 textDocument: {
                     hover: {
                         dynamicRegistration: true,
-                        contentFormat: ['plaintext', 'markdown'],
+                        contentFormat: ["plaintext", "markdown"],
                     },
                     moniker: {},
                     synchronization: {
@@ -132,7 +132,7 @@ class LanguageServerPlugin {
                         completionItem: {
                             snippetSupport: false,
                             commitCharactersSupport: true,
-                            documentationFormat: ['plaintext', 'markdown'],
+                            documentationFormat: ["plaintext", "markdown"],
                             deprecatedSupport: false,
                             preselectSupport: false,
                         },
@@ -141,7 +141,7 @@ class LanguageServerPlugin {
                     signatureHelp: {
                         dynamicRegistration: true,
                         signatureInformation: {
-                            documentationFormat: ['plaintext', 'markdown'],
+                            documentationFormat: ["plaintext", "markdown"],
                             parameterInformation: {
                                 labelOffsetSupport: true,
                             },
@@ -165,6 +165,9 @@ class LanguageServerPlugin {
                         dynamicRegistration: true,
                         linkSupport: true,
                     },
+                    references: {
+                        dynamicRegistration: true,
+                    },
                 },
                 workspace: {
                     didChangeConfiguration: {
@@ -177,7 +180,7 @@ class LanguageServerPlugin {
             rootUri: this.rootUri,
             workspaceFolders: [
                 {
-                    name: 'root',
+                    name: "root",
                     uri: this.rootUri,
                 },
             ],
@@ -185,8 +188,8 @@ class LanguageServerPlugin {
 
         if (result && result.capabilities) {
             this.capabilities = result.capabilities;
-            this.requestLS(WebAppEndpoint.LanguageServer, 'initialized', {});
-            this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/didOpen', {
+            this.requestLS(WebAppEndpoint.LanguageServer, "initialized", {});
+            this.requestLS(WebAppEndpoint.LanguageServer, "textDocument/didOpen", {
                 textDocument: {
                     uri: this.documentUri,
                     languageId: this.languageId,
@@ -201,7 +204,7 @@ class LanguageServerPlugin {
 
     async sendChange({ documentText }) {
         if (this.ready) {
-            this.requestLS(WebAppEndpoint.LanguageServer, 'textDocument/didChange', {
+            this.requestLS(WebAppEndpoint.LanguageServer, "textDocument/didChange", {
                 textDocument: {
                     uri: this.documentUri,
                     version: this.documentVersion++,
@@ -219,7 +222,7 @@ class LanguageServerPlugin {
 
             let signatureResult = await this.requestLS(
                 WebAppEndpoint.LanguageServerSignature,
-                'textDocument/signatureHelp',
+                "textDocument/signatureHelp",
                 {
                     textDocument: { uri: this.documentUri },
                     position: { line, character },
@@ -229,7 +232,7 @@ class LanguageServerPlugin {
                     },
                 }
             );
-            if ('signatures' in signatureResult && signatureResult.signatures.length !== 0) {
+            if ("signatures" in signatureResult && signatureResult.signatures.length !== 0) {
                 this.signatureData = signatureResult;
                 return {
                     textContent: formatContents(
@@ -244,67 +247,87 @@ class LanguageServerPlugin {
                 };
             } else return null;
         } catch (error) {
-            console.error('requestSignatureTooltip: ', error);
+            console.error("requestSignatureTooltip: ", error);
         }
     }
 
     async requestHoverTooltip(view, { line, character }) {
         try {
-            this.sendChange({
-                documentText: this.view.state.doc.toString(),
-            });
+            // this.sendChange({
+            //     documentText: this.view.state.doc.toString(),
+            // });
 
-            let result = await this.requestLS(
-                WebAppEndpoint.LanguageServerHover,
-                'textDocument/hover',
+            // let result = await this.requestLS(
+            //     WebAppEndpoint.LanguageServerHover,
+            //     "textDocument/hover",
+            //     {
+            //         textDocument: { uri: this.documentUri },
+            //         position: { line, character },
+            //     }
+            // );
+
+            // if (!result) return null;
+
+            // let { contents, range } = result;
+            // let pos = posToOffset(view.state.doc, { line, character });
+            // let end;
+            // if (range) {
+            //     pos = posToOffset(view.state.doc, range.start);
+            //     end = posToOffset(view.state.doc, range.end);
+            // }
+
+            // const dom = document.createElement("div");
+            // dom.classList.add("documentation");
+
+            // if (!contents) {
+            //     // request more infomation for params
+            //     let signatureResult = await this.requestLS(
+            //         WebAppEndpoint.LanguageServerSignature,
+            //         "textDocument/signatureHelp",
+            //         {
+            //             textDocument: { uri: this.documentUri },
+            //             position: { line, character },
+            //             context: {
+            //                 triggerKind: SignatureHelpTriggerKind.Invoked,
+            //                 triggerCharacter: character,
+            //             },
+            //         }
+            //     );
+            //     if (!signatureResult) return null;
+
+            //     if ("signatures" in signatureResult && signatureResult.signatures.length !== 0) {
+            //         dom.textContent = formatContents(
+            //             signatureResult.signatures.map((item) => item.label).find((v) => true)
+            //         );
+            //         return { pos, end, create: (view) => ({ dom }), above: true };
+            //     } else return null;
+            // }
+
+            // dom.textContent = formatContents(contents);
+
+            // return { pos, end, create: (view) => ({ dom }), above: true };
+
+            //temp
+            let res = await this.requestLS(
+                WebAppEndpoint.LanguageServerDefinition,
+                "textDocument/definition",
                 {
                     textDocument: { uri: this.documentUri },
                     position: { line, character },
+                    workDoneToken: {
+                        token: "1d546990-40a3-4b77-b134-46622995f6ae",
+                        value: {
+                            kind: "begin",
+                            title: "Finding references for A#foo",
+                            cancellable: false,
+                            message: "Processing file X.ts",
+                            percentage: 0,
+                        },
+                    },
                 }
             );
-
-            if (!result) return null;
-
-            let { contents, range } = result;
-            let pos = posToOffset(view.state.doc, { line, character });
-            let end;
-            if (range) {
-                pos = posToOffset(view.state.doc, range.start);
-                end = posToOffset(view.state.doc, range.end);
-            }
-
-            const dom = document.createElement('div');
-            dom.classList.add('documentation');
-
-            if (!contents) {
-                // request more infomation for params
-                let signatureResult = await this.requestLS(
-                    WebAppEndpoint.LanguageServerSignature,
-                    'textDocument/signatureHelp',
-                    {
-                        textDocument: { uri: this.documentUri },
-                        position: { line, character },
-                        context: {
-                            triggerKind: SignatureHelpTriggerKind.Invoked,
-                            triggerCharacter: character,
-                        },
-                    }
-                );
-                if (!signatureResult) return null;
-
-                if ('signatures' in signatureResult && signatureResult.signatures.length !== 0) {
-                    dom.textContent = formatContents(
-                        signatureResult.signatures.map((item) => item.label).find((v) => true)
-                    );
-                    return { pos, end, create: (view) => ({ dom }), above: true };
-                } else return null;
-            }
-
-            dom.textContent = formatContents(contents);
-
-            return { pos, end, create: (view) => ({ dom }), above: true };
         } catch (error) {
-            console.error('requestHoverTooltip: ', error);
+            console.error("requestHoverTooltip: ", error);
         }
     }
 
@@ -330,7 +353,7 @@ class LanguageServerPlugin {
             if (context.matchBefore(/[\(=,]+$/) && context.explicit) {
                 // invoke by command -> need to build mix data for suggestion
                 if (
-                    'signatures' in this.signatureData &&
+                    "signatures" in this.signatureData &&
                     this.signatureData.signatures.length !== 0
                 ) {
                     this.sendChange({
@@ -339,7 +362,7 @@ class LanguageServerPlugin {
 
                     result = await this.requestLS(
                         WebAppEndpoint.LanguageServerCompletion,
-                        'textDocument/completion',
+                        "textDocument/completion",
                         {
                             textDocument: { uri: this.documentUri },
                             position: { line, character },
@@ -353,10 +376,10 @@ class LanguageServerPlugin {
                     const parameters = this.signatureData.signatures[0].parameters;
                     paramsItem = parameters.map(({ label, documentation }) => {
                         return {
-                            label: label + '=',
-                            apply: label + '=',
+                            label: label + "=",
+                            apply: label + "=",
                             info: documentation ? formatContents(documentation) : null,
-                            type: 'variable',
+                            type: "variable",
                             filterText: label,
                             sortText: label,
                             detail: documentation ? formatContents(documentation) : null,
@@ -380,7 +403,7 @@ class LanguageServerPlugin {
 
                 result = await this.requestLS(
                     WebAppEndpoint.LanguageServerCompletion,
-                    'textDocument/completion',
+                    "textDocument/completion",
                     {
                         textDocument: { uri: this.documentUri },
                         position: { line, character },
@@ -407,10 +430,10 @@ class LanguageServerPlugin {
 
             if (!result) return null;
 
-            const items = 'items' in result ? result.items : result;
+            const items = "items" in result ? result.items : result;
             return sortResults(context, items);
         } catch (e) {
-            console.error('requestCompletion: ', e);
+            console.error("requestCompletion: ", e);
         }
     }
 
@@ -420,10 +443,10 @@ class LanguageServerPlugin {
                 from: posToOffset(this.view.state.doc, range.start),
                 to: posToOffset(this.view.state.doc, range.end),
                 severity: {
-                    [DiagnosticSeverity.Error]: 'error',
-                    [DiagnosticSeverity.Warning]: 'warning',
-                    [DiagnosticSeverity.Information]: 'info',
-                    [DiagnosticSeverity.Hint]: 'info',
+                    [DiagnosticSeverity.Error]: "error",
+                    [DiagnosticSeverity.Warning]: "warning",
+                    [DiagnosticSeverity.Information]: "info",
+                    [DiagnosticSeverity.Hint]: "info",
                 }[severity],
                 message,
             }))
