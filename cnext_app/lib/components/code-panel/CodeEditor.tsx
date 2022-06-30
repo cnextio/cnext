@@ -90,6 +90,7 @@ import {
     addToRunQueue,
     addToRunQueueThenMoveDown,
     execLines,
+    scrollToPos,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
@@ -433,11 +434,7 @@ const CodeEditor = () => {
         const activeLineNumber = store.getState().codeEditor.activeLineNumber;
         if (view != null && inViewID != null && activeLineNumber != null) {
             console.log("CodeEditor activeLineNumber: ", activeLineNumber);
-            let pos = view.state.doc.line(activeLineNumber + 1).to; // convert to 1-based
-            view.dispatch({
-                selection: { anchor: pos, head: pos },
-                scrollIntoView: true,
-            });
+            scrollToPos(view, activeLineNumber);
         }
     }, [activeGroup]);
 

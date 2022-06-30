@@ -100,6 +100,14 @@ const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStat
     store.dispatch(setLineStatusRedux(lineStatus));
 };
 
+const scrollToPos = (view: EditorView, lineNumber: number) => {
+    let pos = view.state.doc.line(lineNumber + 1).from; // convert to 1-based
+    view.dispatch({
+        selection: { anchor: pos, head: pos },
+        scrollIntoView: true,
+    });
+}
+
 /** lineNum is 0 based */
 const setAnchorToLine = (
     inViewID: string,
@@ -107,12 +115,8 @@ const setAnchorToLine = (
     lineNumber: number,
     scrollIntoView: boolean
 ) => {
-    let pos = view.state.doc.line(lineNumber + 1).to; // convert to 1-based
     if (view != null && inViewID != null) {
-        view.dispatch({
-            selection: { anchor: pos, head: pos },
-            scrollIntoView: scrollIntoView,
-        });
+        scrollToPos(view, lineNumber);
         let activeLine: ICodeActiveLine = {
             inViewID: inViewID,
             lineNumber: lineNumber,
@@ -822,6 +826,7 @@ const execLines = (view: EditorView | undefined, runQueueItem: IRunQueueItem) =>
         }
     }
 };
+/** */
 
 /** message */
 const createMessage = (content: IRunningCommandContent) => {
@@ -843,6 +848,7 @@ const sendMessage = (socket: Socket, content: IRunningCommandContent) => {
     console.log(`${message.webapp_endpoint} send message: `, message);
     socket.emit(message.webapp_endpoint, JSON.stringify(message));
 };
+/** */
 
 export {
     editedMarker,
@@ -869,6 +875,7 @@ export {
     isPromise,
     getRunningCommandContent,
     getNonGeneratedLinesInRange,
+    scrollToPos,
     setAnchor,
     setAnchorToNextGroup,
     groupedLineGutter,
