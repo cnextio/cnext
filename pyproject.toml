@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cnext"
-version = "0.4.24"
+version = "0.4.25"
 description = "The data-centric workspace for AI & DS"
 authors = ["CycAI Inc"]
 license = "MIT"
