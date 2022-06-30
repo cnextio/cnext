@@ -1,23 +1,31 @@
 import { gutter, GutterMarker, gutterLineClass } from "@codemirror/gutter";
 import { StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
-import { setActiveLine as setActiveLineRedux } from "../../../redux/reducers/CodeEditorRedux";
+import {
+    setActiveLine as setActiveLineRedux,
+    setLineGroupStatus,
+    addToRunQueue as addToRunQueueRedux,
+} from "../../../redux/reducers/CodeEditorRedux";
 import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import {
     ICodeActiveLine,
     ICodeLine,
+    ICodeLineGroupStatus,
     ICodeLineStatus,
     ILineRange,
     IRunningCommandContent,
     IRunQueue,
+    IRunQueueItem,
     LineStatus,
     RunQueueStatus,
+    SetLineGroupCommand,
 } from "../../interfaces/ICodeEditor";
-import { ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
+import { CASSIST_STARTER, ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
 import { python } from "../../codemirror/grammar/lang-cnext-python";
 import store from "../../../redux/store";
 import { RootState } from "../../../redux/store";
+import socket from "../Socket";
 
 const markerDiv = () => {
     let statusDiv = document.createElement("div");
@@ -80,6 +88,8 @@ const setAnchor = (view: EditorView, pos: number) => {
 
 import { setLineStatus as setLineStatusRedux } from "../../../redux/reducers/CodeEditorRedux";
 import { RangeSet } from "@codemirror/rangeset";
+import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
+import { Socket } from "socket.io-client";
 
 const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
     let lineStatus: ICodeLineStatus = {
@@ -91,9 +101,14 @@ const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStat
 };
 
 /** lineNum is 0 based */
-const setAnchorToLine = (inViewID: string, view: EditorView, lineNumber: number, scrollIntoView: boolean) => {
+const setAnchorToLine = (
+    inViewID: string,
+    view: EditorView,
+    lineNumber: number,
+    scrollIntoView: boolean
+) => {
     let pos = view.state.doc.line(lineNumber + 1).to; // convert to 1-based
-    if (view != null && inViewID!=null) {
+    if (view != null && inViewID != null) {
         view.dispatch({
             selection: { anchor: pos, head: pos },
             scrollIntoView: scrollIntoView,
@@ -102,9 +117,9 @@ const setAnchorToLine = (inViewID: string, view: EditorView, lineNumber: number,
             inViewID: inViewID,
             lineNumber: lineNumber,
         };
-        store.dispatch(setActiveLineRedux(activeLine));   
+        store.dispatch(setActiveLineRedux(activeLine));
     }
-};;
+};
 
 /** curLineNumber is 0-based */
 const setAnchorToNextGroup = (
@@ -132,7 +147,7 @@ const setAnchorToNextGroup = (
             curlineNumber,
             curGroupID
         );
-        if (view && curGroupID !== originGroupID) {            
+        if (view && curGroupID !== originGroupID) {
             setAnchorToLine(inViewID, view, curlineNumber, true);
         }
     }
@@ -327,7 +342,7 @@ const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
         update(lineBackgrounds, tr) {
             const activeGroup = store.getState().codeEditor.activeGroup;
             lineBackgrounds = lineBackgrounds.map(tr.changes);
-            if (view) {                
+            if (view) {
                 for (let effect of tr.effects) {
                     if (effect.is(GroupedLineStateEffect)) {
                         // console.log('Magic generatedCodeDeco update ', effect.value.type);
@@ -340,7 +355,8 @@ const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
                                     /** convert to 1-based */
                                     let line = view.state.doc.line(ln + 1);
                                     if (!lines[ln].generated && lines[ln].groupID != null) {
-                                        const active_clazz = (activeGroup===lines[ln].groupID)?"active":"";
+                                        const active_clazz =
+                                            activeGroup === lines[ln].groupID ? "active" : "";
                                         if (lines[ln].groupID != currentGroupID) {
                                             lineBackgrounds = lineBackgrounds.update({
                                                 add: [
@@ -379,7 +395,7 @@ const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
                             }
                         }
                     }
-                }                
+                }
             }
             return lineBackgrounds;
         },
@@ -434,13 +450,13 @@ const scrollTimer = (dispatch, scrollEl: HTMLElement) => {
     }, 100);
 };
 
-const firstLineOfGroupMarker = new class extends GutterMarker {
-    elementClass = "cm-groupedfirstlinegutter cm-activeLineGutter";
-};
+// const firstLineOfGroupMarker = new (class extends GutterMarker {
+//     elementClass = "cm-groupedfirstlinegutter cm-activeLineGutter";
+// })();
 
-const lastLineOfGroupMarker = new (class extends GutterMarker {
-    elementClass = "cm-groupedlastlinegutter cm-activeLineGutter";
-})();
+// const lastLineOfGroupMarker = new (class extends GutterMarker {
+//     elementClass = "cm-groupedlastlinegutter cm-activeLineGutter";
+// })();
 
 const groupedLineGutterHighlighter = gutterLineClass.compute(["doc"], (state) => {
     let marks = [];
@@ -448,7 +464,7 @@ const groupedLineGutterHighlighter = gutterLineClass.compute(["doc"], (state) =>
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {
         let lines: ICodeLine[] | null = getCodeLine(reduxState);
-        if (lines && state.doc.lines===lines.length) {
+        if (lines && state.doc.lines === lines.length) {
             let currentGroupID = null;
             for (let ln = 0; ln < lines.length; ln++) {
                 /** convert to 1-based */
@@ -477,26 +493,26 @@ const groupedLineGutterHighlighter = gutterLineClass.compute(["doc"], (state) =>
 
 function groupedLineGutter() {
     return groupedLineGutterHighlighter;
-};
-    
+}
+
 /** lineNumber is 0-based */
-    function setActiveLine(lineNumber: number) {
-        try {
-            // console.log('CodeEditor onMouseDown', view, event, dispatch);
-            //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
-            let inViewID = store.getState().projectManager.inViewID;
-            if (inViewID) {
-                let activeLine: ICodeActiveLine = {
-                    inViewID: inViewID,
-                    lineNumber: lineNumber,
-                };
-                store.dispatch(setActiveLineRedux(activeLine));
-                // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
-            }
-        } catch (error) {
-            console.error(error);
+function setActiveLine(lineNumber: number) {
+    try {
+        // console.log('CodeEditor onMouseDown', view, event, dispatch);
+        //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
+        let inViewID = store.getState().projectManager.inViewID;
+        if (inViewID) {
+            let activeLine: ICodeActiveLine = {
+                inViewID: inViewID,
+                lineNumber: lineNumber,
+            };
+            store.dispatch(setActiveLineRedux(activeLine));
+            // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
         }
-    };
+    } catch (error) {
+        console.error(error);
+    }
+}
 
 function onMouseDown(event: MouseEvent, view: EditorView) {
     try {
@@ -656,26 +672,176 @@ const getNonGeneratedLinesInRange = (
     }
 };
 
-export const notStartWithSpace = (text: string): boolean => {
-    return !/^\s/.test(text);
-};
+// export const notStartWithSpace = (text: string): boolean => {
+//     return !/^\s/.test(text);
+// };
 
 /**
  * check if the text line is an Expression instead of a Statement
  * */
-export const textShouldBeExec = (text: string): boolean => {
-    let parser = python().language.parser;
-    let tree = parser.parse(text);
-    let cursor = tree.cursor(0, 0);
-    let parentName = cursor.name;
-    cursor.firstChild();
-    let childName = cursor.name;
-    /** not start with space */
-    return parentName == "Script" && childName == "ExpressionStatement" && notStartWithSpace(text);
-};
+// export const textShouldBeExec = (text: string): boolean => {
+//     let parser = python().language.parser;
+//     let tree = parser.parse(text);
+//     let cursor = tree.cursor(0, 0);
+//     let parentName = cursor.name;
+//     cursor.firstChild();
+//     let childName = cursor.name;
+//     /** not start with space */
+//     return parentName == "Script" && childName == "ExpressionStatement" && notStartWithSpace(text);
+// };
 
 export const isRunQueueBusy = (runQueue: IRunQueue) => {
     return runQueue.queue.length > 0 || runQueue.status === RunQueueStatus.RUNNING;
+};
+
+/** Group/Ungroup */
+/**
+ * Do not allow grouping involed generated lines
+ */
+function setGroup(view: EditorView | undefined): boolean {
+    if (view) {
+        let range = view.state.selection.asSingle().ranges[0];
+        let lineRange = getNonGeneratedLinesInRange(
+            getCodeLine(store.getState()),
+            view,
+            range.from,
+            range.to
+        );
+        let inViewID = store.getState().projectManager.inViewID;
+        console.log("CodeEditor setGroup: ", lineRange, range);
+        if (inViewID && lineRange && lineRange.toLine > lineRange.fromLine) {
+            let lineStatus: ICodeLineGroupStatus = {
+                inViewID: inViewID,
+                fromLine: lineRange.fromLine,
+                toLine: lineRange.toLine,
+                status: LineStatus.EDITED,
+                setGroup: SetLineGroupCommand.NEW,
+            };
+            store.dispatch(setLineGroupStatus(lineStatus));
+        }
+    }
+    return true;
+}
+
+function setUnGroup(view: EditorView | undefined): boolean {
+    if (view) {
+        const doc = view.state.doc;
+        const anchor = view.state.selection.asSingle().ranges[0].anchor;
+        let lineAtAnchor = doc.lineAt(anchor);
+        let reduxState = store.getState();
+        let inViewID = reduxState.projectManager.inViewID;
+        if (inViewID) {
+            let codeLines = reduxState.codeEditor.codeLines[inViewID];
+            /** minus 1 to convert to 0-based */
+            let lineRange = getLineRangeOfGroup(codeLines, lineAtAnchor.number - 1);
+            console.log("CodeEditor setUnGroup: ", lineRange);
+            if (inViewID && lineRange && lineRange.toLine > lineRange.fromLine) {
+                let lineStatus: ICodeLineGroupStatus = {
+                    inViewID: inViewID,
+                    fromLine: lineRange.fromLine,
+                    toLine: lineRange.toLine,
+                    // status: LineStatus.EDITED,
+                    setGroup: SetLineGroupCommand.UNDEF,
+                };
+                store.dispatch(setLineGroupStatus(lineStatus));
+            }
+        }
+    }
+    return true;
+}
+
+/** Run queue and execution */
+function addToRunQueue(view: EditorView | undefined) {
+    // if (view && inViewID === executorID) {
+    if (view) {
+        const doc = view.state.doc;
+        const state = view.state;
+        const anchor = state.selection.ranges[0].anchor;
+        let lineAtAnchor = doc.lineAt(anchor); /** 1-based */
+        let text: string = lineAtAnchor.text;
+        let lineNumberAtAnchor = lineAtAnchor.number - 1; /** 0-based */
+        let lineRange: ILineRange | undefined;
+        let inViewID = store.getState().projectManager.inViewID;
+        let codeLines: ICodeLine[] | null = getCodeLine(store.getState());
+        console.log("CodeEditor setRunQueue lineNumberAtAnchor: ", lineNumberAtAnchor);
+        /** we only allow line in a group to be executed */
+        if (inViewID && codeLines && codeLines[lineNumberAtAnchor].groupID != null) {
+            if (text.startsWith(CASSIST_STARTER)) {
+                /** Get line range of group starting from next line */
+                /** this if condition is looking at the next line*/
+                if (codeLines[lineNumberAtAnchor].generated) {
+                    lineRange = getLineRangeOfGroup(codeLines, lineNumberAtAnchor + 1);
+                }
+            } else {
+                /** Get line range of group starting from the current line */
+                /** convert to 0-based */
+                lineRange = getLineRangeOfGroup(codeLines, lineNumberAtAnchor);
+            }
+
+            if (lineRange) {
+                console.log("CodeEditor setRunQueue: ", lineRange);
+                store.dispatch(addToRunQueueRedux({ lineRange: lineRange, inViewID: inViewID }));
+            }
+        }
+    } else {
+        console.log("CodeEditor can't execute code on none executor file!");
+    }
+    return true;
+}
+
+/** execute lines then move anchor to the next group if exist */
+function addToRunQueueThenMoveDown(view: EditorView | undefined) {
+    try {
+        if (view != null) {
+            addToRunQueue(view);
+            let inViewID = store.getState().projectManager.inViewID;
+            console.log("CodeEditor addToRunQueueThenMoveDown: ", inViewID);
+            if (inViewID != null) {
+                const state = view.state;
+                const doc = view.state.doc;
+                const anchor = state.selection.ranges[0].anchor;
+                let curLineNumber = doc.lineAt(anchor).number - 1; // 0-based
+                let codeLines = store.getState().codeEditor.codeLines[inViewID];
+                setAnchorToNextGroup(inViewID, codeLines, view, curLineNumber);
+            }
+        }
+    } catch (error) {
+        console.error(error);
+    }
+    return true;
+}
+const execLines = (view: EditorView | undefined, runQueueItem: IRunQueueItem) => {
+    let inViewID = runQueueItem.inViewID;
+    let lineRange = runQueueItem.lineRange;
+    if (inViewID && view && lineRange.toLine != null && lineRange.fromLine != null) {
+        let content: IRunningCommandContent | null = getRunningCommandContent(view, lineRange);
+        if (content != null && inViewID != null) {
+            console.log("CodeEditor execLines: ", content, lineRange);
+            sendMessage(socket, content);
+            setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);
+        }
+    }
+};
+
+/** message */
+const createMessage = (content: IRunningCommandContent) => {
+    let message: IMessage = {
+        webapp_endpoint: WebAppEndpoint.CodeEditor,
+        command_name: CommandName.exec_line,
+        // seq_number: 1,
+        content: content.content,
+        type: ContentType.STRING,
+        error: false,
+        metadata: { line_range: content.lineRange },
+    };
+
+    return message;
+};
+
+const sendMessage = (socket: Socket, content: IRunningCommandContent) => {
+    const message = createMessage(content);
+    console.log(`${message.webapp_endpoint} send message: `, message);
+    socket.emit(message.webapp_endpoint, JSON.stringify(message));
 };
 
 export {
@@ -706,4 +872,12 @@ export {
     setAnchor,
     setAnchorToNextGroup,
     groupedLineGutter,
+    setGroup,
+    setUnGroup,
+    addToRunQueue,
+    addToRunQueueThenMoveDown,
+    execLines,
+    createMessage,
+    sendMessage
 };
+

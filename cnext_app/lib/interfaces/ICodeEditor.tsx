@@ -83,7 +83,8 @@ export interface ICodeLineGroupStatus {
 
 export interface ICodeActiveLine {
     inViewID: string;
-    lineNumber: number;
+    lineNumber?: number;
+    lineID?: string;
 }
 
 export interface ICodeText {

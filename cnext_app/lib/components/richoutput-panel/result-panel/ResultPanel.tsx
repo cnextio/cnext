@@ -4,19 +4,21 @@ import {
     ResultViewContainer as StyledResultView,
 } from "../../StyledComponents";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-import { useSelector } from "react-redux";
-import { ICodeLine } from "../../../interfaces/ICodeEditor";
+import { useDispatch, useSelector } from "react-redux";
+import { ICodeActiveLine, ICodeLine } from "../../../interfaces/ICodeEditor";
 import store, { RootState } from "../../../../redux/store";
 import { ContentType } from "../../../interfaces/IApp";
 import GridLayout from "react-grid-layout";
 import ResultContent from "./ResultContent";
 import DashboardView from "./DashboardView";
+import { setActiveLine } from "../../../../redux/reducers/CodeEditorRedux";
 
 const ResultPanel = React.memo((props: any) => {
     const [readyToScroll, setReadyToScroll] = useState(false);
     const [showDashboard, setShowDashboard] = useState(false);
     const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
     const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
+    const dispatch = useDispatch();
     /** use this to reload the output when inViewID changed */
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     /** this is used to trigger the rerender of this component whenever there is a new result update */
@@ -34,6 +36,14 @@ const ResultPanel = React.memo((props: any) => {
             codeLine.lineID === activeLine ||
             (codeLine.groupID != null && codeLine.groupID === activeGroup)
         );
+    };
+
+    const clickHandler = (lineID: string) => {
+        const inViewID = store.getState().projectManager.inViewID;
+        if (inViewID != null) {
+            const activeLine: ICodeActiveLine = { inViewID: inViewID, lineID: lineID };
+            dispatch(setActiveLine(activeLine));
+        }
     };
 
     const resultPanelId = "ResultPanel";
@@ -76,6 +86,7 @@ const ResultPanel = React.memo((props: any) => {
                                     variant="outlined"
                                     focused={isActiveLineOrGroup(codeLine)}
                                     showMarkdown={showMarkdown}
+                                    onClick={() => clickHandler(codeLine.lineID)}
                                 >
                                     <ResultContent
                                         codeResult={codeLine}
