@@ -137,6 +137,7 @@ export enum WebAppEndpoint {
     LanguageServerHover = "LanguageServerHover",
     LanguageServerCompletion = "LanguageServerCompletion",
     LanguageServerSignature = "LanguageServerSignature",
+    Logs = "Logs",
 }
 
 export interface ITableData {
@@ -343,7 +344,7 @@ interface WorkSpaceOpenProject {
     path: String;
 }
 
-export const SETTING_FILE_PATH = 'config.json';
+export const SETTING_FILE_PATH = "config.json";
 export const OPERATION_DISABLED_MSG = "This component is disabled while code is being executed";
 
 // export interface IWorkSpaceConfig {

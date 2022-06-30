@@ -343,7 +343,7 @@ export const FileNameTab = styled(Typography)`
     line-height: calc(var(--var-height));
     padding: 0px 5px 0px 10px;
     font-size: 13px;
-    
+
     animation: ${(props) =>
             props.runQueueBusy
                 ? textTransitionToColor("#F59242", props.theme.palette.grey.A200)
@@ -434,7 +434,7 @@ export const StyledCodeEditor = styled.div`
     }
 
     .cm-groupedline {
-        background-color: white;//rgb(218, 255, 237, 0.3);
+        background-color: white; //rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedline.active {
@@ -452,7 +452,7 @@ export const StyledCodeEditor = styled.div`
     .cm-groupedfirstline {
         // margin-top: 18.2px;
         border-top: 1px dashed rgb(153, 179, 171, 0.5);
-        background-color: white;//rgb(218, 255, 237, 0.3);
+        background-color: white; //rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedfirstline.active {
@@ -464,7 +464,7 @@ export const StyledCodeEditor = styled.div`
     .cm-groupedlastline {
         // margin-bottom: 18.2px;
         border-bottom: 1px dashed rgb(153, 179, 171, 0.5);
-        background-color: white;//rgb(218, 255, 237, 0.3);
+        background-color: white; //rgb(218, 255, 237, 0.3);
     }
 
     .cm-groupedlastline.active {
@@ -1014,6 +1014,11 @@ export const FooterNavigation = styled.div`
 
 export const FooterItem = styled.a`
     height: 100%;
+`;
+
+export const FooterItemButton = styled.a`
+    height: 100%;
+    float: right;
 `;
 
 export const FotterItemText = styled.span`
