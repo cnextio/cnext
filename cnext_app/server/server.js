@@ -5,7 +5,7 @@ const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
-const spawn = require("child_process").spawn;
+// const spawn = require("child_process").spawn;
 const execProcess = require("process");
 const { PythonShell } = require("python-shell");
 const {
@@ -152,27 +152,27 @@ class PythonProcess {
 try {
     io.on("connection", (socket) => {
         // Init Shell bash
-        var sh = spawn("bash");
+        // var sh = spawn("bash");
 
-        let cmdHistory = ""; // save history command newest
-        // Handle bash stream
-        sh.stdout.on("data", function (data) {
-            if (cmdHistory.type === "path") {
-                io.emit(ResponseTerminal, { type: `path`, message: data.toString() });
-            } else {
-                io.emit(ResponseTerminal, data.toString());
-            }
-            // PS
-        });
+        // let cmdHistory = ""; // save history command newest
+        // // Handle bash stream
+        // sh.stdout.on("data", function (data) {
+        //     if (cmdHistory.type === "path") {
+        //         io.emit(ResponseTerminal, { type: `path`, message: data.toString() });
+        //     } else {
+        //         io.emit(ResponseTerminal, data.toString());
+        //     }
+        //     // PS
+        // });
 
-        sh.stderr.on("data", function (data) {
-            io.emit(ResponseTerminal, { cmd: cmdHistory, type: `error`, message: data.toString() });
-        });
+        // sh.stderr.on("data", function (data) {
+        //     io.emit(ResponseTerminal, { cmd: cmdHistory, type: `error`, message: data.toString() });
+        // });
 
-        sh.on("exit", function (code) {
-            io.emit("kill-process", "SIGINT");
-            socket.broadcast.emit("** Shell exited: " + code + " **");
-        });
+        // sh.on("exit", function (code) {
+        //     io.emit("kill-process", "SIGINT");
+        //     socket.broadcast.emit("** Shell exited: " + code + " **");
+        // });
 
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();
@@ -203,13 +203,13 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                cmdHistory = JSON.parse(message);
-                let msgParsed = JSON.parse(message);
-                if (msgParsed.type === "KILL_PROCESS") {
-                    sh.kill("SIGINT");
-                } else {
-                    sh.stdin.write(JSON.parse(message).content + "\n");
-                }
+                // cmdHistory = JSON.parse(message);
+                // let msgParsed = JSON.parse(message);
+                // if (msgParsed.type === "KILL_PROCESS") {
+                //     sh.kill("SIGINT");
+                // } else {
+                //     sh.stdin.write(JSON.parse(message).content + "\n");
+                // }
             }
         });
         socket.once("disconnect", () => {});

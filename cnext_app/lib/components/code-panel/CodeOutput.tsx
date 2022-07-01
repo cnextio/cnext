@@ -18,7 +18,7 @@ import { getLastUpdate } from "../dataframe-manager/libDataFrameManager";
 import { setDFStatusShowed } from "../../../redux/reducers/DataFramesRedux";
 import dynamic from "next/dynamic";
 
-const Terminal = dynamic(() => import("./Terminal"), { ssr: false });
+const Terminal = dynamic(() => import("./Term"), { ssr: false });
 
 const CodeOutputComponent = React.memo(() => {
     const activeDFStatus = useSelector((state: RootState) => getActiveDataFrameStatus(state));
