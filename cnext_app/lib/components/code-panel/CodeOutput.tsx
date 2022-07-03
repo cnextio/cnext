@@ -281,7 +281,7 @@ const CodeOutputComponent = React.memo(() => {
             {console.log("Render CodeOutputAreaComponent")}
             <CodeOutputHeader>
                 <CodeOutputHeaderText variant="overline" component="span">
-                    Output
+                    Console
                 </CodeOutputHeaderText>
             </CodeOutputHeader>
             <CodeOutputContent id={codeOutputContentID}>
