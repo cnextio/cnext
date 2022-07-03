@@ -131,7 +131,7 @@
 #  
 #          Takes precedence over allow_origin_pat.
 #  Default: ''
-# c.ServerApp.allow_origin = '*'
+c.ServerApp.allow_origin = '*'
 
 ## Use a regular expression for the Access-Control-Allow-Origin header
 #  
@@ -527,7 +527,7 @@
 
 ## Supply overrides for terminado. Currently only supports "shell_command".
 #  Default: {}
-# c.ServerApp.terminado_settings = {}
+c.ServerApp.terminado_settings ={'shell_command': ['C:/Program Files/Git/bin/bash.exe']}
 
 ## Set to False to disable terminals.
 #  
@@ -550,7 +550,7 @@
 #          Setting to an empty string disables authentication altogether, which
 #  is NOT RECOMMENDED.
 #  Default: '<generated>'
-# c.ServerApp.token = '<generated>'
+c.ServerApp.token = 'cnext-token'
 
 ## Supply overrides for the tornado.web.Application that the Jupyter server uses.
 #  Default: {}
