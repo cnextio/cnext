@@ -43,7 +43,7 @@ export const MarkdownProcessor = () => {
                     if (codeLines[lineNumber].groupID !== groupID) {
                         lineNumber++;
                     }
-                    let startMarkdownLine = lineNumber;
+                    let startLineOfGroup = lineNumber;
 
                     lineText = lineUpdate.text[lineNumber];
                     /** now go get the markdown text */
@@ -52,23 +52,41 @@ export const MarkdownProcessor = () => {
                         lineNumber++;
                         lineText = lineUpdate.text[lineNumber];
                     }
-                    if (markdownText.length > 0) {
-                        let markdownResult: ICodeResultMessage = {
-                            inViewID: inViewID,
-                            type: ContentType.RICH_OUTPUT,
-                            subType: SubContentType.MARKDOWN,
-                            content: { "text/markdown": markdownText.join("\n") },
-                            metadata: {
-                                line_range: {
-                                    fromLine: startMarkdownLine,
-                                    toLine: startMarkdownLine,
-                                },
+                    // if (markdownText.length > 0) {
+                    //     let markdownResult: ICodeResultMessage = {
+                    //         inViewID: inViewID,
+                    //         type: ContentType.RICH_OUTPUT,
+                    //         subType: SubContentType.MARKDOWN,
+                    //         content: { "text/markdown": markdownText.join("\n") },
+                    //         metadata: {
+                    //             line_range: {
+                    //                 fromLine: startLineOfGroup,
+                    //                 toLine: startLineOfGroup,
+                    //             },
+                    //         },
+                    //     };
+                    //     dispatch(addResult(markdownResult));
+                    //     // codeLines[startMarkdownLine].result = markdownResult;
+                    //     // state.resultUpdateCount++;
+                    // } else {
+                    //     // dispatch(addResult(markdownResult));
+                    // }
+                    let markdownResult: ICodeResultMessage = {
+                        inViewID: inViewID,
+                        type: ContentType.RICH_OUTPUT,
+                        subType: SubContentType.MARKDOWN,
+                        content: {
+                            "text/markdown":
+                                markdownText.length > 0 ? markdownText.join("\n") : null,
+                        },
+                        metadata: {
+                            line_range: {
+                                fromLine: startLineOfGroup,
+                                toLine: startLineOfGroup,
                             },
-                        };
-                        dispatch(addResult(markdownResult));
-                        // codeLines[startMarkdownLine].result = markdownResult;
-                        // state.resultUpdateCount++;
-                    }
+                        },
+                    };
+                    dispatch(addResult(markdownResult));
                     console.log("CodeEditorRedux markdownText: ", markdownText, lineNumber);
                 }
             }

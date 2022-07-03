@@ -51,7 +51,7 @@ import { OverlayComponent } from "../libs/OverlayComponent";
 
 const NameWithTooltip = ({ children, tooltip }) => {
     return (
-        <Tooltip title={tooltip} placement="bottom-end" enterDelay={1000} enterNextDelay={1000}>
+        <Tooltip title={tooltip} placement="bottom-end" enterDelay={2000} enterNextDelay={2000}>
             {children}
         </Tooltip>
     );
