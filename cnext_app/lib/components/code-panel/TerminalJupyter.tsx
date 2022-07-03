@@ -4,7 +4,8 @@ import { PageConfig } from "@jupyterlab/coreutils";
 import { TerminalManager, ServerConnection } from "@jupyterlab/services";
 import { FitAddon } from "xterm-addon-fit";
 
-const ResponseTerminal = "Terminal";
+const Terminal = "Terminal";
+let elementTerminal: HTMLElement;
 
 const Term = () => {
     const xtermRef = useRef(null);
@@ -47,6 +48,15 @@ const Term = () => {
                     break;
             }
         });
+
+        // listen terminal resize
+
+        elementTerminal = document.getElementById(`Terminal`);
+        new ResizeObserver(() => {
+            if (fitAddon !== undefined) {
+                fitAddon.fit();
+            }
+        }).observe(elementTerminal);
     }
     useEffect(() => {
         init();
@@ -65,17 +75,16 @@ const Term = () => {
         }
     }, [xtermRef.current]);
 
-    const setSize = () => {
-        terminal.send({
-            type: "set_size",
-            content: [24, 208, 10, 10],
-        });
-    };
     const onResize = (event: any) => {
-        if (xtermRef?.current?.terminal) {
+        if (xtermRef?.current?.terminal && terminal) {
             terminal.send({
                 type: "set_size",
-                content: [event.rows, event.cols, 10, 10],
+                content: [
+                    event.rows,
+                    event.cols,
+                    elementTerminal.offsetHeight,
+                    elementTerminal.offsetWidth,
+                ],
             });
             fitAddon.fit();
         }
