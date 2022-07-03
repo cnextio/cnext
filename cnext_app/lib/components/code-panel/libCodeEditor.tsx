@@ -1,5 +1,5 @@
 import { gutter, GutterMarker, gutterLineClass } from "@codemirror/gutter";
-import { StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
+import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import {
     setActiveLine as setActiveLineRedux,
@@ -230,15 +230,16 @@ const setViewCodeText = (state: RootState, view: EditorView) => {
     console.log("CodeEditor setViewCodeText");
     let codeText = getJoinedCodeText(state);
     if (view) {
-        let transactionSpec: TransactionSpec = {
-            changes: {
-                from: 0,
-                to: 0,
-                insert: codeText,
-            },
-        };
-        let transaction: Transaction = view.state.update(transactionSpec);
-        view.dispatch(transaction);
+        // let transactionSpec: TransactionSpec = {
+        //     changes: {
+        //         from: 0,
+        //         to: 0,
+        //         insert: codeText,
+        //     },
+        // };
+        // let transaction: Transaction = view.state.update(transactionSpec);        
+        // view.dispatch(transaction);
+        view.setState(EditorState.create({ doc: codeText }));
     }
 };
 
