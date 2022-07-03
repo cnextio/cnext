@@ -218,8 +218,7 @@ export const FileItem = styled(TreeItem)`
         border-left: 1px solid ${(props) => props.theme.palette.grey.A400};
     }
     .MuiTreeItem-content {
-        margin-left: 7px;
-        padding-left: 0px;
+        padding-left: 7px;
     }
     .MuiTreeItem-iconContainer {
     }
