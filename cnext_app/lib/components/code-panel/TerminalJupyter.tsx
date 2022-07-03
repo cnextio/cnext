@@ -2,15 +2,10 @@ import React, { useRef, useEffect, useState } from "react";
 import { XTerm } from "xterm-for-react";
 import { PageConfig } from "@jupyterlab/coreutils";
 import { TerminalManager, ServerConnection } from "@jupyterlab/services";
-import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 
 const ResponseTerminal = "Terminal";
 
-var test = 0;
-let currentHistory = 0;
-let history: string[] = [];
-let pathPrefix = "";
 const Term = () => {
     const xtermRef = useRef(null);
     const [input, setInput] = useState<string>("");
@@ -33,9 +28,11 @@ const Term = () => {
         const terminalManager = new TerminalManager({
             serverSettings: connectionInfo,
         });
-        terminal = await terminalManager.startNew({ name: "terminal1", cwd: "" });
+        terminal = await terminalManager.startNew({
+            name: "terminal1",
+            cwd: "",
+        });
         // let test = await terminalManager.listRunning()
-        console.log(`terminal`, terminal);
         terminal.messageReceived.connect((data, msg) => {
             switch (msg.type) {
                 case "stdout":
@@ -67,19 +64,20 @@ const Term = () => {
         if (xtermRef?.current?.terminal) {
         }
     }, [xtermRef.current]);
-    window.addEventListener(
-        "resize",
-        () => {
-            console.log("addEventListener", fitAddon);
-            if (fitAddon !== undefined) {
-                fitAddon.fit();
-            }
-        },
-        false
-    );
-    const onResize = () => {
-        console.log("resize");
+
+    const setSize = () => {
+        terminal.send({
+            type: "set_size",
+            content: [24, 208, 10, 10],
+        });
+    };
+    const onResize = (event: any) => {
         if (xtermRef?.current?.terminal) {
+            terminal.send({
+                type: "set_size",
+                content: [event.rows, event.cols, 10, 10],
+            });
+            fitAddon.fit();
         }
     };
     return (
