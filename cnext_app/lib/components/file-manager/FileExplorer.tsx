@@ -11,6 +11,7 @@ import {
     OpenProjectTree,
     FileItemLabel,
     ProjectExplorerContainer,
+    OpenProjectItem,
 } from "../StyledComponents";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -470,7 +471,7 @@ const FileExplorer = (props: any) => {
                     onNodeToggle={handleDirToggle}
                 >
                     {activeProject != null && (
-                        <FileItem
+                        <OpenProjectItem
                             nodeId={relativeProjectPath}
                             data-cy={CypressIds.projectRoot}
                             label={
@@ -490,7 +491,7 @@ const FileExplorer = (props: any) => {
                             }}
                         >
                             {renderFileItems(projectItem?.path, relativeProjectPath)}
-                        </FileItem>
+                        </OpenProjectItem>
                     )}
                 </OpenProjectTree>
             );
