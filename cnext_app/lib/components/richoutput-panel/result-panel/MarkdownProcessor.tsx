@@ -52,25 +52,6 @@ export const MarkdownProcessor = () => {
                         lineNumber++;
                         lineText = lineUpdate.text[lineNumber];
                     }
-                    // if (markdownText.length > 0) {
-                    //     let markdownResult: ICodeResultMessage = {
-                    //         inViewID: inViewID,
-                    //         type: ContentType.RICH_OUTPUT,
-                    //         subType: SubContentType.MARKDOWN,
-                    //         content: { "text/markdown": markdownText.join("\n") },
-                    //         metadata: {
-                    //             line_range: {
-                    //                 fromLine: startLineOfGroup,
-                    //                 toLine: startLineOfGroup,
-                    //             },
-                    //         },
-                    //     };
-                    //     dispatch(addResult(markdownResult));
-                    //     // codeLines[startMarkdownLine].result = markdownResult;
-                    //     // state.resultUpdateCount++;
-                    // } else {
-                    //     // dispatch(addResult(markdownResult));
-                    // }
                     let markdownResult: ICodeResultMessage = {
                         inViewID: inViewID,
                         type: ContentType.RICH_OUTPUT,

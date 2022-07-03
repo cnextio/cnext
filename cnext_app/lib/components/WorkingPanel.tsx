@@ -49,7 +49,7 @@ const WorkingPanel = () => {
             <SplitPane split="vertical">
                 {console.log("WorkingPanel render")}
                 {showProjectExplore && (
-                    <Pane size="20%">
+                    <Pane size={projectConfig.layout?.project_explorer_size+'px'} onDragFinished={()=>{}}>
                         <FileExplorer />
                     </Pane>
                 )}
