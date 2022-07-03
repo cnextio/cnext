@@ -855,13 +855,21 @@ export const ResultViewContainer = styled.div`
 export const SingleResultContainer = styled(Paper)`
     background-color: ${(props) => props.theme.palette.background.paper};
     margin: 0px;
-    margin-bottom: 10px;
+    margin-bottom: ${(props) => (!props.showMarkdown ? "10px" : "0px")};
     width: 100%;
     height: 100%;
     border-top: ${(props) =>
-        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+        !props.showMarkdown
+            ? props.focused
+                ? "1px solid rgb(153, 179, 171, 0.6)"
+                : "1px dashed rgb(153, 179, 171, 0.5)"
+            : "0px"};
     border-bottom: ${(props) =>
-        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+        !props.showMarkdown
+            ? props.focused
+                ? "1px solid rgb(153, 179, 171, 0.6)"
+                : "1px dashed rgb(153, 179, 171, 0.5)"
+            : "0px"};
     border-left: 0px;
     border-right: 0px;
     border-radius: 0;
