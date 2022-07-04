@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { XTerm } from "xterm-for-react";
 import { PageConfig } from "@jupyterlab/coreutils";
-import { TerminalManager, ServerConnection } from "@jupyterlab/services";
+import { TerminalAPI, TerminalManager, ServerConnection } from "@jupyterlab/services";
 import { FitAddon } from "xterm-addon-fit";
 
 const Terminal = "Terminal";
@@ -17,8 +17,6 @@ const Term = () => {
         const BASEURL = "http://localhost:8888";
         const TOKEN = "cnext-token";
         const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
-        console.log(`WSURL`, WSURL);
-
         const connectionInfo = ServerConnection.makeSettings({
             baseUrl: BASEURL,
             wsUrl: WSURL,
@@ -29,11 +27,21 @@ const Term = () => {
         const terminalManager = new TerminalManager({
             serverSettings: connectionInfo,
         });
-        terminal = await terminalManager.startNew({
-            name: "terminal1",
-            cwd: "",
-        });
-        // let test = await terminalManager.listRunning()
+        const listTerminalRun = await TerminalAPI.listRunning(connectionInfo);
+
+        if ((listTerminalRun.length = 0)) {
+            terminal = await terminalManager.startNew({
+                name: Terminal,
+                cwd: "",
+            });
+        } else {
+            terminal = terminalManager.connectTo({
+                model: {
+                    name: Terminal,
+                },
+            });
+        }
+
         terminal.messageReceived.connect((data, msg) => {
             switch (msg.type) {
                 case "stdout":
