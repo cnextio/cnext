@@ -251,4 +251,7 @@ def save_workspace_metadata(config):
     workspace_info = WorkspaceMetadata(config)
     save_config(workspace_info, WORKSPACE_METADATA_PATH)
     return workspace_info
-##
+
+def send_logs(message):
+    print("send_logs", message)
+    return True

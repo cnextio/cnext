@@ -54,8 +54,11 @@ const FooterBarComponent = () => {
             //     rpcMessage
             // );
             let message = {
-                clientLogs: window.logs,
-                rootState,
+                content: {
+                    clientLogs: window.logs,
+                    rootState,
+                },
+                webapp_endpoint: WebAppEndpoint.FileManager,
                 command_name: ProjectCommand.send_logs_via_email,
             };
             let channel = WebAppEndpoint.FileManager;

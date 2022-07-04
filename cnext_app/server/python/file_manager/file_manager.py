@@ -48,7 +48,7 @@ class MessageHandler(BaseMessageHandler):
                 type = ContentType.NONE
             elif message.command_name == ProjectCommand.read_file:
                 result = files.read_file(messageParams.norm_project_path, messageParams.norm_path,
-                                            messageParams.timestamp)
+                                         messageParams.timestamp)
                 if result == None:
                     type = ContentType.NONE
                 else:
@@ -91,6 +91,10 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.add_project:
                 result = projects.add_project(message.content)
                 type = ContentType.WORKSPACE_METADATA
+            elif message.command_name == ProjectCommand.send_logs_via_email:
+                result = projects.send_logs(message.content)
+                type = ContentType.WORKSPACE_METADATA
+                print("result", result)
 
             # create reply message
             message.type = type
