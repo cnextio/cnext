@@ -37,13 +37,13 @@ const CodeOutputComponent = React.memo(() => {
     const roTextOutputUpdateCount = useSelector(
         (state: RootState) => state.richOutput.textOutputUpdateCount
     );
+    // const richOutputFocused = useSelector((state: RootState) => state.richOutput.richOutputFocused);
     const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
     const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
     /** use this to reload the output when inViewID changed */
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     const [outputContent, setOutputContent] = useState<(ITextOuput | undefined)[]>([]);
     const [lastItemIsROTextOutput, setLastItemIsROTextOutput] = useState<boolean>(false);
-    const [roOutputFocused, setRoOutputFocused] = useState<boolean>(false);
     // const codeOutputRef = useRef(null);
 
     function getOrderedTextOuput(state: RootState): (ITextOuput | undefined)[] {
@@ -258,14 +258,21 @@ const CodeOutputComponent = React.memo(() => {
         }
     }, [roTextOutputUpdateCount]);
 
-    const isFocused = (item: ITextOuput, lastItem: boolean) => {
+    const isItemFocused = (item: ITextOuput | undefined, lastItem: boolean) => {
         // TODO: implement scoll to rich-output text and df updates
-        return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;
-        // return roOutputFocused && lastItemIsROTextOutput && lastItem
-        //     ? true
-        //     : item?.groupID != null
-        //     ? item?.groupID === activeGroup
-        //     : item?.lineID === activeLine;
+        // return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;        
+        let richOutputFocused = store.getState().richOutput.richOutputFocused;
+        console.log(
+            "CodeOutput isItemFocused: ",
+            richOutputFocused,
+            lastItemIsROTextOutput,
+            lastItem
+        );
+        return richOutputFocused && lastItemIsROTextOutput && lastItem
+            ? true
+            : item?.groupID != null
+            ? item?.groupID === activeGroup
+            : item?.lineID === activeLine;
     };
 
     const codeOutputContentID = "CodeOutputContent";
@@ -280,9 +287,9 @@ const CodeOutputComponent = React.memo(() => {
             <CodeOutputContent id={codeOutputContentID}>
                 {outputContent?.map((item, index) => (
                     <ScrollIntoViewIfNeeded
-                        active={isFocused(item, index === outputContent.length - 1)}
+                        active={isItemFocused(item, index === outputContent.length - 1)}
                         options={{
-                            block: "end",
+                            block: "start",
                             inline: "center",
                             behavior: "smooth",
                             boundary: document.getElementById(codeOutputContentID),
@@ -293,7 +300,7 @@ const CodeOutputComponent = React.memo(() => {
                                 key={index}
                                 component="pre"
                                 variant="body2"
-                                focused={isFocused(item, index === outputContent.length - 1)}
+                                focused={isItemFocused(item, index === outputContent.length - 1)}
                             >
                                 <Ansi>{item.content}</Ansi>
                             </IndividualCodeOutputContent>

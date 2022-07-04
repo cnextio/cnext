@@ -20,6 +20,8 @@ const options = {
         origin: [process.env.CLIENT_URL],
         methods: ["GET", "POST"],
     },
+    maxHttpBufferSize: 1e8,
+    pingTimeout: 60000,
 };
 const io = new socketIo.Server(server, options);
 
@@ -33,7 +35,7 @@ const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
 const KernelManager = "KernelManager";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
-const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
+const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
 
 const LSPExecutor = [
     LanguageServer,
@@ -165,7 +167,7 @@ try {
                 } else {
                     codeExecutor.send2executor(message);
                 }
-            } else if (NotCodeExecutor.includes(endpoint)) {
+            } else if (NoneCodeExecutor.includes(endpoint)) {
                 console.log(
                     "Receive msg from client, server will run: ",
                     JSON.parse(message)["command_name"]

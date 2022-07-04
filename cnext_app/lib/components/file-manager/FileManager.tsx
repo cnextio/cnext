@@ -454,26 +454,24 @@ const FileManager = () => {
                     // Avoid to save the text/html result because maybe it's audio/video files.
                     // Save these files make bad performance.
                     const codeLinesSaveState = codeLines.map((codeLine) =>
-                        // codeLine.result?.subType === SubContentType.TEXT_HTML
-                        //     ? { ...codeLine, result: null }
-                        //     : codeLine
                         {
-                            if (
-                                codeLine.result?.content &&
-                                Object.keys(codeLine.result?.content).includes(
-                                    SubContentType.TEXT_HTML
-                                )
-                            ) {
-                                let updatedResult = { ...codeLine.result };
-                                updatedResult.content = {
-                                    "text/html":
-                                        "<div>This result is too big to save. Please rerun the command!</div>",
-                                };
-                                return {
-                                    ...codeLine,
-                                    result: updatedResult,
-                                };
-                            } else return codeLine;
+                            // if (
+                            //     codeLine.result?.content &&
+                            //     Object.keys(codeLine.result?.content).includes(
+                            //         SubContentType.TEXT_HTML
+                            //     )
+                            // ) {
+                            //     let updatedResult = { ...codeLine.result };
+                            //     updatedResult.content = {
+                            //         "text/html":
+                            //             "<div>This result is too big to save. Please rerun the command!</div>",
+                            //     };
+                            //     return {
+                            //         ...codeLine,
+                            //         result: updatedResult,
+                            //     };
+                            // } else return codeLine;
+                            return codeLine;
                         }
                     );
                     const timestamp = state.codeEditor.timestamp[filePath];

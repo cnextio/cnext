@@ -45,6 +45,7 @@ type CodeEditorState = {
     lineStatusUpdateCount: number;
     activeLine: string | null;
     activeGroup: string | undefined;
+    activeLineNumber: number | null;
     cAssistInfo: ICAssistInfo | undefined;
     runDict: {} | undefined;
     runningId: string | undefined;
@@ -68,6 +69,7 @@ const initialState: CodeEditorState = {
     lineStatusUpdateCount: 0,
     activeLine: null,
     activeGroup: undefined,
+    activeLineNumber: null,
     cAssistInfo: undefined,
     runDict: undefined,
     runningId: undefined,
@@ -80,18 +82,18 @@ const initialState: CodeEditorState = {
 /**
  * Return the max text ouput order from the list
  */
-function getMaxTextOutputOrder(codeLines: ICodeLine[]) {
-    let maxTextOutputOrder: number = 0;
-    codeLines
-        .filter((codeLine) => codeLine.hasOwnProperty("textOutput") && codeLine.textOutput !== null)
-        .map((item) => {
-            maxTextOutputOrder =
-                item.textOutput?.order == null || maxTextOutputOrder > item.textOutput?.order
-                    ? maxTextOutputOrder
-                    : item.textOutput?.order;
-        });
-    return maxTextOutputOrder;
-}
+// function getMaxTextOutputOrder(codeLines: ICodeLine[]) {
+//     let maxTextOutputOrder: number = 0;
+//     codeLines
+//         .filter((codeLine) => codeLine.hasOwnProperty("textOutput") && codeLine.textOutput !== null)
+//         .map((item) => {
+//             maxTextOutputOrder =
+//                 item.textOutput?.order == null || maxTextOutputOrder > item.textOutput?.order
+//                     ? maxTextOutputOrder
+//                     : item.textOutput?.order;
+//         });
+//     return maxTextOutputOrder;
+// }
 
 function setGroupEdittedStatus(
     codeLines: ICodeLine[],
@@ -114,6 +116,11 @@ function setLineStatusInternal(state: CodeEditorState, lineStatus: ICodeLineStat
             // console.log('CodeEditorRedux: ', lineStatus.status);
             // state.codeText[inViewID] = lineStatus.text;
             // state.fileSaved = false;
+        }
+        if (lineStatus.status === LineStatus.EXECUTING) {
+            /** clear the result before executing */
+            codeLines[lineStatus.lineRange.fromLine].result = undefined;
+            state.resultUpdateCount++;
         }
         const lineRange: ILineRange = lineStatus.lineRange;
         for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
@@ -357,10 +364,10 @@ export const CodeEditorRedux = createSlice({
                         // assign the result of a group only to the first line
                         codeLines[fromLine].textOutput = newTextOutput;
                     }
-                    state.maxTextOutputOrder += 1;
-                    if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
-                        codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
-                    }
+                    // state.maxTextOutputOrder += 1;
+                    // if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
+                    //     codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
+                    // }
                     state.textOutputUpdateCount += 1;
                     state.saveCodeLineCounter++;
                 } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
@@ -395,12 +402,33 @@ export const CodeEditorRedux = createSlice({
             clearRunningLineTextOutputInternal(state, action.payload);
         },
 
+        /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
         setActiveLine: (state, action) => {
-            let activeLine: ICodeActiveLine = action.payload;
-            let lineNumber = activeLine.lineNumber;
-            let codeLines: ICodeLine[] = state.codeLines[activeLine.inViewID];
-            state.activeLine = codeLines[lineNumber].lineID;
-            state.activeGroup = codeLines[lineNumber].groupID;
+            let newActiveLine: ICodeActiveLine = action.payload;
+            let lineNumber = newActiveLine.lineNumber;
+            let lineID = newActiveLine.lineID;
+            let groupID: string | undefined;
+
+            let codeLines: ICodeLine[] = state.codeLines[newActiveLine.inViewID];
+            if (lineNumber != null) {
+                lineID = codeLines[lineNumber].lineID;
+                groupID = codeLines[lineNumber].groupID;
+            } else if (lineID != null) {
+                /** we pay some price here but this is the use case where user click on result which maybe ok */
+                for (let i = 0; i < codeLines.length; i++) {
+                    const codeLine = codeLines[i];
+                    if (codeLine.lineID === lineID) {
+                        groupID = codeLine.groupID;
+                        lineNumber = i;
+                    }
+                }
+            }
+            if (lineID != null) {
+                state.activeLine = lineID;
+                state.activeGroup = groupID;
+                /** have to do this because lineNumber is either number or undefined */
+                state.activeLineNumber = (lineNumber != null) ? lineNumber : null;
+            }
         },
 
         // setFileSaved: (state, action) => {

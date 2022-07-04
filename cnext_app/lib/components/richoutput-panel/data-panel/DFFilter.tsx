@@ -10,6 +10,9 @@ import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
 import store from "../../../../redux/store";
 import { ViewUpdate } from "@codemirror/view";
 import { EditorState, TransactionSpec } from "@codemirror/state";
+import { basicSetup } from "../../../codemirror/basic-setup";
+import { history } from "@codemirror/history";
+import { setRichOutputFocused } from "../../../../redux/reducers/RichOutputRedux";
 
 const ls = dfFilterLanguageServer();
 
@@ -123,15 +126,8 @@ const DFExplorer = React.memo(() => {
         dispatch(setDFFilter({ df_id: activeDF, query: queryStr }));
     };
 
-    const extensions = [
-        // basicSetup,
-        bracketMatching(),
-        closeBrackets(),
-        defaultHighlightStyle.fallback,
-        cnextQuery(),
-        // python(),
-        ls,
-        EditorState.transactionFilter.of((transaction) => {
+    const oneLineExtension = () => {
+        return EditorState.transactionFilter.of((transaction) => {
             let newLineDetected = false;
             transaction.changes.iterChanges(
                 (fromA, toA, fromB, toB, inserted) => {
@@ -142,7 +138,19 @@ const DFExplorer = React.memo(() => {
                 return null;
             } 
             return transaction;
-        }),
+        })
+    };
+
+    const extensions = [
+        // basicSetup,
+        bracketMatching(),
+        closeBrackets(),
+        defaultHighlightStyle.fallback,
+        history(),
+        cnextQuery(),
+        // python(),
+        ls,
+        oneLineExtension(),
     ];
 
     return (
@@ -156,10 +164,16 @@ const DFExplorer = React.memo(() => {
                             extensions={extensions}
                             basicSetup={false}
                             onChange={(text, viewUpdate) => onCMChange(text, viewUpdate)}
-                            // placeholder = 'Filter'
+                            onFocus={() => {
+                                dispatch(setRichOutputFocused(true));
+                            }}
+                            onBlur={() => {
+                                dispatch(setRichOutputFocused(false));
+                            }}
                         />
                     );
                 }}
+                
             ></DFFilterInput>
         </DFFilterForm>
     );
