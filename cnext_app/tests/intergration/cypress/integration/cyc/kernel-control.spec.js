@@ -1,5 +1,5 @@
 import { codeTestKernelControl } from '../data/code-text';
-import { removeText, isMacOSPlatform } from './shared';
+import { removeText, isMacOSPlatform } from '../shared';
 const WAIT_500MLS = Cypress.env('wait_500mls');
 const WAIT_1S = Cypress.env('wait_1s');
 const WAIT_3S = Cypress.env('wait_3s');
