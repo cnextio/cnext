@@ -1,5 +1,5 @@
 import { codeCheckConsole, codeTestDF } from '../data/code-text';
-import { removeText, isMacOSPlatform } from './shared';
+import { removeText, isMacOSPlatform } from '../shared';
 const WAIT_500MLS = Cypress.env('wait_500mls');
 const WAIT_1S = Cypress.env('wait_1s');
 const WAIT_3S = Cypress.env('wait_3s');
@@ -75,6 +75,7 @@ describe('Test Code Editor', () => {
         }
         cy.wait(WAIT_1S);
         cy.get('@editor').type('{rightArrow}');
+        cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{enter}');
         cy.get('@editor').type('df.drop("');
         cy.wait(WAIT_1S);

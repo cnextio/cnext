@@ -58,7 +58,7 @@ Step 6 `run` command `cnext-run`
 
 ## Release Note
 
-# v0.4.20 - 0.4.25
+# v0.4.20 - 0.4.26
 
 ##### NEW
 

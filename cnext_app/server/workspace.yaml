@@ -1,5 +1,8 @@
-active_project: "1"
+active_project: ae453c96-ec95-11ec-95e6-acde48001122
 open_projects:
-    - id: "1"
-      name: "Skywalker"
-      path: "cnext_sample_projects/Skywalker"
+- id: ae453c96-ec95-11ec-95e6-acde48001122
+  name: project1
+  path: cnext_sample_projects/project1
+- id: 55fea33a-ecb6-11ec-95e6-acde48001122
+  name: project2
+  path: cnext_sample_projects/project2
