@@ -2,32 +2,9 @@
 name = "cnext"
 version = "0.4.27"
 description = "The data-centric workspace for AI & DS"
-authors = ["CycAI Inc"]
+authors = ["cycai company"]
 license = "MIT"
 
-readme = "README.md"  # Markdown files are supported
-
-homepage = "https://cyc-ai.com/"
-
-packages = [
-    { include = "cnext_app" },
-]
-
-exclude = [
-    "cnext_app/tsconfig.json",
-    "cnext_app/README.md",
-    "cnext_app/Dockerfile",
-    "cnext_app/Dockerfile-poetry",
-    "cnext_app/.dockerignore",
-    "cnext_app/server/Dockerfile",
-    "cnext_app/server/Dockerfile-conda",
-    "cnext_app/server/.dockerignore",
-]
-
-[tool.poetry.scripts]
-cnext-init = "cnext_app.__main__:main"
-cnext-path = "cnext_app.__main__:path"
-cnext-run = "cnext_app.__main__:start"
 
 [tool.poetry.dependencies]
 python = ">=3.9"

@@ -1,3 +1,18 @@
+# v0.4.20 - 0.4.27
+
+##### NEW
+
+-   Implement add project feature
+
+##### IMPROVED
+
+-   Improve setup script
+-   Improve usability
+
+##### FIXED
+
+-   Bug fixes and usability improvement
+
 # v0.4.18 - 0.4.19
 
 ##### NEW
