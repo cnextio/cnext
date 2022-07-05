@@ -1,5 +1,5 @@
 import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { DFFilterForm, DFFilterInput, StyledFilterCodeMirror } from "../../StyledComponents";
 import { bracketMatching } from "@codemirror/matchbrackets";
@@ -29,10 +29,9 @@ const DFExplorer = () => {
 
     const keyHandler = (event: React.KeyboardEvent) => {
         if (event.key === "Enter") {
+            console.log('DFExplorer dispatch query: ', query);
             dispatch(setDFFilter(query));
-        } else {
-            // event.
-        }
+        } 
     };
     /**
      * All query string will be converted to loc/iloc pandas query
@@ -169,8 +168,7 @@ const DFExplorer = () => {
     return (
         <DFFilterForm>
             <DFFilterInput
-                // placeholder={query != null ? "Filter..." : query}
-                inputComponent={() => {
+                inputComponent={useCallback(() => {
                     return (
                         <StyledFilterCodeMirror
                             ref={filterCM}
@@ -184,10 +182,9 @@ const DFExplorer = () => {
                                 dispatch(setRichOutputFocused(false));
                             }}
                             onKeyDown={keyHandler}
-                            // value=(<>{query}</>)
                         />
                     );
-                }}
+                },[])}
             ></DFFilterInput>
         </DFFilterForm>
     );
