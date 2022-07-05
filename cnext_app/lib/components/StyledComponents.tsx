@@ -215,10 +215,25 @@ export const FileItem = styled(TreeItem)`
         line-height: 2em;
     }
     .MuiTreeItem-group {
-        margin-left: 10px;
+        border-left: 1px solid ${(props) => props.theme.palette.grey.A400};
     }
     .MuiTreeItem-content {
-        // margin-left: 5px;
+        padding-left: 7px;
+    }
+    .MuiTreeItem-iconContainer {
+    }
+    color: ${(props) => props.theme.palette.text.secondary};
+    width: 100%;
+`;
+
+export const OpenProjectItem = styled(TreeItem)`
+    .MuiTreeItem-label {
+        font-size: 13px;
+        line-height: 2em;
+    }
+    .MuiTreeItem-group {
+        margin-left: 15px;
+        border-left: 1px dotted ${(props) => props.theme.palette.grey.A700};
     }
     color: ${(props) => props.theme.palette.text.secondary};
     width: 100%;
@@ -227,6 +242,7 @@ export const FileItem = styled(TreeItem)`
 export const FileItemLabel = styled.div`
     font-size: 13px;
     line-height: 2em;
+    margin-left: -5px;
 `;
 
 export const Overlay = styled.div`
@@ -343,7 +359,7 @@ export const FileNameTab = styled(Typography)`
     line-height: calc(var(--var-height));
     padding: 0px 5px 0px 10px;
     font-size: 13px;
-    
+
     animation: ${(props) =>
             props.runQueueBusy
                 ? textTransitionToColor("#F59242", props.theme.palette.grey.A200)
@@ -839,12 +855,21 @@ export const ResultViewContainer = styled.div`
 export const SingleResultContainer = styled(Paper)`
     background-color: ${(props) => props.theme.palette.background.paper};
     margin: 0px;
-    margin-bottom: 10px;
+    margin-bottom: ${(props) => (!props.showMarkdown ? "10px" : "0px")};
     width: 100%;
+    height: 100%;
     border-top: ${(props) =>
-        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+        !props.showMarkdown
+            ? props.focused
+                ? "1px solid rgb(153, 179, 171, 0.6)"
+                : "1px dashed rgb(153, 179, 171, 0.5)"
+            : "0px"};
     border-bottom: ${(props) =>
-        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+        !props.showMarkdown
+            ? props.focused
+                ? "1px solid rgb(153, 179, 171, 0.6)"
+                : "1px dashed rgb(153, 179, 171, 0.5)"
+            : "0px"};
     border-left: 0px;
     border-right: 0px;
     border-radius: 0;

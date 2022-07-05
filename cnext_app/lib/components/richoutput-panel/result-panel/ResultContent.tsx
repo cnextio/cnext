@@ -55,7 +55,7 @@ const IFrameComponent = ({ children }) => {
     );
 };
 
-const ResultContent = React.memo(({ codeResult }) => {
+const ResultContent = React.memo(({ codeResult, showMarkdown }) => {
     // const [readyToScroll, setReadyToScroll] = useState(false);
 
     const setPlotlyLayout = (
@@ -89,7 +89,7 @@ const ResultContent = React.memo(({ codeResult }) => {
     const renderResultContent = () => {
         // const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
         // console.log("ResultContent: ", codeResult?.result);
-        const showMarkdown = store.getState().projectManager.settings?.rich_output?.show_markdown;
+        // const showMarkdown = store.getState().projectManager.settings?.rich_output?.show_markdown;
         const contentKeys = Object.keys(codeResult?.result?.content);
         // console.log("ResultContent contentKeys: ", contentKeys);
         let jsxElements = contentKeys?.map((key, index) => {
@@ -148,7 +148,11 @@ const ResultContent = React.memo(({ codeResult }) => {
                 ) : (
                     jsxElements
                 );
-            } else if (showMarkdown && key === SubContentType.MARKDOWN) {
+            } else if (
+                showMarkdown &&
+                key === SubContentType.MARKDOWN &&
+                codeResult?.result?.content[SubContentType.MARKDOWN] != null
+            ) {
                 return (
                     <ReactMarkdown
                         className="markdown"
@@ -157,7 +161,7 @@ const ResultContent = React.memo(({ codeResult }) => {
                     />
                 );
             } else if (key === SubContentType.TEXT_PLAIN && contentKeys.length === 1) {
-            /** only display text/plain when it is the only content */
+                /** only display text/plain when it is the only content */
                 return (
                     <pre
                         style={{ fontSize: "12px" }}
