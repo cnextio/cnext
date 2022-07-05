@@ -5,7 +5,7 @@ const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
-// const spawn = require("child_process").spawn;
+const { spawn, exec } = require("child_process");
 const execProcess = require("process");
 const { PythonShell } = require("python-shell");
 const {
@@ -15,6 +15,7 @@ const {
     LanguageServerSignature,
     LanguageServerCompletion,
 } = require("./ls/lsp_process");
+const { JupyterProcess } = require("./jupyter/jupyter_server");
 const SSHClient = require("ssh2").Client;
 
 const port = process.env.PORT || 4000;
@@ -221,11 +222,16 @@ try {
 
     server.listen(port, () => console.log(`Waiting on port ${port}`));
 
+
+    console.log("Starting jupyter server...");
+    let jupyterExecutor = new JupyterProcess(io);
+    jupyterExecutor.runServer()
+
     console.log("Starting python shell...");
     let codeExecutor = new PythonProcess(io, `python/server.py`, ["code"]);
     let nonCodeExecutor = new PythonProcess(io, `python/server.py`, ["noncode"]);
     let lspExecutor = new LSPProcess(io);
-
+  
     /**
      * ZMQ communication from python-shell to node server
      */

@@ -12,7 +12,7 @@ const Term = () => {
     const [input, setInput] = useState<string>("");
     const fitAddon = new FitAddon();
 
-    let terminal: any;
+    let session: any;
     async function init() {
         const BASEURL = "http://localhost:8888";
         const TOKEN = "cnext-token";
@@ -29,20 +29,21 @@ const Term = () => {
         });
         const listTerminalRun = await TerminalAPI.listRunning(connectionInfo);
 
-        if ((listTerminalRun.length = 0)) {
-            terminal = await terminalManager.startNew({
+        if (listTerminalRun.length === 0) {
+            console.log("Term: start new");
+            session = await terminalManager.startNew({
                 name: Terminal,
                 cwd: "",
             });
         } else {
-            terminal = terminalManager.connectTo({
+            session = terminalManager.connectTo({
                 model: {
                     name: Terminal,
                 },
             });
         }
 
-        terminal.messageReceived.connect((data, msg) => {
+        session.messageReceived.connect((data, msg) => {
             switch (msg.type) {
                 case "stdout":
                     if (msg.content) {
@@ -68,24 +69,31 @@ const Term = () => {
     }
     useEffect(() => {
         init();
-        return () => {};
+        return () => {
+            // session.shutdown()
+            console.log(`session`, session);
+        };
     }, []); //TODO: run this only once - not on rerender
 
     function onTermData(data: any) {
-        terminal.send({
+        session.send({
             type: "stdin",
             content: [data],
         });
     }
 
     useEffect(() => {
-        if (xtermRef?.current?.terminal) {
+        if (xtermRef?.current?.terminal && session) {
+            session.send({
+                type: "set_size",
+                content: [24, 124, elementTerminal.offsetHeight, elementTerminal.offsetWidth],
+            });
         }
-    }, [xtermRef.current]);
+    }, [session]);
 
     const onResize = (event: any) => {
-        if (xtermRef?.current?.terminal && terminal) {
-            terminal.send({
+        if (xtermRef?.current?.terminal && session) {
+            session.send({
                 type: "set_size",
                 content: [
                     event.rows,
