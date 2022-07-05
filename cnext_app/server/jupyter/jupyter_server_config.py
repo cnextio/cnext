@@ -527,7 +527,7 @@ c.ServerApp.allow_origin = '*'
 
 ## Supply overrides for terminado. Currently only supports "shell_command".
 #  Default: {}
-c.ServerApp.terminado_settings ={'shell_command': ['C:/Program Files/Git/bin/bash.exe']}
+# c.ServerApp.terminado_settings ={'shell_command': ['C:/Program Files/Git/bin/bash.exe']}
 
 ## Set to False to disable terminals.
 #  
