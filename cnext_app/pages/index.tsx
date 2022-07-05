@@ -29,7 +29,7 @@ const Home: NextPage = () => {
                         <GlobalStyle />
                         <Helmet
                             titleTemplate="%s | CNext"
-                            defaultTitle="CNext - A Data-Centric Platform for DS and AI Workflows"
+                            defaultTitle="CNext - The Data-Centric Workspace for DS and AI Workflows"
                         />
                         <StyledEngineProvider injectFirst>
                             <StyledThemeProvider theme={theme}>
