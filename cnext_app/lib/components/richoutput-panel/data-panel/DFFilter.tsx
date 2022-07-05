@@ -1,5 +1,5 @@
 import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { DFFilterForm, DFFilterInput, StyledFilterCodeMirror } from "../../StyledComponents";
 import { bracketMatching } from "@codemirror/matchbrackets";
@@ -16,11 +16,24 @@ import { setRichOutputFocused } from "../../../../redux/reducers/RichOutputRedux
 
 const ls = dfFilterLanguageServer();
 
-const DFExplorer = React.memo(() => {
+interface DFQuery {
+    df_id: string;
+    query: string;
+}
+
+const DFExplorer = () => {
     // const dfList = useSelector((state) => _checkDFList(state));
+    const [query, setQuery] = useState<DFQuery | null>(null);
     const dispatch = useDispatch();
     const filterCM = useRef();
 
+    const keyHandler = (event: React.KeyboardEvent) => {
+        if (event.key === "Enter") {
+            dispatch(setDFFilter(query));
+        } else {
+            // event.
+        }
+    };
     /**
      * All query string will be converted to loc/iloc pandas query
      */
@@ -123,22 +136,22 @@ const DFExplorer = React.memo(() => {
                 }
             }
         }
-        dispatch(setDFFilter({ df_id: activeDF, query: queryStr }));
+        if (activeDF != null && queryStr != null) {
+            setQuery({ df_id: activeDF, query: queryStr });
+        }
     };
 
     const oneLineExtension = () => {
         return EditorState.transactionFilter.of((transaction) => {
             let newLineDetected = false;
-            transaction.changes.iterChanges(
-                (fromA, toA, fromB, toB, inserted) => {
-                   newLineDetected ||=  (inserted.lines > 1);
-                }
-            );
-            if (newLineDetected){
+            transaction.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+                newLineDetected ||= inserted.lines > 1;
+            });
+            if (newLineDetected) {
                 return null;
-            } 
+            }
             return transaction;
-        })
+        });
     };
 
     const extensions = [
@@ -156,7 +169,7 @@ const DFExplorer = React.memo(() => {
     return (
         <DFFilterForm>
             <DFFilterInput
-                placeholder="Filter..."
+                // placeholder={query != null ? "Filter..." : query}
                 inputComponent={() => {
                     return (
                         <StyledFilterCodeMirror
@@ -170,17 +183,14 @@ const DFExplorer = React.memo(() => {
                             onBlur={() => {
                                 dispatch(setRichOutputFocused(false));
                             }}
+                            onKeyDown={keyHandler}
+                            // value=(<>{query}</>)
                         />
                     );
                 }}
-                
             ></DFFilterInput>
         </DFFilterForm>
     );
-});
+};
 
 export default DFExplorer;
-
-function bracketClosing() {
-    throw new Error("Function not implemented.");
-}
