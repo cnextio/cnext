@@ -9,7 +9,6 @@ let elementTerminal: HTMLElement;
 
 const Term = () => {
     const xtermRef = useRef(null);
-    const [input, setInput] = useState<string>("");
     const fitAddon = new FitAddon();
 
     let session: any;
@@ -43,20 +42,22 @@ const Term = () => {
             });
         }
 
-        session.messageReceived.connect((data, msg) => {
-            switch (msg.type) {
-                case "stdout":
-                    if (msg.content) {
-                        xtermRef?.current?.terminal.write(msg.content[0] as string);
-                    }
-                    break;
-                case "disconnect":
-                    xtermRef?.current?.terminal.write("\r\n\r\n[Finished… Term Session]\r\n");
-                    break;
-                default:
-                    break;
+        session.messageReceived.connect(
+            (data: string, msg: { type: string; content: string[] }) => {
+                switch (msg.type) {
+                    case "stdout":
+                        if (msg.content) {
+                            xtermRef?.current?.terminal.write(msg.content[0] as string);
+                        }
+                        break;
+                    case "disconnect":
+                        xtermRef?.current?.terminal.write("\r\n\r\n[Finished… Term Session]\r\n");
+                        break;
+                    default:
+                        break;
+                }
             }
-        });
+        );
 
         // listen terminal resize
 
@@ -75,7 +76,7 @@ const Term = () => {
         };
     }, []); //TODO: run this only once - not on rerender
 
-    function onTermData(data: any) {
+    function onTermData(data: string) {
         session.send({
             type: "stdin",
             content: [data],
@@ -91,7 +92,7 @@ const Term = () => {
         }
     }, [session]);
 
-    const onResize = (event: any) => {
+    const onResize = (event: { rows: number; cols: number }) => {
         if (xtermRef?.current?.terminal && session) {
             session.send({
                 type: "set_size",
