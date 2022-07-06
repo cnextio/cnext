@@ -52,6 +52,6 @@ jobs:
           browser: chrome
           start: |
             npm run  --prefix ../.. start
-            ../../server/start.sh
+            bash ../../server/start.sh
           spec: |
             cypress/**/*.spec.js
