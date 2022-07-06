@@ -17,13 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
+
+      - name: Install poetry
+        run: pipx install poetry
 
       - uses: actions/setup-python@v4
         with:
