@@ -38,7 +38,6 @@ jobs:
         run: |
           npm install --force
           npm run build
-          npm run start
 
       # Install NPM dependencies, cache them correctly
       # and run all Cypress tests
@@ -46,5 +45,7 @@ jobs:
         uses: cypress-io/github-action@v4
         with:
           working-directory: cnext_app/tests/intergration
+          start: |
+            cd ../../ && npm run start
           spec: |
             cypress/**/*.spec.js
