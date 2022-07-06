@@ -25,13 +25,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
-      - name: Install poetry
-        run: pipx install poetry
-
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-          cache: 'poetry'
 
       - name: Build IDE
         working-directory: ./cnext_app
@@ -42,6 +38,7 @@ jobs:
       - name: Build Server
         working-directory: ./cnext_app/server
         run: |
+          pip install poetry
           chmod +x start.sh
           npm install --force
           poetry install
