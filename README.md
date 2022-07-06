@@ -140,5 +140,5 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 [docker image]: https://hub.docker.com/r/cycai/cnext
 [documentation]: https://internal-lace-ae4.notion.site/Product-Documentation-0dd58ea1cfe14dfab3666c5ec633ae96
 [overview video]: https://youtu.be/5eWPkQIUfZw
-[cnext]: https://drive.google.com/file/d/1w4MU3nr0E14PAS_5NmruuoMSfQeE5MLK
+[cnext]: https://drive.google.com/file/d/1ft4PmFclylOtEAQSPBqn9nUSyAkMs5R-
 [docker]: https://www.docker.com/products/docker-desktop/
