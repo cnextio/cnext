@@ -24,5 +24,6 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v4
         with:
+          working-directory: cnext_app/tests/intergration
           spec: |
-            cnext_app/tests/intergration/**/*.spec.js
+            cypress/**/*.spec.js
