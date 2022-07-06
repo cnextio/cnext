@@ -25,13 +25,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
-      # - name: Install poetry
-      #   run: pipx install poetry
+      - name: Install poetry
+        run: pipx install poetry
 
-      # - uses: actions/setup-python@v4
-      #   with:
-      #     python-version: '3.9'
-      #     cache: 'poetry'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'poetry'
 
       - name: Build IDE
         working-directory: ./cnext_app
@@ -39,13 +39,22 @@ jobs:
           npm install --force
           npm run build
 
+      - name: Build Server
+        working-directory: ./cnext_app/server
+        run: |
+          chmod +x start.sh
+          npm install --force
+          poetry install
+
       # Install NPM dependencies, cache them correctly
       # and run all Cypress tests
       - name: Cypress run
         uses: cypress-io/github-action@v4
         with:
           working-directory: cnext_app/tests/intergration
+          browser: chrome
           start: |
             npm run  --prefix ../.. start
+            ../../server/start.sh
           spec: |
             cypress/**/*.spec.js
