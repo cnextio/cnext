@@ -232,12 +232,14 @@ try {
     process.on("SIGINT", function () {
         codeExecutor.shutdown("SIGINT");
         nonCodeExecutor.shutdown("SIGINT");
+        jupyterExecutor.shutdown("SIGINT");
         process.exit(1);
     });
 
     process.on("SIGTERM", function () {
         codeExecutor.shutdown("SIGTERM");
         nonCodeExecutor.shutdown("SIGTERM");
+        jupyterExecutor.shutdown("SIGTERM");
         process.exit(1);
     });
 

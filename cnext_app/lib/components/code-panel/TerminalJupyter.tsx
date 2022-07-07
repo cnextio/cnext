@@ -37,8 +37,12 @@ const Term = () => {
             });
             const listTerminalRun = await TerminalAPI.listRunning(connectionInfo);
 
-            if (listTerminalRun.length === 0) {
+            // check  the terminal named terminal is running ?
+            const isTerminal = listTerminalRun.find((item) => item.name === Terminal);
+
+            if (!isTerminal) {
                 console.log("Term: start new");
+                // TerminalAPI.shutdownTerminal();
                 session = await terminalManager.startNew({
                     name: Terminal,
                     cwd: pathRoot,
@@ -120,7 +124,7 @@ const Term = () => {
                      * The width of the cursor in CSS pixels when `cursorStyle` is set to 'bar'.
                      */
                     cursorStyle: "bar",
-                    cursorWidth: 4,
+                    cursorWidth: 3,
                     fontFamily: `monospace`,
                     fontSize: 13,
                     lineHeight: 1.43,

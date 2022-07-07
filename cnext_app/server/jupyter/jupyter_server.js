@@ -12,11 +12,11 @@ class JupyterProcess {
             { shell: true }
         );
         this.jupyterServer.stdout.on("data", (chunk) => {
-            console.log(`Jupyter Server`, chunk.toString());
+            console.log(`Jupyter Server`, this.config, chunk.toString());
         });
 
         this.jupyterServer.stderr.on("data", (stderr) => {
-            console.log("Jupyter Server", stderr.toString());
+            console.log("Jupyter Server", this.config, stderr.toString());
         });
     }
 
