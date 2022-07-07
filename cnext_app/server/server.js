@@ -42,7 +42,7 @@ const ResponseTerminal = "Terminal";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
 const NotCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
 const TerminalExecutor = [Terminal];
-
+const ConfigTerminal = "ConfigTerminal";
 const LSPExecutor = [
     LanguageServer,
     LanguageServerHover,
@@ -152,29 +152,6 @@ class PythonProcess {
 // let clientMessage;
 try {
     io.on("connection", (socket) => {
-        // Init Shell bash
-        // var sh = spawn("bash");
-
-        // let cmdHistory = ""; // save history command newest
-        // // Handle bash stream
-        // sh.stdout.on("data", function (data) {
-        //     if (cmdHistory.type === "path") {
-        //         io.emit(ResponseTerminal, { type: `path`, message: data.toString() });
-        //     } else {
-        //         io.emit(ResponseTerminal, data.toString());
-        //     }
-        //     // PS
-        // });
-
-        // sh.stderr.on("data", function (data) {
-        //     io.emit(ResponseTerminal, { cmd: cmdHistory, type: `error`, message: data.toString() });
-        // });
-
-        // sh.on("exit", function (code) {
-        //     io.emit("kill-process", "SIGINT");
-        //     socket.broadcast.emit("** Shell exited: " + code + " **");
-        // });
-
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();
             console.log(`Got ping at ${time}: ${message}`);
@@ -204,13 +181,15 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                // cmdHistory = JSON.parse(message);
-                // let msgParsed = JSON.parse(message);
-                // if (msgParsed.type === "KILL_PROCESS") {
-                //     sh.kill("SIGINT");
-                // } else {
-                //     sh.stdin.write(JSON.parse(message).content + "\n");
-                // }
+                if (message["webapp_endpoint"] === ConfigTerminal) {
+                    io.emit(
+                        endpoint,
+                        JSON.stringify({
+                            config: config.jupyter_server,
+                            webapp_endpoint: message["webapp_endpoint"],
+                        })
+                    );
+                }
             }
         });
         socket.once("disconnect", () => {});
