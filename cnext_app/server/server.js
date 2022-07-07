@@ -222,16 +222,14 @@ try {
 
     server.listen(port, () => console.log(`Waiting on port ${port}`));
 
-
     console.log("Starting jupyter server...");
-    let jupyterExecutor = new JupyterProcess(io);
-    jupyterExecutor.runServer()
+    let jupyterExecutor = new JupyterProcess(io, config.jupyter_server);
 
     console.log("Starting python shell...");
     let codeExecutor = new PythonProcess(io, `python/server.py`, ["code"]);
     let nonCodeExecutor = new PythonProcess(io, `python/server.py`, ["noncode"]);
     let lspExecutor = new LSPProcess(io);
-  
+
     /**
      * ZMQ communication from python-shell to node server
      */
