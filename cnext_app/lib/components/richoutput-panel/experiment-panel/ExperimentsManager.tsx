@@ -28,9 +28,10 @@ import {
 import store, { RootState } from "../../../../redux/store";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { setCodeToInsert } from "../../../../redux/reducers/CodeEditorRedux";
-import { ICodeToInsert } from "../../../interfaces/ICodeEditor";
+import { CodeInsertMode, ICodeToInsertInfo } from "../../../interfaces/ICodeEditor";
 import { IMenuItem, MetricPlotContextMenuItems } from "../../../interfaces/IContextMenu";
 import { ifElse } from "../../libs";
+import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 
 const ExperimentManager = (props: any) => {
     const [metricPlotData, setMetricPlot] = useState();
@@ -61,7 +62,7 @@ const ExperimentManager = (props: any) => {
     const refreshData = (expId: string) => {
         console.log("Exp timer refreshData timeout count and running id", timeout, expId);
         let tracking_uri =
-            store.getState().projectManager?.configs?.experiment_manager?.mlflow_tracking_uri;
+            store.getState().projectManager?.settings?.experiment_manager?.mlflow_tracking_uri;
         if (expId && tracking_uri) {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
@@ -123,7 +124,7 @@ const ExperimentManager = (props: any) => {
      */
     useEffect(() => {
         let tracking_uri =
-            store.getState().projectManager?.configs?.experiment_manager?.mlflow_tracking_uri;
+            store.getState().projectManager?.settings?.experiment_manager?.mlflow_tracking_uri;
         if (tracking_uri && selectedRunIds && selectedRunIds.length > 0) {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
@@ -157,7 +158,7 @@ const ExperimentManager = (props: any) => {
      */
     useEffect(() => {
         let tracking_uri =
-            store.getState().projectManager?.configs?.experiment_manager?.mlflow_tracking_uri;
+            store.getState().projectManager?.settings?.experiment_manager?.mlflow_tracking_uri;
         if (tracking_uri && selectedExpId) {
             let message: IMessage = {
                 webapp_endpoint: WebAppEndpoint.ExperimentManager,
@@ -232,7 +233,7 @@ const ExperimentManager = (props: any) => {
     useEffect(() => {
         socketInit();
         let tracking_uri =
-            store.getState().projectManager.configs?.experiment_manager?.mlflow_tracking_uri;
+            store.getState().projectManager.settings?.experiment_manager?.mlflow_tracking_uri;
         let message: IMessage = {
             webapp_endpoint: WebAppEndpoint.ExperimentManager,
             command_name: ExperimentManagerCommand.list_experiments,
@@ -271,9 +272,9 @@ const ExperimentManager = (props: any) => {
                 case MetricPlotContextMenuItems.LOAD_CHECKPOINT:
                     /** first, download the artifacts to local */
                     let local_dir =
-                        store.getState().projectManager.configs?.experiment_manager?.local_tmp_dir;
+                        store.getState().projectManager.settings?.experiment_manager?.local_tmp_dir;
                     let tracking_uri =
-                        store.getState().projectManager.configs?.experiment_manager
+                        store.getState().projectManager.settings?.experiment_manager
                             ?.mlflow_tracking_uri;
                     let artifact_path =
                         item && item.metadata ? ifElse(item.metadata, "checkpoint", null) : null;
@@ -293,8 +294,10 @@ const ExperimentManager = (props: any) => {
                         };
                         sendMessage(message);
                         /** then, insert code to load weights */
-                        let codeToInsert: ICodeToInsert = {
+                        let codeToInsert: ICodeToInsertInfo = {
                             code: `model.load_weights('${local_dir}/${artifact_path}')`,
+                            status: CodeInsertStatus.TOINSERT,
+                            mode: CodeInsertMode.LINE
                         };
                         dispatch(setCodeToInsert(codeToInsert));
                     }

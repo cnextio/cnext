@@ -53,7 +53,7 @@ type CodeEditorState = {
     saveCodeTextCounter: number;
     // this number need to be increased whenever codeLine is updated
     saveCodeLineCounter: number;
-    lastLineUpdate: {[key: string]: ILineUpdate};
+    lastLineUpdate: { [key: string]: ILineUpdate };
 };
 
 const initialState: CodeEditorState = {
@@ -74,24 +74,24 @@ const initialState: CodeEditorState = {
     codeToInsert: undefined,
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
-    lastLineUpdate: {}, /** this is used in MarkdownProcessor */
+    lastLineUpdate: {} /** this is used in MarkdownProcessor */,
 };
 
 /**
  * Return the max text ouput order from the list
  */
-function getMaxTextOutputOrder(codeLines: ICodeLine[]) {
-    let maxTextOutputOrder: number = 0;
-    codeLines
-        .filter((codeLine) => codeLine.hasOwnProperty("textOutput") && codeLine.textOutput !== null)
-        .map((item) => {
-            maxTextOutputOrder =
-                item.textOutput?.order == null || maxTextOutputOrder > item.textOutput?.order
-                    ? maxTextOutputOrder
-                    : item.textOutput?.order;
-        });
-    return maxTextOutputOrder;
-}
+// function getMaxTextOutputOrder(codeLines: ICodeLine[]) {
+//     let maxTextOutputOrder: number = 0;
+//     codeLines
+//         .filter((codeLine) => codeLine.hasOwnProperty("textOutput") && codeLine.textOutput !== null)
+//         .map((item) => {
+//             maxTextOutputOrder =
+//                 item.textOutput?.order == null || maxTextOutputOrder > item.textOutput?.order
+//                     ? maxTextOutputOrder
+//                     : item.textOutput?.order;
+//         });
+//     return maxTextOutputOrder;
+// }
 
 function setGroupEdittedStatus(
     codeLines: ICodeLine[],
@@ -114,6 +114,11 @@ function setLineStatusInternal(state: CodeEditorState, lineStatus: ICodeLineStat
             // console.log('CodeEditorRedux: ', lineStatus.status);
             // state.codeText[inViewID] = lineStatus.text;
             // state.fileSaved = false;
+        }
+        if(lineStatus.status===LineStatus.EXECUTING){
+            /** clear the result before executing */
+            codeLines[lineStatus.lineRange.fromLine].result = undefined;
+            state.resultUpdateCount++;
         }
         const lineRange: ILineRange = lineStatus.lineRange;
         for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
@@ -184,7 +189,7 @@ export const CodeEditorRedux = createSlice({
                 );
                 state.resultUpdateCount += 1;
 
-                state.maxTextOutputOrder = getMaxTextOutputOrder(codeLines);
+                // state.maxTextOutputOrder = getMaxTextOutputOrder(codeLines);
                 state.textOutputUpdateCount += 1;
             }
             state.codeLines[reduxFileID] = codeLines;
@@ -262,7 +267,7 @@ export const CodeEditorRedux = createSlice({
             /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
             setGroupEdittedStatus(codeLines, lineUpdate.updatedStartLineNumber, startLineGroupID);
             state.codeLines[inViewID] = codeLines;
-            
+
             /** this is used in MarkdownProcessor */
             state.lastLineUpdate[inViewID] = lineUpdate;
         },
@@ -357,10 +362,10 @@ export const CodeEditorRedux = createSlice({
                         // assign the result of a group only to the first line
                         codeLines[fromLine].textOutput = newTextOutput;
                     }
-                    state.maxTextOutputOrder += 1;
-                    if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
-                        codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
-                    }
+                    // state.maxTextOutputOrder += 1;
+                    // if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
+                    //     codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
+                    // }
                     state.textOutputUpdateCount += 1;
                     state.saveCodeLineCounter++;
                 } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
@@ -500,6 +505,7 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = undefined;
             state.saveCodeTextCounter = 0;
             state.saveCodeLineCounter = 0;
+            state.lastLineUpdate = {};
         },
     },
 });

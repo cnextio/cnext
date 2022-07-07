@@ -17,6 +17,8 @@ const ResultPanel = React.memo((props: any) => {
     const [showDashboard, setShowDashboard] = useState(false);
     const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
     const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
+    /** use this to reload the output when inViewID changed */
+    const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     /** this is used to trigger the rerender of this component whenever there is a new result update */
     const resultUpdateCount = useSelector((state: RootState) => state.codeEditor.resultUpdateCount);
     /** this will make sure that the output will be updated each time

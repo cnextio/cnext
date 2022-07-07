@@ -36,6 +36,7 @@ import {
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
 import socket from "../Socket";
+import { restartKernel } from "../kernel-manager/KernelManager";
 
 const FileManager = () => {
     const dispatch = useDispatch();
@@ -190,6 +191,8 @@ const FileManager = () => {
                                 /** reset the state if the active project is different */
                                 resetProjectStates(workspaceMetadata);
                                 dispatch(setWorkspaceMetadata(workspaceMetadata));
+                                // Restart the kernel
+                                // restartKernel();
                             }
                             break;
                         case ProjectCommand.add_project:
@@ -338,7 +341,7 @@ const FileManager = () => {
             let messageProjectSettings: IMessage = createMessage(
                 ProjectCommand.get_project_settings
             );
-            sendMessage(messageProjectSettings);
+            sendMessage(messageProjectSettings);            
         }
     }, [workspaceMetadata]);
 

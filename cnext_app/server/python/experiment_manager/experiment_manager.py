@@ -188,8 +188,6 @@ class MessageHandler(BaseMessageHandler):
         if 'run_ids' in params:
             run_ids = params['run_ids']
         
-        
-
         pass
 
     def _create_return_message(self, command_name, content, error=False):

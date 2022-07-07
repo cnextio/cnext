@@ -32,10 +32,10 @@ const ScriptComponent = ({ children, script }) => {
         if (children != null) {
             scriptElem.appendChild(document.createTextNode(children));
         }
-        // console.log("ResultContent scriptElem ", scriptElem);
-        // scriptElem.onload = function () {
-        //     console.log("ResultContent script load");
-        // };
+        console.log("ResultContent scriptElem ", scriptElem);
+        scriptElem.onload = function () {
+            console.log("ResultContent script load");
+        };
         instance.current?.appendChild(scriptElem);
     }, [script]);
 
@@ -46,7 +46,10 @@ const IFrameComponent = ({ children }) => {
     const [contentRef, setContentRef] = useState(null);
     const mountNode = contentRef?.contentDocument?.body;
     return (
-        <iframe style={{ width: "800px", height: "500px" }} ref={setContentRef}>
+        <iframe
+            style={{ width: "100%", height: "100vh", border: "0px solid white" }}
+            ref={setContentRef}
+        >
             {mountNode && createPortal(children, mountNode)}
         </iframe>
     );
@@ -87,8 +90,9 @@ const ResultContent = React.memo(({ codeResult }) => {
         // const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
         // console.log("ResultContent: ", codeResult?.result);
         const showMarkdown = store.getState().projectManager.settings?.rich_output?.show_markdown;
-        
-        let jsxElements = Object.keys(codeResult?.result?.content).map((key, index) => {
+        const contentKeys = Object.keys(codeResult?.result?.content);
+        // console.log("ResultContent contentKeys: ", contentKeys);
+        let jsxElements = contentKeys?.map((key, index) => {
             const imageMime = getMimeWithImage([key]);
             if (key === SubContentType.APPLICATION_JAVASCRIPT) {
                 return (
@@ -126,7 +130,7 @@ const ResultContent = React.memo(({ codeResult }) => {
                     />
                 );
             } else if (key === SubContentType.TEXT_HTML) {
-                const htmlRegex = new RegExp("<!DOCTYPE html>");
+                const htmlRegex = new RegExp("<!DOCTYPE html>|<html>");
                 const htmlContent = codeResult?.result?.content[SubContentType.TEXT_HTML];
                 // console.log("ResultContent text/html content: ", htmlContent);
                 let isFullPage = htmlRegex.test(htmlContent);
@@ -152,8 +156,17 @@ const ResultContent = React.memo(({ codeResult }) => {
                         children={codeResult?.result?.content[SubContentType.MARKDOWN]}
                     />
                 );
+            } else if (key === SubContentType.TEXT_PLAIN && contentKeys.length === 1) {
+            /** only display text/plain when it is the only content */
+                return (
+                    <pre
+                        style={{ fontSize: "12px" }}
+                        children={codeResult?.result?.content[SubContentType.TEXT_PLAIN]}
+                    />
+                );
             }
         });
+        console.log("ResultContent renderResultContent: ", jsxElements);
         return <div>{jsxElements}</div>;
     };
 

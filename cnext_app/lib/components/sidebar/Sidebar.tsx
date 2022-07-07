@@ -28,14 +28,14 @@ import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
 import Divider from "@mui/material/Divider";
 import { restartKernel, interruptKernel } from "../kernel-manager/KernelManager";
-import KernelInterruptConfirmation from "../kernel-manager/KernelInterruptConfirmation";
-import KernelRestartComfirmation from "../kernel-manager/KernelRestartConfirmation";
+import KernelCommandConfirmation from "../kernel-manager/KernelCommandConfirmation";
 import Account from "../user-manager/Account";
+import { KernelManagerCommand } from "../../interfaces/IKernelManager";
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
         <StyledAppToolbarItem key={icon.name} selected={selectedIcon === icon.name}>
-            <Tooltip title={icon.tooltip} placement='right-end'>
+            <Tooltip title={icon.tooltip} placement="right-end">
                 <StyledSidebarButton
                     id={"sidebar_" + icon.name}
                     onClick={() => handleClick(icon.name)}
@@ -57,8 +57,9 @@ const SideBarDivider = () => {
 
 const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
-    const [openKernelInterruptDialog, setOpenKernelInterruptDialog] = useState(false);
-    const [openKernelRestartDialog, setOpenKernelRestartDialog] = useState(false);
+    const [kernelCommand, setKernelCommand] = useState<KernelManagerCommand | null>(
+        null
+    );
     const dispatch = useDispatch();
 
     const projectManagerIconList = [
@@ -117,9 +118,9 @@ const MiniSidebar = () => {
         } else if (name === SideBarName.CHANGE_LAYOUT) {
             handleClickChangeLayout();
         } else if (name === SideBarName.RESTART_KERNEL) {
-            setOpenKernelRestartDialog(true);
+            setKernelCommand(KernelManagerCommand.restart_kernel);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
-            setOpenKernelInterruptDialog(true);
+            setKernelCommand(KernelManagerCommand.interrupt_kernel);
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -129,18 +130,15 @@ const MiniSidebar = () => {
         }
     };
 
-    const handleKernelInterruptDialogClose = (confirm: boolean) => {
+    const commandDialogConfirm = (confirm: boolean, command: KernelManagerCommand) => {
+        setKernelCommand(null);
         if (confirm) {
-            interruptKernel();
+            if (command === KernelManagerCommand.interrupt_kernel) {
+                interruptKernel();
+            } else if (command === KernelManagerCommand.restart_kernel) {
+                restartKernel();
+            }
         }
-        setOpenKernelInterruptDialog(false);
-    };
-
-    const handleKernelRestartDialogClose = (confirm: boolean) => {
-        if (confirm) {
-            restartKernel();
-        }
-        setOpenKernelRestartDialog(false);
     };
 
     useEffect(() => {
@@ -155,7 +153,7 @@ const MiniSidebar = () => {
         <Fragment>
             <Sidebar>
                 <Logo />
-                <AppToolbar variant='permanent'>
+                <AppToolbar variant="permanent">
                     <AppToolbarList>
                         {projectManagerIconList.map((icon, index) => (
                             <AppToolbarItem
@@ -191,15 +189,13 @@ const MiniSidebar = () => {
                 </AppToolbar>
                 <Account />
             </Sidebar>
-            <MainContainerDivider orientation='vertical' />
-            <KernelInterruptConfirmation
-                openDialog={openKernelInterruptDialog}
-                confirm={handleKernelInterruptDialogClose}
-            />
-            <KernelRestartComfirmation
-                openDialog={openKernelRestartDialog}
-                confirm={handleKernelRestartDialogClose}
-            />
+            <MainContainerDivider orientation="vertical" />
+            {kernelCommand !== null && (
+                <KernelCommandConfirmation
+                    command={kernelCommand}
+                    confirmHandler={commandDialogConfirm}
+                />
+            )}
         </Fragment>
     );
 };

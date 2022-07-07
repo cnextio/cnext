@@ -24,6 +24,13 @@ const ConfigTerminal = "ConfigTerminal";
 
 const Terminal = dynamic(() => import("./TerminalJupyter"), { ssr: false });
 
+export type ITextOuput = {
+    type: string;
+    content?: string;
+    groupID: string;
+    lineID: string;
+};
+
 const CodeOutputComponent = React.memo(() => {
     const activeDFStatus = useSelector((state: RootState) => getActiveDataFrameStatus(state));
     const dispatch = useDispatch();
@@ -37,38 +44,49 @@ const CodeOutputComponent = React.memo(() => {
     const roTextOutputUpdateCount = useSelector(
         (state: RootState) => state.richOutput.textOutputUpdateCount
     );
-    let [outputContent, setOutputContent] = useState<(ICodeResultContent | undefined)[]>([]);
-    const codeOutputRef = useRef(null);
+    // const richOutputFocused = useSelector((state: RootState) => state.richOutput.richOutputFocused);
+    const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
+    const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
+    /** use this to reload the output when inViewID changed */
+    const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+    const [outputContent, setOutputContent] = useState<(ITextOuput | undefined)[]>([]);
+    const [lastItemIsROTextOutput, setLastItemIsROTextOutput] = useState<boolean>(false);
+    // const codeOutputRef = useRef(null);
 
-    function getOrderedTextOuput(state: RootState): (ICodeResultContent | undefined)[] {
+    function getOrderedTextOuput(state: RootState): (ITextOuput | undefined)[] {
         const inViewID = state.projectManager.inViewID;
         const groupIDSet = new Set();
         if (inViewID != null) {
             let textOutputs = state.codeEditor.codeLines[inViewID]
                 ?.filter((codeLine: ICodeLine) => {
-                    /** only display one result in a group */
+                    /** only display one text output in a group like jupyter notebook */
                     if (codeLine.groupID == null) {
-                        return codeLine.textOutput != null;
+                        return codeLine.textOutput != null; //true; //codeLine.textOutput != null;
                     } else if (!groupIDSet.has(codeLine.groupID)) {
                         groupIDSet.add(codeLine.groupID);
-                        return codeLine.textOutput != null;
+                        return codeLine.textOutput != null; //true; //codeLine.textOutput != null
                     } else {
                         return false;
                     }
                 })
-                .sort((item1: ICodeLine, item2: ICodeLine) => {
-                    if (item1.textOutput?.order != null && item2.textOutput?.order != null) {
-                        return item1.textOutput?.order - item2.textOutput?.order;
-                    } else {
-                        return -1;
-                    }
-                })
+                // .sort((item1: ICodeLine, item2: ICodeLine) => {
+                //     if (item1.textOutput?.order != null && item2.textOutput?.order != null) {
+                //         return item1.textOutput?.order - item2.textOutput?.order;
+                //     } else {
+                //         return -1;
+                //     }
+                // })
                 .map((item: ICodeLine) => {
                     // return item.textOutput?.content;
                     return {
                         type: "text",
-                        content: item.textOutput?.content,
-                    };
+                        content:
+                            item.textOutput?.content == null || item.textOutput?.content === ""
+                                ? "\n"
+                                : item.textOutput?.content,
+                        groupID: item.groupID,
+                        lineID: item.lineID,
+                    } as ITextOuput;
                 });
             return textOutputs;
         } else {
@@ -122,7 +140,7 @@ const CodeOutputComponent = React.memo(() => {
         );
     };
 
-    const buildDFReviewsOutputComponent = (
+    const renderDFReviewsOutputComponent = (
         key: number,
         updateType: DataFrameUpdateType,
         updatedItems: Array<any>,
@@ -181,14 +199,14 @@ const CodeOutputComponent = React.memo(() => {
                 const state: RootState = store.getState();
                 let textOutputs = getOrderedTextOuput(state);
                 setOutputContent(textOutputs);
-                lastItemIsROTextOutput.current = false;
+                setLastItemIsROTextOutput(false);
             } catch (error) {
                 // TODO: process json error
                 console.error(error);
             }
         }
     };
-    useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced]);
+    useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced, inViewID]);
 
     /** Get an df update messages */
     const handleDFUpdates = () => {
@@ -211,25 +229,27 @@ const CodeOutputComponent = React.memo(() => {
             //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
             if (newOutputContent != null) {
                 setOutputContent((outputContent) => [...outputContent, newOutputContent]);
-                lastItemIsROTextOutput.current = false;
+                setLastItemIsROTextOutput(false);
             }
             dispatch(setDFStatusShowed(true));
         }
     };
     useEffect(handleDFUpdates, [activeDFStatus]);
 
-    const lastItemIsROTextOutput = useRef(true);
-    /** only keep the last richout put text */
+    /** This is to display the text output (often it is an exception)
+     * from the excution of plugins in rich-output panel
+     * Only keep the last richout put text
+     */
     const handleROTextOutput = () => {
         const state = store.getState();
-        const newOutputContent = {
+        const newOutputContent: ITextOuput = {
             type: "text",
             content: state.richOutput.textOutput,
         };
-        if (!lastItemIsROTextOutput.current) {
+        if (!lastItemIsROTextOutput) {
             /** append to the last item */
             setOutputContent((outputContent) => [...outputContent, newOutputContent]);
-            lastItemIsROTextOutput.current = true;
+            setLastItemIsROTextOutput(true);
         } else {
             /** update the last item */
             setOutputContent((outputContent) => [
@@ -265,6 +285,23 @@ const CodeOutputComponent = React.memo(() => {
     };
 
     const [codeOutputContentID, setCodeOutputContentID] = useState(`CodeOutputContent2`);
+    const isItemFocused = (item: ITextOuput | undefined, lastItem: boolean) => {
+        // TODO: implement scoll to rich-output text and df updates
+        // return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;        
+        let richOutputFocused = store.getState().richOutput.richOutputFocused;
+        console.log(
+            "CodeOutput isItemFocused: ",
+            richOutputFocused,
+            lastItemIsROTextOutput,
+            lastItem
+        );
+        return richOutputFocused && lastItemIsROTextOutput && lastItem
+            ? true
+            : item?.groupID != null
+            ? item?.groupID === activeGroup
+            : item?.lineID === activeLine;
+    };
+
     return (
         <CodeOutputContainer>
             {console.log("Render CodeOutputAreaComponent")}
@@ -286,56 +323,48 @@ const CodeOutputComponent = React.memo(() => {
                     Terminal
                 </CodeOutputHeaderText>
             </CodeOutputHeader>
-
-            {codeOutputContentID === "CodeOutputContent2" ? (
-                <CodeOutputContent ref={codeOutputRef} id="CodeOutputContent2">
-                    {textOutputUpdateCount > 0 &&
-                        outputContent?.map((item, index) => (
-                            <Fragment>
-                                {item["type"] === "text" && item["content"] !== "" && (
-                                    <IndividualCodeOutputContent
-                                        key={index}
-                                        component="pre"
-                                        variant="body2"
-                                    >
-                                        <Ansi>{item["content"]}</Ansi>
-                                    </IndividualCodeOutputContent>
+            {codeOutputContentID === "CodeOutputContent2" ? ( <CodeOutputContent id={codeOutputContentID}>
+                {outputContent?.map((item, index) => (
+                    <ScrollIntoViewIfNeeded
+                        active={isItemFocused(item, index === outputContent.length - 1)}
+                        options={{
+                            block: "start",
+                            inline: "center",
+                            behavior: "smooth",
+                            boundary: document.getElementById(codeOutputContentID),
+                        }}
+                    >
+                        {item?.type === "text" && (
+                            <IndividualCodeOutputContent
+                                key={index}
+                                component="pre"
+                                variant="body2"
+                                focused={isItemFocused(item, index === outputContent.length - 1)}
+                            >
+                                <Ansi>{item.content}</Ansi>
+                            </IndividualCodeOutputContent>
+                        )}
+                        {item?.type === "df_updates" && (
+                            <IndividualCodeOutputContent
+                                key={index}
+                                component="pre"
+                                variant="body2"
+                            >
+                                {renderDFReviewsOutputComponent(
+                                    outputContent.length,
+                                    item["content"]["updateType"],
+                                    item["content"]["updateContent"],
+                                    // only the last item and in the review list can be in active review mode
+                                    index === outputContent.length - 1 &&
+                                        updateTypeToReview.includes(item["content"]["updateType"])
                                 )}
-                                {item["type"] === "df_updates" && (
-                                    <IndividualCodeOutputContent
-                                        key={index}
-                                        component="pre"
-                                        variant="body2"
-                                    >
-                                        {buildDFReviewsOutputComponent(
-                                            outputContent.length,
-                                            item["content"]["updateType"],
-                                            item["content"]["updateContent"],
-                                            // only the last item and in the review list can be in active review mode
-                                            index === outputContent.length - 1 &&
-                                                updateTypeToReview.includes(
-                                                    item["content"]["updateType"]
-                                                )
-                                        )}
-                                    </IndividualCodeOutputContent>
-                                )}
-                                {index === outputContent.length - 1 && (
-                                    <ScrollIntoViewIfNeeded
-                                        options={{
-                                            active: true,
-                                            block: "nearest",
-                                            inline: "center",
-                                            behavior: "auto",
-                                            boundary: document.getElementById(codeOutputContentID),
-                                        }}
-                                    />
-                                )}
-                            </Fragment>
-                        ))}
-                </CodeOutputContent>
-            ) : null}
+                            </IndividualCodeOutputContent>
+                        )}
+                    </ScrollIntoViewIfNeeded>
+                ))}
+            </CodeOutputContent>): null}
             {codeOutputContentID === "Terminal" ? (
-                <CodeOutputContent ref={codeOutputRef} id="Terminal">
+                <CodeOutputContent id="Terminal">
                     <Terminal />
                 </CodeOutputContent>
             ) : null}

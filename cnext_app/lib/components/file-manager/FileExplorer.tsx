@@ -380,7 +380,7 @@ const FileExplorer = (props: any) => {
             <Fragment>
                 {Object.keys(openDirs).includes(relativeParentPath) ? (
                     openDirs[relativeParentPath]
-                        .filter((value) => value.name.substring(0, 1) !== ".")
+                        .filter((value) => ![".DS_Store", ".gitignore", "__pycache__"].includes(value.name))
                         .sort(function (a, b) {
                             if (a.name < b.name) {
                                 return -1;

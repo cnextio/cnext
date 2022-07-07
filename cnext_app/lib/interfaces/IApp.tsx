@@ -106,6 +106,7 @@ export enum StandardMimeType {
     IMAGE_SVG = "image/svg+xml",
     IMAGE_PLOTLY = "image/plotly+json",
     TEXT_HTML = "text/html",
+    TEXT_PLAIN = "text/plain",
     APPLICATION_JSON = "application/json",
     APPLICATION_CNEXT = "application/cnext+json",
     APPLICATION_PLOTLY = "application/vnd.plotly.v1+json",

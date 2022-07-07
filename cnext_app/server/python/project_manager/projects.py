@@ -139,18 +139,10 @@ def get_active_project():
     active_project = [project for project in config_dict['open_projects']
                       if project['id'] == config_dict['active_project']]
     if len(active_project) == 0:
-        log.error("Not found active project!")
+        log.error("Active project not found!")
         raise Exception
     return active_project[0]
 
-
-def set_working_dir(path):
-    try:
-        os.chdir(path)
-        return True
-    except Exception:
-        raise Exception
-##
 
 ## Project Settings #
 

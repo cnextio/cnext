@@ -1,7 +1,7 @@
-import { gutter, GutterMarker } from "@codemirror/gutter";
+import { gutter, GutterMarker, gutterLineClass } from "@codemirror/gutter";
 import { StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
-import { setActiveLine } from "../../../redux/reducers/CodeEditorRedux";
+import { setActiveLine as setActiveLineRedux } from "../../../redux/reducers/CodeEditorRedux";
 import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import {
     ICodeActiveLine,
@@ -79,6 +79,7 @@ const setAnchor = (view: EditorView, pos: number) => {
 };
 
 import { setLineStatus as setLineStatusRedux } from "../../../redux/reducers/CodeEditorRedux";
+import { RangeSet } from "@codemirror/rangeset";
 
 const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
     let lineStatus: ICodeLineStatus = {
@@ -101,7 +102,7 @@ const setAnchorToLine = (inViewID: string, view: EditorView, lineNumber: number,
             inViewID: inViewID,
             lineNumber: lineNumber,
         };
-        store.dispatch(setActiveLine(activeLine));   
+        store.dispatch(setActiveLineRedux(activeLine));   
     }
 };;
 
@@ -308,7 +309,6 @@ const genLineDeco = (reduxState: RootState, view: EditorView) =>
         },
         provide: (f) => EditorView.decorations.from(f),
     });
-
 const setGenLineDeco = (reduxState: RootState, view: EditorView | undefined) => {
     if (view) {
         // console.log('CodeEditor set gencode solid')
@@ -318,7 +318,6 @@ const setGenLineDeco = (reduxState: RootState, view: EditorView | undefined) => 
 };
 
 const groupLineCSS = (clazz: string) => Decoration.line({ attributes: { class: clazz } });
-
 const GroupedLineStateEffect = StateEffect.define<{}>();
 const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
     StateField.define<DecorationSet>({
@@ -327,8 +326,8 @@ const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
         },
         update(lineBackgrounds, tr) {
             const activeGroup = store.getState().codeEditor.activeGroup;
-            if (view) {
-                lineBackgrounds = lineBackgrounds.map(tr.changes);
+            lineBackgrounds = lineBackgrounds.map(tr.changes);
+            if (view) {                
                 for (let effect of tr.effects) {
                     if (effect.is(GroupedLineStateEffect)) {
                         // console.log('Magic generatedCodeDeco update ', effect.value.type);
@@ -380,9 +379,9 @@ const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
                             }
                         }
                     }
-                }
-                return lineBackgrounds;
+                }                
             }
+            return lineBackgrounds;
         },
         provide: (f) => EditorView.decorations.from(f),
     });
@@ -435,7 +434,71 @@ const scrollTimer = (dispatch, scrollEl: HTMLElement) => {
     }, 100);
 };
 
-function onMouseDown(event, view: EditorView, dispatch) {
+const firstLineOfGroupMarker = new class extends GutterMarker {
+    elementClass = "cm-groupedfirstlinegutter cm-activeLineGutter";
+};
+
+const lastLineOfGroupMarker = new (class extends GutterMarker {
+    elementClass = "cm-groupedlastlinegutter cm-activeLineGutter";
+})();
+
+const groupedLineGutterHighlighter = gutterLineClass.compute(["doc"], (state) => {
+    let marks = [];
+    let reduxState = store.getState();
+    let inViewID = reduxState.projectManager.inViewID;
+    if (inViewID) {
+        let lines: ICodeLine[] | null = getCodeLine(reduxState);
+        if (lines && state.doc.lines===lines.length) {
+            let currentGroupID = null;
+            for (let ln = 0; ln < lines.length; ln++) {
+                /** convert to 1-based */
+                let line = state.doc.line(ln + 1);
+                if (!lines[ln].generated && lines[ln].groupID != null) {
+                    // const active_clazz = activeGroup === lines[ln].groupID ? "active" : "";
+                    if (lines[ln].groupID != currentGroupID) {
+                        // marks.push(firstLineOfGroupMarker.range(line.from));
+                    } else {
+                    }
+                    if (
+                        /** this is the last line */
+                        ln + 1 === lines.length ||
+                        /** next line belongs to a different group */
+                        lines[ln].groupID !== lines[ln + 1].groupID
+                    ) {
+                        // marks.push(lastLineOfGroupMarker.range(line.from));
+                    }
+                }
+                currentGroupID = lines[ln].groupID;
+            }
+        }
+    }
+    return RangeSet.of(marks);
+});
+
+function groupedLineGutter() {
+    return groupedLineGutterHighlighter;
+};
+    
+/** lineNumber is 0-based */
+    function setActiveLine(lineNumber: number) {
+        try {
+            // console.log('CodeEditor onMouseDown', view, event, dispatch);
+            //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
+            let inViewID = store.getState().projectManager.inViewID;
+            if (inViewID) {
+                let activeLine: ICodeActiveLine = {
+                    inViewID: inViewID,
+                    lineNumber: lineNumber,
+                };
+                store.dispatch(setActiveLineRedux(activeLine));
+                // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+function onMouseDown(event: MouseEvent, view: EditorView) {
     try {
         // console.log('CodeEditor onMouseDown', view, event, dispatch);
         if (view != null) {
@@ -444,24 +507,33 @@ function onMouseDown(event, view: EditorView, dispatch) {
             let pos = view.posAtDOM(event.target);
             //convert to 0-based
             let lineNumber = doc.lineAt(pos).number - 1;
-            let inViewID = store.getState().projectManager.inViewID;
-            if (inViewID) {
-                let activeLine: ICodeActiveLine = {
-                    inViewID: inViewID,
-                    lineNumber: lineNumber,
-                };
-                store.dispatch(setActiveLine(activeLine));
-                // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
-            }
+            setActiveLine(lineNumber);
         }
     } catch (error) {
         console.error(error);
     }
 }
 
-const setHTMLEventHandler = (container, view: EditorView, dispatch) => {
+function onKeyDown(event: KeyboardEvent, view: EditorView) {
+    try {
+        // console.log('CodeEditor onKeyDown', view, event);
+        if (view != null) {
+            //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
+            let doc = view.state.doc;
+            const pos = view.state.selection.ranges[0].anchor;
+            //convert to 0-based
+            let lineNumber = doc.lineAt(pos).number - 1;
+            setActiveLine(lineNumber);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView, dispatch) => {
     if (container) {
-        container.onmousedown = (event) => onMouseDown(event, view, dispatch);
+        container.onmousedown = (event) => onMouseDown(event, view);
+        container.onkeydown = (event) => onKeyDown(event, view);
         let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
         if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(dispatch, scrollEl);
     }
@@ -633,4 +705,5 @@ export {
     getNonGeneratedLinesInRange,
     setAnchor,
     setAnchorToNextGroup,
+    groupedLineGutter,
 };
