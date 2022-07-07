@@ -20,6 +20,7 @@ import dynamic from "next/dynamic";
 import socket from "../Socket";
 import { WebAppEndpoint } from "../../interfaces/IApp";
 import { setConfigTerminal } from "../../../redux/reducers/TerminalRedux";
+const ConfigTerminal = "ConfigTerminal";
 
 const Terminal = dynamic(() => import("./TerminalJupyter"), { ssr: false });
 
@@ -252,7 +253,7 @@ const CodeOutputComponent = React.memo(() => {
     const setupSocket = () => {
         socket.emit("ping", WebAppEndpoint.Terminal);
         socket.emit(WebAppEndpoint.Terminal, {
-            webapp_endpoint: "ConfigTerminal",
+            webapp_endpoint: ConfigTerminal,
         });
         socket.on(WebAppEndpoint.Terminal, (result: string) => {
             try {

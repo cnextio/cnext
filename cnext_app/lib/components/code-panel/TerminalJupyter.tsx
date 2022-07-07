@@ -8,7 +8,6 @@ import { WebAppEndpoint } from "../../interfaces/IApp";
 import store, { RootState } from "../../../redux/store";
 import { useSelector } from "react-redux";
 
-const ConfigTerminal = "ConfigTerminal";
 const Terminal = "terminal";
 let elementTerminal: HTMLElement;
 
