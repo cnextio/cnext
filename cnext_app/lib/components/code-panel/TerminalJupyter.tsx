@@ -13,8 +13,8 @@ const Term = () => {
 
     let session: any;
     async function init() {
-        const BASEURL = "http://localhost:8888";
-        const TOKEN = "cnext-token";
+        const BASEURL = "http://localhost:5008";
+        const TOKEN = "token123";
         const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
         const connectionInfo = ServerConnection.makeSettings({
             baseUrl: BASEURL,
@@ -85,10 +85,10 @@ const Term = () => {
 
     useEffect(() => {
         if (xtermRef?.current?.terminal && session) {
-            session.send({
-                type: "set_size",
-                content: [24, 124, elementTerminal.offsetHeight, elementTerminal.offsetWidth],
-            });
+            // session.send({
+            //     type: "set_size",
+            //     content: [24, 124, elementTerminal.offsetHeight, elementTerminal.offsetWidth],
+            // });
         }
     }, [session]);
 
