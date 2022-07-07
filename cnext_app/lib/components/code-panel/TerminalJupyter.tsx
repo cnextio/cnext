@@ -18,7 +18,7 @@ const Term = () => {
 
     const xtermRef = useRef(null);
     const fitAddon = new FitAddon();
-    const [config, setConfig] = useState({ port: 5008, token: "token123" });
+    const config = useSelector((state: RootState) => state.terminal.config);
     let session: any;
 
     async function init() {
@@ -85,31 +85,14 @@ const Term = () => {
             // session.di
         };
     }, [config]); //TODO: run this only once - not on rerender
-    const setupSocket = () => {
-        socket.emit("ping", WebAppEndpoint.Terminal);
-        socket.emit(WebAppEndpoint.Terminal, {
-            webapp_endpoint: ConfigTerminal,
-        });
-        socket.on(WebAppEndpoint.Terminal, (result: string) => {
-            try {
-                setConfig(JSON.parse(result).config);
-            } catch (error) {
-                throw error;
-            }
-        });
-    };
+
     function onTermData(data: string) {
         session.send({
             type: "stdin",
             content: [data],
         });
     }
-    useEffect(() => {
-        // setupSocket();
-        return () => {
-            socket.off(WebAppEndpoint.Terminal);
-        };
-    }, []);
+
     useEffect(() => {
         if (xtermRef?.current?.terminal && session) {
         }
