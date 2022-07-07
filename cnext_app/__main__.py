@@ -1,5 +1,4 @@
 import glob
-import readline
 import os
 from site import abs_paths
 import sys
@@ -14,6 +13,9 @@ import uuid
 import shutil
 import yaml
 import os
+from pyreadline import Readline
+readline = Readline()
+
 
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
 server_path = os.path.join(web_path, 'server')
@@ -81,7 +83,7 @@ def download_and_unzip(url, extract_to='.'):
 
 
 def complete(text, state):
-    return (glob.glob(text+'*')+[None])[state]
+    return (glob.glob(os.path.expanduser(text+'*'))+[None])[state]
 
 
 readline.set_completer_delims(' \t\n;')
@@ -92,15 +94,18 @@ readline.set_completer(complete)
 def build_path():
     path = input(
         'Please enter the directory to store the sample project: ')
-    print('Checking your path: ' + path)
     abs_paths = os.path.abspath(path)
+
+    if not os.path.exists(abs_paths):
+        os.makedirs(abs_paths)
+
     if os.path.isdir(abs_paths):
         os.chdir(abs_paths)
         # folder_name = os.path.basename(abs_paths)
-        print('The sample project will be downloaded to', path)
+        print('The sample project will be downloaded to', abs_paths)
         download_and_unzip(DOWNLOAD_PATH, abs_paths)
     else:
-        print('The path does not exist or is not a directory. Please try again!')
+        print('The path is not a directory. Please try again!')
         build_path()
 
 
