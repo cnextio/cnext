@@ -8,11 +8,12 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = ">=3.9"
-plotly = "^5.7.0"
+plotly = "~5.7.0"
 simplejson = "^3.17.6"
 requests = "^2.27.1"
 mlflow = "^1.25.1"
-zmq = "^0.0.0"
+pyzmq = "^23.2.0"
+pyyaml = "^5.1"
 send2trash = "^1.8.0"
 jupyter-client = "^7.2.2"
 jupyterlab = "^3.3.4"
@@ -24,6 +25,7 @@ cnextlib = "^0.4.0"
 netron = "^5.7.8"
 sentry-sdk = "^1.5.12"
 protobuf = "3.20.1"
+pyreadline = "^2.1"
 
 [tool.poetry.dev-dependencies]
 
