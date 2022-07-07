@@ -26,7 +26,7 @@ export const groupWidgetExtension = EditorView.decorations.compute(["doc"], (sta
             for (let ln = 0; ln < lines.length; ln++) {
                 /** convert to 1-based */
                 let line = state.doc.line(ln + 1);
-                if (!lines[ln].generated && lines[ln].groupID != null) {
+                if (!lines[ln].generated ) {
                     if (lines[ln].groupID != currentGroupID) {
                         let widget = Decoration.widget({
                             widget: new GroupWidget(),

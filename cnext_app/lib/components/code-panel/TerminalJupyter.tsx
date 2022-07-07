@@ -83,7 +83,7 @@ const Term = () => {
         return () => {
             // session.di
         };
-    }, [config]); //TODO: run this only once - not on rerender
+    }, []); //TODO: run this only once - not on rerender
 
     function onTermData(data: string) {
         session.send({

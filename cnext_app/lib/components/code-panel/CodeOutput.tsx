@@ -287,7 +287,7 @@ const CodeOutputComponent = React.memo(() => {
     const [codeOutputContentID, setCodeOutputContentID] = useState(`CodeOutputContent2`);
     const isItemFocused = (item: ITextOuput | undefined, lastItem: boolean) => {
         // TODO: implement scoll to rich-output text and df updates
-        // return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;        
+        // return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;
         let richOutputFocused = store.getState().richOutput.richOutputFocused;
         console.log(
             "CodeOutput isItemFocused: ",
@@ -308,11 +308,10 @@ const CodeOutputComponent = React.memo(() => {
             <CodeOutputHeader>
                 <CodeOutputHeaderText
                     onClick={() => setCodeOutputContentID(`CodeOutputContent2`)}
-                    underline={codeOutputContentID === "CodeOutputContent2" ? true : false}
                     variant="overline"
                     component="span"
                 >
-                    Output
+                    Console
                 </CodeOutputHeaderText>
                 <CodeOutputHeaderText
                     onClick={() => setCodeOutputContentID(`Terminal`)}
@@ -323,46 +322,53 @@ const CodeOutputComponent = React.memo(() => {
                     Terminal
                 </CodeOutputHeaderText>
             </CodeOutputHeader>
-            {codeOutputContentID === "CodeOutputContent2" ? ( <CodeOutputContent id={codeOutputContentID}>
-                {outputContent?.map((item, index) => (
-                    <ScrollIntoViewIfNeeded
-                        active={isItemFocused(item, index === outputContent.length - 1)}
-                        options={{
-                            block: "start",
-                            inline: "center",
-                            behavior: "smooth",
-                            boundary: document.getElementById(codeOutputContentID),
-                        }}
-                    >
-                        {item?.type === "text" && (
-                            <IndividualCodeOutputContent
-                                key={index}
-                                component="pre"
-                                variant="body2"
-                                focused={isItemFocused(item, index === outputContent.length - 1)}
-                            >
-                                <Ansi>{item.content}</Ansi>
-                            </IndividualCodeOutputContent>
-                        )}
-                        {item?.type === "df_updates" && (
-                            <IndividualCodeOutputContent
-                                key={index}
-                                component="pre"
-                                variant="body2"
-                            >
-                                {renderDFReviewsOutputComponent(
-                                    outputContent.length,
-                                    item["content"]["updateType"],
-                                    item["content"]["updateContent"],
-                                    // only the last item and in the review list can be in active review mode
-                                    index === outputContent.length - 1 &&
-                                        updateTypeToReview.includes(item["content"]["updateType"])
-                                )}
-                            </IndividualCodeOutputContent>
-                        )}
-                    </ScrollIntoViewIfNeeded>
-                ))}
-            </CodeOutputContent>): null}
+            {codeOutputContentID === "CodeOutputContent2" ? (
+                <CodeOutputContent id={codeOutputContentID}>
+                    {outputContent?.map((item, index) => (
+                        <ScrollIntoViewIfNeeded
+                            active={isItemFocused(item, index === outputContent.length - 1)}
+                            options={{
+                                block: "start",
+                                inline: "center",
+                                behavior: "smooth",
+                                boundary: document.getElementById(codeOutputContentID),
+                            }}
+                        >
+                            {item?.type === "text" && (
+                                <IndividualCodeOutputContent
+                                    key={index}
+                                    component="pre"
+                                    variant="body2"
+                                    focused={isItemFocused(
+                                        item,
+                                        index === outputContent.length - 1
+                                    )}
+                                >
+                                    <Ansi>{item.content}</Ansi>
+                                </IndividualCodeOutputContent>
+                            )}
+                            {item?.type === "df_updates" && (
+                                <IndividualCodeOutputContent
+                                    key={index}
+                                    component="pre"
+                                    variant="body2"
+                                >
+                                    {renderDFReviewsOutputComponent(
+                                        outputContent.length,
+                                        item["content"]["updateType"],
+                                        item["content"]["updateContent"],
+                                        // only the last item and in the review list can be in active review mode
+                                        index === outputContent.length - 1 &&
+                                            updateTypeToReview.includes(
+                                                item["content"]["updateType"]
+                                            )
+                                    )}
+                                </IndividualCodeOutputContent>
+                            )}
+                        </ScrollIntoViewIfNeeded>
+                    ))}
+                </CodeOutputContent>
+            ) : null}
             {codeOutputContentID === "Terminal" ? (
                 <CodeOutputContent id="Terminal">
                     <Terminal />

@@ -45,6 +45,7 @@ type CodeEditorState = {
     lineStatusUpdateCount: number;
     activeLine: string | null;
     activeGroup: string | undefined;
+    activeLineNumber: number | null;
     cAssistInfo: ICAssistInfo | undefined;
     runDict: {} | undefined;
     runningId: string | undefined;
@@ -68,6 +69,7 @@ const initialState: CodeEditorState = {
     lineStatusUpdateCount: 0,
     activeLine: null,
     activeGroup: undefined,
+    activeLineNumber: null,
     cAssistInfo: undefined,
     runDict: undefined,
     runningId: undefined,
@@ -115,7 +117,7 @@ function setLineStatusInternal(state: CodeEditorState, lineStatus: ICodeLineStat
             // state.codeText[inViewID] = lineStatus.text;
             // state.fileSaved = false;
         }
-        if(lineStatus.status===LineStatus.EXECUTING){
+        if (lineStatus.status === LineStatus.EXECUTING) {
             /** clear the result before executing */
             codeLines[lineStatus.lineRange.fromLine].result = undefined;
             state.resultUpdateCount++;
@@ -400,12 +402,33 @@ export const CodeEditorRedux = createSlice({
             clearRunningLineTextOutputInternal(state, action.payload);
         },
 
+        /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
         setActiveLine: (state, action) => {
-            let activeLine: ICodeActiveLine = action.payload;
-            let lineNumber = activeLine.lineNumber;
-            let codeLines: ICodeLine[] = state.codeLines[activeLine.inViewID];
-            state.activeLine = codeLines[lineNumber].lineID;
-            state.activeGroup = codeLines[lineNumber].groupID;
+            let newActiveLine: ICodeActiveLine = action.payload;
+            let lineNumber = newActiveLine.lineNumber;
+            let lineID = newActiveLine.lineID;
+            let groupID: string | undefined;
+
+            let codeLines: ICodeLine[] = state.codeLines[newActiveLine.inViewID];
+            if (lineNumber != null) {
+                lineID = codeLines[lineNumber].lineID;
+                groupID = codeLines[lineNumber].groupID;
+            } else if (lineID != null) {
+                /** we pay some price here but this is the use case where user click on result which maybe ok */
+                for (let i = 0; i < codeLines.length; i++) {
+                    const codeLine = codeLines[i];
+                    if (codeLine.lineID === lineID) {
+                        groupID = codeLine.groupID;
+                        lineNumber = i;
+                    }
+                }
+            }
+            if (lineID != null) {
+                state.activeLine = lineID;
+                state.activeGroup = groupID;
+                /** have to do this because lineNumber is either number or undefined */
+                state.activeLineNumber = (lineNumber != null) ? lineNumber : null;
+            }
         },
 
         // setFileSaved: (state, action) => {

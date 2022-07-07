@@ -321,8 +321,14 @@ export interface IRichOutputSettings {
     show_markdown: boolean;
 }
 
+export interface ILayoutSettings {
+    /** unit: px */
+    project_explorer_size: number; 
+}
+
 export interface IConfigs {
     view_mode: ViewMode | undefined;
+    layout: ILayoutSettings | undefined;
     code_editor_shortcut: IEditorShortcutKey;
     app_shortcut?: IAppShortcutKey;
     experiment_manager?: IExperimentManagerConfig;
