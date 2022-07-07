@@ -116,11 +116,16 @@ const Term = () => {
             <XTerm
                 onResize={onResize}
                 options={{
+                    /**
+                     * The width of the cursor in CSS pixels when `cursorStyle` is set to 'bar'.
+                     */
+                    cursorStyle: "bar",
+                    cursorWidth: 4,
                     fontFamily: `monospace`,
                     fontSize: 13,
                     lineHeight: 1.43,
                     fontWeight: 400,
-                    theme: { background: "white", foreground: "#000000", cursor: "#000000" },
+                    theme: { background: "white", foreground: "#808080", cursor: "#808080" },
                 }}
                 addons={[fitAddon]}
                 onData={onTermData}
