@@ -13,8 +13,11 @@ import uuid
 import shutil
 import yaml
 import os
-from pyreadline import Readline
-readline = Readline()
+if sys.platform.startswith("win"):
+    from pyreadline import Readline
+    readline = Readline()
+else:
+    import readline
 
 
 web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
