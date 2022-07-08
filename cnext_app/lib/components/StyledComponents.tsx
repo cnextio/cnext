@@ -546,7 +546,7 @@ export const CodeEditMarker = styled.div`
     background-color: green;
     border: 2px;
 `;
-export const ControlPanelContainer = styled.div`
+export const TextIOContainer = styled.div`
     display: flex;
     flex-direction: column;
     padding: 0px 10px 0px 10px;
@@ -555,11 +555,11 @@ export const ControlPanelContainer = styled.div`
     width: 100%;
 `;
 
-export const ControlPanelHeader = styled.div`
+export const TextIOHeader = styled.div`
     height: 30px;
 `;
 
-export const ControlPanelHeaderText = styled(Typography)`
+export const TextIOHeaderText = styled(Typography)`
     // height: 30px;
     // text-decoration: underline;
     font-size: 11px;
@@ -569,7 +569,7 @@ export const ControlPanelHeaderText = styled(Typography)`
     cursor: pointer;
 `;
 // need this compoent to make the text output respect tab character
-export const ControlPanelContent = styled.div`
+export const TextIOContent = styled.div`
     overflow: auto;
     height: 100%;
     // flex-grow: 1;

@@ -7,7 +7,7 @@ import CodeToolbar from "./CodeToolbar";
 import Pane from "react-split-pane-v2";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import ControlPanelComponent from "./ControlPanelComponent";
+import TextIOComponent from "./TextIOComponent";
 
 const CodePanel = ({ workingPanelViewMode }) => {
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
@@ -25,7 +25,7 @@ const CodePanel = ({ workingPanelViewMode }) => {
                 >
                     <Pane>{inViewID != null && <CodeEditor />}</Pane>
                     <Pane size="30%">
-                        <ControlPanelComponent />
+                        <TextIOComponent />
                     </Pane>
                 </SplitPane>
             </CodeContainer>
