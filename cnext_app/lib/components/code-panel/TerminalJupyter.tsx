@@ -7,6 +7,7 @@ import socket from "../Socket";
 import { WebAppEndpoint } from "../../interfaces/IApp";
 import store, { RootState } from "../../../redux/store";
 import { useSelector } from "react-redux";
+import styled, { keyframes } from "styled-components";
 
 const Terminal = "terminal";
 let elementTerminal: HTMLElement;
@@ -103,6 +104,7 @@ const Term = () => {
 
     const onResize = (event: { rows: number; cols: number }) => {
         if (xtermRef?.current?.terminal && session) {
+            console.log(`rows`, event.rows);
             session.send({
                 type: "set_size",
                 content: [
@@ -115,21 +117,31 @@ const Term = () => {
             fitAddon.fit();
         }
     };
+
+    const StyledTerm = styled(XTerm)`
+        height: 100%;
+    `;
     return (
         <>
-            <XTerm
+            <StyledTerm
                 onResize={onResize}
                 options={{
+                    cursorBlink: true,
                     /**
                      * The width of the cursor in CSS pixels when `cursorStyle` is set to 'bar'.
                      */
                     cursorStyle: "bar",
-                    cursorWidth: 3,
+                    cursorWidth: 2,
                     fontFamily: `monospace`,
                     fontSize: 13,
                     lineHeight: 1.43,
                     fontWeight: 400,
-                    theme: { background: "white", foreground: "#808080", cursor: "#808080" },
+                    theme: {
+                        selection: "#b1b1b155",
+                        background: "white",
+                        foreground: "#808080",
+                        cursor: "#808080",
+                    },
                 }}
                 addons={[fitAddon]}
                 onData={onTermData}
