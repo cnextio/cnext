@@ -6,24 +6,16 @@ import {
     CodeOutputContent,
     IndividualCodeOutputContent,
     CodeOutputHeader,
-} from "../StyledComponents";
+} from "../../StyledComponents";
 import { Box, Typography } from "@mui/material";
-import { DataFrameUpdateType, IDataFrameStatus } from "../../interfaces/IDataFrameStatus";
+import { DataFrameUpdateType, IDataFrameStatus } from "../../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
-import ReviewComponent from "./DFReview";
+import ReviewComponent from "../DFReview";
 import Ansi from "ansi-to-react";
-import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
-import store, { RootState } from "../../../redux/store";
-import { getLastUpdate } from "../dataframe-manager/libDataFrameManager";
-import { setDFStatusShowed } from "../../../redux/reducers/DataFramesRedux";
-import dynamic from "next/dynamic";
-import socket from "../Socket";
-import { WebAppEndpoint } from "../../interfaces/IApp";
-import { setConfigTerminal } from "../../../redux/reducers/TerminalRedux";
-const ConfigTerminal = "ConfigTerminal";
-
-const Terminal = dynamic(() => import("./TerminalJupyter"), { ssr: false });
-
+import { ICodeLine, ICodeResultContent } from "../../../interfaces/ICodeEditor";
+import store, { RootState } from "../../../../redux/store";
+import { getLastUpdate } from "../../dataframe-manager/libDataFrameManager";
+import { setDFStatusShowed } from "../../../../redux/reducers/DataFramesRedux";
 export type ITextOuput = {
     type: string;
     content?: string;
@@ -31,7 +23,7 @@ export type ITextOuput = {
     lineID: string;
 };
 
-const CodeOutputComponent = React.memo(() => {
+const ConsoleComponent = React.memo(() => {
     const activeDFStatus = useSelector((state: RootState) => getActiveDataFrameStatus(state));
     const dispatch = useDispatch();
     // const dfUpdateCount = useSelector((state: RootState) => state.dataFrames.dfUpdateCount);
@@ -264,25 +256,6 @@ const CodeOutputComponent = React.memo(() => {
             handleROTextOutput();
         }
     }, [roTextOutputUpdateCount]);
-    useEffect(() => {
-        setupSocket();
-        return () => {
-            socket.off(WebAppEndpoint.Terminal);
-        };
-    }, []);
-    const setupSocket = () => {
-        socket.emit("ping", WebAppEndpoint.Terminal);
-        socket.emit(WebAppEndpoint.Terminal, {
-            webapp_endpoint: ConfigTerminal,
-        });
-        socket.on(WebAppEndpoint.Terminal, (result: string) => {
-            try {
-                dispatch(setConfigTerminal(JSON.parse(result).config));
-            } catch (error) {
-                throw error;
-            }
-        });
-    };
 
     const [codeOutputContentID, setCodeOutputContentID] = useState(`CodeOutputContent2`);
     const isItemFocused = (item: ITextOuput | undefined, lastItem: boolean) => {
@@ -303,80 +276,43 @@ const CodeOutputComponent = React.memo(() => {
     };
 
     return (
-        <CodeOutputContainer>
-            {console.log("Render CodeOutputAreaComponent")}
-            <CodeOutputHeader>
-                <CodeOutputHeaderText
-                    onClick={() => setCodeOutputContentID(`CodeOutputContent2`)}
-                    variant="overline"
-                    underline={codeOutputContentID === "CodeOutputContent2" ? true : false}
-                    component="span"
+        <>
+            {outputContent?.map((item, index) => (
+                <ScrollIntoViewIfNeeded
+                    active={isItemFocused(item, index === outputContent.length - 1)}
+                    options={{
+                        block: "start",
+                        inline: "center",
+                        behavior: "smooth",
+                        boundary: document.getElementById(codeOutputContentID),
+                    }}
                 >
-                    Console
-                </CodeOutputHeaderText>
-                <CodeOutputHeaderText
-                    onClick={() => setCodeOutputContentID(`Terminal`)}
-                    underline={codeOutputContentID === "Terminal" ? true : false}
-                    variant="overline"
-                    component="span"
-                >
-                    Terminal
-                </CodeOutputHeaderText>
-            </CodeOutputHeader>
-            {codeOutputContentID === "CodeOutputContent2" ? (
-                <CodeOutputContent id={codeOutputContentID}>
-                    {outputContent?.map((item, index) => (
-                        <ScrollIntoViewIfNeeded
-                            active={isItemFocused(item, index === outputContent.length - 1)}
-                            options={{
-                                block: "start",
-                                inline: "center",
-                                behavior: "smooth",
-                                boundary: document.getElementById(codeOutputContentID),
-                            }}
+                    {item?.type === "text" && (
+                        <IndividualCodeOutputContent
+                            key={index}
+                            component="pre"
+                            variant="body2"
+                            focused={isItemFocused(item, index === outputContent.length - 1)}
                         >
-                            {item?.type === "text" && (
-                                <IndividualCodeOutputContent
-                                    key={index}
-                                    component="pre"
-                                    variant="body2"
-                                    focused={isItemFocused(
-                                        item,
-                                        index === outputContent.length - 1
-                                    )}
-                                >
-                                    <Ansi>{item.content}</Ansi>
-                                </IndividualCodeOutputContent>
+                            <Ansi>{item.content}</Ansi>
+                        </IndividualCodeOutputContent>
+                    )}
+                    {item?.type === "df_updates" && (
+                        <IndividualCodeOutputContent key={index} component="pre" variant="body2">
+                            {renderDFReviewsOutputComponent(
+                                outputContent.length,
+                                item["content"]["updateType"],
+                                item["content"]["updateContent"],
+                                // only the last item and in the review list can be in active review mode
+                                index === outputContent.length - 1 &&
+                                    updateTypeToReview.includes(item["content"]["updateType"])
                             )}
-                            {item?.type === "df_updates" && (
-                                <IndividualCodeOutputContent
-                                    key={index}
-                                    component="pre"
-                                    variant="body2"
-                                >
-                                    {renderDFReviewsOutputComponent(
-                                        outputContent.length,
-                                        item["content"]["updateType"],
-                                        item["content"]["updateContent"],
-                                        // only the last item and in the review list can be in active review mode
-                                        index === outputContent.length - 1 &&
-                                            updateTypeToReview.includes(
-                                                item["content"]["updateType"]
-                                            )
-                                    )}
-                                </IndividualCodeOutputContent>
-                            )}
-                        </ScrollIntoViewIfNeeded>
-                    ))}
-                </CodeOutputContent>
-            ) : null}
-            {codeOutputContentID === "Terminal" ? (
-                <CodeOutputContent id="Terminal">
-                    <Terminal />
-                </CodeOutputContent>
-            ) : null}
-        </CodeOutputContainer>
+                        </IndividualCodeOutputContent>
+                    )}
+                </ScrollIntoViewIfNeeded>
+            ))}
+        </>
     );
 });
 
-export default CodeOutputComponent;
+export default ConsoleComponent;

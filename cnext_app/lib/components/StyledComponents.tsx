@@ -546,7 +546,7 @@ export const CodeEditMarker = styled.div`
     background-color: green;
     border: 2px;
 `;
-export const CodeOutputContainer = styled.div`
+export const ControlPanelContainer = styled.div`
     display: flex;
     flex-direction: column;
     padding: 0px 10px 0px 10px;
@@ -555,26 +555,26 @@ export const CodeOutputContainer = styled.div`
     width: 100%;
 `;
 
-export const CodeOutputHeader = styled.div`
+export const ControlPanelHeader = styled.div`
     height: 30px;
 `;
 
-export const CodeOutputHeaderText = styled(Typography)`
+export const ControlPanelHeaderText = styled(Typography)`
     // height: 30px;
     // text-decoration: underline;
     font-size: 11px;
-    border-bottom-style: ${(props) => props.underline  ? `solid` : `none`};
-    margin-right:10px;
+    border-bottom-style: ${(props) => (props.underline ? `solid` : `none`)};
+    margin-right: 10px;
     border-width: 1px;
-    cursor: pointer
+    cursor: pointer;
 `;
 // need this compoent to make the text output respect tab character
-export const CodeOutputContent = styled.div`
+export const ControlPanelContent = styled.div`
     overflow: auto;
     height: 100%;
     // flex-grow: 1;
 `;
-// export const IndividualCodeOutputContent = styled.pre`
+// export const IndividualControlPanelContent = styled.pre`
 //     margin: 0px;
 //     padding: 5px 0px 5px 0px;
 //     overflow: auto;
@@ -583,7 +583,7 @@ export const CodeOutputContent = styled.div`
 //         background-color: ${props => props.theme.palette.action.hover};
 //     }
 // `;
-export const IndividualCodeOutputContent = styled(Typography)`
+export const IndividualControlPanelContent = styled(Typography)`
     margin-bottom: 10px;
     padding: 5px 0px 5px 0px;
     overflow: auto;

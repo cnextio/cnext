@@ -3,11 +3,11 @@ import { StyledCodePanel, CodeContainer } from "../StyledComponents";
 import SplitPane from "react-split-pane-v2";
 import CodeEditor from "./CodeEditor";
 import { IMessage, ViewMode } from "../../interfaces/IApp";
-import CodeOutput from "./CodeOutput";
 import CodeToolbar from "./CodeToolbar";
 import Pane from "react-split-pane-v2";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
+import ControlPanelComponent from "./ControlPanelComponent";
 
 const CodePanel = ({ workingPanelViewMode }) => {
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
@@ -23,11 +23,9 @@ const CodePanel = ({ workingPanelViewMode }) => {
                             : ViewMode.HORIZONTAL
                     }
                 >
-                    <Pane>
-                        {inViewID!=null && <CodeEditor />}
-                    </Pane>
+                    <Pane>{inViewID != null && <CodeEditor />}</Pane>
                     <Pane size="30%">
-                        <CodeOutput />
+                        <ControlPanelComponent />
                     </Pane>
                 </SplitPane>
             </CodeContainer>

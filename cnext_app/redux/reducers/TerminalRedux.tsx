@@ -5,6 +5,7 @@ type TerminalState = {
         port: number | undefined;
         token: string;
     };
+    session: any;
 };
 
 const initialState: TerminalState = {
@@ -12,6 +13,7 @@ const initialState: TerminalState = {
         port: undefined,
         token: "",
     },
+    session: null,
 };
 
 export const TerminalRedux = createSlice({
@@ -22,9 +24,12 @@ export const TerminalRedux = createSlice({
         setConfigTerminal: (state, action) => {
             state.config = action.payload;
         },
+        setSessionTerminal: (state, action) => {
+            state.session = action.payload;
+        },
     },
 });
 
-export const { setConfigTerminal } = TerminalRedux.actions;
+export const { setConfigTerminal, setSessionTerminal } = TerminalRedux.actions;
 
 export default TerminalRedux.reducer;

@@ -3,17 +3,15 @@ import { XTerm } from "xterm-for-react";
 import { PageConfig } from "@jupyterlab/coreutils";
 import { TerminalAPI, TerminalManager, ServerConnection } from "@jupyterlab/services";
 import { FitAddon } from "xterm-addon-fit";
-import socket from "../Socket";
-import { WebAppEndpoint } from "../../interfaces/IApp";
-import store, { RootState } from "../../../redux/store";
+import store, { RootState } from "../../../../redux/store";
 import { useSelector } from "react-redux";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 
 const Terminal = "terminal";
 let elementTerminal: HTMLElement;
 let session: any;
 
-const Term = () => {
+const TerminalComponent = () => {
     const state = store.getState();
     const pathRoot = useSelector((state: RootState) => state.projectManager.activeProject?.path);
 
@@ -91,10 +89,12 @@ const Term = () => {
     }, []); //TODO: run this only once - not on rerender
 
     function onTermData(data: string) {
-        session.send({
-            type: "stdin",
-            content: [data],
-        });
+        if (session) {
+            session.send({
+                type: "stdin",
+                content: [data],
+            });
+        }
     }
 
     useEffect(() => {
@@ -104,16 +104,6 @@ const Term = () => {
 
     const onResize = (event: { rows: number; cols: number }) => {
         if (xtermRef?.current?.terminal && session) {
-            console.log(`rows`, event.rows);
-            session.send({
-                type: "set_size",
-                content: [
-                    event.rows,
-                    event.cols,
-                    elementTerminal.offsetHeight,
-                    elementTerminal.offsetWidth,
-                ],
-            });
             fitAddon.fit();
         }
     };
@@ -151,4 +141,4 @@ const Term = () => {
     );
 };
 
-export default Term;
+export default TerminalComponent;
