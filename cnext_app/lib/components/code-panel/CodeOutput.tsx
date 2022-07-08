@@ -309,6 +309,7 @@ const CodeOutputComponent = React.memo(() => {
                 <CodeOutputHeaderText
                     onClick={() => setCodeOutputContentID(`CodeOutputContent2`)}
                     variant="overline"
+                    underline={codeOutputContentID === "CodeOutputContent2" ? true : false}
                     component="span"
                 >
                     Console

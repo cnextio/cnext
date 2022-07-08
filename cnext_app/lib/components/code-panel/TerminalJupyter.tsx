@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 
 const Terminal = "terminal";
 let elementTerminal: HTMLElement;
+let session: any;
 
 const Term = () => {
     const state = store.getState();
@@ -18,7 +19,6 @@ const Term = () => {
     const xtermRef = useRef(null);
     const fitAddon = new FitAddon();
     const config = useSelector((state: RootState) => state.terminal.config);
-    let session: any;
 
     async function init() {
         if (config.port && config.token) {
