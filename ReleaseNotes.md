@@ -1,13 +1,15 @@
-# v0.4.20 - 0.4.27
+# v0.4.20 - 0.4.28
 
 ##### NEW
 
 -   Implement add project feature
+-   Add turn on/off markdown
 
 ##### IMPROVED
 
 -   Improve setup script
 -   Improve usability
+-   Improve file explorer style
 
 ##### FIXED
 

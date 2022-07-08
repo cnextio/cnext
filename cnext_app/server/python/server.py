@@ -123,16 +123,16 @@ def main(argv):
                         # log.info('Got message %s' % line)
                         message = Message(**json.loads(line))
                         log.info('Got message from %s command %s' %
-                                    (message.webapp_endpoint, message.command_name))
+                                 (message.webapp_endpoint, message.command_name))
                         message_handler[message.webapp_endpoint].handle_message(
-                                message)
+                            message)
                     except OSError as error:  # TODO check if this has to do with buffer error
                         # since this error might be related to the pipe, we do not send this error to nodejs
                         log.error("OSError: %s" % (error))
 
                     except:
                         log.error("Failed to execute the command %s",
-                                    traceback.format_exc())
+                                  traceback.format_exc())
                         message = BaseMessageHandler._create_error_message(
                             message.webapp_endpoint, traceback.format_exc(), message.command_name)
                         # send_to_node(message)
@@ -143,7 +143,7 @@ def main(argv):
                         sys.stdout.flush()
                     except Exception as error:
                         log.error("Failed to flush stdout %s - %s" %
-                                    (error, traceback.format_exc()))
+                                  (error, traceback.format_exc()))
             except Exception as error:
                 log.error("Exception %s - %s" %
                           (error, traceback.format_exc()))
@@ -160,13 +160,13 @@ def main(argv):
 if __name__ == "__main__":
 
     # Initialize sentry
-    sentry_sdk.init(
-        "https://318e8d1b2b0b43fbbbd38ea0426378b4@o1259763.ingest.sentry.io/6435268",
+    # sentry_sdk.init(
+    #     "https://318e8d1b2b0b43fbbbd38ea0426378b4@o1259763.ingest.sentry.io/6435268",
 
-        # Set traces_sample_rate to 1.0 to capture 100%
-        # of transactions for performance monitoring.
-        # We recommend adjusting this value in production.
-        traces_sample_rate=0.1
-    )
+    #     # Set traces_sample_rate to 1.0 to capture 100%
+    #     # of transactions for performance monitoring.
+    #     # We recommend adjusting this value in production.
+    #     traces_sample_rate=0.1
+    # )
 
     main(sys.argv[1:])
