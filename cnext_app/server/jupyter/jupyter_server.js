@@ -1,5 +1,5 @@
 const { exec, spawn } = require("child_process");
-
+const ConfigTerminal = "ConfigTerminal";
 // action channel
 
 class JupyterProcess {
@@ -11,13 +11,9 @@ class JupyterProcess {
             [],
             { shell: true }
         );
-        this.jupyterServer.stdout.on("data", (chunk) => {
-            console.log(`Jupyter Server`, this.config, chunk.toString());
-        });
+        this.jupyterServer.stdout.on("data", (chunk) => {});
 
-        this.jupyterServer.stderr.on("data", (stderr) => {
-            console.log("Jupyter Server", this.config, stderr.toString());
-        });
+        this.jupyterServer.stderr.on("data", (stderr) => {});
     }
 
     sendMessageToJupter(message) {
@@ -25,6 +21,15 @@ class JupyterProcess {
     }
     shutdown(signal) {
         this.jupyterServer.kill(signal);
+    }
+    setConfig(endpoint) {
+        this.io.emit(
+            endpoint,
+            JSON.stringify({
+                config: config.jupyter_server,
+                content: ConfigTerminal,
+            })
+        );
     }
 }
 module.exports = {

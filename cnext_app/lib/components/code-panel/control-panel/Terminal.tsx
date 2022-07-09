@@ -7,7 +7,7 @@ import store, { RootState } from "../../../../redux/store";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
 
-const Terminal = "terminal";
+const Terminal = "terminalIO";
 let elementTerminal: HTMLElement;
 let session: any;
 

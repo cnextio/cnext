@@ -5,8 +5,6 @@ const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
-const { spawn, exec } = require("child_process");
-const execProcess = require("process");
 const { PythonShell } = require("python-shell");
 const {
     LSPProcess,
@@ -16,7 +14,6 @@ const {
     LanguageServerCompletion,
 } = require("./ls/lsp_process");
 const { JupyterProcess } = require("./jupyter/jupyter_server");
-const SSHClient = require("ssh2").Client;
 
 const port = process.env.PORT || 4000;
 const server = http.createServer();
@@ -42,7 +39,6 @@ const KernelManager = "KernelManager";
 const Terminal = "Terminal";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
 const TerminalExecutor = [Terminal];
-const ConfigTerminal = "ConfigTerminal";
 const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
 
 const LSPExecutor = [
@@ -183,15 +179,6 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                if (message["content"] === ConfigTerminal) {
-                    io.emit(
-                        endpoint,
-                        JSON.stringify({
-                            config: config.jupyter_server,
-                            content: message["content"],
-                        })
-                    );
-                }
             }
         });
         socket.once("disconnect", () => {});
@@ -203,13 +190,14 @@ try {
 
     server.listen(port, () => console.log(`Waiting on port ${port}`));
 
-    console.log("Starting jupyter server...");
-    let jupyterExecutor = new JupyterProcess(io, config.jupyter_server);
-
     console.log("Starting python shell...");
     let codeExecutor = new PythonProcess(io, `python/server.py`, ["code"]);
     let nonCodeExecutor = new PythonProcess(io, `python/server.py`, ["noncode"]);
     let lspExecutor = new LSPProcess(io);
+
+    console.log("Starting jupyter server...");
+    let jupyterExecutor = new JupyterProcess(io, config.jupyter_server);
+    jupyterExecutor.setConfig(Terminal);
 
     /**
      * ZMQ communication from python-shell to node server
