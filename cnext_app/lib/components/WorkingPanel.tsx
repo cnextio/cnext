@@ -5,19 +5,16 @@ import RichOutputPanel from "./richoutput-panel/RichOutputPanel";
 import DFManager from "./dataframe-manager/DataFrameManager";
 import FileManager from "./file-manager/FileManager";
 import FileExplorer from "./file-manager/FileExplorer";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import Pane from "react-split-pane-v2";
 import { RootState } from "../../redux/store";
 import SplitPane from "react-split-pane-v2";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interfaces/IApp";
 import socket from "./Socket";
 import HotkeyComponent from "./hotkeys/HotKeys";
-import { setConfigTerminal } from "../../redux/reducers/TerminalRedux";
-const ConfigTerminal = "ConfigTerminal";
+import TerminalManager from "./terminal-manager/TerminalManager";
 
 const WorkingPanel = () => {
-    const dispatch = useDispatch();
-
     const showProjectExplore = useSelector(
         (state: RootState) => state.projectManager.showProjectExplore
     );
@@ -40,25 +37,7 @@ const WorkingPanel = () => {
             socket.emit(WebAppEndpoint.CodeEditor, JSON.stringify(message));
         }
     };
-    useEffect(() => {
-        setupSocket();
-        return () => {
-            socket.off(WebAppEndpoint.Terminal);
-        };
-    }, []);
-    const setupSocket = () => {
-        socket.emit("ping", WebAppEndpoint.Terminal);
-        socket.emit(WebAppEndpoint.Terminal, {
-            webapp_endpoint: ConfigTerminal,
-        });
-        socket.on(WebAppEndpoint.Terminal, (result: string) => {
-            try {
-                dispatch(setConfigTerminal(JSON.parse(result).config));
-            } catch (error) {
-                throw error;
-            }
-        });
-    };
+
     useEffect(() => {
         set_tracking_uri(experiment_tracking_uri);
     }, [experiment_tracking_uri]);
@@ -90,6 +69,7 @@ const WorkingPanel = () => {
             </SplitPane>
             <DFManager />
             <FileManager />
+            <TerminalManager />
             <HotkeyComponent />
             {/* <Notifier /> */}
         </StyledWorkingPanel>

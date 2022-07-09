@@ -183,12 +183,12 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
-                if (message["webapp_endpoint"] === ConfigTerminal) {
+                if (message["content"] === ConfigTerminal) {
                     io.emit(
                         endpoint,
                         JSON.stringify({
                             config: config.jupyter_server,
-                            webapp_endpoint: message["webapp_endpoint"],
+                            content: message["content"],
                         })
                     );
                 }
