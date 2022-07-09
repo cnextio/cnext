@@ -26,15 +26,15 @@ const TextIOComponent = React.memo(() => {
                     underline={textIOPanelID === TAB.CONSOLE ? true : false}
                     component="span"
                 >
-                    Console
+                    {TAB.CONSOLE}
                 </TextIOHeaderText>
                 <TextIOHeaderText
                     onClick={() => setTextIOPanelID(TAB.TERMINAL)}
-                    underline={textIOPanelID === TAB.TERMINAL ? true : false}
                     variant="overline"
+                    underline={textIOPanelID === TAB.TERMINAL ? true : false}
                     component="span"
                 >
-                    Terminal
+                    {TAB.TERMINAL}
                 </TextIOHeaderText>
             </TextIOHeader>
             {textIOPanelID === TAB.CONSOLE ? (
