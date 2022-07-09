@@ -1,12 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-import {
-    CodeOutputContainer,
-    CodeOutputHeaderText,
-    CodeOutputContent,
-    IndividualCodeOutputContent,
-    CodeOutputHeader,
-} from "../../StyledComponents";
+import { IndividualControlPanelContent } from "../../StyledComponents";
 import { Box, Typography } from "@mui/material";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
@@ -288,17 +282,17 @@ const ConsoleComponent = React.memo(() => {
                     }}
                 >
                     {item?.type === "text" && (
-                        <IndividualCodeOutputContent
+                        <IndividualControlPanelContent
                             key={index}
                             component="pre"
                             variant="body2"
                             focused={isItemFocused(item, index === outputContent.length - 1)}
                         >
                             <Ansi>{item.content}</Ansi>
-                        </IndividualCodeOutputContent>
+                        </IndividualControlPanelContent>
                     )}
                     {item?.type === "df_updates" && (
-                        <IndividualCodeOutputContent key={index} component="pre" variant="body2">
+                        <IndividualControlPanelContent key={index} component="pre" variant="body2">
                             {renderDFReviewsOutputComponent(
                                 outputContent.length,
                                 item["content"]["updateType"],
@@ -307,7 +301,7 @@ const ConsoleComponent = React.memo(() => {
                                 index === outputContent.length - 1 &&
                                     updateTypeToReview.includes(item["content"]["updateType"])
                             )}
-                        </IndividualCodeOutputContent>
+                        </IndividualControlPanelContent>
                     )}
                 </ScrollIntoViewIfNeeded>
             ))}
