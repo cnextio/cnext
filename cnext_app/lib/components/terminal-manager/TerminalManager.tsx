@@ -16,6 +16,8 @@ const TerminalManager = () => {
         };
     }, []);
     const setupSocket = () => {
+        console.log(`232`);
+
         socket.emit("ping", WebAppEndpoint.Terminal);
         socket.emit(WebAppEndpoint.Terminal, {
             webapp_endpoint: WebAppEndpoint.Terminal,
@@ -23,7 +25,10 @@ const TerminalManager = () => {
         });
         socket.on(WebAppEndpoint.Terminal, (result: string) => {
             try {
+                console.log(`setConfig`, JSON.parse(result).config);
+
                 dispatch(setConfigTerminal(JSON.parse(result).config));
+                console.log(JSON.parse(result).config);
             } catch (error) {
                 throw error;
             }

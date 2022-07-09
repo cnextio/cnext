@@ -22,14 +22,16 @@ class JupyterProcess {
     shutdown(signal) {
         this.jupyterServer.kill(signal);
     }
-    setConfig(endpoint) {
-        this.io.emit(
-            endpoint,
-            JSON.stringify({
-                config: config.jupyter_server,
-                content: ConfigTerminal,
-            })
-        );
+    setConfig(endpoint, message) {
+        try {
+            this.io.emit(
+                endpoint,
+                JSON.stringify({
+                    config: config.jupyter_server,
+                    content: message["content"],
+                })
+            );
+        } catch (error) {}
     }
 }
 module.exports = {

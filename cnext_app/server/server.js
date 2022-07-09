@@ -179,6 +179,7 @@ try {
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             } else if (TerminalExecutor.includes(endpoint)) {
+                jupyterExecutor.setConfig(endpoint, message);
             }
         });
         socket.once("disconnect", () => {});
@@ -197,7 +198,6 @@ try {
 
     console.log("Starting jupyter server...");
     let jupyterExecutor = new JupyterProcess(io, config.jupyter_server);
-    jupyterExecutor.setConfig(Terminal);
 
     /**
      * ZMQ communication from python-shell to node server
