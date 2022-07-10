@@ -1,4 +1,6 @@
 import os
+import platform
+from pathlib import PureWindowsPath
 import simplejson as json
 
 ## path to the server config file #
@@ -122,6 +124,16 @@ class WorkspaceMetadata(JsonSerializable):
             for project in projects_config['open_projects']:
                 self.open_projects.append(ProjectInfoInWorkspace(**project))
 
+class Platform:
+    MAC =  'Darwin'
+    LINUX = 'Linux'
+    WINDOWNS = 'Windows'
+
+def get_platform_path(path):
+    if platform.system() == Platform.WINDOWNS:
+        return str(PureWindowsPath(path))
+    else:
+        return PureWindowsPath(path).as_posix()
 
 class FileManagerMessageParams:
     def __init__(self, params: dict):
@@ -137,15 +149,15 @@ class FileManagerMessageParams:
             return
 
         if 'path' in params.keys():
-            self.path = params['path']
+            self.path = get_platform_path(params['path'])
             # avoid creating `./` when the path is empty
             if params['path'] == "":
-                self.norm_path = params['path']
+                self.norm_path = self.path
             else:
-                self.norm_path = os.path.normpath(params['path'])
+                self.norm_path = os.path.normpath(self.path)
         if 'project_path' in params.keys():
-            self.project_path = params['project_path']
-            self.norm_project_path = os.path.normpath(params['project_path'])
+            self.project_path = get_platform_path(params['project_path'])
+            self.norm_project_path = os.path.normpath(self.project_path)
         if 'open_order' in params.keys() and isinstance(params['open_order'], list):
             self.open_order = params['open_order']
         if 'timestamp' in params.keys():
