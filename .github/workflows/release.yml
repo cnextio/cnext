@@ -59,4 +59,4 @@ jobs:
 
       - name: Run CNext
         run: |
-          cnext-run
+          cnext-run &
