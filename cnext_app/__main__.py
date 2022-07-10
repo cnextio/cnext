@@ -48,6 +48,15 @@ def change_path(path):
     print('Adding sample project done!')
 
 
+def clear_content():
+    os.chdir(server_path)
+    my_file = open(FILE_NAME, 'w')
+    new_file_contents = ''
+    # Convert `string_list` to a single string
+    my_file.write(new_file_contents)
+    my_file.close()
+
+
 def ask():
     answer = input('Would you like to download the sample project? [(y)/n]: ')
     if(answer == 'y' or answer == 'Y'):
@@ -55,6 +64,7 @@ def ask():
     elif not answer:
         return HAVE_PROJECT
     elif (answer == 'n' or answer == 'N'):
+        clear_content()
         return WITHOUT_PROJECT
     else:
         ask()
@@ -112,13 +122,6 @@ def build_path():
         build_path()
 
 
-def clear_content():
-    os.chdir(server_path)
-    my_file = open(FILE_NAME, 'w')
-    new_file_contents = ''
-    # Convert `string_list` to a single string
-    my_file.write(new_file_contents)
-    my_file.close()
 
 
 def main():
