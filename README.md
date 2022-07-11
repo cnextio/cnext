@@ -58,7 +58,7 @@ Step 6 `run` command `cnext-run`
 
 ## Release Note
 
-# v0.4.20 - 0.4.28
+# v0.4.20 - 0.4.29
 
 ##### NEW
 
@@ -74,6 +74,8 @@ Step 6 `run` command `cnext-run`
 ##### FIXED
 
 -   Bug fixes and usability improvement
+-   Fix bugs with panel resizing
+-   Fix file path issues on Windows system
 
 # v0.4.18 - 0.4.19
 
