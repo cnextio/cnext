@@ -19,16 +19,6 @@ class MessageHandler(BaseMessageHandler):
     def handle_message(self, message):
         log.info('Handle FileExplorer message: %s' % message)
         try:
-            # metadata = message.metadata
-            # if 'path' in metadata.keys():
-            #     # avoid creating `./` when the path is empty
-            #     if metadata['path'] == "":
-            #         norm_path = metadata['path']
-            #     else:
-            #         norm_path = os.path.normpath(metadata['path'])
-            # if 'project_path' in metadata.keys():
-            #     norm_project_path = os.path.normpath(metadata['project_path'])
-
             messageParams = FileManagerMessageParams(message.metadata)
             output = None
             type = None
