@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { WorkingPanel as StyledWorkingPanel } from "./StyledComponents";
 import CodePanel from "./code-panel/CodePanel";
 import RichOutputPanel from "./richoutput-panel/RichOutputPanel";
@@ -42,6 +42,8 @@ const WorkingPanel = () => {
         set_tracking_uri(experiment_tracking_uri);
     }, [experiment_tracking_uri]);
 
+    const [resizing, setResizing] = useState(false);
+    const [codePanelSize, setCodePanelSize] = useState<string>("300px");
     return (
         <StyledWorkingPanel>
             {/* have to do complicated inline style because of this 
@@ -49,17 +51,26 @@ const WorkingPanel = () => {
             <SplitPane split="vertical">
                 {console.log("WorkingPanel render")}
                 {showProjectExplore && (
-                    <Pane size={projectConfig.layout?.project_explorer_size+'px'} onDragFinished={()=>{}}>
+                    <Pane size={projectConfig.layout?.project_explorer_size + "px"}>
                         <FileExplorer />
                     </Pane>
                 )}
                 <Pane>
-                    <SplitPane split={projectConfig.view_mode}>
-                        <Pane>
+                    <SplitPane
+                        split={projectConfig.view_mode}
+                        onResizeStart={() => {
+                            setResizing(true);
+                        }}
+                        onResizeEnd={(config) => {
+                            setCodePanelSize(config[0]);
+                            setResizing(false);
+                        }}
+                    >
+                        <Pane size={codePanelSize+"px"}>
                             <CodePanel workingPanelViewMode={projectConfig.view_mode} />
                         </Pane>
                         <Pane>
-                            <RichOutputPanel />
+                            <RichOutputPanel stopMouseEvent={resizing} />
                         </Pane>
                     </SplitPane>
                 </Pane>

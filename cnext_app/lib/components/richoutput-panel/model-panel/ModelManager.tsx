@@ -134,7 +134,7 @@ const ReloadButton = () => {
     );
 };
 
-const ModelPanel = () => {
+const ModelPanel = ({ stopMouseEvent }) => {
     const modelViewerCounter = useSelector(
         (state: RootState) => state.modelManager.modelViewerCounter
     );
@@ -164,7 +164,7 @@ const ModelPanel = () => {
                         height: "100%",
                         border: "none",
                         paddingLeft: "10px",
-                        pointerEvents: "none",
+                        pointerEvents: stopMouseEvent?"none":"auto",
                     }}
                     src={address}
                 />

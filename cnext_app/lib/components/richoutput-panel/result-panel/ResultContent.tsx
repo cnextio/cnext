@@ -43,7 +43,7 @@ const ScriptComponent = ({ children, script }) => {
     return <div ref={instance}></div>;
 };
 
-const IFrameComponent = ({ children, attribs }) => {
+const IFrameComponent = ({ children, attribs, stopMouseEvent }) => {
     const [contentRef, setContentRef] = useState(null);
     const mountNode = contentRef?.contentDocument?.body;
     return (
@@ -53,7 +53,7 @@ const IFrameComponent = ({ children, attribs }) => {
                 height: "100vh",
                 border: "0px solid white",
                 padding: "0px",
-                pointerEvents: "none",
+                pointerEvents: stopMouseEvent?"none":"auto",
             }}
             ref={setContentRef}
             srcDoc={attribs?.srcdoc}
@@ -63,7 +63,7 @@ const IFrameComponent = ({ children, attribs }) => {
     );
 };
 
-const ResultContent = React.memo(({ codeResult, showMarkdown }) => {
+const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) => {
     // const [readyToScroll, setReadyToScroll] = useState(false);
 
     const setPlotlyLayout = (
@@ -154,14 +154,12 @@ const ResultContent = React.memo(({ codeResult, showMarkdown }) => {
                             // console.log("ResultContent domNode ", domNode);
                             if (domNode.type === "script") {
                                 return <ScriptComponent children={null} script={domNode} />;
-                            } else if (
-                                domNode.type === "tag" &&
-                                domNode.name === "iframe" 
-                            ) {
+                            } else if (domNode.type === "tag" && domNode.name === "iframe") {
                                 return (
                                     <IFrameComponent
                                         attribs={domNode.attribs}
                                         children={domNode.children}
+                                        stopMouseEvent={stopMouseEvent}
                                     ></IFrameComponent>
                                 );
                             }
@@ -169,10 +167,14 @@ const ResultContent = React.memo(({ codeResult, showMarkdown }) => {
                     });
 
                     if (isIFrame && jsxElements != null) {
-                        console.log("iframe: ", jsxElements);
                         return jsxElements;
-                    } else if (isHTMLPage) {                        
-                        return <IFrameComponent children={jsxElements}></IFrameComponent>;
+                    } else if (isHTMLPage) {
+                        return (
+                            <IFrameComponent
+                                children={jsxElements}
+                                stopMouseEvent={stopMouseEvent}
+                            ></IFrameComponent>
+                        );
                     } else {
                         return jsxElements;
                     }
