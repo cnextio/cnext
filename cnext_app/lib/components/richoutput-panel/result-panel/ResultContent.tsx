@@ -43,15 +43,22 @@ const ScriptComponent = ({ children, script }) => {
     return <div ref={instance}></div>;
 };
 
-const IFrameComponent = ({ children }) => {
+const IFrameComponent = ({ children, attribs }) => {
     const [contentRef, setContentRef] = useState(null);
     const mountNode = contentRef?.contentDocument?.body;
     return (
         <iframe
-            style={{ width: "100%", height: "100vh", border: "0px solid white" }}
+            style={{
+                width: "100%",
+                height: "100vh",
+                border: "0px solid white",
+                padding: "0px",
+                pointerEvents: "none",
+            }}
             ref={setContentRef}
+            srcDoc={attribs?.srcdoc}
         >
-            {mountNode && createPortal(children, mountNode)}
+            {children && mountNode && createPortal(children, mountNode)}
         </iframe>
     );
 };
@@ -136,24 +143,39 @@ const ResultContent = React.memo(({ codeResult, showMarkdown }) => {
                         />
                     );
                 } else if (key === SubContentType.TEXT_HTML) {
-                    const htmlRegex = new RegExp("<!DOCTYPE html>|<html>");
+                    const htmlRegex = new RegExp("<!DOCTYPE html|<html", "i");
+                    const iframeRegex = new RegExp("<iframe", "i");
                     const htmlContent = codeResult?.result?.content[SubContentType.TEXT_HTML];
                     // console.log("ResultContent text/html content: ", htmlContent);
-                    let isFullPage = htmlRegex.test(htmlContent);
+                    let isIFrame = iframeRegex.test(htmlContent);
+                    let isHTMLPage = htmlRegex.test(htmlContent);
                     let jsxElements = ReactHtmlParser(htmlContent.toString("base64"), {
                         replace: function (domNode) {
                             // console.log("ResultContent domNode ", domNode);
                             if (domNode.type === "script") {
                                 return <ScriptComponent children={null} script={domNode} />;
+                            } else if (
+                                domNode.type === "tag" &&
+                                domNode.name === "iframe" 
+                            ) {
+                                return (
+                                    <IFrameComponent
+                                        attribs={domNode.attribs}
+                                        children={domNode.children}
+                                    ></IFrameComponent>
+                                );
                             }
                         },
                     });
 
-                    return isFullPage ? (
-                        <IFrameComponent children={jsxElements}></IFrameComponent>
-                    ) : (
-                        jsxElements
-                    );
+                    if (isIFrame && jsxElements != null) {
+                        console.log("iframe: ", jsxElements);
+                        return jsxElements;
+                    } else if (isHTMLPage) {                        
+                        return <IFrameComponent children={jsxElements}></IFrameComponent>;
+                    } else {
+                        return jsxElements;
+                    }
                 } else if (
                     showMarkdown &&
                     key === SubContentType.MARKDOWN &&
