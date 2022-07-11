@@ -16,8 +16,6 @@ const TerminalManager = () => {
         };
     }, []);
     const setupSocket = () => {
-        console.log(`232`);
-
         socket.emit("ping", WebAppEndpoint.Terminal);
         socket.emit(WebAppEndpoint.Terminal, {
             webapp_endpoint: WebAppEndpoint.Terminal,

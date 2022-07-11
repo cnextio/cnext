@@ -40,7 +40,6 @@ const TerminalComponent = () => {
             const isTerminal = listTerminalRun.find((item) => item.name === Terminal);
 
             if (!isTerminal) {
-                console.log("Term: start new");
                 // TerminalAPI.shutdownTerminal();
                 session = await terminalManager.startNew({
                     name: Terminal,
@@ -53,6 +52,7 @@ const TerminalComponent = () => {
                     },
                 });
             }
+            console.log(`session kt `, session);
 
             session.messageReceived.connect(
                 (data: string, msg: { type: string; content: string[] }) => {
@@ -76,7 +76,6 @@ const TerminalComponent = () => {
             elementTerminal = document.getElementById(`Terminal`);
             new ResizeObserver(() => {
                 if (fitAddon !== undefined) {
-                    fitAddon.fit();
                 }
             }).observe(elementTerminal);
         }
@@ -104,7 +103,17 @@ const TerminalComponent = () => {
 
     const onResize = (event: { rows: number; cols: number }) => {
         if (xtermRef?.current?.terminal && session) {
-            fitAddon.fit();
+            const content = [
+                event.rows,
+                event.cols,
+                elementTerminal.offsetHeight,
+                elementTerminal.offsetWidth,
+            ];
+            if (!session.isDisposed) {
+                fitAddon.fit();
+
+                session.send({ type: "set_size", content });
+            }
         }
     };
 
