@@ -40,48 +40,48 @@ jobs:
   #         # push: true
   #         tags: cycai/cnext:latest
 
-  cypress-run:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  # cypress-run:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 16
+  #         cache: 'npm'
+  #         cache-dependency-path: '**/package-lock.json'
 
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
+  #     - uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.9'
 
-      - name: Build IDE
-        working-directory: ./cnext_app
-        run: |
-          npm install --force
-          npm run build
+  #     - name: Build IDE
+  #       working-directory: ./cnext_app
+  #       run: |
+  #         npm install --force
+  #         npm run build
 
-      - name: Build Server
-        working-directory: ./cnext_app/server
-        run: |
-          pip install poetry
-          chmod +x start.sh
-          poetry install
-          npm install --force
+  #     - name: Build Server
+  #       working-directory: ./cnext_app/server
+  #       run: |
+  #         pip install poetry
+  #         chmod +x start.sh
+  #         poetry install
+  #         npm install --force
 
-      # Install NPM dependencies, cache them correctly
-      # and run all Cypress tests
-      - name: Cypress run
-        uses: cypress-io/github-action@v4
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        with:
-          record: true
-          working-directory: cnext_app/tests/intergration
-          browser: chrome
-          start: |
-            npm run  --prefix ../.. start
-            npm run  --prefix ../../server start
-          spec: |
-            cypress/**/*.spec.js
+  #     # Install NPM dependencies, cache them correctly
+  #     # and run all Cypress tests
+  #     - name: Cypress run
+  #       uses: cypress-io/github-action@v4
+  #       env:
+  #         CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+  #       with:
+  #         record: true
+  #         working-directory: cnext_app/tests/intergration
+  #         browser: chrome
+  #         start: |
+  #           npm run  --prefix ../.. start
+  #           npm run  --prefix ../../server start
+  #         spec: |
+  #           cypress/**/*.spec.js
