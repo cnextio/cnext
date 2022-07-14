@@ -17,6 +17,7 @@ from model_manager import model_manager as mm
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
+from terminal_manager import terminal_manager as tm
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, KernelManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
@@ -109,7 +110,7 @@ def main(argv):
                         WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, workspace_metadata),
                         WebappEndpoint.FileExplorer: fe.MessageHandler(
                             p2n_queue, user_space),
-                        WebappEndpoint.Terminal: ce.MessageHandler(p2n_queue),
+                        WebappEndpoint.Terminal: tm.MessageHandler(p2n_queue, user_space, workspace_metadata)
     
                     }
 
