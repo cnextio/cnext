@@ -97,6 +97,7 @@ def main(argv):
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.MagicCommandGen: ca.MessageHandler(
                             p2n_queue, user_space)
+                            
                     }
 
                     set_executor_working_dir(user_space, workspace_metadata)
@@ -107,7 +108,9 @@ def main(argv):
                         WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, workspace_metadata),
                         WebappEndpoint.FileExplorer: fe.MessageHandler(
-                            p2n_queue, user_space)
+                            p2n_queue, user_space),
+                        WebappEndpoint.Terminal: ce.MessageHandler(p2n_queue),
+    
                     }
 
             except Exception as error:

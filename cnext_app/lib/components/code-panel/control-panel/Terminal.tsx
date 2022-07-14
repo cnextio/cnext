@@ -21,6 +21,7 @@ const TerminalComponent = () => {
 
     async function init() {
         if (config.port && config.token) {
+            console.log(`Terminal Config`, config.port);
             const BASEURL = `http://localhost:${config.port}`;
             const TOKEN = `${config.token}`;
             const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
@@ -52,8 +53,6 @@ const TerminalComponent = () => {
                     },
                 });
             }
-            console.log(`session kt `, session);
-
             session.messageReceived.connect(
                 (data: string, msg: { type: string; content: string[] }) => {
                     switch (msg.type) {
@@ -76,6 +75,7 @@ const TerminalComponent = () => {
             elementTerminal = document.getElementById(`Terminal`);
             new ResizeObserver(() => {
                 if (fitAddon !== undefined) {
+                    fitAddon.fit();
                 }
             }).observe(elementTerminal);
         }
@@ -110,9 +110,10 @@ const TerminalComponent = () => {
                 elementTerminal.offsetWidth,
             ];
             if (!session.isDisposed) {
+                console.log("Terminal setsize : ", content);
                 fitAddon.fit();
 
-                session.send({ type: "set_size", content });
+                // session.send({ type: "set_size", content });
             }
         }
     };
@@ -131,6 +132,7 @@ const TerminalComponent = () => {
                      */
                     cursorStyle: "bar",
                     cursorWidth: 2,
+                    convertEol: true,
                     fontFamily: `monospace`,
                     fontSize: 13,
                     lineHeight: 1.43,
