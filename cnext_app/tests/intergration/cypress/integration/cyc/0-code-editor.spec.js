@@ -18,16 +18,6 @@ describe("Test Code Editor", () => {
         cy.wait(WAIT_1S);
     });
 
-    // it('Check print console', () => {
-    //     cy.get('@editor').type(codeCheckConsole);
-    //     if (isMacOSPlatform()) {
-    //         cy.get('@editor').type('{command}{enter}');
-    //     } else {
-    //         cy.get('@editor').type('{shift}{enter}');
-    //     }
-    //     cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
-    // });
-
     it("Check autocompletion", () => {
         cy.get("@editor").type(codeTestDF);
         cy.wait(WAIT_500MLS);
