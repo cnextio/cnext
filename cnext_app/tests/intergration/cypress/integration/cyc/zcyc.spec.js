@@ -43,11 +43,11 @@ describe("Test Save Events", () => {
         cy.wait(WAIT_500MLS);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
-            cy.get("@editor").type("{command}l");
+            cy.get("@editor").type("{command}g");
+            cy.get("@editor").type("{command}{enter}");
         } else {
-            cy.get("@editor").type("{ctrl}k");
-            cy.get("@editor").type("{ctrl}l");
+            cy.get("@editor").type("{ctrl}g");
+            cy.get("@editor").type("{shift}{enter}");
         }
 
         cy.reload();
@@ -65,11 +65,11 @@ describe("Test Save Events", () => {
     //     cy.wait(WAIT_500MLS);
     //     cy.get('@editor').type('{selectall}');
     //     if (isMacOSPlatform()) {
-    //         cy.get('@editor').type('{command}k');
-    //         cy.get('@editor').type('{command}l');
+    //         cy.get('@editor').type('{command}g');
+    //         cy.get('@editor').type('{command}{enter}');
     //     } else {
-    //         cy.get('@editor').type('{ctrl}k');
-    //         cy.get('@editor').type('{ctrl}l');
+    //         cy.get('@editor').type('{ctrl}g');
+    //         cy.get('@editor').type('{shift}{enter}');
     //     }
 
     //     // This is hacky
@@ -103,9 +103,9 @@ describe("Check special case on Code lines", () => {
         cy.wait(WAIT_500MLS);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
+            cy.get("@editor").type("{command}g");
         } else {
-            cy.get("@editor").type("{ctrl}k");
+            cy.get("@editor").type("{ctrl}g");
         }
         cy.wait(WAIT_3S);
         cy.reload();
@@ -116,11 +116,11 @@ describe("Check special case on Code lines", () => {
         cy.get("@editor").focus();
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
-            cy.get("@editor").type("{command}l");
+            cy.get("@editor").type("{command}g");
+            cy.get("@editor").type("{command}{enter}");
         } else {
-            cy.get("@editor").type("{ctrl}k");
-            cy.get("@editor").type("{ctrl}l");
+            cy.get("@editor").type("{ctrl}g");
+            cy.get("@editor").type("{shift}{enter}");
         }
         cy.get(".MuiPaper-root > img").should("be.visible");
     });
@@ -138,11 +138,11 @@ describe("Check special case on Code lines", () => {
         cy.wait(WAIT_500MLS);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
-            cy.get("@editor").type("{command}l");
+            cy.get("@editor").type("{command}g");
+            cy.get("@editor").type("{command}{enter}");
         } else {
-            cy.get("@editor").type("{ctrl}k");
-            cy.get("@editor").type("{ctrl}l");
+            cy.get("@editor").type("{ctrl}g");
+            cy.get("@editor").type("{shift}{enter}");
         }
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
     });
@@ -175,11 +175,11 @@ describe("Check Heavy case", () => {
         cy.wait(WAIT_500MLS);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
-            cy.get("@editor").type("{command}l");
+            cy.get("@editor").type("{command}g");
+            cy.get("@editor").type("{command}{enter}");
         } else {
-            cy.get("@editor").type("{ctrl}k");
-            cy.get("@editor").type("{ctrl}l");
+            cy.get("@editor").type("{ctrl}g");
+            cy.get("@editor").type("{shift}{enter}");
         }
 
         cy.get("#RichOuputViewHeader_RESULTS").should("be.visible").click();

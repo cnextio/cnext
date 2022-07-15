@@ -32,11 +32,11 @@ describe('Test Rich output result', () => {
         cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}k');
-            cy.get('@editor').type('{command}l');
+            cy.get('@editor').type('{command}g');
+            cy.get('@editor').type('{command}{enter}');
         } else {
-            cy.get('@editor').type('{ctrl}k');
-            cy.get('@editor').type('{ctrl}l');
+            cy.get('@editor').type('{ctrl}g');
+            cy.get('@editor').type('{shift}{enter}');
         }
 
         cy.get('#RichOuputViewHeader_RESULTS').should('be.visible').click();
@@ -52,11 +52,11 @@ describe('Test Rich output result', () => {
         cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}k');
-            cy.get('@editor').type('{command}l');
+            cy.get('@editor').type('{command}g');
+            cy.get('@editor').type('{command}{enter}');
         } else {
-            cy.get('@editor').type('{ctrl}k');
-            cy.get('@editor').type('{ctrl}l');
+            cy.get('@editor').type('{ctrl}g');
+            cy.get('@editor').type('{shift}{enter}');
         }
 
         cy.get('#RichOuputViewHeader_RESULTS').should('be.visible').click();
@@ -72,11 +72,11 @@ describe('Test Rich output result', () => {
         cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}k');
-            cy.get('@editor').type('{command}l');
+            cy.get('@editor').type('{command}g');
+            cy.get('@editor').type('{command}{enter}');
         } else {
-            cy.get('@editor').type('{ctrl}k');
-            cy.get('@editor').type('{ctrl}l');
+            cy.get('@editor').type('{ctrl}g');
+            cy.get('@editor').type('{shift}{enter}');
         }
 
         cy.get('#RichOuputViewHeader_RESULTS').should('be.visible').click();
@@ -92,11 +92,11 @@ describe('Test Rich output result', () => {
         cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}k');
-            cy.get('@editor').type('{command}l');
+            cy.get('@editor').type('{command}g');
+            cy.get('@editor').type('{command}{enter}');
         } else {
-            cy.get('@editor').type('{ctrl}k');
-            cy.get('@editor').type('{ctrl}l');
+            cy.get('@editor').type('{ctrl}g');
+            cy.get('@editor').type('{shift}{enter}');
         }
 
         cy.get('#RichOuputViewHeader_RESULTS').should('be.visible').click();
@@ -112,11 +112,11 @@ describe('Test Rich output result', () => {
         cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}k');
-            cy.get('@editor').type('{command}l');
+            cy.get('@editor').type('{command}g');
+            cy.get('@editor').type('{command}{enter}');
         } else {
-            cy.get('@editor').type('{ctrl}k');
-            cy.get('@editor').type('{ctrl}l');
+            cy.get('@editor').type('{ctrl}g');
+            cy.get('@editor').type('{shift}{enter}');
         }
 
         cy.get('#RichOuputViewHeader_RESULTS').should('be.visible').click();

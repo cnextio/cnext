@@ -73,40 +73,40 @@ open_projects:
             });
     });
 
-    it("Check add project with empty workspace", () => {
-        cy.writeFile("../../server/workspace.yaml", "");
-        cy.visit("/");
-        cy.wait(WAIT_2S);
-        cy.get("#sidebar_Projects").should("be.visible").click();
-        cy.wait(WAIT_1S);
-        cy.get("#add-project-button").should("be.visible").click();
-        let newProjectInput = cy.get("#new-project-input");
-        newProjectInput.focus();
-        newProjectInput
-            .type("/Users/vicknguyen/Desktop/PROJECTS/CYCAI/SAMPLE-PROJECT/test_add_project")
-            .type("{enter}");
+    // it("Check add project with empty workspace", () => {
+    //     cy.writeFile("../../server/workspace.yaml", "");
+    //     cy.visit("/");
+    //     cy.wait(WAIT_2S);
+    //     cy.get("#sidebar_Projects").should("be.visible").click();
+    //     cy.wait(WAIT_1S);
+    //     cy.get("#add-project-button").should("be.visible").click();
+    //     let newProjectInput = cy.get("#new-project-input");
+    //     newProjectInput.focus();
+    //     newProjectInput
+    //         .type("/Users/vicknguyen/Desktop/PROJECTS/CYCAI/SAMPLE-PROJECT/test_add_project")
+    //         .type("{enter}");
 
-        cy.wait(WAIT_3S);
-        cy.get(".MuiTreeItem-label").contains("test_add_project").should("be.visible");
+    //     cy.wait(WAIT_3S);
+    //     cy.get(".MuiTreeItem-label").contains("test_add_project").should("be.visible");
 
-        cy.window()
-            .its("store")
-            .invoke("getState")
-            .its("projectManager")
-            .its("activeProject")
-            .then((activeProject) => {
-                assert.equal(activeProject["name"], "test_add_project");
-            });
+    //     cy.window()
+    //         .its("store")
+    //         .invoke("getState")
+    //         .its("projectManager")
+    //         .its("activeProject")
+    //         .then((activeProject) => {
+    //             assert.equal(activeProject["name"], "test_add_project");
+    //         });
 
-        cy.window()
-            .its("store")
-            .invoke("getState")
-            .its("projectManager")
-            .its("workspaceMetadata")
-            .then((workspaceMetadata) => {
-                assert.equal(workspaceMetadata["open_projects"][0]["name"], "test_add_project");
-            });
-    });
+    //     cy.window()
+    //         .its("store")
+    //         .invoke("getState")
+    //         .its("projectManager")
+    //         .its("workspaceMetadata")
+    //         .then((workspaceMetadata) => {
+    //             assert.equal(workspaceMetadata["open_projects"][0]["name"], "test_add_project");
+    //         });
+    // });
 
     it("Check add project with existed project in workspace", () => {
         cy.writeFile(
