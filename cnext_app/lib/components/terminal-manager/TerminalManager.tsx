@@ -27,10 +27,9 @@ const TerminalManager = () => {
         );
         socket.on(WebAppEndpoint.Terminal, (result: string) => {
             try {
-                console.log(`setConfig 123`, JSON.parse(result).content);
-
-                dispatch(setConfigTerminal(JSON.parse(result).content));
-                console.log(JSON.parse(result).config);
+                if (JSON.parse(result).command_name === CommandName.get_config_jupyter_server) {
+                    dispatch(setConfigTerminal(JSON.parse(result).content));
+                }
             } catch (error) {
                 throw error;
             }
