@@ -2,10 +2,9 @@ import React, { useRef, useEffect, useState } from "react";
 import { PageConfig } from "@jupyterlab/coreutils";
 import { TerminalAPI, TerminalManager, ServerConnection } from "@jupyterlab/services";
 import { FitAddon } from "xterm-addon-fit";
-import { XTerm } from "xterm-for-react";
 import store, { RootState } from "../../../../redux/store";
 import { useSelector } from "react-redux";
-import styled from "styled-components";
+import { StyleXTerm } from "./StyledComponents";
 
 const Terminal = "terminalIO";
 let elementTerminal: HTMLElement;
@@ -98,7 +97,9 @@ const TerminalComponent = () => {
     }
 
     useEffect(() => {
-        if (xtermRef?.current?.terminal && session) {
+        if (xtermRef?.current) {
+            console.log("xtermRef?.current", xtermRef?.current);
+            console.log("xtermRef?.terminal", xtermRef?.current?.terminal);
         }
     }, [session]);
 
@@ -117,11 +118,8 @@ const TerminalComponent = () => {
         }
     };
 
-    const StyledTerm = styled(XTerm)`
-        height: 100%;
-    `;
     return (
-        <StyledTerm
+        <StyleXTerm
             onResize={onResize}
             options={{
                 cursorBlink: true,

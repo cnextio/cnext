@@ -173,13 +173,7 @@ try {
                     "Receive msg from client, server will run:",
                     JSON.parse(message)["command_name"]
                 );
-                if (endpoint === Terminal) {
-                    if (JSON.parse(message)["command_name"]) {
-                        nonCodeExecutor.send2executor(message);
-                    }
-                } else {
-                    nonCodeExecutor.send2executor(message);
-                }
+                nonCodeExecutor.send2executor(message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             }
