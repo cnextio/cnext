@@ -8,7 +8,6 @@
 //     //   release, url, org, project, authToken, configFile, stripPrefix,
 //     //   urlPrefix, include, ignore
 //     dsn: "https://25a5df08f7ea47be8a9922441cba00d1@o1259763.ingest.sentry.io/6435278",
-//     authToken: process.env.SENTRY_AUTH_TOKEN,
 //     tracesSampleRate: 0.1,
 //     silent: false, // Suppresses all logs
 //     // For all available options, see:
@@ -31,4 +30,11 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
     reactStrictMode: true,
+    typescript: {
+        // !! WARN !!
+        // Dangerously allow production builds to successfully complete even if
+        // your project has type errors.
+        // !! WARN !!
+        ignoreBuildErrors: true,
+    },
 };

@@ -90,7 +90,7 @@ def open_file(path, open_order):
                 if len(file_existed) == 0:
                     ## Note that we dont set the timestamp when open the file #
                     file = FileMetadata(path=path,
-                                        name=path.split('/')[-1])
+                                        name=os.path.basename(path))
                     project_metadata.open_files.append(file)
                     
                     if isinstance(open_order, list):
@@ -182,7 +182,7 @@ def get_project_settings():
 
 def add_project(path):
     try:
-        project_name = path.split('/')[-1]
+        project_name = os.path.basename(path)
 
         if not os.path.exists(path):
             os.mkdir(path)

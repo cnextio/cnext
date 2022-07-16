@@ -28,11 +28,11 @@ describe('Check Kernel Control', () => {
         cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}k');
-            cy.get('@editor').type('{command}l');
+            cy.get('@editor').type('{command}g');
+            cy.get('@editor').type('{command}{enter}');
         } else {
-            cy.get('@editor').type('{ctrl}k');
-            cy.get('@editor').type('{ctrl}l');
+            cy.get('@editor').type('{ctrl}g');
+            cy.get('@editor').type('{shift}{enter}');
         }
         cy.wait(WAIT_10S);
         cy.get('#sidebar_RestartKernel').should('be.visible').click();
@@ -51,11 +51,11 @@ describe('Check Kernel Control', () => {
         cy.wait(WAIT_500MLS);
         cy.get('@editor').type('{selectall}');
         if (isMacOSPlatform()) {
-            cy.get('@editor').type('{command}k');
-            cy.get('@editor').type('{command}l');
+            cy.get('@editor').type('{command}g');
+            cy.get('@editor').type('{command}{enter}');
         } else {
-            cy.get('@editor').type('{ctrl}k');
-            cy.get('@editor').type('{ctrl}l');
+            cy.get('@editor').type('{ctrl}g');
+            cy.get('@editor').type('{shift}{enter}');
         }
         cy.wait(WAIT_10S);
         cy.get('#sidebar_InterruptKernel').should('be.visible').click();

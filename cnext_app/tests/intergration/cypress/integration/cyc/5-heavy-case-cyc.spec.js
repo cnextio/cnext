@@ -4,7 +4,6 @@ const WAIT_500MLS = Cypress.env("wait_500mls");
 const WAIT_1S = Cypress.env("wait_1s");
 const WAIT_2S = Cypress.env("wait_2s");
 const WAIT_3S = Cypress.env("wait_3s");
-const WAIT_5S = Cypress.env("wait_5s");
 const SAVE_TIMEOUT_DURATION = 30000;
 
 describe("Test Save Events", () => {
@@ -43,41 +42,17 @@ describe("Test Save Events", () => {
         cy.wait(WAIT_500MLS);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
-            cy.get("@editor").type("{command}l");
+            cy.get("@editor").type("{command}g");
+            cy.get("@editor").type("{command}{enter}");
         } else {
-            cy.get("@editor").type("{ctrl}k");
-            cy.get("@editor").type("{ctrl}l");
+            cy.get("@editor").type("{ctrl}g");
+            cy.get("@editor").type("{shift}{enter}");
         }
 
         cy.reload();
         cy.get("#CodeOutputContent > :nth-child(1)").contains(code);
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
     });
-
-    // it('still save events on file change', () => {
-    //     cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content')
-    //         .should('be.visible')
-    //         .as('editor');
-    //     cy.get('@editor').focus();
-    //     const code = randomString();
-    //     cy.get('@editor').type(`print("${code}")`);
-    //     cy.wait(WAIT_500MLS);
-    //     cy.get('@editor').type('{selectall}');
-    //     if (isMacOSPlatform()) {
-    //         cy.get('@editor').type('{command}k');
-    //         cy.get('@editor').type('{command}l');
-    //     } else {
-    //         cy.get('@editor').type('{ctrl}k');
-    //         cy.get('@editor').type('{ctrl}l');
-    //     }
-
-    //     // This is hacky
-    //     cy.get('[toolbarname="data_loader.py"]').click();
-    //     cy.get('[toolbarname="main.py"]').click();
-    //     cy.get('#CodeOutputContent > :nth-child(1)').contains(code);
-    //     cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
-    // });
 
     afterEach(() => {
         cy.wait(WAIT_1S);
@@ -95,17 +70,19 @@ describe("Check special case on Code lines", () => {
             .should("be.visible")
             .as("editor");
         removeText(cy.get("@editor"));
-        cy.wait(WAIT_1S);
+        cy.wait(WAIT_2S);
     });
 
     it("Check group lines", () => {
-        cy.get("@editor").type(codeTestGroupLines);
+        cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').type(
+            codeTestGroupLines
+        );
         cy.wait(WAIT_500MLS);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
+            cy.get("@editor").type("{command}g");
         } else {
-            cy.get("@editor").type("{ctrl}k");
+            cy.get("@editor").type("{ctrl}g");
         }
         cy.wait(WAIT_3S);
         cy.reload();
@@ -116,13 +93,13 @@ describe("Check special case on Code lines", () => {
         cy.get("@editor").focus();
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
-            cy.get("@editor").type("{command}l");
+            cy.get("@editor").type("{command}g");
+            cy.get("@editor").type("{command}{enter}");
         } else {
-            cy.get("@editor").type("{ctrl}k");
-            cy.get("@editor").type("{ctrl}l");
+            cy.get("@editor").type("{ctrl}g");
+            cy.get("@editor").type("{shift}{enter}");
         }
-        cy.get(".MuiPaper-root > img").should("be.visible");
+        cy.get(".MuiPaper-root > div > img").should("be.visible");
     });
 
     it("Check blank code editor when loading", () => {
@@ -138,11 +115,11 @@ describe("Check special case on Code lines", () => {
         cy.wait(WAIT_500MLS);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
-            cy.get("@editor").type("{command}l");
+            cy.get("@editor").type("{command}g");
+            cy.get("@editor").type("{command}{enter}");
         } else {
-            cy.get("@editor").type("{ctrl}k");
-            cy.get("@editor").type("{ctrl}l");
+            cy.get("@editor").type("{ctrl}g");
+            cy.get("@editor").type("{shift}{enter}");
         }
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
     });
@@ -175,15 +152,15 @@ describe("Check Heavy case", () => {
         cy.wait(WAIT_500MLS);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
-            cy.get("@editor").type("{command}k");
-            cy.get("@editor").type("{command}l");
+            cy.get("@editor").type("{command}g");
+            cy.get("@editor").type("{command}{enter}");
         } else {
-            cy.get("@editor").type("{ctrl}k");
-            cy.get("@editor").type("{ctrl}l");
+            cy.get("@editor").type("{ctrl}g");
+            cy.get("@editor").type("{shift}{enter}");
         }
 
         cy.get("#RichOuputViewHeader_RESULTS").should("be.visible").click();
-        cy.get(".MuiPaper-root > audio").should("be.visible");
+        cy.get("audio").should("be.visible");
     });
 
     afterEach(() => {

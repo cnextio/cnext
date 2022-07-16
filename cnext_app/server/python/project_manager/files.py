@@ -98,7 +98,7 @@ def create_file(project_path, relative_file_path):
             else:
                 with open(file_path, 'w') as file:
                     pass
-            return FileMetadata(path=relative_file_path, name=relative_file_path.split('/')[-1], timestamp=os.path.getmtime(file_path))
+            return FileMetadata(path=relative_file_path, name=os.path.basename(relative_file_path), timestamp=os.path.getmtime(file_path))
         return None
     except Exception as error:
         log.error("%s - %s" % (error, traceback.format_exc()))
@@ -142,7 +142,7 @@ def save_file(project_path, relative_file_path, content):
         if project_path != None and relative_file_path != None:
             log.info('Save file {}'.format(relative_file_path))
             file_path = get_abs_file_path(project_path, relative_file_path)
-            file_name = relative_file_path.split('/')[-1]
+            file_name = os.path.basename(relative_file_path)
             with open(file_path, 'w') as file:
                 file.write(content)
             return FileMetadata(path=relative_file_path, name=file_name, timestamp=os.path.getmtime(file_path))
@@ -161,7 +161,7 @@ def save_state(project_path, relative_file_path, content):
         if project_path != None and relative_file_path != None:
             log.info('Save state {}'.format(relative_file_path))
             state_file_path = get_state_path(project_path, relative_file_path)
-            state_file_name = state_file_path.split('/')[-1]
+            state_file_name = os.path.basename(state_file_path)
             os.makedirs(os.path.dirname(state_file_path), exist_ok=True)
             with open(state_file_path, 'w') as outfile:
                 outfile.write(json.dumps(content))
