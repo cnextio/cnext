@@ -13,8 +13,6 @@ const {
     LanguageServerSignature,
     LanguageServerCompletion,
 } = require("./ls/lsp_process");
-const { JupyterProcess } = require("./jupyter/jupyter_server");
-
 const port = process.env.PORT || 4000;
 const server = http.createServer();
 const options = {
@@ -39,7 +37,7 @@ const KernelManager = "KernelManager";
 const Terminal = "Terminal";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
 const TerminalExecutor = [Terminal];
-const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
+const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer, Terminal];
 
 const LSPExecutor = [
     LanguageServer,
@@ -157,7 +155,6 @@ try {
         });
 
         socket.onAny((endpoint, message) => {
-            console.log("endpoint", endpoint, message);
             //TODO: use enum
             if (CodeExecutor.includes(endpoint)) {
                 console.log(
@@ -171,15 +168,20 @@ try {
                     codeExecutor.send2executor(message);
                 }
             } else if (NoneCodeExecutor.includes(endpoint)) {
+                // nonCodeExecutor.send2executor(message);
                 console.log(
-                    "Receive msg from client, server will run: ",
+                    "Receive msg from client, server will run:",
                     JSON.parse(message)["command_name"]
                 );
-                nonCodeExecutor.send2executor(message);
+                if (endpoint === Terminal) {
+                    if (JSON.parse(message)["command_name"]) {
+                        nonCodeExecutor.send2executor(message);
+                    }
+                } else {
+                    nonCodeExecutor.send2executor(message);
+                }
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
-            } else if (TerminalExecutor.includes(endpoint)) {
-                jupyterExecutor.setConfig(endpoint, message);
             }
         });
         socket.once("disconnect", () => {});
@@ -195,10 +197,6 @@ try {
     let codeExecutor = new PythonProcess(io, `python/server.py`, ["code"]);
     let nonCodeExecutor = new PythonProcess(io, `python/server.py`, ["noncode"]);
     let lspExecutor = new LSPProcess(io);
-
-    console.log("Starting jupyter server...");
-    let jupyterExecutor = new JupyterProcess(io, config.jupyter_server);
-
     /**
      * ZMQ communication from python-shell to node server
      */
@@ -220,29 +218,14 @@ try {
     process.on("SIGINT", function () {
         codeExecutor.shutdown("SIGINT");
         nonCodeExecutor.shutdown("SIGINT");
-        jupyterExecutor.shutdown("SIGINT");
         process.exit(1);
     });
 
     process.on("SIGTERM", function () {
         codeExecutor.shutdown("SIGTERM");
         nonCodeExecutor.shutdown("SIGTERM");
-        jupyterExecutor.shutdown("SIGTERM");
         process.exit(1);
     });
-
-    const initialize = () => {
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: TerminalCommand,
-        //         command_name: "add_project",
-        //         // content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
-        //         content: `/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cnext_app/test`,
-        //     })
-        // );
-    };
-
-    initialize();
 } catch (error) {
     console.log(error);
 }

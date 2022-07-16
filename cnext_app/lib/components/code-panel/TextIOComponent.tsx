@@ -6,8 +6,8 @@ import {
     TextIOHeader,
 } from "../StyledComponents";
 import dynamic from "next/dynamic";
-import ConsoleComponent from "./control-panel/Console";
-const TerminalComponent = dynamic(() => import("./control-panel/Terminal"), { ssr: false });
+import ConsoleComponent from "./text-io/Console";
+const TerminalComponent = dynamic(() => import("./text-io/Terminal"), { ssr: false });
 
 const TAB = {
     CONSOLE: "Console",

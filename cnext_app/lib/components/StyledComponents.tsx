@@ -30,6 +30,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import BoltIcon from "@mui/icons-material/Bolt";
 import CloseIcon from "@mui/icons-material/Close";
 import SplitPane from "react-split-pane-v2";
+import { XTerm } from "xterm-for-react";
 import styled, { keyframes } from "styled-components";
 // import { CSSTransition } from 'react-transition-group';
 import { ToastContainer } from "react-toastify";
@@ -289,7 +290,9 @@ export const WorkingPanelSplitPanel = styled(SplitPane)`
     padding-right: inherit;
     height: 100%;
 `;
-
+// export const StyleXTerm = styled(XTerm)`
+//     height: 100%;
+// `;
 export const StyledCodePanel = styled.div`
     display: flex;
     flex-direction: column;

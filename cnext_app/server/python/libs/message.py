@@ -88,6 +88,8 @@ class ModelManagerCommand(str, Enum):
     get_active_models_info = 'get_active_models_info'
     display_model = 'display_model'
 
+class JupyterServerCommand(str, Enum):
+    get_config = 'get_config_jupyter_server'
 
 class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'

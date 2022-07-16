@@ -5,6 +5,7 @@ import signal
 import traceback
 import sentry_sdk
 from libs import logs
+import logging
 import pandas as pd
 from libs import logs
 import simplejson as json
@@ -17,7 +18,7 @@ from model_manager import model_manager as mm
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
-from terminal_manager import terminal_manager as tm
+from jupyter_server_manager import jupyter_server_manager as jsm
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, KernelManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
@@ -86,6 +87,7 @@ def main(argv):
             try:
                 p2n_queue = MessageQueuePush(
                     server_config.p2n_comm['host'], server_config.p2n_comm['port'])
+                jupyter_server_config = server_config.jupyter_server
                 if executor_type == ExecutorType.CODE:
                     user_space = IPythonUserSpace(
                         (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
@@ -110,7 +112,7 @@ def main(argv):
                         WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, workspace_metadata),
                         WebappEndpoint.FileExplorer: fe.MessageHandler(
                             p2n_queue, user_space),
-                        WebappEndpoint.Terminal: tm.MessageHandler(p2n_queue, user_space, workspace_metadata)
+                        WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config)
     
                     }
 
