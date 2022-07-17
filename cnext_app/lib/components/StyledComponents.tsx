@@ -611,6 +611,9 @@ export const IndividualControlPanelContent = styled(Typography)`
         max-width: 100%;
         // word-break: break-all;
         word-wrap: break-word;
+        font-family: monospace;
+        font-size: 13px;
+        line-height: 1.6em;
     }
 `;
 

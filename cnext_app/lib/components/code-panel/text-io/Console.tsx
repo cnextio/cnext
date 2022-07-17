@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-import { IndividualControlPanelContent } from "../../StyledComponents";
+import { IndividualControlPanelContent as IndividualTextIOContent } from "../../StyledComponents";
 import { Box, Typography } from "@mui/material";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
@@ -282,17 +282,17 @@ const ConsoleComponent = React.memo(() => {
                     }}
                 >
                     {item?.type === "text" && (
-                        <IndividualControlPanelContent
+                        <IndividualTextIOContent
                             key={index}
                             component="pre"
                             variant="body2"
                             focused={isItemFocused(item, index === outputContent.length - 1)}
                         >
                             <Ansi>{item.content}</Ansi>
-                        </IndividualControlPanelContent>
+                        </IndividualTextIOContent>
                     )}
                     {item?.type === "df_updates" && (
-                        <IndividualControlPanelContent key={index} component="pre" variant="body2">
+                        <IndividualTextIOContent key={index} component="pre" variant="body2">
                             {renderDFReviewsOutputComponent(
                                 outputContent.length,
                                 item["content"]["updateType"],
@@ -301,7 +301,7 @@ const ConsoleComponent = React.memo(() => {
                                 index === outputContent.length - 1 &&
                                     updateTypeToReview.includes(item["content"]["updateType"])
                             )}
-                        </IndividualControlPanelContent>
+                        </IndividualTextIOContent>
                     )}
                 </ScrollIntoViewIfNeeded>
             ))}

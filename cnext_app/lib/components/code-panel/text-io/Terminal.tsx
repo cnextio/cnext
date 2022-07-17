@@ -129,9 +129,9 @@ const TerminalComponent = () => {
                 cursorStyle: "bar",
                 cursorWidth: 2,
                 convertEol: true,
-                fontFamily: `monospace`,
+                fontFamily: "monospace",
                 fontSize: 13,
-                lineHeight: 1.43,
+                lineHeight: 1.6,
                 fontWeight: 400,
                 theme: {
                     selection: "#b1b1b155",
