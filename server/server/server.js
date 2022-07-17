@@ -14,7 +14,9 @@ const {
     LanguageServerCompletion,
 } = require("./ls/lsp_process");
 const port = process.env.PORT || 4000;
-const server = http.createServer();
+const express = require('express');
+const app = express();
+const server = http.createServer(app);
 const options = {
     cors: {
         origin: [process.env.CLIENT_URL],
@@ -147,6 +149,8 @@ class PythonProcess {
 /** this variable is used to send back stdout to server */
 // let clientMessage;
 try {
+    app.use(express.static(path.resolve(__dirname, '../public')))
+
     io.on("connection", (socket) => {
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();

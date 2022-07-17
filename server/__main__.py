@@ -71,9 +71,10 @@ def ask():
 
 
 def build():
-    os.chdir(web_path)
-    os.system('npm i --force')
-    os.system('npm run build')
+    # TODO(huytq): remove
+    # os.chdir(web_path)
+    # os.system('npm i --force')
+    # os.system('npm run build')
     os.chdir(server_path)
     os.system('npm i')
 
@@ -140,8 +141,9 @@ def run_and_terminate_process():
     try:
         print("cnext starting !")
 
-        os.chdir(web_path)
-        web_proc = Popen('npm start', shell=True)
+        # TODO(huytq): remove
+        # os.chdir(web_path)
+        # web_proc = Popen('npm start', shell=True)
 
         os.chdir(server_path)
         my_env = os.environ.copy()
