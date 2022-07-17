@@ -14,9 +14,9 @@ services:
         # image: ${IMAGE_NAME}:${IMAGE_TAG}
         build: .
         container_name: server
-        working_dir: /app/cnext_app/server
+        working_dir: /app/server/server
         volumes:
-            - ${SOURCE_PROJECT_DIR}:/app/cnext_app/server/cnext_sample_projects/Skywalker
+            - ${SOURCE_PROJECT_DIR}:/app/server/server/cnext_sample_projects/Skywalker
         ports:
             - ${SERVER_PORT}:4000
         command: /bin/sh -c "./start.sh"
