@@ -39,7 +39,7 @@ const TextIOComponent = React.memo(() => {
             </TextIOHeader>
             {textIOPanelID === TAB.CONSOLE ? (
                 <TextIOContent id={TAB.CONSOLE}>
-                    <ConsoleComponent />
+                    <ConsoleComponent id={TAB.CONSOLE} />
                 </TextIOContent>
             ) : null}
             {textIOPanelID === TAB.TERMINAL ? (

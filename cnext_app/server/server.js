@@ -36,7 +36,6 @@ const ExperimentManager = "ExperimentManager";
 const KernelManager = "KernelManager";
 const Terminal = "Terminal";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
-const TerminalExecutor = [Terminal];
 const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer, Terminal];
 
 const LSPExecutor = [

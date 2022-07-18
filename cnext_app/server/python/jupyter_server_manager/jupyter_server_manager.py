@@ -20,8 +20,10 @@ log = logs.get_logger(__name__)
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata, jupyter_server_config):
         self.jupyter_server_config = jupyter_server_config
-        log.info(f"Run jupyter server --port={jupyter_server_config['port']} --ServerApp.allow_origin=* --ServerApp.token={jupyter_server_config['token']}")
-        self.jupyter_server = subprocess.Popen(f"jupyter server --port={jupyter_server_config['port']} --ServerApp.allow_origin=* --ServerApp.token={jupyter_server_config['token']}",stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        run_string = f"jupyter server --port={jupyter_server_config['port']} --ServerApp.allow_origin=* --ServerApp.token={jupyter_server_config['token']}"
+        log.info("Run: %s" % run_string)
+        self.jupyter_server = subprocess.Popen(
+            run_string, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.jupyter_stdout_handler_thread = threading.Thread(
             target=self.jupyter_stdout_handler, daemon=True)
         super(MessageHandler, self).__init__(p2n_queue, user_space)
@@ -30,7 +32,7 @@ class MessageHandler(BaseMessageHandler):
         while True:
             line = self.jupyter_server.stdout.readline()
             if not line:
-                continue
+                break
             log.info(line.rstrip())
 
     def handle_message(self, message):

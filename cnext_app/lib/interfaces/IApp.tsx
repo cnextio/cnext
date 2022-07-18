@@ -79,7 +79,7 @@ export enum CommandName {
     get_df_metadata = "get_df_metadata",
     plot_column_quantile = "plot_column_quantile",
     get_cardinal = "get_cardinal", /** get number of elements of a column given some filters */
-    get_config_jupyter_server = 'get_config_jupyter_server'
+    get_jupyter_server_config = 'get_jupyter_server_config'
 }
 
 export enum ContentType {

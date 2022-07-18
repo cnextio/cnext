@@ -17,7 +17,7 @@ export type ITextOuput = {
     lineID: string;
 };
 
-const ConsoleComponent = React.memo(() => {
+const ConsoleComponent = React.memo((props: { id: string }) => {
     const activeDFStatus = useSelector((state: RootState) => getActiveDataFrameStatus(state));
     const dispatch = useDispatch();
     // const dfUpdateCount = useSelector((state: RootState) => state.dataFrames.dfUpdateCount);
@@ -251,7 +251,6 @@ const ConsoleComponent = React.memo(() => {
         }
     }, [roTextOutputUpdateCount]);
 
-    const [codeOutputContentID, setCodeOutputContentID] = useState(`CodeOutputContent2`);
     const isItemFocused = (item: ITextOuput | undefined, lastItem: boolean) => {
         // TODO: implement scoll to rich-output text and df updates
         // return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;
@@ -278,7 +277,7 @@ const ConsoleComponent = React.memo(() => {
                         block: "start",
                         inline: "center",
                         behavior: "smooth",
-                        boundary: document.getElementById(codeOutputContentID),
+                        boundary: document.getElementById(props.id),
                     }}
                 >
                     {item?.type === "text" && (
