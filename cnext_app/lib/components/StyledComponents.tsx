@@ -30,6 +30,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import BoltIcon from "@mui/icons-material/Bolt";
 import CloseIcon from "@mui/icons-material/Close";
 import SplitPane from "react-split-pane-v2";
+import { XTerm } from "xterm-for-react";
 import styled, { keyframes } from "styled-components";
 // import { CSSTransition } from 'react-transition-group';
 import { ToastContainer } from "react-toastify";
@@ -289,7 +290,9 @@ export const WorkingPanelSplitPanel = styled(SplitPane)`
     padding-right: inherit;
     height: 100%;
 `;
-
+// export const StyleXTerm = styled(XTerm)`
+//     height: 100%;
+// `;
 export const StyledCodePanel = styled.div`
     display: flex;
     flex-direction: column;
@@ -546,7 +549,7 @@ export const CodeEditMarker = styled.div`
     background-color: green;
     border: 2px;
 `;
-export const CodeOutputContainer = styled.div`
+export const TextIOContainer = styled.div`
     display: flex;
     flex-direction: column;
     padding: 0px 10px 0px 10px;
@@ -555,24 +558,26 @@ export const CodeOutputContainer = styled.div`
     width: 100%;
 `;
 
-export const CodeOutputHeader = styled.div`
+export const TextIOHeader = styled.div`
     height: 30px;
 `;
 
-export const CodeOutputHeaderText = styled(Typography)`
+export const TextIOHeaderText = styled(Typography)`
     // height: 30px;
     // text-decoration: underline;
     font-size: 11px;
-    border-bottom-style: solid;
+    border-bottom-style: ${(props) => (props.underline ? `solid` : `none`)};
+    margin-right: 10px;
     border-width: 1px;
+    cursor: pointer;
 `;
 // need this compoent to make the text output respect tab character
-export const CodeOutputContent = styled.div`
+export const TextIOContent = styled.div`
     overflow: auto;
     height: 100%;
     // flex-grow: 1;
 `;
-// export const IndividualCodeOutputContent = styled.pre`
+// export const IndividualControlPanelContent = styled.pre`
 //     margin: 0px;
 //     padding: 5px 0px 5px 0px;
 //     overflow: auto;
@@ -581,7 +586,7 @@ export const CodeOutputContent = styled.div`
 //         background-color: ${props => props.theme.palette.action.hover};
 //     }
 // `;
-export const IndividualCodeOutputContent = styled(Typography)`
+export const IndividualControlPanelContent = styled(Typography)`
     margin-bottom: 10px;
     padding: 5px 0px 5px 0px;
     overflow: auto;
@@ -606,6 +611,9 @@ export const IndividualCodeOutputContent = styled(Typography)`
         max-width: 100%;
         // word-break: break-all;
         word-wrap: break-word;
+        font-family: monospace;
+        font-size: 13px;
+        line-height: 1.6em;
     }
 `;
 

@@ -1,22 +1,15 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-import {
-    CodeOutputContainer,
-    CodeOutputHeaderText,
-    CodeOutputContent,
-    IndividualCodeOutputContent,
-    CodeOutputHeader,
-} from "../StyledComponents";
+import { IndividualControlPanelContent as IndividualTextIOContent } from "../../StyledComponents";
 import { Box, Typography } from "@mui/material";
-import { DataFrameUpdateType, IDataFrameStatus } from "../../interfaces/IDataFrameStatus";
+import { DataFrameUpdateType, IDataFrameStatus } from "../../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
-import ReviewComponent from "./DFReview";
+import ReviewComponent from "../DFReview";
 import Ansi from "ansi-to-react";
-import { ICodeLine, ICodeResultContent } from "../../interfaces/ICodeEditor";
-import store, { RootState } from "../../../redux/store";
-import { getLastUpdate } from "../dataframe-manager/libDataFrameManager";
-import { setDFStatusShowed } from "../../../redux/reducers/DataFramesRedux";
-
+import { ICodeLine, ICodeResultContent } from "../../../interfaces/ICodeEditor";
+import store, { RootState } from "../../../../redux/store";
+import { getLastUpdate } from "../../dataframe-manager/libDataFrameManager";
+import { setDFStatusShowed } from "../../../../redux/reducers/DataFramesRedux";
 export type ITextOuput = {
     type: string;
     content?: string;
@@ -24,7 +17,7 @@ export type ITextOuput = {
     lineID: string;
 };
 
-const CodeOutputComponent = React.memo(() => {
+const ConsoleComponent = React.memo((props: { id: string }) => {
     const activeDFStatus = useSelector((state: RootState) => getActiveDataFrameStatus(state));
     const dispatch = useDispatch();
     // const dfUpdateCount = useSelector((state: RootState) => state.dataFrames.dfUpdateCount);
@@ -260,7 +253,7 @@ const CodeOutputComponent = React.memo(() => {
 
     const isItemFocused = (item: ITextOuput | undefined, lastItem: boolean) => {
         // TODO: implement scoll to rich-output text and df updates
-        // return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;        
+        // return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;
         let richOutputFocused = store.getState().richOutput.richOutputFocused;
         console.log(
             "CodeOutput isItemFocused: ",
@@ -275,57 +268,44 @@ const CodeOutputComponent = React.memo(() => {
             : item?.lineID === activeLine;
     };
 
-    const codeOutputContentID = "CodeOutputContent";
     return (
-        <CodeOutputContainer>
-            {console.log("Render CodeOutputAreaComponent")}
-            <CodeOutputHeader>
-                <CodeOutputHeaderText variant="overline" component="span">
-                    Console
-                </CodeOutputHeaderText>
-            </CodeOutputHeader>
-            <CodeOutputContent id={codeOutputContentID}>
-                {outputContent?.map((item, index) => (
-                    <ScrollIntoViewIfNeeded
-                        active={isItemFocused(item, index === outputContent.length - 1)}
-                        options={{
-                            block: "start",
-                            inline: "center",
-                            behavior: "smooth",
-                            boundary: document.getElementById(codeOutputContentID),
-                        }}
-                    >
-                        {item?.type === "text" && (
-                            <IndividualCodeOutputContent
-                                key={index}
-                                component="pre"
-                                variant="body2"
-                                focused={isItemFocused(item, index === outputContent.length - 1)}
-                            >
-                                <Ansi>{item.content}</Ansi>
-                            </IndividualCodeOutputContent>
-                        )}
-                        {item?.type === "df_updates" && (
-                            <IndividualCodeOutputContent
-                                key={index}
-                                component="pre"
-                                variant="body2"
-                            >
-                                {renderDFReviewsOutputComponent(
-                                    outputContent.length,
-                                    item["content"]["updateType"],
-                                    item["content"]["updateContent"],
-                                    // only the last item and in the review list can be in active review mode
-                                    index === outputContent.length - 1 &&
-                                        updateTypeToReview.includes(item["content"]["updateType"])
-                                )}
-                            </IndividualCodeOutputContent>
-                        )}
-                    </ScrollIntoViewIfNeeded>
-                ))}
-            </CodeOutputContent>
-        </CodeOutputContainer>
+        <>
+            {outputContent?.map((item, index) => (
+                <ScrollIntoViewIfNeeded
+                    active={isItemFocused(item, index === outputContent.length - 1)}
+                    options={{
+                        block: "start",
+                        inline: "center",
+                        behavior: "smooth",
+                        boundary: document.getElementById(props.id),
+                    }}
+                >
+                    {item?.type === "text" && (
+                        <IndividualTextIOContent
+                            key={index}
+                            component="pre"
+                            variant="body2"
+                            focused={isItemFocused(item, index === outputContent.length - 1)}
+                        >
+                            <Ansi>{item.content}</Ansi>
+                        </IndividualTextIOContent>
+                    )}
+                    {item?.type === "df_updates" && (
+                        <IndividualTextIOContent key={index} component="pre" variant="body2">
+                            {renderDFReviewsOutputComponent(
+                                outputContent.length,
+                                item["content"]["updateType"],
+                                item["content"]["updateContent"],
+                                // only the last item and in the review list can be in active review mode
+                                index === outputContent.length - 1 &&
+                                    updateTypeToReview.includes(item["content"]["updateType"])
+                            )}
+                        </IndividualTextIOContent>
+                    )}
+                </ScrollIntoViewIfNeeded>
+            ))}
+        </>
     );
 });
 
-export default CodeOutputComponent;
+export default ConsoleComponent;
