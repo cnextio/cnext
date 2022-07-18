@@ -15,7 +15,7 @@ ENV PYTHONPATH=${PYTHONPATH}:${PWD}
 WORKDIR /app/cnext_app
 RUN npm install && npm run build
 WORKDIR /app
-RUN cp -rf ./cnext_app/out ./server/public
+RUN cp -rf ./cnext_app/out ./cnext_server/public
 
 RUN pip3 install poetry
 RUN poetry config virtualenvs.create false

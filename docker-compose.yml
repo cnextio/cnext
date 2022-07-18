@@ -3,7 +3,7 @@ version: '3'
 services:
     server:
         build:
-            context: ./server/server
+            context: ./scnext_erver/server
             dockerfile: Dockerfile
 
         container_name: server

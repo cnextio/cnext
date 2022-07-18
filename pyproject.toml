@@ -10,7 +10,7 @@ readme = "README.md"  # Markdown files are supported
 homepage = "https://cyc-ai.com/"
 
 packages = [
-    { include = "server" },
+    { include = "cnext_server" },
 ]
 
 exclude = [
