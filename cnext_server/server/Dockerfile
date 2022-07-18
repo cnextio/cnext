@@ -3,7 +3,7 @@ RUN mkdir app
 
 WORKDIR /app
 
-ENV CLIENT_URL=http://web:3000
+ENV CLIENT_URL=http://web:4000
 
 RUN chmod -R 777 /app
 
