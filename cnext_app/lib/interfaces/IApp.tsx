@@ -78,7 +78,8 @@ export enum CommandName {
     get_table_data = "get_table_data",
     get_df_metadata = "get_df_metadata",
     plot_column_quantile = "plot_column_quantile",
-    get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
+    get_cardinal = "get_cardinal", /** get number of elements of a column given some filters */
+    get_jupyter_server_config = 'get_jupyter_server_config'
 }
 
 export enum ContentType {
@@ -138,6 +139,7 @@ export enum WebAppEndpoint {
     LanguageServerHover = "LanguageServerHover",
     LanguageServerCompletion = "LanguageServerCompletion",
     LanguageServerSignature = "LanguageServerSignature",
+    Terminal = "Terminal",
 }
 
 export interface ITableData {
@@ -350,7 +352,7 @@ interface WorkSpaceOpenProject {
     path: String;
 }
 
-export const SETTING_FILE_PATH = 'config.json';
+export const SETTING_FILE_PATH = "config.json";
 export const OPERATION_DISABLED_MSG = "This component is disabled while code is being executed";
 
 // export interface IWorkSpaceConfig {
