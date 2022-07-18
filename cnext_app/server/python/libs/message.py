@@ -15,7 +15,8 @@ class WebappEndpoint(str, Enum):
     ExperimentManager = 'ExperimentManager'
     KernelManager = 'KernelManager'
     ModelManager = 'ModelManager'
-
+    Terminal = 'Terminal'
+    
     def __str__(self):
         return str(self.value)
 
@@ -88,6 +89,8 @@ class ModelManagerCommand(str, Enum):
     get_active_models_info = 'get_active_models_info'
     display_model = 'display_model'
 
+class JupyterServerCommand(str, Enum):
+    get_config = 'get_jupyter_server_config'
 
 class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'

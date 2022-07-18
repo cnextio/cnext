@@ -34,8 +34,9 @@ const FileExplorer = "FileExplorer";
 const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
 const KernelManager = "KernelManager";
+const Terminal = "Terminal";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
-const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
+const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer, Terminal];
 
 const LSPExecutor = [
     LanguageServer,
@@ -59,11 +60,9 @@ class PythonProcess {
 
     // TODO: using clientMessage is hacky solution to send stdout back to client. won't work if there is multiple message being handled simultaneously
     constructor(io, commandStr, args) {
-        process.env.PYTHONPATH = [
-            process.env.PYTHONPATH,
-            config.path_to_cnextlib,
-            "./python",
-        ].join(path.delimiter);
+        process.env.PYTHONPATH = [process.env.PYTHONPATH, config.path_to_cnextlib, "./python"].join(
+            path.delimiter
+        );
 
         console.log("Environment path: ", process.env.PATH);
 
@@ -168,8 +167,9 @@ try {
                     codeExecutor.send2executor(message);
                 }
             } else if (NoneCodeExecutor.includes(endpoint)) {
+                // nonCodeExecutor.send2executor(message);
                 console.log(
-                    "Receive msg from client, server will run: ",
+                    "Receive msg from client, server will run:",
                     JSON.parse(message)["command_name"]
                 );
                 nonCodeExecutor.send2executor(message);
@@ -190,7 +190,6 @@ try {
     let codeExecutor = new PythonProcess(io, `python/server.py`, ["code"]);
     let nonCodeExecutor = new PythonProcess(io, `python/server.py`, ["noncode"]);
     let lspExecutor = new LSPProcess(io);
-
     /**
      * ZMQ communication from python-shell to node server
      */
@@ -220,19 +219,6 @@ try {
         nonCodeExecutor.shutdown("SIGTERM");
         process.exit(1);
     });
-
-    const initialize = () => {
-        // codeExecutor.send2executor(
-        //     JSON.stringify({
-        //         webapp_endpoint: FileManager,
-        //         command_name: "add_project",
-        //         // content: `import os, sys, netron; sys.path.extend(['${config.path_to_cnextlib}/', 'python/']); os.chdir('${config.projects.open_projects[0]["path"]}')`,
-        //         content: `/Users/vicknguyen/Desktop/PROJECTS/CYCAI/cyc-next/cnext_app/test`,
-        //     })
-        // );
-    };
-
-    initialize();
 } catch (error) {
     console.log(error);
 }
