@@ -48,7 +48,7 @@ describe("Test Save Events", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
-
+        cy.wait(WAIT_1S);
         cy.reload();
         cy.get("#CodeOutputContent > :nth-child(1)").contains(code);
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
@@ -99,6 +99,7 @@ describe("Check special case on Code lines", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
+        cy.wait(WAIT_1S);
         cy.get(".MuiPaper-root > div > img").should("be.visible");
     });
 
@@ -121,6 +122,7 @@ describe("Check special case on Code lines", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
+        cy.wait(WAIT_1S);
         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code);
     });
 
@@ -158,7 +160,7 @@ describe("Check Heavy case", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
-
+        cy.wait(WAIT_1S);
         cy.get("#RichOuputViewHeader_RESULTS").should("be.visible").click();
         cy.get("audio").should("be.visible");
     });

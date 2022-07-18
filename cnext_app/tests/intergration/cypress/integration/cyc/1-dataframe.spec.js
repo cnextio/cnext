@@ -2,6 +2,7 @@ import { codeTestDF } from "../data/code-text";
 import { removeText, isMacOSPlatform } from "../shared";
 const WAIT_500MLS = Cypress.env("wait_500mls");
 const WAIT_1S = Cypress.env("wait_1s");
+const WAIT_2S = Cypress.env("wait_3s");
 const WAIT_3S = Cypress.env("wait_3s");
 const WAIT_5S = Cypress.env("wait_5s");
 
@@ -28,9 +29,9 @@ describe("Test DataFrame", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
-
+        cy.wait(WAIT_2S);
         cy.get("#RichOuputViewHeader_DATA").should("be.visible").click();
-        cy.wait(WAIT_500MLS);
+        cy.wait(WAIT_2S);
         cy.get(".MuiTableContainer-root").should("be.visible");
         // check columns name
         cy.get(".MuiTableHead-root > .MuiTableRow-root > :nth-child(2)").contains("Id");
@@ -56,7 +57,7 @@ describe("Test DataFrame", () => {
 
     it("Check DF Autocompletion", () => {
         cy.get("@editor").type(codeTestDF);
-        cy.wait(WAIT_500MLS);
+        cy.wait(WAIT_1S);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
             cy.get("@editor").type("{command}g");
@@ -65,8 +66,7 @@ describe("Test DataFrame", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
-        cy.wait(WAIT_500MLS);
-
+        cy.wait(WAIT_1S);
         cy.get("#RichOuputViewHeader_DATA").should("be.visible").click();
         let lines = cy
             .get(".cm-theme-light > .cm-editor > .cm-scroller > .cm-content")
@@ -88,7 +88,7 @@ describe("Test DataFrame", () => {
         cy.wait(WAIT_3S);
 
         cy.get("@editor").type(codeTestDF);
-        cy.wait(WAIT_500MLS);
+        cy.wait(WAIT_1S);
         cy.get("@editor").type("{selectall}");
         if (isMacOSPlatform()) {
             cy.get("@editor").type("{command}g");
@@ -97,7 +97,7 @@ describe("Test DataFrame", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
-        cy.wait(WAIT_3S);
+        cy.wait(WAIT_2S);
         cy.get('[data-cy="df-stats-checkbox"]').should("be.visible").click();
         cy.wait(WAIT_3S);
         cy.get(

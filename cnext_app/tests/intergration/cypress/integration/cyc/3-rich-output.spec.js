@@ -38,6 +38,7 @@ describe("Test Rich output result", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
+        cy.wait(WAIT_1S);
         cy.get(".MuiPaper-root > div > img").should("be.visible");
     });
 
@@ -56,6 +57,7 @@ describe("Test Rich output result", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
+        cy.wait(WAIT_1S);
         cy.get(".user-select-none").should("be.visible");
     });
 
@@ -74,6 +76,7 @@ describe("Test Rich output result", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
+        cy.wait(WAIT_1S);
         cy.get("video").should("be.visible");
     });
 
@@ -92,6 +95,7 @@ describe("Test Rich output result", () => {
             cy.get("@editor").type("{ctrl}g");
             cy.get("@editor").type("{shift}{enter}");
         }
+        cy.wait(WAIT_1S);
         cy.get(".MuiPaper-root > div > img").should("be.visible");
     });
 
