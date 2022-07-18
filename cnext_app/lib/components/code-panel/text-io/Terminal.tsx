@@ -4,7 +4,8 @@ import { TerminalAPI, TerminalManager, ServerConnection } from "@jupyterlab/serv
 import { FitAddon } from "xterm-addon-fit";
 import store, { RootState } from "../../../../redux/store";
 import { useSelector } from "react-redux";
-import { StyleXTerm } from "./StyledComponents";
+import { XTerm } from "xterm-for-react";
+import styled from "styled-components";
 
 const Terminal = "terminalIO";
 let elementTerminal: HTMLElement;
@@ -117,7 +118,9 @@ const TerminalComponent = () => {
             }
         }
     };
-
+    const StyleXTerm = styled(XTerm)`
+        height: 100%;
+    `;
     return (
         <StyleXTerm
             onResize={onResize}
