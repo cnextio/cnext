@@ -49,7 +49,13 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./cnext_server/server
-        run: poetry install
+        run: |
+          poetry env info
+          poetry env use 3.9
+          poetry env info
+          poetry env use system
+          poetry env info
+          poetry install
 
   build:
     runs-on: ubuntu-latest
