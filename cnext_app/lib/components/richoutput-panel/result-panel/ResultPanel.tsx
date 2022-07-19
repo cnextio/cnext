@@ -90,8 +90,8 @@ const ResultPanel = React.memo((props: any) => {
                                 >
                                     <ResultContent
                                         codeResult={codeLine}
-                                        // activeLine={activeLine}
-                                        // resultPanelId={resultPanelId}
+                                        showMarkdown={showMarkdown}
+                                        stopMouseEvent={props.stopMouseEvent}
                                     />
                                 </SingleResultContainer>
                             </ScrollIntoViewIfNeeded>

@@ -8,46 +8,83 @@ import { WebAppEndpoint } from "../interfaces/IApp";
 import store from "../../redux/store";
 import { ProjectCommand } from "../interfaces/IFileManager";
 
-const FooterBarComponent = () => {
-    const [config, setConfig] = useState({ lint: false, hover: false, autocompletion: false });
-    const [rootState, setRootState] = useState({});
+const enum FootbarItemName {
+    AUTOCOMPLETION = "Autocompletion",
+    CODEANALYSIS = "Code Analysis",
+    MARKDOWN = "Show Markdown",
+}
 
-    const rootStateStore = useSelector((rootState: RootState) => rootState);
-    const rootConfig = useSelector(
+interface IFootbarItem {
+    name: FootbarItemName;
+    setting: {};
+}
+
+const FooterBarComponent = () => {
+    // const [codeEditorConfig, setCodeEditorConfig] = useState({ lint: false, hover: false, autocompletion: false });
+
+    const codeEditorSettings = useSelector(
         (rootState: RootState) => rootState.projectManager.settings.code_editor
     );
+    const richOutputSettings = useSelector(
+        (rootState: RootState) => rootState.projectManager.settings.rich_output
+    );
+    const rootState = useSelector((rootState: RootState) => rootState);
 
-    console.log("rootConfig", rootConfig, rootStateStore);
     const dispatch = useDispatch();
 
-    const procressChange = (type: string) => {
-        let updateObj = { ...config };
+    const footbarItems: IFootbarItem[] = [
+        { name: FootbarItemName.AUTOCOMPLETION, setting: codeEditorSettings.autocompletion },
+        { name: FootbarItemName.CODEANALYSIS, setting: codeEditorSettings.lint },
+        { name: FootbarItemName.MARKDOWN, setting: richOutputSettings.show_markdown },
+    ];
+    const changeHandler = (type: string) => {
+        let updatedSettings = {}; //{ ...codeEditorConfig };
         switch (type) {
-            case "lint":
-                updateObj = { ...config, lint: config.lint ? false : true };
-                break;
-            case "autocompletion":
-                updateObj = {
-                    ...config,
-                    autocompletion: config.autocompletion ? false : true,
-                    hover: config.hover ? false : true,
+            case FootbarItemName.CODEANALYSIS:
+                updatedSettings = {
+                    ...codeEditorSettings,
+                    lint: codeEditorSettings.lint ? false : true,
                 };
+                dispatch(
+                    setProjectSetting({
+                        code_editor: {
+                            ...updatedSettings,
+                        },
+                    })
+                );
                 break;
-
+            case FootbarItemName.AUTOCOMPLETION:
+                updatedSettings = {
+                    ...codeEditorSettings,
+                    autocompletion: codeEditorSettings.autocompletion ? false : true,
+                    hover: codeEditorSettings.hover ? false : true,
+                };
+                dispatch(
+                    setProjectSetting({
+                        code_editor: {
+                            ...updatedSettings,
+                        },
+                    })
+                );
+                break;
+            case FootbarItemName.MARKDOWN:
+                updatedSettings = {
+                    ...richOutputSettings,
+                    show_markdown: richOutputSettings.show_markdown ? false : true,
+                };
+                dispatch(
+                    setProjectSetting({
+                        rich_output: {
+                            ...updatedSettings,
+                        },
+                    })
+                );
+                break;
             default:
         }
-
-        dispatch(
-            setProjectSetting({
-                code_editor: {
-                    ...updateObj,
-                },
-            })
-        );
     };
 
     const sendLogs = () => {
-        // send rquest to server
         return new Promise((resolve, reject) => {
             // console.log(
             //     `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
@@ -63,48 +100,35 @@ const FooterBarComponent = () => {
             };
             let channel = WebAppEndpoint.FileManager;
             socket.emit(channel, JSON.stringify(message));
-
             if (channel) {
                 socket.once(channel, (result) => {
                     const response = JSON.parse(result.toString());
-                    console.log(
-                        `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,
-                        response
-                    );
+                    // console.log(
+                    //     `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,
+                    //     response
+                    // );
                     resolve(response);
                 });
             }
         });
     };
 
-    useEffect(() => {
-        setConfig({ ...rootConfig });
-    }, [rootConfig]);
-
-    useEffect(() => {
-        setRootState({ ...rootStateStore });
-    }, [rootStateStore]);
-
     return (
         <FooterNavigation>
-            <FooterItem>
-                <FotterItemText
-                    onClick={() => {
-                        procressChange("autocompletion");
-                    }}
-                >
-                    Autocompletion: {config.autocompletion ? "ON" : "OFF"}
-                </FotterItemText>
-            </FooterItem>
-            <FooterItem>
-                <FotterItemText
-                    onClick={() => {
-                        procressChange("lint");
-                    }}
-                >
-                    Code Analysis: {config.lint ? "ON" : "OFF"}
-                </FotterItemText>
-            </FooterItem>
+            {footbarItems.map((item, index) => {
+                return (
+                    <FooterItem key={index}>
+                        <FotterItemText
+                            onClick={() => {
+                                changeHandler(item.name);
+                            }}
+                        >
+                            {item.name}: {item.setting ? "ON" : "OFF"}
+                        </FotterItemText>
+                    </FooterItem>
+                );
+            })}
+
             <FooterItemButton>
                 <FotterItemText
                     onClick={() => {
