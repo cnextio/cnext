@@ -45,9 +45,9 @@
 //         cy.get('@editor').focus();
 //         cy.get('@editor').type(codeCheckConsole);
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 //         cy.get('#CodeOutputContent > :nth-child(1)').contains('test');
 //         cy.wait(WAIT_TIME_OUT);
@@ -87,9 +87,9 @@
 //         removeText(cy.get('@editor'));
 //         cy.get('@editor').type(codeTestDF);
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 //         cy.get('@editor').type('{enter}');
 //         cy.get('@editor').type('df.drop("');
@@ -103,9 +103,9 @@
 //         cy.get('@editor').type(codeTestGroupLines);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
+//             cy.get('@editor').type('{command}g');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
+//             cy.get('@editor').type('{ctrl}g');
 //         }
 //         cy.wait(3000);
 //         cy.reload();
@@ -114,11 +114,11 @@
 //         cy.get('@editor').focus();
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         cy.get('.MuiPaper-root > img').should('be.visible');
@@ -135,11 +135,11 @@
 //         cy.get('@editor').type(`print("${code}")`);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         cy.get('[data-cy="code-editor"] > .cm-editor > .cm-scroller > .cm-content').contains(code)
@@ -165,11 +165,11 @@
 //         cy.get('@editor').type(codeTestDF);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         cy.get('#RichOuputViewHeader_DATA', { timeout: 10000 }).should('be.visible').click();
@@ -233,11 +233,11 @@
 //         cy.get('@editor').focus().type(codeTestMatplotlibLine);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
         
 //         cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
@@ -251,11 +251,11 @@
 //         cy.get('@editor').type(codeTestPlotly);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
@@ -269,11 +269,11 @@
 //         cy.get('@editor').type(codeTestAudio);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
@@ -287,11 +287,11 @@
 //         cy.get('@editor').type(codeTestVideo);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
@@ -305,11 +305,11 @@
 //         cy.get('@editor').type(codeTestImageJPG);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
@@ -323,11 +323,11 @@
 //         cy.get('@editor').type(codeTestImagePNG);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         cy.get('#RichOuputViewHeader_RESULTS', { timeout: 10000 }).should('be.visible').click();
@@ -365,11 +365,11 @@
 //         cy.get('@editor').type(`print("${code}")`);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         cy.reload();
@@ -386,11 +386,11 @@
 //         cy.get('@editor').type(`print("${code}")`);
 //         cy.get('@editor').type('{selectall}');
 //         if (isMacOSPlatform()) {
-//             cy.get('@editor').type('{command}k');
-//             cy.get('@editor').type('{command}l');
+//             cy.get('@editor').type('{command}g');
+//             cy.get('@editor').type('{command}{enter}');
 //         } else {
-//             cy.get('@editor').type('{ctrl}k');
-//             cy.get('@editor').type('{ctrl}l');
+//             cy.get('@editor').type('{ctrl}g');
+//             cy.get('@editor').type('{shift}{enter}');
 //         }
 
 //         // This is hacky

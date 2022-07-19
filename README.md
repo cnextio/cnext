@@ -58,20 +58,24 @@ Step 6 `run` command `cnext-run`
 
 ## Release Note
 
-# v0.4.20 - 0.4.27
+# v0.4.20 - 0.4.29
 
 ##### NEW
 
 -   Implement add project feature
+-   Add turn on/off markdown
 
 ##### IMPROVED
 
 -   Improve setup script
 -   Improve usability
+-   Improve file explorer style
 
 ##### FIXED
 
 -   Bug fixes and usability improvement
+-   Fix bugs with panel resizing
+-   Fix file path issues on Windows system
 
 # v0.4.18 - 0.4.19
 

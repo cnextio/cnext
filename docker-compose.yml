@@ -3,7 +3,7 @@ version: '3'
 services:
     server:
         build:
-            context: ./cnext_app/server
+            context: ./cnext_server/server
             dockerfile: Dockerfile
 
         container_name: server

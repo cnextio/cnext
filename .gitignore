@@ -60,5 +60,8 @@ Thumbs.db
 # package-lock.json
 # cnext_app/package-lock.json
 # cnext_app/server/package-lock.json
-cnext_app/server/.server.yaml
+# cnext_app/server/.server.yaml
 */workspace.code-workspace
+
+cnext_app/out/
+cnext_server/public/
