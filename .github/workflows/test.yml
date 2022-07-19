@@ -94,30 +94,18 @@ jobs:
           poetry env use 3.9
           poetry install
 
-  # cypress-run:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
+      - name: Copy output
+        run: cp -rf ./cnext_app/out ./cnext_server/public
 
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 16
-  #         cache: 'npm'
-  #         cache-dependency-path: '**/package-lock.json'
-
-  #     # Install NPM dependencies, cache them correctly
-  #     # and run all Cypress tests
-  #     - name: Cypress run
-  #       uses: cypress-io/github-action@v4
-  #       env:
-  #         CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-  #       with:
-  #         record: true
-  #         working-directory: cnext_app/tests/intergration
-  #         browser: chrome
-  #         start: |
-  #           npm run  --prefix ../.. start
-  #           npm run  --prefix ../../server start
-  #         spec: |
-  #           cypress/**/*.spec.js
+      - name: Cypress run
+        uses: cypress-io/github-action@v4
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+        with:
+          record: true
+          working-directory: cnext_app/tests/intergration
+          browser: chrome
+          start: |
+            npm run  --prefix ../../../cnex_server/server start
+          spec: |
+            cypress/**/*.spec.js
