@@ -49,7 +49,15 @@ class MessageHandler(BaseMessageHandler):
         self._send_to_node(jupyter_server_config_message)
 
     def shutdown(self):
-        os.killpg(os.getpgid(self.jupyter_server.pid), signal.SIGTERM)
+        try: 
+            log.info('Shutting down pid=%s' % self.jupyter_server.pid)
+            os.killpg(os.getpgid(self.jupyter_server.pid), signal.SIGTERM)
+        except ProcessLookupError as error:
+            ## Sometime the the jupyter server might be exited before shutdown 
+            # so we have to catch this except to make sure the program will exit gracefully
+            # FIXME: need to find out why this happened # 
+            # log.error(error)
+            pass            
 
     def restart(self):
         pass    
