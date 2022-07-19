@@ -86,8 +86,7 @@
         "vscode-languageserver-protocol": "^3.16.0",
         "xterm": "^4.19.0",
         "xterm-addon-fit": "^0.5.0",
-        "xterm-addon-search": "^0.8.2",
-        "xterm-for-react": "github:robert-harbison/xterm-for-react#3ba3c15394857b914733895512e5e7534516d302"
+        "xterm-addon-search": "^0.8.2"
     },
     "devDependencies": {
         "@lezer/generator": "^0.15.2",
