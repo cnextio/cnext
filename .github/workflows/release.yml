@@ -1,19 +1,19 @@
 name: Release
 
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths-ignore:
-#       - 'README.md'
-#       - 'LICENSE'
+# # on:
+# #   push:
+# #     branches:
+# #       - main
+# #     paths-ignore:
+# #       - 'README.md'
+# #       - 'LICENSE'
 
-#   pull_request:
-#     paths-ignore:
-#       - 'README.md'
-#       - 'LICENSE'
+# #   pull_request:
+# #     paths-ignore:
+# #       - 'README.md'
+# #       - 'LICENSE'
 
-# jobs:
+# # jobs:
 
 #   # pypi:
 #   #   runs-on: ubuntu-latest
