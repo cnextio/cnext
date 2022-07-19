@@ -33,11 +33,13 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./cnext_app
-        run: npm ci
+        # TODO(huytq) use: npm ci
+        run: npm install
 
       - name: Install dependencies
         working-directory: ./cnext_server/server
-        run: npm ci
+        # TODO(huytq) use: npm ci
+        run: npm install
 
       - name: Install poetry
         run: pipx install poetry
@@ -50,11 +52,7 @@ jobs:
       - name: Install dependencies
         working-directory: ./cnext_server/server
         run: |
-          poetry env info
           poetry env use 3.9
-          poetry env info
-          poetry env use system
-          poetry env info
           poetry install
 
   build:
@@ -82,20 +80,22 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./cnext_app
-        run: npm ci
+        # TODO(huytq) use: npm ci
+        run: npm install
 
       - name: Install dependencies
         working-directory: ./cnext_server/server
-        run: npm ci
+        # TODO(huytq) use: npm ci
+        run: npm install
 
       - name: Build IDE
         working-directory: ./cnext_app
         run: npm run build
 
-      - name: Build Server
+      - name: Install dependencies
         working-directory: ./cnext_server/server
         run: |
-          chmod +x start.sh
+          poetry env use 3.9
           poetry install
 
   # cypress-run:
