@@ -124,48 +124,45 @@ jobs:
       #     spec: |
       #       cypress/**/*.spec.js
 
-#   # pypi:
-#   #   runs-on: ubuntu-latest
-#   #   steps:
-#   #     - name: Checkout
-#   #       uses: actions/checkout@v3
+      - name: Build project for distribution
+        run: poetry build
 
-#   #     - name: Set up Python 3.9
-#   #       uses: actions/setup-python@v4
-#   #       with:
-#   #         python-version: '3.9'
+      - name: Publish to PyPI
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
+        run: poetry publish
 
-#   #     - name: Install Poetry
-#   #       run: pip install poetry
+  test-install:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        # python-version: ["3.9", "3.10"]
+        python-version: ["3.9"]
+    runs-on: ${{ matrix.os }}
+    needs: build
+    name: ${{ matrix.os }} Python ${{ matrix.python-version }}
+    steps:
+      - name: Download Dasel
+        run: |
+          curl -LO https://github.com/TomWright/dasel/releases/latest/download/dasel_linux_amd
+          mv dasel_linux_amd64 dasel
+          chmod +x dasel
 
-#   #     - name: Build project for distribution
-#   #       run: poetry build
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(cat pyproject.toml | ./dasel -r toml .tool.poetry.version)"
 
-#   #     - name: Publish to PyPI
-#   #       env:
-#   #         POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
-#   #       run: poetry publish
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-#   test-install:
-#     strategy:
-#       matrix:
-#         os: [ubuntu-latest, windows-latest, macos-latest]
-#         # python-version: ["3.9", "3.10"]
-#         python-version: ["3.9"]
-#     runs-on: ${{ matrix.os }}
-#     name: ${{ matrix.os }} Python ${{ matrix.python-version }}
-#     steps:
-#       - name: Set up Python ${{ matrix.python-version }}
-#         uses: actions/setup-python@v4
-#         with:
-#           python-version: ${{ matrix.python-version }}
+      - name: Install CNext
+        run: pip install cnext-test1==${{ steps.version.outputs.version }}
 
-#       - name: Install CNext
-#         run: pip install cnext
+      - name: Init CNext
+        run: echo "n" | cnext-init
 
-#       - name: Init CNext
-#         run: echo "n" | cnext-init
-
-#       - name: Run CNext
-#         run: |
-#           cnext-run &
+      - name: Run CNext
+        run: |
+          cnext-run &
