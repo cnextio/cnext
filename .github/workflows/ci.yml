@@ -91,7 +91,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/cnext_app/.next/cache
-          key: ${{ runner.os }}-app-${{ hashFiles('cnext_app/**.[jt]s', 'cnext_app/**.[jt]sx') }}
+          key: ${{ runner.os }}-app-${{ hashFiles('cnext_app/**/*.[jt]s', 'cnext_app/**/*.[jt]sx') }}
           restore-keys: |
             ${{ runner.os }}-app-
 
