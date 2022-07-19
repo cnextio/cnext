@@ -62,75 +62,75 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # - uses: actions/setup-node@v3
-      #   with:
-      #     node-version: 16
-      #     cache: 'npm'
-      #     cache-dependency-path: |
-      #       cnext_app/package-lock.json
-      #       cnext_server/server/package-lock.json
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: |
+            cnext_app/package-lock.json
+            cnext_server/server/package-lock.json
 
-      # - name: Install poetry
-      #   run: pipx install poetry
+      - name: Install poetry
+        run: pipx install poetry
 
-      # - uses: actions/setup-python@v4
-      #   with:
-      #     python-version: '3.9'
-      #     cache: 'poetry'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'poetry'
 
-      # - name: Install dependencies
-      #   working-directory: ./cnext_app
-      #   run: npm ci
+      - name: Install dependencies
+        working-directory: ./cnext_app
+        run: npm ci
 
-      # - name: Install dependencies
-      #   working-directory: ./cnext_server/server
-      #   run: npm ci
+      - name: Install dependencies
+        working-directory: ./cnext_server/server
+        run: npm ci
 
-      # - name: Cache Next.js
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: |
-      #       ${{ github.workspace }}/cnext_app/.next/cache
-      #     key: ${{ runner.os }}-app-${{ hashFiles('cnext_app/**/*.[jt]s', 'cnext_app/**/*.[jt]sx') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-app-
+      - name: Cache Next.js
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/cnext_app/.next/cache
+          key: ${{ runner.os }}-app-${{ hashFiles('cnext_app/**/*.[jt]s', 'cnext_app/**/*.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-app-
 
-      # - name: Test
-      #   run: ls -la cnext_app/.next/cache
+      - name: Test
+        run: ls -la cnext_app/.next/cache
 
-      # - name: Build IDE
-      #   working-directory: ./cnext_app
-      #   run: npm run build
+      - name: Build IDE
+        working-directory: ./cnext_app
+        run: npm run build
 
-      # - name: Install dependencies
-      #   working-directory: ./cnext_server/server
-      #   run: |
-      #     poetry env use 3.9
-      #     poetry install
+      - name: Install dependencies
+        working-directory: ./cnext_server/server
+        run: |
+          poetry env use 3.9
+          poetry install
 
-      # - name: Copy output
-      #   run: cp -rf ./cnext_app/out ./cnext_server/public
+      - name: Copy output
+        run: cp -rf ./cnext_app/out ./cnext_server/public
 
-      # # - name: Cypress run
-      # #   uses: cypress-io/github-action@v4
-      # #   env:
-      # #     CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-      # #   with:
-      # #     record: true
-      # #     working-directory: cnext_app/tests/intergration
-      # #     browser: chrome
-      # #     start: |
-      # #       npm run  --prefix ../../../cnext_server/server start
-      # #     spec: |
-      # #       cypress/**/*.spec.js
-
-      # - name: Build project for distribution
-      #   run: poetry build
-
-      # - name: Publish to PyPI
+      # - name: Cypress run
+      #   uses: cypress-io/github-action@v4
       #   env:
-      #     POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
-      #   run: poetry publish
+      #     CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      #   with:
+      #     record: true
+      #     working-directory: cnext_app/tests/intergration
+      #     browser: chrome
+      #     start: |
+      #       npm run  --prefix ../../../cnext_server/server start
+      #     spec: |
+      #       cypress/**/*.spec.js
+
+      - name: Build project for distribution
+        run: poetry build
+
+      - name: Publish to PyPI
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
+        run: poetry publish
 
   test-install:
     strategy:
