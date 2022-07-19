@@ -95,6 +95,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-app-
 
+      - name: Test
+        run: ls -la cnext_app/.next/cache
+
       - name: Build IDE
         working-directory: ./cnext_app
         run: npm run build
