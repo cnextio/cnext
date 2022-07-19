@@ -39,6 +39,15 @@ jobs:
         working-directory: ./cnext_server/server
         run: npm ci
 
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'poetry'
+
+      - name: Install dependencies
+        working-directory: ./cnext_server/server
+        run: poetry install
+
   build:
     runs-on: ubuntu-latest
     needs: prebuild
