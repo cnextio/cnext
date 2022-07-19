@@ -4,7 +4,7 @@ import { TerminalAPI, TerminalManager, ServerConnection } from "@jupyterlab/serv
 import { FitAddon } from "xterm-addon-fit";
 import store, { RootState } from "../../../../redux/store";
 import { useSelector } from "react-redux";
-import * as XTerm from "./XTerm";
+import { XTerm } from "../../../@xterm";
 import styled from "styled-components";
 
 const Terminal = "terminalIO";
