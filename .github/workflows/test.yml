@@ -33,13 +33,11 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./cnext_app
-        # TODO(huytq) use: npm ci
-        run: npm install
+        run: npm ci
 
       - name: Install dependencies
         working-directory: ./cnext_server/server
-        # TODO(huytq) use: npm ci
-        run: npm install
+        run: npm ci
 
       - name: Install poetry
         run: pipx install poetry
@@ -80,13 +78,11 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./cnext_app
-        # TODO(huytq) use: npm ci
-        run: npm install
+        run: npm ci
 
       - name: Install dependencies
         working-directory: ./cnext_server/server
-        # TODO(huytq) use: npm ci
-        run: npm install
+        run: npm ci
 
       - name: Build IDE
         working-directory: ./cnext_app
