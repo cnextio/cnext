@@ -9,8 +9,6 @@ on:
       - 'LICENSE'
 
   pull_request:
-    branches:
-      - main
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
@@ -106,6 +104,6 @@ jobs:
           working-directory: cnext_app/tests/intergration
           browser: chrome
           start: |
-            npm run  --prefix ../../../cnex_server/server start
+            npm run  --prefix ../../../cnext_server/server start
           spec: |
             cypress/**/*.spec.js
