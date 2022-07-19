@@ -19,45 +19,45 @@ on:
 
 jobs:
 
-  prebuild:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  # prebuild:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'npm'
-          cache-dependency-path: |
-            cnext_app/package-lock.json
-            cnext_server/server/package-lock.json
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 16
+  #         cache: 'npm'
+  #         cache-dependency-path: |
+  #           cnext_app/package-lock.json
+  #           cnext_server/server/package-lock.json
 
-      - name: Install dependencies
-        working-directory: ./cnext_app
-        run: npm ci
+  #     - name: Install dependencies
+  #       working-directory: ./cnext_app
+  #       run: npm ci
 
-      - name: Install dependencies
-        working-directory: ./cnext_server/server
-        run: npm ci
+  #     - name: Install dependencies
+  #       working-directory: ./cnext_server/server
+  #       run: npm ci
 
-      - name: Install poetry
-        run: pipx install poetry
+  #     - name: Install poetry
+  #       run: pipx install poetry
 
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-          cache: 'poetry'
+  #     - uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.9'
+  #         cache: 'poetry'
 
-      - name: Install dependencies
-        working-directory: ./cnext_server/server
-        run: |
-          poetry env use 3.9
-          poetry install
+  #     - name: Install dependencies
+  #       working-directory: ./cnext_server/server
+  #       run: |
+  #         poetry env use 3.9
+  #         poetry install
 
   build:
     runs-on: ubuntu-latest
-    needs: prebuild
+    # needs: prebuild
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -85,6 +85,15 @@ jobs:
       - name: Install dependencies
         working-directory: ./cnext_server/server
         run: npm ci
+
+      - name: Cache Next.js
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/cnext_app/.next/cache
+          key: ${{ runner.os }}-app-${{ hashFiles('cnext_app/**.[jt]s', 'cnext_app/**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-app-
 
       - name: Build IDE
         working-directory: ./cnext_app
@@ -99,18 +108,18 @@ jobs:
       - name: Copy output
         run: cp -rf ./cnext_app/out ./cnext_server/public
 
-      - name: Cypress run
-        uses: cypress-io/github-action@v4
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        with:
-          record: true
-          working-directory: cnext_app/tests/intergration
-          browser: chrome
-          start: |
-            npm run  --prefix ../../../cnext_server/server start
-          spec: |
-            cypress/**/*.spec.js
+      # - name: Cypress run
+      #   uses: cypress-io/github-action@v4
+      #   env:
+      #     CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      #   with:
+      #     record: true
+      #     working-directory: cnext_app/tests/intergration
+      #     browser: chrome
+      #     start: |
+      #       npm run  --prefix ../../../cnext_server/server start
+      #     spec: |
+      #       cypress/**/*.spec.js
 
 #   # pypi:
 #   #   runs-on: ubuntu-latest
