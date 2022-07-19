@@ -109,6 +109,11 @@ jobs:
       - name: Build project for distribution
         run: poetry build
 
+      - uses: actions/upload-artifact@v3
+        with:
+          name: python-package
+          path: dist
+
       - name: Publish to PyPI
         if: startsWith(github.ref, 'refs/tags/v')
         env:
