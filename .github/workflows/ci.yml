@@ -80,9 +80,6 @@ jobs:
         working-directory: ./cnext_server/server
         run: npm ci
 
-      - name: Test 1
-        run: ls -la cnext_app/.next/cache
-
       - name: Cache Next.js
         uses: actions/cache@v3
         with:
@@ -91,9 +88,6 @@ jobs:
           key: ${{ runner.os }}-app-${{ hashFiles('cnext_app/**/*.[jt]s', 'cnext_app/**/*.[jt]sx') }}
           restore-keys: |
             ${{ runner.os }}-app-
-
-      - name: Test
-        run: ls -la cnext_app/.next/cache
 
       - name: Build IDE
         working-directory: ./cnext_app
