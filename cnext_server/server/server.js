@@ -18,10 +18,7 @@ const express = require('express');
 const app = express();
 const server = http.createServer(app);
 const options = {
-    cors: {
-        origin: [process.env.CLIENT_URL],
-        methods: ["GET", "POST"],
-    },
+    cors: true,
     maxHttpBufferSize: 1e8,
     pingTimeout: 60000,
 };
