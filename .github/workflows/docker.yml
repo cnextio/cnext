@@ -49,6 +49,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          build-args:
-            - CNEXT_VERSION=${{ steps.version.outputs.version }}
+          build-args: |
+            CNEXT_VERSION=${{ steps.version.outputs.version }}
           tags: cycai/cnext:v${{ steps.version.outputs.version }}
