@@ -117,6 +117,7 @@ jobs:
       - name: "Create release"
         uses: actions/github-script@v6
         with:
+          github-token: "${{ secrets.BOT_TOKEN }}"
           script: |
             const { REL_VERSION } = process.env
 
