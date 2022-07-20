@@ -98,6 +98,7 @@ const FooterBarComponent = () => {
                 webapp_endpoint: WebAppEndpoint.FileManager,
                 command_name: ProjectCommand.send_logs_via_email,
             };
+            
             let channel = WebAppEndpoint.FileManager;
             socket.emit(channel, JSON.stringify(message));
             if (channel) {

@@ -7,6 +7,9 @@ from project_manager.interfaces import ProjectInfoInWorkspace
 from libs import logs
 from libs.config import read_config, save_config
 from project_manager.interfaces import FileMetadata, CNEXT_PROJECT_METADATA_FILE, CNEXT_PROJECT_FOLDER, WORKSPACE_METADATA_PATH, WorkspaceMetadata, SETTINGS_FILE, ProjectMetadata
+from os import path
+import requests
+root_url = "https://logs-01.loggly.com/bulk/5e73048d-8103-467f-8a56-bf7641d2e632/tag/"
 
 log = logs.get_logger(__name__)
 
@@ -252,6 +255,25 @@ def save_workspace_metadata(config):
     save_config(workspace_info, WORKSPACE_METADATA_PATH)
     return workspace_info
 
+
+def send_json_logs(json_data, tag):
+    url = root_url + tag
+    x = requests.post(url, json = json_data)
+    print("send log status: " + x.text)
+
+
+def send_server_logs(tag):
+    url = root_url + tag
+    basepath = path.dirname(__file__)
+    filepath = path.abspath(path.join(basepath, "..", "..", "server.log"))
+    file =  open(filepath, "rb").read()
+    x = requests.post(url, data = file)
+    print("send log status: " + x.text)
+
+
 def send_logs(message):
-    print("send_logs", message)
+    send_json_logs(message["clientLogs"], "clientLogs")
+    send_json_logs(message["rootState"], "rootState")
+    send_server_logs("serverLogs")
+
     return True
