@@ -68,7 +68,7 @@ class ProjectCommand(str, Enum):
     get_workspace_metadata = 'get_workspace_metadata'
     set_workspace_metadata = 'set_workspace_metadata'
     set_active_project = 'set_active_project'
-    send_logs_via_email = "send_logs_via_email"
+    send_logs = "send_logs"
 
 
 class ExperimentManagerCommand(str, Enum):
