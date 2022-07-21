@@ -64,3 +64,4 @@ Thumbs.db
 */workspace.code-workspace
 
 cnext_app/out/
+cnext_server/public
