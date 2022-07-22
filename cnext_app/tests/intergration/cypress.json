@@ -1,6 +1,6 @@
 {
     "projectId": "4rrkju",
-    "baseUrl": "http://localhost:4000",
+    "baseUrl": "http://localhost:3000",
     "defaultCommandTimeout": 10000,
     "video": false,
     "reporter": "mocha-junit-reporter",

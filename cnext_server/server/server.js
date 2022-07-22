@@ -14,7 +14,8 @@ const {
     LanguageServerCompletion,
 } = require("./ls/lsp_process");
 const port = process.env.PORT || 4000;
-const express = require('express');
+const express = require("express");
+const { JupyterProcess } = require("./jupyter_server_manager/jupyter_server");
 const app = express();
 const server = http.createServer(app);
 const options = {
@@ -35,8 +36,8 @@ const ExperimentManager = "ExperimentManager";
 const KernelManager = "KernelManager";
 const Terminal = "Terminal";
 const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
-const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer, Terminal];
-
+const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer];
+const TerminalExecutor = [Terminal];
 const LSPExecutor = [
     LanguageServer,
     LanguageServerHover,
@@ -145,7 +146,7 @@ class PythonProcess {
 /** this variable is used to send back stdout to server */
 // let clientMessage;
 try {
-    app.use(express.static(path.resolve(__dirname, '../public')))
+    app.use(express.static(path.resolve(__dirname, "../public")));
 
     io.on("connection", (socket) => {
         socket.on("ping", (message) => {
@@ -176,6 +177,9 @@ try {
                 nonCodeExecutor.send2executor(message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
+            } else if (TerminalExecutor.includes(endpoint)) {
+               
+                jpsExcutor.getJupyterServerConfig(endpoint, message);
             }
         });
         socket.once("disconnect", () => {});
@@ -194,6 +198,8 @@ try {
     /**
      * ZMQ communication from python-shell to node server
      */
+    let jpsExcutor = new JupyterProcess(io, config.jupyter_server);
+
     async function zmq_receiver() {
         const command_output_zmq = new zmq.Pull();
         const p2n_host = config.p2n_comm.host;

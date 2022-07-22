@@ -29,6 +29,7 @@ const TextIOComponent = React.memo(() => {
                     {TAB.CONSOLE}
                 </TextIOHeaderText>
                 <TextIOHeaderText
+                    id="header-terminal"
                     onClick={() => setTextIOPanelID(TAB.TERMINAL)}
                     variant="overline"
                     underline={textIOPanelID === TAB.TERMINAL ? true : false}
