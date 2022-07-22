@@ -1,7 +1,12 @@
 import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
-import { DFFilterForm, DFFilterInput, StyledFilterCodeMirror } from "../../StyledComponents";
+import {
+    DFFilterForm,
+    DFFilterInput,
+    QuerySample,
+    StyledFilterCodeMirror,
+} from "../../StyledComponents";
 import { bracketMatching } from "@codemirror/matchbrackets";
 import { closeBrackets } from "@codemirror/closebrackets";
 import { defaultHighlightStyle } from "@codemirror/highlight";
@@ -18,21 +23,46 @@ const ls = dfFilterLanguageServer();
 
 interface DFQuery {
     df_id: string;
-    query: string;
+    query: string | null;
+    /** String that is entered into the query box. */
+    raw_query: string;
 }
 
 const DFExplorer = () => {
-    // const dfList = useSelector((state) => _checkDFList(state));
     const [query, setQuery] = useState<DFQuery | null>(null);
     const dispatch = useDispatch();
     const filterCM = useRef();
 
-    const keyHandler = (event: React.KeyboardEvent) => {
-        if (event.key === "Enter") {
-            console.log('DFExplorer dispatch query: ', query);
-            dispatch(setDFFilter(query));
-        } 
-    };
+    const keyHandler = useCallback(
+        (event: React.KeyboardEvent) => {
+            // console.log("DFExplorer event: ", event);
+            try {
+                if (event.key === "Enter" && query != null) {
+                    console.log(
+                        `DFExplorer dispatch query: ${query}, codeEditorText: ${codeEditorText}`
+                    );
+                    let codeEditorText =
+                        filterCM?.current?.getElementsByClassName("cm-line")[0].innerText;
+                    /** use this trick to avoid the enter keyboard event that is triggered by autocompletion  */
+                    if (query.raw_query === codeEditorText) {
+                        dispatch(setDFFilter(query));
+                    }
+                }
+            } catch {}
+        },
+        [query]
+    );
+
+    useEffect(() => {
+        let element = filterCM.current;
+        if (element != null) {
+            element.addEventListener("keydown", keyHandler);
+            return () => {
+                element.removeEventListener("keydown", keyHandler);
+            };
+        }
+    }, [keyHandler]);
+
     /**
      * All query string will be converted to loc/iloc pandas query
      */
@@ -47,11 +77,10 @@ const DFExplorer = () => {
                 tree = v.context.tree;
             }
         }
-        let queryStr;
+        let queryStr = null;
         //[1:2, ['a']]['a'>2]
         //[1:2, ['a']][('a'>2) & ('b'<4) | ('c'>5)]
         if (tree) {
-            console.log(tree.toString());
             let cursor = tree.cursor(0, 0);
             let curComponent;
             if (cursor.name == "Script" && cursor.firstChild() && cursor.name == "QueryStatement") {
@@ -135,8 +164,9 @@ const DFExplorer = () => {
                 }
             }
         }
-        if (activeDF != null && queryStr != null) {
-            setQuery({ df_id: activeDF, query: queryStr });
+        if (activeDF != null) {
+            console.log("DFExplorer query: ", queryStr);
+            setQuery({ df_id: activeDF, query: queryStr, raw_query: text });
         }
     };
 
@@ -163,15 +193,16 @@ const DFExplorer = () => {
         // python(),
         ls,
         oneLineExtension(),
+        // keymap.of([{ key: "Enter", run: () => enterKeyHandler() }]),
     ];
 
     return (
         <DFFilterForm>
             <DFFilterInput
+                ref={filterCM}
                 inputComponent={useCallback(() => {
                     return (
                         <StyledFilterCodeMirror
-                            ref={filterCM}
                             extensions={extensions}
                             basicSetup={false}
                             onChange={(text, viewUpdate) => onCMChange(text, viewUpdate)}
@@ -181,11 +212,11 @@ const DFExplorer = () => {
                             onBlur={() => {
                                 dispatch(setRichOutputFocused(false));
                             }}
-                            onKeyDown={keyHandler}
                         />
                     );
-                },[])}
+                }, [])}
             ></DFFilterInput>
+            {query && query.query && <QuerySample>{query.df_id + query.query}</QuerySample>}
         </DFFilterForm>
     );
 };

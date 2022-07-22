@@ -670,6 +670,7 @@ export const DFSelectorMenuItem = styled(MenuItem)`
 `;
 
 export const DFFilterForm = styled(FormControl)`
+    display: flex;
     height: 100%;
     width: 100%;
     padding: 0px 10px 0px 5px;
@@ -678,6 +679,17 @@ export const DFFilterForm = styled(FormControl)`
 export const DFFilterInput = styled(OutlinedInput)`
     font-size: 13px;
     padding: 0px;
+`;
+
+export const QuerySample = styled.div`
+    margin-top: 5px;
+    // margin-right: 5px;
+    padding-right: 5px;
+    padding-left: 5px;
+    align-self: flex-end;
+    z-index: 10;
+    color: ${(props) => props.theme.palette.text.secondary};
+    background: ${(props) => props.theme.palette.grey.A100};
 `;
 
 export const StyledFilterCodeMirror = styled(CodeMirror)`

@@ -114,23 +114,41 @@ jobs:
           name: python-package
           path: dist
 
+      - name: "Create release"
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/github-script@v6
+        with:
+          github-token: "${{ secrets.BOT_TOKEN }}"
+          script: |
+            const { REL_VERSION } = process.env
+
+            await github.rest.repos.createRelease({
+              draft: false,
+              generate_release_notes: true,
+              name: REL_VERSION,
+              owner: context.repo.owner,
+              prerelease: false,
+              repo: context.repo.repo,
+              tag_name: REL_VERSION,
+            });
+
       - name: Publish to PyPI
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
         run: poetry publish
 
-      # - name: Notify Slack Releases Channel
-      #   if: startsWith(github.ref, 'refs/tags/v')
-      #   uses: slackapi/slack-github-action@v1.19.0
-      #   with:
-      #     payload: |
-      #       {
-      #         "text": "CNext ${{ env.REL_VERSION }} has been released."
-      #       }
-      #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      - name: Notify Slack Releases Channel
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          payload: |
+            {
+              "text": "CNext ${{ env.REL_VERSION }} has been released."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   # test-install:
   #   strategy:
