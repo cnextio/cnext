@@ -1,5 +1,5 @@
 const { spawn } = require("child_process");
-const get_jupyter_server_config = `get_jupyter_server_config;`;
+const get_jupyter_server_config = `get_jupyter_server_config`;
 
 class JupyterProcess {
     constructor(io, config) {
