@@ -69,6 +69,8 @@ class ProjectCommand(str, Enum):
     get_workspace_metadata = 'get_workspace_metadata'
     set_workspace_metadata = 'set_workspace_metadata'
     set_active_project = 'set_active_project'
+
+class LogsCommand(str, Enum):
     send_logs = "send_logs"
 
 

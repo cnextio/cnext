@@ -5,8 +5,7 @@ from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType
 
 from libs import logs
-from libs.config import read_config
-from libs.message import ProjectCommand
+from libs.message import LogsCommand
 from os import path
 import requests
 root_url = "https://logs-01.loggly.com/bulk/5e73048d-8103-467f-8a56-bf7641d2e632/tag/"
@@ -20,7 +19,7 @@ class MessageHandler(BaseMessageHandler):
         log.info('LogsManager handle message: %s' %(message.command_name))
         try:
             result = None
-            if message.command_name == ProjectCommand.send_logs:
+            if message.command_name == LogsCommand.send_logs:
                 result = send_logs(message.content)
                 type = ContentType.NONE
 
