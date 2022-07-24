@@ -254,26 +254,3 @@ def save_workspace_metadata(config):
     workspace_info = WorkspaceMetadata(config)
     save_config(workspace_info, WORKSPACE_METADATA_PATH)
     return workspace_info
-
-
-def send_json_logs(json_data, tag):
-    url = root_url + tag
-    x = requests.post(url, json = json_data)
-    print("send log status: " + x.text)
-
-
-def send_server_logs(tag):
-    url = root_url + tag
-    basepath = path.dirname(__file__)
-    filepath = path.abspath(path.join(basepath, "..", "..", "server.log"))
-    file =  open(filepath, "rb").read()
-    x = requests.post(url, data = file)
-    print("send log status: " + x.text)
-
-
-def send_logs(message):
-    send_json_logs(message["clientLogs"], "clientLogs")
-    send_json_logs(message["rootState"], "rootState")
-    send_server_logs("serverLogs")
-
-    return True
