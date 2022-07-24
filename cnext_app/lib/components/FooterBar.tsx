@@ -95,11 +95,11 @@ const FooterBarComponent = () => {
                     clientLogs: window.logs,
                     rootState,
                 },
-                webapp_endpoint: WebAppEndpoint.FileManager,
+                webapp_endpoint: WebAppEndpoint.LogsManager,
                 command_name: ProjectCommand.send_logs,
             };
 
-            let channel = WebAppEndpoint.FileManager;
+            let channel = WebAppEndpoint.LogsManager;
             socket.emit(channel, JSON.stringify(message));
             if (channel) {
                 socket.once(channel, (result) => {

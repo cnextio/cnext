@@ -18,6 +18,7 @@ from model_manager import model_manager as mm
 from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
+from logs_manager import logs_manager as lm
 from jupyter_server_manager import jupyter_server_manager as jsm
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, KernelManagerCommand, ExecutorType
@@ -112,7 +113,8 @@ def main(argv):
                         WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, workspace_metadata),
                         WebappEndpoint.FileExplorer: fe.MessageHandler(
                             p2n_queue, user_space),
-                        WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config)
+                        WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config),
+                        WebappEndpoint.LogsManager: lm.MessageHandler(p2n_queue, user_space),
     
                     }
 
