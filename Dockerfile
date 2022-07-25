@@ -11,4 +11,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
 RUN pip install cnext${CNEXT_VERSION:+==$CNEXT_VERSION}
 RUN echo "n" | cnext-init
 
-ENTRYPOINT ["cnext-run"]
+COPY ./docker/docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["cnext-run"]
