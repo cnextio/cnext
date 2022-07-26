@@ -129,24 +129,7 @@ def _tmp():
     else:
         return None
 _tmp()`;
-        //         let content: string = `
-        // import io, base64, simplejson as json
-        // import matplotlib.pyplot as plt
-        // import seaborn as sns
-        // from libs.json_serializable import JsonSerializable
-        // def _tmp():
-        //     if ${df_id}["${col_name}"].dtypes not in ["object"]:
-        //         sns.set(rc = {'figure.figsize':(250,50)})
-        //         sns.boxplot(x="${col_name}", data=${df_id})
-        //         buffer = io.BytesIO()
-        //         plt.savefig(buffer, format='png')
-        //         buffer.seek(0)
-        //         return JsonSerializable({"mime_type": "image/png", "data": base64.b64encode(buffer.read())})
-        //     else:
-        //         return None
-        // _tmp()
-        // `;
-
+        
         let message = createMessage(CommandName.plot_column_quantile, content, 1, {
             df_id: df_id,
             col_name: col_name,
@@ -154,15 +137,6 @@ _tmp()`;
         console.log("here", JSON.stringify(message));
         sendMessage(message);
     };
-
-    // const sendGetCountna = (df_id: string) => {
-    //     // FIXME: the content is actually not important because python server will generate the python command itself based on CommandName
-    //     let content: string = `${df_id}.isna().sum()`;
-    //     let message = createMessage(CommandName.get_countna, content, 1, {
-    //         df_id: df_id,
-    //     });
-    //     sendMessage(message);
-    // };
 
     const DF_DISPLAY_HALF_LENGTH = 15;
     const sendGetTableDataAroundRowIndex = (df_id: string, around_index: number = 0) => {
@@ -366,19 +340,7 @@ _tmp()`;
                 console.log("DataFrameManager got results for command ", message);
                 if (!message.error) {
                     if (message.type === ContentType.STRING || message.error === true) {
-                        // let inViewID = store.getState().projectManager.inViewID;
-                        // if (inViewID) {
-                        //     let result: ICodeResultMessage = {
-                        //         inViewID: inViewID,
-                        //         content: message.content,
-                        //         type: message.type,
-                        //         subType: message.sub_type,
-                        //         metadata: message.metadata,
-                        //     };
-                        //     dispatch(addResult(result));
-                        // }
-                        //TODO: display this on CodeOutput
-                        console.log("DataFrameManager: got text output ", message);
+                        dispatch(setTextOutput(message));
                     } else if (message.command_name == CommandName.update_df_status) {
                         handleActiveDFStatus(message);
                     } else if (message.command_name == CommandName.reload_df_status) {
@@ -390,8 +352,6 @@ _tmp()`;
                         handlePlotColumnHistogram(message);
                     } else if (message.command_name == CommandName.plot_column_quantile) {
                         handlePlotColumnQuantile(message);
-                        // } else if (message.command_name == CommandName.get_countna) {
-                        //     handleGetCountna(message);
                     } else if (message.command_name == CommandName.get_df_metadata) {
                         handleGetDFMetadata(message);
                     } else {
@@ -423,6 +383,8 @@ _tmp()`;
 
     useEffect(() => {
         if (dfFilter != null) {
+            // clear the text output message
+            dispatch(setTextOutput({content: ''}));
             sendGetTableData(dfFilter.df_id, dfFilter.query);
         }
     }, [dfFilter]);

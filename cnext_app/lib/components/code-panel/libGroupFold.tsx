@@ -8,11 +8,11 @@ export const getGroupFoldRange = (state: EditorState, lineStart: number, lineEnd
         const codeLines = store.getState().codeEditor.codeLines[inViewID];
         const doc = state.doc;
         /** compare doc and codeLines to avoid bug when codeLines has been loaded but doc has not */
-        if (codeLines != null && doc.lines === codeLines.length && lineStart!==lineEnd) {
+        if (codeLines != null && doc.lines === codeLines.length && lineStart !== lineEnd) {
             const startLine: number = doc.lineAt(lineStart).number - 1; // 0-based
             let endLine: number = startLine;
             let curGroupID = codeLines[startLine].groupID;
-            console.log("CodeEditor getGroupedLineFoldRange: ", startLine);
+            console.log("CodeEditor getGroupedLineFoldRange: ", startLine, lineStart, lineEnd);
             if (
                 curGroupID != null &&
                 (startLine === 0 ||

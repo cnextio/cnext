@@ -1,0 +1,12 @@
+p2n_comm:
+    host: tcp://127.0.0.1
+    port: 5000
+
+n2p_comm:
+    host: tcp://127.0.0.1
+    kernel_control_port: 5005
+
+path_to_cnextlib: 'D:/CNext/cycdataframe'
+jupyter_server:
+    port: 5008
+    token: token123

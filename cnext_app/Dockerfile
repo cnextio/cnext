@@ -7,7 +7,7 @@ WORKDIR /web
 
 COPY . .
 
-RUN npm i --force
+RUN npm i
 RUN npm run build
 
 CMD ["npm", "start"]

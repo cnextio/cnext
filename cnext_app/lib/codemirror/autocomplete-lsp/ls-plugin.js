@@ -34,11 +34,11 @@ class LanguageServerPlugin {
     }
 
     async setupLSConnection() {
-        console.log('setupLSConnection');
+        // console.log('setupLSConnection');
         this.ready = false;
         socket.emit('ping', WebAppEndpoint.LanguageServer);
         socket.on('pong', (message) => {
-            console.log('Get pong from server when init LSP');
+            // console.log('Get pong from server when init LSP');
         });
 
         // listener notify from server
@@ -109,11 +109,11 @@ class LanguageServerPlugin {
     }
 
     destroy() {
-        console.log('LanguageServerPlugin destroy');
+        // console.log('LanguageServerPlugin destroy');
     }
 
     async initializeLS({ documentText }) {
-        console.log('initializeLS');
+        // console.log('initializeLS');
         const result = await this.requestLS(WebAppEndpoint.LanguageServer, 'initialize', {
             capabilities: {
                 textDocument: {

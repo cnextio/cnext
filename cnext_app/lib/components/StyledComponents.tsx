@@ -215,10 +215,25 @@ export const FileItem = styled(TreeItem)`
         line-height: 2em;
     }
     .MuiTreeItem-group {
-        margin-left: 10px;
+        border-left: 1px solid ${(props) => props.theme.palette.grey.A400};
     }
     .MuiTreeItem-content {
-        // margin-left: 5px;
+        padding-left: 7px;
+    }
+    .MuiTreeItem-iconContainer {
+    }
+    color: ${(props) => props.theme.palette.text.secondary};
+    width: 100%;
+`;
+
+export const OpenProjectItem = styled(TreeItem)`
+    .MuiTreeItem-label {
+        font-size: 13px;
+        line-height: 2em;
+    }
+    .MuiTreeItem-group {
+        margin-left: 15px;
+        border-left: 1px dotted ${(props) => props.theme.palette.grey.A700};
     }
     color: ${(props) => props.theme.palette.text.secondary};
     width: 100%;
@@ -227,6 +242,7 @@ export const FileItem = styled(TreeItem)`
 export const FileItemLabel = styled.div`
     font-size: 13px;
     line-height: 2em;
+    margin-left: -5px;
 `;
 
 export const Overlay = styled.div`
@@ -273,7 +289,9 @@ export const WorkingPanelSplitPanel = styled(SplitPane)`
     padding-right: inherit;
     height: 100%;
 `;
-
+// export const StyleXTerm = styled(XTerm)`
+//     height: 100%;
+// `;
 export const StyledCodePanel = styled.div`
     display: flex;
     flex-direction: column;
@@ -343,7 +361,7 @@ export const FileNameTab = styled(Typography)`
     line-height: calc(var(--var-height));
     padding: 0px 5px 0px 10px;
     font-size: 13px;
-    
+
     animation: ${(props) =>
             props.runQueueBusy
                 ? textTransitionToColor("#F59242", props.theme.palette.grey.A200)
@@ -530,7 +548,7 @@ export const CodeEditMarker = styled.div`
     background-color: green;
     border: 2px;
 `;
-export const CodeOutputContainer = styled.div`
+export const TextIOContainer = styled.div`
     display: flex;
     flex-direction: column;
     padding: 0px 10px 0px 10px;
@@ -539,24 +557,26 @@ export const CodeOutputContainer = styled.div`
     width: 100%;
 `;
 
-export const CodeOutputHeader = styled.div`
+export const TextIOHeader = styled.div`
     height: 30px;
 `;
 
-export const CodeOutputHeaderText = styled(Typography)`
+export const TextIOHeaderText = styled(Typography)`
     // height: 30px;
     // text-decoration: underline;
     font-size: 11px;
-    border-bottom-style: solid;
+    border-bottom-style: ${(props) => (props.underline ? `solid` : `none`)};
+    margin-right: 10px;
     border-width: 1px;
+    cursor: pointer;
 `;
 // need this compoent to make the text output respect tab character
-export const CodeOutputContent = styled.div`
+export const TextIOContent = styled.div`
     overflow: auto;
     height: 100%;
     // flex-grow: 1;
 `;
-// export const IndividualCodeOutputContent = styled.pre`
+// export const IndividualControlPanelContent = styled.pre`
 //     margin: 0px;
 //     padding: 5px 0px 5px 0px;
 //     overflow: auto;
@@ -565,7 +585,7 @@ export const CodeOutputContent = styled.div`
 //         background-color: ${props => props.theme.palette.action.hover};
 //     }
 // `;
-export const IndividualCodeOutputContent = styled(Typography)`
+export const IndividualControlPanelContent = styled(Typography)`
     margin-bottom: 10px;
     padding: 5px 0px 5px 0px;
     overflow: auto;
@@ -590,6 +610,9 @@ export const IndividualCodeOutputContent = styled(Typography)`
         max-width: 100%;
         // word-break: break-all;
         word-wrap: break-word;
+        font-family: monospace;
+        font-size: 13px;
+        line-height: 1.6em;
     }
 `;
 
@@ -647,6 +670,7 @@ export const DFSelectorMenuItem = styled(MenuItem)`
 `;
 
 export const DFFilterForm = styled(FormControl)`
+    display: flex;
     height: 100%;
     width: 100%;
     padding: 0px 10px 0px 5px;
@@ -655,6 +679,17 @@ export const DFFilterForm = styled(FormControl)`
 export const DFFilterInput = styled(OutlinedInput)`
     font-size: 13px;
     padding: 0px;
+`;
+
+export const QuerySample = styled.div`
+    margin-top: 5px;
+    // margin-right: 5px;
+    padding-right: 5px;
+    padding-left: 5px;
+    align-self: flex-end;
+    z-index: 10;
+    color: ${(props) => props.theme.palette.text.secondary};
+    background: ${(props) => props.theme.palette.grey.A100};
 `;
 
 export const StyledFilterCodeMirror = styled(CodeMirror)`
@@ -839,12 +874,21 @@ export const ResultViewContainer = styled.div`
 export const SingleResultContainer = styled(Paper)`
     background-color: ${(props) => props.theme.palette.background.paper};
     margin: 0px;
-    margin-bottom: 10px;
+    margin-bottom: ${(props) => (!props.showMarkdown ? "10px" : "0px")};
     width: 100%;
+    height: 100%;
     border-top: ${(props) =>
-        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+        !props.showMarkdown
+            ? props.focused
+                ? "1px solid rgb(153, 179, 171, 0.6)"
+                : "1px dashed rgb(153, 179, 171, 0.5)"
+            : "0px"};
     border-bottom: ${(props) =>
-        props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
+        !props.showMarkdown
+            ? props.focused
+                ? "1px solid rgb(153, 179, 171, 0.6)"
+                : "1px dashed rgb(153, 179, 171, 0.5)"
+            : "0px"};
     border-left: 0px;
     border-right: 0px;
     border-radius: 0;

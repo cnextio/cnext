@@ -16,6 +16,7 @@ import {
     IEditorSettings,
     IDataFrameManagerSettings,
     IRichOutputSettings,
+    ILayoutSettings,
     // IWorkSpaceConfig,
 } from "../../lib/interfaces/IApp";
 
@@ -45,9 +46,13 @@ const dataframeManagerSettings: IDataFrameManagerSettings = {
     auto_display_data: true,
 };
 
-const richOutputSettings: IRichOutputSettings = {
+const defaultRichOutputSettings: IRichOutputSettings = {
     show_markdown: false,
 };
+
+const defaultLayoutSettings: ILayoutSettings = {
+    project_explorer_size: 200 
+}
 
 type ProjectManagerState = {
     openFiles: { [id: string]: IFileMetadata };
@@ -88,11 +93,12 @@ const initialState: ProjectManagerState = {
     serverSynced: false,
     settings: {
         view_mode: ViewMode.VERTICAL,
+        layout: defaultLayoutSettings,
         code_editor_shortcut: defaultEditorShortcutKeys,
         app_shortcut: defaultAppShortcutKeys,
         code_editor: codeEditorSettings,
         dataframe_manager: dataframeManagerSettings,
-        rich_output: richOutputSettings,
+        rich_output: defaultRichOutputSettings,
     },
     projects: [],
     workspaceMetadata: {
