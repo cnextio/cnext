@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { FooterNavigation, FooterItem, FotterItemText, FooterItemButton } from "./StyledComponents";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
 import { setProjectSetting } from "../../redux/reducers/ProjectManagerRedux";
 import socket from "./Socket";
 import { WebAppEndpoint } from "../interfaces/IApp";
-import store from "../../redux/store";
-import { ProjectCommand } from "../interfaces/IFileManager";
+import { LogsCommand } from "../interfaces/ILogsManager";
 
 const enum FootbarItemName {
     AUTOCOMPLETION = "Autocompletion",
@@ -96,7 +95,7 @@ const FooterBarComponent = () => {
                     rootState,
                 },
                 webapp_endpoint: WebAppEndpoint.LogsManager,
-                command_name: ProjectCommand.send_logs,
+                command_name: LogsCommand.send_logs,
             };
 
             let channel = WebAppEndpoint.LogsManager;
