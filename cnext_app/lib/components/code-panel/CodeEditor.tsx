@@ -148,7 +148,7 @@ const CodeEditor = () => {
 
     const defaultExtensions = [
         basicSetup,
-        // foldService.of(getGroupFoldRange),
+        foldService.of(getGroupFoldRange),
         lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
         groupWidget(),

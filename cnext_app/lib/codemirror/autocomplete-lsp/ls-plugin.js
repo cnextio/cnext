@@ -1,7 +1,7 @@
 const timeout = 10000;
 const changesDelay = 3000;
 
-import { setParamOptions } from "./autocomplete";
+// import { setParamOptions } from "./autocomplete";
 import { setDiagnostics } from "@codemirror/lint";
 import socket from "../../components/Socket";
 import { WebAppEndpoint } from "../../interfaces/IApp";
