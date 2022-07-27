@@ -1070,16 +1070,16 @@ export const FooterNavigation = styled.div`
     height: 22px;
 `;
 
-export const FooterItem = styled.a`
+export const LeftFooterItem = styled.a`
     height: 100%;
 `;
 
-export const FooterItemButton = styled.a`
+export const RightFooterItem = styled.a`
     height: 100%;
     float: right;
 `;
 
-export const FotterItemText = styled.span`
+export const FooterItemText = styled.span`
     font-size: 11px;
     color: white;
     cursor: pointer;
