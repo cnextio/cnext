@@ -11,6 +11,7 @@ import {
     OpenProjectTree,
     FileItemLabel,
     ProjectExplorerContainer,
+    OpenProjectItem,
 } from "../StyledComponents";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -50,7 +51,7 @@ import { OverlayComponent } from "../libs/OverlayComponent";
 
 const NameWithTooltip = ({ children, tooltip }) => {
     return (
-        <Tooltip title={tooltip} placement="bottom-end" enterDelay={1000} enterNextDelay={1000}>
+        <Tooltip title={tooltip} placement="bottom-end" enterDelay={2000} enterNextDelay={2000}>
             {children}
         </Tooltip>
     );
@@ -380,7 +381,7 @@ const FileExplorer = (props: any) => {
             <Fragment>
                 {Object.keys(openDirs).includes(relativeParentPath) ? (
                     openDirs[relativeParentPath]
-                        .filter((value) => value.name.substring(0, 1) !== ".")
+                        .filter((value) => ![".DS_Store", ".gitignore", "__pycache__"].includes(value.name))
                         .sort(function (a, b) {
                             if (a.name < b.name) {
                                 return -1;
@@ -470,7 +471,7 @@ const FileExplorer = (props: any) => {
                     onNodeToggle={handleDirToggle}
                 >
                     {activeProject != null && (
-                        <FileItem
+                        <OpenProjectItem
                             nodeId={relativeProjectPath}
                             data-cy={CypressIds.projectRoot}
                             label={
@@ -490,7 +491,7 @@ const FileExplorer = (props: any) => {
                             }}
                         >
                             {renderFileItems(projectItem?.path, relativeProjectPath)}
-                        </FileItem>
+                        </OpenProjectItem>
                     )}
                 </OpenProjectTree>
             );

@@ -134,7 +134,7 @@ const ReloadButton = () => {
     );
 };
 
-const ModelPanel = () => {
+const ModelPanel = ({ stopMouseEvent }) => {
     const modelViewerCounter = useSelector(
         (state: RootState) => state.modelManager.modelViewerCounter
     );
@@ -159,7 +159,13 @@ const ModelPanel = () => {
             return (
                 <iframe
                     key={modelViewerCounter}
-                    style={{ width: "100%", height: "100%", border: "none", paddingLeft: "25px" }}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        border: "none",
+                        paddingLeft: "10px",
+                        pointerEvents: stopMouseEvent?"none":"auto",
+                    }}
                     src={address}
                 />
             );

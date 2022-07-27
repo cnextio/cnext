@@ -1,3 +1,5 @@
+/cnext_app/out
 /cnext_app/node_modules
-/cnext_app/server/node_modules
+/cnext_server/public
+/cnext_server/server/node_modules
 /cnext_app/tests/

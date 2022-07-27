@@ -279,13 +279,15 @@ const FileManager = () => {
         if (inViewID != null) {
             const state = store.getState();
             const codeText = state.codeEditor.codeText;
-            // we will not load the file if it already exists (except for config.json)
-            // in redux this design will not allow client to stay update with server
-            // if there is out-of-channel changes in server but this is good enough
-            // for our use case.
+            /** we will not load the file if it already exists in codeText in redux this design 
+             * will not allow client to stay update with server if there is out-of-channel changes 
+             * in server but this is good enough for our use case. Note that: since config.py won't 
+             * be reload, the content of this file will be outdated when the config is changed using
+             * other UI components
+             */            
             if (
-                codeText == null || 
-                (codeText != null && !Object.keys(codeText).includes(inViewID)) || 
+                codeText == null ||
+                (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
                 isSettingsFile(inViewID)
             ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
@@ -380,7 +382,7 @@ const FileManager = () => {
             }
         } catch (error) {
             //don't want to log this because there might be a lot of this when user typing in the string
-            //console.error(error);
+            console.error(error);
         }
     };
     /**
@@ -454,26 +456,24 @@ const FileManager = () => {
                     // Avoid to save the text/html result because maybe it's audio/video files.
                     // Save these files make bad performance.
                     const codeLinesSaveState = codeLines.map((codeLine) =>
-                        // codeLine.result?.subType === SubContentType.TEXT_HTML
-                        //     ? { ...codeLine, result: null }
-                        //     : codeLine
                         {
-                            if (
-                                codeLine.result?.content &&
-                                Object.keys(codeLine.result?.content).includes(
-                                    SubContentType.TEXT_HTML
-                                )
-                            ) {
-                                let updatedResult = { ...codeLine.result };
-                                updatedResult.content = {
-                                    "text/html":
-                                        "<div>This result is too big to save. Please rerun the command!</div>",
-                                };
-                                return {
-                                    ...codeLine,
-                                    result: updatedResult,
-                                };
-                            } else return codeLine;
+                            // if (
+                            //     codeLine.result?.content &&
+                            //     Object.keys(codeLine.result?.content).includes(
+                            //         SubContentType.TEXT_HTML
+                            //     )
+                            // ) {
+                            //     let updatedResult = { ...codeLine.result };
+                            //     updatedResult.content = {
+                            //         "text/html":
+                            //             "<div>This result is too big to save. Please rerun the command!</div>",
+                            //     };
+                            //     return {
+                            //         ...codeLine,
+                            //         result: updatedResult,
+                            //     };
+                            // } else return codeLine;
+                            return codeLine;
                         }
                     );
                     const timestamp = state.codeEditor.timestamp[filePath];
