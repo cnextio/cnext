@@ -4,25 +4,16 @@ import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
 import store, { RootState } from "../../../redux/store";
 import socket from "../Socket";
-import { basicSetup } from "../../codemirror/basic-setup";
-import { bracketMatching } from "@codemirror/matchbrackets";
-import { defaultHighlightStyle } from "@codemirror/highlight";
 import { python } from "../../codemirror/grammar/lang-cnext-python";
 import { sql } from "@codemirror/lang-sql";
 import { json } from "@codemirror/lang-json";
-import { EditorView, keymap, ViewPlugin, ViewUpdate } from "@codemirror/view";
-import { Line } from "@codemirror/text";
+import { EditorView, keymap, lineNumbers, ViewPlugin, ViewUpdate } from "@codemirror/view";
+import { Line } from "@codemirror/state";
+import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { searchKeymap } from "@codemirror/search";
-import { completionKeymap } from "@codemirror/autocomplete";
-import { commentKeymap } from "@codemirror/comment";
-import { lintKeymap } from "@codemirror/lint";
-import { defaultKeymap } from "@codemirror/commands";
-import { historyKeymap } from "@codemirror/history";
-import { foldKeymap, foldAll, unfoldAll, foldCode, unfoldCode } from "@codemirror/fold";
-import { foldService, indentUnit } from "@codemirror/language";
-import { lineNumbers } from "@codemirror/gutter";
 import { StyledCodeEditor } from "../StyledComponents";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
+
 import {
     addResult,
     updateLines,
@@ -53,8 +44,8 @@ import {
     IRunQueueItem,
     IRunQueue,
 } from "../../interfaces/ICodeEditor";
-import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
 import { useCodeMirror } from "@uiw/react-codemirror";
+import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
 import {
     ICodeGenResult,
     CodeInsertStatus,
@@ -94,8 +85,22 @@ import {
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
-import { closeBracketsKeymap } from "@codemirror/closebrackets";
 import { IKernelManagerResultContent, KernelManagerCommand } from "../../interfaces/IKernelManager";
+import {
+    defaultHighlightStyle,
+    foldAll,
+    foldCode,
+    foldKeymap,
+    foldService,
+    indentUnit,
+    syntaxHighlighting,
+    unfoldAll,
+    unfoldCode,
+    bracketMatching,
+} from "@codemirror/language";
+import { completionKeymap } from "@codemirror/autocomplete";
+import { lintKeymap } from "@codemirror/lint";
+import { basicSetup } from "../../codemirror/basic-setup";
 import { groupWidget } from "./libGroupWidget";
 import { getGroupFoldRange } from "./libGroupFold";
 
@@ -143,13 +148,13 @@ const CodeEditor = () => {
 
     const defaultExtensions = [
         basicSetup,
-        // foldService.of(getGroupFoldRange),
+        foldService.of(getGroupFoldRange),
         lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
         groupWidget(),
         // groupedLineGutter(),
         bracketMatching(),
-        defaultHighlightStyle.fallback,
+        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
         keymap.of([
             { key: shortcutKeysConfig.run_queue, run: () => addToRunQueue(view) },
             {
@@ -172,12 +177,11 @@ const CodeEditor = () => {
             { key: "Mod-Shift-c", run: foldCode },
             { key: "Mod-Shift-v", run: unfoldCode },
             ...completionKeymap,
-            ...closeBracketsKeymap,
+            // ...closeBracketsKeymap,
             ...defaultKeymap,
             ...searchKeymap,
             ...historyKeymap,
             ...foldKeymap,
-            ...commentKeymap,
             ...lintKeymap,
         ]),
         indentUnit.of("    "),
@@ -215,9 +219,10 @@ const CodeEditor = () => {
         basicSetup: false,
         container: editorRef.current,
         extensions: [...defaultExtensions, ...langExtensions],
+        // extensions: defaultExtensions,//[python()],
         height: "100%",
         theme: "light",
-        onChange: onCodeMirrorChange,
+        onChange: (value, viewUpdate) => onCodeMirrorChange(value, viewUpdate),
         /** do not allow edit when there are items in the run queue */
         readOnly: isRunQueueBusy(runQueue),
     });

@@ -7,16 +7,16 @@ import {
     QuerySample,
     StyledFilterCodeMirror,
 } from "../../StyledComponents";
-import { bracketMatching } from "@codemirror/matchbrackets";
-import { closeBrackets } from "@codemirror/closebrackets";
-import { defaultHighlightStyle } from "@codemirror/highlight";
 import { dfFilterLanguageServer } from "../../../codemirror/autocomplete-lsp/index.js";
 import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
 import store from "../../../../redux/store";
 import { ViewUpdate } from "@codemirror/view";
+import { bracketMatching, defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { closeBrackets } from "@codemirror/autocomplete";
+// import { EditorState, TransactionSpec } from "@codemirror/state";
 import { EditorState, TransactionSpec } from "@codemirror/state";
 import { basicSetup } from "../../../codemirror/basic-setup";
-import { history } from "@codemirror/history";
+// import { history } from "@codemirror/history";
 import { setRichOutputFocused } from "../../../../redux/reducers/RichOutputRedux";
 
 const ls = dfFilterLanguageServer();
@@ -187,11 +187,20 @@ const DFExplorer = () => {
         // basicSetup,
         bracketMatching(),
         closeBrackets(),
-        defaultHighlightStyle.fallback,
-        history(),
+        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
         cnextQuery(),
         // python(),
         ls,
+        EditorState.transactionFilter.of((transaction) => {
+            let newLineDetected = false;
+            transaction.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+                newLineDetected ||= inserted.lines > 1;
+            });
+            if (newLineDetected) {
+                return null;
+            }
+            return transaction;
+        }),
         oneLineExtension(),
         // keymap.of([{ key: "Enter", run: () => enterKeyHandler() }]),
     ];

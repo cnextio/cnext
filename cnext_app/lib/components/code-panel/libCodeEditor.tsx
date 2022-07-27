@@ -1,5 +1,12 @@
-import { gutter, GutterMarker, gutterLineClass } from "@codemirror/gutter";
-import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
+import { gutter, GutterMarker, gutterLineClass } from "@codemirror/view";
+import {
+    EditorState,
+    StateEffect,
+    StateField,
+    Transaction,
+    TransactionSpec,
+} from "@codemirror/state";
+
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import {
     setActiveLine as setActiveLineRedux,
@@ -22,7 +29,6 @@ import {
 } from "../../interfaces/ICodeEditor";
 import { CASSIST_STARTER, ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
-import { python } from "../../codemirror/grammar/lang-cnext-python";
 import store from "../../../redux/store";
 import { RootState } from "../../../redux/store";
 import socket from "../Socket";
@@ -87,7 +93,7 @@ const setAnchor = (view: EditorView, pos: number) => {
 };
 
 import { setLineStatus as setLineStatusRedux } from "../../../redux/reducers/CodeEditorRedux";
-import { RangeSet } from "@codemirror/rangeset";
+import { RangeSet } from "@codemirror/state";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import { Socket } from "socket.io-client";
 
@@ -106,7 +112,7 @@ const scrollToPos = (view: EditorView, lineNumber: number) => {
         selection: { anchor: pos, head: pos },
         scrollIntoView: true,
     });
-}
+};
 
 /** lineNum is 0 based */
 const setAnchorToLine = (
@@ -237,7 +243,7 @@ const setViewCodeText = (state: RootState, view: EditorView) => {
         //         insert: codeText,
         //     },
         // };
-        // let transaction: Transaction = view.state.update(transactionSpec);        
+        // let transaction: Transaction = view.state.update(transactionSpec);
         // view.dispatch(transaction);
         view.setState(EditorState.create({ doc: codeText }));
     }
@@ -681,20 +687,6 @@ const getNonGeneratedLinesInRange = (
 //     return !/^\s/.test(text);
 // };
 
-/**
- * check if the text line is an Expression instead of a Statement
- * */
-// export const textShouldBeExec = (text: string): boolean => {
-//     let parser = python().language.parser;
-//     let tree = parser.parse(text);
-//     let cursor = tree.cursor(0, 0);
-//     let parentName = cursor.name;
-//     cursor.firstChild();
-//     let childName = cursor.name;
-//     /** not start with space */
-//     return parentName == "Script" && childName == "ExpressionStatement" && notStartWithSpace(text);
-// };
-
 export const isRunQueueBusy = (runQueue: IRunQueue) => {
     return runQueue.queue.length > 0 || runQueue.status === RunQueueStatus.RUNNING;
 };
@@ -886,6 +878,5 @@ export {
     addToRunQueueThenMoveDown,
     execLines,
     createMessage,
-    sendMessage
+    sendMessage,
 };
-
