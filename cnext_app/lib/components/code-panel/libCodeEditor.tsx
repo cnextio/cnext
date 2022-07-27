@@ -1,7 +1,5 @@
 import { gutter, GutterMarker, gutterLineClass } from "@codemirror/view";
-import { EditorState, StateEffect, StateField } from "@codemirror/state";
-// import { gutter, GutterMarker, gutterLineClass } from "@codemirror/gutter";
-// import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
+import { StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import {
     setActiveLine as setActiveLineRedux,
@@ -89,7 +87,6 @@ const setAnchor = (view: EditorView, pos: number) => {
 
 import { setLineStatus as setLineStatusRedux } from "../../../redux/reducers/CodeEditorRedux";
 import { RangeSet } from "@codemirror/state";
-// import { RangeSet } from "@codemirror/rangeset";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import { Socket } from "socket.io-client";
 
@@ -239,7 +236,7 @@ const setViewCodeText = (state: RootState, view: EditorView) => {
         //         insert: codeText,
         //     },
         // };
-        // let transaction: Transaction = view.state.update(transactionSpec);        
+        // let transaction: Transaction = view.state.update(transactionSpec);
         // view.dispatch(transaction);
         view.setState(EditorState.create({ doc: codeText }));
     }
@@ -876,4 +873,3 @@ export {
     createMessage,
     sendMessage,
 };
-
