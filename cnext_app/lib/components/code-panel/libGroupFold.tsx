@@ -26,7 +26,7 @@ export const getGroupFoldRange = (state: EditorState, lineStart: number, lineEnd
                     endLine += 1;
                 }
                 if (lineEnd < doc.line(endLine + 1).to) {
-                    return { from: lineStart, to: doc.line(endLine + 1).to }; // convert to 1-based
+                    return { from: lineEnd, to: doc.line(endLine + 1).to }; // convert to 1-based
                 }
             }
         }
