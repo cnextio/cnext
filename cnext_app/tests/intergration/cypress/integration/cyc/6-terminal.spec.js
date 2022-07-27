@@ -8,9 +8,7 @@ describe("Test Terminal  ", () => {
     before(() => {
         cy.visit("/");
         cy.wait(WAIT_3S);
-        cy.reload();
-        cy.wait(WAIT_3S);
-        cy.reload();
+        // cy.reload();
         // truy cap va chay toan bo ung dung ->
         // mong muon: chay bt tat cac cac dich vu de test
     });
