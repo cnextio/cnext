@@ -239,7 +239,7 @@ const setViewCodeText = (state: RootState, view: EditorView) => {
         //         insert: codeText,
         //     },
         // };
-        // let transaction: Transaction = view.state.update(transactionSpec);
+        // let transaction: Transaction = view.state.update(transactionSpec);        
         // view.dispatch(transaction);
         view.setState(EditorState.create({ doc: codeText }));
     }
@@ -876,3 +876,4 @@ export {
     createMessage,
     sendMessage,
 };
+

@@ -7,7 +7,6 @@ import {
     QuerySample,
     StyledFilterCodeMirror,
 } from "../../StyledComponents";
-
 import { dfFilterLanguageServer } from "../../../codemirror/autocomplete-lsp/index.js";
 import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
 import store from "../../../../redux/store";
