@@ -43,7 +43,7 @@ const WorkingPanel = () => {
     }, [experiment_tracking_uri]);
 
     const [resizing, setResizing] = useState(false);
-    const [codePanelSize, setCodePanelSize] = useState<string>("700");
+    const [codePanelSize, setCodePanelSize] = useState<string>("700px");
     return (
         <StyledWorkingPanel>
             {/* have to do complicated inline style because of this 
@@ -62,11 +62,11 @@ const WorkingPanel = () => {
                             setResizing(true);
                         }}
                         onResizeEnd={(config) => {
-                            // setCodePanelSize(config[0]);
+                            setCodePanelSize(config[0]);
                             setResizing(false);
                         }}
                     >
-                        <Pane size={codePanelSize+"px"}>
+                        <Pane size={codePanelSize}>
                             <CodePanel workingPanelViewMode={projectConfig.view_mode} />
                         </Pane>
                         <Pane>
