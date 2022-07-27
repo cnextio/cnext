@@ -1,5 +1,12 @@
-import { gutter, GutterMarker, gutterLineClass } from "@codemirror/view"
-import { StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
+import { gutter, GutterMarker, gutterLineClass } from "@codemirror/view";
+import {
+    EditorState,
+    StateEffect,
+    StateField,
+    Transaction,
+    TransactionSpec,
+} from "@codemirror/state";
+
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import {
     setActiveLine as setActiveLineRedux,
@@ -105,7 +112,7 @@ const scrollToPos = (view: EditorView, lineNumber: number) => {
         selection: { anchor: pos, head: pos },
         scrollIntoView: true,
     });
-}
+};
 
 /** lineNum is 0 based */
 const setAnchorToLine = (
@@ -236,7 +243,7 @@ const setViewCodeText = (state: RootState, view: EditorView) => {
         //         insert: codeText,
         //     },
         // };
-        // let transaction: Transaction = view.state.update(transactionSpec);        
+        // let transaction: Transaction = view.state.update(transactionSpec);
         // view.dispatch(transaction);
         view.setState(EditorState.create({ doc: codeText }));
     }
@@ -680,7 +687,6 @@ const getNonGeneratedLinesInRange = (
 //     return !/^\s/.test(text);
 // };
 
-
 export const isRunQueueBusy = (runQueue: IRunQueue) => {
     return runQueue.queue.length > 0 || runQueue.status === RunQueueStatus.RUNNING;
 };
@@ -872,6 +878,5 @@ export {
     addToRunQueueThenMoveDown,
     execLines,
     createMessage,
-    sendMessage
+    sendMessage,
 };
-
