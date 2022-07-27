@@ -4,7 +4,7 @@ import traceback
 import simplejson as json
 import cnextlib.user_space as _cus
 import cnextlib.dataframe as _cd
-from libs.constants import TrackingModelType
+from libs.constants import TrackingModelType, TrackingDataframeType
 from user_space.ipython.kernel import IPythonKernel
 from user_space.ipython.constants import IPythonInteral, IPythonConstants
 
@@ -49,11 +49,11 @@ class IPythonUserSpace(_cus.UserSpace):
     '''
 
     def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
+        super().__init__(tracking_df_types, tracking_model_types)
         self.executor: IPythonKernel = IPythonKernel()
         self.init_executor()
         self.execution_lock = threading.Lock()
         self.result = None
-        super().__init__(tracking_df_types, tracking_model_types)
 
     def init_executor(self):
         code = """
@@ -68,13 +68,14 @@ class _UserSpace(BaseKernelUserSpace):
     def globals(self):
         return globals()
 
-{_user_space} = _UserSpace((_cd.DataFrame, _pd.DataFrame), {tracking_models})  
+{_user_space} = _UserSpace(tracking_df_types={_tracking_df_types}, tracking_model_types={_tracking_model_types})  
 {_df_manager} = _dm.MessageHandler(None, {_user_space})
 {_cassist} = _ca.MessageHandler(None, {_user_space})
 """.format(_user_space=IPythonInteral.USER_SPACE.value,
            _df_manager=IPythonInteral.DF_MANAGER.value,
            _cassist=IPythonInteral.CASSIST.value,
-           tracking_models=(TrackingModelType.PYTORCH_NN,TrackingModelType.TENSORFLOW_KERAS))
+           _tracking_df_types=self.tracking_df_types,
+           _tracking_model_types=(TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
         self.executor.execute(code)
 
     def globals(self):
@@ -169,7 +170,7 @@ class _UserSpace(BaseKernelUserSpace):
         if self.execution_lock.locked():
             self.execution_lock.release()
         return result
-    
+
     def set_executor_working_dir(self, path):
         code = "import os; os.chdir('{}')".format(path)
         return self.executor.execute(code)
@@ -184,7 +185,7 @@ class BaseKernelUserSpace(_cus.UserSpace):
 
     def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
         self.executor = BaseKernel()
-        ## need to set user space on DataFrameTracker, it does not work if set with DataFrame
+        # need to set user space on DataFrameTracker, it does not work if set with DataFrame
         _cd.DataFrameTracker.set_user_space(self)
         super().__init__(tracking_df_types, tracking_model_types)
 
@@ -192,7 +193,7 @@ class BaseKernelUserSpace(_cus.UserSpace):
         return globals()
 
     def execute(self, code, exec_mode: ExecutionMode = None):
-        ## this function is not called when using ipython
+        # this function is not called when using ipython
         # self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, self.globals())
 
