@@ -1,5 +1,11 @@
-import React from "react";
-import { FooterNavigation, FooterItem, FotterItemText, FooterItemButton } from "./StyledComponents";
+import React, { useState } from "react";
+import {
+    FooterNavigation,
+    FooterItem,
+    FotterItemText,
+    FooterItemButton,
+    WhiteCircleProgress,
+} from "./StyledComponents";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
 import { setProjectSetting } from "../../redux/reducers/ProjectManagerRedux";
@@ -20,6 +26,7 @@ interface IFootbarItem {
 
 const FooterBarComponent = () => {
     // const [codeEditorConfig, setCodeEditorConfig] = useState({ lint: false, hover: false, autocompletion: false });
+    const [sending, setSending] = useState(false);
 
     const codeEditorSettings = useSelector(
         (rootState: RootState) => rootState.projectManager.settings.code_editor
@@ -84,11 +91,8 @@ const FooterBarComponent = () => {
     };
 
     const sendLogs = () => {
+        setSending(true);
         return new Promise((resolve, reject) => {
-            // console.log(
-            //     `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
-            //     rpcMessage
-            // );
             let message = {
                 content: {
                     clientLogs: window.logs,
@@ -103,10 +107,7 @@ const FooterBarComponent = () => {
             if (channel) {
                 socket.once(channel, (result) => {
                     const response = JSON.parse(result.toString());
-                    // console.log(
-                    //     `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,
-                    //     response
-                    // );
+                    setSending(false);
                     resolve(response);
                 });
             }
@@ -136,6 +137,7 @@ const FooterBarComponent = () => {
                     }}
                 >
                     Send Logs
+                    {sending && <WhiteCircleProgress />}
                 </FotterItemText>
             </FooterItemButton>
         </FooterNavigation>
