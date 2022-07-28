@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import {
     FooterNavigation,
-    FooterItem,
-    FotterItemText,
-    FooterItemButton,
+    LeftFooterItem,
+    FooterItemText,
+    RightFooterItem,
     WhiteCircleProgress,
 } from "./StyledComponents";
 import { useSelector, useDispatch } from "react-redux";
@@ -38,7 +38,7 @@ const FooterBarComponent = () => {
 
     const dispatch = useDispatch();
 
-    const footbarItems: IFootbarItem[] = [
+    const leftFootbarItems: IFootbarItem[] = [
         { name: FootbarItemName.AUTOCOMPLETION, setting: codeEditorSettings.autocompletion },
         { name: FootbarItemName.CODEANALYSIS, setting: codeEditorSettings.lint },
         { name: FootbarItemName.MARKDOWN, setting: richOutputSettings.show_markdown },
@@ -116,30 +116,30 @@ const FooterBarComponent = () => {
 
     return (
         <FooterNavigation>
-            {footbarItems.map((item, index) => {
+            {leftFootbarItems.map((item, index) => {
                 return (
-                    <FooterItem key={index}>
-                        <FotterItemText
+                    <LeftFooterItem key={index}>
+                        <FooterItemText
                             onClick={() => {
                                 changeHandler(item.name);
                             }}
                         >
                             {item.name}: {item.setting ? "ON" : "OFF"}
-                        </FotterItemText>
-                    </FooterItem>
+                        </FooterItemText>
+                    </LeftFooterItem>
                 );
             })}
 
-            <FooterItemButton>
-                <FotterItemText
+            <RightFooterItem>
+                <FooterItemText
                     onClick={() => {
                         sendLogs();
                     }}
                 >
                     Send Logs
                     {sending && <WhiteCircleProgress />}
-                </FotterItemText>
-            </FooterItemButton>
+                </FooterItemText>
+            </RightFooterItem>
         </FooterNavigation>
     );
 };
