@@ -99,8 +99,6 @@ const TerminalComponent = () => {
 
     useEffect(() => {
         if (xtermRef?.current) {
-            console.log("xtermRef?.current", xtermRef?.current);
-            console.log("xtermRef?.terminal", xtermRef?.current?.terminal);
         }
     }, [session]);
 
@@ -134,7 +132,7 @@ const TerminalComponent = () => {
                 convertEol: true,
                 fontFamily: "monospace",
                 fontSize: 13,
-                lineHeight: 1.20,
+                lineHeight: 1.2,
                 fontWeight: 400,
                 theme: {
                     selection: "#b1b1b155",
