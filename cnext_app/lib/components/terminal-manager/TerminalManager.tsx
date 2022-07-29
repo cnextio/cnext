@@ -4,8 +4,6 @@ import { setConfigTerminal } from "../../../redux/reducers/TerminalRedux";
 import { CommandName, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 
-const ConfigTerminal = "ConfigTerminal";
-
 const TerminalManager = () => {
     const dispatch = useDispatch();
 
@@ -21,7 +19,7 @@ const TerminalManager = () => {
             WebAppEndpoint.Terminal,
             JSON.stringify({
                 webapp_endpoint: WebAppEndpoint.Terminal,
-                content: ConfigTerminal,
+                content: "",
                 command_name: CommandName.get_jupyter_server_config,
             })
         );

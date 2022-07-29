@@ -19,20 +19,21 @@ log = logs.get_logger(__name__)
 
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata, jupyter_server_config):
+        super(MessageHandler, self).__init__(p2n_queue, user_space)
         self.jupyter_server_config = jupyter_server_config
-        run_string = f"jupyter server --port={jupyter_server_config['port']} --ServerApp.allow_origin=* --ServerApp.token={jupyter_server_config['token']}"
+        run_string = ["jupyter", "server",
+                      f"--port={jupyter_server_config['port']}",
+                      f"--ServerApp.token={jupyter_server_config['token']}",
+                      "--ServerApp.allow_origin=*"]
         log.info("Run: %s" % run_string)
         self.jupyter_server = subprocess.Popen(
-            run_string, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        self.jupyter_stdout_handler_thread = threading.Thread(
-            target=self.jupyter_stdout_handler, daemon=True)
-        super(MessageHandler, self).__init__(p2n_queue, user_space)
+            run_string, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     def jupyter_stdout_handler(self):
         while True:
             line = self.jupyter_server.stdout.readline()
             if not line:
-                break
+                continue
             log.info(line.rstrip())
 
     def handle_message(self, message):
@@ -45,19 +46,19 @@ class MessageHandler(BaseMessageHandler):
 
     def _get_jupyter_server_config(self):
         jupyter_server_config_message = Message(**{"webapp_endpoint": WebappEndpoint.Terminal, "command_name": JupyterServerCommand.get_config,
-                                                "content": self.jupyter_server_config, "error": False})
+                                                   "content": self.jupyter_server_config, "error": False})
         self._send_to_node(jupyter_server_config_message)
 
     def shutdown(self):
-        try: 
+        try:
             log.info('Shutting down pid=%s' % self.jupyter_server.pid)
             os.killpg(os.getpgid(self.jupyter_server.pid), signal.SIGTERM)
         except ProcessLookupError as error:
-            ## Sometime the the jupyter server might be exited before shutdown 
+            # Sometime the the jupyter server might be exited before shutdown
             # so we have to catch this except to make sure the program will exit gracefully
-            # FIXME: need to find out why this happened # 
+            # FIXME: need to find out why this happened #
             # log.error(error)
-            pass            
+            pass
 
     def restart(self):
-        pass    
+        pass
