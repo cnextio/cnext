@@ -32,11 +32,15 @@ const TerminalManager = () => {
                     const config = JSON.parse(result).content;
                     dispatch(setConfigTerminal(config));
                     const BASEURL = `http://localhost:${config.port}?token=${config.token}`;
+                    console.log(`getCookie`, getCookie(`username-localhost-5009`));
+                    const new_tab = window.open(`${BASEURL}`, "_blank");
                     setTimeout(() => {
-                        window.open(`${BASEURL}`, "_blank")?.close();
-                    }, 500);
+                        new_tab?.close();
+                    }, 0);
                 }
             } catch (error) {
+                console.log(`error`, error);
+
                 throw error;
             }
         });
