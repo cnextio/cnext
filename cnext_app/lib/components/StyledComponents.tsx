@@ -1,20 +1,13 @@
 import {
-    Box,
-    Button,
     Checkbox,
     Divider,
     FormControl,
     FormControlLabel,
-    Input,
-    ListItemText,
     Menu,
     MenuItem,
-    MenuList,
     OutlinedInput,
     Paper,
-    Popover,
     Select,
-    Tab,
     Table,
     TableCell,
     TableContainer as MuiTableContainer,
@@ -23,7 +16,6 @@ import {
     TextField,
     Typography,
     BottomNavigation,
-    CircularProgress,
 } from "@mui/material";
 // import { TabsUnstyled } from '@mui/base';
 // import InputUnstyled, { InputUnstyledProps } from '@mui/core/InputUnstyled'
@@ -1165,11 +1157,3 @@ function slidein() {
         }
     }`;
 }
-
-export const WhiteCircleProgress = () => {
-    return (
-        <div style={{ paddingLeft: 5, marginTop: 2 }}>
-            <CircularProgress size={12} thickness={6} style={{ color: "white" }} />
-        </div>
-    );
-};

@@ -4,7 +4,6 @@ import {
     LeftFooterItem,
     FooterItemText,
     RightFooterItem,
-    WhiteCircleProgress,
 } from "./StyledComponents";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
@@ -12,6 +11,7 @@ import { setProjectSetting } from "../../redux/reducers/ProjectManagerRedux";
 import socket from "./Socket";
 import { WebAppEndpoint } from "../interfaces/IApp";
 import { LogsCommand } from "../interfaces/ILogsManager";
+import { CircularProgress } from "@mui/material";
 
 const enum FootbarItemName {
     AUTOCOMPLETION = "Autocompletion",
@@ -23,6 +23,14 @@ interface IFootbarItem {
     name: FootbarItemName;
     setting: {};
 }
+
+export const WhiteCircleProgress = () => {
+    return (
+        <div style={{ paddingLeft: 5, marginTop: 2 }}>
+            <CircularProgress size={12} thickness={6} style={{ color: "white" }} />
+        </div>
+    );
+};
 
 const FooterBarComponent = () => {
     // const [codeEditorConfig, setCodeEditorConfig] = useState({ lint: false, hover: false, autocompletion: false });

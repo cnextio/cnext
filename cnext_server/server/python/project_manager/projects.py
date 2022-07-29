@@ -7,9 +7,6 @@ from project_manager.interfaces import ProjectInfoInWorkspace
 from libs import logs
 from libs.config import read_config, save_config
 from project_manager.interfaces import FileMetadata, CNEXT_PROJECT_METADATA_FILE, CNEXT_PROJECT_FOLDER, WORKSPACE_METADATA_PATH, WorkspaceMetadata, SETTINGS_FILE, ProjectMetadata
-from os import path
-import requests
-root_url = "https://logs-01.loggly.com/bulk/5e73048d-8103-467f-8a56-bf7641d2e632/tag/"
 
 log = logs.get_logger(__name__)
 
