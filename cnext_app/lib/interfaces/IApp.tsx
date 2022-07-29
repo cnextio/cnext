@@ -78,8 +78,8 @@ export enum CommandName {
     get_table_data = "get_table_data",
     get_df_metadata = "get_df_metadata",
     plot_column_quantile = "plot_column_quantile",
-    get_cardinal = "get_cardinal", /** get number of elements of a column given some filters */
-    get_jupyter_server_config = 'get_jupyter_server_config'
+    get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
+    get_jupyter_server_config = "get_jupyter_server_config",
 }
 
 export enum ContentType {
@@ -140,6 +140,7 @@ export enum WebAppEndpoint {
     LanguageServerCompletion = "LanguageServerCompletion",
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
+    LogsManager = "LogsManager",
 }
 
 export interface ITableData {
@@ -324,7 +325,7 @@ export interface IRichOutputSettings {
 
 export interface ILayoutSettings {
     /** unit: px */
-    project_explorer_size: number; 
+    project_explorer_size: number;
 }
 
 export interface IConfigs {

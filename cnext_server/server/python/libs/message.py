@@ -16,6 +16,7 @@ class WebappEndpoint(str, Enum):
     KernelManager = 'KernelManager'
     ModelManager = 'ModelManager'
     Terminal = 'Terminal'
+    LogsManager= 'LogsManager'
     
     def __str__(self):
         return str(self.value)
@@ -68,6 +69,9 @@ class ProjectCommand(str, Enum):
     get_workspace_metadata = 'get_workspace_metadata'
     set_workspace_metadata = 'set_workspace_metadata'
     set_active_project = 'set_active_project'
+
+class LogsCommand(str, Enum):
+    send_logs = "send_logs"
 
 
 class ExperimentManagerCommand(str, Enum):
