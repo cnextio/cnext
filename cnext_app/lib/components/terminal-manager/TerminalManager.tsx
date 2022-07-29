@@ -5,7 +5,7 @@ import { setConfigTerminal } from "../../../redux/reducers/TerminalRedux";
 import { CommandName, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 
-const cookieNameJupyterServer = `_xsrf`;
+// const jupyterServerCookie = `_xsrf`;
 
 const TerminalManager = () => {
     const dispatch = useDispatch();
