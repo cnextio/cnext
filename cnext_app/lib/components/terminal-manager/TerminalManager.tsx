@@ -31,14 +31,10 @@ const TerminalManager = () => {
                 if (JSON.parse(result).command_name === CommandName.get_jupyter_server_config) {
                     const config = JSON.parse(result).content;
                     dispatch(setConfigTerminal(config));
-
-                    if (!getCookie(cookieNameJupyterServer)) {
-                        const BASEURL = `http://localhost:${config.port}?token=${config.token}`;
-                        const cmd = window.open(`${BASEURL}`);
-                        setTimeout(() => {
-                            cmd?.close();
-                        }, 0);
-                    }
+                    const BASEURL = `http://localhost:${config.port}?token=${config.token}`;
+                    setTimeout(() => {
+                        window.open(`${BASEURL}`, "_blank")?.close();
+                    }, 500);
                 }
             } catch (error) {
                 throw error;
