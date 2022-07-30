@@ -25,9 +25,10 @@ const Home: NextPage = () => {
         if (typeof window !== "undefined") {
             window.logs = [];
             console.oldLog = console.log;
-            console.log = function (value) {
-                console.oldLog(value);
+            console.log = function (value, ...optionalParams) {
+                console.oldLog(value, ...optionalParams);
                 window.logs.push(value);
+                window.logs.push(...optionalParams);
             };
         }
     }, []);
