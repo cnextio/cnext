@@ -484,7 +484,24 @@ function optionContent(config) {
             position: 80,
         }
     );
+
+    content.push({
+        render(completion, _s, _m, isAdd) {
+            if (!completion.info || !isAdd) return null;
+            return getBtnMore();
+        },
+        position: 110,
+    });
+
     return content.sort((a, b) => a.position - b.position).map((a) => a.render);
+}
+
+function getBtnMore() {
+    let moreBtnElt = document.createElement("button");
+    moreBtnElt.className = "cm-read-more-btn";
+    moreBtnElt.innerHTML = "&#8250;";
+    moreBtnElt.setAttribute("title", "Read more");
+    return moreBtnElt;
 }
 function rangeAroundSelected(total, selected, max) {
     if (total <= max) return { from: 0, to: total };
@@ -592,12 +609,12 @@ class CompletionTooltip {
         let set = null;
         for (let opt = this.list.firstChild, i = this.range.from; opt; opt = opt.nextSibling, i++) {
             const matchText = opt.querySelector(".cm-completionMatchedText");
+
             if (i == selected) {
                 if (!opt.hasAttribute("aria-selected")) {
                     opt.setAttribute("aria-selected", "true");
                     set = opt;
                 }
-
                 if (matchText) {
                     matchText.style.color = "#62ebff";
                 }
@@ -649,6 +666,10 @@ class CompletionTooltip {
         ul.setAttribute("role", "listbox");
         ul.setAttribute("aria-expanded", "true");
         ul.setAttribute("aria-label", this.view.state.phrase("Completions"));
+
+        let cState = this.view.state.field(this.stateField),
+            open = cState.open;
+
         for (let i = range.from; i < range.to; i++) {
             let { completion, match } = options[i];
 
@@ -663,8 +684,9 @@ class CompletionTooltip {
             li.setAttribute("role", "option");
             let cls = this.optionClass(completion);
             if (cls) li.className = cls;
+
             for (let source of this.optionContent) {
-                let node = source(completionClone, this.view.state, match);
+                let node = source(completionClone, this.view.state, match, open.selected == i);
                 if (node) li.appendChild(node);
             }
         }
@@ -1979,7 +2001,7 @@ Basic keybindings for autocompletion.
  - Enter: [`acceptCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.acceptCompletion)
 */
 const completionKeymap = [
-    { key: "Ctrl-Space", run: startCompletion },
+    { key: "Ctrl-Space", run: closeCompletion },
     { key: "Escape", run: startCompletion },
     { key: "ArrowDown", run: /*@__PURE__*/ moveCompletionSelection(true) },
     { key: "ArrowUp", run: /*@__PURE__*/ moveCompletionSelection(false) },
