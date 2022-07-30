@@ -49,7 +49,7 @@ const TableView = (props: any) => {
         let state = store.getState();
         let activeDataFrame = state.dataFrames.activeDataFrame;
         let dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
-        console.log("TableView: ", dfReview);
+        // console.log("TableView: ", dfReview);
 
         const metadata = state.dataFrames.metadata[activeDataFrame];
 
@@ -62,7 +62,7 @@ const TableView = (props: any) => {
                 // console.log(dfReview.name);
                 let name = dfReview.name as [string, number];
                 review = name[0] == colName && name[1] == rowIndex;
-                console.log("TableView: ", name, colName, rowIndex);
+                // console.log("TableView: ", name, colName, rowIndex);
             }
         }
         // if (review){
