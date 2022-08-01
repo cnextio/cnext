@@ -609,6 +609,8 @@ class CompletionTooltip {
         let set = null;
         for (let opt = this.list.firstChild, i = this.range.from; opt; opt = opt.nextSibling, i++) {
             const matchText = opt.querySelector(".cm-completionMatchedText");
+            let btnMore = opt.querySelector(".cm-read-more-btn");
+            if (btnMore) opt.removeChild(btnMore);
 
             if (i == selected) {
                 if (!opt.hasAttribute("aria-selected")) {
@@ -618,6 +620,14 @@ class CompletionTooltip {
                 if (matchText) {
                     matchText.style.color = "#62ebff";
                 }
+                let moreBtn = getBtnMore();
+
+                opt.appendChild(getBtnMore());
+                moreBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    console.log("test");
+                    // this._showMoreClick(option);
+                };
             } else {
                 if (opt.hasAttribute("aria-selected")) {
                     opt.removeAttribute("aria-selected");
