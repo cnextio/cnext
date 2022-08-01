@@ -28,7 +28,7 @@ const Home: NextPage = () => {
             console.log = function (value, ...optionalParams) {
                 console.oldLog(value, ...optionalParams);
                 window.logs.push(value);
-                window.logs.push(...optionalParams);
+                // window.logs.push(...optionalParams);
             };
         }
     }, []);
