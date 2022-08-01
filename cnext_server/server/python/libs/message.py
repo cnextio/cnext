@@ -87,6 +87,7 @@ class ExperimentManagerCommand(str, Enum):
 class KernelManagerCommand(str, Enum):
     restart_kernel = 'restart_kernel'
     interrupt_kernel = 'interrupt_kernel'
+    is_alive = 'is_alive'
 
 
 class ModelManagerCommand(str, Enum):

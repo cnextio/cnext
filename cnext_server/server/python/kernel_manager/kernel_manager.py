@@ -42,12 +42,20 @@ class MessageHandler(BaseMessageHandler):
                         workspace_metadata = WorkspaceMetadata(
                             workspace_info.__dict__)
                         set_executor_working_dir(self.user_space, workspace_metadata)
+                    message = Message(**{'webapp_endpoint': WebappEndpoint.KernelManager,
+                                         'command_name': message.command_name,
+                                         'content': {'success': result}})
                 elif message.command_name == KernelManagerCommand.interrupt_kernel:
                     result = self.user_space.interrupt_executor()
-
-                message = Message(**{'webapp_endpoint': WebappEndpoint.KernelManager,
-                                     'command_name': message.command_name,
-                                     'content': {'success': result}})
+                    message = Message(**{'webapp_endpoint': WebappEndpoint.KernelManager,
+                                         'command_name': message.command_name,
+                                         'content': {'success': result}})
+                elif message.command_name == KernelManagerCommand.is_alive:
+                    result = self.user_space.is_alive()
+                    message = Message(**{'webapp_endpoint': WebappEndpoint.KernelManager,
+                                         'command_name': message.command_name,
+                                         'content': {'alive': result}})
+                
                 self._send_to_node(message)
         except:
             trace = traceback.format_exc()

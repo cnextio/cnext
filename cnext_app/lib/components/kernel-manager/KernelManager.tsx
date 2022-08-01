@@ -16,7 +16,7 @@ const createMessage = (commandName: KernelManagerCommand) => {
 
 const sendMessage = (message: IMessage) => {
     console.log(
-        `File Explorer Send Message: ${message.webapp_endpoint} ${JSON.stringify(message)}`
+        "KernelManager send message: ", message.webapp_endpoint, JSON.stringify(message)
     );
     socket.emit(message.webapp_endpoint, JSON.stringify(message));
 };

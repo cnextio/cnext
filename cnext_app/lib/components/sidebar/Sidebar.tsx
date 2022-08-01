@@ -31,6 +31,7 @@ import { restartKernel, interruptKernel } from "../kernel-manager/KernelManager"
 import KernelCommandConfirmation from "../kernel-manager/KernelCommandConfirmation";
 import Account from "../user-manager/Account";
 import { KernelManagerCommand } from "../../interfaces/IKernelManager";
+import CheckAlive from "../kernel-manager/CheckAlive";
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -196,6 +197,7 @@ const MiniSidebar = () => {
                     confirmHandler={commandDialogConfirm}
                 />
             )}
+            <CheckAlive />
         </Fragment>
     );
 };

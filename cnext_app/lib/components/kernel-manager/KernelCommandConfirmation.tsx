@@ -21,7 +21,7 @@ const KernelCommandConfirmation = ({ command, confirmHandler }) => {
             <DialogActions>
                 <Button
                     size="small"
-                    sx={{ "font-size": "14px" }}
+                    sx={{ "fontSize": "14px" }}
                     onClick={() => confirmHandler(true, command)}
                     autoFocus
                 >
@@ -29,7 +29,7 @@ const KernelCommandConfirmation = ({ command, confirmHandler }) => {
                 </Button>
                 <Button
                     size="small"
-                    sx={{ "font-size": "14px" }}
+                    sx={{ "fontSize": "14px" }}
                     onClick={() => confirmHandler(false, command)}
                 >
                     Cancel

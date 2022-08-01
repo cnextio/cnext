@@ -8,7 +8,7 @@ import {
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
-import { IKernelManagerResultContent, KernelManagerCommand } from "./IKernelManager";
+import { ICheckAliveResultContent, IKernelManagerResultContent, KernelManagerCommand } from "./IKernelManager";
 import { ModelManagerCommand } from "./IModelManager";
 import { ICodeResultContent } from "./ICodeEditor";
 
@@ -40,6 +40,7 @@ export interface IMessage {
         | IDirectoryMetadata
         | IWorkspaceMetadata
         | IKernelManagerResultContent
+        | ICheckAliveResultContent
         | null; // the command string and output string|object
     error?: boolean;
     metadata?: object; // store info about the dataframe and columns
