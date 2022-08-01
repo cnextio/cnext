@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import { XTerm } from "../../../@xterm";
 import styled from "styled-components";
 import { deleteAllCookies, delete_cookie } from "../../../../utils";
-
+const errorTokenExpired = "Failed to fetch";
 const Terminal = "terminalIO";
 let elementTerminal: HTMLElement;
 let session: any;
@@ -80,8 +80,10 @@ const TerminalComponent = () => {
                     }
                 }).observe(elementTerminal);
             } catch (error) {
-                if (error?.message === "Failed to fetch") {
+                //
+                if (error?.message === errorTokenExpired) {
                     deleteAllCookies();
+                    window.location.reload()
                 }
             }
         }
