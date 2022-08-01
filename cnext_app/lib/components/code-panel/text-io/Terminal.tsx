@@ -9,7 +9,7 @@ import styled from "styled-components";
 import { deleteAllCookies, delete_cookie } from "../../../../utils";
 const errorTokenExpired = "Failed to fetch";
 const Terminal = "terminalIO";
-let elementTerminal: HTMLElement;
+let elementTerminal: HTMLElement | null;
 let session: any;
 
 const TerminalComponent = () => {
@@ -83,7 +83,7 @@ const TerminalComponent = () => {
                 //
                 if (error?.message === errorTokenExpired) {
                     deleteAllCookies();
-                    window.location.reload()
+                    window.location.reload();
                 }
             }
         }

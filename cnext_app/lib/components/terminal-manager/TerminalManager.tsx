@@ -41,7 +41,6 @@ const TerminalManager = () => {
                 }
             } catch (error) {
                 console.log(`error`, error);
-
                 throw error;
             }
         });
