@@ -6,6 +6,7 @@ import store, { RootState } from "../../../../redux/store";
 import { useSelector } from "react-redux";
 import { XTerm } from "../../../@xterm";
 import styled from "styled-components";
+import { deleteAllCookies, delete_cookie } from "../../../../utils";
 
 const Terminal = "terminalIO";
 let elementTerminal: HTMLElement;
@@ -78,7 +79,11 @@ const TerminalComponent = () => {
                         fitAddon.fit();
                     }
                 }).observe(elementTerminal);
-            } catch (error) {}
+            } catch (error) {
+                if (error?.message === "Failed to fetch") {
+                    deleteAllCookies();
+                }
+            }
         }
     }
     useEffect(() => {

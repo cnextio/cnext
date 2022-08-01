@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setConfigTerminal } from "../../../redux/reducers/TerminalRedux";
-// import { getCookie } from "../../../utils";
+import { getCookie } from "../../../utils";
 import { CommandName, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 
-// const jupyterServerCookie = `_xsrf`;
+const jupyterServerCookie = `_xsrf`;
 
 const TerminalManager = () => {
     const dispatch = useDispatch();
@@ -32,11 +32,12 @@ const TerminalManager = () => {
                     const config = JSON.parse(result).content;
                     dispatch(setConfigTerminal(config));
                     const BASEURL = `http://localhost:${config.port}?token=${config.token}`;
-                    // console.log(`getCookie`, getCookie(`username-localhost-5009`));
-                    const new_tab = window.open(`${BASEURL}`, "_blank");
-                    setTimeout(() => {
-                        new_tab?.close();
-                    }, 0);
+                    if (!getCookie(jupyterServerCookie)) {
+                        const new_tab = window.open(`${BASEURL}`, "_blank");
+                        setTimeout(() => {
+                            new_tab?.close();
+                        }, 500);
+                    }
                 }
             } catch (error) {
                 console.log(`error`, error);
