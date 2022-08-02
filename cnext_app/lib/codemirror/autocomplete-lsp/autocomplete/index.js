@@ -591,13 +591,23 @@ class CompletionTooltip {
     updateSelectedOption(selected) {
         let set = null;
         for (let opt = this.list.firstChild, i = this.range.from; opt; opt = opt.nextSibling, i++) {
+            const matchText = opt.querySelector(".cm-completionMatchedText");
             if (i == selected) {
                 if (!opt.hasAttribute("aria-selected")) {
                     opt.setAttribute("aria-selected", "true");
                     set = opt;
                 }
+
+                if (matchText) {
+                    matchText.style.color = "#62ebff";
+                }
             } else {
-                if (opt.hasAttribute("aria-selected")) opt.removeAttribute("aria-selected");
+                if (opt.hasAttribute("aria-selected")) {
+                    opt.removeAttribute("aria-selected");
+                    if (matchText) {
+                        matchText.style.color = "#0064b7";
+                    }
+                }
             }
         }
         if (set) scrollIntoView(this.list, set);
@@ -633,19 +643,28 @@ class CompletionTooltip {
     }
     createListBox(options, id, range) {
         const ul = document.createElement("ul");
+        ul.className = "cm-list-options";
+
         ul.id = id;
         ul.setAttribute("role", "listbox");
         ul.setAttribute("aria-expanded", "true");
         ul.setAttribute("aria-label", this.view.state.phrase("Completions"));
         for (let i = range.from; i < range.to; i++) {
             let { completion, match } = options[i];
+
+            const completionClone = {
+                ...completion,
+                label: completion.apply,
+                detail: null,
+            };
+
             const li = ul.appendChild(document.createElement("li"));
             li.id = id + "-" + i;
             li.setAttribute("role", "option");
             let cls = this.optionClass(completion);
             if (cls) li.className = cls;
             for (let source of this.optionContent) {
-                let node = source(completion, this.view.state, match);
+                let node = source(completionClone, this.view.state, match);
                 if (node) li.appendChild(node);
             }
         }
@@ -1284,109 +1303,6 @@ const completionPlugin = /*@__PURE__*/ ViewPlugin.fromClass(
     }
 );
 
-const baseTheme = /*@__PURE__*/ EditorView.baseTheme({
-    ".cm-tooltip.cm-tooltip-autocomplete": {
-        "& > ul": {
-            fontFamily: "monospace",
-            whiteSpace: "nowrap",
-            overflow: "hidden auto",
-            maxWidth_fallback: "700px",
-            maxWidth: "min(700px, 95vw)",
-            minWidth: "250px",
-            maxHeight: "10em",
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
-            "& > li": {
-                overflowX: "hidden",
-                textOverflow: "ellipsis",
-                cursor: "pointer",
-                padding: "1px 3px",
-                lineHeight: 1.2,
-            },
-        },
-    },
-    "&light .cm-tooltip-autocomplete ul li[aria-selected]": {
-        background: "#17c",
-        color: "white",
-    },
-    "&dark .cm-tooltip-autocomplete ul li[aria-selected]": {
-        background: "#347",
-        color: "white",
-    },
-    ".cm-completionListIncompleteTop:before, .cm-completionListIncompleteBottom:after": {
-        content: '"···"',
-        opacity: 0.5,
-        display: "block",
-        textAlign: "center",
-    },
-    ".cm-tooltip.cm-completionInfo": {
-        position: "absolute",
-        padding: "3px 9px",
-        width: "max-content",
-        maxWidth: "300px",
-    },
-    ".cm-completionInfo.cm-completionInfo-left": { right: "100%" },
-    ".cm-completionInfo.cm-completionInfo-right": { left: "100%" },
-    "&light .cm-snippetField": { backgroundColor: "#00000022" },
-    "&dark .cm-snippetField": { backgroundColor: "#ffffff22" },
-    ".cm-snippetFieldPosition": {
-        verticalAlign: "text-top",
-        width: 0,
-        height: "1.15em",
-        margin: "0 -0.7px -.7em",
-        borderLeft: "1.4px dotted #888",
-    },
-    ".cm-completionMatchedText": {
-        textDecoration: "underline",
-    },
-    ".cm-completionDetail": {
-        marginLeft: "0.5em",
-        fontStyle: "italic",
-    },
-    ".cm-completionIcon": {
-        fontSize: "90%",
-        width: ".8em",
-        display: "inline-block",
-        textAlign: "center",
-        paddingRight: ".6em",
-        opacity: "0.6",
-    },
-    ".cm-completionIcon-function, .cm-completionIcon-method": {
-        "&:after": { content: "'ƒ'" },
-    },
-    ".cm-completionIcon-class": {
-        "&:after": { content: "'○'" },
-    },
-    ".cm-completionIcon-interface": {
-        "&:after": { content: "'◌'" },
-    },
-    ".cm-completionIcon-variable": {
-        "&:after": { content: "'𝑥'" },
-    },
-    ".cm-completionIcon-constant": {
-        "&:after": { content: "'𝐶'" },
-    },
-    ".cm-completionIcon-type": {
-        "&:after": { content: "'𝑡'" },
-    },
-    ".cm-completionIcon-enum": {
-        "&:after": { content: "'∪'" },
-    },
-    ".cm-completionIcon-property": {
-        "&:after": { content: "'□'" },
-    },
-    ".cm-completionIcon-keyword": {
-        "&:after": { content: "'🔑\uFE0E'" }, // Disable emoji rendering
-    },
-    ".cm-completionIcon-namespace": {
-        "&:after": { content: "'▢'" },
-    },
-    ".cm-completionIcon-text": {
-        "&:after": { content: "'abc'", fontSize: "50%", verticalAlign: "middle" },
-    },
-});
-
 class FieldPos {
     constructor(field, line, from, to) {
         this.field = field;
@@ -1594,7 +1510,6 @@ function snippet(template) {
                         snippetState,
                         addSnippetKeymap,
                         snippetPointerHandler,
-                        baseTheme,
                     ])
                 );
         }
@@ -2050,13 +1965,7 @@ function probablyInString(state, pos, quoteToken) {
 Returns an extension that enables autocompletion.
 */
 function autocompletion(config = {}) {
-    return [
-        completionState,
-        completionConfig.of(config),
-        completionPlugin,
-        completionKeymapExt,
-        baseTheme,
-    ];
+    return [completionState, completionConfig.of(config), completionPlugin, completionKeymapExt];
 }
 /**
 Basic keybindings for autocompletion.
@@ -2071,7 +1980,7 @@ Basic keybindings for autocompletion.
 */
 const completionKeymap = [
     { key: "Ctrl-Space", run: startCompletion },
-    { key: "Escape", run: closeCompletion },
+    { key: "Escape", run: startCompletion },
     { key: "ArrowDown", run: /*@__PURE__*/ moveCompletionSelection(true) },
     { key: "ArrowUp", run: /*@__PURE__*/ moveCompletionSelection(false) },
     { key: "ArrowRight", run: /*@__PURE__*/ changeCompletionSelection(true) },
