@@ -412,7 +412,7 @@ const completionConfig = /*@__PURE__*/ Facet.define({
             {
                 activateOnTyping: true,
                 override: null,
-                closeOnBlur: true,
+                closeOnBlur: false,
                 maxRenderedOptions: 100,
                 defaultKeymap: true,
                 optionClass: () => "",
@@ -501,6 +501,12 @@ function getBtnMore() {
     moreBtnElt.className = "cm-read-more-btn";
     moreBtnElt.innerHTML = "&#8250;";
     moreBtnElt.setAttribute("title", "Read more");
+
+    moreBtnElt.onclick = (e) => {
+        e.stopPropagation();
+        console.log("testttt");
+        // this._showMoreClick(option);
+    };
     return moreBtnElt;
 }
 function rangeAroundSelected(total, selected, max) {
@@ -530,19 +536,7 @@ class CompletionTooltip {
         this.range = rangeAroundSelected(options.length, selected, config.maxRenderedOptions);
         this.dom = document.createElement("div");
         this.dom.className = "cm-tooltip-autocomplete";
-        this.dom.addEventListener("mousedown", (e) => {
-            for (let dom = e.target, match; dom && dom != this.dom; dom = dom.parentNode) {
-                if (
-                    dom.nodeName == "LI" &&
-                    (match = /-(\d+)$/.exec(dom.id)) &&
-                    +match[1] < options.length
-                ) {
-                    applyCompletion(view, options[+match[1]]);
-                    e.preventDefault();
-                    return;
-                }
-            }
-        });
+
         this.list = this.dom.appendChild(this.createListBox(options, cState.id, this.range));
         this.list.addEventListener("scroll", () => {
             if (this.info) this.view.requestMeasure(this.placeInfo);
@@ -611,7 +605,6 @@ class CompletionTooltip {
             const matchText = opt.querySelector(".cm-completionMatchedText");
             let btnMore = opt.querySelector(".cm-read-more-btn");
             if (btnMore) opt.removeChild(btnMore);
-
             if (i == selected) {
                 if (!opt.hasAttribute("aria-selected")) {
                     opt.setAttribute("aria-selected", "true");
@@ -620,14 +613,8 @@ class CompletionTooltip {
                 if (matchText) {
                     matchText.style.color = "#62ebff";
                 }
-                let moreBtn = getBtnMore();
 
                 opt.appendChild(getBtnMore());
-                moreBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    console.log("test");
-                    // this._showMoreClick(option);
-                };
             } else {
                 if (opt.hasAttribute("aria-selected")) {
                     opt.removeAttribute("aria-selected");
@@ -699,6 +686,10 @@ class CompletionTooltip {
                 let node = source(completionClone, this.view.state, match, open.selected == i);
                 if (node) li.appendChild(node);
             }
+
+            li.onclick = () => {
+                applyCompletion(this.view, options[i]);
+            };
         }
         if (range.from) ul.classList.add("cm-completionListIncompleteTop");
         if (range.to < options.length) ul.classList.add("cm-completionListIncompleteBottom");
@@ -2011,8 +2002,8 @@ Basic keybindings for autocompletion.
  - Enter: [`acceptCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.acceptCompletion)
 */
 const completionKeymap = [
-    { key: "Ctrl-Space", run: closeCompletion },
-    { key: "Escape", run: startCompletion },
+    { key: "Ctrl-Space", run: startCompletion },
+    { key: "Escape", run: closeCompletion },
     { key: "ArrowDown", run: /*@__PURE__*/ moveCompletionSelection(true) },
     { key: "ArrowUp", run: /*@__PURE__*/ moveCompletionSelection(false) },
     { key: "ArrowRight", run: /*@__PURE__*/ changeCompletionSelection(true) },
