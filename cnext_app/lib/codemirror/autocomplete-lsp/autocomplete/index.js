@@ -434,7 +434,7 @@ function joinClass(a, b) {
     return a ? (b ? a + " " + b : a) : b;
 }
 
-function optionContent(config) {
+function optionContent(config, btnMore) {
     let content = config.addToOptions.slice();
     if (config.icons)
         content.push({
@@ -488,7 +488,7 @@ function optionContent(config) {
     content.push({
         render(completion, _s, _m, isAdd) {
             if (!completion.info || !isAdd) return null;
-            return getBtnMore();
+            return btnMore;
         },
         position: 110,
     });
@@ -496,7 +496,8 @@ function optionContent(config) {
     return content.sort((a, b) => a.position - b.position).map((a) => a.render);
 }
 
-function getBtnMore() {
+let isDisplayInfo = true;
+function getBtnMore(view) {
     let moreBtnElt = document.createElement("button");
     moreBtnElt.className = "cm-read-more-btn";
     moreBtnElt.innerHTML = "&#8250;";
@@ -504,8 +505,14 @@ function getBtnMore() {
 
     moreBtnElt.onclick = (e) => {
         e.stopPropagation();
-        console.log("testttt");
-        // this._showMoreClick(option);
+        let info = view.dom.querySelector(".cm-completionInfo");
+        if (isDisplayInfo) {
+            info.style.display = "none";
+            isDisplayInfo = false;
+        } else {
+            info.style.display = "block";
+            isDisplayInfo = true;
+        }
     };
     return moreBtnElt;
 }
@@ -531,7 +538,7 @@ class CompletionTooltip {
         let cState = view.state.field(stateField);
         let { options, selected } = cState.open;
         let config = view.state.facet(completionConfig);
-        this.optionContent = optionContent(config);
+        this.optionContent = optionContent(config, getBtnMore(this.view));
         this.optionClass = config.optionClass;
         this.range = rangeAroundSelected(options.length, selected, config.maxRenderedOptions);
         this.dom = document.createElement("div");
@@ -595,6 +602,11 @@ class CompletionTooltip {
     addInfoPane(content) {
         let dom = (this.info = document.createElement("div"));
         dom.className = "cm-tooltip cm-completionInfo";
+        if (isDisplayInfo) {
+            dom.style.display = "block";
+        } else {
+            dom.style.display = "none";
+        }
         dom.appendChild(content);
         this.dom.appendChild(dom);
         this.view.requestMeasure(this.placeInfo);
@@ -614,7 +626,7 @@ class CompletionTooltip {
                     matchText.style.color = "#62ebff";
                 }
 
-                opt.appendChild(getBtnMore());
+                opt.appendChild(getBtnMore(this.view));
             } else {
                 if (opt.hasAttribute("aria-selected")) {
                     opt.removeAttribute("aria-selected");
@@ -687,7 +699,7 @@ class CompletionTooltip {
                 if (node) li.appendChild(node);
             }
 
-            li.onclick = () => {
+            li.onclick = (e) => {
                 applyCompletion(this.view, options[i]);
             };
         }
@@ -1060,6 +1072,7 @@ backward by the given amount.
 */
 function moveCompletionSelection(forward, by = "option") {
     return (view) => {
+        console.log("test");
         let cState = view.state.field(completionState, false);
         if (
             !cState ||
@@ -1069,6 +1082,7 @@ function moveCompletionSelection(forward, by = "option") {
             return false;
         let step = 1,
             tooltip;
+        console.log("test1", tooltip);
         if (by == "page" && (tooltip = getTooltip(view, cState.open.tooltip)))
             step = Math.max(
                 2,
@@ -1080,6 +1094,7 @@ function moveCompletionSelection(forward, by = "option") {
             { length } = cState.open.options;
         if (selected < 0) selected = by == "page" ? 0 : length - 1;
         else if (selected >= length) selected = by == "page" ? length - 1 : 0;
+        console.log("test3", selected);
         view.dispatch({ effects: setSelectedEffect.of(selected) });
         return true;
     };
