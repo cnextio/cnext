@@ -135,7 +135,7 @@ const CodeEditor = () => {
     const lineStatusUpdate = useSelector(
         (state: RootState) => state.codeEditor.lineStatusUpdateCount
     );
-
+    const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
     // const [cmUpdatedCounter, setCMUpdatedCounter] = useState(0);
 
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
@@ -403,7 +403,12 @@ const CodeEditor = () => {
             view.dispatch();
         }
     }, [lineStatusUpdate]);
-
+    useEffect(() => {
+        
+        if (view) {
+            view.dispatch()
+        }
+    }, [mouseOverGroupID]);
     useEffect(() => {
         console.log("CodeEditor useEffect magicInfo ", cAssistInfo);
         handleCAssistInfoUpdate();

@@ -55,6 +55,7 @@ type CodeEditorState = {
     // this number need to be increased whenever codeLine is updated
     saveCodeLineCounter: number;
     lastLineUpdate: { [key: string]: ILineUpdate };
+    mouseOverGroupID:string | undefined
 };
 
 const initialState: CodeEditorState = {
@@ -77,6 +78,7 @@ const initialState: CodeEditorState = {
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
     lastLineUpdate: {} /** this is used in MarkdownProcessor */,
+    mouseOverGroupID:``
 };
 
 /**
@@ -401,7 +403,9 @@ export const CodeEditorRedux = createSlice({
         clearRunningLineTextOutput: (state, action) => {
             clearRunningLineTextOutputInternal(state, action.payload);
         },
-
+        setMouseOverGroup: (state, action) => {            
+            state.mouseOverGroupID = action.payload;            
+        },
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
         setActiveLine: (state, action) => {
             let newActiveLine: ICodeActiveLine = action.payload;
@@ -550,6 +554,7 @@ export const {
     clearRunningLineTextOutput,
     clearTextOutputs,
     resetCodeEditor,
+    setMouseOverGroup,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

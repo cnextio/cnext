@@ -12,6 +12,7 @@ import {
     setActiveLine as setActiveLineRedux,
     setLineGroupStatus,
     addToRunQueue as addToRunQueueRedux,
+    setMouseOverGroup,
 } from "../../../redux/reducers/CodeEditorRedux";
 import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import {
@@ -540,6 +541,25 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
         console.error(error);
     }
 }
+function onMouseOver(event: MouseEvent, view: EditorView) {
+    try {
+        // console.log('CodeEditor onMouseDown', view, event, dispatch);
+        if (view != null) {
+            let reduxState = store.getState();
+            let lines: ICodeLine[] | null = getCodeLine(reduxState);
+            if (lines && view.state.doc.lines === lines.length) {
+                let doc = view.state.doc;
+                let pos = view.posAtDOM(event.target);
+                //convert to 0-based
+                let lineNumber = doc.lineAt(pos).number - 1;
+                let currentGroupID = lines[lineNumber].groupID;
+                store.dispatch(setMouseOverGroup(currentGroupID));
+            }
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
 
 function onKeyDown(event: KeyboardEvent, view: EditorView) {
     try {
@@ -561,6 +581,7 @@ const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView, dispat
     if (container) {
         container.onmousedown = (event) => onMouseDown(event, view);
         container.onkeydown = (event) => onKeyDown(event, view);
+        container.onmouseover = (event) => onMouseOver(event, view);
         let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
         if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(dispatch, scrollEl);
     }

@@ -500,7 +500,13 @@ export const StyledCodeEditor = styled.div`
         height: 18px;
         width: 100%;
     }
-
+    .cm-groupwidget.show{
+        background:#dddd;
+        color:back;
+        padding-left;
+        cursor: pointer;
+        z-index:10000000000;
+    }
     .cm-foldGutter {
         font-size: 11px;
     }
