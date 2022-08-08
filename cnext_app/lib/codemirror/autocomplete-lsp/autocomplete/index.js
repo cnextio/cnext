@@ -1129,6 +1129,15 @@ const changeCompletionSelection = () => {
             Date.now() - cState.open.timestamp < CompletionInteractMargin
         )
             return false;
+
+        let info = view.dom.querySelector(".cm-completionInfo");
+        if (isDisplayInfo) {
+            info.style.display = "none";
+            isDisplayInfo = false;
+        } else {
+            info.style.display = "block";
+            isDisplayInfo = true;
+        }
         return true;
     };
 };
