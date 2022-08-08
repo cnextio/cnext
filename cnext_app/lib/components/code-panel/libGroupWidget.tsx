@@ -1,7 +1,9 @@
+import { insertNewlineAndIndent } from "@codemirror/commands";
 import { EditorView, Decoration, WidgetType } from "@codemirror/view";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { clearTextOutputs, setActionShell } from "../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../redux/store";
-import { ICodeLine } from "../../interfaces/ICodeEditor";
+import { ICodeLine, ShellType } from "../../interfaces/ICodeEditor";
 import { getCodeLine } from "./libCodeEditor";
 
 class GroupWidget extends WidgetType {
@@ -10,18 +12,21 @@ class GroupWidget extends WidgetType {
     }
     toDOM() {
         let reduxState = store.getState();
+
         const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
         let wrap = document.createElement("div");
         if (mouseOverGroupID === this.groupId) {
+            const that = this;
             //run
             let run = document.createElement("span");
+            document.removeEventListener("name-of-event", () => {}, false);
             run.textContent = "Run";
             run.className = "run-shell";
             wrap.appendChild(run);
-            run.addEventListener("click", () => {
-                console.log(`run`);
-            });
 
+            run.addEventListener("click", () => {
+                store.dispatch(setActionShell(ShellType.RUNSHELL));
+            });
 
             //clear
             let clear = document.createElement("span");
@@ -29,7 +34,7 @@ class GroupWidget extends WidgetType {
             clear.className = "clear-result";
             wrap.appendChild(clear);
             clear.addEventListener("click", () => {
-                console.log(`clear`);
+                store.dispatch(setActionShell(ShellType.CLEAR));
             });
 
             let addCell = document.createElement("span");
@@ -38,11 +43,8 @@ class GroupWidget extends WidgetType {
             wrap.appendChild(addCell);
 
             addCell.addEventListener("click", () => {
-                console.log(`addCell`);
+                store.dispatch(setActionShell(ShellType.ADD_CELL));
             });
-            // wrap.textContent = `Run | Clear Result | Add Cell`;
-            // const that = this;
-            // wrap.addEventListener("click", () => {});
         }
         wrap.className = `cm-groupwidget ${mouseOverGroupID === this.groupId ? "show" : ""}`;
         return wrap;
@@ -54,7 +56,7 @@ export const groupWidgetExtension = EditorView.decorations.compute(["doc"], (sta
     let reduxState = store.getState();
     const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
     const view = new EditorView();
-    console.log(`state.doc.lines`, view.state.doc.lines);
+    console.log(`state.doc.lines`, store.getState());
 
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {

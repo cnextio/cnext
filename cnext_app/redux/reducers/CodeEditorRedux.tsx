@@ -16,6 +16,7 @@ import {
     ICodeToInsertInfo,
     IRunQueueItem,
     ICodeResult,
+    ShellType,
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
@@ -56,6 +57,7 @@ type CodeEditorState = {
     saveCodeLineCounter: number;
     lastLineUpdate: { [key: string]: ILineUpdate };
     mouseOverGroupID:string | undefined
+    actionShell: ShellType.RUNSHELL | ShellType.ADD_CELL | ShellType.CLEAR | undefined
 };
 
 const initialState: CodeEditorState = {
@@ -78,7 +80,8 @@ const initialState: CodeEditorState = {
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
     lastLineUpdate: {} /** this is used in MarkdownProcessor */,
-    mouseOverGroupID:``
+    mouseOverGroupID:'',
+    actionShell: undefined
 };
 
 /**
@@ -406,6 +409,10 @@ export const CodeEditorRedux = createSlice({
         setMouseOverGroup: (state, action) => {            
             state.mouseOverGroupID = action.payload;            
         },
+        setActionShell: (state, action) => {            
+            state.actionShell = action.payload;
+                        
+        },
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
         setActiveLine: (state, action) => {
             let newActiveLine: ICodeActiveLine = action.payload;
@@ -555,6 +562,7 @@ export const {
     clearTextOutputs,
     resetCodeEditor,
     setMouseOverGroup,
+    setActionShell
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

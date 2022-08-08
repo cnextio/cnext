@@ -26,6 +26,7 @@ import {
     setRunQueueStatus,
     removeFirstItemFromRunQueue,
     clearRunQueue,
+    setActionShell,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -136,6 +137,8 @@ const CodeEditor = () => {
         (state: RootState) => state.codeEditor.lineStatusUpdateCount
     );
     const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
+    const actionShell = useSelector((state: RootState) => state.codeEditor.actionShell);
+
     // const [cmUpdatedCounter, setCMUpdatedCounter] = useState(0);
 
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
@@ -403,12 +406,24 @@ const CodeEditor = () => {
             view.dispatch();
         }
     }, [lineStatusUpdate]);
+    document.addEventListener("name-of-event", function (e) {
+        console.log("name-of-event", e); // Prints "Example of an event"
+    });
     useEffect(() => {
-        
         if (view) {
-            view.dispatch()
+            view.dispatch();
+            addToRunQueue(view);
         }
     }, [mouseOverGroupID]);
+    useEffect(() => {
+        console.log(`actionShell`,actionShell);
+        
+        if (view && actionShell) {
+            console.log(`actionShell`,actionShell);
+            console.log("1");
+            dispatch(setActionShell(undefined))
+        }
+    }, [actionShell]);
     useEffect(() => {
         console.log("CodeEditor useEffect magicInfo ", cAssistInfo);
         handleCAssistInfoUpdate();
