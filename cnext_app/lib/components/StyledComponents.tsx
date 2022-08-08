@@ -499,13 +499,28 @@ export const StyledCodeEditor = styled.div`
     .cm-groupwidget {
         height: 18px;
         width: 100%;
-    }
-    .cm-groupwidget.show{
-        background:#dddd;
-        color:back;
-        padding-left;
-        cursor: pointer;
-        z-index:10000000000;
+        &.show {
+            background: #dddd;
+            color: back;
+            cursor: pointer;
+            z-index: 10000000000;
+        }
+        .run-shell {
+            display: inline-block;
+            border-right: 1px solid black;
+            padding-right: 10px;
+            padding-left: 10px;
+        }
+        .clear-result {
+            display: inline-block;
+            border-right: 1px solid black;
+            padding-right: 10px;
+            padding-left: 10px;
+        }
+        .add-cell {
+            display: inline-block;
+            padding-left: 10px;
+        }
     }
     .cm-foldGutter {
         font-size: 11px;

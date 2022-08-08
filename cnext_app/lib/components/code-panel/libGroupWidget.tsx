@@ -13,9 +13,36 @@ class GroupWidget extends WidgetType {
         const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
         let wrap = document.createElement("div");
         if (mouseOverGroupID === this.groupId) {
-            wrap.textContent = `Run Shell`;
-            const that = this;
-            wrap.addEventListener("click", () => {});
+            //run
+            let run = document.createElement("span");
+            run.textContent = "Run";
+            run.className = "run-shell";
+            wrap.appendChild(run);
+            run.addEventListener("click", () => {
+                console.log(`run`);
+            });
+
+
+            //clear
+            let clear = document.createElement("span");
+            clear.textContent = "Clear Result";
+            clear.className = "clear-result";
+            wrap.appendChild(clear);
+            clear.addEventListener("click", () => {
+                console.log(`clear`);
+            });
+
+            let addCell = document.createElement("span");
+            addCell.textContent = "Add Cell";
+            addCell.className = "add-cell";
+            wrap.appendChild(addCell);
+
+            addCell.addEventListener("click", () => {
+                console.log(`addCell`);
+            });
+            // wrap.textContent = `Run | Clear Result | Add Cell`;
+            // const that = this;
+            // wrap.addEventListener("click", () => {});
         }
         wrap.className = `cm-groupwidget ${mouseOverGroupID === this.groupId ? "show" : ""}`;
         return wrap;
@@ -26,6 +53,8 @@ export const groupWidgetExtension = EditorView.decorations.compute(["doc"], (sta
     let widgets = [];
     let reduxState = store.getState();
     const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
+    const view = new EditorView();
+    console.log(`state.doc.lines`, view.state.doc.lines);
 
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {
