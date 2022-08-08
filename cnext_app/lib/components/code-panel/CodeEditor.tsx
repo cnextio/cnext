@@ -85,6 +85,7 @@ import {
     addToRunQueueThenMoveDown,
     execLines,
     scrollToPos,
+    addToRunQueueHover,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
@@ -421,7 +422,7 @@ const CodeEditor = () => {
             const state = store.getState();
             const inViewID = state.projectManager.inViewID;
             if (actionShell === ShellType.RUNSHELL) {
-                addToRunQueue(view);
+                addToRunQueueHover(view);
             }
             if (actionShell === ShellType.CLEAR) {
                 dispatch(clearTextOutputs(inViewID));

@@ -503,7 +503,6 @@ export const StyledCodeEditor = styled.div`
             background: #dddd;
             color: back;
             cursor: pointer;
-            z-index: 10000000000;
         }
         .run-shell {
             display: inline-block;

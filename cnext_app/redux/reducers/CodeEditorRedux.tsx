@@ -56,8 +56,9 @@ type CodeEditorState = {
     // this number need to be increased whenever codeLine is updated
     saveCodeLineCounter: number;
     lastLineUpdate: { [key: string]: ILineUpdate };
-    mouseOverGroupID:string | undefined
-    actionShell: ShellType.RUNSHELL | ShellType.ADD_CELL | ShellType.CLEAR | undefined
+    mouseOverGroupID: string | undefined;
+    lineAnchorHover: { number: number; to?: number; from?: number; text: string };
+    actionShell: ShellType.RUNSHELL | ShellType.ADD_CELL | ShellType.CLEAR | undefined;
 };
 
 const initialState: CodeEditorState = {
@@ -80,8 +81,9 @@ const initialState: CodeEditorState = {
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
     lastLineUpdate: {} /** this is used in MarkdownProcessor */,
-    mouseOverGroupID:'',
-    actionShell: undefined
+    mouseOverGroupID: "",
+    actionShell: undefined,
+    lineAnchorHover: { number: 0, text: "" },
 };
 
 /**
@@ -406,12 +408,14 @@ export const CodeEditorRedux = createSlice({
         clearRunningLineTextOutput: (state, action) => {
             clearRunningLineTextOutputInternal(state, action.payload);
         },
-        setMouseOverGroup: (state, action) => {            
-            state.mouseOverGroupID = action.payload;            
+        setMouseOverGroup: (state, action) => {
+            state.mouseOverGroupID = action.payload;
         },
-        setActionShell: (state, action) => {            
+        setActionShell: (state, action) => {
             state.actionShell = action.payload;
-                        
+        },
+        setLineAnchorHover: (state, action) => {
+            state.lineNumberHover = action.payload;
         },
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
         setActiveLine: (state, action) => {
@@ -438,7 +442,7 @@ export const CodeEditorRedux = createSlice({
                 state.activeLine = lineID;
                 state.activeGroup = groupID;
                 /** have to do this because lineNumber is either number or undefined */
-                state.activeLineNumber = (lineNumber != null) ? lineNumber : null;
+                state.activeLineNumber = lineNumber != null ? lineNumber : null;
             }
         },
 
@@ -562,7 +566,8 @@ export const {
     clearTextOutputs,
     resetCodeEditor,
     setMouseOverGroup,
-    setActionShell
+    setActionShell,
+    setLineAnchorHover,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;
