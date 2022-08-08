@@ -37,6 +37,9 @@ class GroupWidget extends WidgetType {
                 store.dispatch(setActionShell(ShellType.CLEAR));
             });
 
+
+            // add-shell
+            
             let addCell = document.createElement("span");
             addCell.textContent = "Add Cell";
             addCell.className = "add-cell";

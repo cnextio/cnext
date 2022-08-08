@@ -27,6 +27,7 @@ import {
     removeFirstItemFromRunQueue,
     clearRunQueue,
     setActionShell,
+    clearTextOutputs,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -44,6 +45,7 @@ import {
     CodeInsertMode,
     IRunQueueItem,
     IRunQueue,
+    ShellType,
 } from "../../interfaces/ICodeEditor";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
@@ -412,16 +414,22 @@ const CodeEditor = () => {
     useEffect(() => {
         if (view) {
             view.dispatch();
-            addToRunQueue(view);
         }
     }, [mouseOverGroupID]);
     useEffect(() => {
-        console.log(`actionShell`,actionShell);
-        
         if (view && actionShell) {
-            console.log(`actionShell`,actionShell);
-            console.log("1");
-            dispatch(setActionShell(undefined))
+            const state = store.getState();
+            const inViewID = state.projectManager.inViewID;
+            if (actionShell === ShellType.RUNSHELL) {
+                addToRunQueue(view);
+            }
+            if (actionShell === ShellType.CLEAR) {
+                dispatch(clearTextOutputs(inViewID));
+            }
+            if (actionShell === ShellType.ADD_CELL) {
+                console.log(`ADD_CELL`);
+            }
+            dispatch(setActionShell(undefined));
         }
     }, [actionShell]);
     useEffect(() => {
