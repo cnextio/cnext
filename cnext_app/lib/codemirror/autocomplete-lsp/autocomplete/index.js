@@ -538,7 +538,6 @@ class CompletionTooltip {
         this.dom.addEventListener("mousedown", (e) => {
             let dom = e.target;
             if (dom.nodeName == "BUTTON") {
-                console.log("test", options[i]);
                 let completion = options[i]["completion"];
                 this.onBtnMoreClick(this.view);
                 i++;
