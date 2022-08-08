@@ -233,6 +233,7 @@ function applyCompletion(view, option) {
         view.dispatch(insertCompletionText(view.state, apply, result.from, result.to));
     else apply(view, option.completion, result.from, result.to);
 }
+
 const SourceCache = /*@__PURE__*/ new WeakMap();
 function asSource(source) {
     if (!Array.isArray(source)) return source;
@@ -497,25 +498,14 @@ function optionContent(config, btnMore) {
 }
 
 let isDisplayInfo = true;
-function getBtnMore(view) {
+function getBtnMore() {
     let moreBtnElt = document.createElement("button");
     moreBtnElt.className = "cm-read-more-btn";
     moreBtnElt.innerHTML = "&#8250;";
     moreBtnElt.setAttribute("title", "Read more");
-
-    moreBtnElt.onclick = (e) => {
-        e.stopPropagation();
-        let info = view.dom.querySelector(".cm-completionInfo");
-        if (isDisplayInfo) {
-            info.style.display = "none";
-            isDisplayInfo = false;
-        } else {
-            info.style.display = "block";
-            isDisplayInfo = true;
-        }
-    };
     return moreBtnElt;
 }
+
 function rangeAroundSelected(total, selected, max) {
     if (total <= max) return { from: 0, to: total };
     if (selected <= total >> 1) {
@@ -543,11 +533,45 @@ class CompletionTooltip {
         this.range = rangeAroundSelected(options.length, selected, config.maxRenderedOptions);
         this.dom = document.createElement("div");
         this.dom.className = "cm-tooltip-autocomplete";
+        let i = 0;
+
+        this.dom.addEventListener("mousedown", (e) => {
+            let dom = e.target;
+            if (dom.nodeName == "BUTTON") {
+                console.log("test", options[i]);
+                let completion = options[i]["completion"];
+                this.onBtnMoreClick(this.view);
+                i++;
+                e.preventDefault();
+            } else {
+                for (let dom = e.target, match; dom && dom != this.dom; dom = dom.parentNode) {
+                    if (
+                        dom.nodeName == "LI" &&
+                        (match = /-(\d+)$/.exec(dom.id)) &&
+                        +match[1] < options.length
+                    ) {
+                        applyCompletion(view, options[+match[1]]);
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            }
+        });
 
         this.list = this.dom.appendChild(this.createListBox(options, cState.id, this.range));
         this.list.addEventListener("scroll", () => {
             if (this.info) this.view.requestMeasure(this.placeInfo);
         });
+    }
+    onBtnMoreClick(view) {
+        let info = view.dom.querySelector(".cm-completionInfo");
+        if (isDisplayInfo) {
+            info.style.display = "none";
+            isDisplayInfo = false;
+        } else {
+            info.style.display = "block";
+            isDisplayInfo = true;
+        }
     }
     mount() {
         this.updateSel();
@@ -699,9 +723,9 @@ class CompletionTooltip {
                 if (node) li.appendChild(node);
             }
 
-            li.onclick = (e) => {
-                applyCompletion(this.view, options[i]);
-            };
+            // li.onclick = (e) => {
+            //     applyCompletion(this.view, options[i]);
+            // };
         }
         if (range.from) ul.classList.add("cm-completionListIncompleteTop");
         if (range.to < options.length) ul.classList.add("cm-completionListIncompleteBottom");
@@ -1072,7 +1096,6 @@ backward by the given amount.
 */
 function moveCompletionSelection(forward, by = "option") {
     return (view) => {
-        console.log("test");
         let cState = view.state.field(completionState, false);
         if (
             !cState ||
@@ -1082,7 +1105,6 @@ function moveCompletionSelection(forward, by = "option") {
             return false;
         let step = 1,
             tooltip;
-        console.log("test1", tooltip);
         if (by == "page" && (tooltip = getTooltip(view, cState.open.tooltip)))
             step = Math.max(
                 2,
@@ -1094,7 +1116,6 @@ function moveCompletionSelection(forward, by = "option") {
             { length } = cState.open.options;
         if (selected < 0) selected = by == "page" ? 0 : length - 1;
         else if (selected >= length) selected = by == "page" ? length - 1 : 0;
-        console.log("test3", selected);
         view.dispatch({ effects: setSelectedEffect.of(selected) });
         return true;
     };
@@ -1109,12 +1130,6 @@ const changeCompletionSelection = () => {
             Date.now() - cState.open.timestamp < CompletionInteractMargin
         )
             return false;
-
-        let tooltip = view.dom.querySelector(".cm-tooltip-autocomplete");
-        if (tooltip) {
-            let moreBtn = tooltip.querySelector(".cm-read-more-btn");
-            moreBtn.onclick(window.event);
-        }
         return true;
     };
 };
