@@ -414,8 +414,8 @@ export const CodeEditorRedux = createSlice({
         setActionShell: (state, action) => {
             state.actionShell = action.payload;
         },
-        setLineAnchorHover: (state, action) => {
-            state.lineNumberHover = action.payload;
+        setLineAnchorHover: (state, action) => {            
+            state.lineAnchorHover = action.payload;
         },
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
         setActiveLine: (state, action) => {
