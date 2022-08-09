@@ -9,7 +9,7 @@ import { sql } from "@codemirror/lang-sql";
 import { json } from "@codemirror/lang-json";
 import { EditorView, keymap, lineNumbers, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { Line } from "@codemirror/state";
-import { defaultKeymap, historyKeymap } from "@codemirror/commands";
+import { defaultKeymap, historyKeymap, insertNewlineAndIndent } from "@codemirror/commands";
 import { searchKeymap } from "@codemirror/search";
 import { StyledCodeEditor } from "../StyledComponents";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
@@ -429,6 +429,7 @@ const CodeEditor = () => {
             }
             if (actionShell === ShellType.ADD_CELL) {
                 console.log(`ADD_CELL`);
+                insertNewlineAndIndent(view)
             }
             dispatch(setActionShell(undefined));
         }
