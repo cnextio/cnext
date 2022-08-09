@@ -533,14 +533,11 @@ class CompletionTooltip {
         this.range = rangeAroundSelected(options.length, selected, config.maxRenderedOptions);
         this.dom = document.createElement("div");
         this.dom.className = "cm-tooltip-autocomplete";
-        let i = 0;
 
         this.dom.addEventListener("mousedown", (e) => {
             let dom = e.target;
             if (dom.nodeName == "BUTTON") {
-                let completion = options[i]["completion"];
                 this.onBtnMoreClick(this.view);
-                i++;
                 e.preventDefault();
             } else {
                 for (let dom = e.target, match; dom && dom != this.dom; dom = dom.parentNode) {
