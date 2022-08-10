@@ -421,15 +421,15 @@ const CodeEditor = () => {
         if (view && actionShell) {
             const state = store.getState();
             const inViewID = state.projectManager.inViewID;
-            if (actionShell === ShellType.RUNSHELL) {
-                addToRunQueueHover(view);
+            if (actionShell === ShellType.RUNSHELL) {                
+                addToRunQueue(view);
             }
             if (actionShell === ShellType.CLEAR) {
                 dispatch(clearTextOutputs(inViewID));
             }
             if (actionShell === ShellType.ADD_CELL) {
                 console.log(`ADD_CELL`);
-                insertNewlineAndIndent(view)
+                insertBelow(CodeInsertMode.GROUP)
             }
             dispatch(setActionShell(undefined));
         }
