@@ -500,25 +500,21 @@ export const StyledCodeEditor = styled.div`
         height: 18px;
         width: 100%;
         &.show {
-            background: #dddd;
             color: back;
             cursor: pointer;
+            font-size: 11px;
+            opacity: 0.8;
+            color: #4181cb;
         }
-        .run-shell {
-            display: inline-block;
-            border-right: 1px solid black;
-            padding-right: 10px;
-            padding-left: 10px;
-        }
+        .run-shell,
         .clear-result {
             display: inline-block;
-            border-right: 1px solid black;
-            padding-right: 10px;
-            padding-left: 10px;
+            border-right: 1px solid #4181cb;
+            padding: 0 5px;
         }
         .add-cell {
             display: inline-block;
-            padding-left: 10px;
+            padding-left: 5px;
         }
     }
     .cm-foldGutter {

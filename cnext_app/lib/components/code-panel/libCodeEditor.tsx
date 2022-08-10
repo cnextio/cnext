@@ -552,9 +552,8 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                 let doc = view.state.doc;
                 const anchor = view.state.selection.ranges[0].anchor;
 
-                let lineAtAnchorHover = doc.lineAt(anchor); /** 1-based */
                 let pos = view.posAtDOM(event.target);
-
+                let lineAtAnchorHover = doc.lineAt(pos); /** 1-based */
                 let lineNumberHover = doc.lineAt(pos).number - 1; /** 0-based */
 
                 let currentGroupID = lines[lineNumberHover].groupID;
@@ -564,7 +563,7 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                         from: lineAtAnchorHover.from,
                         number: lineAtAnchorHover.number,
                         text: lineAtAnchorHover.text,
-                        to:lineAtAnchorHover.to
+                        to: lineAtAnchorHover.to,
                     })
                 );
             }
@@ -833,7 +832,7 @@ function addToRunQueueHover(view: EditorView | undefined) {
         let lineRange: ILineRange | undefined;
         let inViewID = store.getState().projectManager.inViewID;
         let codeLines: ICodeLine[] | null = getCodeLine(store.getState());
-        console.log("CodeEditor setRunQueue lineNumberAtAnchor: ", lineNumberAtAnchor);
+        console.log("CodeEditor addToRunQueueHover lineNumberAtAnchor: ", lineNumberAtAnchor);
         /** we only allow line in a group to be executed */
         if (inViewID && codeLines && codeLines[lineNumberAtAnchor].groupID != null) {
             if (text.startsWith(CASSIST_STARTER)) {
