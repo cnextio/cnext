@@ -26,7 +26,7 @@ import {
     setRunQueueStatus,
     removeFirstItemFromRunQueue,
     clearRunQueue,
-    setActionShell,
+    setCellCommand,
     clearTextOutputs,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
@@ -45,7 +45,7 @@ import {
     CodeInsertMode,
     IRunQueueItem,
     IRunQueue,
-    ShellType,
+    CellCommand,
 } from "../../interfaces/ICodeEditor";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
@@ -140,7 +140,7 @@ const CodeEditor = () => {
         (state: RootState) => state.codeEditor.lineStatusUpdateCount
     );
     const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
-    const actionShell = useSelector((state: RootState) => state.codeEditor.actionShell);
+    const cellCommand = useSelector((state: RootState) => state.codeEditor.cellCommand);
 
     // const [cmUpdatedCounter, setCMUpdatedCounter] = useState(0);
 
@@ -418,22 +418,22 @@ const CodeEditor = () => {
         }
     }, [mouseOverGroupID]);
     useEffect(() => {
-        if (view && actionShell) {
+        if (view && cellCommand) {
             const state = store.getState();
             const inViewID = state.projectManager.inViewID;
-            if (actionShell === ShellType.RUNSHELL) {                
+            if (cellCommand === CellCommand.RUN_CELL) {
                 addToRunQueue(view);
             }
-            if (actionShell === ShellType.CLEAR) {
+            if (cellCommand === CellCommand.CLEAR) {
                 dispatch(clearTextOutputs(inViewID));
             }
-            if (actionShell === ShellType.ADD_CELL) {
+            if (cellCommand === CellCommand.ADD_CELL) {
                 console.log(`ADD_CELL`);
-                insertBelow(CodeInsertMode.GROUP)
+                insertBelow(CodeInsertMode.GROUP);
             }
-            dispatch(setActionShell(undefined));
+            dispatch(setCellCommand(undefined));
         }
-    }, [actionShell]);
+    }, [cellCommand]);
     useEffect(() => {
         console.log("CodeEditor useEffect magicInfo ", cAssistInfo);
         handleCAssistInfoUpdate();

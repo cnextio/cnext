@@ -114,8 +114,8 @@ export interface ICodeResultMessage {
     metadata: CodeResultMessageMetadata;
 }
 
-export enum ShellType {
-    RUNSHELL = "RUN",
+export enum CellCommand {
+    RUN_CELL = "RUN",
     CLEAR = "CLEAR",
     ADD_CELL = "ADD_CELL",
 }

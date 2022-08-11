@@ -16,7 +16,7 @@ import {
     ICodeToInsertInfo,
     IRunQueueItem,
     ICodeResult,
-    ShellType,
+    CellCommand,
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
@@ -58,7 +58,7 @@ type CodeEditorState = {
     lastLineUpdate: { [key: string]: ILineUpdate };
     mouseOverGroupID: string | undefined;
     lineAnchorHover: { number: number; to?: number; from?: number; text: string };
-    actionShell: ShellType.RUNSHELL | ShellType.ADD_CELL | ShellType.CLEAR | undefined;
+    cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | undefined;
 };
 
 const initialState: CodeEditorState = {
@@ -82,7 +82,7 @@ const initialState: CodeEditorState = {
     saveCodeLineCounter: 0,
     lastLineUpdate: {} /** this is used in MarkdownProcessor */,
     mouseOverGroupID: "",
-    actionShell: undefined,
+    cellCommand: undefined,
     lineAnchorHover: { number: 0, text: "" },
 };
 
@@ -408,15 +408,19 @@ export const CodeEditorRedux = createSlice({
         clearRunningLineTextOutput: (state, action) => {
             clearRunningLineTextOutputInternal(state, action.payload);
         },
+
         setMouseOverGroup: (state, action) => {
             state.mouseOverGroupID = action.payload;
         },
-        setActionShell: (state, action) => {
-            state.actionShell = action.payload;
+
+        setCellCommand: (state, action) => {
+            state.cellCommand = action.payload;
         },
-        setLineAnchorHover: (state, action) => {            
+
+        setLineAnchorHover: (state, action) => {
             state.lineAnchorHover = action.payload;
         },
+
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
         setActiveLine: (state, action) => {
             let newActiveLine: ICodeActiveLine = action.payload;
@@ -566,7 +570,7 @@ export const {
     clearTextOutputs,
     resetCodeEditor,
     setMouseOverGroup,
-    setActionShell,
+    setCellCommand,
     setLineAnchorHover,
 } = CodeEditorRedux.actions;
 
