@@ -1,6 +1,7 @@
 import { gutter, GutterMarker, gutterLineClass } from "@codemirror/view";
 import {
     EditorState,
+    Range,
     StateEffect,
     StateField,
     Transaction,
@@ -12,8 +13,9 @@ import {
     setActiveLine as setActiveLineRedux,
     setLineGroupStatus,
     addToRunQueue as addToRunQueueRedux,
+    setCodeStates,
 } from "../../../redux/reducers/CodeEditorRedux";
-import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
+// import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import {
     ICodeActiveLine,
     ICodeLine,
@@ -27,7 +29,12 @@ import {
     RunQueueStatus,
     SetLineGroupCommand,
 } from "../../interfaces/ICodeEditor";
-import { CASSIST_STARTER, ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
+import {
+    CASSIST_STARTER,
+    ICAssistInfo,
+    ICodeGenResult,
+    IInsertLinesInfo,
+} from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
 import store from "../../../redux/store";
 import { RootState } from "../../../redux/store";
@@ -96,6 +103,7 @@ import { setLineStatus as setLineStatusRedux } from "../../../redux/reducers/Cod
 import { RangeSet } from "@codemirror/state";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import { Socket } from "socket.io-client";
+import { foldState } from "@codemirror/language";
 
 const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
     let lineStatus: ICodeLineStatus = {
@@ -225,27 +233,36 @@ const scrollToPrevPos = (state: RootState) => {
     let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
     let inViewID = state.projectManager.inViewID;
     if (inViewID) {
-        let openFile = state.projectManager.openFiles[inViewID];
-        if (openFile && openFile.scroll_pos) {
-            scrollEl.scrollTop = openFile.scroll_pos;
+        let codeStates = state.codeEditor.codeStates[inViewID];
+        if (codeStates && codeStates.scrollPos) {
+            scrollEl.scrollTop = codeStates.scrollPos;
         }
     }
 };
 
-const setViewCodeText = (state: RootState, view: EditorView) => {
-    console.log("CodeEditor setViewCodeText");
+const getCMState = (state: RootState) => {
+    let inViewID = state.projectManager.inViewID;
+    if (inViewID && inViewID in state.codeEditor.codeStates) {
+        let codeStates = state.codeEditor.codeStates[inViewID];
+        if (codeStates && codeStates.cmState) {
+            return codeStates.cmState;
+        }
+    }
+    return null;
+};
+
+const setCodeTextAndStates = (state: RootState, view: EditorView) => {
     let codeText = getJoinedCodeText(state);
+    let jsCMState: { [key: string]: any } | null = getCMState(state);
+
     if (view) {
-        // let transactionSpec: TransactionSpec = {
-        //     changes: {
-        //         from: 0,
-        //         to: 0,
-        //         insert: codeText,
-        //     },
-        // };
-        // let transaction: Transaction = view.state.update(transactionSpec);
-        // view.dispatch(transaction);
-        view.setState(EditorState.create({ doc: codeText }));
+        if (jsCMState == null) {
+            view.setState(EditorState.create({ doc: codeText }));
+        } else {
+            view.setState(
+                EditorState.fromJSON({ ...jsCMState, doc: codeText }, {}, { fold: foldState })
+            );
+        }
     }
 };
 
@@ -453,24 +470,37 @@ const getLineRangeOfGroup = (codeLines: ICodeLine[], lineNumber: number): ILineR
 };
 /** */
 
-const scrollTimer = (dispatch, scrollEl: HTMLElement) => {
-    scrollEl.onscroll = null;
-    setTimeout(() => {
-        scrollEl.onscroll = (event) => scrollTimer(dispatch, scrollEl);
-        dispatch(setScrollPos(scrollEl.scrollTop));
-    }, 100);
+const fileClosingHandler = (state: EditorState, curInViewID: string) => {
+    let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
+    let jsState = state.toJSON({ fold: foldState });
+    delete jsState["doc"];
+    let data = { inViewID: curInViewID, scrollPos: scrollEl.scrollTop, cmState: jsState };
+    // console.log("CodeEditor closeFile: ", data, jsState);
+    store.dispatch(setCodeStates(data));
 };
 
-// const firstLineOfGroupMarker = new (class extends GutterMarker {
-//     elementClass = "cm-groupedfirstlinegutter cm-activeLineGutter";
-// })();
+// const scrollTimer = (scrollEl: HTMLElement) => {
+//     store.dispatch(setScrollPos(scrollEl.scrollTop));
+//     scrollEl.onscroll = null;
+//     setTimeout(() => {
+//         scrollEl.onscroll = (event) => scrollTimer(scrollEl);
+//     }, 100);
+// };
 
-// const lastLineOfGroupMarker = new (class extends GutterMarker {
-//     elementClass = "cm-groupedlastlinegutter cm-activeLineGutter";
-// })();
+// function scrollEventHandler(scrollEl: HTMLElement, interval: number) {
+//     let lastCall = -1;
+//     return function () {
+//         clearTimeout(lastCall);
+//         lastCall = setTimeout(function () {
+//             console.log('CodeEditor store scroll pos')
+//             let data = { inViewID: store.getState().projectManager.inViewID, scrollPos: scrollEl.scrollTop };
+//             store.dispatch(setScrollPos(data));
+//         }, interval);
+//     };
+// }
 
 const groupedLineGutterHighlighter = gutterLineClass.compute(["doc"], (state) => {
-    let marks = [];
+    let marks: Range<GutterMarker> | readonly Range<GutterMarker>[] = [];
     let reduxState = store.getState();
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {
@@ -531,6 +561,7 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
         if (view != null) {
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
+            // console.log("CodeEditor event target: ", event.target);
             let pos = view.posAtDOM(event.target);
             //convert to 0-based
             let lineNumber = doc.lineAt(pos).number - 1;
@@ -557,16 +588,17 @@ function onKeyDown(event: KeyboardEvent, view: EditorView) {
     }
 }
 
-const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView, dispatch) => {
+const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView) => {
     if (container) {
         container.onmousedown = (event) => onMouseDown(event, view);
         container.onkeydown = (event) => onKeyDown(event, view);
-        let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
-        if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(dispatch, scrollEl);
+        // let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
+        // if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(scrollEl);
+        // if (scrollEl) scrollEl.onscroll = scrollEventHandler(scrollEl, 100);
     }
 };
 
-const isPromise = (object) => {
+const isPromise = (object: Promise<any> | ICodeGenResult) => {
     if (Promise && Promise.resolve) {
         return Promise.resolve(object) == object;
     } else {
@@ -853,7 +885,8 @@ export {
     getCodeText,
     getJoinedCodeText,
     scrollToPrevPos,
-    setViewCodeText,
+    fileClosingHandler,
+    setCodeTextAndStates,
     // resetEditorState,
     GenLineStateEffect as genLineStateEffect,
     GenLineEffectType as GenCodeEffectType,

@@ -8,7 +8,10 @@ import {
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
-import { ICheckAliveResultContent, IKernelManagerResultContent, KernelManagerCommand } from "./IKernelManager";
+import {
+    IExecutorManagerResultContent,
+    ExecutorManagerCommand,
+} from "./IExecutorManager";
 import { ModelManagerCommand } from "./IModelManager";
 import { ICodeResultContent } from "./ICodeEditor";
 
@@ -26,7 +29,7 @@ export interface IMessage {
         | CommandName
         | ProjectCommand
         | ExperimentManagerCommand
-        | KernelManagerCommand
+        | ExecutorManagerCommand
         | ModelManagerCommand // 'code_area_command'|'updated_dataframe_list'|
         | ICodeResultContent;
     // for commands that requires more than one command
@@ -39,8 +42,7 @@ export interface IMessage {
         | IGetCardinalResult
         | IDirectoryMetadata
         | IWorkspaceMetadata
-        | IKernelManagerResultContent
-        | ICheckAliveResultContent
+        | IExecutorManagerResultContent
         | null; // the command string and output string|object
     error?: boolean;
     metadata?: object; // store info about the dataframe and columns
@@ -134,7 +136,7 @@ export enum WebAppEndpoint {
     FileExplorer = "FileExplorer",
     ExperimentManager = "ExperimentManager",
     PlotManager = "PlotManager",
-    KernelManager = "KernelManager",
+    ExecutorManager = "ExecutorManager",
     LanguageServer = "LanguageServer",
     LanguageServerNotifier = "LanguageServerNotifier",
     LanguageServerHover = "LanguageServerHover",

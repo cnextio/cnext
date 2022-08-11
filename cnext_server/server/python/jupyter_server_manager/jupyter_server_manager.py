@@ -39,7 +39,6 @@ class MessageHandler(BaseMessageHandler):
     def handle_message(self, message):
         try:
             if message.command_name == JupyterServerCommand.get_config:
-                print('log')
                 self._get_jupyter_server_config()
         except:
             pass

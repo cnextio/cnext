@@ -1,8 +1,8 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText } from "@mui/material";
 import React from "react";
-import { KernelManagerCommand } from "../../interfaces/IKernelManager";
+import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 
-const KernelCommandConfirmation = ({ command, confirmHandler }) => {
+const ExecutorCommandConfirmation = ({ command, confirmHandler }) => {
     return (
         <Dialog
             open={true}
@@ -12,16 +12,16 @@ const KernelCommandConfirmation = ({ command, confirmHandler }) => {
         >
             <DialogContent>
                 <DialogContentText fontSize="16px" id="alert-dialog-description">
-                    {command === KernelManagerCommand.interrupt_kernel &&
+                    {command === ExecutorManagerCommand.interrupt_kernel &&
                         "Are you sure you want to interrupt the kernel?"}
-                    {command === KernelManagerCommand.restart_kernel &&
+                    {command === ExecutorManagerCommand.restart_kernel &&
                         "Are you sure you want to restart the kernel?"}
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
                 <Button
                     size="small"
-                    sx={{ "fontSize": "14px" }}
+                    sx={{ fontSize: "14px" }}
                     onClick={() => confirmHandler(true, command)}
                     autoFocus
                 >
@@ -29,7 +29,7 @@ const KernelCommandConfirmation = ({ command, confirmHandler }) => {
                 </Button>
                 <Button
                     size="small"
-                    sx={{ "fontSize": "14px" }}
+                    sx={{ fontSize: "14px" }}
                     onClick={() => confirmHandler(false, command)}
                 >
                     Cancel
@@ -39,4 +39,4 @@ const KernelCommandConfirmation = ({ command, confirmHandler }) => {
     );
 };
 
-export default KernelCommandConfirmation;
+export default ExecutorCommandConfirmation;

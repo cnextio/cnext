@@ -32,10 +32,10 @@ const FileManager = "FileManager";
 const FileExplorer = "FileExplorer";
 const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
-const KernelManager = "KernelManager";
+const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
-const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
+const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager];
 const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
 
 const LSPExecutor = [
@@ -112,9 +112,9 @@ class PythonProcess {
             endpoins = NonCodeEndpoints;
         }
         for (let endpoint of endpoins) {
-            /** only KernelManager use zmq now. TODO: move everything to zmq */
-            if (endpoint === KernelManager) {
-                this.executorCommChannel[KernelManager] = create_socket(
+            /** only ExecutorManager use zmq now. TODO: move everything to zmq */
+            if (endpoint === ExecutorManager) {
+                this.executorCommChannel[ExecutorManager] = create_socket(
                     config.n2p_comm.host,
                     config.n2p_comm.kernel_control_port
                 );
@@ -156,7 +156,7 @@ try {
             //TODO: use enum
             if (CodeEndpoints.includes(endpoint)) {
                 let jsonMessage = JSON.parse(message);
-                if (jsonMessage.command_name !== "is_alive") {
+                if (jsonMessage.command_name !== "get_status") {
                     console.log(
                         "Receive msg from client, server will run:",
                         jsonMessage["command_name"]
@@ -198,7 +198,7 @@ try {
         console.log(`Waiting for python executor message on ${p2n_port}`);
         for await (const [message] of command_output_zmq) {
             const jsonMessage = JSON.parse(message.toString());
-            if (jsonMessage.command_name !== "is_alive") {
+            if (jsonMessage.command_name !== "get_status") {
                 console.log(
                     `command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`
                 );
