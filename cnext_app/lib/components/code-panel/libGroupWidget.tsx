@@ -14,24 +14,24 @@ class GroupWidget extends WidgetType {
         const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
         let wrap = document.createElement("div");
         if (mouseOverGroupID && mouseOverGroupID === this.groupId) {
-            const cells = [
+            const cellItems = [
                 {
-                    name: "Run",
+                    text: "Run",
                     cellCommand: CellCommand.RUN_CELL,
                 },
                 {
-                    name: "Clear Result",
+                    text: "Clear Result",
                     cellCommand: CellCommand.CLEAR,
                 },
                 {
-                    name: "Add Cell",
+                    text: "Add Cell",
                     cellCommand: CellCommand.ADD_CELL,
                 },
             ];
-            for (let i = 0; i < cells.length; i++) {
-                const element = cells[i];
+            for (let i = 0; i < cellItems.length; i++) {
+                const element = cellItems[i];
                 let dom = document.createElement("span");
-                dom.textContent = element.name;
+                dom.textContent = element.text;
                 dom.className = `cm-cell-command`;
                 wrap.appendChild(dom);
                 dom.addEventListener("click", () => {

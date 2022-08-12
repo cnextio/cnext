@@ -409,14 +409,17 @@ const CodeEditor = () => {
             view.dispatch();
         }
     }, [lineStatusUpdate]);
+
     document.addEventListener("name-of-event", function (e) {
         console.log("name-of-event", e); // Prints "Example of an event"
     });
+
     useEffect(() => {
         if (view) {
             view.dispatch();
         }
     }, [mouseOverGroupID]);
+
     useEffect(() => {
         if (view && cellCommand) {
             const state = store.getState();
@@ -435,6 +438,7 @@ const CodeEditor = () => {
             dispatch(setCellCommand(undefined));
         }
     }, [cellCommand]);
+    
     useEffect(() => {
         console.log("CodeEditor useEffect magicInfo ", cAssistInfo);
         handleCAssistInfoUpdate();

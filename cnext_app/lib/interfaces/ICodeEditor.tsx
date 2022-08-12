@@ -130,6 +130,7 @@ export enum CellCommand {
     CLEAR = "CLEAR",
     ADD_CELL = "ADD_CELL",
 }
+
 export type ICodeResultContent = string | object | IPlotResult;
 
 export interface ICodeResult {
