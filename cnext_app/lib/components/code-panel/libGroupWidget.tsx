@@ -11,10 +11,9 @@ class GroupWidget extends WidgetType {
         super();
     }
     toDOM() {
-        let reduxState = store.getState();
         const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
         let wrap = document.createElement("div");
-        if (mouseOverGroupID === this.groupId) {
+        if (mouseOverGroupID && mouseOverGroupID === this.groupId) {
             const cells = [
                 {
                     name: "Run",
@@ -29,7 +28,6 @@ class GroupWidget extends WidgetType {
                     cellCommand: CellCommand.ADD_CELL,
                 },
             ];
-            const that = this;
             for (let i = 0; i < cells.length; i++) {
                 const element = cells[i];
                 let dom = document.createElement("span");

@@ -11,7 +11,7 @@ from libs import logs
 import simplejson as json
 from libs.config import read_config
 from code_editor import code_editor as ce
-from kernel_manager import kernel_manager as km
+from executor_manager import executor_manager as execm
 from dataframe_manager import dataframe_manager as dm
 from experiment_manager import experiment_manager as em
 from model_manager import model_manager as mm
@@ -21,7 +21,7 @@ from file_manager import file_manager as fm
 from logs_manager import logs_manager as lm
 from jupyter_server_manager import jupyter_server_manager as jsm
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
-from libs.message import Message, WebappEndpoint, KernelManagerCommand, ExecutorType
+from libs.message import Message, WebappEndpoint, ExecutorManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
 from libs.constants import TrackingModelType
 from project_manager.interfaces import SERVER_CONFIG_PATH, WORKSPACE_METADATA_PATH, WorkspaceMetadata
@@ -93,7 +93,8 @@ def main(argv):
                     user_space = IPythonUserSpace(
                         (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
 
-                    kernel_manager = km.MessageHandler(p2n_queue, user_space)
+                    executor_manager = execm.MessageHandler(
+                        p2n_queue, user_space)
 
                     message_handler = {
                         WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
@@ -101,7 +102,6 @@ def main(argv):
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.MagicCommandGen: ca.MessageHandler(
                             p2n_queue, user_space)
-                            
                     }
 
                     set_executor_working_dir(user_space, workspace_metadata)
@@ -115,7 +115,6 @@ def main(argv):
                             p2n_queue, user_space),
                         WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config),
                         WebappEndpoint.LogsManager: lm.MessageHandler(p2n_queue, user_space),
-    
                     }
 
             except Exception as error:
@@ -130,8 +129,14 @@ def main(argv):
                     try:
                         # log.info('Got message %s' % line)
                         message = Message(**json.loads(line))
-                        log.info('Got message from %s command %s' %
-                                 (message.webapp_endpoint, message.command_name))
+                        log_content = ""
+                        if isinstance(message.content, str):
+                            if len(message.content) > 50:
+                                log_content = message.content[:50]
+                            else:
+                                log_content = message.content
+                        log.info('Got message from %s command: "%s", content: \'%s\'' %
+                                 (message.webapp_endpoint, message.command_name, log_content))
                         message_handler[message.webapp_endpoint].handle_message(
                             message)
                     except OSError as error:  # TODO check if this has to do with buffer error

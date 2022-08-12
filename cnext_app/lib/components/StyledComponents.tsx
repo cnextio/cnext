@@ -416,6 +416,10 @@ export const StyledCodeEditor = styled.div`
     max-width: 100%;
     font-size: 13px;
     // max-height: 100%;
+
+    .cm-gutters {
+        border-right: 0px;
+    }
     .cm-tooltip.lint {
         white-space: pre;
     }
@@ -563,6 +567,12 @@ export const TextIOContainer = styled.div`
 
 export const TextIOHeader = styled.div`
     height: 30px;
+    display: flex;
+    flex-direction: row;
+    .executor-status {
+        margin-left: auto;
+        align-self: center;
+    }
 `;
 
 export const TextIOHeaderText = styled(Typography)`

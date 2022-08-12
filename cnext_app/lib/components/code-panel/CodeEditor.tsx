@@ -75,7 +75,7 @@ import {
     setGenLineDeco,
     setGroupedLineDeco,
     setHTMLEventHandler,
-    setViewCodeText,
+    setCodeTextAndStates,
     setAnchor,
     setLineStatus,
     isRunQueueBusy,
@@ -85,11 +85,11 @@ import {
     addToRunQueueThenMoveDown,
     execLines,
     scrollToPos,
-    addToRunQueueHover,
+    fileClosingHandler,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
-import { IKernelManagerResultContent, KernelManagerCommand } from "../../interfaces/IKernelManager";
+
 import {
     defaultHighlightStyle,
     foldAll,
@@ -121,7 +121,12 @@ const CodeEditor = () => {
      * when it is first opened or being selected to be in view */
     // const [serverSynced, setServerSynced] = useState(false);
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
+    const executorRestartCounter = useSelector(
+        (state: RootState) => state.executorManager.executorRestartCounter
+    );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+    /** this is used to save the state such as scroll pos and folding status */
+    const [curInViewID, setCurInViewID] = useState<string | null>(null);
     const activeProjectID = useSelector(
         (state: RootState) => state.projectManager.activeProject?.id
     );
@@ -277,7 +282,10 @@ const CodeEditor = () => {
                     ) {
                         // let lineStatus: ICodeLineStatus;
                         dispatch(removeFirstItemFromRunQueue());
-                        if (codeOutput.content?.status === "ok") {
+                        if (
+                            codeOutput.content?.status === "ok" &&
+                            "line_range" in codeOutput.metadata
+                        ) {
                             setLineStatus(
                                 inViewID,
                                 codeOutput.metadata?.line_range,
@@ -285,11 +293,13 @@ const CodeEditor = () => {
                             );
                             dispatch(setRunQueueStatus(RunQueueStatus.STOP));
                         } else {
-                            setLineStatus(
-                                inViewID,
-                                codeOutput.metadata?.line_range,
-                                LineStatus.EXECUTED_FAILED
-                            );
+                            if ("line_range" in codeOutput.metadata) {
+                                setLineStatus(
+                                    inViewID,
+                                    codeOutput.metadata?.line_range,
+                                    LineStatus.EXECUTED_FAILED
+                                );
+                            }
                             dispatch(clearRunQueue());
                         }
                         // TODO: check the status output
@@ -308,35 +318,18 @@ const CodeEditor = () => {
                 console.error(error);
             }
         });
-
-        socket.on(WebAppEndpoint.KernelManager, (result: string) => {
-            console.log("CodeEditor got result ", result);
-            // console.log("CodeEditor: got results...");
-            try {
-                let kmResult: IMessage = JSON.parse(result);
-                let resultContent = kmResult.content as IKernelManagerResultContent;
-                let inViewID = store.getState().projectManager.inViewID;
-                const runQueue = store.getState().codeEditor.runQueue;
-                const runQueueItem = runQueue.queue[0];
-                if (inViewID != null) {
-                    /** unlike in handling CodeEditor message, we use info in runningCodeContent
-                     * to set the line status */
-                    // console.log("CodeEditor got result: ", kmResult, resultContent, runQueueItem);
-                    if (
-                        kmResult.command_name === KernelManagerCommand.restart_kernel &&
-                        resultContent.success === true &&
-                        runQueueItem != null
-                    ) {
-                        dispatch(removeFirstItemFromRunQueue());
-                        setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
-                        dispatch(clearRunQueue());
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        });
     };
+
+    /** clear the run queue when the executor restarted */
+    useEffect(() => {
+        const runQueueItem = runQueue.queue[0];
+        let inViewID = store.getState().projectManager.inViewID;
+        if (inViewID != null && runQueueItem != null) {
+            dispatch(removeFirstItemFromRunQueue());
+            setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
+            dispatch(clearRunQueue());
+        }
+    }, [executorRestartCounter]);
 
     useEffect(() => {
         console.log("CodeEditor init");
@@ -356,7 +349,7 @@ const CodeEditor = () => {
     useEffect(() => {
         console.log("CodeEditor useEffect container view", container, view);
         if (container && view) {
-            setHTMLEventHandler(container, view, dispatch);
+            setHTMLEventHandler(container, view);
         }
     }, [container, view]);
 
@@ -364,7 +357,12 @@ const CodeEditor = () => {
      * Reset the code editor state when the doc is selected to be in view
      * */
     useEffect(() => {
-        console.log("CodeEditor useEffect inViewID activeProjectID", inViewID, activeProjectID);
+        if (curInViewID != inViewID) {
+            if (curInViewID != null && view != null) {
+                fileClosingHandler(view.state, curInViewID);
+            }
+            setCurInViewID(inViewID);
+        }
         resetEditorState(inViewID, view);
         setCodeReloading(true);
     }, [inViewID]);
@@ -381,12 +379,14 @@ const CodeEditor = () => {
             view
         );
         // console.log("CodeEditor useEffect codeText", view, codeReloading, serverSynced);
-        if (serverSynced && codeReloading && view) {
+        if (serverSynced && codeReloading && view != null) {
             // make sure that codeeditor content is set first before setting codeReloading to false to avoid
             // unnecessary calls to updatedLines
-            setViewCodeText(store.getState(), view);
+            // console.log("CodeEditor useEffect serverSynced, codeReloading, view");
+            setCodeTextAndStates(store.getState(), view);
             setCodeReloading(false);
-            scrollToPrevPos(store.getState());
+            /** have to use Timeout this to make sure the code text got populated to CodeMirror first */
+            setTimeout(() => scrollToPrevPos(store.getState()), 0);
         }
     }, [serverSynced, codeReloading, view]);
 
@@ -441,12 +441,6 @@ const CodeEditor = () => {
     }, [cAssistInfo]);
 
     useEffect(() => {
-        console.log(
-            "CodeEditor useEffect editorRef.current inViewID container",
-            editorRef.current,
-            inViewID,
-            container
-        );
         if (editorRef.current != null && inViewID != null && container == null) {
             setContainer(editorRef.current);
         }

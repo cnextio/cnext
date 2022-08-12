@@ -32,11 +32,11 @@ const FileManager = "FileManager";
 const FileExplorer = "FileExplorer";
 const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
-const KernelManager = "KernelManager";
+const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
-const CodeExecutor = [CodeEditor, DFManager, ModelManager, MagicCommandGen, KernelManager];
-const NoneCodeExecutor = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
+const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager];
+const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
 
 const LSPExecutor = [
     LanguageServer,
@@ -54,6 +54,12 @@ try {
 } catch (error) {
     console.log(error.stack);
 }
+
+const create_socket = (host, port) => {
+    const newSocket = new zmq.Push({ linger: 0 });
+    newSocket.connect(`${host}:${port}`);
+    return newSocket;
+};
 
 class PythonProcess {
     static io;
@@ -74,15 +80,12 @@ class PythonProcess {
         };
 
         this.executor = new PythonShell(commandStr, pyshellOpts);
-
+        this.executorCommChannel = {};
         this.io = io;
         let _this = this;
+
         this.executor.on("message", function (stdout) {
             try {
-                // console.log("On message: ", _this.clientMessage);
-                // let replyMessage = JSON.parse(_this.clientMessage);
-                // replyMessage["content"] = stdout;
-                // _this.send2client(replyMessage);
                 console.log("stdout: ", stdout);
             } catch (error) {
                 console.log(error.stack);
@@ -90,11 +93,6 @@ class PythonProcess {
         });
 
         this.executor.on("stderr", function (stderr) {
-            // let replyMessage = JSON.parse(_this.clientMessage);
-            // console.log("stderr: forward output to client", replyMessage);
-            // replyMessage['content'] = stderr;
-            // replyMessage['type'] = 'str';
-            // _this.send2client(replyMessage);
             console.log("stderr:", stderr);
         });
 
@@ -106,12 +104,23 @@ class PythonProcess {
             console.log("close ", "python-shell closed: " + message);
         });
 
-        if (args[0] === "code") {
-            this.kernel_control_socket = new zmq.Push({ linger: 0 });
-            const n2p_host = config.n2p_comm.host;
-            const control_port = config.n2p_comm.kernel_control_port;
-            const control_address = `${n2p_host}:${control_port}`;
-            this.kernel_control_socket.connect(control_address);
+        const mode = args[0];
+        let endpoins = [];
+        if (mode === "code") {
+            endpoins = CodeEndpoints;
+        } else if (mode === "noncode") {
+            endpoins = NonCodeEndpoints;
+        }
+        for (let endpoint of endpoins) {
+            /** only ExecutorManager use zmq now. TODO: move everything to zmq */
+            if (endpoint === ExecutorManager) {
+                this.executorCommChannel[ExecutorManager] = create_socket(
+                    config.n2p_comm.host,
+                    config.n2p_comm.kernel_control_port
+                );
+            } else {
+                this.executorCommChannel[endpoint] = this.executor;
+            }
         }
     }
 
@@ -119,20 +128,8 @@ class PythonProcess {
         this.io.emit(message["webapp_endpoint"], JSON.stringify(message));
     }
 
-    send2executor(message) {
-        this.clientMessage = message.slice();
-        this.executor.send(message);
-    }
-
-    async send2kernel_manager(message) {
-        try {
-            if (this.kernel_control_socket != undefined) {
-                console.log(`send2kernel_manager: ${message}`);
-                await this.kernel_control_socket.send(message);
-            }
-        } catch (err) {
-            console.log(err);
-        }
+    async send2executor(endpoint, message) {
+        await this.executorCommChannel[endpoint].send(message);
     }
 
     shutdown(signal) {
@@ -157,24 +154,22 @@ try {
 
         socket.onAny((endpoint, message) => {
             //TODO: use enum
-            if (CodeExecutor.includes(endpoint)) {
-                console.log(
-                    "Receive msg from client, server will run: ",
-                    JSON.parse(message)["command_name"]
-                );
-                if (endpoint === KernelManager) {
-                    // This is temporary solution, when refactor the nodejs completely conenct to python by ZMQ, we 'll refactor later
-                    codeExecutor.send2kernel_manager(message);
-                } else {
-                    codeExecutor.send2executor(message);
+            if (CodeEndpoints.includes(endpoint)) {
+                let jsonMessage = JSON.parse(message);
+                if (jsonMessage.command_name !== "get_status") {
+                    console.log(
+                        "Receive msg from client, server will run:",
+                        jsonMessage["command_name"]
+                    );
                 }
-            } else if (NoneCodeExecutor.includes(endpoint)) {
-                // nonCodeExecutor.send2executor(message);
+                codeExecutor.send2executor(endpoint, message);
+            } else if (NonCodeEndpoints.includes(endpoint)) {
+                let jsonMessage = JSON.parse(message);
                 console.log(
                     "Receive msg from client, server will run:",
-                    JSON.parse(message)["command_name"]
+                    jsonMessage["command_name"]
                 );
-                nonCodeExecutor.send2executor(message);
+                nonCodeExecutor.send2executor(endpoint, message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
             }
@@ -203,7 +198,11 @@ try {
         console.log(`Waiting for python executor message on ${p2n_port}`);
         for await (const [message] of command_output_zmq) {
             const jsonMessage = JSON.parse(message.toString());
-            console.log(`command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`);
+            if (jsonMessage.command_name !== "get_status") {
+                console.log(
+                    `command_output_zmq: forward output to ${jsonMessage["webapp_endpoint"]}`
+                );
+            }
             sendOutput(jsonMessage);
         }
     }

@@ -8,6 +8,17 @@ export interface ICodeDoc {
     // might change.
 }
 
+export interface ICodeState {
+    scrollPos?: number;
+    cmState?: object; //codemirror state
+}
+
+export interface ICodeStateMessage {
+    inViewID: number
+    scrollPos: number;
+    cmState: object; //codemirror state
+}
+
 // export interface IGroup {
 // 	from: number;
 // 	to: number;

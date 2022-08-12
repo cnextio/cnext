@@ -27,10 +27,10 @@ import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
 import Divider from "@mui/material/Divider";
-import { restartKernel, interruptKernel } from "../kernel-manager/KernelManager";
-import KernelCommandConfirmation from "../kernel-manager/KernelCommandConfirmation";
+import { restartKernel, interruptKernel } from "../executor-manager/ExecutorManager";
+import ExecutorCommandConfirmation from "../executor-manager/ExecutorCommandConfirmation";
 import Account from "../user-manager/Account";
-import { KernelManagerCommand } from "../../interfaces/IKernelManager";
+import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -57,9 +57,7 @@ const SideBarDivider = () => {
 
 const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
-    const [kernelCommand, setKernelCommand] = useState<KernelManagerCommand | null>(
-        null
-    );
+    const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const dispatch = useDispatch();
 
     const projectManagerIconList = [
@@ -118,9 +116,9 @@ const MiniSidebar = () => {
         } else if (name === SideBarName.CHANGE_LAYOUT) {
             handleClickChangeLayout();
         } else if (name === SideBarName.RESTART_KERNEL) {
-            setKernelCommand(KernelManagerCommand.restart_kernel);
+            setKernelCommand(ExecutorManagerCommand.restart_kernel);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
-            setKernelCommand(KernelManagerCommand.interrupt_kernel);
+            setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -130,12 +128,12 @@ const MiniSidebar = () => {
         }
     };
 
-    const commandDialogConfirm = (confirm: boolean, command: KernelManagerCommand) => {
+    const commandDialogConfirm = (confirm: boolean, command: ExecutorManagerCommand) => {
         setKernelCommand(null);
         if (confirm) {
-            if (command === KernelManagerCommand.interrupt_kernel) {
+            if (command === ExecutorManagerCommand.interrupt_kernel) {
                 interruptKernel();
-            } else if (command === KernelManagerCommand.restart_kernel) {
+            } else if (command === ExecutorManagerCommand.restart_kernel) {
                 restartKernel();
             }
         }
@@ -191,7 +189,7 @@ const MiniSidebar = () => {
             </Sidebar>
             <MainContainerDivider orientation="vertical" />
             {kernelCommand !== null && (
-                <KernelCommandConfirmation
+                <ExecutorCommandConfirmation
                     command={kernelCommand}
                     confirmHandler={commandDialogConfirm}
                 />

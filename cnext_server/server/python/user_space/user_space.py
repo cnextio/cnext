@@ -170,6 +170,9 @@ class _UserSpace(BaseKernelUserSpace):
             self.execution_lock.release()
         return result
     
+    def is_alive(self):
+        return self.executor.is_alive()
+        
     def set_executor_working_dir(self, path):
         code = "import os; os.chdir('{}')".format(path)
         return self.executor.execute(code)

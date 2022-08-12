@@ -17,6 +17,8 @@ import {
     IRunQueueItem,
     ICodeResult,
     CellCommand,
+    ICodeState,
+    ICodeStateMessage,
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
@@ -24,6 +26,7 @@ import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 type CodeEditorState = {
     codeText: { [id: string]: string[] };
     codeLines: { [id: string]: ICodeLine[] };
+    codeStates: { [id: string]: ICodeState };
     /** file timestamp will be used to check whether the code need to be reloaded
      * A better design might be to move all codeText, codeLines and fileTimestamp under
      * a same dictionary */
@@ -64,6 +67,7 @@ type CodeEditorState = {
 const initialState: CodeEditorState = {
     codeText: {},
     codeLines: {},
+    codeStates: {},
     timestamp: {},
     // fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP, queue: [] },
@@ -165,6 +169,7 @@ export const CodeEditorRedux = createSlice({
             let codeTextData: ICodeText = action.payload;
             let reduxFileID = codeTextData.reduxFileID;
             state.codeText[reduxFileID] = codeTextData.codeText;
+            state.codeStates[reduxFileID] = {};
 
             let codeLines: ICodeLine[] = codeTextData.codeLines;
             // let maxTextOutputOrder = 0;
@@ -537,9 +542,18 @@ export const CodeEditorRedux = createSlice({
             }
         },
 
+        setCodeStates: (state, action) => {
+            let data: ICodeStateMessage = action.payload;
+            if (data.inViewID != null) {
+                state.codeStates[data.inViewID].scrollPos = data.scrollPos;
+                state.codeStates[data.inViewID].cmState = data.cmState;
+            }
+        },
+
         resetCodeEditor: (state) => {
             state.codeText = {};
             state.codeLines = {};
+            state.codeStates = {};
             state.timestamp = {};
             // fileSaved: true,
             state.runQueue = { status: RunQueueStatus.STOP, queue: [] };
@@ -580,6 +594,7 @@ export const {
     setMouseOverGroup,
     setCellCommand,
     setLineAnchorHover,
+    setCodeStates,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;
