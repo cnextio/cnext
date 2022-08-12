@@ -1,7 +1,5 @@
-import { insertNewlineAndIndent } from "@codemirror/commands";
 import { EditorView, Decoration, WidgetType } from "@codemirror/view";
-import { useDispatch, useSelector } from "react-redux";
-import { clearTextOutputs, setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
+import { setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../redux/store";
 import { ICodeLine, CellCommand } from "../../interfaces/ICodeEditor";
 import { getCodeLine } from "./libCodeEditor";

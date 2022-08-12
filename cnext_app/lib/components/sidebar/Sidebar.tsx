@@ -21,7 +21,7 @@ import {
     setShowProjectExplorer,
     setProjectSetting,
 } from "../../../redux/reducers/ProjectManagerRedux";
-import { clearTextOutputs } from "../../../redux/reducers/CodeEditorRedux";
+import { clearAllOutputs } from "../../../redux/reducers/CodeEditorRedux";
 import { ViewMode } from "../../interfaces/IApp";
 import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
@@ -88,16 +88,16 @@ const MiniSidebar = () => {
             tooltip: "Interrupt kernel",
         },
         {
-            name: SideBarName.CLEAR_STATE,
+            name: SideBarName.CLEAR_OUTPUTS,
             component: <PlaylistRemoveIcon />,
             tooltip: "Clear results and outputs",
         },
     ];
 
-    const handleClickClearState = () => {
+    const handleClickClearOutputs = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
-        dispatch(clearTextOutputs(inViewID));
+        dispatch(clearAllOutputs(inViewID));
     };
 
     const handleClickChangeLayout = () => {
@@ -111,8 +111,8 @@ const MiniSidebar = () => {
     };
 
     const handleClick = (name: string) => {
-        if (name === SideBarName.CLEAR_STATE) {
-            handleClickClearState();
+        if (name === SideBarName.CLEAR_OUTPUTS) {
+            handleClickClearOutputs();
         } else if (name === SideBarName.CHANGE_LAYOUT) {
             handleClickChangeLayout();
         } else if (name === SideBarName.RESTART_KERNEL) {
