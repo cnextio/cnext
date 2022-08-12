@@ -528,6 +528,22 @@ export const CodeEditorRedux = createSlice({
                 state.saveCodeLineCounter++;
             }
         },
+        clearTextOutputGroup: (state, action) => {
+            const inViewID = action.payload.inViewID;
+            const groupID = action.payload.mouseOverGroupID;
+            state.maxTextOutputOrder = 0;
+            // remove all result & textOutput in state code lines
+            for (let codeLine of state.codeLines[inViewID]) {
+                if (codeLine.groupID === groupID) {
+                    codeLine.result = undefined;
+                    codeLine.textOutput = undefined;
+                    state.textOutputUpdateCount = 0;
+                    state.resultUpdateCount = 0;
+                    state.saveCodeTextCounter++;
+                    state.saveCodeLineCounter++;
+                }
+            }
+        },
 
         resetCodeEditor: (state) => {
             state.codeText = {};
@@ -568,6 +584,7 @@ export const {
     setCodeToInsert,
     clearRunningLineTextOutput,
     clearTextOutputs,
+    clearTextOutputGroup,
     resetCodeEditor,
     setMouseOverGroup,
     setCellCommand,

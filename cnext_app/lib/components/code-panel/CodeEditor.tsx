@@ -28,6 +28,7 @@ import {
     clearRunQueue,
     setCellCommand,
     clearTextOutputs,
+    clearTextOutputGroup,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -421,15 +422,16 @@ const CodeEditor = () => {
         if (view && cellCommand) {
             const state = store.getState();
             const inViewID = state.projectManager.inViewID;
-            if (cellCommand === CellCommand.RUN_CELL) {
-                addToRunQueue(view);
-            }
-            if (cellCommand === CellCommand.CLEAR) {
-                dispatch(clearTextOutputs(inViewID));
-            }
-            if (cellCommand === CellCommand.ADD_CELL) {
-                console.log(`ADD_CELL`);
-                insertBelow(CodeInsertMode.GROUP);
+            switch (cellCommand) {
+                case CellCommand.RUN_CELL:
+                    addToRunQueue(view);
+                    break;
+                case CellCommand.CLEAR:
+                    dispatch(clearTextOutputGroup({ inViewID, mouseOverGroupID }));
+                    break;
+                case CellCommand.ADD_CELL:
+                    insertBelow(CodeInsertMode.GROUP);
+                    break;
             }
             dispatch(setCellCommand(undefined));
         }

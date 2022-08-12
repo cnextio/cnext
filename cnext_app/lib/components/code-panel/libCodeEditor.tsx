@@ -551,10 +551,11 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
             if (lines && view.state.doc.lines === lines.length) {
                 let doc = view.state.doc;
                 const anchor = view.state.selection.ranges[0].anchor;
-
+                
                 let pos = view.posAtDOM(event.target);
                 let lineAtAnchorHover = doc.lineAt(pos); /** 1-based */
                 let lineNumberHover = doc.lineAt(pos).number - 1; /** 0-based */
+                console.log(`doc`, pos);
 
                 let currentGroupID = lines[lineNumberHover].groupID;
                 store.dispatch(setMouseOverGroup(currentGroupID));
