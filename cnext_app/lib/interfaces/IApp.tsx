@@ -8,10 +8,7 @@ import {
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
-import {
-    IExecutorManagerResultContent,
-    ExecutorManagerCommand,
-} from "./IExecutorManager";
+import { IExecutorManagerResultContent, ExecutorManagerCommand } from "./IExecutorManager";
 import { ModelManagerCommand } from "./IModelManager";
 import { ICodeResultContent } from "./ICodeEditor";
 
@@ -217,7 +214,7 @@ export enum ViewMode {
 export enum SideBarName {
     PROJECT = "Projects",
     INBOX = "Inbox",
-    CLEAR_STATE = "ClearState",
+    CLEAR_OUTPUTS = "ClearOuputs",
     CHANGE_LAYOUT = "ChangeLayout",
     RESTART_KERNEL = "RestartKernel",
     INTERRUPT_KERNEL = "InterruptKernel",

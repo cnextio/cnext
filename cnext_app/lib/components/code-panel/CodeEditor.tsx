@@ -27,7 +27,7 @@ import {
     removeFirstItemFromRunQueue,
     clearRunQueue,
     setCellCommand,
-    clearTextOutputs,
+    clearAllOutputs,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -409,14 +409,17 @@ const CodeEditor = () => {
             view.dispatch();
         }
     }, [lineStatusUpdate]);
+
     document.addEventListener("name-of-event", function (e) {
         console.log("name-of-event", e); // Prints "Example of an event"
     });
+
     useEffect(() => {
         if (view) {
             view.dispatch();
         }
     }, [mouseOverGroupID]);
+
     useEffect(() => {
         if (view && cellCommand) {
             const state = store.getState();
@@ -426,7 +429,7 @@ const CodeEditor = () => {
                     addToRunQueue(view);
                     break;
                 case CellCommand.CLEAR:
-                    dispatch(clearTextOutputs({ inViewID, mouseOverGroupID }));
+                    dispatch(clearAllOutputs({ inViewID, mouseOverGroupID }));
                     break;
                 case CellCommand.ADD_CELL:
                     insertBelow(CodeInsertMode.GROUP);
@@ -435,6 +438,7 @@ const CodeEditor = () => {
             dispatch(setCellCommand(undefined));
         }
     }, [cellCommand]);
+
     useEffect(() => {
         console.log("CodeEditor useEffect magicInfo ", cAssistInfo);
         handleCAssistInfoUpdate();

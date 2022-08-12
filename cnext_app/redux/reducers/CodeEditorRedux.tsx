@@ -519,7 +519,7 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = action.payload;
         },
 
-        clearTextOutputs: (state, action) => {
+        clearAllOutputs: (state, action) => {
             // typeof action.payload === 'string' -> payload = inViewID
             // typeof action.payload === 'object' -> payload = { inViewID, mouseOverGroupID }
             const inViewID =
@@ -589,7 +589,7 @@ export const {
     updateCAssistInfo,
     setCodeToInsert,
     clearRunningLineTextOutput,
-    clearTextOutputs,
+    clearAllOutputs,
     resetCodeEditor,
     setMouseOverGroup,
     setCellCommand,
