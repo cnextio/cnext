@@ -7,6 +7,7 @@ import ModelManagerRedux from "../reducers/ModelManagerRedux";
 import RichOutputRedux from "../reducers/RichOutputRedux";
 import NotificationRedux from "../reducers/NotificationRedux";
 import TerminalRedux from "../reducers/TerminalRedux";
+import ExecutorManagerRedux from "../reducers/ExecutorManagerRedux";
 
 const store = configureStore({
     reducer: {
@@ -18,6 +19,7 @@ const store = configureStore({
         richOutput: RichOutputRedux,
         notification: NotificationRedux,
         terminal: TerminalRedux,
+        executorManager: ExecutorManagerRedux
     },
 });
 
