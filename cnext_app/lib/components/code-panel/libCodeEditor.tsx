@@ -576,6 +576,7 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
 function onMouseOut(event: MouseEvent, view: EditorView) {
     try {
         if (view != null) {
+            console.log(`OnMouseOut Container`);
             store.dispatch(setMouseOverGroup(undefined));
             store.dispatch(setLineAnchorHover(undefined));
         }

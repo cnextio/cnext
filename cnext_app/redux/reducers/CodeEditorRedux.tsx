@@ -530,7 +530,7 @@ export const CodeEditorRedux = createSlice({
             for (let codeLine of state.codeLines[inViewID]) {
                 if (
                     typeof action.payload === "string" ||
-                    state.mouseOverGroupID === codeLine.groupID
+                    action.payload.mouseOverGroupID === codeLine.groupID
                 ) {
                     codeLine.result = undefined;
                     codeLine.textOutput = undefined;

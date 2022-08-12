@@ -39,7 +39,9 @@ class GroupWidget extends WidgetType {
                 });
             }
         }
-        wrap.className = `cm-groupwidget ${mouseOverGroupID === this.groupId ? "show" : ""}`;
+        wrap.className = `cm-groupwidget ${
+            mouseOverGroupID && mouseOverGroupID === this.groupId ? "show" : ""
+        }`;
         return wrap;
     }
 }
