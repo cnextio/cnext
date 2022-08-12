@@ -426,6 +426,8 @@ const CodeEditor = () => {
             const inViewID = state.projectManager.inViewID;
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
+                    console.log(`run  `);
+                    
                     addToRunQueue(view);
                     break;
                 case CellCommand.CLEAR:

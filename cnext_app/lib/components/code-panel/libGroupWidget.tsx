@@ -30,7 +30,7 @@ class GroupWidget extends WidgetType {
                 const element = cellItems[i];
                 let dom = document.createElement("span");
                 dom.textContent = element.text;
-                dom.className = `cm-cell-command`;
+                dom.className = `cm-cellcommand`;
                 wrap.appendChild(dom);
                 dom.addEventListener("click", () => {
                     store.dispatch(setCellCommand(element.cellCommand));
@@ -47,10 +47,7 @@ class GroupWidget extends WidgetType {
 export const groupWidgetExtension = EditorView.decorations.compute(["doc"], (state) => {
     let widgets = [];
     let reduxState = store.getState();
-    const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
     const view = new EditorView();
-    console.log(`state.doc.lines`, store.getState());
-
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {
         let lines: ICodeLine[] | null = getCodeLine(reduxState);

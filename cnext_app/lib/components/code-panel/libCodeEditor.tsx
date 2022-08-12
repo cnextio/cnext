@@ -561,6 +561,8 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
     try {
         // console.log('CodeEditor onMouseDown', view, event, dispatch);
         if (view != null) {
+            console.log(`onMouseDown`);
+
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
             // console.log("CodeEditor event target: ", event.target);
@@ -576,7 +578,6 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
 function onMouseOut(event: MouseEvent, view: EditorView) {
     try {
         if (view != null) {
-            console.log(`OnMouseOut Container`);
             store.dispatch(setMouseOverGroup(undefined));
             store.dispatch(setLineAnchorHover(undefined));
         }
@@ -597,18 +598,26 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                 let pos = view.posAtDOM(event.target);
                 let lineAtAnchorHover = doc.lineAt(pos); /** 1-based */
                 let lineNumberHover = doc.lineAt(pos).number - 1; /** 0-based */
-                console.log(`doc`, pos);
 
                 let currentGroupID = lines[lineNumberHover].groupID;
-                store.dispatch(setMouseOverGroup(currentGroupID));
-                store.dispatch(
-                    setLineAnchorHover({
-                        from: lineAtAnchorHover.from,
-                        number: lineAtAnchorHover.number,
-                        text: lineAtAnchorHover.text,
-                        to: lineAtAnchorHover.to,
-                    })
-                );
+                console.log(`doc`, currentGroupID, doc.line(lineNumberHover + 1));
+                if (lines && lines.length > 0) {
+                    for (let ln = 0; ln < lines.length; ln++) {
+                        /** convert to 1-based */
+                        if (lines[ln].groupID === currentGroupID && doc.line(ln + 1).text) {
+                            store.dispatch(setMouseOverGroup(currentGroupID));
+                            store.dispatch(
+                                setLineAnchorHover({
+                                    from: lineAtAnchorHover.from,
+                                    number: lineAtAnchorHover.number,
+                                    text: lineAtAnchorHover.text,
+                                    to: lineAtAnchorHover.to,
+                                })
+                            );
+                            break;
+                        }
+                    }
+                }
             }
         }
     } catch (error) {
@@ -620,6 +629,7 @@ function onKeyDown(event: KeyboardEvent, view: EditorView) {
     try {
         // console.log('CodeEditor onKeyDown', view, event);
         if (view != null) {
+            console.log(`onKeyDown`);
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
             const pos = view.state.selection.ranges[0].anchor;

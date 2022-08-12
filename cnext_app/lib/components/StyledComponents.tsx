@@ -503,17 +503,22 @@ export const StyledCodeEditor = styled.div`
     .cm-groupwidget {
         height: 18px;
         width: 100%;
+        position: relative;
+        z-index: 100000000000;
         &.show {
             color: back;
             cursor: pointer;
             font-size: 11px;
             opacity: 0.8;
-            color: #4181cb;
+            color: #42a5f5;
+            padding-top: 3px;
         }
-        .cm-cell-command {
+        .cm-cellcommand {
             display: inline-block;
-            border-right: 1px solid #4181cb;
             padding: 0 5px;
+            &:not(:last-child) {
+                border-right: 1px solid #4181cb;
+            }
         }
     }
     .cm-foldGutter {
