@@ -515,26 +515,18 @@ export const CodeEditorRedux = createSlice({
         },
 
         clearTextOutputs: (state, action) => {
-            const inViewID = action.payload;
+            // typeof action.payload === 'string' -> payload = inViewID
+            // typeof action.payload === 'object' -> payload = { inViewID, mouseOverGroupID }
+            const inViewID =
+                typeof action.payload === "string" ? action.payload : action.payload.inViewID;
             state.maxTextOutputOrder = 0;
 
             // remove all result & textOutput in state code lines
             for (let codeLine of state.codeLines[inViewID]) {
-                codeLine.result = undefined;
-                codeLine.textOutput = undefined;
-                state.textOutputUpdateCount = 0;
-                state.resultUpdateCount = 0;
-                state.saveCodeTextCounter++;
-                state.saveCodeLineCounter++;
-            }
-        },
-        clearTextOutputGroup: (state, action) => {
-            const inViewID = action.payload.inViewID;
-            const groupID = action.payload.mouseOverGroupID;
-            state.maxTextOutputOrder = 0;
-            // remove all result & textOutput in state code lines
-            for (let codeLine of state.codeLines[inViewID]) {
-                if (codeLine.groupID === groupID) {
+                if (
+                    typeof action.payload === "string" ||
+                    state.mouseOverGroupID === codeLine.groupID
+                ) {
                     codeLine.result = undefined;
                     codeLine.textOutput = undefined;
                     state.textOutputUpdateCount = 0;
@@ -584,7 +576,6 @@ export const {
     setCodeToInsert,
     clearRunningLineTextOutput,
     clearTextOutputs,
-    clearTextOutputGroup,
     resetCodeEditor,
     setMouseOverGroup,
     setCellCommand,

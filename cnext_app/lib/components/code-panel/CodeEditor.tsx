@@ -28,7 +28,6 @@ import {
     clearRunQueue,
     setCellCommand,
     clearTextOutputs,
-    clearTextOutputGroup,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -427,7 +426,7 @@ const CodeEditor = () => {
                     addToRunQueue(view);
                     break;
                 case CellCommand.CLEAR:
-                    dispatch(clearTextOutputGroup({ inViewID, mouseOverGroupID }));
+                    dispatch(clearTextOutputs({ inViewID, mouseOverGroupID }));
                     break;
                 case CellCommand.ADD_CELL:
                     insertBelow(CodeInsertMode.GROUP);
