@@ -12,41 +12,34 @@ class GroupWidget extends WidgetType {
     }
     toDOM() {
         let reduxState = store.getState();
-
         const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
         let wrap = document.createElement("div");
         if (mouseOverGroupID === this.groupId) {
+            const cells = [
+                {
+                    name: "Run",
+                    cellCommand: CellCommand.RUN_CELL,
+                },
+                {
+                    name: "Clear Result",
+                    cellCommand: CellCommand.CLEAR,
+                },
+                {
+                    name: "Add Cell",
+                    cellCommand: CellCommand.ADD_CELL,
+                },
+            ];
             const that = this;
-            //run
-            let run = document.createElement("span");
-            document.removeEventListener("name-of-event", () => {}, false);
-            run.textContent = "Run";
-            run.className = "run-shell";
-            wrap.appendChild(run);
-
-            run.addEventListener("click", () => {
-                store.dispatch(setCellCommand(CellCommand.RUN_CELL));
-            });
-
-            //clear
-            let clear = document.createElement("span");
-            clear.textContent = "Clear Result";
-            clear.className = "clear-result";
-            wrap.appendChild(clear);
-            clear.addEventListener("click", () => {
-                store.dispatch(setCellCommand(CellCommand.CLEAR));
-            });
-
-            // add-shell
-
-            let addCell = document.createElement("span");
-            addCell.textContent = "Add Cell";
-            addCell.className = "add-cell";
-            wrap.appendChild(addCell);
-
-            addCell.addEventListener("click", () => {
-                store.dispatch(setCellCommand(CellCommand.ADD_CELL));
-            });
+            for (let i = 0; i < cells.length; i++) {
+                const element = cells[i];
+                let dom = document.createElement("span");
+                dom.textContent = element.name;
+                dom.className = `cm-cell-command`;
+                wrap.appendChild(dom);
+                dom.addEventListener("click", () => {
+                    store.dispatch(setCellCommand(element.cellCommand));
+                });
+            }
         }
         wrap.className = `cm-groupwidget ${mouseOverGroupID === this.groupId ? "show" : ""}`;
         return wrap;

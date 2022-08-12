@@ -506,15 +506,10 @@ export const StyledCodeEditor = styled.div`
             opacity: 0.8;
             color: #4181cb;
         }
-        .run-shell,
-        .clear-result {
+        .cm-cell-command {
             display: inline-block;
             border-right: 1px solid #4181cb;
             padding: 0 5px;
-        }
-        .add-cell {
-            display: inline-block;
-            padding-left: 5px;
         }
     }
     .cm-foldGutter {
