@@ -14,7 +14,7 @@ export interface ICodeState {
 }
 
 export interface ICodeStateMessage {
-    inViewID: number
+    inViewID: string;
     scrollPos: number;
     cmState: object; //codemirror state
 }
@@ -134,7 +134,7 @@ export interface ICodeResult {
     subType: string;
     msg_id?: string;
     session_id?: string;
-    /** Order in which this result is generated. 
+    /** Order in which this result is generated.
      * Currently only use this for text output result where output will be displayed in the order of generation. */
     order?: number;
 }
@@ -175,7 +175,7 @@ export interface IStatePlotResults {
 /** CodeEditor run queue  */
 export interface IRunQueue {
     status: RunQueueStatus;
-    queue: IRunQueueItem[]
+    queue: IRunQueueItem[];
     // fromLine?: number;
     // toLine?: number;
     // runningLine?: number;
