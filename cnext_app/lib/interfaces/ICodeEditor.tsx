@@ -14,7 +14,7 @@ export interface ICodeState {
 }
 
 export interface ICodeStateMessage {
-    inViewID: number
+    inViewID: string;
     scrollPos: number;
     cmState: object; //codemirror state
 }
