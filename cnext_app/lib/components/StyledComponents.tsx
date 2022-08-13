@@ -503,23 +503,70 @@ export const StyledCodeEditor = styled.div`
     .cm-groupwidget {
         height: 18px;
         width: 100%;
-        position: relative;
-        z-index: 100000000000;
+        /* padding-left: 5px; */
         &.show {
             color: back;
             cursor: pointer;
             font-size: 11px;
             opacity: 0.8;
             color: #42a5f5;
-            padding-top: 3px;
+            padding-top: 4px;
         }
         .cm-cellcommand {
             display: inline-block;
             padding: 0 5px;
             &:not(:last-child) {
-                border-right: 1px solid #4181cb;
+                border-right: 1px solid #42a5f5;
             }
         }
+        //Change text to icon
+        /* .arrow {
+            display: inline-block;
+            width: 0px;
+            height: 0px;
+            border: 8px solid transparent;
+            &.arrow-right {
+                border-left-color: #ccc;
+                border-right-width: 0px;
+            }
+        }
+        .gg-trash {
+            box-sizing: border-box;
+            position: relative;
+            display: inline-block;
+            width: 8px;
+            height: 10px;
+            border: 2px solid transparent;
+            box-shadow: 0 0 0 2px, inset -2px 0 0, inset 2px 0 0;
+            border-bottom-left-radius: 1px;
+            border-bottom-right-radius: 1px;
+            margin-top: 4px;
+            &::after,
+            ::before {
+                content: "";
+                display: block;
+                box-sizing: border-box;
+                position: absolute;
+            }
+            &::after {
+                background: #ccc;
+                border-radius: 3px;
+                width: 16px;
+                height: 2px;
+                top: -4px;
+                left: -5px;
+            }
+            &::before {
+                width: 10px;
+                height: 4px;
+                border: 2px solid;
+                border-bottom: transparent;
+                border-top-left-radius: 2px;
+                border-top-right-radius: 2px;
+                top: -8px;
+                left: 0;
+            }
+        } */
     }
     .cm-foldGutter {
         font-size: 11px;
