@@ -16,20 +16,23 @@ class GroupWidget extends WidgetType {
                 {
                     text: "Run",
                     cellCommand: CellCommand.RUN_CELL,
+                    svg: `<svg class="icon-cellcommand MuiSvgIcon-root MuiSvgIcon-fontSizeSmall" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="PlayArrowIcon"><path d="M8 5v14l11-7z"></path></svg>`,
                 },
                 {
                     text: "Clear Result",
                     cellCommand: CellCommand.CLEAR,
+                    svg: `<svg class="icon-cellcommand MuiSvgIcon-root MuiSvgIcon-fontSizeSmall" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="DeleteIcon"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
                 },
                 {
                     text: "Add Cell",
                     cellCommand: CellCommand.ADD_CELL,
+                    svg: `<svg class="icon-cellcommand MuiSvgIcon-root MuiSvgIcon-fontSizeSmall" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="AddIcon"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg>`,
                 },
             ];
             for (let i = 0; i < cellItems.length; i++) {
                 const element = cellItems[i];
                 let dom = document.createElement("span");
-                dom.textContent = element.text;
+                dom.innerHTML = element.svg;
                 dom.className = `cm-cellcommand`;
                 wrap.appendChild(dom);
                 dom.addEventListener("click", () => {

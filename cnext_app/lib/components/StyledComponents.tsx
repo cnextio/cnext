@@ -508,65 +508,33 @@ export const StyledCodeEditor = styled.div`
             color: back;
             cursor: pointer;
             font-size: 11px;
-            opacity: 0.8;
-            color: #42a5f5;
-            padding-top: 4px;
+            opacity: 0.9;
+            color: #ccc;
+            /* padding-top: 4px; */
         }
         .cm-cellcommand {
             display: inline-block;
-            padding: 0 5px;
+            margin-left: 5px;
             &:not(:last-child) {
-                border-right: 1px solid #42a5f5;
+                /* border-right: 1px solid #42a5f5; */
+            }
+            .icon-cellcommand {
+                webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                width: 1em;
+                height: 1em;
+                display: inline-block;
+                fill: currentColor;
+                -webkit-flex-shrink: 0;
+                -ms-flex-negative: 0;
+                flex-shrink: 0;
+                -webkit-transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+                transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+                font-size: 1rem;
             }
         }
-        //Change text to icon
-        /* .arrow {
-            display: inline-block;
-            width: 0px;
-            height: 0px;
-            border: 8px solid transparent;
-            &.arrow-right {
-                border-left-color: #ccc;
-                border-right-width: 0px;
-            }
-        }
-        .gg-trash {
-            box-sizing: border-box;
-            position: relative;
-            display: inline-block;
-            width: 8px;
-            height: 10px;
-            border: 2px solid transparent;
-            box-shadow: 0 0 0 2px, inset -2px 0 0, inset 2px 0 0;
-            border-bottom-left-radius: 1px;
-            border-bottom-right-radius: 1px;
-            margin-top: 4px;
-            &::after,
-            ::before {
-                content: "";
-                display: block;
-                box-sizing: border-box;
-                position: absolute;
-            }
-            &::after {
-                background: #ccc;
-                border-radius: 3px;
-                width: 16px;
-                height: 2px;
-                top: -4px;
-                left: -5px;
-            }
-            &::before {
-                width: 10px;
-                height: 4px;
-                border: 2px solid;
-                border-bottom: transparent;
-                border-top-left-radius: 2px;
-                border-top-right-radius: 2px;
-                top: -8px;
-                left: 0;
-            }
-        } */
     }
     .cm-foldGutter {
         font-size: 11px;
