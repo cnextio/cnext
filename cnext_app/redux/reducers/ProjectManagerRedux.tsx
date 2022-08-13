@@ -51,8 +51,8 @@ const defaultRichOutputSettings: IRichOutputSettings = {
 };
 
 const defaultLayoutSettings: ILayoutSettings = {
-    project_explorer_size: 200 
-}
+    project_explorer_size: 200,
+};
 
 type ProjectManagerState = {
     openFiles: { [id: string]: IFileMetadata };
@@ -229,10 +229,6 @@ export const ProjectManagerRedux = createSlice({
             state.showProjectExplore = action.payload;
         },
 
-        setScrollPos: (state, action) => {
-            if (state.inViewID) state.openFiles[state.inViewID].scroll_pos = action.payload;
-        },
-
         setProjectSetting: (state, action) => {
             if (action.payload) {
                 state.settings = { ...state.settings, ...action.payload };
@@ -295,7 +291,6 @@ export const {
     setShowProjectExplorer,
     setFileMetadata,
     setServerSynced,
-    setScrollPos,
     setProjectSetting,
     setProjects,
     setWorkspaceMetadata,
