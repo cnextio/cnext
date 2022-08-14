@@ -596,7 +596,7 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                 const anchor = view.state.selection.ranges[0].anchor;
 
                 let pos = view.posAtDOM(event.target);
-                let lineAtAnchorHover = doc.lineAt(pos); /** 1-based */
+                // let lineAtAnchorHover = doc.lineAt(pos); /** 1-based */
                 let lineNumberHover = doc.lineAt(pos).number - 1; /** 0-based */
 
                 let currentGroupID = lines[lineNumberHover].groupID;
@@ -606,14 +606,14 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                         /** convert to 1-based */
                         if (lines[ln].groupID === currentGroupID && doc.line(ln + 1).text) {
                             store.dispatch(setMouseOverGroup(currentGroupID));
-                            store.dispatch(
-                                setLineAnchorHover({
-                                    from: lineAtAnchorHover.from,
-                                    number: lineAtAnchorHover.number,
-                                    text: lineAtAnchorHover.text,
-                                    to: lineAtAnchorHover.to,
-                                })
-                            );
+                            // store.dispatch(
+                            //     setLineAnchorHover({
+                            //         from: lineAtAnchorHover.from,
+                            //         number: lineAtAnchorHover.number,
+                            //         text: lineAtAnchorHover.text,
+                            //         to: lineAtAnchorHover.to,
+                            //     })
+                            // );
                             break;
                         }
                     }
