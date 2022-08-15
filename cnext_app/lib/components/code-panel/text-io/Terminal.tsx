@@ -22,7 +22,7 @@ const TerminalComponent = () => {
     async function init() {
         if (config.port && config.token) {
             try {
-                const BASEURL = `http://localhost:${config.port}`;
+                const BASEURL = `${process.env.NEXT_PUBLIC_TERMINAL_ENDPOINT}:${config.port}`;
                 const TOKEN = `${config.token}`;
                 const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
                 const connectionInfo = ServerConnection.makeSettings({
@@ -134,7 +134,7 @@ const TerminalComponent = () => {
                 convertEol: true,
                 fontFamily: "monospace",
                 fontSize: 13,
-                lineHeight: 1.20,
+                lineHeight: 1.2,
                 fontWeight: 400,
                 theme: {
                     selection: "#b1b1b155",
