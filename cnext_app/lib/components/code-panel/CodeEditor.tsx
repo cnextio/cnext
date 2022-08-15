@@ -18,7 +18,7 @@ import {
     addResult,
     updateLines,
     setLineStatus as setLineStatusRedux,
-    setActiveLine,
+    setActiveLine as setActiveLineRedux,
     setLineGroupStatus,
     addToRunQueue as addToRunQueueRedux,
     updateCAssistInfo,
@@ -86,6 +86,7 @@ import {
     execLines,
     scrollToPos,
     fileClosingHandler,
+    addToRunQueueHover,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
@@ -424,11 +425,16 @@ const CodeEditor = () => {
         if (view && cellCommand) {
             const state = store.getState();
             const inViewID = state.projectManager.inViewID;
+            const lineNumber = state.codeEditor.lineAnchorHover.number - 1;
+            let activeLine: ICodeActiveLine = {
+                inViewID: inViewID || "",
+                lineNumber: lineNumber,
+            };
+            store.dispatch(setActiveLineRedux(activeLine));
+
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
-                    console.log(`run  `);
-                    
-                    addToRunQueue(view);
+                    addToRunQueueHover(view);
                     break;
                 case CellCommand.CLEAR:
                     dispatch(clearAllOutputs({ inViewID, mouseOverGroupID }));

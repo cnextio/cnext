@@ -35,7 +35,9 @@ class GroupWidget extends WidgetType {
                 dom.innerHTML = element.svg;
                 dom.className = `cm-cellcommand`;
                 wrap.appendChild(dom);
-                dom.addEventListener("click", () => {
+
+                dom.addEventListener("mousedown", (e) => {
+                    e.stopPropagation();
                     store.dispatch(setCellCommand(element.cellCommand));
                 });
             }

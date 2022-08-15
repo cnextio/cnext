@@ -559,6 +559,7 @@ function setActiveLine(lineNumber: number) {
 
 function onMouseDown(event: MouseEvent, view: EditorView) {
     try {
+        event.stopPropagation();
         // console.log('CodeEditor onMouseDown', view, event, dispatch);
         if (view != null) {
             console.log(`onMouseDown`);
@@ -596,24 +597,24 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                 const anchor = view.state.selection.ranges[0].anchor;
 
                 let pos = view.posAtDOM(event.target);
-                // let lineAtAnchorHover = doc.lineAt(pos); /** 1-based */
+                let lineAtAnchorHover = doc.lineAt(pos); /** 1-based */
                 let lineNumberHover = doc.lineAt(pos).number - 1; /** 0-based */
 
                 let currentGroupID = lines[lineNumberHover].groupID;
-                console.log(`doc`, currentGroupID, doc.line(lineNumberHover + 1));
+                console.log(`doc=>>>>`, currentGroupID, doc.line(lineNumberHover + 1));
                 if (lines && lines.length > 0) {
                     for (let ln = 0; ln < lines.length; ln++) {
                         /** convert to 1-based */
                         if (lines[ln].groupID === currentGroupID && doc.line(ln + 1).text) {
                             store.dispatch(setMouseOverGroup(currentGroupID));
-                            // store.dispatch(
-                            //     setLineAnchorHover({
-                            //         from: lineAtAnchorHover.from,
-                            //         number: lineAtAnchorHover.number,
-                            //         text: lineAtAnchorHover.text,
-                            //         to: lineAtAnchorHover.to,
-                            //     })
-                            // );
+                            store.dispatch(
+                                setLineAnchorHover({
+                                    from: lineAtAnchorHover.from,
+                                    number: lineAtAnchorHover.number,
+                                    text: lineAtAnchorHover.text,
+                                    to: lineAtAnchorHover.to,
+                                })
+                            );
                             break;
                         }
                     }
