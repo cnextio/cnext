@@ -537,13 +537,12 @@ export const StyledCodeEditor = styled.div`
             }
             .tooltiptext {
                 visibility: hidden;
-                width: 80px;
                 font-size: 11px;
                 background-color: #727171;
                 color: #fff;
                 text-align: center;
                 border-radius: 6px;
-                padding: 2px 0;
+                padding: 2px 4px;
                 position: absolute;
                 z-index: 1;
                 bottom: -80%;
