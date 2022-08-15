@@ -584,6 +584,22 @@ traitlets = "*"
 test = ["ipykernel", "pre-commit", "pytest", "pytest-cov", "pytest-timeout"]
 
 [[package]]
+name = "jupyter-resource-usage"
+version = "0.6.1"
+description = "Jupyter Extension to show resource usage"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+jupyter-server = ">=1.0,<2.0"
+prometheus-client = "*"
+psutil = ">=5.6,<6.0"
+
+[package.extras]
+dev = ["autopep8", "black", "pytest", "flake8", "pytest-cov (>=2.6.1)", "mock"]
+
+[[package]]
 name = "jupyter-server"
 version = "1.18.1"
 description = "The backend—i.e. core services, APIs, and REST endpoints—to Jupyter web applications."
@@ -1645,7 +1661,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9"
-content-hash = "ee8e343c1009357dc5247967e338cfc688ed21d485f5eda68f6de74a0298e207"
+content-hash = "84586ad33c62fc81c9c96ac4f89b69760824a6081da9f704e16fc274b618f6db"
 
 [metadata.files]
 alembic = []
@@ -1693,6 +1709,7 @@ json5 = []
 jsonschema = []
 jupyter-client = []
 jupyter-core = []
+jupyter-resource-usage = []
 jupyter-server = []
 jupyterlab = []
 jupyterlab-pygments = []
