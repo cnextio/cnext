@@ -21,19 +21,24 @@ class GroupWidget extends WidgetType {
                 {
                     text: "Clear Result",
                     cellCommand: CellCommand.CLEAR,
-                    svg: `<svg class="icon-cellcommand MuiSvgIcon-root MuiSvgIcon-fontSizeSmall" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="DeleteIcon"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
+                    svg: `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall icon-cellcommand" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="PlaylistRemoveIcon"><path d="M14 10H3v2h11v-2zm0-4H3v2h11V6zM3 16h7v-2H3v2zm11.41 6L17 19.41 19.59 22 21 20.59 18.41 18 21 15.41 19.59 14 17 16.59 14.41 14 13 15.41 15.59 18 13 20.59 14.41 22z"></path></svg>`,
                 },
                 {
                     text: "Add Cell",
                     cellCommand: CellCommand.ADD_CELL,
-                    svg: `<svg class="icon-cellcommand MuiSvgIcon-root MuiSvgIcon-fontSizeSmall" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="AddIcon"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg>`,
+                    svg: `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall icon-cellcommand" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="AddCardIcon"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h10v-2H4v-6h18V6c0-1.11-.89-2-2-2zm0 4H4V6h16v2zm4 9v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3z"></path></svg>`,
                 },
             ];
             for (let i = 0; i < cellItems.length; i++) {
                 const element = cellItems[i];
                 let dom = document.createElement("span");
+                let tooltip = document.createElement("span");
+
                 dom.innerHTML = element.svg;
                 dom.className = `cm-cellcommand`;
+                tooltip.textContent = element.text;
+                tooltip.className = `tooltiptext`;
+                dom.appendChild(tooltip);
                 wrap.appendChild(dom);
 
                 dom.addEventListener("mousedown", (e) => {
@@ -42,9 +47,8 @@ class GroupWidget extends WidgetType {
                 });
             }
         }
-        wrap.className = `cm-groupwidget ${
-            mouseOverGroupID && mouseOverGroupID === this.groupId ? "show" : ""
-        }`;
+        wrap.className = `cm-groupwidget ${mouseOverGroupID && mouseOverGroupID === this.groupId ? "show" : ""
+            }`;
         return wrap;
     }
 }

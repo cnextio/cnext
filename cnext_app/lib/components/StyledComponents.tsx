@@ -508,13 +508,14 @@ export const StyledCodeEditor = styled.div`
             color: back;
             cursor: pointer;
             font-size: 11px;
-            opacity: 0.9;
+            /* opacity: 0.9; */
             color: #ccc;
             /* padding-top: 4px; */
         }
         .cm-cellcommand {
             display: inline-block;
             margin-left: 5px;
+            position: relative;
             &:not(:last-child) {
                 /* border-right: 1px solid #42a5f5; */
             }
@@ -533,6 +534,39 @@ export const StyledCodeEditor = styled.div`
                 -webkit-transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
                 transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
                 font-size: 1rem;
+            }
+            .tooltiptext {
+                visibility: hidden;
+                width: 80px;
+                font-size: 11px;
+                background-color: #727171;
+                color: #fff;
+                text-align: center;
+                border-radius: 6px;
+                padding: 2px 0;
+                position: absolute;
+                z-index: 1;
+                bottom: -80%;
+                left: 120%;
+                margin-left: -5px;
+                opacity: 1;
+                transition: opacity 0.3s;
+                &::after {
+                    content: "";
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    margin-left: -5px;
+                    border-width: 5px;
+                    border-style: solid;
+                    /* border-color: #555 transparent transparent transparent; */
+                }
+            }
+            &:hover {
+                .tooltiptext {
+                    visibility: visible;
+                    opacity: 0.9;
+                }
             }
         }
     }
