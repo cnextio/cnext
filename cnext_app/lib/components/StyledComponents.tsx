@@ -620,7 +620,7 @@ export const TextIOContainer = styled.div`
 `;
 
 export const TextIOHeader = styled.div`
-    height: 30px;
+    height: 25px;
     display: flex;
     flex-direction: row;
     .executor-status {
