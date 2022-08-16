@@ -10,16 +10,18 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 });
 
 import { useRef } from "react";
-import { createPortal } from "react-dom";
-import store from "../../../../redux/store";
+import ReactDOM, { createPortal } from "react-dom";
 
 const ScriptComponent = ({ children, script }) => {
-    const instance = useRef();
-
+    /** We only use this ref for temp div holder of the position for the script.
+     * The script will be append to the parent of this div which is the correct position of the script in the dom.
+     * We have to do this because there is no way to get the ref to the parent div directly */
+    const tmpRef = useRef();
     useEffect(() => {
         var scriptElem = document.createElement("script");
         // console.log("ResultContent script ", script);
         if (script != null) {
+            /** sometimes the script source is stored in script.attribs.src */
             if (script.attribs != null && script.attribs.src != null) {
                 scriptElem.src = script.attribs.src;
             }
@@ -30,22 +32,47 @@ const ScriptComponent = ({ children, script }) => {
                 }
             }
         }
+
         if (children != null) {
             scriptElem.appendChild(document.createTextNode(children));
         }
-        console.log("ResultContent scriptElem ", scriptElem);
-        scriptElem.onload = function () {
-            console.log("ResultContent script load");
-        };
-        instance.current?.appendChild(scriptElem);
+
+        // console.log("ResultContent parent scriptElem ", parent, scriptElem);
+        /** the script will be appended to the parent div which is the correct position of the script in the dom */
+        let parent = ReactDOM.findDOMNode(tmpRef?.current)?.parentNode;
+        parent?.appendChild(scriptElem);
     }, [script]);
 
-    return <div ref={instance}></div>;
+    return <div ref={tmpRef}></div>;
 };
 
 const IFrameComponent = ({ children, attribs, stopMouseEvent }) => {
-    const [contentRef, setContentRef] = useState(null);
-    const mountNode = contentRef?.contentDocument?.body;
+    const [containerRef, setContainerRef] = useState();
+
+    const renderComponent = () => {
+        const mountNode = containerRef?.contentDocument;
+        let childElements = [];
+        let headElements, bodyElements;
+        if (children instanceof Array) {
+            childElements = children;
+        } else if (children instanceof Object && children.type === "html") {
+            childElements = children.props.children;
+        }
+        for (let child of childElements) {
+            if (child.type === "head") {
+                headElements = child.props.children;
+            } else if (child.type === "body") {
+                bodyElements = child.props.children;
+            }
+        }
+        return (
+            <>
+                {headElements && mountNode && createPortal(headElements, mountNode?.head)}
+                {bodyElements && mountNode && createPortal(bodyElements, mountNode?.body)}
+            </>
+        );
+    };
+
     return (
         <iframe
             style={{
@@ -53,19 +80,17 @@ const IFrameComponent = ({ children, attribs, stopMouseEvent }) => {
                 height: "100vh",
                 border: "0px solid white",
                 padding: "0px",
-                pointerEvents: stopMouseEvent?"none":"auto",
+                pointerEvents: stopMouseEvent ? "none" : "auto",
             }}
-            ref={setContentRef}
+            ref={setContainerRef}
             srcDoc={attribs?.srcdoc}
         >
-            {children && mountNode && createPortal(children, mountNode)}
+            {renderComponent()}
         </iframe>
     );
 };
 
 const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) => {
-    // const [readyToScroll, setReadyToScroll] = useState(false);
-
     const setPlotlyLayout = (
         data: object | string | any,
         width: number | null = null,
@@ -106,30 +131,22 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
                 if (key === SubContentType.APPLICATION_JAVASCRIPT) {
                     return (
                         <ScriptComponent script={null}>
-                            {codeResult?.result?.content[
-                                SubContentType.APPLICATION_JAVASCRIPT
-                            ].toString("base64")}
+                            {codeResult?.result?.content[key].toString("base64")}
                         </ScriptComponent>
                     );
                 } else if (key === SubContentType.APPLICATION_BOKEH) {
                     return (
                         <ScriptComponent script={null}>
-                            {codeResult?.result?.content[SubContentType.APPLICATION_BOKEH].toString(
-                                "base64"
-                            )}
+                            {codeResult?.result?.content[key].toString("base64")}
                         </ScriptComponent>
                     );
                 } else if (key === SubContentType.APPLICATION_PLOTLY) {
                     return React.createElement(
                         PlotlyWithNoSSR,
-                        setPlotlyLayout(
-                            codeResult?.result?.content[SubContentType.APPLICATION_PLOTLY]
-                        )
+                        setPlotlyLayout(codeResult?.result?.content[key])
                     );
                 } else if (key === SubContentType.APPLICATION_JSON) {
-                    return JSON.stringify(
-                        codeResult?.result?.content[SubContentType.APPLICATION_JSON]
-                    );
+                    return JSON.stringify(codeResult?.result?.content[key]);
                 } else if (imageMime != null) {
                     // console.log("ResultView ", imageMime, codeResult?.result?.content[imageMime]);
                     return (
@@ -145,38 +162,39 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
                 } else if (key === SubContentType.TEXT_HTML) {
                     const htmlRegex = new RegExp("<!DOCTYPE html|<html", "i");
                     const iframeRegex = new RegExp("<iframe", "i");
-                    const htmlContent = codeResult?.result?.content[SubContentType.TEXT_HTML];
+                    const htmlContent = codeResult?.result?.content[key];
                     // console.log("ResultContent text/html content: ", htmlContent);
                     let isIFrame = iframeRegex.test(htmlContent);
                     let isHTMLPage = htmlRegex.test(htmlContent);
                     let jsxElements = ReactHtmlParser(htmlContent.toString("base64"), {
                         replace: function (domNode) {
-                            // console.log("ResultContent domNode ", domNode);
-                            if (domNode.type === "script") {
-                                return <ScriptComponent children={null} script={domNode} />;
-                            } else if (domNode.type === "tag" && domNode.name === "iframe") {
+                            // console.log("ResultContent domNode ", domNode.name);
+                            if (domNode.type === "tag" && domNode.name === "iframe") {
+                                // TODO: test this
                                 return (
                                     <IFrameComponent
                                         attribs={domNode.attribs}
-                                        children={domNode.children}
+                                        // children={domNode.children}
                                         stopMouseEvent={stopMouseEvent}
                                     ></IFrameComponent>
                                 );
+                            } else if (domNode.type === "script") {
+                                return <ScriptComponent children={null} script={domNode} />;
                             }
                         },
                     });
 
-                    if (isIFrame && jsxElements != null) {
-                        return jsxElements;
-                    } else if (isHTMLPage) {
+                    if (isHTMLPage) {
                         return (
                             <IFrameComponent
                                 children={jsxElements}
                                 stopMouseEvent={stopMouseEvent}
                             ></IFrameComponent>
                         );
-                    } else {
+                    } else if (isIFrame) {
                         return jsxElements;
+                    } else {
+                        return <div>{jsxElements}</div>;
                     }
                 } else if (
                     showMarkdown &&
@@ -187,7 +205,7 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
                         <ReactMarkdown
                             className="markdown"
                             remarkPlugins={[remarkGfm]}
-                            children={codeResult?.result?.content[SubContentType.MARKDOWN]}
+                            children={codeResult?.result?.content[key]}
                         />
                     );
                 } else if (key === SubContentType.TEXT_PLAIN && contentKeys.length === 1) {
@@ -195,13 +213,13 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
                     return (
                         <pre
                             style={{ fontSize: "12px" }}
-                            children={codeResult?.result?.content[SubContentType.TEXT_PLAIN]}
+                            children={codeResult?.result?.content[key]}
                         />
                     );
                 }
             });
-            console.log("ResultContent renderResultContent: ", jsxElements);
-            return <div>{jsxElements}</div>;
+            // console.log("ResultContent renderResultContent: ", jsxElements);
+            return jsxElements;
         } catch (error) {
             console.error(error);
         }

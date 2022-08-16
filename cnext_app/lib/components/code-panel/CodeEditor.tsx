@@ -9,7 +9,7 @@ import { sql } from "@codemirror/lang-sql";
 import { json } from "@codemirror/lang-json";
 import { EditorView, keymap, lineNumbers, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { Line } from "@codemirror/state";
-import { defaultKeymap, historyKeymap } from "@codemirror/commands";
+import { defaultKeymap, historyKeymap, insertNewlineAndIndent } from "@codemirror/commands";
 import { searchKeymap } from "@codemirror/search";
 import { StyledCodeEditor } from "../StyledComponents";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
@@ -18,7 +18,7 @@ import {
     addResult,
     updateLines,
     setLineStatus as setLineStatusRedux,
-    setActiveLine,
+    setActiveLine as setActiveLineRedux,
     setLineGroupStatus,
     addToRunQueue as addToRunQueueRedux,
     updateCAssistInfo,
@@ -26,6 +26,8 @@ import {
     setRunQueueStatus,
     removeFirstItemFromRunQueue,
     clearRunQueue,
+    setCellCommand,
+    clearAllOutputs,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -43,6 +45,7 @@ import {
     CodeInsertMode,
     IRunQueueItem,
     IRunQueue,
+    CellCommand,
 } from "../../interfaces/ICodeEditor";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
@@ -83,6 +86,7 @@ import {
     execLines,
     scrollToPos,
     fileClosingHandler,
+    addToRunQueueHover,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
@@ -140,6 +144,8 @@ const CodeEditor = () => {
     const lineStatusUpdate = useSelector(
         (state: RootState) => state.codeEditor.lineStatusUpdateCount
     );
+    const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
+    const cellCommand = useSelector((state: RootState) => state.codeEditor.cellCommand);
 
     // const [cmUpdatedCounter, setCMUpdatedCounter] = useState(0);
 
@@ -402,6 +408,38 @@ const CodeEditor = () => {
             view.dispatch();
         }
     }, [lineStatusUpdate]);
+
+    useEffect(() => {
+        if (view) {
+            view.dispatch();
+        }
+    }, [mouseOverGroupID]);
+
+    useEffect(() => {
+        const state = store.getState();
+        if (view && cellCommand && state.codeEditor.mouseOverLine) {            
+            const inViewID = state.projectManager.inViewID;
+            const lineNumber = state.codeEditor.mouseOverLine.number - 1;
+            let activeLine: ICodeActiveLine = {
+                inViewID: inViewID || "",
+                lineNumber: lineNumber,
+            };
+            store.dispatch(setActiveLineRedux(activeLine));
+
+            switch (cellCommand) {
+                case CellCommand.RUN_CELL:
+                    addToRunQueueHover(view);
+                    break;
+                case CellCommand.CLEAR:
+                    dispatch(clearAllOutputs({ inViewID, mouseOverGroupID }));
+                    break;
+                case CellCommand.ADD_CELL:
+                    insertBelow(CodeInsertMode.GROUP);
+                    break;
+            }
+            dispatch(setCellCommand(undefined));
+        }
+    }, [cellCommand]);
 
     useEffect(() => {
         console.log("CodeEditor useEffect magicInfo ", cAssistInfo);

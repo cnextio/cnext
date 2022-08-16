@@ -31,7 +31,6 @@ export enum LineStatus {
     EXECUTED_SUCCESS,
     EXECUTED_FAILED,
 }
-
 // export interface ICodeResult {
 // 	type: ResultType;
 // 	result: Object;
@@ -124,6 +123,12 @@ export interface ICodeResultMessage {
     subType: string;
     content: ICodeResultContent;
     metadata: CodeResultMessageMetadata;
+}
+
+export enum CellCommand {
+    RUN_CELL = "RUN",
+    CLEAR = "CLEAR",
+    ADD_CELL = "ADD_CELL",
 }
 
 export type ICodeResultContent = string | object | IPlotResult;

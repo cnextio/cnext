@@ -16,11 +16,13 @@ import {
     ICodeToInsertInfo,
     IRunQueueItem,
     ICodeResult,
+    CellCommand,
     ICodeState,
     ICodeStateMessage,
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
+import { Line } from "@codemirror/state";
 
 type CodeEditorState = {
     codeText: { [id: string]: string[] };
@@ -58,6 +60,9 @@ type CodeEditorState = {
     // this number need to be increased whenever codeLine is updated
     saveCodeLineCounter: number;
     lastLineUpdate: { [key: string]: ILineUpdate };
+    mouseOverGroupID: string | null;
+    mouseOverLine: Line | null;
+    cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
 };
 
 const initialState: CodeEditorState = {
@@ -81,6 +86,9 @@ const initialState: CodeEditorState = {
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
     lastLineUpdate: {} /** this is used in MarkdownProcessor */,
+    mouseOverGroupID: null,
+    cellCommand: null,
+    mouseOverLine: null,
 };
 
 /**
@@ -407,6 +415,18 @@ export const CodeEditorRedux = createSlice({
             clearRunningLineTextOutputInternal(state, action.payload);
         },
 
+        setMouseOverGroup: (state, action) => {
+            state.mouseOverGroupID = action.payload;
+        },
+
+        setCellCommand: (state, action) => {
+            state.cellCommand = action.payload;
+        },
+
+        setMouseOverLine: (state, action) => {
+            state.mouseOverLine = action.payload;
+        },
+
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
         setActiveLine: (state, action) => {
             let newActiveLine: ICodeActiveLine = action.payload;
@@ -500,18 +520,26 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = action.payload;
         },
 
-        clearTextOutputs: (state, action) => {
-            const inViewID = action.payload;
+        clearAllOutputs: (state, action) => {
+            // typeof action.payload === 'string' -> payload = inViewID
+            // typeof action.payload === 'object' -> payload = { inViewID, mouseOverGroupID }
+            const inViewID =
+                typeof action.payload === "string" ? action.payload : action.payload.inViewID;
             state.maxTextOutputOrder = 0;
 
             // remove all result & textOutput in state code lines
             for (let codeLine of state.codeLines[inViewID]) {
-                codeLine.result = undefined;
-                codeLine.textOutput = undefined;
-                state.textOutputUpdateCount = 0;
-                state.resultUpdateCount = 0;
-                state.saveCodeTextCounter++;
-                state.saveCodeLineCounter++;
+                if (
+                    typeof action.payload === "string" ||
+                    action.payload.mouseOverGroupID === codeLine.groupID
+                ) {
+                    codeLine.result = undefined;
+                    codeLine.textOutput = undefined;
+                    state.textOutputUpdateCount = 0;
+                    state.resultUpdateCount = 0;
+                    state.saveCodeTextCounter++;
+                    state.saveCodeLineCounter++;
+                }
             }
         },
 
@@ -562,8 +590,11 @@ export const {
     updateCAssistInfo,
     setCodeToInsert,
     clearRunningLineTextOutput,
-    clearTextOutputs,
+    clearAllOutputs,
     resetCodeEditor,
+    setMouseOverGroup,
+    setCellCommand,
+    setMouseOverLine,
     setCodeStates,
 } = CodeEditorRedux.actions;
 
