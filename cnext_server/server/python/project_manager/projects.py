@@ -251,4 +251,3 @@ def save_workspace_metadata(config):
     workspace_info = WorkspaceMetadata(config)
     save_config(workspace_info, WORKSPACE_METADATA_PATH)
     return workspace_info
-##

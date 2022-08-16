@@ -160,7 +160,7 @@ _tmp()`;
         let message = createMessage(CommandName.get_table_data, queryStr, 1, {
             df_id: df_id,
         });
-        // console.log("_send_get_table_data message: ", message);
+        console.log(`DataFrameManager _send_get_table_data message: `, message);
         sendMessage(message);
     };
 

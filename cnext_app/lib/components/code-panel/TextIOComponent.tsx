@@ -7,6 +7,7 @@ import {
 } from "../StyledComponents";
 import dynamic from "next/dynamic";
 import ConsoleComponent from "./text-io/Console";
+import ExecutorStatus from "../executor-manager/ExecutorStatus";
 const TerminalComponent = dynamic(() => import("./text-io/Terminal"), { ssr: false });
 
 const TAB = {
@@ -20,22 +21,20 @@ const TextIOComponent = React.memo(() => {
         <TextIOContainer>
             {console.log("Render TextIOContainer")}
             <TextIOHeader>
-                <TextIOHeaderText
-                    onClick={() => setTextIOPanelID(TAB.CONSOLE)}
-                    variant="overline"
-                    underline={textIOPanelID === TAB.CONSOLE ? true : false}
-                    component="span"
-                >
-                    {TAB.CONSOLE}
-                </TextIOHeaderText>
-                <TextIOHeaderText
-                    onClick={() => setTextIOPanelID(TAB.TERMINAL)}
-                    variant="overline"
-                    underline={textIOPanelID === TAB.TERMINAL ? true : false}
-                    component="span"
-                >
-                    {TAB.TERMINAL}
-                </TextIOHeaderText>
+                {[TAB.CONSOLE, TAB.TERMINAL].map((item, key) => {
+                    return (
+                        <TextIOHeaderText
+                            key={key}
+                            onClick={() => setTextIOPanelID(item)}
+                            variant="overline"
+                            underline={textIOPanelID === item ? true : false}
+                            component="span"
+                        >
+                            {item}
+                        </TextIOHeaderText>
+                    );
+                })}
+                <ExecutorStatus />
             </TextIOHeader>
             {textIOPanelID === TAB.CONSOLE ? (
                 <TextIOContent id={TAB.CONSOLE}>

@@ -36,7 +36,6 @@ import {
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
 import socket from "../Socket";
-import { restartKernel } from "../kernel-manager/KernelManager";
 
 const FileManager = () => {
     const dispatch = useDispatch();

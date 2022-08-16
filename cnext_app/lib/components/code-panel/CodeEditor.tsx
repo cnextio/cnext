@@ -4,30 +4,21 @@ import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
 import store, { RootState } from "../../../redux/store";
 import socket from "../Socket";
-import { basicSetup } from "../../codemirror/basic-setup";
-import { bracketMatching } from "@codemirror/matchbrackets";
-import { defaultHighlightStyle } from "@codemirror/highlight";
 import { python } from "../../codemirror/grammar/lang-cnext-python";
 import { sql } from "@codemirror/lang-sql";
 import { json } from "@codemirror/lang-json";
-import { EditorView, keymap, ViewPlugin, ViewUpdate } from "@codemirror/view";
-import { Line } from "@codemirror/text";
+import { EditorView, keymap, lineNumbers, ViewPlugin, ViewUpdate } from "@codemirror/view";
+import { Line } from "@codemirror/state";
+import { defaultKeymap, historyKeymap, insertNewlineAndIndent } from "@codemirror/commands";
 import { searchKeymap } from "@codemirror/search";
-import { completionKeymap } from "@codemirror/autocomplete";
-import { commentKeymap } from "@codemirror/comment";
-import { lintKeymap } from "@codemirror/lint";
-import { defaultKeymap } from "@codemirror/commands";
-import { historyKeymap } from "@codemirror/history";
-import { foldKeymap, foldAll, unfoldAll, foldCode, unfoldCode } from "@codemirror/fold";
-import { foldService, indentUnit } from "@codemirror/language";
-import { lineNumbers } from "@codemirror/gutter";
 import { StyledCodeEditor } from "../StyledComponents";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
+
 import {
     addResult,
     updateLines,
     setLineStatus as setLineStatusRedux,
-    setActiveLine,
+    setActiveLine as setActiveLineRedux,
     setLineGroupStatus,
     addToRunQueue as addToRunQueueRedux,
     updateCAssistInfo,
@@ -35,6 +26,8 @@ import {
     setRunQueueStatus,
     removeFirstItemFromRunQueue,
     clearRunQueue,
+    setCellCommand,
+    clearAllOutputs,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -52,9 +45,10 @@ import {
     CodeInsertMode,
     IRunQueueItem,
     IRunQueue,
+    CellCommand,
 } from "../../interfaces/ICodeEditor";
-import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
 import { useCodeMirror } from "@uiw/react-codemirror";
+import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
 import {
     ICodeGenResult,
     CodeInsertStatus,
@@ -81,7 +75,7 @@ import {
     setGenLineDeco,
     setGroupedLineDeco,
     setHTMLEventHandler,
-    setViewCodeText,
+    setCodeTextAndStates,
     setAnchor,
     setLineStatus,
     isRunQueueBusy,
@@ -91,11 +85,27 @@ import {
     addToRunQueueThenMoveDown,
     execLines,
     scrollToPos,
+    fileClosingHandler,
+    addToRunQueueHover,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
-import { closeBracketsKeymap } from "@codemirror/closebrackets";
-import { IKernelManagerResultContent, KernelManagerCommand } from "../../interfaces/IKernelManager";
+
+import {
+    defaultHighlightStyle,
+    foldAll,
+    foldCode,
+    foldKeymap,
+    foldService,
+    indentUnit,
+    syntaxHighlighting,
+    unfoldAll,
+    unfoldCode,
+    bracketMatching,
+} from "@codemirror/language";
+import { completionKeymap } from "@codemirror/autocomplete";
+import { lintKeymap } from "@codemirror/lint";
+import { basicSetup } from "../../codemirror/basic-setup";
 import { groupWidget } from "./libGroupWidget";
 import { getGroupFoldRange } from "./libGroupFold";
 
@@ -112,7 +122,12 @@ const CodeEditor = () => {
      * when it is first opened or being selected to be in view */
     // const [serverSynced, setServerSynced] = useState(false);
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
+    const executorRestartCounter = useSelector(
+        (state: RootState) => state.executorManager.executorRestartCounter
+    );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+    /** this is used to save the state such as scroll pos and folding status */
+    const [curInViewID, setCurInViewID] = useState<string | null>(null);
     const activeProjectID = useSelector(
         (state: RootState) => state.projectManager.activeProject?.id
     );
@@ -130,6 +145,8 @@ const CodeEditor = () => {
     const lineStatusUpdate = useSelector(
         (state: RootState) => state.codeEditor.lineStatusUpdateCount
     );
+    const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
+    const cellCommand = useSelector((state: RootState) => state.codeEditor.cellCommand);
 
     // const [cmUpdatedCounter, setCMUpdatedCounter] = useState(0);
 
@@ -143,13 +160,13 @@ const CodeEditor = () => {
 
     const defaultExtensions = [
         basicSetup,
-        // foldService.of(getGroupFoldRange),
+        foldService.of(getGroupFoldRange),
         lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
         groupWidget(),
         // groupedLineGutter(),
         bracketMatching(),
-        defaultHighlightStyle.fallback,
+        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
         keymap.of([
             { key: shortcutKeysConfig.run_queue, run: () => addToRunQueue(view) },
             {
@@ -172,12 +189,11 @@ const CodeEditor = () => {
             { key: "Mod-Shift-c", run: foldCode },
             { key: "Mod-Shift-v", run: unfoldCode },
             ...completionKeymap,
-            ...closeBracketsKeymap,
+            // ...closeBracketsKeymap,
             ...defaultKeymap,
             ...searchKeymap,
             ...historyKeymap,
             ...foldKeymap,
-            ...commentKeymap,
             ...lintKeymap,
         ]),
         indentUnit.of("    "),
@@ -215,9 +231,10 @@ const CodeEditor = () => {
         basicSetup: false,
         container: editorRef.current,
         extensions: [...defaultExtensions, ...langExtensions],
+        // extensions: defaultExtensions,//[python()],
         height: "100%",
         theme: "light",
-        onChange: onCodeMirrorChange,
+        onChange: (value, viewUpdate) => onCodeMirrorChange(value, viewUpdate),
         /** do not allow edit when there are items in the run queue */
         readOnly: isRunQueueBusy(runQueue),
     });
@@ -266,7 +283,10 @@ const CodeEditor = () => {
                     ) {
                         // let lineStatus: ICodeLineStatus;
                         dispatch(removeFirstItemFromRunQueue());
-                        if (codeOutput.content?.status === "ok") {
+                        if (
+                            codeOutput.content?.status === "ok" &&
+                            "line_range" in codeOutput.metadata
+                        ) {
                             setLineStatus(
                                 inViewID,
                                 codeOutput.metadata?.line_range,
@@ -274,11 +294,13 @@ const CodeEditor = () => {
                             );
                             dispatch(setRunQueueStatus(RunQueueStatus.STOP));
                         } else {
-                            setLineStatus(
-                                inViewID,
-                                codeOutput.metadata?.line_range,
-                                LineStatus.EXECUTED_FAILED
-                            );
+                            if ("line_range" in codeOutput.metadata) {
+                                setLineStatus(
+                                    inViewID,
+                                    codeOutput.metadata?.line_range,
+                                    LineStatus.EXECUTED_FAILED
+                                );
+                            }
                             dispatch(clearRunQueue());
                         }
                         // TODO: check the status output
@@ -297,35 +319,18 @@ const CodeEditor = () => {
                 console.error(error);
             }
         });
-
-        socket.on(WebAppEndpoint.KernelManager, (result: string) => {
-            console.log("CodeEditor got result ", result);
-            // console.log("CodeEditor: got results...");
-            try {
-                let kmResult: IMessage = JSON.parse(result);
-                let resultContent = kmResult.content as IKernelManagerResultContent;
-                let inViewID = store.getState().projectManager.inViewID;
-                const runQueue = store.getState().codeEditor.runQueue;
-                const runQueueItem = runQueue.queue[0];
-                if (inViewID != null) {
-                    /** unlike in handling CodeEditor message, we use info in runningCodeContent
-                     * to set the line status */
-                    // console.log("CodeEditor got result: ", kmResult, resultContent, runQueueItem);
-                    if (
-                        kmResult.command_name === KernelManagerCommand.restart_kernel &&
-                        resultContent.success === true &&
-                        runQueueItem != null
-                    ) {
-                        dispatch(removeFirstItemFromRunQueue());
-                        setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
-                        dispatch(clearRunQueue());
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        });
     };
+
+    /** clear the run queue when the executor restarted */
+    useEffect(() => {
+        const runQueueItem = runQueue.queue[0];
+        let inViewID = store.getState().projectManager.inViewID;
+        if (inViewID != null && runQueueItem != null) {
+            dispatch(removeFirstItemFromRunQueue());
+            setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
+            dispatch(clearRunQueue());
+        }
+    }, [executorRestartCounter]);
 
     useEffect(() => {
         console.log("CodeEditor init");
@@ -345,7 +350,7 @@ const CodeEditor = () => {
     useEffect(() => {
         console.log("CodeEditor useEffect container view", container, view);
         if (container && view) {
-            setHTMLEventHandler(container, view, dispatch);
+            setHTMLEventHandler(container, view);
         }
     }, [container, view]);
 
@@ -353,7 +358,12 @@ const CodeEditor = () => {
      * Reset the code editor state when the doc is selected to be in view
      * */
     useEffect(() => {
-        console.log("CodeEditor useEffect inViewID activeProjectID", inViewID, activeProjectID);
+        if (curInViewID != inViewID) {
+            if (curInViewID != null && view != null) {
+                fileClosingHandler(view.state, curInViewID);
+            }
+            setCurInViewID(inViewID);
+        }
         resetEditorState(inViewID, view);
         setCodeReloading(true);
     }, [inViewID]);
@@ -370,12 +380,14 @@ const CodeEditor = () => {
             view
         );
         // console.log("CodeEditor useEffect codeText", view, codeReloading, serverSynced);
-        if (serverSynced && codeReloading && view) {
+        if (serverSynced && codeReloading && view != null) {
             // make sure that codeeditor content is set first before setting codeReloading to false to avoid
             // unnecessary calls to updatedLines
-            setViewCodeText(store.getState(), view);
+            // console.log("CodeEditor useEffect serverSynced, codeReloading, view");
+            setCodeTextAndStates(store.getState(), view);
             setCodeReloading(false);
-            scrollToPrevPos(store.getState());
+            /** have to use Timeout this to make sure the code text got populated to CodeMirror first */
+            setTimeout(() => scrollToPrevPos(store.getState()), 0);
         }
     }, [serverSynced, codeReloading, view]);
 
@@ -400,17 +412,43 @@ const CodeEditor = () => {
     }, [lineStatusUpdate]);
 
     useEffect(() => {
+        if (view) {
+            view.dispatch();
+        }
+    }, [mouseOverGroupID]);
+
+    useEffect(() => {
+        const state = store.getState();
+        if (view && cellCommand && state.codeEditor.mouseOverLine) {            
+            const inViewID = state.projectManager.inViewID;
+            const lineNumber = state.codeEditor.mouseOverLine.number - 1;
+            let activeLine: ICodeActiveLine = {
+                inViewID: inViewID || "",
+                lineNumber: lineNumber,
+            };
+            store.dispatch(setActiveLineRedux(activeLine));
+
+            switch (cellCommand) {
+                case CellCommand.RUN_CELL:
+                    addToRunQueueHover(view);
+                    break;
+                case CellCommand.CLEAR:
+                    dispatch(clearAllOutputs({ inViewID, mouseOverGroupID }));
+                    break;
+                case CellCommand.ADD_CELL:
+                    insertBelow(CodeInsertMode.GROUP);
+                    break;
+            }
+            dispatch(setCellCommand(undefined));
+        }
+    }, [cellCommand]);
+
+    useEffect(() => {
         console.log("CodeEditor useEffect magicInfo ", cAssistInfo);
         handleCAssistInfoUpdate();
     }, [cAssistInfo]);
 
     useEffect(() => {
-        console.log(
-            "CodeEditor useEffect editorRef.current inViewID container",
-            editorRef.current,
-            inViewID,
-            container
-        );
         if (editorRef.current != null && inViewID != null && container == null) {
             setContainer(editorRef.current);
         }

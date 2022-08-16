@@ -1,11 +1,15 @@
-import { createTheme, StyledEngineProvider, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import type { NextPage } from 'next';
-import React, { Fragment } from "react";
-import Helmet from 'react-helmet';
-import { Provider } from 'react-redux';
+import {
+    createTheme,
+    StyledEngineProvider,
+    ThemeProvider as MuiThemeProvider,
+} from "@mui/material/styles";
+import type { NextPage } from "next";
+import React, { Fragment, useEffect } from "react";
+import Helmet from "react-helmet";
+import { Provider } from "react-redux";
 import { Auth0Provider } from "@auth0/auth0-react";
-import store from '../redux/store/index';
-import Main from '../lib/components/Main';
+import store from "../redux/store/index";
+import Main from "../lib/components/Main";
 import ErrorBoundary from "../lib/components/error-boundary/ErrorBoundary";
 import { createGlobalStyle, ThemeProvider as StyledThemeProvider } from "styled-components";
 const GlobalStyle = createGlobalStyle`
@@ -17,6 +21,18 @@ const GlobalStyle = createGlobalStyle`
 const theme = createTheme({});
 
 const Home: NextPage = () => {
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            window.logs = [];
+            console.oldLog = console.log;
+            console.log = function (value, ...optionalParams) {
+                console.oldLog(value, ...optionalParams);
+                window.logs.push(value);
+                // window.logs.push(...optionalParams);
+            };
+        }
+    }, []);
+
     return (
         <Fragment>
             <Auth0Provider

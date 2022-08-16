@@ -1,12 +1,24 @@
-import { gutter, GutterMarker, gutterLineClass } from "@codemirror/gutter";
-import { EditorState, StateEffect, StateField, Transaction, TransactionSpec } from "@codemirror/state";
+import { gutter, GutterMarker, gutterLineClass } from "@codemirror/view";
+import {
+    EditorState,
+    Line,
+    Range,
+    StateEffect,
+    StateField,
+    Transaction,
+    TransactionSpec,
+} from "@codemirror/state";
+
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import {
     setActiveLine as setActiveLineRedux,
     setLineGroupStatus,
     addToRunQueue as addToRunQueueRedux,
+    setMouseOverGroup,
+    setMouseOverLine,
+    setCodeStates,
 } from "../../../redux/reducers/CodeEditorRedux";
-import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
+// import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import {
     ICodeActiveLine,
     ICodeLine,
@@ -20,9 +32,13 @@ import {
     RunQueueStatus,
     SetLineGroupCommand,
 } from "../../interfaces/ICodeEditor";
-import { CASSIST_STARTER, ICAssistInfo, IInsertLinesInfo } from "../../interfaces/ICAssist";
+import {
+    CASSIST_STARTER,
+    ICAssistInfo,
+    ICodeGenResult,
+    IInsertLinesInfo,
+} from "../../interfaces/ICAssist";
 import { ifElse } from "../libs";
-import { python } from "../../codemirror/grammar/lang-cnext-python";
 import store from "../../../redux/store";
 import { RootState } from "../../../redux/store";
 import socket from "../Socket";
@@ -87,9 +103,10 @@ const setAnchor = (view: EditorView, pos: number) => {
 };
 
 import { setLineStatus as setLineStatusRedux } from "../../../redux/reducers/CodeEditorRedux";
-import { RangeSet } from "@codemirror/rangeset";
+import { RangeSet } from "@codemirror/state";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import { Socket } from "socket.io-client";
+import { foldState } from "@codemirror/language";
 
 const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
     let lineStatus: ICodeLineStatus = {
@@ -106,7 +123,7 @@ const scrollToPos = (view: EditorView, lineNumber: number) => {
         selection: { anchor: pos, head: pos },
         scrollIntoView: true,
     });
-}
+};
 
 /** lineNum is 0 based */
 const setAnchorToLine = (
@@ -219,27 +236,36 @@ const scrollToPrevPos = (state: RootState) => {
     let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
     let inViewID = state.projectManager.inViewID;
     if (inViewID) {
-        let openFile = state.projectManager.openFiles[inViewID];
-        if (openFile && openFile.scroll_pos) {
-            scrollEl.scrollTop = openFile.scroll_pos;
+        let codeStates = state.codeEditor.codeStates[inViewID];
+        if (codeStates && codeStates.scrollPos) {
+            scrollEl.scrollTop = codeStates.scrollPos;
         }
     }
 };
 
-const setViewCodeText = (state: RootState, view: EditorView) => {
-    console.log("CodeEditor setViewCodeText");
+const getCMState = (state: RootState) => {
+    let inViewID = state.projectManager.inViewID;
+    if (inViewID && inViewID in state.codeEditor.codeStates) {
+        let codeStates = state.codeEditor.codeStates[inViewID];
+        if (codeStates && codeStates.cmState) {
+            return codeStates.cmState;
+        }
+    }
+    return null;
+};
+
+const setCodeTextAndStates = (state: RootState, view: EditorView) => {
     let codeText = getJoinedCodeText(state);
+    let jsCMState: { [key: string]: any } | null = getCMState(state);
+
     if (view) {
-        // let transactionSpec: TransactionSpec = {
-        //     changes: {
-        //         from: 0,
-        //         to: 0,
-        //         insert: codeText,
-        //     },
-        // };
-        // let transaction: Transaction = view.state.update(transactionSpec);        
-        // view.dispatch(transaction);
-        view.setState(EditorState.create({ doc: codeText }));
+        if (jsCMState == null) {
+            view.setState(EditorState.create({ doc: codeText }));
+        } else {
+            view.setState(
+                EditorState.fromJSON({ ...jsCMState, doc: codeText }, {}, { fold: foldState })
+            );
+        }
     }
 };
 
@@ -447,24 +473,37 @@ const getLineRangeOfGroup = (codeLines: ICodeLine[], lineNumber: number): ILineR
 };
 /** */
 
-const scrollTimer = (dispatch, scrollEl: HTMLElement) => {
-    scrollEl.onscroll = null;
-    setTimeout(() => {
-        scrollEl.onscroll = (event) => scrollTimer(dispatch, scrollEl);
-        dispatch(setScrollPos(scrollEl.scrollTop));
-    }, 100);
+const fileClosingHandler = (state: EditorState, curInViewID: string) => {
+    let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
+    let jsState = state.toJSON({ fold: foldState });
+    delete jsState["doc"];
+    let data = { inViewID: curInViewID, scrollPos: scrollEl.scrollTop, cmState: jsState };
+    // console.log("CodeEditor closeFile: ", data, jsState);
+    store.dispatch(setCodeStates(data));
 };
 
-// const firstLineOfGroupMarker = new (class extends GutterMarker {
-//     elementClass = "cm-groupedfirstlinegutter cm-activeLineGutter";
-// })();
+// const scrollTimer = (scrollEl: HTMLElement) => {
+//     store.dispatch(setScrollPos(scrollEl.scrollTop));
+//     scrollEl.onscroll = null;
+//     setTimeout(() => {
+//         scrollEl.onscroll = (event) => scrollTimer(scrollEl);
+//     }, 100);
+// };
 
-// const lastLineOfGroupMarker = new (class extends GutterMarker {
-//     elementClass = "cm-groupedlastlinegutter cm-activeLineGutter";
-// })();
+// function scrollEventHandler(scrollEl: HTMLElement, interval: number) {
+//     let lastCall = -1;
+//     return function () {
+//         clearTimeout(lastCall);
+//         lastCall = setTimeout(function () {
+//             console.log('CodeEditor store scroll pos')
+//             let data = { inViewID: store.getState().projectManager.inViewID, scrollPos: scrollEl.scrollTop };
+//             store.dispatch(setScrollPos(data));
+//         }, interval);
+//     };
+// }
 
 const groupedLineGutterHighlighter = gutterLineClass.compute(["doc"], (state) => {
-    let marks = [];
+    let marks: Range<GutterMarker> | readonly Range<GutterMarker>[] = [];
     let reduxState = store.getState();
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {
@@ -521,14 +560,52 @@ function setActiveLine(lineNumber: number) {
 
 function onMouseDown(event: MouseEvent, view: EditorView) {
     try {
+        event.stopPropagation();
         // console.log('CodeEditor onMouseDown', view, event, dispatch);
         if (view != null) {
+            console.log(`onMouseDown`);
+
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
+            // console.log("CodeEditor event target: ", event.target);
             let pos = view.posAtDOM(event.target);
             //convert to 0-based
             let lineNumber = doc.lineAt(pos).number - 1;
             setActiveLine(lineNumber);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+function onMouseOut(event: MouseEvent, view: EditorView) {
+    try {
+        if (view != null) {
+            store.dispatch(setMouseOverGroup(undefined));
+            store.dispatch(setMouseOverLine(undefined));
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+function onMouseOver(event: MouseEvent, view: EditorView) {
+    try {
+        // console.log('CodeEditor onMouseDown', view, event, dispatch);
+        if (view != null) {
+            let reduxState = store.getState();
+            let lines: ICodeLine[] | null = getCodeLine(reduxState);
+            if (lines && view.state.doc.lines === lines.length) {
+                let doc = view.state.doc;
+                // const anchor = view.state.selection.ranges[0].anchor;
+
+                let pos = view.posAtDOM(event.target);
+                let hoveredLine = doc.lineAt(pos); /** 1-based */
+                let lineNumber = doc.lineAt(pos).number - 1; /** 0-based */
+
+                let currentGroupID = lines[lineNumber].groupID;
+                console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
+                store.dispatch(setMouseOverGroup(currentGroupID));
+                store.dispatch(setMouseOverLine(hoveredLine));
+            }
         }
     } catch (error) {
         console.error(error);
@@ -539,6 +616,7 @@ function onKeyDown(event: KeyboardEvent, view: EditorView) {
     try {
         // console.log('CodeEditor onKeyDown', view, event);
         if (view != null) {
+            console.log(`onKeyDown`);
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
             const pos = view.state.selection.ranges[0].anchor;
@@ -551,16 +629,19 @@ function onKeyDown(event: KeyboardEvent, view: EditorView) {
     }
 }
 
-const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView, dispatch) => {
+const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView) => {
     if (container) {
         container.onmousedown = (event) => onMouseDown(event, view);
         container.onkeydown = (event) => onKeyDown(event, view);
-        let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
-        if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(dispatch, scrollEl);
+        container.onmouseover = (event) => onMouseOver(event, view);
+        container.onmouseout = (event) => onMouseOut(event, view);
+        // let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
+        // if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(scrollEl);
+        // if (scrollEl) scrollEl.onscroll = scrollEventHandler(scrollEl, 100);
     }
 };
 
-const isPromise = (object) => {
+const isPromise = (object: Promise<any> | ICodeGenResult) => {
     if (Promise && Promise.resolve) {
         return Promise.resolve(object) == object;
     } else {
@@ -681,20 +762,6 @@ const getNonGeneratedLinesInRange = (
 //     return !/^\s/.test(text);
 // };
 
-/**
- * check if the text line is an Expression instead of a Statement
- * */
-// export const textShouldBeExec = (text: string): boolean => {
-//     let parser = python().language.parser;
-//     let tree = parser.parse(text);
-//     let cursor = tree.cursor(0, 0);
-//     let parentName = cursor.name;
-//     cursor.firstChild();
-//     let childName = cursor.name;
-//     /** not start with space */
-//     return parentName == "Script" && childName == "ExpressionStatement" && notStartWithSpace(text);
-// };
-
 export const isRunQueueBusy = (runQueue: IRunQueue) => {
     return runQueue.queue.length > 0 || runQueue.status === RunQueueStatus.RUNNING;
 };
@@ -755,6 +822,35 @@ function setUnGroup(view: EditorView | undefined): boolean {
     return true;
 }
 
+/** add group a line belongs to to run queue */
+function addGroupAroundLineToRunQueue(line: Line) {
+    let text: string = line.text;
+    let lineNumberAtAnchor = line.number - 1; /** 0-based */
+    let lineRange: ILineRange | undefined;
+    let inViewID = store.getState().projectManager.inViewID;
+    let codeLines: ICodeLine[] | null = getCodeLine(store.getState());
+    console.log("CodeEditor setRunQueue lineNumberAtAnchor: ", lineNumberAtAnchor);
+    /** we only allow line in a group to be executed */
+    if (inViewID && codeLines && codeLines[lineNumberAtAnchor].groupID != null) {
+        if (text.startsWith(CASSIST_STARTER)) {
+            /** Get line range of group starting from next line */
+            /** this if condition is looking at the next line*/
+            if (codeLines[lineNumberAtAnchor].generated) {
+                lineRange = getLineRangeOfGroup(codeLines, lineNumberAtAnchor + 1);
+            }
+        } else {
+            /** Get line range of group starting from the current line */
+            /** convert to 0-based */
+            lineRange = getLineRangeOfGroup(codeLines, lineNumberAtAnchor);
+        }
+
+        if (lineRange) {
+            console.log("CodeEditor setRunQueue: ", lineRange);
+            store.dispatch(addToRunQueueRedux({ lineRange: lineRange, inViewID: inViewID }));
+        }
+    }
+}
+
 /** Run queue and execution */
 function addToRunQueue(view: EditorView | undefined) {
     // if (view && inViewID === executorID) {
@@ -762,31 +858,22 @@ function addToRunQueue(view: EditorView | undefined) {
         const doc = view.state.doc;
         const state = view.state;
         const anchor = state.selection.ranges[0].anchor;
-        let lineAtAnchor = doc.lineAt(anchor); /** 1-based */
-        let text: string = lineAtAnchor.text;
-        let lineNumberAtAnchor = lineAtAnchor.number - 1; /** 0-based */
-        let lineRange: ILineRange | undefined;
-        let inViewID = store.getState().projectManager.inViewID;
-        let codeLines: ICodeLine[] | null = getCodeLine(store.getState());
-        console.log("CodeEditor setRunQueue lineNumberAtAnchor: ", lineNumberAtAnchor);
-        /** we only allow line in a group to be executed */
-        if (inViewID && codeLines && codeLines[lineNumberAtAnchor].groupID != null) {
-            if (text.startsWith(CASSIST_STARTER)) {
-                /** Get line range of group starting from next line */
-                /** this if condition is looking at the next line*/
-                if (codeLines[lineNumberAtAnchor].generated) {
-                    lineRange = getLineRangeOfGroup(codeLines, lineNumberAtAnchor + 1);
-                }
-            } else {
-                /** Get line range of group starting from the current line */
-                /** convert to 0-based */
-                lineRange = getLineRangeOfGroup(codeLines, lineNumberAtAnchor);
-            }
+        let line = doc.lineAt(anchor); /** 1-based */
+        if (line != null) {
+            addGroupAroundLineToRunQueue(line);
+        }
+    } else {
+        console.log("CodeEditor can't execute code on none executor file!");
+    }
+    return true;
+}
 
-            if (lineRange) {
-                console.log("CodeEditor setRunQueue: ", lineRange);
-                store.dispatch(addToRunQueueRedux({ lineRange: lineRange, inViewID: inViewID }));
-            }
+/** Test Run queue and execution when hover */
+function addToRunQueueHover(view: EditorView | undefined) {
+    if (view) {
+        let line = store.getState().codeEditor.mouseOverLine; /** 1-based */
+        if (line != null) {
+            addGroupAroundLineToRunQueue(line);
         }
     } else {
         console.log("CodeEditor can't execute code on none executor file!");
@@ -861,13 +948,15 @@ export {
     getCodeText,
     getJoinedCodeText,
     scrollToPrevPos,
-    setViewCodeText,
+    fileClosingHandler,
+    setCodeTextAndStates,
     // resetEditorState,
     GenLineStateEffect as genLineStateEffect,
     GenLineEffectType as GenCodeEffectType,
     genLineFlashCSS as genCodeFlashCSS,
     genLineSolidCSS as genCodeSolidCSS,
     genLineDeco,
+    addToRunQueueHover,
     setGenLineDeco,
     setGroupedLineDeco,
     setFlashingEffect,
@@ -886,6 +975,5 @@ export {
     addToRunQueueThenMoveDown,
     execLines,
     createMessage,
-    sendMessage
+    sendMessage,
 };
-

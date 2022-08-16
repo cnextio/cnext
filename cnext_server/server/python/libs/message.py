@@ -13,10 +13,11 @@ class WebappEndpoint(str, Enum):
     MagicCommandGen = 'MagicCommandGen'
     FileExplorer = 'FileExplorer'
     ExperimentManager = 'ExperimentManager'
-    KernelManager = 'KernelManager'
+    ExecutorManager = 'ExecutorManager'
     ModelManager = 'ModelManager'
     Terminal = 'Terminal'
-    
+    LogsManager = 'LogsManager'
+
     def __str__(self):
         return str(self.value)
 
@@ -70,6 +71,10 @@ class ProjectCommand(str, Enum):
     set_active_project = 'set_active_project'
 
 
+class LogsCommand(str, Enum):
+    send_logs = "send_logs"
+
+
 class ExperimentManagerCommand(str, Enum):
     list_experiments = 'list_experiments'
     list_run_infos = 'list_run_infos'
@@ -80,17 +85,20 @@ class ExperimentManagerCommand(str, Enum):
     get_runs_data = 'get_runs_data'
 
 
-class KernelManagerCommand(str, Enum):
+class ExecutorManagerCommand(str, Enum):
     restart_kernel = 'restart_kernel'
     interrupt_kernel = 'interrupt_kernel'
+    get_status = 'get_status'
 
 
 class ModelManagerCommand(str, Enum):
     get_active_models_info = 'get_active_models_info'
     display_model = 'display_model'
 
+
 class JupyterServerCommand(str, Enum):
     get_config = 'get_jupyter_server_config'
+
 
 class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'

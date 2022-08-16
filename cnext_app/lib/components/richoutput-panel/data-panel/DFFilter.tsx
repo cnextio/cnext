@@ -7,16 +7,16 @@ import {
     QuerySample,
     StyledFilterCodeMirror,
 } from "../../StyledComponents";
-import { bracketMatching } from "@codemirror/matchbrackets";
-import { closeBrackets } from "@codemirror/closebrackets";
-import { defaultHighlightStyle } from "@codemirror/highlight";
 import { dfFilterLanguageServer } from "../../../codemirror/autocomplete-lsp/index.js";
 import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
 import store from "../../../../redux/store";
 import { ViewUpdate } from "@codemirror/view";
+import { bracketMatching, defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { closeBrackets } from "@codemirror/autocomplete";
+// import { EditorState, TransactionSpec } from "@codemirror/state";
 import { EditorState, TransactionSpec } from "@codemirror/state";
 import { basicSetup } from "../../../codemirror/basic-setup";
-import { history } from "@codemirror/history";
+// import { history } from "@codemirror/history";
 import { setRichOutputFocused } from "../../../../redux/reducers/RichOutputRedux";
 
 const ls = dfFilterLanguageServer();
@@ -38,11 +38,14 @@ const DFExplorer = () => {
             // console.log("DFExplorer event: ", event);
             try {
                 if (event.key === "Enter" && query != null) {
-                    console.log(
-                        `DFExplorer dispatch query: ${query}, codeEditorText: ${codeEditorText}`
-                    );
-                    let codeEditorText =
-                        filterCM?.current?.getElementsByClassName("cm-line")[0].innerText;
+                    let codeEditorText = filterCM?.current
+                        ?.getElementsByClassName("cm-line")[0]
+                        .innerText.trim();
+
+                    console.log("DFExplorer dispatch query and codeEditorText: ", {
+                        query: query,
+                        codeEditorText: codeEditorText,
+                    });
                     /** use this trick to avoid the enter keyboard event that is triggered by autocompletion  */
                     if (query.raw_query === codeEditorText) {
                         dispatch(setDFFilter(query));
@@ -165,8 +168,9 @@ const DFExplorer = () => {
             }
         }
         if (activeDF != null) {
-            console.log("DFExplorer query: ", queryStr);
-            setQuery({ df_id: activeDF, query: queryStr, raw_query: text });
+            let query = { df_id: activeDF, query: queryStr, raw_query: text };
+            console.log("DFExplorer query: ", query);
+            setQuery(query);
         }
     };
 
@@ -187,11 +191,20 @@ const DFExplorer = () => {
         // basicSetup,
         bracketMatching(),
         closeBrackets(),
-        defaultHighlightStyle.fallback,
-        history(),
+        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
         cnextQuery(),
         // python(),
         ls,
+        EditorState.transactionFilter.of((transaction) => {
+            let newLineDetected = false;
+            transaction.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+                newLineDetected ||= inserted.lines > 1;
+            });
+            if (newLineDetected) {
+                return null;
+            }
+            return transaction;
+        }),
         oneLineExtension(),
         // keymap.of([{ key: "Enter", run: () => enterKeyHandler() }]),
     ];

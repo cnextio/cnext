@@ -1,20 +1,13 @@
 import {
-    Box,
-    Button,
     Checkbox,
     Divider,
     FormControl,
     FormControlLabel,
-    Input,
-    ListItemText,
     Menu,
     MenuItem,
-    MenuList,
     OutlinedInput,
     Paper,
-    Popover,
     Select,
-    Tab,
     Table,
     TableCell,
     TableContainer as MuiTableContainer,
@@ -423,6 +416,10 @@ export const StyledCodeEditor = styled.div`
     max-width: 100%;
     font-size: 13px;
     // max-height: 100%;
+
+    .cm-gutters {
+        border-right: 0px;
+    }
     .cm-tooltip.lint {
         white-space: pre;
     }
@@ -506,8 +503,72 @@ export const StyledCodeEditor = styled.div`
     .cm-groupwidget {
         height: 18px;
         width: 100%;
+        /* padding-left: 5px; */
+        &.show {
+            color: back;
+            cursor: pointer;
+            font-size: 11px;
+            /* opacity: 0.9; */
+            color: #ccc;
+            /* padding-top: 4px; */
+        }
+        .cm-cellcommand {
+            display: inline-block;
+            margin-left: 5px;
+            position: relative;
+            &:not(:last-child) {
+                /* border-right: 1px solid #42a5f5; */
+            }
+            .icon-cellcommand {
+                webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                width: 1em;
+                height: 1em;
+                display: inline-block;
+                fill: currentColor;
+                -webkit-flex-shrink: 0;
+                -ms-flex-negative: 0;
+                flex-shrink: 0;
+                -webkit-transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+                transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+                font-size: 1rem;
+            }
+            .tooltiptext {
+                visibility: hidden;
+                font-size: 11px;
+                background-color: #727171;
+                color: #fff;
+                text-align: center;
+                border-radius: 6px;
+                padding: 2px 4px;
+                min-width: 35px;
+                position: absolute;
+                z-index: 1;
+                bottom: -80%;
+                left: 120%;
+                margin-left: -5px;
+                opacity: 1;
+                transition: opacity 0.3s;
+                &::after {
+                    content: "";
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    margin-left: -5px;
+                    border-width: 5px;
+                    border-style: solid;
+                    /* border-color: #555 transparent transparent transparent; */
+                }
+            }
+            &:hover {
+                .tooltiptext {
+                    visibility: visible;
+                }
+            }
+        }
     }
-
     .cm-foldGutter {
         font-size: 11px;
     }
@@ -558,7 +619,13 @@ export const TextIOContainer = styled.div`
 `;
 
 export const TextIOHeader = styled.div`
-    height: 30px;
+    height: 25px;
+    display: flex;
+    flex-direction: row;
+    .executor-status {
+        margin-left: auto;
+        align-self: center;
+    }
 `;
 
 export const TextIOHeaderText = styled(Typography)`
@@ -1070,11 +1137,16 @@ export const FooterNavigation = styled.div`
     height: 22px;
 `;
 
-export const FooterItem = styled.a`
+export const LeftFooterItem = styled.a`
     height: 100%;
 `;
 
-export const FotterItemText = styled.span`
+export const RightFooterItem = styled.a`
+    height: 100%;
+    float: right;
+`;
+
+export const FooterItemText = styled.span`
     font-size: 11px;
     color: white;
     cursor: pointer;
