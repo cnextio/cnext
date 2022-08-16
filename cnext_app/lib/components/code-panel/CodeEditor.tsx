@@ -99,7 +99,6 @@ import {
     unfoldCode,
     bracketMatching,
 } from "@codemirror/language";
-import { completionKeymap } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
 import { basicSetup } from "../../codemirror/basic-setup";
 import { groupWidget } from "./libGroupWidget";
@@ -182,7 +181,6 @@ const CodeEditor = () => {
             { key: "Mod-Shift-u", run: unfoldAll },
             { key: "Mod-Shift-c", run: foldCode },
             { key: "Mod-Shift-v", run: unfoldCode },
-            ...completionKeymap,
             // ...closeBracketsKeymap,
             ...defaultKeymap,
             ...searchKeymap,

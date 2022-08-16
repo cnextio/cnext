@@ -1,6 +1,6 @@
-import { sortResults } from './helper';
-import { python } from '../grammar/lang-cnext-python';
-import store from '/redux/store';
+import { sortResults } from "./helper";
+import { python } from "../grammar/lang-cnext-python";
+import store from "/redux/store";
 
 class DFFilterPlugin {
     /**
@@ -27,7 +27,6 @@ class DFFilterPlugin {
         if (result.matched) {
             items = this.createColNameAutocompleItems(result.df_name, result.str_content);
         }
-        console.log('Items: ', items);
         return items;
     };
 
@@ -38,10 +37,10 @@ class DFFilterPlugin {
         try {
             let result = this.getDFCompletion_DFFilter(context, line, character);
             if (!result) return null;
-            const items = 'items' in result ? result.items : result;
+            const items = "items" in result ? result.items : result;
             return sortResults(context, items);
         } catch (e) {
-            console.error('requestCompletion: ', e);
+            console.error("requestCompletion: ", e);
         }
     }
 
@@ -51,7 +50,7 @@ class DFFilterPlugin {
 
         let parser = python().language.parser;
         console.log(
-            'getDFCompletion current line parser ',
+            "getDFCompletion current line parser ",
             parser.parse(state.doc.text[line]).toString()
         );
         let tree = state.tree;
@@ -72,23 +71,23 @@ class DFFilterPlugin {
                 items = this.createColValueAutocompleItems(result.df_name, result.col_name);
             }
         }
-        console.log('Items: ', items);
+        console.log("Items: ", items);
         return items;
     }
 
     matchColNameExpression_DFFilter(text, tree, pos) {
         let matched = false;
         let dfName;
-        let cursor = tree.cursor(pos, 1);
+        let cursor = tree.cursorAt(pos, 1);
         let strContent = text.substring(cursor.from, cursor.to);
         const reduxState = store.getState();
-        if (cursor.name == 'ColumnNameExpression') {
+        if (cursor.name == "ColumnNameExpression") {
             // now search for the column name
-            console.log('_matchColNameExpression_DFFilter: got a match');
+            console.log("_matchColNameExpression_DFFilter: got a match");
             matched = true;
             dfName = reduxState.dataFrames.activeDataFrame;
         }
-        if (matched) console.log('Match column name: ', dfName, strContent);
+        if (matched) console.log("Match column name: ", dfName, strContent);
         return { matched: matched, df_name: dfName, str_content: strContent };
     }
 
@@ -119,8 +118,8 @@ class DFFilterPlugin {
             if (colNames) {
                 items = colNames.map((item) => {
                     return {
-                        detail: 'Column_name',
-                        documentation: 'TODO: add column details',
+                        detail: "Column_name",
+                        documentation: "TODO: add column details",
                         insertText: item,
                         kind: 5,
                         label: item,
@@ -141,8 +140,8 @@ class DFFilterPlugin {
         if (values) {
             items = values.map((item) => {
                 return {
-                    detail: 'Column_value',
-                    documentation: 'TODO: add column details',
+                    detail: "Column_value",
+                    documentation: "TODO: add column details",
                     //FIXME: find a better way to handle null here
                     insertText: item === null ? 'null value, use "isna" instead!' : item,
                     kind: 5,
@@ -159,28 +158,28 @@ class DFFilterPlugin {
         //CallExpression(MemberExpression(VariableName,".",PropertyName),ArgList("(",String,")"))
         //make a shortcut in this case, did not go up to CallExpression. Might need to test more
         [
-            { name: 'String', nextMatch: 'parent' },
-            { name: 'ArgList', nextMatch: 'prevSibling' },
-            { name: 'MemberExpression', nextMatch: 'firstChild' },
-            { name: 'VariableName', nextMatch: null },
+            { name: "String", nextMatch: "parent" },
+            { name: "ArgList", nextMatch: "prevSibling" },
+            { name: "MemberExpression", nextMatch: "firstChild" },
+            { name: "VariableName", nextMatch: null },
         ],
         //MemberExpression(VariableName,"[",String,"]")
         [
-            { name: 'String', nextMatch: 'parent' },
-            { name: 'MemberExpression', nextMatch: 'firstChild' },
-            { name: 'VariableName', nextMatch: null },
+            { name: "String", nextMatch: "parent" },
+            { name: "MemberExpression", nextMatch: "firstChild" },
+            { name: "VariableName", nextMatch: null },
         ],
         //MemberExpression(VariableName,"[",ArrayExpression("[",String,"]"),"]")
         [
-            { name: 'String', nextMatch: 'parent' },
-            { name: 'ArrayExpression', nextMatch: 'parent' },
-            { name: 'MemberExpression', nextMatch: 'firstChild' },
-            { name: 'VariableName', nextMatch: null },
+            { name: "String", nextMatch: "parent" },
+            { name: "ArrayExpression", nextMatch: "parent" },
+            { name: "MemberExpression", nextMatch: "firstChild" },
+            { name: "VariableName", nextMatch: null },
         ],
         //CNextStatement(CNextStarter,CNextPlotExpression(CNextPlotKeyword,DataFrameExpresion,CNextPlotYDimExpression(ColumnNameExpression,",",ColumnNameExpression),CNextPlotAddDimKeyword(over),CNextPlotXDimExpression(ColumnNameExpression))))
         // this match is used for CNextStatement. It is very simple because we can define the language
-        [{ name: 'CNextXDimColumnNameExpression', nextMatch: null }],
-        [{ name: 'CNextYDimColumnNameExpression', nextMatch: null }],
+        [{ name: "CNextXDimColumnNameExpression", nextMatch: null }],
+        [{ name: "CNextYDimColumnNameExpression", nextMatch: null }],
     ];
 
     matchColNameExpression_CodeEditor(text, tree, pos, syntaxPattern) {
@@ -190,7 +189,7 @@ class DFFilterPlugin {
         const state = store.getState();
         const dfList = Object.keys(state.dataFrames.metadata);
         for (const matchStates of syntaxPattern) {
-            let cursor = tree.cursor(pos, 1);
+            let cursor = tree.cursorAt(pos, 1);
             let matchStep = 0;
             while (true) {
                 if (matchStep >= matchStates.length) break;
@@ -201,7 +200,7 @@ class DFFilterPlugin {
                         strContent = text.substring(cursor.from, cursor.to);
                     }
                     if (nextMatch == null) {
-                        console.log('Autocomplete: got a match');
+                        console.log("Autocomplete: got a match");
                         matched = true;
                         dfName = text.substring(cursor.from, cursor.to);
                         /**
@@ -220,15 +219,15 @@ class DFFilterPlugin {
                 matchStep += 1;
             }
         }
-        if (matched) console.log('Autocomplete: match column names: ', dfName, strContent);
+        if (matched) console.log("Autocomplete: match column names: ", dfName, strContent);
         return { matched: matched, df_name: dfName, str_content: strContent };
     }
 
     colNamePattern_DFFilter = [
-        { name: ['ColumnValueExpression'], nextMatch: 'parent' },
-        { name: ['IndexSelectorExpression'], nextMatch: 'prevSibling' },
-        { name: ['CompareOp', 'isin'], nextMatch: 'prevSibling' },
-        { name: ['ColumnNameExpression'], nextMatch: null },
+        { name: ["ColumnValueExpression"], nextMatch: "parent" },
+        { name: ["IndexSelectorExpression"], nextMatch: "prevSibling" },
+        { name: ["CompareOp", "isin"], nextMatch: "prevSibling" },
+        { name: ["ColumnNameExpression"], nextMatch: null },
     ];
     /**
      *
@@ -249,7 +248,7 @@ class DFFilterPlugin {
         let matched = false;
         let dfName;
         let colName;
-        let cursor = tree.cursor(pos, -1);
+        let cursor = tree.cursorAt(pos, -1);
         let strContent = text.substring(cursor.from, cursor.to);
         const reduxState = store.getState();
         let matchStep = 0;
@@ -258,10 +257,10 @@ class DFFilterPlugin {
          * TODO: find a way to support number suggestion
          * Need a special handling of Number case here
          */
-        if (cursor.name == 'ColumnValueExpression') {
+        if (cursor.name == "ColumnValueExpression") {
             // now search for the column name
             console.log(
-                'matchColumnValueExpression_DFFilter: match ColumnValueExpression, now search for column name'
+                "matchColumnValueExpression_DFFilter: match ColumnValueExpression, now search for column name"
             );
             while (true) {
                 console.log(cursor.name);
@@ -289,7 +288,7 @@ class DFFilterPlugin {
                 matchStep += 1;
             }
         }
-        if (matched) console.log('Match column value: ', colName, strContent);
+        if (matched) console.log("Match column value: ", colName, strContent);
         return {
             matched: matched,
             df_name: dfName,
