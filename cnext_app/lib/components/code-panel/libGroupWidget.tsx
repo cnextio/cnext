@@ -47,8 +47,9 @@ class GroupWidget extends WidgetType {
                 });
             }
         }
-        wrap.className = `cm-groupwidget ${mouseOverGroupID && mouseOverGroupID === this.groupId ? "show" : ""
-            }`;
+        wrap.className = `cm-groupwidget ${
+            mouseOverGroupID && mouseOverGroupID === this.groupId ? "show" : ""
+        }`;
         return wrap;
     }
 }
@@ -56,7 +57,6 @@ class GroupWidget extends WidgetType {
 export const groupWidgetExtension = EditorView.decorations.compute(["doc"], (state) => {
     let widgets = [];
     let reduxState = store.getState();
-    const view = new EditorView();
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {
         let lines: ICodeLine[] | null = getCodeLine(reduxState);

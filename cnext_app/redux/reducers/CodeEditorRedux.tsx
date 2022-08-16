@@ -22,6 +22,7 @@ import {
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
+import { Line } from "@codemirror/state";
 
 type CodeEditorState = {
     codeText: { [id: string]: string[] };
@@ -59,9 +60,9 @@ type CodeEditorState = {
     // this number need to be increased whenever codeLine is updated
     saveCodeLineCounter: number;
     lastLineUpdate: { [key: string]: ILineUpdate };
-    mouseOverGroupID: string | undefined;
-    lineAnchorHover: { number: number; to?: number; from?: number; text: string };
-    cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | undefined;
+    mouseOverGroupID: string | null;
+    mouseOverLine: Line | null;
+    cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
 };
 
 const initialState: CodeEditorState = {
@@ -85,9 +86,9 @@ const initialState: CodeEditorState = {
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
     lastLineUpdate: {} /** this is used in MarkdownProcessor */,
-    mouseOverGroupID: "",
-    cellCommand: undefined,
-    lineAnchorHover: { number: 0, text: "" },
+    mouseOverGroupID: null,
+    cellCommand: null,
+    mouseOverLine: null,
 };
 
 /**
@@ -422,8 +423,8 @@ export const CodeEditorRedux = createSlice({
             state.cellCommand = action.payload;
         },
 
-        setLineAnchorHover: (state, action) => {
-            state.lineAnchorHover = action.payload;
+        setMouseOverLine: (state, action) => {
+            state.mouseOverLine = action.payload;
         },
 
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
@@ -593,7 +594,7 @@ export const {
     resetCodeEditor,
     setMouseOverGroup,
     setCellCommand,
-    setLineAnchorHover,
+    setMouseOverLine,
     setCodeStates,
 } = CodeEditorRedux.actions;
 

@@ -411,10 +411,6 @@ const CodeEditor = () => {
         }
     }, [lineStatusUpdate]);
 
-    document.addEventListener("name-of-event", function (e) {
-        console.log("name-of-event", e); // Prints "Example of an event"
-    });
-
     useEffect(() => {
         if (view) {
             view.dispatch();
@@ -422,10 +418,10 @@ const CodeEditor = () => {
     }, [mouseOverGroupID]);
 
     useEffect(() => {
-        if (view && cellCommand) {
-            const state = store.getState();
+        const state = store.getState();
+        if (view && cellCommand && state.codeEditor.mouseOverLine) {            
             const inViewID = state.projectManager.inViewID;
-            const lineNumber = state.codeEditor.lineAnchorHover.number - 1;
+            const lineNumber = state.codeEditor.mouseOverLine.number - 1;
             let activeLine: ICodeActiveLine = {
                 inViewID: inViewID || "",
                 lineNumber: lineNumber,
