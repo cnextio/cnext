@@ -117,7 +117,7 @@ const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStat
     store.dispatch(setLineStatusRedux(lineStatus));
 };
 
-const scrollToPos = (view: EditorView, lineNumber: number) => {
+const setAnchorToPos = (view: EditorView, lineNumber: number) => {
     let pos = view.state.doc.line(lineNumber + 1).from; // convert to 1-based
     view.dispatch({
         selection: { anchor: pos, head: pos },
@@ -127,26 +127,22 @@ const scrollToPos = (view: EditorView, lineNumber: number) => {
 
 /** lineNum is 0 based */
 const setAnchorToLine = (
-    inViewID: string,
     view: EditorView,
-    lineNumber: number,
-    scrollIntoView: boolean
+    inViewID: string,
+    lineNumber: number
+    // scrollIntoView: boolean
 ) => {
     if (view != null && inViewID != null) {
-        scrollToPos(view, lineNumber);
-        let activeLine: ICodeActiveLine = {
-            inViewID: inViewID,
-            lineNumber: lineNumber,
-        };
-        store.dispatch(setActiveLineRedux(activeLine));
+        setAnchorToPos(view, lineNumber);
+        setActiveLine(inViewID, lineNumber);
     }
 };
 
 /** curLineNumber is 0-based */
 const setAnchorToNextGroup = (
+    view: EditorView,
     inViewID: string,
     codeLines: ICodeLine[],
-    view: EditorView,
     anchorLineNumber: number
 ) => {
     let originGroupID = codeLines[anchorLineNumber].groupID;
@@ -168,8 +164,8 @@ const setAnchorToNextGroup = (
             curlineNumber,
             curGroupID
         );
-        if (view && curGroupID !== originGroupID) {
-            setAnchorToLine(inViewID, view, curlineNumber, true);
+        if (curGroupID !== originGroupID) {
+            setAnchorToLine(view, inViewID, curlineNumber);
         }
     }
 };
@@ -540,11 +536,8 @@ function groupedLineGutter() {
 }
 
 /** lineNumber is 0-based */
-function setActiveLine(lineNumber: number) {
+function setActiveLine(inViewID: string, lineNumber: number) {
     try {
-        // console.log('CodeEditor onMouseDown', view, event, dispatch);
-        //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
-        let inViewID = store.getState().projectManager.inViewID;
         if (inViewID) {
             let activeLine: ICodeActiveLine = {
                 inViewID: inViewID,
@@ -563,15 +556,14 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
         event.stopPropagation();
         // console.log('CodeEditor onMouseDown', view, event, dispatch);
         if (view != null) {
-            console.log(`onMouseDown`);
-
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
             // console.log("CodeEditor event target: ", event.target);
             let pos = view.posAtDOM(event.target);
             //convert to 0-based
             let lineNumber = doc.lineAt(pos).number - 1;
-            setActiveLine(lineNumber);
+            let inViewID = store.getState().projectManager.inViewID;
+            if (inViewID) setActiveLine(inViewID, lineNumber);
         }
     } catch (error) {
         console.error(error);
@@ -604,7 +596,7 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                 let currentGroupID = lines[lineNumber].groupID;
                 console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
                 store.dispatch(setMouseOverGroup(currentGroupID));
-                store.dispatch(setMouseOverLine({...hoveredLine}));
+                store.dispatch(setMouseOverLine({ ...hoveredLine }));
             }
         }
     } catch (error) {
@@ -614,15 +606,15 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
 
 function onKeyDown(event: KeyboardEvent, view: EditorView) {
     try {
-        // console.log('CodeEditor onKeyDown', view, event);
+        // console.log("CodeEditor lineNumber onKeyDown", view, event);
         if (view != null) {
-            console.log(`onKeyDown`);
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
             const pos = view.state.selection.ranges[0].anchor;
             //convert to 0-based
             let lineNumber = doc.lineAt(pos).number - 1;
-            setActiveLine(lineNumber);
+            let inViewID = store.getState().projectManager.inViewID;
+            if (inViewID) setActiveLine(inViewID, lineNumber);
         }
     } catch (error) {
         console.error(error);
@@ -894,7 +886,7 @@ function addToRunQueueThenMoveDown(view: EditorView | undefined) {
                 const anchor = state.selection.ranges[0].anchor;
                 let curLineNumber = doc.lineAt(anchor).number - 1; // 0-based
                 let codeLines = store.getState().codeEditor.codeLines[inViewID];
-                setAnchorToNextGroup(inViewID, codeLines, view, curLineNumber);
+                setAnchorToNextGroup(view, inViewID, codeLines, curLineNumber);
             }
         }
     } catch (error) {
@@ -965,7 +957,7 @@ export {
     isPromise,
     getRunningCommandContent,
     getNonGeneratedLinesInRange,
-    scrollToPos,
+    setAnchorToPos,
     setAnchor,
     setAnchorToNextGroup,
     groupedLineGutter,

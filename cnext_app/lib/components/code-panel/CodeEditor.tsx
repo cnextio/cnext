@@ -84,7 +84,6 @@ import {
     addToRunQueue,
     addToRunQueueThenMoveDown,
     execLines,
-    scrollToPos,
     fileClosingHandler,
     addToRunQueueHover,
 } from "./libCodeEditor";
@@ -135,6 +134,7 @@ const CodeEditor = () => {
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
+    /** using this to trigger refresh in group highlight */
     const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
 
     const shortcutKeysConfig = useSelector(
@@ -465,14 +465,6 @@ const CodeEditor = () => {
     useEffect(() => {
         handleCodeToInsert(codeToInsert);
     }, [codeToInsert]);
-
-    useEffect(() => {
-        const activeLineNumber = store.getState().codeEditor.activeLineNumber;
-        if (view != null && inViewID != null && activeLineNumber != null) {
-            console.log("CodeEditor activeLineNumber: ", activeLineNumber);
-            scrollToPos(view, activeLineNumber);
-        }
-    }, [activeGroup]);
 
     /** handle code insertions requested by other components */
     const handleCodeToInsert = (codeToInsert: ICodeToInsertInfo | undefined) => {
