@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setConfigTerminal } from "../../../redux/reducers/TerminalRedux";
 import { getCookie } from "../../../utils";
+import { getDomain } from "../../../utils/domain";
 import { CommandName, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 
@@ -31,7 +32,7 @@ const TerminalManager = () => {
                 if (JSON.parse(result).command_name === CommandName.get_jupyter_server_config) {
                     const config = JSON.parse(result).content;
                     dispatch(setConfigTerminal(config));
-                    const BASEURL = `http://localhost:${config.port}?token=${config.token}`;
+                    const BASEURL = `${getDomain()}:${config.port}?token=${config.token}`;
                     if (!getCookie(jupyterServerCookie)) {
                         const new_tab = window.open(`${BASEURL}`, "_blank");
                         setTimeout(() => {
