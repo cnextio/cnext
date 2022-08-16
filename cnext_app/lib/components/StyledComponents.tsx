@@ -565,7 +565,6 @@ export const StyledCodeEditor = styled.div`
             &:hover {
                 .tooltiptext {
                     visibility: visible;
-                    opacity: 0.9;
                 }
             }
         }

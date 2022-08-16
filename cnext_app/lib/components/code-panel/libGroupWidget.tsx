@@ -14,7 +14,7 @@ class GroupWidget extends WidgetType {
         if (mouseOverGroupID && mouseOverGroupID === this.groupId) {
             const cellItems = [
                 {
-                    text: "Run",
+                    text: "Run Cell",
                     cellCommand: CellCommand.RUN_CELL,
                     svg: `<svg class="icon-cellcommand MuiSvgIcon-root MuiSvgIcon-fontSizeSmall" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="PlayArrowIcon"><path d="M8 5v14l11-7z"></path></svg>`,
                 },
