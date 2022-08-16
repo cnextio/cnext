@@ -109,7 +109,7 @@ const CodeToolbar = () => {
                         options={{
                             // active: true,
                             block: "nearest",
-                            inline: "center",
+                            inline: "nearest",
                             behavior: "auto",
                             // boundary: document.getElementById(codeOutputContentID),
                         }}
