@@ -604,7 +604,7 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                 let currentGroupID = lines[lineNumber].groupID;
                 console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
                 store.dispatch(setMouseOverGroup(currentGroupID));
-                store.dispatch(setMouseOverLine(hoveredLine));
+                store.dispatch(setMouseOverLine({...hoveredLine}));
             }
         }
     } catch (error) {
