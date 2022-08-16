@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { XTerm } from "../../../@xterm";
 import styled from "styled-components";
 import { deleteAllCookies, delete_cookie } from "../../../../utils";
+import { getDomain } from "../../../../utils/domain";
 const errorTokenExpired = "Failed to fetch";
 const Terminal = "terminalIO";
 let elementTerminal: HTMLElement | null;
@@ -23,7 +24,7 @@ const TerminalComponent = () => {
     async function init() {
         if (config.port && config.token) {
             try {
-                const BASEURL = `http://localhost:${config.port}`;
+                const BASEURL = `${getDomain()}:${config.port}`;
                 const TOKEN = `${config.token}`;
                 const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
                 const connectionInfo = ServerConnection.makeSettings({

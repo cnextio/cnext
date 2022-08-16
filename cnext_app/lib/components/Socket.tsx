@@ -1,5 +1,6 @@
 import openSocket from "socket.io-client";
-export const CODE_SERVER_SOCKET_ENDPOINT = "http://localhost:4000";
+export const CODE_SERVER_SOCKET_ENDPOINT =
+    process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT || "http://localhost:4000";
 const socket = openSocket(CODE_SERVER_SOCKET_ENDPOINT, {
     closeOnBeforeunload: false,
 });
