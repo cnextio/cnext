@@ -8,13 +8,16 @@ import Pane from "react-split-pane-v2";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import TextIOComponent from "./TextIOComponent";
+import ExecutorComponent from "./Executor";
 
 const CodePanel = ({ workingPanelViewMode }) => {
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     return (
-        <StyledCodePanel>
+        <StyledCodePanel style={{ position: "relative" }}>
             {console.log("CodePanel render ")}
             <CodeToolbar />
+            <ExecutorComponent />
+
             <CodeContainer>
                 <SplitPane
                     split={
