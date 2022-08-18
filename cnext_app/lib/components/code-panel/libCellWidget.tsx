@@ -1,10 +1,24 @@
+import { StateEffect, StateField, TransactionSpec } from "@codemirror/state";
 import { EditorView, Decoration, WidgetType } from "@codemirror/view";
 import { setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
-import store, { RootState } from "../../../redux/store";
+import store from "../../../redux/store";
 import { ICodeLine, CellCommand } from "../../interfaces/ICodeEditor";
 import { getCodeLine } from "./libCodeEditor";
 
-class GroupWidget extends WidgetType {
+export const cellWidgetStateEffect = StateEffect.define<number>();
+export const cellWidgetStateField = StateField.define({
+    create: () => 0,
+    update(value, tr) {
+        for (let e of tr.effects) {
+            if (e.is(cellWidgetStateEffect)) {
+                value += 1;
+            }
+        }
+        return value;
+    },
+});
+
+class CellWidget extends WidgetType {
     constructor(readonly groupId: string | undefined) {
         super();
     }
@@ -50,48 +64,54 @@ class GroupWidget extends WidgetType {
         wrap.className = `cm-groupwidget ${
             mouseOverGroupID && mouseOverGroupID === this.groupId ? "show" : ""
         }`;
+
         return wrap;
     }
 }
 
-export const groupWidgetExtension = EditorView.decorations.compute(["doc"], (state) => {
-    let widgets = [];
-    let reduxState = store.getState();
-    let inViewID = reduxState.projectManager.inViewID;
-    if (inViewID) {
-        let lines: ICodeLine[] | null = getCodeLine(reduxState);
-        // const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
-        if (lines && state.doc.lines === lines.length) {
-            let currentGroupID = null;
-            for (let ln = 0; ln < lines.length; ln++) {
-                /** convert to 1-based */
-                let line = state.doc.line(ln + 1);
-                if (!lines[ln].generated) {
-                    if (lines[ln].groupID != currentGroupID) {
-                        let widget = Decoration.widget({
-                            widget: new GroupWidget(lines[ln].groupID),
-                            side: -1,
-                            block: true,
-                        });
-                        widgets.push(widget.range(line.from));
-                    } else {
+export const cellWidgetExtension = EditorView.decorations.compute(
+    ["doc", cellWidgetStateField],
+    (state) => {
+        let widgets = [];
+        let reduxState = store.getState();
+        let inViewID = reduxState.projectManager.inViewID;
+        if (inViewID) {
+            let lines: ICodeLine[] | null = getCodeLine(reduxState);
+            // const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
+            if (lines && state.doc.lines === lines.length) {
+                // console.log("CodeEditor libGroupWidget +++++");
+                let currentGroupID = null;
+                for (let ln = 0; ln < lines.length; ln++) {
+                    /** convert to 1-based */
+                    let line = state.doc.line(ln + 1);
+                    if (!lines[ln].generated) {
+                        if (lines[ln].groupID != currentGroupID) {
+                            // console.log("CodeEditor libGroupWidget line.from ", line.from);
+                            let widget = Decoration.widget({
+                                widget: new CellWidget(lines[ln].groupID),
+                                side: -1,
+                                block: true,
+                            });
+                            widgets.push(widget.range(line.from));
+                        }
                     }
-                    if (
-                        /** this is the last line */
-                        ln + 1 === lines.length ||
-                        /** next line belongs to a different group */
-                        lines[ln].groupID !== lines[ln + 1].groupID
-                    ) {
-                        // marks.push(lastLineOfGroupMarker.range(line.from));
-                    }
+                    currentGroupID = lines[ln].groupID;
                 }
-                currentGroupID = lines[ln].groupID;
             }
         }
-    }
-    return Decoration.set(widgets);
-});
 
-export function groupWidget() {
-    return groupWidgetExtension;
+        // console.log("CodeEditor libGroupWidget widgets.length: ", widgets.length);
+        return Decoration.set(widgets);
+    }
+);
+
+export const setCodeMirrorCellWidget = (view: EditorView) => {
+    let transactionSpec: TransactionSpec = {
+        effects: cellWidgetStateEffect.of(0),
+    };
+    view.dispatch(view.state.update(transactionSpec));
+};
+
+export function cellWidget() {
+    return cellWidgetExtension;
 }

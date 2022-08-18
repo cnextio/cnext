@@ -73,7 +73,6 @@ import {
     scrollToPrevPos,
     setFlashingEffect,
     setGenLineDeco,
-    setGroupedLineDeco,
     setHTMLEventHandler,
     setCodeTextAndStates,
     setAnchor,
@@ -104,15 +103,16 @@ import {
 } from "@codemirror/language";
 import { lintKeymap } from "@codemirror/lint";
 import { basicSetup } from "../../codemirror/basic-setup";
-import { groupWidget } from "./libGroupWidget";
-import { getGroupFoldRange } from "./libGroupFold";
+import { cellWidget, cellWidgetStateField, setCodeMirrorCellWidget } from "./libCellWidget";
+import { getGroupFoldRange } from "./libCellFold";
+import { cellDeco, cellDecoStateField, setCodeMirrorCellDeco } from "./libCellDeco";
 
-let pyLanguageServer = languageServer({
-    serverUri: "ws://localhost:3001/python",
-    rootUri: "file:///",
-    documentUri: "file:///",
-    languageId: "python",
-});
+// let pyLanguageServer = languageServer({
+//     serverUri: "ws://localhost:3001/python",
+//     rootUri: "file:///",
+//     documentUri: "file:///",
+//     languageId: "python",
+// });
 
 const CodeEditor = () => {
     // const CodeEditor = (props: any) => {
@@ -130,7 +130,8 @@ const CodeEditor = () => {
         (state: RootState) => state.projectManager.activeProject?.id
     );
     /** using this to trigger refresh in gutter */
-    const codeText = useSelector((state: RootState) => getCodeText(state));
+    // const codeText = useSelector((state: RootState) => getCodeText(state));
+    const codeLine = useSelector((state: RootState) => getCodeLine(state));
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
@@ -162,8 +163,10 @@ const CodeEditor = () => {
         foldService.of(getGroupFoldRange),
         lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
-        groupWidget(),
-        // groupedLineGutter(),
+        cellWidgetStateField,
+        cellWidget(),
+        cellDecoStateField,
+        cellDeco(),
         bracketMatching(),
         syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
         keymap.of([
@@ -198,10 +201,10 @@ const CodeEditor = () => {
     ];
 
     const getLangExtenstions = (inViewID: string | null) => {
-        console.log("CodeEditor getLangExtenstions: ", inViewID);
+        console.log("CodeEditor LangExtenstions: ", inViewID);
 
         const path = store.getState().projectManager.activeProject?.path;
-        pyLanguageServer = languageServer({
+        const pyLanguageServer = languageServer({
             serverUri: "ws://localhost:3001/python",
             rootUri: "file:///" + path,
             documentUri: "file:///" + path,
@@ -227,9 +230,8 @@ const CodeEditor = () => {
 
     const { view, container, setContainer } = useCodeMirror({
         basicSetup: false,
-        container: editorRef.current,
+        // container: editorRef.current,
         extensions: [...defaultExtensions, ...langExtensions],
-        // extensions: defaultExtensions,//[python()],
         height: "100%",
         theme: "light",
         onChange: (value, viewUpdate) => onCodeMirrorChange(value, viewUpdate),
@@ -319,6 +321,22 @@ const CodeEditor = () => {
         });
     };
 
+    /** this useEffect forces CM to update cell status whenever codeLine or mouseOverGroupID changes */
+    useEffect(() => {
+        if (view != null) {
+            // console.log("CodeEditor codeLine");
+            setCodeMirrorCellWidget(view);
+        }
+    }, [codeLine, mouseOverGroupID]);
+
+    /** this useEffect forces CM to update cell status whenever codeLine or activeGroup changes */
+    useEffect(() => {
+        if (view != null) {
+            // console.log("CodeEditor codeLine");
+            setCodeMirrorCellDeco(view);
+        }
+    }, [codeLine, activeGroup]);
+
     /** clear the run queue when the executor restarted */
     useEffect(() => {
         const runQueueItem = runQueue.queue[0];
@@ -334,8 +352,8 @@ const CodeEditor = () => {
         console.log("CodeEditor init");
         socketInit();
         resetEditorState(inViewID, view);
-
         return () => {
+            console.log("CodeEditor unmount");
             socket.off(WebAppEndpoint.CodeEditor);
         };
     }, []);
@@ -384,40 +402,38 @@ const CodeEditor = () => {
             // console.log("CodeEditor useEffect serverSynced, codeReloading, view");
             setCodeTextAndStates(store.getState(), view);
             setCodeReloading(false);
+
             /** have to use Timeout this to make sure the code text got populated to CodeMirror first */
-            setTimeout(() => scrollToPrevPos(store.getState()), 0);
+            setTimeout(() => {
+                scrollToPrevPos(store.getState());
+            }, 0);
         }
     }, [serverSynced, codeReloading, view]);
 
     useEffect(() => {
         try {
             if (view != null) {
-                setHTMLEventHandler(container, view, dispatch);
+                // setHTMLEventHandler(container, view, dispatch);
                 //TODO: improve this
-                setGroupedLineDeco(store.getState(), view);
+                // setGroupedLineDeco(store.getState(), view);
                 setGenLineDeco(store.getState(), view);
-                console.log("CodeEditor useEffect setGenCodeLineDeco");
+                // console.log("CodeEditor useEffect setGenCodeLineDeco");
             }
         } catch {}
     });
 
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update
      * with line status. This works but might need to find a better performant solution. */
-    useEffect(() => {
-        if (view) {
-            view.dispatch();
-        }
-    }, [lineStatusUpdate]);
-
-    useEffect(() => {
-        if (view) {
-            view.dispatch();
-        }
-    }, [mouseOverGroupID]);
+    // useEffect(() => {
+    //     if (view != null) {
+    //         // view.dispatch();
+    //     }
+    // }, [lineStatusUpdate, mouseOverGroupID]);
 
     useEffect(() => {
         const state = store.getState();
-        if (view && cellCommand && state.codeEditor.mouseOverLine) {            
+        const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
+        if (view != null && cellCommand && state.codeEditor.mouseOverLine) {
             const inViewID = state.projectManager.inViewID;
             const lineNumber = state.codeEditor.mouseOverLine.number - 1;
             let activeLine: ICodeActiveLine = {
@@ -447,12 +463,14 @@ const CodeEditor = () => {
     }, [cAssistInfo]);
 
     useEffect(() => {
+        console.log("CodeEditor editorRef.current");
         if (editorRef.current != null && inViewID != null && container == null) {
             setContainer(editorRef.current);
         }
     }, [inViewID, editorRef.current]);
 
     useEffect(() => {
+        console.log("CodeEditor runQueue");
         if (runQueue.status === RunQueueStatus.STOP) {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
@@ -608,8 +626,9 @@ const CodeEditor = () => {
 
                     if (updatedLineCount > 0) {
                         console.log(
-                            "changeStartLine: ",
+                            "CodeEditor changeStartLine: ",
                             changeStartLine,
+                            updatedLineCount,
                             inViewCodeText[changeStartLineNumber],
                             changeStartLine.text != inViewCodeText[changeStartLineNumber]
                         );

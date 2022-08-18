@@ -359,85 +359,6 @@ const setGenLineDeco = (reduxState: RootState, view: EditorView | undefined) => 
     }
 };
 
-const groupLineCSS = (clazz: string) => Decoration.line({ attributes: { class: clazz } });
-const GroupedLineStateEffect = StateEffect.define<{}>();
-const groupedLineDeco = (reduxState: RootState, view: EditorView) =>
-    StateField.define<DecorationSet>({
-        create() {
-            return Decoration.none;
-        },
-        update(lineBackgrounds, tr) {
-            const activeGroup = store.getState().codeEditor.activeGroup;
-            lineBackgrounds = lineBackgrounds.map(tr.changes);
-            if (view) {
-                for (let effect of tr.effects) {
-                    if (effect.is(GroupedLineStateEffect)) {
-                        // console.log('Magic generatedCodeDeco update ', effect.value.type);
-                        let inViewID = reduxState.projectManager.inViewID;
-                        if (inViewID) {
-                            let lines: ICodeLine[] | null = getCodeLine(reduxState);
-                            if (lines) {
-                                let currentGroupID = null;
-                                for (let ln = 0; ln < lines.length; ln++) {
-                                    /** convert to 1-based */
-                                    let line = view.state.doc.line(ln + 1);
-                                    if (!lines[ln].generated && lines[ln].groupID != null) {
-                                        const active_clazz =
-                                            activeGroup === lines[ln].groupID ? "active" : "";
-                                        if (lines[ln].groupID != currentGroupID) {
-                                            lineBackgrounds = lineBackgrounds.update({
-                                                add: [
-                                                    groupLineCSS(
-                                                        "cm-groupedfirstline " + active_clazz
-                                                    ).range(line.from),
-                                                ],
-                                            });
-                                        } else {
-                                            // console.log('CodeEditor grouped line deco');
-                                            lineBackgrounds = lineBackgrounds.update({
-                                                add: [
-                                                    groupLineCSS(
-                                                        "cm-groupedline " + active_clazz
-                                                    ).range(line.from),
-                                                ],
-                                            });
-                                        }
-                                        if (
-                                            /** this is the last line */
-                                            ln + 1 === lines.length ||
-                                            /** next line belongs to a different group */
-                                            lines[ln].groupID !== lines[ln + 1].groupID
-                                        ) {
-                                            lineBackgrounds = lineBackgrounds.update({
-                                                add: [
-                                                    groupLineCSS(
-                                                        "cm-groupedlastline " + active_clazz
-                                                    ).range(line.from),
-                                                ],
-                                            });
-                                        }
-                                    }
-                                    currentGroupID = lines[ln].groupID;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return lineBackgrounds;
-        },
-        provide: (f) => EditorView.decorations.from(f),
-    });
-const setGroupedLineDeco = (reduxState: RootState, view: EditorView | undefined) => {
-    if (view != null) {
-        // console.log('CodeEditor set gencode solid')
-        view.dispatch({
-            effects: [StateEffect.appendConfig.of([groupedLineDeco(reduxState, view)])],
-        });
-        view.dispatch({ effects: [GroupedLineStateEffect.of({})] });
-    }
-};
-
 /**
  * Get the line range of the group that contains lineNumber
  * @param lineNumber
@@ -569,9 +490,10 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
         console.error(error);
     }
 }
-function onMouseOut(event: MouseEvent, view: EditorView) {
+function onMouseLeave(event: MouseEvent, view: EditorView) {
     try {
         if (view != null) {
+            // console.log(`CodeEditor onMouseOut`);
             store.dispatch(setMouseOverGroup(undefined));
             store.dispatch(setMouseOverLine(undefined));
         }
@@ -582,21 +504,25 @@ function onMouseOut(event: MouseEvent, view: EditorView) {
 function onMouseOver(event: MouseEvent, view: EditorView) {
     try {
         // console.log('CodeEditor onMouseDown', view, event, dispatch);
-        if (view != null) {
+        if (view != null && event.target) {
             let reduxState = store.getState();
             let lines: ICodeLine[] | null = getCodeLine(reduxState);
             if (lines && view.state.doc.lines === lines.length) {
-                let doc = view.state.doc;
-                // const anchor = view.state.selection.ranges[0].anchor;
+                // if (event.target.className.includes("cm-line")) {
+                    let doc = view.state.doc;
+                    // const anchor = view.state.selection.ranges[0].anchor;
+                    let pos = view.posAtDOM(event.target);
+                    let hoveredLine = doc.lineAt(pos); /** 1-based */
+                    let lineNumber = doc.lineAt(pos).number - 1; /** 0-based */
 
-                let pos = view.posAtDOM(event.target);
-                let hoveredLine = doc.lineAt(pos); /** 1-based */
-                let lineNumber = doc.lineAt(pos).number - 1; /** 0-based */
-
-                let currentGroupID = lines[lineNumber].groupID;
-                console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
-                store.dispatch(setMouseOverGroup(currentGroupID));
-                store.dispatch(setMouseOverLine({ ...hoveredLine }));
+                    let currentGroupID = lines[lineNumber].groupID;
+                    console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
+                    store.dispatch(setMouseOverGroup(currentGroupID));
+                    store.dispatch(setMouseOverLine({ ...hoveredLine }));
+                // } else {
+                //     store.dispatch(setMouseOverGroup(undefined));
+                //     store.dispatch(setMouseOverLine(undefined));
+                // }
             }
         }
     } catch (error) {
@@ -626,7 +552,8 @@ const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView) => {
         container.onmousedown = (event) => onMouseDown(event, view);
         container.onkeydown = (event) => onKeyDown(event, view);
         container.onmouseover = (event) => onMouseOver(event, view);
-        container.onmouseout = (event) => onMouseOut(event, view);
+        // container.onmouseout = (event) => onMouseOut(event, view);
+        container.onmouseleave = (event) => onMouseLeave(event, view);
         // let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
         // if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(scrollEl);
         // if (scrollEl) scrollEl.onscroll = scrollEventHandler(scrollEl, 100);
@@ -950,7 +877,7 @@ export {
     genLineDeco,
     addToRunQueueHover,
     setGenLineDeco,
-    setGroupedLineDeco,
+    // setCellDeco as setGroupedLineDeco,
     setFlashingEffect,
     getLineRangeOfGroup,
     setHTMLEventHandler,
@@ -960,6 +887,7 @@ export {
     setAnchorToPos,
     setAnchor,
     setAnchorToNextGroup,
+    // cellDecoStateField,
     groupedLineGutter,
     setGroup,
     setUnGroup,
