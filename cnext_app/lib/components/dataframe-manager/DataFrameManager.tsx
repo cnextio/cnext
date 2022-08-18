@@ -14,10 +14,12 @@ import socket from "../Socket";
 import {
     setTableData,
     setColumnHistogramPlot,
+    clearColumnHistogramPlot,
     setMetadata,
     setDFUpdates,
     setActiveDF,
     setColumnQuantilePlot,
+    clearColumnQuantilePlot,
 } from "../../../redux/reducers/DataFramesRedux";
 
 //redux
@@ -129,7 +131,7 @@ def _tmp():
     else:
         return None
 _tmp()`;
-        
+
         let message = createMessage(CommandName.plot_column_quantile, content, 1, {
             df_id: df_id,
             col_name: col_name,
@@ -199,9 +201,29 @@ _tmp()`;
     const getDefinedStat = (df_id: string, columns: string[]) => {
         if (dataFrameConfig.quantile) {
             getQuantilesPlot(df_id, columns);
+        } else {
+            // clear plot quantiles in columns
+            for (let column of columns) {
+                const payload = {
+                    df_id,
+                    col_name: column,
+                    data: null,
+                };
+                dispatch(clearColumnHistogramPlot(payload));
+            }
         }
         if (dataFrameConfig.histogram) {
             getHistogramPlot(df_id, columns);
+        } else {
+            // clear plot histogram in columns
+            for (let column of columns) {
+                const payload = {
+                    df_id,
+                    col_name: column,
+                    data: null,
+                };
+                dispatch(clearColumnQuantilePlot(payload));
+            }
         }
     };
 
@@ -356,7 +378,7 @@ _tmp()`;
                         handleGetDFMetadata(message);
                     } else {
                         // console.log("dispatch text output");
-                        dispatch(setTextOutput(message))
+                        dispatch(setTextOutput(message));
                     }
                 } else {
                     dispatch(setTextOutput(message));
@@ -384,7 +406,7 @@ _tmp()`;
     useEffect(() => {
         if (dfFilter != null) {
             // clear the text output message
-            dispatch(setTextOutput({content: ''}));
+            dispatch(setTextOutput({ content: "" }));
             sendGetTableData(dfFilter.df_id, dfFilter.query);
         }
     }, [dfFilter]);
