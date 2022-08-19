@@ -51,8 +51,6 @@ const ExecutorComponent = () => {
     const handleClick = (name: string) => {
         if (name === SideBarName.CLEAR_OUTPUTS) {
             handleClickClearOutputs();
-        } else if (name === SideBarName.CHANGE_LAYOUT) {
-            // handleClickChangeLayout();
         } else if (name === SideBarName.RESTART_KERNEL) {
             setKernelCommand(ExecutorManagerCommand.restart_kernel);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
