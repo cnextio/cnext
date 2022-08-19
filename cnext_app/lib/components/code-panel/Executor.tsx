@@ -26,7 +26,7 @@ import ExecutorCommandConfirmation from "../executor-manager/ExecutorCommandConf
 import { interruptKernel, restartKernel } from "../executor-manager/ExecutorManager";
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
-        <span key={icon.name} selected={selectedIcon === icon.name}>
+        <span key={icon.name} selected={selectedIcon === icon.name} style={{padding:`2px 4px`}}>
             <Tooltip title={icon.tooltip} placement="bottom-end">
                 <span
                     style={{ fontSize: 11, cursor:'pointer' }}
@@ -78,7 +78,7 @@ const ExecutorComponent = () => {
     const executorManagerIconList = [
         {
             name: SideBarName.RESTART_KERNEL,
-            component: <RestartAltIcon style={{ fontSize: 20,margin:`2px 2px` }} fontSize="small" />,
+            component: <RestartAltIcon style={{ fontSize: 20,margin:`2px 3px` }} fontSize="small" />,
             tooltip: "Restart kernel",
         },
         {
@@ -88,7 +88,7 @@ const ExecutorComponent = () => {
         },
         {
             name: SideBarName.CLEAR_OUTPUTS,
-            component: <PlaylistRemoveIcon style={{ fontSize: 20,margin:`2px 2px` }} fontSize="small" />,
+            component: <PlaylistRemoveIcon style={{ fontSize: 20,margin:`2px 3px` }} fontSize="small" />,
             tooltip: "Clear results and outputs",
         },
     ];
@@ -98,7 +98,7 @@ const ExecutorComponent = () => {
                 background: "#fffdfd",
                 display: "inline-block",
                 position: "absolute",
-                right: "0px",
+                left: "0px",
             }}
         >
             <div>
