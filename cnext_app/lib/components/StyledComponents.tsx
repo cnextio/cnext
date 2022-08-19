@@ -508,7 +508,7 @@ export const StyledCodeEditor = styled.div`
             cursor: pointer;
             font-size: 11px;
             /* opacity: 0.9; */
-            color: #C0C0C0;
+            color: #c0c0c0;
             /* padding-top: 4px; */
         }
         .cm-cellcommand {
@@ -580,8 +580,11 @@ export const StyledExecutor = styled.span`
     left: 0;
     .icon {
         cursor: pointer;
-        color: #C0C0C0;
-        font-size: 20px;
+        color: #c0c0c0;
+        svg {
+            font-size: 20px;
+            margin-top: 2px;
+        }
         margin: 2px 2px;
         &:hover {
             color: #808080;

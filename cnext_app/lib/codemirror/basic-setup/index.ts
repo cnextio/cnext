@@ -90,7 +90,6 @@
 
 // export { basicSetup };
 
-
 import {
     keymap,
     highlightSpecialChars,
@@ -169,7 +168,7 @@ export const basicSetup: Extension = [
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
     bracketMatching(),
     closeBrackets(),
-    autocompletion(),
+    // autocompletion(),
     rectangularSelection(),
     crosshairCursor(),
     highlightActiveLine(),
