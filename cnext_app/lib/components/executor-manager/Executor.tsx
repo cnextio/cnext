@@ -78,21 +78,17 @@ const ExecutorComponent = () => {
     const executorManagerIconList = [
         {
             name: SideBarName.RESTART_KERNEL,
-            component: (
-                <RestartAltIcon style={{ fontSize: 20, margin: `2px 3px` }} fontSize="small" />
-            ),
+            component: <RestartAltIcon fontSize="small" />,
             tooltip: "Restart kernel",
         },
         {
             name: SideBarName.INTERRUPT_KERNEL,
-            component: <PauseIcon style={{ fontSize: 20, margin: `2px 2px` }} fontSize="small" />,
+            component: <PauseIcon fontSize="small" />,
             tooltip: "Interrupt kernel",
         },
         {
             name: SideBarName.CLEAR_OUTPUTS,
-            component: (
-                <PlaylistRemoveIcon style={{ fontSize: 20, margin: `2px 3px` }} fontSize="small" />
-            ),
+            component: <PlaylistRemoveIcon fontSize="small" />,
             tooltip: "Clear results and outputs",
         },
     ];

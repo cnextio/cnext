@@ -508,7 +508,7 @@ export const StyledCodeEditor = styled.div`
             cursor: pointer;
             font-size: 11px;
             /* opacity: 0.9; */
-            color: #eeeeee;
+            color: #C0C0C0;
             /* padding-top: 4px; */
         }
         .cm-cellcommand {
@@ -565,7 +565,7 @@ export const StyledCodeEditor = styled.div`
                 .tooltiptext {
                     visibility: visible;
                 }
-                color: #a49f9fde;
+                color: #808080;
             }
         }
     }
@@ -574,15 +574,17 @@ export const StyledCodeEditor = styled.div`
     }
 `;
 export const StyledExecutor = styled.span`
-    background: #fffdfd;
+    background: #ffff;
     display: inline-block;
     position: absolute;
     left: 0;
     .icon {
         cursor: pointer;
-        color: #eeee;
+        color: #C0C0C0;
+        font-size: 20px;
+        margin: 2px 2px;
         &:hover {
-            color: #a49f9fde;
+            color: #808080;
         }
     }
 `;
