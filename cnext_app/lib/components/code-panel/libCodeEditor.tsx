@@ -580,8 +580,8 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
 function onMouseOut(event: MouseEvent, view: EditorView) {
     try {
         if (view != null) {
-            store.dispatch(setMouseOverGroup(undefined));
-            store.dispatch(setMouseOverLine(undefined));
+            // store.dispatch(setMouseOverGroup(undefined));
+            // store.dispatch(setMouseOverLine(undefined));
         }
     } catch (error) {
         console.error(error);

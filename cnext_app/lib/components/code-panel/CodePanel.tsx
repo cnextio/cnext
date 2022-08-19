@@ -8,7 +8,7 @@ import Pane from "react-split-pane-v2";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import TextIOComponent from "./TextIOComponent";
-import ExecutorComponent from "./Executor";
+import ExecutorComponent from "../executor-manager/Executor";
 
 const CodePanel = ({ workingPanelViewMode }) => {
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
