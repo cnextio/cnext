@@ -583,11 +583,13 @@ export const StyledExecutor = styled.span`
         color: #c0c0c0;
         svg {
             font-size: 20px;
-            margin-top: 2px;
+            margin-top: 3px;
         }
         margin: 2px 2px;
         &:hover {
-            color: #808080;
+            svg {
+                background-color: #f3f3f3;
+            }
         }
     }
 `;
