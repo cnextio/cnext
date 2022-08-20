@@ -565,7 +565,7 @@ export const StyledCodeEditor = styled.div`
                 .tooltiptext {
                     visibility: visible;
                 }
-                /* color: #808080; */
+                color: #8a8989;
                 svg {
                     background-color: #f3f3f3;
                 }
@@ -590,6 +590,7 @@ export const StyledExecutor = styled.span`
         }
         margin: 2px 2px;
         &:hover {
+            color: #8a8989;
             svg {
                 background-color: #f3f3f3;
             }
