@@ -406,9 +406,9 @@ const CodeEditor = () => {
             /** have to use Timeout this to make sure the code text got populated to CodeMirror first */
             setTimeout(() => {
                 scrollToPrevPos(store.getState());
-            }, 0);
+            }, 10);
         }
-    }, [serverSynced, codeReloading, view]);
+    }, [serverSynced, codeReloading, view?.state.doc]);
 
     useEffect(() => {
         try {

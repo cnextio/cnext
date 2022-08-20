@@ -231,7 +231,7 @@ const getJoinedCodeText = (state: RootState) => {
 const scrollToPrevPos = (state: RootState) => {
     let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
     let inViewID = state.projectManager.inViewID;
-    if (inViewID) {
+    if (inViewID) {        
         let codeStates = state.codeEditor.codeStates[inViewID];
         if (codeStates && codeStates.scrollPos) {
             scrollEl.scrollTop = codeStates.scrollPos;
@@ -509,16 +509,16 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
             let lines: ICodeLine[] | null = getCodeLine(reduxState);
             if (lines && view.state.doc.lines === lines.length) {
                 // if (event.target.className.includes("cm-line")) {
-                    let doc = view.state.doc;
-                    // const anchor = view.state.selection.ranges[0].anchor;
-                    let pos = view.posAtDOM(event.target);
-                    let hoveredLine = doc.lineAt(pos); /** 1-based */
-                    let lineNumber = doc.lineAt(pos).number - 1; /** 0-based */
+                let doc = view.state.doc;
+                // const anchor = view.state.selection.ranges[0].anchor;
+                let pos = view.posAtDOM(event.target);
+                let hoveredLine = doc.lineAt(pos); /** 1-based */
+                let lineNumber = doc.lineAt(pos).number - 1; /** 0-based */
 
-                    let currentGroupID = lines[lineNumber].groupID;
-                    console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
-                    store.dispatch(setMouseOverGroup(currentGroupID));
-                    store.dispatch(setMouseOverLine({ ...hoveredLine }));
+                let currentGroupID = lines[lineNumber].groupID;
+                console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
+                store.dispatch(setMouseOverGroup(currentGroupID));
+                store.dispatch(setMouseOverLine({ ...hoveredLine }));
                 // } else {
                 //     store.dispatch(setMouseOverGroup(undefined));
                 //     store.dispatch(setMouseOverLine(undefined));
