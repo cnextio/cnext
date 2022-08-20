@@ -565,7 +565,10 @@ export const StyledCodeEditor = styled.div`
                 .tooltiptext {
                     visibility: visible;
                 }
-                color: #808080;
+                /* color: #808080; */
+                svg {
+                    background-color: #f3f3f3;
+                }
             }
         }
     }
