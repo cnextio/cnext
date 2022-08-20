@@ -508,7 +508,7 @@ export const StyledCodeEditor = styled.div`
             cursor: pointer;
             font-size: 11px;
             /* opacity: 0.9; */
-            color: #c0c0c0;
+            color: rgba(0, 0, 0, 0.6);
             /* padding-top: 4px; */
         }
         .cm-cellcommand {
@@ -565,7 +565,7 @@ export const StyledCodeEditor = styled.div`
                 .tooltiptext {
                     visibility: visible;
                 }
-                color: #8a8989;
+                /* color: #8a8989; */
                 svg {
                     background-color: #f3f3f3;
                 }
@@ -583,14 +583,14 @@ export const StyledExecutor = styled.span`
     left: 0;
     .icon {
         cursor: pointer;
-        color: #c0c0c0;
+        color: rgba(0, 0, 0, 0.6);
         svg {
             font-size: 20px;
             margin-top: 3px;
         }
         margin: 2px 2px;
         &:hover {
-            color: #8a8989;
+            /* color: #8a8989; */
             svg {
                 background-color: #f3f3f3;
             }
