@@ -48,7 +48,7 @@ export enum LineStatus {
 export interface ICodeLine {
     lineID: string;
     status: LineStatus;
-    result?: ICodeResult;
+    result?: ICodeResult[];
     textOutput?: ICodeResult;
     generated: boolean;
     groupID?: string;
