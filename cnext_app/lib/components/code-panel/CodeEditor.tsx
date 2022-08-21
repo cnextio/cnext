@@ -104,7 +104,7 @@ import {
 import { lintKeymap } from "@codemirror/lint";
 import { basicSetup } from "../../codemirror/basic-setup";
 import { cellWidget, cellWidgetStateField, setCodeMirrorCellWidget } from "./libCellWidget";
-import { getGroupFoldRange } from "./libCellFold";
+import { getGroupFoldRange as getCellFoldRange } from "./libCellFold";
 import { cellDeco, cellDecoStateField, setCodeMirrorCellDeco } from "./libCellDeco";
 
 // let pyLanguageServer = languageServer({
@@ -160,7 +160,7 @@ const CodeEditor = () => {
 
     const defaultExtensions = [
         basicSetup,
-        foldService.of(getGroupFoldRange),
+        foldService.of(getCellFoldRange),
         lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
         cellWidgetStateField,
