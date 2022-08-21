@@ -11,6 +11,7 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 
 import { useRef } from "react";
 import ReactDOM, { createPortal } from "react-dom";
+import Ansi from "ansi-to-react";
 
 const ScriptComponent = ({ children, script }) => {
     /** We only use this ref for temp div holder of the position for the script.
@@ -127,10 +128,11 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
             let results = [];
             let resultElements = null;
             if (codeResult?.result) {
-                if (!(codeResult?.result instanceof Array)) {
-                    results = [codeResult?.result];
-                } else {
+                if (codeResult?.result instanceof Array) {
                     results = codeResult?.result;
+                } else {
+                    // this part is to make it backward compatible with prev result format
+                    results = [codeResult?.result];
                 }
 
                 resultElements = results.map((result) => {
@@ -225,12 +227,19 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
                         }
                     });
                     if (resultElements instanceof Array) return resultElements.flat();
-                    else return resultElements;                    
+                    else return resultElements;
                 });
             }
 
             if (codeResult?.textOutput) {
-                let textElement = <pre style={{ fontSize: "12px" }} children={codeResult?.textOutput.content} />;
+                let textElement = (
+                    <pre
+                        style={{ fontSize: "12px" }}
+                        // children={codeResult?.textOutput.content}
+                    >
+                        <Ansi>{codeResult?.textOutput.content}</Ansi>
+                    </pre>
+                );
                 if (resultElements instanceof Array) {
                     /** only display text/plain when it is the only content */
                     resultElements.push(textElement);

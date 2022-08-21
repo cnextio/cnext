@@ -400,12 +400,13 @@ export const CodeEditorRedux = createSlice({
                         content: content,
                         msg_id: resultMessage.metadata.msg_id,
                     };
-                    // point every line in the group to the same result since this point to the same memory it is not costly
-                    // for (let line = fromLine; line < lineRange.toLine; line++) {
-                    //     codeLines[line].result = newResult;
-                    // }
+                    
                     // assign the result of a group only to the first line
                     if (codeLines[fromLine].result != null) {
+                        // this is for backward compatible with the previous format of result
+                        if (!(codeLines[fromLine].result instanceof Array)) {
+                            codeLines[fromLine].result = [codeLines[fromLine].result];                            
+                        }
                         codeLines[fromLine].result?.push(newResult);
                     } else {
                         codeLines[fromLine].result = [newResult];
