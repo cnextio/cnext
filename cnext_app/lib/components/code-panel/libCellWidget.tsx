@@ -107,10 +107,10 @@ export const cellWidgetExtension = EditorView.decorations.compute(
 
 export const setCodeMirrorCellWidget = (view: EditorView) => {
     // temp fix for the scrolling issue due to rerendering
-    let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
-    scrollEl.classList.add("stop-scrolling");
-    let oldScroll = scrollEl.scrollTop;
-    let oldHeight = scrollEl.scrollHeight;
+    // let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
+    // scrollEl.classList.add("stop-scrolling");
+    // let oldScroll = scrollEl.scrollTop;
+    // let oldHeight = scrollEl.scrollHeight;
 
     let transactionSpec: TransactionSpec = {
         effects: cellWidgetStateEffect.of(0),
@@ -118,10 +118,10 @@ export const setCodeMirrorCellWidget = (view: EditorView) => {
     view.dispatch(view.state.update(transactionSpec));
 
     // temp fix for the scrolling issue due to rerendering
-    setTimeout(() => {
-        scrollEl.scrollTop = oldScroll + scrollEl.scrollHeight - oldHeight;
-        scrollEl.classList.remove("stop-scrolling");
-    }, 0);
+    // setTimeout(() => {
+    //     scrollEl.scrollTop = oldScroll + scrollEl.scrollHeight - oldHeight;
+    //     scrollEl.classList.remove("stop-scrolling");
+    // }, 0);
 };
 
 export function cellWidget() {

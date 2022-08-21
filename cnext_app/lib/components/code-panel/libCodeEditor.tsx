@@ -117,23 +117,31 @@ const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStat
     store.dispatch(setLineStatusRedux(lineStatus));
 };
 
-const setAnchorToPos = (view: EditorView, lineNumber: number) => {
-    let pos = view.state.doc.line(lineNumber + 1).from; // convert to 1-based
-    view.dispatch({
-        selection: { anchor: pos, head: pos },
-        scrollIntoView: true,
-    });
+const setAnchorToPos = (view: EditorView, inViewID: string, pos: number) => {
+    if (view != null && inViewID != null) {
+        /** set CM's anchor */
+        view.dispatch({
+            selection: { anchor: pos, head: pos },
+            scrollIntoView: true,
+        });
+
+        /** set active line */
+        let lineNumber = view.state.doc.lineAt(pos).number - 1; // convert to 0-based
+        setActiveLine(inViewID, lineNumber);
+    }
 };
 
 /** lineNum is 0 based */
-const setAnchorToLine = (
-    view: EditorView,
-    inViewID: string,
-    lineNumber: number
-    // scrollIntoView: boolean
-) => {
+const setAnchorToLine = (view: EditorView, inViewID: string, lineNumber: number) => {
     if (view != null && inViewID != null) {
-        setAnchorToPos(view, lineNumber);
+        /** set CM's anchor */
+        let pos = view.state.doc.line(lineNumber + 1).from; // convert to 1-based
+        view.dispatch({
+            selection: { anchor: pos, head: pos },
+            scrollIntoView: true,
+        });
+
+        /** set active line */
         setActiveLine(inViewID, lineNumber);
     }
 };
@@ -231,7 +239,7 @@ const getJoinedCodeText = (state: RootState) => {
 const scrollToPrevPos = (state: RootState) => {
     let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
     let inViewID = state.projectManager.inViewID;
-    if (inViewID) {        
+    if (inViewID) {
         let codeStates = state.codeEditor.codeStates[inViewID];
         if (codeStates && codeStates.scrollPos) {
             scrollEl.scrollTop = codeStates.scrollPos;
@@ -479,12 +487,14 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
         if (view != null) {
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
-            // console.log("CodeEditor event target: ", event.target);
+            // console.log("CodeEditor onMouseDown event target: ", event.target);
             let pos = view.posAtDOM(event.target);
             //convert to 0-based
             let lineNumber = doc.lineAt(pos).number - 1;
             let inViewID = store.getState().projectManager.inViewID;
-            if (inViewID) setActiveLine(inViewID, lineNumber);
+            if (inViewID) {                
+                setActiveLine(inViewID, lineNumber);
+            }
         }
     } catch (error) {
         console.error(error);
@@ -884,6 +894,7 @@ export {
     isPromise,
     getRunningCommandContent,
     getNonGeneratedLinesInRange,
+    setAnchorToLine,
     setAnchorToPos,
     setAnchor,
     setAnchorToNextGroup,

@@ -85,6 +85,7 @@ import {
     execLines,
     fileClosingHandler,
     addToRunQueueHover,
+    setAnchorToPos,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
@@ -332,7 +333,7 @@ const CodeEditor = () => {
     /** this useEffect forces CM to update cell status whenever codeLine or activeGroup changes */
     useEffect(() => {
         if (view != null) {
-            // console.log("CodeEditor codeLine");
+            // console.log("CodeEditor codeLine activeGroup");
             setCodeMirrorCellDeco(view);
         }
     }, [codeLine, activeGroup]);
@@ -552,7 +553,7 @@ const CodeEditor = () => {
                     // console.log("CodeEditor handleCodeToInsert ", lineStatus);
                 }
                 // set the anchor to the inserted line
-                setAnchor(view, codeToInsert.fromPos + 1);
+                setAnchorToPos(view, inViewID, codeToInsert.fromPos+1);                
                 dispatch(setCodeToInsert(null));
             }
     };
