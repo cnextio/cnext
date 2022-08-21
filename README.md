@@ -35,7 +35,7 @@ Step 5: Run command `docker-compose up -d`
 
 -   The web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 4000)
 -   To stop the application: `docker-compose down`
--   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine, by default they are 3000 and 4000 respectively)
+-   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine)
 
 ## Installation via Pip
 
@@ -54,7 +54,7 @@ Step 6 `run` command `cnext-run`
 
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 4000)
 -   Stop application: `Ctrl + c | Command + c`
--   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine, by default they are 3000 and 4000 respectively)
+-   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine)
 
 ## Release Note
 
@@ -142,7 +142,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 [website]: https://www.cnext.io/
 [docker image]: https://hub.docker.com/r/cycai/cnext
-[documentation]: https://internal-lace-ae4.notion.site/Product-Documentation-0dd58ea1cfe14dfab3666c5ec633ae96
+[documentation]: https://docs.cnext.io/
 [overview video]: https://youtu.be/5eWPkQIUfZw
 [cnext]: https://drive.google.com/file/d/1ft4PmFclylOtEAQSPBqn9nUSyAkMs5R-
 [docker]: https://www.docker.com/products/docker-desktop/
