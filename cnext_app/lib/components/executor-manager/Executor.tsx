@@ -1,7 +1,7 @@
 import { AppToolbarList, StyledExecutor } from "../StyledComponents";
 import * as React from "react";
 import { Fragment, useEffect, useState } from "react";
-
+import AddCardIcon from "@mui/icons-material/AddCard";
 import FolderIcon from "@mui/icons-material/Folder";
 import PauseIcon from "@mui/icons-material/Pause";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
@@ -18,7 +18,7 @@ import {
 } from "../StyledComponents";
 import { SideBarName } from "../../interfaces/IApp";
 import { Tooltip } from "@mui/material";
-import { clearAllOutputs } from "../../../redux/reducers/CodeEditorRedux";
+import { clearAllOutputs, setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { useDispatch } from "react-redux";
 import store from "../../../redux/store";
@@ -55,6 +55,8 @@ const ExecutorComponent = () => {
             setKernelCommand(ExecutorManagerCommand.restart_kernel);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
+        } else if (name === SideBarName.ADD_CELL) {
+            store.dispatch(setCellCommand(SideBarName.ADD_CELL));
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -88,6 +90,11 @@ const ExecutorComponent = () => {
             name: SideBarName.CLEAR_OUTPUTS,
             component: <PlaylistRemoveIcon fontSize="small" />,
             tooltip: "Clear results and outputs",
+        },
+        {
+            name: SideBarName.ADD_CELL,
+            component: <AddCardIcon fontSize="small" />,
+            tooltip: "Add Cell",
         },
     ];
     return (

@@ -580,7 +580,8 @@ export const StyledExecutor = styled.span`
     background: #ffff;
     display: inline-block;
     position: absolute;
-    left: 0;
+    padding-right: 10px;
+    right: 0;
     .icon {
         cursor: pointer;
         color: rgba(0, 0, 0, 0.6);
