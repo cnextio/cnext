@@ -569,8 +569,14 @@ export const StyledCodeEditor = styled.div`
             }
         }
     }
+    
     .cm-foldGutter {
         font-size: 11px;
+    }
+
+    .stop-scrolling {
+        height: 100%;
+        overflow: hidden;
     }
 `;
 
