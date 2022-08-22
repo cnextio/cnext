@@ -146,7 +146,7 @@ const CodeEditor = () => {
     const lineStatusUpdate = useSelector(
         (state: RootState) => state.codeEditor.lineStatusUpdateCount
     );
-    const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
+    // const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
     const cellCommand = useSelector((state: RootState) => state.codeEditor.cellCommand);
 
     // const [cmUpdatedCounter, setCMUpdatedCounter] = useState(0);
@@ -322,18 +322,19 @@ const CodeEditor = () => {
         });
     };
 
-    /** this useEffect forces CM to update cell status whenever codeLine or mouseOverGroupID changes */
+    /** this useEffect forces CM to update cell status whenever codeLine.length changes 
+     * Note that this is only conditioned on codeLine.length not codeLine because codeLine
+     * itself might change when the code is being excuted like when the line status change
+     * Make widget update on every status change will make the screen jittering */
     useEffect(() => {
         if (view != null) {
-            // console.log("CodeEditor codeLine");
             setCodeMirrorCellWidget(view);
-        }
-    }, [codeLine]);
+        }        
+    }, [codeLine?.length]);
 
     /** this useEffect forces CM to update cell status whenever codeLine or activeGroup changes */
     useEffect(() => {
         if (view != null) {
-            // console.log("CodeEditor codeLine activeGroup");
             setCodeMirrorCellDeco(view);
         }
     }, [codeLine, activeGroup]);
@@ -550,11 +551,16 @@ const CodeEditor = () => {
                         setGroup: SetLineGroupCommand.NEW,
                     };
                     dispatch(setLineGroupStatus(lineStatus));
+
                     // console.log("CodeEditor handleCodeToInsert ", lineStatus);
                 }
                 // set the anchor to the inserted line
-                setAnchorToPos(view, inViewID, codeToInsert.fromPos+1);                
+                setAnchorToPos(view, inViewID, codeToInsert.fromPos + 1);
                 dispatch(setCodeToInsert(null));
+
+                // TODO: this is a hacky way to force cell widget to be rerendered after the cell has been defined
+                // i.e. when after setLineGroupStatus is dispatched
+                setCodeMirrorCellWidget(view);
             }
     };
 
