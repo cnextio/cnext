@@ -434,14 +434,19 @@ const CodeEditor = () => {
     useEffect(() => {
         const state = store.getState();
         const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
-        if (view != null && cellCommand && state.codeEditor.mouseOverLine) {
-            const inViewID = state.projectManager.inViewID;
-            const line = state.codeEditor.mouseOverLine.number;
-            let activeLine: ICodeActiveLine = {
-                inViewID: inViewID || "",
-                lineNumber: line - 1,
-            };
-            store.dispatch(setActiveLineRedux(activeLine));
+        console.log("change", cellCommand, state.codeEditor.mouseOverLine);
+
+        if (view != null && cellCommand) {
+            let line = null;
+            if (state.codeEditor.mouseOverLine) {
+                const inViewID = state.projectManager.inViewID;
+                line = state.codeEditor.mouseOverLine.number;
+                let activeLine: ICodeActiveLine = {
+                    inViewID: inViewID || "",
+                    lineNumber: line - 1,
+                };
+                store.dispatch(setActiveLineRedux(activeLine));
+            }
 
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
@@ -553,12 +558,12 @@ const CodeEditor = () => {
                     // console.log("CodeEditor handleCodeToInsert ", lineStatus);
                 }
                 // set the anchor to the inserted line
-                setAnchorToPos(view, inViewID, codeToInsert.fromPos+1);                
+                setAnchorToPos(view, inViewID, codeToInsert.fromPos + 1);
                 dispatch(setCodeToInsert(null));
             }
     };
 
-    function insertBelow(mode: CodeInsertMode, line?: number): boolean {
+    function insertBelow(mode: CodeInsertMode, line?: number | null): boolean {
         if (view && inViewID) {
             const codeLines = store.getState().codeEditor.codeLines[inViewID];
             const state = view.state;

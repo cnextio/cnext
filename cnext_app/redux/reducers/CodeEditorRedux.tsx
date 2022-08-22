@@ -425,7 +425,7 @@ export const CodeEditorRedux = createSlice({
             state.mouseOverGroupID = action.payload;
         },
 
-        setCellCommand: (state, action) => {
+        setCellCommand: (state, action) => {            
             state.cellCommand = action.payload;
         },
 
