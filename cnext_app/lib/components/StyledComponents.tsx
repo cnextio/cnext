@@ -508,7 +508,11 @@ export const StyledCodeEditor = styled.div`
             cursor: pointer;
             font-size: 11px;
             /* opacity: 0.9; */
+            opacity: 0;
             color: rgba(0, 0, 0, 0.6);
+            &:hover{
+                opacity: 1;
+            }
             /* padding-top: 4px; */
         }
         .cm-cellcommand {
@@ -583,7 +587,7 @@ export const StyledCodeEditor = styled.div`
     }
 `;
 export const StyledExecutor = styled.span`
-    background: #ffff;
+    background: #f6f5f5;
     display: inline-block;
     position: absolute;
     padding-right: 10px;

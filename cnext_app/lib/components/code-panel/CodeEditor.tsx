@@ -328,7 +328,7 @@ const CodeEditor = () => {
             // console.log("CodeEditor codeLine");
             setCodeMirrorCellWidget(view);
         }
-    }, [codeLine, mouseOverGroupID]);
+    }, [codeLine]);
 
     /** this useEffect forces CM to update cell status whenever codeLine or activeGroup changes */
     useEffect(() => {

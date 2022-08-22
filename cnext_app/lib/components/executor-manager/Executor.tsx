@@ -91,11 +91,11 @@ const ExecutorComponent = () => {
             component: <PlaylistRemoveIcon fontSize="small" />,
             tooltip: "Clear results and outputs",
         },
-        {
-            name: SideBarName.ADD_CELL,
-            component: <AddCardIcon fontSize="small" />,
-            tooltip: "Add Cell",
-        },
+        // {
+        //     name: SideBarName.ADD_CELL,
+        //     component: <AddCardIcon fontSize="small" />,
+        //     tooltip: "Add Cell",
+        // },
     ];
     return (
         <StyledExecutor>
