@@ -55,7 +55,7 @@ const ExecutorComponent = () => {
             setKernelCommand(ExecutorManagerCommand.restart_kernel);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
-        } else if (name === SideBarName.ADD_CELL) {
+        } else if (name === SideBarName.ADD_CELL) {            
             store.dispatch(setCellCommand(SideBarName.ADD_CELL));
         } else {
             if (name === selectedIcon) {
@@ -91,11 +91,11 @@ const ExecutorComponent = () => {
             component: <PlaylistRemoveIcon fontSize="small" />,
             tooltip: "Clear results and outputs",
         },
-        // {
-        //     name: SideBarName.ADD_CELL,
-        //     component: <AddCardIcon fontSize="small" />,
-        //     tooltip: "Add Cell",
-        // },
+        {
+            name: SideBarName.ADD_CELL,
+            component: <AddCardIcon fontSize="small" />,
+            tooltip: "Add Cell",
+        },
     ];
     return (
         <StyledExecutor>
