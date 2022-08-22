@@ -104,7 +104,7 @@ import {
 import { lintKeymap } from "@codemirror/lint";
 import { basicSetup } from "../../codemirror/basic-setup";
 import { cellWidget, cellWidgetStateField, setCodeMirrorCellWidget } from "./libCellWidget";
-import { getGroupFoldRange as getCellFoldRange } from "./libCellFold";
+import { getCellFoldRange } from "./libCellFold";
 import { cellDeco, cellDecoStateField, setCodeMirrorCellDeco } from "./libCellDeco";
 
 // let pyLanguageServer = languageServer({
