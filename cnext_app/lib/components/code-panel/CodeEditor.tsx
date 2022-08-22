@@ -132,7 +132,10 @@ const CodeEditor = () => {
     );
     /** using this to trigger refresh in gutter */
     // const codeText = useSelector((state: RootState) => getCodeText(state));
-    const codeLine = useSelector((state: RootState) => getCodeLine(state));
+
+    const cellAssocUpdateCount = useSelector(
+        (state: RootState) => state.codeEditor.cellAssocUpdateCount
+    );
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
@@ -322,22 +325,22 @@ const CodeEditor = () => {
         });
     };
 
-    /** this useEffect forces CM to update cell status whenever codeLine.length changes 
+    /** this useEffect forces CM to update cell status whenever codeLine.length changes
      * Note that this is only conditioned on codeLine.length not codeLine because codeLine
      * itself might change when the code is being excuted like when the line status change
      * Make widget update on every status change will make the screen jittering */
     useEffect(() => {
         if (view != null) {
             setCodeMirrorCellWidget(view);
-        }        
-    }, [codeLine?.length]);
+        }
+    }, [cellAssocUpdateCount]);
 
     /** this useEffect forces CM to update cell status whenever codeLine or activeGroup changes */
     useEffect(() => {
         if (view != null) {
             setCodeMirrorCellDeco(view);
         }
-    }, [codeLine, activeGroup]);
+    }, [cellAssocUpdateCount, activeGroup]);
 
     /** clear the run queue when the executor restarted */
     useEffect(() => {
