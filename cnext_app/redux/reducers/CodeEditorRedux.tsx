@@ -381,7 +381,7 @@ export const CodeEditorRedux = createSlice({
                     // if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
                     //     codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
                     // }
-                    state.textOutputUpdateCount += 1;
+                    state.textOutputUpdateCount++;
                     state.saveCodeLineCounter++;
                 } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
                     let oldContent = codeLines[fromLine].result?.content;
@@ -396,16 +396,22 @@ export const CodeEditorRedux = createSlice({
                     let newResult = {
                         type: resultMessage.type,
                         subType: resultMessage.subType,
-                        content: Object.assign({}, oldContent, content),
+                        // content: Object.assign({}, oldContent, content),
+                        content: content,
                         msg_id: resultMessage.metadata.msg_id,
                     };
-                    // point every line in the group to the same result since this point to the same memory it is not costly
-                    // for (let line = fromLine; line < lineRange.toLine; line++) {
-                    //     codeLines[line].result = newResult;
-                    // }
+                    
                     // assign the result of a group only to the first line
-                    codeLines[fromLine].result = newResult;
-                    state.resultUpdateCount += 1;
+                    if (codeLines[fromLine].result != null) {
+                        // this is for backward compatible with the previous format of result
+                        if (!(codeLines[fromLine].result instanceof Array)) {
+                            codeLines[fromLine].result = [codeLines[fromLine].result];                            
+                        }
+                        codeLines[fromLine].result?.push(newResult);
+                    } else {
+                        codeLines[fromLine].result = [newResult];
+                    }
+                    state.resultUpdateCount++;
                     state.saveCodeLineCounter++;
                 }
             }

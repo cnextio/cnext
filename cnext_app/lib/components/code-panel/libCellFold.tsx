@@ -1,7 +1,7 @@
 import { EditorState } from "@codemirror/state";
 import store from "../../../redux/store";
 
-export const getGroupFoldRange = (state: EditorState, lineStart: number, lineEnd: number) => {
+export const getCellFoldRange = (state: EditorState, lineStart: number, lineEnd: number) => {
     let reduxState = store.getState();
     let inViewID = reduxState.projectManager.inViewID;
     if (state && inViewID) {

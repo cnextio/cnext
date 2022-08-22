@@ -85,6 +85,7 @@ import {
     execLines,
     fileClosingHandler,
     addToRunQueueHover,
+    setAnchorToPos,
 } from "./libCodeEditor";
 import { cAssistExtraOptsPlugin, parseCAssistText } from "./libCAssist";
 import CypressIds from "../tests/CypressIds";
@@ -104,7 +105,7 @@ import {
 import { lintKeymap } from "@codemirror/lint";
 import { basicSetup } from "../../codemirror/basic-setup";
 import { cellWidget, cellWidgetStateField, setCodeMirrorCellWidget } from "./libCellWidget";
-import { getGroupFoldRange } from "./libCellFold";
+import { getCellFoldRange } from "./libCellFold";
 import { cellDeco, cellDecoStateField, setCodeMirrorCellDeco } from "./libCellDeco";
 
 // let pyLanguageServer = languageServer({
@@ -160,7 +161,7 @@ const CodeEditor = () => {
 
     const defaultExtensions = [
         basicSetup,
-        foldService.of(getGroupFoldRange),
+        foldService.of(getCellFoldRange),
         lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
         cellWidgetStateField,
@@ -332,7 +333,7 @@ const CodeEditor = () => {
     /** this useEffect forces CM to update cell status whenever codeLine or activeGroup changes */
     useEffect(() => {
         if (view != null) {
-            // console.log("CodeEditor codeLine");
+            // console.log("CodeEditor codeLine activeGroup");
             setCodeMirrorCellDeco(view);
         }
     }, [codeLine, activeGroup]);
@@ -406,9 +407,9 @@ const CodeEditor = () => {
             /** have to use Timeout this to make sure the code text got populated to CodeMirror first */
             setTimeout(() => {
                 scrollToPrevPos(store.getState());
-            }, 0);
+            }, 10);
         }
-    }, [serverSynced, codeReloading, view]);
+    }, [serverSynced, codeReloading, view?.state.doc]);
 
     useEffect(() => {
         try {
@@ -552,7 +553,7 @@ const CodeEditor = () => {
                     // console.log("CodeEditor handleCodeToInsert ", lineStatus);
                 }
                 // set the anchor to the inserted line
-                setAnchor(view, codeToInsert.fromPos + 1);
+                setAnchorToPos(view, inViewID, codeToInsert.fromPos+1);                
                 dispatch(setCodeToInsert(null));
             }
     };

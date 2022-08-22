@@ -117,23 +117,31 @@ const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStat
     store.dispatch(setLineStatusRedux(lineStatus));
 };
 
-const setAnchorToPos = (view: EditorView, lineNumber: number) => {
-    let pos = view.state.doc.line(lineNumber + 1).from; // convert to 1-based
-    view.dispatch({
-        selection: { anchor: pos, head: pos },
-        scrollIntoView: true,
-    });
+const setAnchorToPos = (view: EditorView, inViewID: string, pos: number) => {
+    if (view != null && inViewID != null) {
+        /** set CM's anchor */
+        view.dispatch({
+            selection: { anchor: pos, head: pos },
+            scrollIntoView: true,
+        });
+
+        /** set active line */
+        let lineNumber = view.state.doc.lineAt(pos).number - 1; // convert to 0-based
+        setActiveLine(inViewID, lineNumber);
+    }
 };
 
 /** lineNum is 0 based */
-const setAnchorToLine = (
-    view: EditorView,
-    inViewID: string,
-    lineNumber: number
-    // scrollIntoView: boolean
-) => {
+const setAnchorToLine = (view: EditorView, inViewID: string, lineNumber: number) => {
     if (view != null && inViewID != null) {
-        setAnchorToPos(view, lineNumber);
+        /** set CM's anchor */
+        let pos = view.state.doc.line(lineNumber + 1).from; // convert to 1-based
+        view.dispatch({
+            selection: { anchor: pos, head: pos },
+            scrollIntoView: true,
+        });
+
+        /** set active line */
         setActiveLine(inViewID, lineNumber);
     }
 };
@@ -479,12 +487,14 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
         if (view != null) {
             //Note: can't use editorRef.current.state.doc, this one is useless, did not update with the doc.
             let doc = view.state.doc;
-            // console.log("CodeEditor event target: ", event.target);
+            // console.log("CodeEditor onMouseDown event target: ", event.target);
             let pos = view.posAtDOM(event.target);
             //convert to 0-based
             let lineNumber = doc.lineAt(pos).number - 1;
             let inViewID = store.getState().projectManager.inViewID;
-            if (inViewID) setActiveLine(inViewID, lineNumber);
+            if (inViewID) {                
+                setActiveLine(inViewID, lineNumber);
+            }
         }
     } catch (error) {
         console.error(error);
@@ -509,16 +519,16 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
             let lines: ICodeLine[] | null = getCodeLine(reduxState);
             if (lines && view.state.doc.lines === lines.length) {
                 // if (event.target.className.includes("cm-line")) {
-                    let doc = view.state.doc;
-                    // const anchor = view.state.selection.ranges[0].anchor;
-                    let pos = view.posAtDOM(event.target);
-                    let hoveredLine = doc.lineAt(pos); /** 1-based */
-                    let lineNumber = doc.lineAt(pos).number - 1; /** 0-based */
+                let doc = view.state.doc;
+                // const anchor = view.state.selection.ranges[0].anchor;
+                let pos = view.posAtDOM(event.target);
+                let hoveredLine = doc.lineAt(pos); /** 1-based */
+                let lineNumber = doc.lineAt(pos).number - 1; /** 0-based */
 
-                    let currentGroupID = lines[lineNumber].groupID;
-                    console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
-                    store.dispatch(setMouseOverGroup(currentGroupID));
-                    store.dispatch(setMouseOverLine({ ...hoveredLine }));
+                let currentGroupID = lines[lineNumber].groupID;
+                console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
+                store.dispatch(setMouseOverGroup(currentGroupID));
+                store.dispatch(setMouseOverLine({ ...hoveredLine }));
                 // } else {
                 //     store.dispatch(setMouseOverGroup(undefined));
                 //     store.dispatch(setMouseOverLine(undefined));
@@ -884,6 +894,7 @@ export {
     isPromise,
     getRunningCommandContent,
     getNonGeneratedLinesInRange,
+    setAnchorToLine,
     setAnchorToPos,
     setAnchor,
     setAnchorToNextGroup,
