@@ -505,11 +505,14 @@ export const StyledCodeEditor = styled.div`
         width: 100%;
         /* padding-left: 5px; */
         &.show {
-            color: back;
             cursor: pointer;
             font-size: 11px;
             /* opacity: 0.9; */
-            color: #ccc;
+            opacity: 0;
+            color: rgba(0, 0, 0, 0.6);
+            &:hover{
+                opacity: 1;
+            }
             /* padding-top: 4px; */
         }
         .cm-cellcommand {
@@ -566,6 +569,10 @@ export const StyledCodeEditor = styled.div`
                 .tooltiptext {
                     visibility: visible;
                 }
+                /* color: #8a8989; */
+                svg {
+                    background-color: #f3f3f3;
+                }
             }
         }
     }
@@ -577,6 +584,28 @@ export const StyledCodeEditor = styled.div`
     .stop-scrolling {
         height: 100%;
         overflow: hidden;
+    }
+`;
+export const StyledExecutor = styled.span`
+    background: #f6f5f5;
+    display: inline-block;
+    position: absolute;
+    padding-right: 10px;
+    right: 0;
+    .icon {
+        cursor: pointer;
+        color: rgba(0, 0, 0, 0.6);
+        svg {
+            font-size: 20px;
+            margin-top: 3px;
+        }
+        margin: 2px 2px;
+        &:hover {
+            /* color: #8a8989; */
+            svg {
+                background-color: #f3f3f3;
+            }
+        }
     }
 `;
 
