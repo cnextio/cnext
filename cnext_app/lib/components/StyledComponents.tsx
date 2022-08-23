@@ -594,8 +594,15 @@ export const StyledExecutor = styled.span`
     padding-right: 10px;
     right: 0;
     .sidebar-icons:last-child {
-        border-left: 1px solid;
-        height: 10px;
+        position: relative;
+        &::before {
+            content: "";
+            border-left: 1px solid #999898;
+            height: 18px;
+            position: absolute;
+            left: -1px;
+            top: 3px;
+        }
     }
     .sidebar-icons {
         padding: 2px 4px;
