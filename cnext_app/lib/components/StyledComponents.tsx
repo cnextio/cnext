@@ -298,7 +298,7 @@ export const StyledCodePanel = styled.div`
 export const CodeToolbar = styled.div`
     display: flex;
     --var-height: 30px;
-    width: calc(100% - 125px);
+    width: calc(100% - 115px);
     height: calc(var(--var-height));
     align-items: center;
     background-color: ${(props) => props.theme.palette.grey.A200};
@@ -589,37 +589,24 @@ export const StyledCodeEditor = styled.div`
 `;
 export const StyledExecutor = styled.span`
     background: #f6f5f5;
-    display: inline-block;
+    display: flex;
     position: absolute;
     padding-right: 10px;
     right: 0;
-    .sidebar-icons:last-child {
-        position: relative;
-        &::before {
-            content: "";
-            border-left: 1px solid #999898;
-            height: 18px;
-            position: absolute;
-            left: -1px;
-            top: 3px;
+    /* padding-top: 1px; */
+    .icon {
+        padding: 0px 3px 0px 3px;
+        cursor: pointer;
+        color: rgba(0, 0, 0, 0.6);
+        svg {
+            padding-top: 6px;
+            font-size: 22px;
         }
-    }
-    .sidebar-icons {
-        padding: 2px 4px;
-
-        .icon {
-            cursor: pointer;
-            color: rgba(0, 0, 0, 0.6);
+        &:hover {
+            /* color: #8a8989; */
             svg {
-                font-size: 20px;
-                margin-top: 3px;
-            }
-            margin: 2px 2px;
-            &:hover {
-                /* color: #8a8989; */
-                svg {
-                    background-color: #e6e5e5;
-                }
+                background-color: #e6e5e5;
+                background-clip: content-box;
             }
         }
     }

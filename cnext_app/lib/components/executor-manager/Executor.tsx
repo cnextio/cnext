@@ -1,42 +1,31 @@
-import { AppToolbarList, StyledExecutor } from "../StyledComponents";
+import { StyledExecutor } from "../StyledComponents";
 import * as React from "react";
-import { Fragment, useEffect, useState } from "react";
+import { useState } from "react";
 import AddCardIcon from "@mui/icons-material/AddCard";
-import FolderIcon from "@mui/icons-material/Folder";
 import PauseIcon from "@mui/icons-material/Pause";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
-import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
 
-import {
-    AppToolbar,
-    AppToolbarItem as StyledAppToolbarItem,
-    SidebarButton as StyledSidebarButton,
-    SideBarDividerContainer,
-    MainContainerDivider,
-    Sidebar,
-} from "../StyledComponents";
 import { SideBarName } from "../../interfaces/IApp";
-import { Tooltip } from "@mui/material";
+import { Divider, Tooltip } from "@mui/material";
 import { clearAllOutputs, setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { useDispatch } from "react-redux";
 import store from "../../../redux/store";
 import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
 import { interruptKernel, restartKernel } from "./ExecutorManager";
+import { CellCommand } from "../../interfaces/ICodeEditor";
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
-        <span key={icon.name} selected={selectedIcon === icon.name} className="sidebar-icons">
-            <Tooltip title={icon.tooltip} placement="bottom-end">
-                <span
-                    className="icon"
-                    id={"sidebar_" + icon.name}
-                    onClick={() => handleClick(icon.name)}
-                >
-                    {icon.component}
-                </span>
-            </Tooltip>
-        </span>
+        <Tooltip title={icon.tooltip} placement="bottom-end">
+            <span
+                className="icon"
+                id={"sidebar_" + icon.name}
+                onClick={() => handleClick(icon.name)}
+            >
+                {icon.component}
+            </span>
+        </Tooltip>
     );
 };
 const ExecutorComponent = () => {
@@ -55,7 +44,7 @@ const ExecutorComponent = () => {
             setKernelCommand(ExecutorManagerCommand.restart_kernel);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
-        } else if (name === SideBarName.ADD_CELL) {
+        } else if (name === CellCommand.ADD_CELL) {
             store.dispatch(setCellCommand(SideBarName.ADD_CELL));
         } else {
             if (name === selectedIcon) {
@@ -91,15 +80,31 @@ const ExecutorComponent = () => {
             component: <PlaylistRemoveIcon fontSize="small" />,
             tooltip: "Clear results and outputs",
         },
+    ];
+    const cellCommandIconList = [
         {
-            name: SideBarName.ADD_CELL,
-            component: <AddCardIcon fontSize="small" />,
+            name: CellCommand.ADD_CELL,
+            component: <AddCardIcon />,
             tooltip: "Add Cell",
         },
     ];
+    const SideBarDivider = () => {
+        return (
+            <Divider style={{ marginTop: "5px", height: "18px" }} orientation="vertical" flexItem />
+        );
+    };
     return (
         <StyledExecutor>
             {executorManagerIconList.map((icon, index) => (
+                <AppToolbarItem
+                    key={index}
+                    selectedIcon={selectedIcon}
+                    icon={icon}
+                    handleClick={handleClick}
+                />
+            ))}
+            <SideBarDivider />
+            {cellCommandIconList.map((icon, index) => (
                 <AppToolbarItem
                     key={index}
                     selectedIcon={selectedIcon}
