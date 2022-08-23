@@ -23,6 +23,9 @@ const ResultPanel = React.memo((props: any) => {
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     /** this is used to trigger the rerender of this component whenever there is a new result update */
     const resultUpdateCount = useSelector((state: RootState) => state.codeEditor.resultUpdateCount);
+    const textOutputUpdateCount = useSelector(
+        (state: RootState) => state.codeEditor.textOutputUpdateCount
+    );
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
@@ -57,15 +60,17 @@ const ResultPanel = React.memo((props: any) => {
             const codeWithResult: ICodeLine[] = codeLines?.filter((codeLine) => {
                 /** only display one result in a group */
                 if (codeLine.groupID == null) {
-                    return codeLine.result?.type === ContentType.RICH_OUTPUT;
+                    // return codeLine.result?.type === ContentType.RICH_OUTPUT;
+                    return codeLine.result != null || codeLine.textOutput != null;
                 } else if (!groupIDSet.has(codeLine.groupID)) {
                     groupIDSet.add(codeLine.groupID);
-                    return codeLine.result?.type === ContentType.RICH_OUTPUT;
+                    // return codeLine.result?.type === ContentType.RICH_OUTPUT;
+                    return codeLine.result != null || codeLine.textOutput != null;
                 } else {
                     return false;
                 }
             });
-            console.log("ResultPanel render");
+            // console.log("ResultPanel render");
             if (showDashboard) {
                 return <DashboardView />;
             } else {

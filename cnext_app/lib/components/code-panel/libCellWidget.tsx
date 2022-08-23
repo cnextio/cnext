@@ -25,7 +25,7 @@ class CellWidget extends WidgetType {
     toDOM() {
         const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
         let wrap = document.createElement("div");
-        if (mouseOverGroupID && mouseOverGroupID === this.groupId) {
+        if (this.groupId) {
             const cellItems = [
                 {
                     text: "Run Cell",
@@ -61,9 +61,8 @@ class CellWidget extends WidgetType {
                 });
             }
         }
-        wrap.className = `cm-groupwidget ${
-            mouseOverGroupID && mouseOverGroupID === this.groupId ? "show" : ""
-        }`;
+        wrap.className = `cm-groupwidget show`;
+        wrap.id = `cm-groupwidget-${this.groupId}`;
 
         return wrap;
     }
@@ -106,10 +105,22 @@ export const cellWidgetExtension = EditorView.decorations.compute(
 );
 
 export const setCodeMirrorCellWidget = (view: EditorView) => {
+    // temp fix for the scrolling issue due to rerendering
+    // let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
+    // scrollEl.classList.add("stop-scrolling");
+    // let oldScroll = scrollEl.scrollTop;
+    // let oldHeight = scrollEl.scrollHeight;
+
     let transactionSpec: TransactionSpec = {
         effects: cellWidgetStateEffect.of(0),
     };
     view.dispatch(view.state.update(transactionSpec));
+
+    // temp fix for the scrolling issue due to rerendering
+    // setTimeout(() => {
+    //     scrollEl.scrollTop = oldScroll + scrollEl.scrollHeight - oldHeight;
+    //     scrollEl.classList.remove("stop-scrolling");
+    // }, 0);
 };
 
 export function cellWidget() {
