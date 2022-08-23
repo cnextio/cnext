@@ -115,7 +115,7 @@ jobs:
           path: dist
 
       - uses: google-github-actions/release-please-action@v3
-        if: startsWith(github.ref, 'main')
+        if: startsWith(github.ref, 'refs/heads/main')
         with:
           release-type: python
           package-name: cnext
