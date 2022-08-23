@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import ReactHtmlParser from "html-react-parser";
+import ReactHtmlParser, { attributesToProps, domToReact } from "html-react-parser";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -111,13 +111,18 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
         }
     };
 
-    const getMimeWithImage = (mimeTypes: string[]) => {
-        for (let i = 0; i < mimeTypes.length; i++) {
-            if (mimeTypes[i].includes("image/")) {
-                return mimeTypes[i];
-            }
-        }
-        return null;
+    // const getImageMime = (mimeTypes: string[]) => {
+    //     for (let i = 0; i < mimeTypes.length; i++) {
+    //         if (mimeTypes[i].includes("image/")) {
+    //             return mimeTypes[i];
+    //         }
+    //     }
+    //     return null;
+    // };
+
+    const isImageMime = (mimeType: string) => {
+        const imgMimeRegex = new RegExp("image/", "i");
+        return imgMimeRegex.test(mimeType);
     };
 
     const renderResultContent = () => {
@@ -138,7 +143,6 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
                 resultElements = results.map((result) => {
                     const contentKeys = Object.keys(result.content);
                     let resultElements = contentKeys?.map((key, index) => {
-                        const imageMime = getMimeWithImage([key]);
                         if (key === SubContentType.APPLICATION_JAVASCRIPT) {
                             return (
                                 <ScriptComponent script={null}>
@@ -158,15 +162,32 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
                             );
                         } else if (key === SubContentType.APPLICATION_JSON) {
                             return JSON.stringify(result?.content[key]);
-                        } else if (imageMime != null) {
+                        } else if (key === SubContentType.IMAGE_SVG_XML) {
+                            return ReactHtmlParser(result?.content[key].toString("base64"), {
+                                replace: (domNode) => {
+                                    if (domNode.attribs && domNode.name === "svg") {
+                                        const props = attributesToProps(domNode.attribs);
+                                        // props.width = "500px";
+                                        // props.height = "500px";
+                                        return (
+                                            <svg
+                                                {...props}
+                                                children={domToReact(domNode.children)}
+                                            ></svg>
+                                        );
+                                    }
+                                },
+                            });
+
+                        } else if (isImageMime(key)) {
                             // console.log("ResultView ", imageMime, result?.content[imageMime]);
                             return (
                                 <img
                                     src={
                                         "data:" +
-                                        imageMime +
+                                        key +
                                         ";base64," +
-                                        result?.content[imageMime]
+                                        result?.content[key]
                                     }
                                 />
                             );
