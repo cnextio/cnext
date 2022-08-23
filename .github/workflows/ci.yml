@@ -117,6 +117,7 @@ jobs:
       - uses: google-github-actions/release-please-action@v3
         if: startsWith(github.ref, 'refs/heads/main')
         with:
+          token: ${{secrets.BOT_TOKEN}}
           release-type: python
           package-name: cnext
 
