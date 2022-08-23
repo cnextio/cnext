@@ -88,7 +88,7 @@ const ExecutorComponent = () => {
             tooltip: "Add Cell",
         },
     ];
-    const SideBarDivider = () => {
+    const ExecutorDivider = () => {
         return (
             <Divider style={{ marginTop: "5px", height: "18px" }} orientation="vertical" flexItem />
         );
@@ -103,7 +103,7 @@ const ExecutorComponent = () => {
                     handleClick={handleClick}
                 />
             ))}
-            <SideBarDivider />
+            <ExecutorDivider />
             {cellCommandIconList.map((icon, index) => (
                 <AppToolbarItem
                     key={index}

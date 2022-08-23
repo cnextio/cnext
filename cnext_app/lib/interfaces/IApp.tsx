@@ -218,7 +218,6 @@ export enum SideBarName {
     CHANGE_LAYOUT = "ChangeLayout",
     RESTART_KERNEL = "RestartKernel",
     INTERRUPT_KERNEL = "InterruptKernel",
-    ADD_CELL = "ADD_CELL",
 }
 
 // export interface IDFUpdates {
