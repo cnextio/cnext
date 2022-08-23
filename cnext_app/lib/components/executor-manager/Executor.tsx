@@ -26,7 +26,7 @@ import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
 import { interruptKernel, restartKernel } from "./ExecutorManager";
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
-        <span key={icon.name} selected={selectedIcon === icon.name} style={{ padding: `2px 4px` }}>
+        <span key={icon.name} selected={selectedIcon === icon.name} className="sidebar-icons">
             <Tooltip title={icon.tooltip} placement="bottom-end">
                 <span
                     className="icon"
@@ -55,7 +55,7 @@ const ExecutorComponent = () => {
             setKernelCommand(ExecutorManagerCommand.restart_kernel);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
-        } else if (name === SideBarName.ADD_CELL) {            
+        } else if (name === SideBarName.ADD_CELL) {
             store.dispatch(setCellCommand(SideBarName.ADD_CELL));
         } else {
             if (name === selectedIcon) {

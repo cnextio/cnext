@@ -1,3 +1,18 @@
+# v0.5.2 - 0.5.0
+
+##### NEW
+
+-   Implement `Terminal`
+-   Redirect all outputs to the `Result` tab
+-   Implement button-based UI
+
+##### IMPROVED
+-   Allow multiple outputs from a same cell
+
+##### FIXED
+
+-   Bug fixes and usability improvement
+
 # v0.4.20 - 0.4.29
 
 ##### NEW

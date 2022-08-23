@@ -23,19 +23,13 @@ CNext is a data-centric workspace for DS and AI. Our workspace is meant to conso
 
 ## Installation via Docker
 
-Step 1: `Download` [cnext] sample project here and `extract`
+cnext is also available via pre-built Docker images. To get started, you can simply run the following command:
 
-Step 2: `setup` [Docker] on your computer
+```bash
+docker run --rm -it -p 4000:4000 -p 5000:5000 -p 5011:5011 -p 5008:5008 -p 5005:5005 cycai/cnext
+```
 
-Step 3: Run `docker login` login with your docker account
-
-Step 4: Point destination command to `cnext` directory
-
-Step 5: Run command `docker-compose up -d`
-
--   The web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 4000)
--   To stop the application: `docker-compose down`
--   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine)
+The web application will launch at: `http://localhost:4000` or `http://127.0.0.1:4000/`
 
 ## Installation via Pip
 

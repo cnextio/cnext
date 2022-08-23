@@ -77,25 +77,15 @@ export const cellWidgetExtension = EditorView.decorations.compute(
         if (inViewID) {
             let lines: ICodeLine[] | null = getCodeLine(reduxState);
             // const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
-            // console.log("CodeEditor libGroupWidget +++++ ", state.doc.lines, lines?.length);
             if (lines && state.doc.lines === lines.length) {
-                // console.log("CodeEditor libGroupWidget +++++");                
+                // console.log("CodeEditor libGroupWidget +++++");
                 let currentGroupID = null;
                 for (let ln = 0; ln < lines.length; ln++) {
-                    // console.log(
-                    //     "CodeEditor libGroupWidget +++++ ",
-                    //     currentGroupID,
-                    //     lines[ln].groupID
-                    // );
                     /** convert to 1-based */
                     let line = state.doc.line(ln + 1);
                     if (!lines[ln].generated) {
                         if (lines[ln].groupID != currentGroupID) {
-                            // console.log(
-                            //     "CodeEditor libGroupWidget line.from ",
-                            //     line.from,
-                            //     lines[ln].groupID
-                            // );
+                            // console.log("CodeEditor libGroupWidget line.from ", line.from);
                             let widget = Decoration.widget({
                                 widget: new CellWidget(lines[ln].groupID),
                                 side: -1,
