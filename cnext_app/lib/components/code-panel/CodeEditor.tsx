@@ -565,10 +565,6 @@ const CodeEditor = () => {
                 // set the anchor to the inserted line
                 setAnchorToPos(view, inViewID, codeToInsert.fromPos + 1);
                 dispatch(setCodeToInsert(null));
-
-                // TODO: this is a hacky way to force cell widget to be rerendered after the cell has been defined
-                // i.e. when after setLineGroupStatus is dispatched
-                setCodeMirrorCellWidget(view);
             }
     };
 
