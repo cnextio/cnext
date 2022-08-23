@@ -14,12 +14,10 @@ import socket from "../Socket";
 import {
     setTableData,
     setColumnHistogramPlot,
-    clearColumnHistogramPlot,
     setMetadata,
     setDFUpdates,
     setActiveDF,
     setColumnQuantilePlot,
-    clearColumnQuantilePlot,
 } from "../../../redux/reducers/DataFramesRedux";
 
 //redux
@@ -201,30 +199,10 @@ _tmp()`;
     const getDefinedStat = (df_id: string, columns: string[]) => {
         if (dataFrameConfig.quantile) {
             getQuantilesPlot(df_id, columns);
-        } else {
-            // clear plot quantiles in columns
-            for (let column of columns) {
-                const payload = {
-                    df_id,
-                    col_name: column,
-                    data: null,
-                };
-                dispatch(clearColumnHistogramPlot(payload));
-            }
-        }
+        } 
         if (dataFrameConfig.histogram) {
             getHistogramPlot(df_id, columns);
-        } else {
-            // clear plot histogram in columns
-            for (let column of columns) {
-                const payload = {
-                    df_id,
-                    col_name: column,
-                    data: null,
-                };
-                dispatch(clearColumnQuantilePlot(payload));
-            }
-        }
+        } 
     };
 
     /** select columns to get stats based on the update type */

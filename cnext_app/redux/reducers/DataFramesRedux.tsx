@@ -11,6 +11,7 @@ import {
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
+import _ from "lodash";
 
 interface ILoadDataRequest {
     df_id: string | null;
@@ -110,34 +111,12 @@ export const dataFrameSlice = createSlice({
             state.metadata[df_id].columns[col_name].histogram_plot = action.payload["data"];
         },
 
-        clearColumnHistogramPlot: (state, action) => {
-            const df_id = action.payload["df_id"];
-            const col_name = action.payload["col_name"];
-            if (
-                state.metadata[df_id].columns.hasOwnProperty(col_name) &&
-                state.metadata[df_id].columns[col_name].hasOwnProperty("histogram_plot")
-            )
-                delete state.metadata[df_id].columns[col_name].histogram_plot;
-        },
-
         setColumnQuantilePlot: (state, action) => {
             // for testing
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             const col_name = action.payload["col_name"];
             state.metadata[df_id].columns[col_name].quantile_plot = action.payload["data"];
-        },
-
-        clearColumnQuantilePlot: (state, action) => {
-            // for testing
-            // state.data = testTableData
-            const df_id = action.payload["df_id"];
-            const col_name = action.payload["col_name"];
-            if (
-                state.metadata[df_id].columns.hasOwnProperty(col_name) &&
-                state.metadata[df_id].columns[col_name].hasOwnProperty("quantile_plot")
-            )
-                delete state.metadata[df_id].columns[col_name].quantile_plot;
         },
 
         /**
@@ -340,6 +319,18 @@ export const dataFrameSlice = createSlice({
         setStatsConfig: (state, action) => {
             if (action.payload) {
                 state.stats = { ...action.payload };
+
+                const df_id = state.activeDataFrame + "";
+                let columns = _.cloneDeep(state.metadata[df_id].columns);
+                if (!state.stats.histogram)
+                    for (let column_name in columns) {
+                        delete columns[column_name].histogram_plot;
+                    }
+                if (!state.stats.quantile)
+                    for (let column_name in columns) {
+                        delete columns[column_name].quantile_plot;
+                    }
+                state.metadata[df_id].columns = columns;
             }
         },
 
@@ -356,13 +347,11 @@ export const {
     setTableData,
     setMetadata,
     setColumnHistogramPlot,
-    clearColumnHistogramPlot,
     setDFUpdates,
     setReview,
     setActiveDF,
     setDFFilter,
     setColumnQuantilePlot,
-    clearColumnQuantilePlot,
     setStatsConfig,
     setDataViewMode,
     setDFStatusShowed,
