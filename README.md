@@ -33,18 +33,18 @@ The web application will launch at: `http://localhost:4000` or `http://127.0.0.1
 
 ## Installation via Pip
 
-Step 1: `Download` [cnext] sample project here. This folder will be use as an input in Step 4
+PLEASE NOTE: CNext requires npm >= 18.4 and Python >= 3.9.7 . Please ensure your environment meets the minimum requirements before beginning the installation. 
 
-Step 2: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
+Step 1: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
 
-Step 3: `run` command `pip install cnext`
+Step 2: `run` command `pip install cnext`
 
-Step 4: `run` command `cnext-init`
+Step 3: `run` command `cnext-init`
 
 -   Input `Enter path to the cnext sample project created in Step 1` and hit `Enter` (Example `C:/Skywalker`)
     ​
 
-Step 6 `run` command `cnext-run`
+Step 4 `run` command `cnext-run`
 
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 4000)
 -   Stop application: `Ctrl + c | Command + c`
