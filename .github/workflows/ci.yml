@@ -114,6 +114,12 @@ jobs:
           name: python-package
           path: dist
 
+      - uses: google-github-actions/release-please-action@v3
+        if: startsWith(github.ref, 'refs/main')
+        with:
+          release-type: python
+          package-name: cnext
+
       - name: "Create release"
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/github-script@v6
