@@ -95,7 +95,9 @@ def main(argv):
                     user_space = IPythonUserSpace(
                         (TrackingDataframeType.PANDAS, TrackingDataframeType.CNEXT, TrackingDataframeType.DASK), 
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
-                    kernel_manager = km.MessageHandler(p2n_queue, user_space)
+                    
+                    executor_manager = execm.MessageHandler(
+                        p2n_queue, user_space)
 
                     message_handler = {
                         WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
