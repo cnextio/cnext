@@ -8,6 +8,17 @@ export interface ICodeDoc {
     // might change.
 }
 
+export interface ICodeState {
+    scrollPos?: number;
+    cmState?: object; //codemirror state
+}
+
+export interface ICodeStateMessage {
+    inViewID: string;
+    scrollPos: number;
+    cmState: object; //codemirror state
+}
+
 // export interface IGroup {
 // 	from: number;
 // 	to: number;
@@ -20,7 +31,6 @@ export enum LineStatus {
     EXECUTED_SUCCESS,
     EXECUTED_FAILED,
 }
-
 // export interface ICodeResult {
 // 	type: ResultType;
 // 	result: Object;
@@ -38,7 +48,7 @@ export enum LineStatus {
 export interface ICodeLine {
     lineID: string;
     status: LineStatus;
-    result?: ICodeResult;
+    result?: ICodeResult[];
     textOutput?: ICodeResult;
     generated: boolean;
     groupID?: string;
@@ -115,6 +125,12 @@ export interface ICodeResultMessage {
     metadata: CodeResultMessageMetadata;
 }
 
+export enum CellCommand {
+    RUN_CELL = "RUN",
+    CLEAR = "CLEAR",
+    ADD_CELL = "ADD_CELL",
+}
+
 export type ICodeResultContent = string | object | IPlotResult;
 
 export interface ICodeResult {
@@ -123,7 +139,7 @@ export interface ICodeResult {
     subType: string;
     msg_id?: string;
     session_id?: string;
-    /** Order in which this result is generated. 
+    /** Order in which this result is generated.
      * Currently only use this for text output result where output will be displayed in the order of generation. */
     order?: number;
 }
@@ -164,7 +180,7 @@ export interface IStatePlotResults {
 /** CodeEditor run queue  */
 export interface IRunQueue {
     status: RunQueueStatus;
-    queue: IRunQueueItem[]
+    queue: IRunQueueItem[];
     // fromLine?: number;
     // toLine?: number;
     // runningLine?: number;

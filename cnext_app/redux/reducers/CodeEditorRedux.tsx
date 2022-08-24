@@ -16,13 +16,18 @@ import {
     ICodeToInsertInfo,
     IRunQueueItem,
     ICodeResult,
+    CellCommand,
+    ICodeState,
+    ICodeStateMessage,
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
+import { Line } from "@codemirror/state";
 
 type CodeEditorState = {
     codeText: { [id: string]: string[] };
     codeLines: { [id: string]: ICodeLine[] };
+    codeStates: { [id: string]: ICodeState };
     /** file timestamp will be used to check whether the code need to be reloaded
      * A better design might be to move all codeText, codeLines and fileTimestamp under
      * a same dictionary */
@@ -50,16 +55,22 @@ type CodeEditorState = {
     runDict: {} | undefined;
     runningId: string | undefined;
     codeToInsert: ICodeToInsertInfo | undefined;
-    // this number need to be increased whenever codeText is updated
+    /** this number need to be increased whenever codeText is updated */
     saveCodeTextCounter: number;
-    // this number need to be increased whenever codeLine is updated
+    /** this number need to be increased whenever codeLine is updated */
     saveCodeLineCounter: number;
     lastLineUpdate: { [key: string]: ILineUpdate };
+    mouseOverGroupID: string | null;
+    mouseOverLine: Line | null;
+    cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
+    /** this number need to be increase whenever cell association changed */
+    cellAssocUpdateCount: number;
 };
 
 const initialState: CodeEditorState = {
     codeText: {},
     codeLines: {},
+    codeStates: {},
     timestamp: {},
     // fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP, queue: [] },
@@ -67,6 +78,7 @@ const initialState: CodeEditorState = {
     maxTextOutputOrder: 0,
     textOutputUpdateCount: 0,
     lineStatusUpdateCount: 0,
+    cellAssocUpdateCount: 0,
     activeLine: null,
     activeGroup: undefined,
     activeLineNumber: null,
@@ -77,6 +89,9 @@ const initialState: CodeEditorState = {
     saveCodeTextCounter: 0,
     saveCodeLineCounter: 0,
     lastLineUpdate: {} /** this is used in MarkdownProcessor */,
+    mouseOverGroupID: null,
+    cellCommand: null,
+    mouseOverLine: null,
 };
 
 /**
@@ -158,6 +173,7 @@ export const CodeEditorRedux = createSlice({
             let codeTextData: ICodeText = action.payload;
             let reduxFileID = codeTextData.reduxFileID;
             state.codeText[reduxFileID] = codeTextData.codeText;
+            state.codeStates[reduxFileID] = {};
 
             let codeLines: ICodeLine[] = codeTextData.codeLines;
             // let maxTextOutputOrder = 0;
@@ -265,6 +281,11 @@ export const CodeEditorRedux = createSlice({
 
                 state.saveCodeLineCounter++;
             }
+            
+            if (lineUpdate.updatedLineCount != 0) {
+                /** there might be change in cell association */
+                state.cellAssocUpdateCount++;
+            }
 
             /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
             setGroupEdittedStatus(codeLines, lineUpdate.updatedStartLineNumber, startLineGroupID);
@@ -288,6 +309,11 @@ export const CodeEditorRedux = createSlice({
 
             if (lineGroupStatus.setGroup === SetLineGroupCommand.NEW) {
                 groupID = shortid();
+            }
+
+            if (codeLines[lineGroupStatus.fromLine].groupID !== groupID) {
+                /** there is a change in cell association */
+                state.cellAssocUpdateCount++;
             }
 
             for (let i = lineGroupStatus.fromLine; i < lineGroupStatus.toLine; i++) {
@@ -368,7 +394,7 @@ export const CodeEditorRedux = createSlice({
                     // if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
                     //     codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
                     // }
-                    state.textOutputUpdateCount += 1;
+                    state.textOutputUpdateCount++;
                     state.saveCodeLineCounter++;
                 } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
                     let oldContent = codeLines[fromLine].result?.content;
@@ -383,16 +409,22 @@ export const CodeEditorRedux = createSlice({
                     let newResult = {
                         type: resultMessage.type,
                         subType: resultMessage.subType,
-                        content: Object.assign({}, oldContent, content),
+                        // content: Object.assign({}, oldContent, content),
+                        content: content,
                         msg_id: resultMessage.metadata.msg_id,
                     };
-                    // point every line in the group to the same result since this point to the same memory it is not costly
-                    // for (let line = fromLine; line < lineRange.toLine; line++) {
-                    //     codeLines[line].result = newResult;
-                    // }
+
                     // assign the result of a group only to the first line
-                    codeLines[fromLine].result = newResult;
-                    state.resultUpdateCount += 1;
+                    if (codeLines[fromLine].result != null) {
+                        // this is for backward compatible with the previous format of result
+                        if (!(codeLines[fromLine].result instanceof Array)) {
+                            codeLines[fromLine].result = [codeLines[fromLine].result];
+                        }
+                        codeLines[fromLine].result?.push(newResult);
+                    } else {
+                        codeLines[fromLine].result = [newResult];
+                    }
+                    state.resultUpdateCount++;
                     state.saveCodeLineCounter++;
                 }
             }
@@ -400,6 +432,18 @@ export const CodeEditorRedux = createSlice({
 
         clearRunningLineTextOutput: (state, action) => {
             clearRunningLineTextOutputInternal(state, action.payload);
+        },
+
+        setMouseOverGroup: (state, action) => {
+            state.mouseOverGroupID = action.payload;
+        },
+
+        setCellCommand: (state, action) => {
+            state.cellCommand = action.payload;
+        },
+
+        setMouseOverLine: (state, action) => {
+            state.mouseOverLine = action.payload;
         },
 
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
@@ -427,7 +471,7 @@ export const CodeEditorRedux = createSlice({
                 state.activeLine = lineID;
                 state.activeGroup = groupID;
                 /** have to do this because lineNumber is either number or undefined */
-                state.activeLineNumber = (lineNumber != null) ? lineNumber : null;
+                state.activeLineNumber = lineNumber != null ? lineNumber : null;
             }
         },
 
@@ -495,24 +539,41 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = action.payload;
         },
 
-        clearTextOutputs: (state, action) => {
-            const inViewID = action.payload;
+        clearAllOutputs: (state, action) => {
+            // typeof action.payload === 'string' -> payload = inViewID
+            // typeof action.payload === 'object' -> payload = { inViewID, mouseOverGroupID }
+            const inViewID =
+                typeof action.payload === "string" ? action.payload : action.payload.inViewID;
             state.maxTextOutputOrder = 0;
 
             // remove all result & textOutput in state code lines
             for (let codeLine of state.codeLines[inViewID]) {
-                codeLine.result = undefined;
-                codeLine.textOutput = undefined;
-                state.textOutputUpdateCount = 0;
-                state.resultUpdateCount = 0;
-                state.saveCodeTextCounter++;
-                state.saveCodeLineCounter++;
+                if (
+                    typeof action.payload === "string" ||
+                    action.payload.mouseOverGroupID === codeLine.groupID
+                ) {
+                    codeLine.result = undefined;
+                    codeLine.textOutput = undefined;
+                    state.textOutputUpdateCount = 0;
+                    state.resultUpdateCount = 0;
+                    state.saveCodeTextCounter++;
+                    state.saveCodeLineCounter++;
+                }
+            }
+        },
+
+        setCodeStates: (state, action) => {
+            let data: ICodeStateMessage = action.payload;
+            if (data.inViewID != null) {
+                state.codeStates[data.inViewID].scrollPos = data.scrollPos;
+                state.codeStates[data.inViewID].cmState = data.cmState;
             }
         },
 
         resetCodeEditor: (state) => {
             state.codeText = {};
             state.codeLines = {};
+            state.codeStates = {};
             state.timestamp = {};
             // fileSaved: true,
             state.runQueue = { status: RunQueueStatus.STOP, queue: [] };
@@ -528,6 +589,7 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = undefined;
             state.saveCodeTextCounter = 0;
             state.saveCodeLineCounter = 0;
+            state.cellAssocUpdateCount = 0;
             state.lastLineUpdate = {};
         },
     },
@@ -548,8 +610,12 @@ export const {
     updateCAssistInfo,
     setCodeToInsert,
     clearRunningLineTextOutput,
-    clearTextOutputs,
+    clearAllOutputs,
     resetCodeEditor,
+    setMouseOverGroup,
+    setCellCommand,
+    setMouseOverLine,
+    setCodeStates,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

@@ -6,9 +6,11 @@ import store, { RootState } from "../../../../redux/store";
 import { useSelector } from "react-redux";
 import { XTerm } from "../../../@xterm";
 import styled from "styled-components";
-
+import { deleteAllCookies, delete_cookie } from "../../../../utils";
+import { getDomain } from "../../../../utils/domain";
+const errorTokenExpired = "Failed to fetch";
 const Terminal = "terminalIO";
-let elementTerminal: HTMLElement;
+let elementTerminal: HTMLElement | null;
 let session: any;
 
 const TerminalComponent = () => {
@@ -22,7 +24,7 @@ const TerminalComponent = () => {
     async function init() {
         if (config.port && config.token) {
             try {
-                const BASEURL = `http://localhost:${config.port}`;
+                const BASEURL = `${getDomain()}:${config.port}`;
                 const TOKEN = `${config.token}`;
                 const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
                 const connectionInfo = ServerConnection.makeSettings({
@@ -78,7 +80,13 @@ const TerminalComponent = () => {
                         fitAddon.fit();
                     }
                 }).observe(elementTerminal);
-            } catch (error) {}
+            } catch (error) {
+                //
+                if (error?.message === errorTokenExpired) {
+                    deleteAllCookies();
+                    window.location.reload();
+                }
+            }
         }
     }
     useEffect(() => {
@@ -99,8 +107,6 @@ const TerminalComponent = () => {
 
     useEffect(() => {
         if (xtermRef?.current) {
-            console.log("xtermRef?.current", xtermRef?.current);
-            console.log("xtermRef?.terminal", xtermRef?.current?.terminal);
         }
     }, [session]);
 
@@ -134,7 +140,7 @@ const TerminalComponent = () => {
                 convertEol: true,
                 fontFamily: "monospace",
                 fontSize: 13,
-                lineHeight: 1.20,
+                lineHeight: 1.2,
                 fontWeight: 400,
                 theme: {
                     selection: "#b1b1b155",

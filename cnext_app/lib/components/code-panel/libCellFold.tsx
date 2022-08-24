@@ -1,7 +1,7 @@
 import { EditorState } from "@codemirror/state";
 import store from "../../../redux/store";
 
-export const getGroupFoldRange = (state: EditorState, lineStart: number, lineEnd: number) => {
+export const getCellFoldRange = (state: EditorState, lineStart: number, lineEnd: number) => {
     let reduxState = store.getState();
     let inViewID = reduxState.projectManager.inViewID;
     if (state && inViewID) {
@@ -12,7 +12,7 @@ export const getGroupFoldRange = (state: EditorState, lineStart: number, lineEnd
             const startLine: number = doc.lineAt(lineStart).number - 1; // 0-based
             let endLine: number = startLine;
             let curGroupID = codeLines[startLine].groupID;
-            console.log("CodeEditor getGroupedLineFoldRange: ", startLine, lineStart, lineEnd);
+            // console.log("CodeEditor getGroupedLineFoldRange: ", startLine, lineStart, lineEnd);
             if (
                 curGroupID != null &&
                 (startLine === 0 ||

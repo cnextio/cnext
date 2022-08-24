@@ -8,7 +8,7 @@ import {
 import { IGetCardinalResult } from "./ICAssist";
 import { ExperimentManagerCommand } from "./IExperimentManager";
 import { DataFrameUpdateType } from "./IDataFrameStatus";
-import { IKernelManagerResultContent, KernelManagerCommand } from "./IKernelManager";
+import { IExecutorManagerResultContent, ExecutorManagerCommand } from "./IExecutorManager";
 import { ModelManagerCommand } from "./IModelManager";
 import { ICodeResultContent } from "./ICodeEditor";
 
@@ -26,7 +26,7 @@ export interface IMessage {
         | CommandName
         | ProjectCommand
         | ExperimentManagerCommand
-        | KernelManagerCommand
+        | ExecutorManagerCommand
         | ModelManagerCommand // 'code_area_command'|'updated_dataframe_list'|
         | ICodeResultContent;
     // for commands that requires more than one command
@@ -39,7 +39,7 @@ export interface IMessage {
         | IGetCardinalResult
         | IDirectoryMetadata
         | IWorkspaceMetadata
-        | IKernelManagerResultContent
+        | IExecutorManagerResultContent
         | null; // the command string and output string|object
     error?: boolean;
     metadata?: object; // store info about the dataframe and columns
@@ -78,8 +78,8 @@ export enum CommandName {
     get_table_data = "get_table_data",
     get_df_metadata = "get_df_metadata",
     plot_column_quantile = "plot_column_quantile",
-    get_cardinal = "get_cardinal", /** get number of elements of a column given some filters */
-    get_jupyter_server_config = 'get_jupyter_server_config'
+    get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
+    get_jupyter_server_config = "get_jupyter_server_config",
 }
 
 export enum ContentType {
@@ -133,13 +133,14 @@ export enum WebAppEndpoint {
     FileExplorer = "FileExplorer",
     ExperimentManager = "ExperimentManager",
     PlotManager = "PlotManager",
-    KernelManager = "KernelManager",
+    ExecutorManager = "ExecutorManager",
     LanguageServer = "LanguageServer",
     LanguageServerNotifier = "LanguageServerNotifier",
     LanguageServerHover = "LanguageServerHover",
     LanguageServerCompletion = "LanguageServerCompletion",
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
+    LogsManager = "LogsManager",
 }
 
 export interface ITableData {
@@ -213,10 +214,11 @@ export enum ViewMode {
 export enum SideBarName {
     PROJECT = "Projects",
     INBOX = "Inbox",
-    CLEAR_STATE = "ClearState",
+    CLEAR_OUTPUTS = "ClearOuputs",
     CHANGE_LAYOUT = "ChangeLayout",
     RESTART_KERNEL = "RestartKernel",
     INTERRUPT_KERNEL = "InterruptKernel",
+    ADD_CELL = "ADD_CELL",
 }
 
 // export interface IDFUpdates {
@@ -324,7 +326,7 @@ export interface IRichOutputSettings {
 
 export interface ILayoutSettings {
     /** unit: px */
-    project_explorer_size: number; 
+    project_explorer_size: number;
 }
 
 export interface IConfigs {

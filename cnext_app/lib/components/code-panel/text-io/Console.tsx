@@ -55,13 +55,6 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
                         return false;
                     }
                 })
-                // .sort((item1: ICodeLine, item2: ICodeLine) => {
-                //     if (item1.textOutput?.order != null && item2.textOutput?.order != null) {
-                //         return item1.textOutput?.order - item2.textOutput?.order;
-                //     } else {
-                //         return -1;
-                //     }
-                // })
                 .map((item: ICodeLine) => {
                     // return item.textOutput?.content;
                     return {
@@ -179,20 +172,20 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     };
 
     /** Get an ordered code execution text outputs and set the state */
-    const handleTextOutput = () => {
-        if (serverSynced) {
-            try {
-                const state: RootState = store.getState();
-                let textOutputs = getOrderedTextOuput(state);
-                setOutputContent(textOutputs);
-                setLastItemIsROTextOutput(false);
-            } catch (error) {
-                // TODO: process json error
-                console.error(error);
-            }
-        }
-    };
-    useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced, inViewID]);
+    // const handleTextOutput = () => {
+    //     if (serverSynced) {
+    //         try {
+    //             const state: RootState = store.getState();
+    //             let textOutputs = getOrderedTextOuput(state);
+    //             setOutputContent(textOutputs);
+    //             setLastItemIsROTextOutput(false);
+    //         } catch (error) {
+    //             // TODO: process json error
+    //             console.error(error);
+    //         }
+    //     }
+    // };
+    // useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced, inViewID]);
 
     /** Get an df update messages */
     const handleDFUpdates = () => {
@@ -224,9 +217,9 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
 
     /** This is to display the text output (often it is an exception)
      * from the excution of plugins in rich-output panel
-     * Only keep the last richout put text
+     * Only keep the last richoutput text
      */
-    const handleROTextOutput = () => {
+    const handleRichOutputTextOutput = () => {
         const state = store.getState();
         const newOutputContent: ITextOuput = {
             type: "text",
@@ -247,7 +240,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     useEffect(() => {
         const state = store.getState();
         if (state.projectManager.settings.dataframe_manager.show_exec_text) {
-            handleROTextOutput();
+            handleRichOutputTextOutput();
         }
     }, [roTextOutputUpdateCount]);
 

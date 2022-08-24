@@ -48,7 +48,7 @@ class MessageHandler(BaseMessageHandler):
                 type = ContentType.NONE
             elif message.command_name == ProjectCommand.read_file:
                 result = files.read_file(messageParams.norm_project_path, messageParams.norm_path,
-                                            messageParams.timestamp)
+                                         messageParams.timestamp)
                 if result == None:
                     type = ContentType.NONE
                 else:

@@ -1,14 +1,14 @@
 //using a customized version of autocomplete instead of @codemirror/autocomplete
-import { autocompletion } from "@codemirror/autocomplete"; //'./autocomplete';
-import { hoverTooltip } from '../tooltip';
-import { ViewPlugin } from '@codemirror/view';
-import LanguageServerPlugin from './ls-plugin';
-import DFFilterPlugin from './df-plugin';
-import { rootUri, documentUri, languageId, serverUri } from './source';
-import { CompletionTriggerKind } from 'vscode-languageserver-protocol';
-import { signatureTooltip } from './signature';
-import { baseTheme } from './theme';
-import store from '../../../redux/store';
+import { autocompletion } from "./autocomplete";
+import { hoverTooltip } from "../tooltip";
+import { ViewPlugin } from "@codemirror/view";
+import LanguageServerPlugin from "./ls-plugin";
+import DFFilterPlugin from "./df-plugin";
+import { rootUri, documentUri, languageId, serverUri } from "./source";
+import { CompletionTriggerKind } from "vscode-languageserver-protocol";
+import { signatureTooltip } from "./signature";
+import { baseTheme } from "./theme";
+import store from "../../../redux/store";
 
 function languageServer(options) {
     let plugin = null;
