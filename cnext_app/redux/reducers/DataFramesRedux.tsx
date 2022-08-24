@@ -11,7 +11,6 @@ import {
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
-import _ from "lodash";
 
 interface ILoadDataRequest {
     df_id: string | null;
@@ -321,16 +320,15 @@ export const dataFrameSlice = createSlice({
                 state.stats = { ...action.payload };
 
                 const df_id = state.activeDataFrame + "";
-                let columns = _.cloneDeep(state.metadata[df_id].columns);
+                let columns = state.metadata[df_id].columns;
                 if (!state.stats.histogram)
                     for (let column_name in columns) {
-                        delete columns[column_name].histogram_plot;
+                        columns[column_name].histogram_plot = undefined;
                     }
                 if (!state.stats.quantile)
                     for (let column_name in columns) {
-                        delete columns[column_name].quantile_plot;
+                        columns[column_name].quantile_plot = undefined;
                     }
-                state.metadata[df_id].columns = columns;
             }
         },
 
