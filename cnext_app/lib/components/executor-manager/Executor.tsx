@@ -45,7 +45,7 @@ const ExecutorComponent = () => {
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
         } else if (name === CellCommand.ADD_CELL) {
-            store.dispatch(setCellCommand(SideBarName.ADD_CELL));
+            store.dispatch(setCellCommand(CellCommand.ADD_CELL));
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
