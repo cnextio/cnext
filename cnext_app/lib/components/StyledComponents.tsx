@@ -196,7 +196,10 @@ export const FileExplorerHeaderName = styled(Typography)`
         props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
     // }
 `;
-
+export const FileExplorerAction = styled.div`
+    display: flex;
+    align-items: center;
+`;
 export const FileTree = styled(TreeView)`
     max-width: 100%;
     // height: 100%;
@@ -317,6 +320,7 @@ export const ProjectExplorerContainer = styled.div`
 `;
 
 export const ProjectToolbar = styled.div`
+    justify-content: space-between;
     display: flex;
     --var-height: 30px;
     height: calc(var(--var-height));

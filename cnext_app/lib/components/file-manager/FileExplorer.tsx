@@ -12,6 +12,7 @@ import {
     FileItemLabel,
     ProjectExplorerContainer,
     OpenProjectItem,
+    FileExplorerAction,
 } from "../StyledComponents";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
@@ -246,14 +247,12 @@ const FileExplorer = (props: any) => {
             deletable: deletable,
         });
     };
-    const hoverContext = (
+    const selectFolder = (
         clickedItemPath: string,
         parentItemPath: string,
         is_file: boolean,
         deletable?: boolean
     ) => {
-        console.log("hoverContext", parentItemPath);
-
         setContextMenuItems({
             parent: parentItemPath,
             item: clickedItemPath,
@@ -431,7 +430,7 @@ const FileExplorer = (props: any) => {
                                         value.is_file ? dispatch(setFileToOpen(value.path)) : null;
                                     }}
                                     onMouseDown={() => {
-                                        hoverContext(
+                                        selectFolder(
                                             value.path,
                                             relativeParentPath,
                                             value.is_file,
@@ -508,7 +507,7 @@ const FileExplorer = (props: any) => {
                                 </NameWithTooltip>
                             }
                             onMouseDown={() => {
-                                hoverContext(
+                                selectFolder(
                                     relativeProjectPath,
                                     relativeProjectPath,
                                     false,
@@ -537,7 +536,7 @@ const FileExplorer = (props: any) => {
         <ProjectExplorerContainer>
             <ProjectToolbar>
                 <FileExplorerHeaderName variant="overline">Projects</FileExplorerHeaderName>
-                <div>
+                <FileExplorerAction>
                     <Tooltip
                         title="Add project"
                         enterDelay={500}
@@ -552,20 +551,7 @@ const FileExplorer = (props: any) => {
                             style={{ cursor: "pointer" }}
                         />
                     </Tooltip>
-                    {/* <Tooltip
-                    title="Add project"
-                    enterDelay={500}
-                    enterNextDelay={500}
-                    placement="bottom-end"
-                    style={{ marginLeft: "auto" }}
-                >
-                    <CreateNewFolderIcon
-                        id="add-project-button"
-                        onClick={handleAddProjectBtn}
-                        fontSize="small"
-                        style={{ cursor: "pointer" }}
-                    />
-                </Tooltip> */}
+
                     <Tooltip title="New file" enterDelay={500} placement="bottom-end">
                         <NoteAddIcon
                             onClick={() => selectContextMenuItem(FileContextMenuItem.NEW_FILE)}
@@ -580,7 +566,7 @@ const FileExplorer = (props: any) => {
                             style={{ cursor: "pointer" }}
                         />
                     </Tooltip>
-                </div>
+                </FileExplorerAction>
             </ProjectToolbar>
             <ProjectList>
                 {workspaceMetadata.open_projects.map((item) => renderProjectItem(item))}
