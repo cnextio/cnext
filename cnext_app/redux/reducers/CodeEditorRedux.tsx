@@ -55,14 +55,16 @@ type CodeEditorState = {
     runDict: {} | undefined;
     runningId: string | undefined;
     codeToInsert: ICodeToInsertInfo | undefined;
-    // this number need to be increased whenever codeText is updated
+    /** this number need to be increased whenever codeText is updated */
     saveCodeTextCounter: number;
-    // this number need to be increased whenever codeLine is updated
+    /** this number need to be increased whenever codeLine is updated */
     saveCodeLineCounter: number;
     lastLineUpdate: { [key: string]: ILineUpdate };
     mouseOverGroupID: string | null;
     mouseOverLine: Line | null;
     cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
+    /** this number need to be increase whenever cell association changed */
+    cellAssocUpdateCount: number;
 };
 
 const initialState: CodeEditorState = {
@@ -76,6 +78,7 @@ const initialState: CodeEditorState = {
     maxTextOutputOrder: 0,
     textOutputUpdateCount: 0,
     lineStatusUpdateCount: 0,
+    cellAssocUpdateCount: 0,
     activeLine: null,
     activeGroup: undefined,
     activeLineNumber: null,
@@ -278,6 +281,11 @@ export const CodeEditorRedux = createSlice({
 
                 state.saveCodeLineCounter++;
             }
+            
+            if (lineUpdate.updatedLineCount != 0) {
+                /** there might be change in cell association */
+                state.cellAssocUpdateCount++;
+            }
 
             /** lines that is in the same group as  lineUpdate.updatedStartLineNumber will be considered editted */
             setGroupEdittedStatus(codeLines, lineUpdate.updatedStartLineNumber, startLineGroupID);
@@ -301,6 +309,11 @@ export const CodeEditorRedux = createSlice({
 
             if (lineGroupStatus.setGroup === SetLineGroupCommand.NEW) {
                 groupID = shortid();
+            }
+
+            if (codeLines[lineGroupStatus.fromLine].groupID !== groupID) {
+                /** there is a change in cell association */
+                state.cellAssocUpdateCount++;
             }
 
             for (let i = lineGroupStatus.fromLine; i < lineGroupStatus.toLine; i++) {
@@ -400,12 +413,12 @@ export const CodeEditorRedux = createSlice({
                         content: content,
                         msg_id: resultMessage.metadata.msg_id,
                     };
-                    
+
                     // assign the result of a group only to the first line
                     if (codeLines[fromLine].result != null) {
                         // this is for backward compatible with the previous format of result
                         if (!(codeLines[fromLine].result instanceof Array)) {
-                            codeLines[fromLine].result = [codeLines[fromLine].result];                            
+                            codeLines[fromLine].result = [codeLines[fromLine].result];
                         }
                         codeLines[fromLine].result?.push(newResult);
                     } else {
@@ -425,7 +438,7 @@ export const CodeEditorRedux = createSlice({
             state.mouseOverGroupID = action.payload;
         },
 
-        setCellCommand: (state, action) => {            
+        setCellCommand: (state, action) => {
             state.cellCommand = action.payload;
         },
 
@@ -576,6 +589,7 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = undefined;
             state.saveCodeTextCounter = 0;
             state.saveCodeLineCounter = 0;
+            state.cellAssocUpdateCount = 0;
             state.lastLineUpdate = {};
         },
     },
