@@ -13,6 +13,8 @@ import {
     ProjectExplorerContainer,
     OpenProjectItem,
 } from "../StyledComponents";
+import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LockIcon from "@mui/icons-material/Lock";
@@ -246,6 +248,8 @@ const FileExplorer = (props: any) => {
     };
 
     const selectContextMenuItem = (item: FileContextMenuItem) => {
+        console.log(`item =>>>`, item, contextMenuItems);
+
         switch (item) {
             case FileContextMenuItem.NEW_FILE:
                 if (contextMenuItems) {
@@ -381,7 +385,10 @@ const FileExplorer = (props: any) => {
             <Fragment>
                 {Object.keys(openDirs).includes(relativeParentPath) ? (
                     openDirs[relativeParentPath]
-                        .filter((value) => ![".DS_Store", ".gitignore", "__pycache__"].includes(value.name))
+                        .filter(
+                            (value) =>
+                                ![".DS_Store", ".gitignore", "__pycache__"].includes(value.name)
+                        )
                         .sort(function (a, b) {
                             if (a.name < b.name) {
                                 return -1;
@@ -446,9 +453,7 @@ const FileExplorer = (props: any) => {
     const renderProjectItem = (projectItem: IProjectInfoInWorkspace) => {
         if (projectItem.id !== activeProject?.id) {
             return (
-                <ClosedProjectItem
-                    onDoubleClick={() => changeActiveProject(projectItem?.id)}
-                >
+                <ClosedProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)}>
                     <LockIcon
                         style={{
                             fontSize: "15px",
@@ -502,26 +507,50 @@ const FileExplorer = (props: any) => {
         <ProjectExplorerContainer>
             <ProjectToolbar>
                 <FileExplorerHeaderName variant="overline">Projects</FileExplorerHeaderName>
-                <Tooltip
+                <div>
+                    <Tooltip
+                        title="Add project"
+                        enterDelay={500}
+                        enterNextDelay={500}
+                        placement="bottom-end"
+                        style={{ marginLeft: "auto" }}
+                    >
+                        <AddBoxIcon
+                            id="add-project-button"
+                            onClick={handleAddProjectBtn}
+                            fontSize="small"
+                            style={{ cursor: "pointer" }}
+                        />
+                    </Tooltip>
+                    {/* <Tooltip
                     title="Add project"
                     enterDelay={500}
                     enterNextDelay={500}
                     placement="bottom-end"
                     style={{ marginLeft: "auto" }}
                 >
-                    <AddBoxIcon
+                    <CreateNewFolderIcon
                         id="add-project-button"
                         onClick={handleAddProjectBtn}
                         fontSize="small"
                         style={{ cursor: "pointer" }}
                     />
-                </Tooltip>
-                {/* <Tooltip title="Add folder" enterDelay={500} placement="bottom-end">
-                    <CreateNewFolderIcon fontSize="small" style={{ cursor: "pointer" }} />
-                </Tooltip>
-                <Tooltip title="Add file" enterDelay={500} placement="bottom-end">
-                    <NoteAddIcon fontSize="small" style={{ cursor: "pointer" }} />
                 </Tooltip> */}
+                    <Tooltip title="Add folder" enterDelay={500} placement="bottom-end">
+                        <CreateNewFolderIcon
+                            onClick={() => selectContextMenuItem(0)}
+                            fontSize="small"
+                            style={{ cursor: "pointer" }}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Add file" enterDelay={500} placement="bottom-end">
+                        <NoteAddIcon
+                            onClick={() => selectContextMenuItem(1)}
+                            fontSize="small"
+                            style={{ cursor: "pointer" }}
+                        />
+                    </Tooltip>
+                </div>
             </ProjectToolbar>
             <ProjectList>
                 {workspaceMetadata.open_projects.map((item) => renderProjectItem(item))}
