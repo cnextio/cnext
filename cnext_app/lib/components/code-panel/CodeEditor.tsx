@@ -132,7 +132,10 @@ const CodeEditor = () => {
     );
     /** using this to trigger refresh in gutter */
     // const codeText = useSelector((state: RootState) => getCodeText(state));
-    const codeLine = useSelector((state: RootState) => getCodeLine(state));
+
+    const cellAssocUpdateCount = useSelector(
+        (state: RootState) => state.codeEditor.cellAssocUpdateCount
+    );
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
     const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
     const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
@@ -146,7 +149,7 @@ const CodeEditor = () => {
     const lineStatusUpdate = useSelector(
         (state: RootState) => state.codeEditor.lineStatusUpdateCount
     );
-    const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
+    // const mouseOverGroupID = useSelector((state: RootState) => state.codeEditor.mouseOverGroupID);
     const cellCommand = useSelector((state: RootState) => state.codeEditor.cellCommand);
 
     // const [cmUpdatedCounter, setCMUpdatedCounter] = useState(0);
@@ -322,21 +325,22 @@ const CodeEditor = () => {
         });
     };
 
-    /** this useEffect forces CM to update cell status whenever codeLine or mouseOverGroupID changes */
+    /** this useEffect forces CM to update cell status whenever codeLine.length changes
+     * Note that this is only conditioned on codeLine.length not codeLine because codeLine
+     * itself might change when the code is being excuted like when the line status change
+     * Make widget update on every status change will make the screen jittering */
     useEffect(() => {
         if (view != null) {
-            // console.log("CodeEditor codeLine");
             setCodeMirrorCellWidget(view);
         }
-    }, [codeLine, mouseOverGroupID]);
+    }, [cellAssocUpdateCount]);
 
     /** this useEffect forces CM to update cell status whenever codeLine or activeGroup changes */
     useEffect(() => {
         if (view != null) {
-            // console.log("CodeEditor codeLine activeGroup");
             setCodeMirrorCellDeco(view);
         }
-    }, [codeLine, activeGroup]);
+    }, [cellAssocUpdateCount, activeGroup]);
 
     /** clear the run queue when the executor restarted */
     useEffect(() => {
@@ -434,14 +438,19 @@ const CodeEditor = () => {
     useEffect(() => {
         const state = store.getState();
         const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
-        if (view != null && cellCommand && state.codeEditor.mouseOverLine) {
-            const inViewID = state.projectManager.inViewID;
-            const lineNumber = state.codeEditor.mouseOverLine.number - 1;
-            let activeLine: ICodeActiveLine = {
-                inViewID: inViewID || "",
-                lineNumber: lineNumber,
-            };
-            store.dispatch(setActiveLineRedux(activeLine));
+        console.log("change", cellCommand, state.codeEditor.mouseOverLine);
+
+        if (view != null && cellCommand) {
+            let line = null;
+            if (state.codeEditor.mouseOverLine) {
+                const inViewID = state.projectManager.inViewID;
+                line = state.codeEditor.mouseOverLine.number;
+                let activeLine: ICodeActiveLine = {
+                    inViewID: inViewID || "",
+                    lineNumber: line - 1,
+                };
+                store.dispatch(setActiveLineRedux(activeLine));
+            }
 
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
@@ -451,7 +460,7 @@ const CodeEditor = () => {
                     dispatch(clearAllOutputs({ inViewID, mouseOverGroupID }));
                     break;
                 case CellCommand.ADD_CELL:
-                    insertBelow(CodeInsertMode.GROUP);
+                    insertBelow(CodeInsertMode.GROUP, line);
                     break;
             }
             dispatch(setCellCommand(undefined));
@@ -550,21 +559,27 @@ const CodeEditor = () => {
                         setGroup: SetLineGroupCommand.NEW,
                     };
                     dispatch(setLineGroupStatus(lineStatus));
+
                     // console.log("CodeEditor handleCodeToInsert ", lineStatus);
                 }
                 // set the anchor to the inserted line
-                setAnchorToPos(view, inViewID, codeToInsert.fromPos+1);                
+                setAnchorToPos(view, inViewID, codeToInsert.fromPos + 1);
                 dispatch(setCodeToInsert(null));
             }
     };
 
-    function insertBelow(mode: CodeInsertMode): boolean {
+    function insertBelow(mode: CodeInsertMode, line?: number | null): boolean {
         if (view && inViewID) {
             const codeLines = store.getState().codeEditor.codeLines[inViewID];
             const state = view.state;
             const doc = view.state.doc;
             const anchor = state.selection.ranges[0].anchor;
-            let curLineNumber = doc.lineAt(anchor).number; // 1-based
+            let curLineNumber = 0; // 1-based
+            if (line) {
+                curLineNumber = line;
+            } else {
+                curLineNumber = doc.lineAt(anchor).number;
+            }
             let fromPos: number;
             let curGroupID = codeLines[curLineNumber - 1].groupID;
             while (

@@ -174,7 +174,7 @@ const MiniSidebar = () => {
                         ))}
                     </AppToolbarList>
                     <SideBarDivider />
-                    <AppToolbarList>
+                    {/* <AppToolbarList>
                         {executorManagerIconList.map((icon, index) => (
                             <AppToolbarItem
                                 key={index}
@@ -183,7 +183,7 @@ const MiniSidebar = () => {
                                 handleClick={handleClick}
                             />
                         ))}
-                    </AppToolbarList>
+                    </AppToolbarList> */}
                 </AppToolbar>
                 <Account />
             </Sidebar>

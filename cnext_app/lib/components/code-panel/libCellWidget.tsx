@@ -25,7 +25,7 @@ class CellWidget extends WidgetType {
     toDOM() {
         const mouseOverGroupID = store.getState().codeEditor.mouseOverGroupID;
         let wrap = document.createElement("div");
-        if (mouseOverGroupID && mouseOverGroupID === this.groupId) {
+        if (this.groupId) {
             const cellItems = [
                 {
                     text: "Run Cell",
@@ -61,9 +61,8 @@ class CellWidget extends WidgetType {
                 });
             }
         }
-        wrap.className = `cm-groupwidget ${
-            mouseOverGroupID && mouseOverGroupID === this.groupId ? "show" : ""
-        }`;
+        wrap.className = `cm-groupwidget show`;
+        wrap.id = `cm-groupwidget-${this.groupId}`;
 
         return wrap;
     }

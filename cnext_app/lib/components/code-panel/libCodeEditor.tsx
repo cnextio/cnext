@@ -492,7 +492,7 @@ function onMouseDown(event: MouseEvent, view: EditorView) {
             //convert to 0-based
             let lineNumber = doc.lineAt(pos).number - 1;
             let inViewID = store.getState().projectManager.inViewID;
-            if (inViewID) {                
+            if (inViewID) {
                 setActiveLine(inViewID, lineNumber);
             }
         }
@@ -504,6 +504,12 @@ function onMouseLeave(event: MouseEvent, view: EditorView) {
     try {
         if (view != null) {
             // console.log(`CodeEditor onMouseOut`);
+            let reduxState = store.getState();
+            const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
+            if (mouseOverGroupID) {
+                /* eslint-disable */
+                setOpacityWidget(mouseOverGroupID, "0");
+            }
             store.dispatch(setMouseOverGroup(undefined));
             store.dispatch(setMouseOverLine(undefined));
         }
@@ -511,11 +517,18 @@ function onMouseLeave(event: MouseEvent, view: EditorView) {
         console.error(error);
     }
 }
+function setOpacityWidget(id: string, opacity: string) {
+    let element = document.getElementById(`cm-groupwidget-${id}`) as HTMLElement | null;
+    if (element) {
+        element.style.opacity = opacity;
+    }
+}
 function onMouseOver(event: MouseEvent, view: EditorView) {
     try {
         // console.log('CodeEditor onMouseDown', view, event, dispatch);
         if (view != null && event.target) {
             let reduxState = store.getState();
+            const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(reduxState);
             if (lines && view.state.doc.lines === lines.length) {
                 // if (event.target.className.includes("cm-line")) {
@@ -524,9 +537,14 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                 let pos = view.posAtDOM(event.target);
                 let hoveredLine = doc.lineAt(pos); /** 1-based */
                 let lineNumber = doc.lineAt(pos).number - 1; /** 0-based */
-
+                if (mouseOverGroupID) {
+                    setOpacityWidget(mouseOverGroupID, "0");
+                }
                 let currentGroupID = lines[lineNumber].groupID;
                 console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
+                if (currentGroupID) {
+                    setOpacityWidget(currentGroupID, "1");
+                }
                 store.dispatch(setMouseOverGroup(currentGroupID));
                 store.dispatch(setMouseOverLine({ ...hoveredLine }));
                 // } else {
