@@ -20,8 +20,10 @@ else:
     import readline
 
 
-web_path = os.path.dirname(os.path.realpath(__file__))  # cyc-next
-server_path = os.path.join(web_path, 'server')
+current_dir_path = os.getcwd()
+PROJECTS_PATH = os.path.abspath(os.path.join(current_dir_path,"projects"))
+SERVER_PATH = os.path.abspath(os.path.join(current_dir_path,"cnext_server/server"))
+DEFAULT_PROJECT = "Skywalker"
 FILE_NAME = 'workspace.yaml'
 WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
@@ -36,50 +38,30 @@ def change_permissions_recursive(path, mode):
         os.chmod(file, mode)
 
 
-def change_path(path):
-    os.chdir(server_path)
+def change_workspace(name, path):
     project_id = str(uuid.uuid1())
     data = {
         'active_project': project_id,
-        'open_projects': [{"id": project_id, 'name': 'Skywalker', 'path': path}],
+        'open_projects': [{"id": project_id, 'name': name, 'path': path}],
     }
     with open(r'workspace.yaml', 'w') as file:
         documents = yaml.dump(data, file, default_flow_style=False)
-    print('Adding sample project done!')
+    print('change workspace done!')
 
 
-def clear_content():
-    os.chdir(server_path)
-    my_file = open(FILE_NAME, 'w')
-    new_file_contents = ''
-    # Convert `string_list` to a single string
-    my_file.write(new_file_contents)
-    my_file.close()
-
-
-def ask():
-    answer = input('Would you like to download the sample project? [(y)/n]: ')
-    if(answer == 'y' or answer == 'Y'):
-        return HAVE_PROJECT
-    elif not answer:
-        return HAVE_PROJECT
-    elif (answer == 'n' or answer == 'N'):
-        clear_content()
-        return WITHOUT_PROJECT
-    else:
-        ask()
-
-
-def build():
-    # TODO(huytq): remove
-    # os.chdir(web_path)
-    # os.system('npm i --force')
-    # os.system('npm run build')
-    os.chdir(server_path)
+def install_node_modules():
+    os.chdir(SERVER_PATH)
     os.system('npm i')
 
+samples = {
+    "skywalker":"Skywalker",
+    "jedi":"Jedi",
+}
 
-def download_and_unzip(url, extract_to='.'):
+def download_and_unzip(url, project_name, extract_to='.'):
+    if not os.path.exists(PROJECTS_PATH): 
+        os.makedirs(PROJECTS_PATH)
+
     http_response = urlopen(url)
     zipfile = ZipFile(BytesIO(http_response.read()))
     zipfile.extractall(path=extract_to)
@@ -89,11 +71,11 @@ def download_and_unzip(url, extract_to='.'):
 
     # cut - paste
     shutil.copytree(src=os.path.join(extract_to, zipfile.namelist()[
-                    0], 'Skywalker'), dst=os.path.join(extract_to, 'Skywalker'), dirs_exist_ok=True)
-    sample_project_path = os.path.join(extract_to, 'Skywalker')
+                    0], project_name), dst=os.path.join(extract_to, project_name), dirs_exist_ok=True)
+    
     # remove old folder
     shutil.rmtree(path=os.path.join(extract_to, zipfile.namelist()[0]))
-    change_path(os.path.normpath(sample_project_path).replace(os.sep, '/'))
+  
 
 
 def complete(text, state):
@@ -104,48 +86,82 @@ readline.set_completer_delims(' \t\n;')
 readline.parse_and_bind("tab: complete")
 readline.set_completer(complete)
 
+def main(args=sys.argv):
+        if(len(args) == 1):
+            start()
+        elif(len(args) == 2):
+            switch(args[1])
+        elif(len(args) == 3):
+            switch(args[1],args[2])
+        else:
+            default()
 
-def build_path():
-    path = input(
-        'Please enter the directory to store the sample project: ')
-    abs_paths = os.path.abspath(path)
+def run_help(choice):
+    message = """
+        Installation command
+        - cnext -s                     : START with `Skywalker` project
+        - cnext -s Jedi                : START with `Jedi` project
+        - cnext -s G:\DEV\PROJECTS     : START with `Skywalker` inside PROJECTS
 
-    if not os.path.exists(abs_paths):
-        os.makedirs(abs_paths)
+        Using command
+        - cnext                        : RESUME APPLICATION 
 
-    if os.path.isdir(abs_paths):
-        os.chdir(abs_paths)
-        # folder_name = os.path.basename(abs_paths)
-        print('The sample project will be downloaded to', abs_paths)
-        download_and_unzip(DOWNLOAD_PATH, abs_paths)
+        Config command
+        - cnext -p                     : CHANGE PORT of cnext
+        """
+    print(message)
+    
+def default(data):
+    run_help(data)
+    
+def set_port(port):
+    return print("set_port" )
+
+def download_project(project_name, download_to_path):
+    download_and_unzip(DOWNLOAD_PATH, project_name, download_to_path)
+    project_path = os.path.join(download_to_path, project_name)
+    change_workspace(project_name, os.path.normpath(project_path).replace(os.sep, '/'))
+
+
+def start_with_sample_project(path_or_name):
+    
+    if(path_or_name):
+        abs_paths = os.path.abspath(path_or_name)
+        if os.path.isdir(abs_paths):
+            # cnext -s G:\DEV\PROJECTS
+            download_project(DEFAULT_PROJECT,abs_paths)
+        elif(path_or_name.lower() in list(samples.keys())):
+            # cnext -s skywalker|Jedi
+            download_project(samples[path_or_name.lower()], PROJECTS_PATH)
+        else:
+            print("your path or name isn't correctly")
+            return
     else:
-        print('The path is not a directory. Please try again!')
-        build_path()
+        # cnext -s == cnext -s skywalker
+        download_project(DEFAULT_PROJECT,PROJECTS_PATH)
+    
+    install_node_modules()
+    start()
 
+switcher = {
+    "-h": run_help, 
+    "-s": start_with_sample_project, 
+    "-p": set_port, #
+    # full case
+    "--help": run_help,
+    "--start": start_with_sample_project,
+    "--port": set_port
+}
 
-
-
-def main():
-    status = ask()
-    if(status == WITHOUT_PROJECT):
-        # remove all in workspace.yaml
-        clear_content()
-        build()
-    else:
-        build_path()
-        build()
-
+def switch(command, data = None ):
+    return switcher.get(command, default)(data)
 
 @contextmanager
 def run_and_terminate_process():
     try:
         print("cnext starting !")
 
-        # TODO(huytq): remove
-        # os.chdir(web_path)
-        # web_proc = Popen('npm start', shell=True)
-
-        os.chdir(server_path)
+        os.chdir(SERVER_PATH)
         my_env = os.environ.copy()
         my_env["PATH"] = os.path.dirname(
             sys.executable) + os.path.pathsep + my_env["PATH"]
@@ -154,9 +170,6 @@ def run_and_terminate_process():
         yield
 
     finally:
-        web_proc.terminate()  # send sigterm, or ...
-        web_proc.kill()      # send sigkill
-
         ser_proc.terminate()  # send sigterm, or ...
         ser_proc.kill()      # send sigkill
 

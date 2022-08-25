@@ -6,7 +6,7 @@ import simplejson as json
 ## path to the server config file #
 SERVER_CONFIG_PATH = 'server.yaml'
 ## path to the workspace config file #
-WORKSPACE_METADATA_PATH = 'workspace.yaml'
+WORKSPACE_METADATA_PATH = '../../workspace.yaml'
 ## name of the folder where cnext stores project related information #
 CNEXT_PROJECT_FOLDER = '.cnext'
 ## name of the file where cnext stores project related config #

@@ -27,9 +27,7 @@ exclude = [
 ]
 
 [tool.poetry.scripts]
-cnext-init = "cnext_server.__main__:main"
-cnext-path = "cnext_server.__main__:path"
-cnext-run = "cnext_server.__main__:start"
+cnext = "cnext_server.__main__:main"
 
 [tool.poetry.dependencies]
 python = ">=3.9"
