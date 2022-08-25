@@ -227,6 +227,8 @@ const FileExplorer = (props: any) => {
     ) => {
         event.preventDefault();
         event.stopPropagation();
+        console.log("openContextMenu", parentItemPath, clickedItemPath);
+
         console.log("FileExplorer: ", clickedItemPath, parentItemPath);
         setContextMenuPos(
             contextMenuPos === null
@@ -246,7 +248,19 @@ const FileExplorer = (props: any) => {
             deletable: deletable,
         });
     };
-
+    const hoverContext = (
+        clickedItemPath: string,
+        parentItemPath: string,
+        is_file: boolean,
+        deletable?: boolean
+    ) => {
+        setContextMenuItems({
+            parent: parentItemPath,
+            item: clickedItemPath,
+            is_file: is_file,
+            deletable: deletable,
+        });
+    };
     const selectContextMenuItem = (item: FileContextMenuItem) => {
         console.log(`item =>>>`, item, contextMenuItems);
 
@@ -416,6 +430,14 @@ const FileExplorer = (props: any) => {
                                     onClick={() => {
                                         value.is_file ? dispatch(setFileToOpen(value.path)) : null;
                                     }}
+                                    onMouseDown={() => {
+                                        hoverContext(
+                                            value.path,
+                                            relativeParentPath,
+                                            value.is_file,
+                                            value.deletable
+                                        );
+                                    }}
                                     onContextMenu={(event: React.MouseEvent) => {
                                         openContextMenu(
                                             event,
@@ -536,16 +558,16 @@ const FileExplorer = (props: any) => {
                         style={{ cursor: "pointer" }}
                     />
                 </Tooltip> */}
-                    <Tooltip title="Add folder" enterDelay={500} placement="bottom-end">
-                        <CreateNewFolderIcon
-                            onClick={() => selectContextMenuItem(0)}
+                    <Tooltip title="Add file" enterDelay={500} placement="bottom-end">
+                        <NoteAddIcon
+                            onClick={() => selectContextMenuItem(1)}
                             fontSize="small"
                             style={{ cursor: "pointer" }}
                         />
                     </Tooltip>
-                    <Tooltip title="Add file" enterDelay={500} placement="bottom-end">
-                        <NoteAddIcon
-                            onClick={() => selectContextMenuItem(1)}
+                    <Tooltip title="Add folder" enterDelay={500} placement="bottom-end">
+                        <CreateNewFolderIcon
+                            onClick={() => selectContextMenuItem(0)}
                             fontSize="small"
                             style={{ cursor: "pointer" }}
                         />
