@@ -29,7 +29,6 @@ WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
 DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/master.zip'
 
-
 def change_permissions_recursive(path, mode):
     for root, dirs, files in os.walk(path, topdown=False):
         for dir in [os.path.join(root, d) for d in dirs]:
@@ -54,8 +53,8 @@ def install_node_modules():
     os.system('npm i')
 
 samples = {
-    "skywalker":"Skywalker",
-    "jedi":"Jedi",
+    "skywalker": "Skywalker",
+    "jedi": "Jedi",
 }
 
 def download_and_unzip(url, project_name, extract_to='.'):
@@ -90,7 +89,10 @@ def main(args=sys.argv):
         if(len(args) == 1):
             start()
         elif(len(args) == 2):
-            switch(args[1])
+            if(args[1].isnumeric()):
+                run_at_port(int(args[1]))
+            else:
+                switch(args[1])
         elif(len(args) == 3):
             switch(args[1],args[2])
         else:
@@ -105,17 +107,16 @@ def run_help(choice):
 
         Using command
         - cnext                        : RESUME APPLICATION 
-
-        Config command
-        - cnext -p                     : CHANGE PORT of cnext
+        - cnext 8888                   : RESUME APPLICATION at PORT 8888
         """
     print(message)
     
 def default(data):
     run_help(data)
     
-def set_port(port):
-    return print("set_port" )
+def run_at_port(port):
+    start(port)
+   
 
 def download_project(project_name, download_to_path):
     download_and_unzip(DOWNLOAD_PATH, project_name, download_to_path)
@@ -146,27 +147,23 @@ def start_with_sample_project(path_or_name):
 switcher = {
     "-h": run_help, 
     "-s": start_with_sample_project, 
-    "-p": set_port, #
     # full case
     "--help": run_help,
     "--start": start_with_sample_project,
-    "--port": set_port
 }
 
 def switch(command, data = None ):
     return switcher.get(command, default)(data)
 
 @contextmanager
-def run_and_terminate_process():
+def run_and_terminate_process(port):
     try:
-        print("cnext starting !")
-
         os.chdir(SERVER_PATH)
         my_env = os.environ.copy()
         my_env["PATH"] = os.path.dirname(
             sys.executable) + os.path.pathsep + my_env["PATH"]
-
-        ser_proc = Popen('npm run start-prod', shell=True, env=my_env)
+        command = "set PORT="+ f'{port}' + "&& node server.js"
+        ser_proc = Popen(command, shell=True, env=my_env)
         yield
 
     finally:
@@ -174,8 +171,8 @@ def run_and_terminate_process():
         ser_proc.kill()      # send sigkill
 
 
-def start():
-    with run_and_terminate_process() as running_proc:
+def start(port=4000):
+    with run_and_terminate_process(port) as running_proc:
         while True:
             time.sleep(1000)
 
