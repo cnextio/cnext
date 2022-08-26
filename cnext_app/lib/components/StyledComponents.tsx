@@ -303,6 +303,7 @@ export const CodeToolbar = styled.div`
     --var-height: 30px;
     width: calc(100% - 115px);
     height: calc(var(--var-height));
+    min-height: calc(var(--var-height));
     align-items: center;
     background-color: ${(props) => props.theme.palette.grey.A200};
     overflow: auto;
@@ -597,7 +598,7 @@ export const StyledExecutor = styled.span`
     position: absolute;
     padding-right: 10px;
     right: 0;
-    /* padding-top: 1px; */
+    height: 30px;
     .icon {
         padding: 0px 3px 0px 3px;
         cursor: pointer;
@@ -607,7 +608,6 @@ export const StyledExecutor = styled.span`
             font-size: 22px;
         }
         &:hover {
-            /* color: #8a8989; */
             svg {
                 background-color: #e6e5e5;
                 background-clip: content-box;

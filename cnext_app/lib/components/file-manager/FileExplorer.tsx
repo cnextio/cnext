@@ -554,6 +554,7 @@ const FileExplorer = (props: any) => {
 
                     <Tooltip title="New file" enterDelay={500} placement="bottom-end">
                         <NoteAddIcon
+                        color="white"
                             onClick={() => selectContextMenuItem(FileContextMenuItem.NEW_FILE)}
                             fontSize="small"
                             style={{ cursor: "pointer" }}
