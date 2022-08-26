@@ -25,13 +25,12 @@ else:
 current_dir_path = os.getcwd()
 basepath = _path.dirname(__file__)
 path = Path(basepath)
-current_dir_path = path.parent.absolute()
+current_dir_path = path.absolute()
 
 
 PROJECTS_PATH = os.path.abspath(os.path.join(current_dir_path,"projects"))
-SERVER_PATH = os.path.abspath(os.path.join(current_dir_path,"cnext_server/server"))
+SERVER_PATH = os.path.abspath(os.path.join(current_dir_path,"server"))
 DEFAULT_PROJECT = "Skywalker"
-FILE_NAME = 'workspace.yaml'
 WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
 DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/master.zip'
@@ -50,7 +49,7 @@ def change_workspace(name, path):
         'active_project': project_id,
         'open_projects': [{"id": project_id, 'name': name, 'path': path}],
     }
-    with open(r'workspace.yaml', 'w') as file:
+    with open(r'cnext_server/workspace.yaml', 'w') as file:
         documents = yaml.dump(data, file, default_flow_style=False)
     print('change workspace done!')
 
