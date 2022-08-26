@@ -53,7 +53,7 @@ def close_file(path, open_order):
                 config = read_config(config_file_path)
                 project_metadata = ProjectMetadata(config.__dict__)
                 for file in project_metadata.open_files:
-                    if(file.path != path):
+                    if(os.path.normpath(file.path) != path):
                         new_open_files.append(file)                        
                 project_metadata.open_files = new_open_files
 
