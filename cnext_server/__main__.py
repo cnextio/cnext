@@ -13,6 +13,8 @@ import uuid
 import shutil
 import yaml
 import os
+from os import path as _path
+from pathlib import Path
 if sys.platform.startswith("win"):
     from pyreadline import Readline
     readline = Readline()
@@ -21,6 +23,11 @@ else:
 
 
 current_dir_path = os.getcwd()
+basepath = _path.dirname(__file__)
+path = Path(basepath)
+current_dir_path = path.parent.absolute()
+
+
 PROJECTS_PATH = os.path.abspath(os.path.join(current_dir_path,"projects"))
 SERVER_PATH = os.path.abspath(os.path.join(current_dir_path,"cnext_server/server"))
 DEFAULT_PROJECT = "Skywalker"
