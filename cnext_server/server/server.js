@@ -23,6 +23,8 @@ const options = {
     pingTimeout: 60000,
 };
 const io = new socketIo.Server(server, options);
+const os = require('os');
+const pty = require('node-pty');
 
 // TODO: move to Interfaces.tsx
 const CodeEditor = "CodeEditor";
@@ -36,7 +38,7 @@ const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager];
-const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
+const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, LogsManager];
 
 const LSPExecutor = [
     LanguageServer,
@@ -145,11 +147,33 @@ class PythonProcess {
 try {
     app.use(express.static(path.resolve(__dirname, "../public")));
 
+    let term;
+
     io.on("connection", (socket) => {
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();
             console.log(`Got ping at ${time}: ${message}`);
             io.emit("pong", time);
+        });
+
+        socket.on(Terminal, (message) => {
+            console.log('message', message);
+            if (!term) {
+                const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+
+                term = pty.spawn(shell, [], {
+                    cols: 80,
+                    rows: 30,
+                    cwd: process.env.HOME,
+                    env: process.env
+                });
+                term.on("data", data => {
+                    console.log('emit', data);
+                  io.emit(Terminal, data);
+                });
+            }
+
+            term.write(message);
         });
 
         socket.onAny((endpoint, message) => {

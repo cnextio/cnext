@@ -12,6 +12,7 @@
         "express": "~4.17.1",
         "node-addon-api": "~4.2.0",
         "node-gyp-build": "~4.3.0",
+        "node-pty": "^0.10.1",
         "nodemon": "~2.0.15",
         "python-shell": "~3.0.1",
         "socket.io": "~4.2.0",

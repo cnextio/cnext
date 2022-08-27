@@ -12,6 +12,8 @@ const errorTokenExpired = "Failed to fetch";
 const Terminal = "terminalIO";
 let elementTerminal: HTMLElement | null;
 let session: any;
+import { CommandName, WebAppEndpoint } from "../../../interfaces/IApp";
+import socket from "../../Socket";
 
 const TerminalComponent = () => {
     const state = store.getState();
@@ -22,107 +24,107 @@ const TerminalComponent = () => {
     const config = useSelector((state: RootState) => state.terminal.config);
 
     async function init() {
-        if (config.port && config.token) {
-            try {
-                const BASEURL = `${getDomain()}:${config.port}`;
-                const TOKEN = `${config.token}`;
-                const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
-                const connectionInfo = ServerConnection.makeSettings({
-                    baseUrl: BASEURL,
-                    wsUrl: WSURL,
-                    token: TOKEN,
-                    init: {},
-                });
-                PageConfig.setOption(`terminalsAvailable`, "true");
-                const terminalManager = new TerminalManager({
-                    serverSettings: connectionInfo,
-                });
-                const listTerminalRun = await TerminalAPI.listRunning(connectionInfo);
+        socket.on(WebAppEndpoint.Terminal, data => {
+            xtermRef?.current?.terminal.write(data);
+        })
+        // if (config.port && config.token) {
+        //     try {
+        //         const BASEURL = `${getDomain()}:${config.port}`;
+        //         const TOKEN = `${config.token}`;
+        //         const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
+        //         const connectionInfo = ServerConnection.makeSettings({
+        //             baseUrl: BASEURL,
+        //             wsUrl: WSURL,
+        //             token: TOKEN,
+        //             init: {},
+        //         });
+        //         PageConfig.setOption(`terminalsAvailable`, "true");
+        //         const terminalManager = new TerminalManager({
+        //             serverSettings: connectionInfo,
+        //         });
+        //         const listTerminalRun = await TerminalAPI.listRunning(connectionInfo);
 
-                // check  the terminal named terminal is running ?
-                const isTerminal = listTerminalRun.find((item) => item.name === Terminal);
+        //         // check  the terminal named terminal is running ?
+        //         const isTerminal = listTerminalRun.find((item) => item.name === Terminal);
 
-                if (!isTerminal) {
-                    // TerminalAPI.shutdownTerminal();
-                    session = await terminalManager.startNew({
-                        name: Terminal,
-                        cwd: pathRoot,
-                    });
-                } else {
-                    session = terminalManager.connectTo({
-                        model: {
-                            name: Terminal,
-                        },
-                    });
-                }
-                session.messageReceived.connect(
-                    (data: string, msg: { type: string; content: string[] }) => {
-                        switch (msg.type) {
-                            case "stdout":
-                                if (msg.content) {
-                                    xtermRef?.current?.terminal.write(msg.content[0] as string);
-                                }
-                                break;
-                            case "disconnect":
-                                xtermRef?.current?.terminal.write(
-                                    "\r\n\r\n[Finished… Term Session]\r\n"
-                                );
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                );
+        //         if (!isTerminal) {
+        //             // TerminalAPI.shutdownTerminal();
+        //             session = await terminalManager.startNew({
+        //                 name: Terminal,
+        //                 cwd: pathRoot,
+        //             });
+        //         } else {
+        //             session = terminalManager.connectTo({
+        //                 model: {
+        //                     name: Terminal,
+        //                 },
+        //             });
+        //         }
+        //         session.messageReceived.connect(
+        //             (data: string, msg: { type: string; content: string[] }) => {
+        //                 switch (msg.type) {
+        //                     case "stdout":
+        //                         if (msg.content) {
+        //                             xtermRef?.current?.terminal.write(msg.content[0] as string);
+        //                         }
+        //                         break;
+        //                     case "disconnect":
+        //                         xtermRef?.current?.terminal.write(
+        //                             "\r\n\r\n[Finished… Term Session]\r\n"
+        //                         );
+        //                         break;
+        //                     default:
+        //                         break;
+        //                 }
+        //             }
+        //         );
 
-                elementTerminal = document.getElementById(`Terminal`);
-                new ResizeObserver(() => {
-                    if (fitAddon !== undefined) {
-                        fitAddon.fit();
-                    }
-                }).observe(elementTerminal);
-            } catch (error) {
-                //
-                if (error?.message === errorTokenExpired) {
-                    deleteAllCookies();
-                    window.location.reload();
-                }
-            }
-        }
+        //         elementTerminal = document.getElementById(`Terminal`);
+        //         new ResizeObserver(() => {
+        //             if (fitAddon !== undefined) {
+        //                 fitAddon.fit();
+        //             }
+        //         }).observe(elementTerminal);
+        //     } catch (error) {
+        //         //
+        //         if (error?.message === errorTokenExpired) {
+        //             deleteAllCookies();
+        //             window.location.reload();
+        //         }
+        //     }
+        // }
     }
     useEffect(() => {
-        init();
+        if (xtermRef?.current?.terminal) {
+            socket.on(WebAppEndpoint.Terminal, data => {
+                xtermRef?.current?.terminal.write(data);
+            })
+            socket.emit(WebAppEndpoint.Terminal, "clear\n");
+        }
+
         return () => {
-            // session.di
+            socket.off(WebAppEndpoint.Terminal);
         };
-    }, [config]); //TODO: run this only once - not on rerender
+    }, [xtermRef]); //TODO: run this only once - not on rerender
 
     function onTermData(data: string) {
-        if (session) {
-            session.send({
-                type: "stdin",
-                content: [data],
-            });
-        }
+        socket.emit(WebAppEndpoint.Terminal, data);
     }
 
-    useEffect(() => {
-        if (xtermRef?.current) {
-        }
-    }, [session]);
-
     const onResize = (event: { rows: number; cols: number }) => {
-        if (xtermRef?.current?.terminal && session) {
-            const content = [
-                event.rows,
-                event.cols,
-                elementTerminal.offsetHeight,
-                elementTerminal.offsetWidth,
-            ];
-            if (!session.isDisposed) {
-                fitAddon.fit();
-                // session.send({ type: "set_size", content });
-            }
-        }
+        console.log('onResize', event);
+        // if (xtermRef?.current?.terminal && session) {
+        //     const content = [
+        //         event.rows,
+        //         event.cols,
+        //         elementTerminal.offsetHeight,
+        //         elementTerminal.offsetWidth,
+        //     ];
+        //     if (!session.isDisposed) {
+        //         fitAddon.fit();
+        //         // session.send({ type: "set_size", content });
+        //     }
+        // }
     };
     const StyleXTerm = styled(XTerm)`
         height: 100%;

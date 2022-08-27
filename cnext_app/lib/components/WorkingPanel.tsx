@@ -77,7 +77,7 @@ const WorkingPanel = () => {
             </SplitPane>
             <DFManager />
             <FileManager />
-            <TerminalManager />
+            {/* <TerminalManager /> */}
             <HotkeyComponent />
             {/* <Notifier /> */}
         </StyledWorkingPanel>
