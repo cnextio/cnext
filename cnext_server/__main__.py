@@ -49,7 +49,9 @@ def change_workspace(name, path):
         'active_project': project_id,
         'open_projects': [{"id": project_id, 'name': name, 'path': path}],
     }
-    with open(r'cnext_server/workspace.yaml', 'w') as file:
+    
+    os.chdir(current_dir_path)
+    with open(r'workspace.yaml', 'w') as file:
         documents = yaml.dump(data, file, default_flow_style=False)
     print('change workspace done!')
 
