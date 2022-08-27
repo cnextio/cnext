@@ -226,7 +226,7 @@ const CodeEditor = () => {
         if (Object.keys(fileLangExtensions).includes(fileExt)) {
             return fileLangExtensions[fileExt];
         } else {
-            return [fileLangExtensions["py"]];
+            return fileLangExtensions["py"];
         }
     };
 
@@ -413,7 +413,7 @@ const CodeEditor = () => {
                 scrollToPrevPos(store.getState());
             }, 10);
         }
-    }, [serverSynced, codeReloading, view?.state.doc]);
+    }, [serverSynced, codeReloading, view]);
 
     useEffect(() => {
         try {
@@ -424,7 +424,9 @@ const CodeEditor = () => {
                 setGenLineDeco(store.getState(), view);
                 // console.log("CodeEditor useEffect setGenCodeLineDeco");
             }
-        } catch {}
+        } catch (error) {
+            console.log(error);
+        }
     });
 
     /** this will force the CodeMirror to refresh when codeLines update. Need this to make the gutter update
