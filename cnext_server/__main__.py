@@ -62,7 +62,6 @@ def install_node_modules():
 
 samples = {
     "skywalker": "Skywalker",
-    "jedi": "Jedi",
 }
 
 def download_and_unzip(url, project_name, extract_to='.'):
@@ -110,7 +109,7 @@ def run_help(choice):
     message = """
         Installation command
         - cnext -s                     : START with `Skywalker` project
-        - cnext -s Jedi                : START with `Jedi` project
+        # - cnext -s Skywalker                : START with `Skywalker` project
         - cnext -s G:\DEV\PROJECTS     : START with `Skywalker` inside PROJECTS
 
         Using command
@@ -156,8 +155,8 @@ switcher = {
     "-h": run_help, 
     "-s": start_with_sample_project, 
     # full case
-    "--help": run_help,
-    "--start": start_with_sample_project,
+    "help": run_help,
+    "start": start_with_sample_project,
 }
 
 def switch(command, data = None ):
