@@ -37,7 +37,6 @@
         "@mui/icons-material": "~5.10.2",
         "@mui/lab": "~5.0.0-alpha.90",
         "@mui/material": "~5.10.2",
-        "@mui/styles": "~5.10.2",
         "@mui/system": "~5.10.2",
         "@open-rpc/client-js": "^1.6.2",
         "@reduxjs/toolkit": "^1.6.2",

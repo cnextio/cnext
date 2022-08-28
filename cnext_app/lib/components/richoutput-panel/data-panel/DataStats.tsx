@@ -13,7 +13,6 @@ import {
 import store, { RootState } from "../../../../redux/store";
 import { setStatsConfig } from "../../../../redux/reducers/DataFramesRedux";
 import { FormControlLabel, OutlinedInput } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import CypressIds from "../../tests/CypressIds";
 
 const DataStats = () => {
@@ -52,29 +51,28 @@ const DataStats = () => {
     };
 
     /** I could not find a way to make this works with styledcomponent so use makestyle instead */
-    const useOutlinedInputStyles = makeStyles(() => ({
-        root: {
-            fontSize: "13px",
-            "& $notchedOutline": {
-                borderColor: "white",
-            },
-            "&:hover $notchedOutline": {
-                borderColor: "white",
-            },
-            "&$focused $notchedOutline": {
-                borderColor: "white",
-            },
-        },
-        focused: {},
-        notchedOutline: {},
-    }));
+    // const useOutlinedInputStyles = makeStyles(() => ({
+    //     root: {
+    //         fontSize: "13px",
+    //         "& $notchedOutline": {
+    //             borderColor: "white",
+    //         },
+    //         "&:hover $notchedOutline": {
+    //             borderColor: "white",
+    //         },
+    //         "& $focused $notchedOutline": {
+    //             borderColor: "white",
+    //         },
+    //     },
+    //     focused: {},
+    //     notchedOutline: {},
+    // }));
 
     const renderComponent = () => {
         let selectedStatsLen = Object.values(statConfig).filter((value) => {
             return value;
         }).length;
         let allStatsLen = Object.values(statConfig).length;
-        const classes = useOutlinedInputStyles();
         return (
             <DFStats>
                 <FormControlLabel
@@ -83,14 +81,14 @@ const DataStats = () => {
                             checked={selectedStatsLen == allStatsLen}
                             indeterminate={selectedStatsLen > 0 && selectedStatsLen != allStatsLen}
                             onChange={handleSelectParentChecbox}
-                            size='small'
+                            size="small"
                             data-cy={CypressIds.dfStatsCheckboxAll}
                         />
                     }
-                    label=''
+                    label=""
                     sx={{ marginRight: "-10px", marginTop: "-12px", paddingLeft: "10px" }}
                 />
-                <DFStatsForm size='small'>
+                <DFStatsForm size="small">
                     <DFStatsSelector
                         multiple
                         displayEmpty
@@ -106,12 +104,12 @@ const DataStats = () => {
                         renderValue={() => {
                             return <span>AutoStats</span>;
                         }}
-                        input={<OutlinedInput classes={classes} />}
+                        input={<OutlinedInput />}
                     >
                         {/* <MenuList dense> */}
                         {Object.entries(statConfig).map(([key, value]) => (
                             <DFStatsMenuItem value={key}>
-                                <Checkbox checked={value} size='small' />
+                                <Checkbox checked={value} size="small" />
                                 {key}
                             </DFStatsMenuItem>
                         ))}
