@@ -874,16 +874,12 @@ export const DFStatsSelector = styled(Select)`
     }
 
     .MuiOutlinedInput-notchedOutline {
-        border-color: white;
-    }
-
-    .Mui-focused {
-        border-color: white;
+        border: none;
     }
 
     &:hover {
         .MuiOutlinedInput-notchedOutline {
-            border-color: white;
+            border: none;
         }
     }
 `;

@@ -50,24 +50,6 @@ const DataStats = () => {
         dispatch(setStatsConfig(newDataFrameConfig));
     };
 
-    /** I could not find a way to make this works with styledcomponent so use makestyle instead */
-    // const useOutlinedInputStyles = makeStyles(() => ({
-    //     root: {
-    //         fontSize: "13px",
-    //         "& $notchedOutline": {
-    //             borderColor: "white",
-    //         },
-    //         "&:hover $notchedOutline": {
-    //             borderColor: "white",
-    //         },
-    //         "& $focused $notchedOutline": {
-    //             borderColor: "white",
-    //         },
-    //     },
-    //     focused: {},
-    //     notchedOutline: {},
-    // }));
-
     const renderComponent = () => {
         let selectedStatsLen = Object.values(statConfig).filter((value) => {
             return value;
