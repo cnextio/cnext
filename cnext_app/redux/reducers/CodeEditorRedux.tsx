@@ -281,7 +281,7 @@ export const CodeEditorRedux = createSlice({
 
                 state.saveCodeLineCounter++;
             }
-            
+
             if (lineUpdate.updatedLineCount != 0) {
                 /** there might be change in cell association */
                 state.cellAssocUpdateCount++;
@@ -397,7 +397,6 @@ export const CodeEditorRedux = createSlice({
                     state.textOutputUpdateCount++;
                     state.saveCodeLineCounter++;
                 } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
-                    let oldContent = codeLines[fromLine].result?.content;
                     let content = resultMessage.content;
                     if (resultMessage?.subType === SubContentType.APPLICATION_JSON) {
                         try {
@@ -417,10 +416,24 @@ export const CodeEditorRedux = createSlice({
                     // assign the result of a group only to the first line
                     if (codeLines[fromLine].result != null) {
                         // this is for backward compatible with the previous format of result
-                        if (!(codeLines[fromLine].result instanceof Array)) {
-                            codeLines[fromLine].result = [codeLines[fromLine].result];
+                        let lineResult = codeLines[fromLine].result;
+                        if (!(lineResult instanceof Array)) {
+                            codeLines[fromLine].result = [lineResult];
+                        } else {
+                            if (newResult.subType === SubContentType.MARKDOWN) {
+                                /** we need a special handling of markdown */
+                                let foundMarkdown = false;
+                                for (let i = 0; i < lineResult.length; i++) {
+                                    if (lineResult[i].subType === SubContentType.MARKDOWN) {
+                                        lineResult[i] = newResult;
+                                        foundMarkdown = true;
+                                    }
+                                }
+                                if (!foundMarkdown) lineResult.push(newResult);
+                            } else {
+                                codeLines[fromLine].result?.push(newResult);
+                            }
                         }
-                        codeLines[fromLine].result?.push(newResult);
                     } else {
                         codeLines[fromLine].result = [newResult];
                     }
