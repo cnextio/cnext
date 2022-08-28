@@ -50,11 +50,15 @@ const WorkingPanel = () => {
 			https://newbedev.com/absolute-positioning-ignoring-padding-of-parent */}
             <SplitPane split="vertical">
                 {console.log("WorkingPanel render")}
-                {showProjectExplore && (
-                    <Pane size={projectConfig.layout?.project_explorer_size + "px"}>
-                        <FileExplorer />
-                    </Pane>
-                )}
+                <Pane
+                    size={
+                        showProjectExplore
+                            ? projectConfig.layout?.project_explorer_size + "px"
+                            : "0px"
+                    }
+                >
+                    <FileExplorer />
+                </Pane>
                 <Pane>
                     <SplitPane
                         split={projectConfig.view_mode}
