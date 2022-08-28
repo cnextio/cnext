@@ -24,13 +24,14 @@ const TerminalComponent = () => {
     async function init() {
         if (config.port && config.token) {
             try {
-                const BASEURL = `${getDomain()}:${config.port}`;
+                const BASEURL = `${process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT}/jps`;
                 const TOKEN = `${config.token}`;
                 const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
                 const connectionInfo = ServerConnection.makeSettings({
                     baseUrl: BASEURL,
-                    wsUrl: WSURL,
+                    wsUrl: BASEURL.replace("http", "ws"),
                     token: TOKEN,
+                    appendToken: true,
                     init: {},
                 });
                 PageConfig.setOption(`terminalsAvailable`, "true");

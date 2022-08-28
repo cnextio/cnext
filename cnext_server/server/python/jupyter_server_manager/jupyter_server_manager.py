@@ -21,7 +21,7 @@ class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata, jupyter_server_config):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
         self.jupyter_server_config = jupyter_server_config
-        run_string = ["jupyter", "server", "--ip=0.0.0.0",
+        run_string = ["jupyter", "server", "--ip=0.0.0.0", "--no-browser",
                       f"--port={jupyter_server_config['port']}",
                       f"--ServerApp.token={jupyter_server_config['token']}",
                       "--ServerApp.allow_origin=*"]
