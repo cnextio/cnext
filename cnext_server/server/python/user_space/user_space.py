@@ -75,7 +75,7 @@ class _UserSpace(BaseKernelUserSpace):
            _df_manager=IPythonInteral.DF_MANAGER.value,
            _cassist=IPythonInteral.CASSIST.value,
            _tracking_df_types=self.tracking_df_types,
-           _tracking_model_types=(TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
+           _tracking_model_types=self.tracking_model_types)
         self.executor.execute(code)
 
     def globals(self):
