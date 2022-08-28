@@ -541,7 +541,7 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                     setOpacityWidget(mouseOverGroupID, "0");
                 }
                 let currentGroupID = lines[lineNumber].groupID;
-                console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
+                // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
                 if (currentGroupID) {
                     setOpacityWidget(currentGroupID, "1");
                 }

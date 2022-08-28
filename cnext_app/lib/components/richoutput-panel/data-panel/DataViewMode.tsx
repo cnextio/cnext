@@ -11,7 +11,6 @@ import {
 import store, { RootState } from "../../../../redux/store";
 import { setDataViewMode } from "../../../../redux/reducers/DataFramesRedux";
 import { OutlinedInput } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import { DFViewMode as DFViewModeOptions } from "../../../interfaces/IApp";
 import CypressIds from "../../tests/CypressIds";
 
@@ -23,29 +22,10 @@ const DataViewMode = () => {
         dispatch(setDataViewMode(event.target.value));
     };
 
-    /** I could not find a way to make this works with styledcomponent so use makestyle instead */
-    const useOutlinedInputStyles = makeStyles(() => ({
-        root: {
-            fontSize: "13px",
-            "& $notchedOutline": {
-                borderColor: "white",
-            },
-            "&:hover $notchedOutline": {
-                borderColor: "white",
-            },
-            "&$focused $notchedOutline": {
-                borderColor: "white",
-            },
-        },
-        focused: {},
-        notchedOutline: {},
-    }));
-
     const renderComponent = () => {
-        const classes = useOutlinedInputStyles();
         return (
             <DFViewMode>
-                <DFViewModeForm size='small'>
+                <DFViewModeForm size="small">
                     <DFViewModeSelector
                         displayEmpty
                         value={viewMode}
@@ -58,7 +38,7 @@ const DataViewMode = () => {
                         }}
                         IconComponent={DFViewModeSmallArrowIcon}
                         data-cy={CypressIds.dfViewMode}
-                        input={<OutlinedInput classes={classes} />}
+                        input={<OutlinedInput/>}
                     >
                         {/* <MenuList dense> */}
                         {Object.values(DFViewModeOptions).map((vm) => (

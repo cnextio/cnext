@@ -2,20 +2,17 @@ import type { AppProps } from 'next/app'
 
 import '../styles/global.css'
 import "../styles/styles.css";
-// import "../styles/example-styles.css";
-// import "./materialui/vendor/jvectormap.css";
-// import "./materialui/vendor/perfect-scrollbar.css";
-// import "react-dragula/dist/dragula.css";
 import Helmet from 'react-helmet';
 import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 
-// import DateFnsUtils from "@date-io/date-fns";
-import { ThemeProvider as MuiThemeProvider} from '@mui/styles';
-import { createTheme, StyledEngineProvider } from '@mui/material/styles';
-// import { StylesProvider } from '@mui/styles';
+import {
+    createTheme,
+    StyledEngineProvider,
+    ThemeProvider as MuiThemeProvider,
+} from "@mui/material/styles";
+
 import {ThemeProvider} from "styled-components";
-import maTheme from "../theme";
 
 const theme =  createTheme();
 
