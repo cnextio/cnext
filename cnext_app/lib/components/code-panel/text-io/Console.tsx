@@ -5,7 +5,7 @@ import { Box, Typography } from "@mui/material";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
 import ReviewComponent from "../DFReview";
-import Ansi from "ansi-to-react";
+import Ansi from "./ansi-to-react";
 import { ICodeLine, ICodeResultContent } from "../../../interfaces/ICodeEditor";
 import store, { RootState } from "../../../../redux/store";
 import { getLastUpdate } from "../../dataframe-manager/libDataFrameManager";
