@@ -15,6 +15,7 @@ import {
     FileExplorerAction,
 } from "../StyledComponents";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import FolderCopyIcon from "@mui/icons-material/FolderCopy";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -544,22 +545,21 @@ const FileExplorer = (props: any) => {
                         placement="bottom-end"
                         style={{ marginLeft: "auto" }}
                     >
-                        <AddBoxIcon
+                        <FolderCopyIcon
                             id="add-project-button"
                             className="icon"
                             onClick={handleAddProjectBtn}
                             fontSize="small"
-                            style={{ cursor: "pointer" }}
+                            style={{ height: 18 }}
                         />
                     </Tooltip>
 
                     <Tooltip title="New file" enterDelay={500} placement="bottom-end">
                         <NoteAddIcon
-                            color="white"
                             className="icon"
                             onClick={() => selectContextMenuItem(FileContextMenuItem.NEW_FILE)}
                             fontSize="small"
-                            style={{ cursor: "pointer" }}
+                            style={{ height: 17 }}
                         />
                     </Tooltip>
                     <Tooltip title="New folder" enterDelay={500} placement="bottom-end">
@@ -567,7 +567,7 @@ const FileExplorer = (props: any) => {
                             className="icon"
                             onClick={() => selectContextMenuItem(FileContextMenuItem.NEW_FOLDER)}
                             fontSize="small"
-                            style={{ cursor: "pointer" }}
+                            style={{ height: 23 }}
                         />
                     </Tooltip>
                 </FileExplorerAction>

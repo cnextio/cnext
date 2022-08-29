@@ -202,6 +202,7 @@ export const FileExplorerAction = styled.div`
     .icon {
         color: rgba(0, 0, 0, 0.6);
         font-size: 20px;
+        cursor: pointer;
     }
 `;
 export const FileTree = styled(TreeView)`
