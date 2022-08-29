@@ -13,7 +13,7 @@ import { defaultKeymap, historyKeymap, insertNewlineAndIndent } from "@codemirro
 import { searchKeymap } from "@codemirror/search";
 import { StyledCodeEditor } from "../StyledComponents";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
-
+import TableOfContents from "../table-of-content";
 import {
     addResult,
     updateLines,
@@ -924,6 +924,7 @@ const CodeEditor = () => {
     return (
         <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>
             {console.log("CodeEditor render")}
+            <TableOfContents />
         </StyledCodeEditor>
     );
 };

@@ -412,6 +412,7 @@ export const StyledCodeEditor = styled.div`
     align-self: stretch;
     height: 100%;
     width: 100%;
+    position: relative;
     //scrollable (https://stackoverflow.com/questions/43788878/scrollable-list-component-from-material-ui-in-react)
     overflow: auto;
     max-width: 100%;
