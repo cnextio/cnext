@@ -32,13 +32,14 @@ const TerminalManager = () => {
                 if (JSON.parse(result).command_name === CommandName.get_jupyter_server_config) {
                     const config = JSON.parse(result).content;
                     dispatch(setConfigTerminal(config));
-                    const BASEURL = `${getDomain()}:${config.port}?token=${config.token}`;
-                    if (!getCookie(jupyterServerCookie)) {
-                        const new_tab = window.open(`${BASEURL}`, "_blank");
-                        setTimeout(() => {
-                            new_tab?.close();
-                        }, 500);
-                    }
+                    // const BASEURL = `${getDomain()}:${config.port}?token=${config.token}`;
+                    // console.log('BASEURL', BASEURL);
+                    // if (!getCookie(jupyterServerCookie)) {
+                    //     const new_tab = window.open(`${BASEURL}`, "_blank");
+                    //     setTimeout(() => {
+                    //         new_tab?.close();
+                    //     }, 500);
+                    // }
                 }
             } catch (error) {
                 console.log(`error`, error);
