@@ -196,12 +196,12 @@ export const FileExplorerHeaderName = styled(Typography)`
         props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
     // }
 `;
-export const FileExplorerAction = styled.div`
+export const ProjectExplorerToolbar = styled.div`
     display: flex;
     align-items: center;
     .icon {
         color: rgba(0, 0, 0, 0.6);
-        font-size: 20px;
+        font-size: 22px;
         cursor: pointer;
     }
 `;
@@ -277,9 +277,10 @@ export const ContextMenuItem = styled(MenuItem)`
     font-size: 14px;
 `;
 
-export const ContextMenuNewItem = styled(TextField)`
+export const ProjectExplorerNewItem = styled(TextField)`
+    margin-left: -5px;
     .MuiInputBase-input {
-        font-size: 14px;
+        font-size: 12px;
         padding: 5px;
         width: 100%;
     }
@@ -597,7 +598,7 @@ export const StyledCodeEditor = styled.div`
         overflow: hidden;
     }
 `;
-export const StyledExecutor = styled.span`
+export const ExecutorToolbar = styled.span`
     background: #f6f5f5;
     display: flex;
     position: absolute;
@@ -609,8 +610,8 @@ export const StyledExecutor = styled.span`
         cursor: pointer;
         color: rgba(0, 0, 0, 0.6);
         svg {
-            padding-top: 6px;
-            font-size: 22px;
+            margin-top: 4px;
+            font-size: 20px;
         }
         &:hover {
             svg {
