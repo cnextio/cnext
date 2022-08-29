@@ -1028,8 +1028,8 @@ export const SingleResultContainer = styled(Paper)`
     overflow: auto;
 
     svg {
-        width: 1000px;
-        height: 1000px;
+        // width: 1000px;
+        // height: 1000px;
         overflow: scroll;
     }
 
