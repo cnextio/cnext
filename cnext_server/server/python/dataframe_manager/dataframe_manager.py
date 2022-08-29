@@ -153,6 +153,8 @@ class MessageHandler(BaseMessageHandler):
     @ipython_internal_output
     def _get_metadata(self, df_id):
         shape = self.user_space.execute("%s.shape" % df_id, ExecutionMode.EVAL)
+        df_type = self.user_space.execute(
+            "%s.__module__ + '.' + %s.__class__.__name__" % (df_id, df_id), ExecutionMode.EVAL)
         dtypes = self.user_space.execute(
             "%s.dtypes" % df_id, ExecutionMode.EVAL)
         countna = self.user_space.execute(
@@ -165,21 +167,22 @@ class MessageHandler(BaseMessageHandler):
         MAX_UNIQUE_LENGTH = 1000
         for col_name, ctype in dtypes.items():
             if re.search(r'datetime', ctype.name):
-                ## the unique value of datetime is usually the same as the length so it is meaningless
-                ## also we have to convert it to string before sending back. So just don't do it now.
-                unique = []                
+                # the unique value of datetime is usually the same as the length so it is meaningless
+                # also we have to convert it to string before sending back. So just don't do it now.
+                unique = []
             else:
                 unique = self.user_space.execute(
                     "_pd.Series(%s['%s'].unique()).tolist()" % (df_id, col_name), ExecutionMode.EVAL)
-            
+
             # only send unique list that has length smaller than MAX_UNIQUE_LENGTH
             if len(unique) > MAX_UNIQUE_LENGTH:
                 unique = []
-            
+
             columns[col_name] = {'name': col_name,
-                                 'type': str(ctype.name), 'unique': unique, 
+                                 'type': str(ctype.name), 'unique': unique,
                                  'countna': countna[col_name].item(), 'describe': describe[col_name].to_dict()}
-        output = {'df_id': df_id, 'shape': shape, 'columns': columns}
+        output = {'df_id': df_id, 'type': str(df_type),
+                  'shape': shape, 'columns': columns}
         return output
 
     def _process_error_message(self, ipython_message, client_message):
@@ -200,16 +203,16 @@ class MessageHandler(BaseMessageHandler):
             message = self._process_error_message(
                 ipython_message, client_message)
         else:
-            result = self.get_execute_result(ipython_message)            
-            if result is not None:           
+            result = self.get_execute_result(ipython_message)
+            if result is not None:
                 message = Message(**{'webapp_endpoint': WebappEndpoint.DFManager,
-                                    'command_name': client_message.command_name})
+                                     'command_name': client_message.command_name})
                 # Add header message from ipython to message metadata
                 if message.metadata == None:
                     message.metadata = {}
                 message.metadata.update(client_message.metadata)
                 message.metadata.update(dict((k, ipython_message.header[k])
-                                            for k in ('msg_id', 'msg_type', 'session')))
+                                             for k in ('msg_id', 'msg_type', 'session')))
                 message.metadata.update({'stream_type': stream_type})
 
                 if client_message.command_name == DFManagerCommand.plot_column_histogram:
@@ -239,9 +242,9 @@ class MessageHandler(BaseMessageHandler):
                     message.content = result
                     message.type = ContentType.DICT
                     message.sub_type = SubContentType.NONE
-                
+
                 message.error = False
-            
+
         return message
 
     def message_handler_callback(self, ipython_message, stream_type, client_message):

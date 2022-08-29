@@ -23,7 +23,7 @@ from jupyter_server_manager import jupyter_server_manager as jsm
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, ExecutorManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
-from libs.constants import TrackingModelType
+from libs.constants import TrackingModelType, TrackingDataframeType
 from project_manager.interfaces import SERVER_CONFIG_PATH, WORKSPACE_METADATA_PATH, WorkspaceMetadata
 from user_space.user_space import IPythonUserSpace, BaseKernelUserSpace
 import cnextlib.dataframe as cd
@@ -90,9 +90,12 @@ def main(argv):
                     server_config.p2n_comm['host'], server_config.p2n_comm['port'])
                 jupyter_server_config = server_config.jupyter_server
                 if executor_type == ExecutorType.CODE:
+                    # user_space = IPythonUserSpace(
+                    #     (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
                     user_space = IPythonUserSpace(
-                        (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
-
+                        (TrackingDataframeType.PANDAS, TrackingDataframeType.CNEXT, TrackingDataframeType.DASK), 
+                        (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
+                    
                     executor_manager = execm.MessageHandler(
                         p2n_queue, user_space)
 
