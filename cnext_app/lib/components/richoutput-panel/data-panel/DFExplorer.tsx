@@ -37,7 +37,7 @@ const DFExplorer = () => {
 
     return (
         <DFSelectorForm>
-            {console.log(dataFrameList)}
+            {console.log("DFExplorer render")}
             <DFSelector
                 onChange={handleChange}
                 value={
