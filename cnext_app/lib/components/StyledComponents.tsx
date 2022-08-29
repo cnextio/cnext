@@ -610,7 +610,7 @@ export const ExecutorToolbar = styled.span`
         cursor: pointer;
         color: rgba(0, 0, 0, 0.6);
         svg {
-            margin-top: 4px;
+            margin-top: 5px;
             font-size: 20px;
         }
         &:hover {
