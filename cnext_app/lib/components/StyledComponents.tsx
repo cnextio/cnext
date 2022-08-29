@@ -199,6 +199,10 @@ export const FileExplorerHeaderName = styled(Typography)`
 export const FileExplorerAction = styled.div`
     display: flex;
     align-items: center;
+    .icon {
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 20px;
+    }
 `;
 export const FileTree = styled(TreeView)`
     max-width: 100%;

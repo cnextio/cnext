@@ -546,6 +546,7 @@ const FileExplorer = (props: any) => {
                     >
                         <AddBoxIcon
                             id="add-project-button"
+                            className="icon"
                             onClick={handleAddProjectBtn}
                             fontSize="small"
                             style={{ cursor: "pointer" }}
@@ -554,7 +555,8 @@ const FileExplorer = (props: any) => {
 
                     <Tooltip title="New file" enterDelay={500} placement="bottom-end">
                         <NoteAddIcon
-                        color="white"
+                            color="white"
+                            className="icon"
                             onClick={() => selectContextMenuItem(FileContextMenuItem.NEW_FILE)}
                             fontSize="small"
                             style={{ cursor: "pointer" }}
@@ -562,6 +564,7 @@ const FileExplorer = (props: any) => {
                     </Tooltip>
                     <Tooltip title="New folder" enterDelay={500} placement="bottom-end">
                         <CreateNewFolderIcon
+                            className="icon"
                             onClick={() => selectContextMenuItem(FileContextMenuItem.NEW_FOLDER)}
                             fontSize="small"
                             style={{ cursor: "pointer" }}
