@@ -14,6 +14,8 @@ import { searchKeymap } from "@codemirror/search";
 import { StyledCodeEditor } from "../StyledComponents";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
 import TableOfContents from "../table-of-content";
+import CodeMirror from "@uiw/react-codemirror";
+
 import {
     addResult,
     updateLines,
@@ -157,6 +159,7 @@ const CodeEditor = () => {
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
     const editorRef = useRef<HTMLDivElement>();
+    const test = useRef<HTMLDivElement>();
 
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
@@ -165,7 +168,7 @@ const CodeEditor = () => {
     const defaultExtensions = [
         basicSetup,
         foldService.of(getCellFoldRange),
-        lineNumbers(),
+        // lineNumbers(),
         editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
         cellWidgetStateField,
         cellWidget(),
@@ -231,10 +234,10 @@ const CodeEditor = () => {
     };
 
     const [langExtensions, setLangExtensions] = useState(getLangExtenstions(inViewID));
-
+    //1
     const { view, container, setContainer } = useCodeMirror({
         basicSetup: false,
-        // container: editorRef.current,
+        // container: test.current,
         extensions: [...defaultExtensions, ...langExtensions],
         height: "100%",
         theme: "light",
@@ -242,6 +245,7 @@ const CodeEditor = () => {
         /** do not allow edit when there are items in the run queue */
         readOnly: isRunQueueBusy(runQueue),
     });
+    //2
 
     const resetEditorState = (inViewID: string | null, view: EditorView | undefined) => {
         if (view != null) {
@@ -478,6 +482,7 @@ const CodeEditor = () => {
         console.log("CodeEditor editorRef.current");
         if (editorRef.current != null && inViewID != null && container == null) {
             setContainer(editorRef.current);
+            // setContainer(test.current);
         }
     }, [inViewID, editorRef.current]);
 
@@ -660,6 +665,8 @@ const CodeEditor = () => {
                             startLineChanged:
                                 changeStartLine.text != inViewCodeText[changeStartLineNumber],
                         };
+                        console.log(`updatedLineInfo`, updatedLineInfo);
+
                         dispatch(updateLines(updatedLineInfo));
                     } else if (updatedLineCount < 0) {
                         console.log(
@@ -679,6 +686,7 @@ const CodeEditor = () => {
                                 changeStartLine.text != inViewCodeText[changeStartLineNumber],
                         };
                         dispatch(updateLines(updatedLineInfo));
+                        console.log(`updatedLineInfo`, updatedLineInfo);
                     } else {
                         let updatedLineInfo: ILineUpdate = {
                             inViewID: inViewID,
@@ -689,6 +697,7 @@ const CodeEditor = () => {
                             // changeStartLine.text != inViewCodeText[changeStartLineNumber],
                         };
                         dispatch(updateLines(updatedLineInfo));
+                        console.log(`updatedLineInfo`, updatedLineInfo);
                     }
                     handleCAsisstTextUpdate();
                     // setCMUpdatedCounter(cmUpdatedCounter + 1);
@@ -698,7 +707,26 @@ const CodeEditor = () => {
             console.error(error);
         }
     }
+    const [codeToc, setCodeToc] = useState("");
 
+    useEffect(() => {
+        if (inViewID && store.getState().codeEditor?.codeText[inViewID]?.length > 0) {
+            console.log(`inViewID=>>>`, store.getState().codeEditor.codeText[inViewID].join("/n"));
+            setCodeToc(store.getState().codeEditor.codeText[inViewID].join("\n"));
+        }
+    }, [inViewID]);
+    function onCodeMirrorChange2(value: string, viewUpdate: ViewUpdate) {
+        if (inViewID) {
+            // const codeTextA = store.getState().codeEditor.codeText[inViewID];
+            console.log(`inViewID`, inViewID);
+
+            console.log(
+                `store.getState().codeEditor.codeText[inViewID]`,
+                store.getState().codeEditor,
+                store.getState().codeEditor.codeText[inViewID]
+            );
+        }
+    }
     /**
      * This function is called inside onCodeMirrorChange.
      * It will check if there is new cAssist information in the code text.
@@ -924,9 +952,37 @@ const CodeEditor = () => {
     return (
         <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>
             {console.log("CodeEditor render")}
-            <TableOfContents />
+            <div
+                style={{
+                    position: "absolute",
+                    right: 0,
+                    zIndex: 100000000,
+                    width: 120,
+                    background: "white",
+                    boxShadow: "0px 10px 10px 1px #aaaaaa",
+                    height: "100%",
+                }}
+            >
+                <CodeMirror
+                    value={codeToc}
+                    basicSetup={false}
+                    // height="100%"
+                    style={{ overflow: "hidden", height: "100%", fontSize: "4px" }}
+                    theme="light"
+                    extensions={[...defaultExtensions, ...langExtensions]}
+                    onChange={(value, viewUpdate) => onCodeMirrorChange2(value, viewUpdate)}
+                />
+            </div>
         </StyledCodeEditor>
     );
 };
 
 export default CodeEditor;
+// basicSetup: false,
+// // container: test.current,
+// extensions: [...defaultExtensions, ...langExtensions],
+// height: "100%",
+// theme: "light",
+// onChange: (value, viewUpdate) => onCodeMirrorChange(value, viewUpdate),
+// /** do not allow edit when there are items in the run queue */
+// readOnly: isRunQueueBusy(runQueue),
