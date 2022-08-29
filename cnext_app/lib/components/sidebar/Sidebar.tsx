@@ -76,24 +76,6 @@ const MiniSidebar = () => {
         },
     ];
 
-    const executorManagerIconList = [
-        {
-            name: SideBarName.RESTART_KERNEL,
-            component: <RestartAltIcon />,
-            tooltip: "Restart kernel",
-        },
-        {
-            name: SideBarName.INTERRUPT_KERNEL,
-            component: <PauseIcon />,
-            tooltip: "Interrupt kernel",
-        },
-        {
-            name: SideBarName.CLEAR_OUTPUTS,
-            component: <PlaylistRemoveIcon />,
-            tooltip: "Clear results and outputs",
-        },
-    ];
-
     const handleClickClearOutputs = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;

@@ -215,12 +215,13 @@ export enum ViewMode {
 
 export enum SideBarName {
     PROJECT = "Projects",
-    INBOX = "Inbox",
-    CLEAR_OUTPUTS = "ClearOuputs",
     CHANGE_LAYOUT = "ChangeLayout",
+}
+
+export enum ExecutorToolbarItem {
+    CLEAR_OUTPUTS = "ClearOuputs",
     RESTART_KERNEL = "RestartKernel",
     INTERRUPT_KERNEL = "InterruptKernel",
-    ADD_CELL = "ADD_CELL",
 }
 
 // export interface IDFUpdates {

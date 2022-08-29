@@ -69,7 +69,7 @@ export interface IDirListResult {
     dirs: IDirectoryMetadata[];
 }
 
-export enum FileContextMenuItem {
+export enum FileContextMenuCommand {
     NEW_FILE,
     NEW_FOLDER,
     RENAME,
