@@ -11,7 +11,7 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 
 import { useRef } from "react";
 import ReactDOM, { createPortal } from "react-dom";
-import Ansi from "ansi-to-react";
+import Ansi from "../../ansi-to-react";
 
 const ScriptComponent = ({ children, script }) => {
     /** We only use this ref for temp div holder of the position for the script.

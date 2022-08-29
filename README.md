@@ -33,96 +33,23 @@ The web application will launch at: `http://localhost:4000` or `http://127.0.0.1
 
 ## Installation via Pip
 
-Step 1: `Download` [cnext] sample project here. This folder will be use as an input in Step 4
+PLEASE NOTE: CNext requires npm >= 18.4 and Python >= 3.9.7 . Please ensure your environment meets the minimum requirements before beginning the installation. 
 
-Step 2: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
+Step 1: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
 
-Step 3: `run` command `pip install cnext`
+Step 2: `run` command `pip install cnext`
 
-Step 4: `run` command `cnext-init`
+Step 3: `run` command `cnext-init`
 
 -   Input `Enter path to the cnext sample project created in Step 1` and hit `Enter` (Example `C:/Skywalker`)
     ​
 
-Step 6 `run` command `cnext-run`
+Step 4 `run` command `cnext-run`
 
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 4000)
 -   Stop application: `Ctrl + c | Command + c`
 -   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine)
 
-## Release Note
-
-# v0.4.20 - 0.4.29
-
-##### NEW
-
--   Implement add project feature
--   Add turn on/off markdown
-
-##### IMPROVED
-
--   Improve setup script
--   Improve usability
--   Improve file explorer style
-
-##### FIXED
-
--   Bug fixes and usability improvement
--   Fix bugs with panel resizing
--   Fix file path issues on Windows system
-
-# v0.4.18 - 0.4.19
-
-##### NEW
-
--   Show failed execution status marker
-
-# v0.4.14 - v0.4.16
-
-##### NEW
-
--   Add configs for dataframe manager.
--   Implement grouped lines folding
-
-##### IMPROVED
-
--
-
-##### FIXED
-
--   Fix bugs and improve stability for model visualization.
-
-# v0.4.12 - v0.4.13
-
-##### NEW
-
--   Allow code to be executed on any file.
--   Improve code suggestion behavior.
--   Load config dynamically from "config.json".
-
-##### IMPROVED
-
--
-
-##### FIXED
-
--
-
-# v0.4.10
-
-##### NEW
-
--   Assign result of a group to only the first line.
--   Add support for full-html-page results using iframe.
--   Add support for .sql and .json files.
-
-##### IMPROVED
-
--   Improve the ability to support results with javascript. you can now run bokeh plot.
-
-##### FIXED
-
--
 
 ## License
 
