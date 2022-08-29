@@ -16,7 +16,7 @@ import { setActiveLine } from "../../../../redux/reducers/CodeEditorRedux";
 const ResultPanel = React.memo((props: any) => {
     const [readyToScroll, setReadyToScroll] = useState(false);
     const [showDashboard, setShowDashboard] = useState(false);
-    const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
+    // const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
     const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
     const dispatch = useDispatch();
     /** use this to reload the output when inViewID changed */
@@ -36,7 +36,7 @@ const ResultPanel = React.memo((props: any) => {
 
     const isActiveLineOrGroup = (codeLine: ICodeLine) => {
         return (
-            codeLine.lineID === activeLine ||
+            // codeLine.lineID === activeLine ||
             (codeLine.groupID != null && codeLine.groupID === activeGroup)
         );
     };
@@ -70,7 +70,7 @@ const ResultPanel = React.memo((props: any) => {
                     return false;
                 }
             });
-            // console.log("ResultPanel render");
+            console.log("ResultPanel render");
             if (showDashboard) {
                 return <DashboardView />;
             } else {

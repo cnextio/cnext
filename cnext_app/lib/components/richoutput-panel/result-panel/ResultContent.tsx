@@ -145,16 +145,18 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
                     let resultElements = contentKeys?.map((key, index) => {
                         if (key === SubContentType.APPLICATION_JAVASCRIPT) {
                             return (
-                                <ScriptComponent script={null}>
-                                    {result?.content[key].toString("base64")}
-                                </ScriptComponent>
+                                <ScriptComponent
+                                    script={null}
+                                    children={result?.content[key].toString("base64")}
+                                />
                             );
-                        } else if (key === SubContentType.APPLICATION_BOKEH) {
-                            return (
-                                <ScriptComponent script={null}>
-                                    {result?.content[key].toString("base64")}
-                                </ScriptComponent>
-                            );
+                        // } else if (key === SubContentType.APPLICATION_BOKEH) {
+                        //     return (
+                        //         <ScriptComponent
+                        //             script={null}
+                        //             children={result?.content[key].toString("base64")}
+                        //         />
+                        //     );
                         } else if (key === SubContentType.APPLICATION_PLOTLY) {
                             return React.createElement(
                                 PlotlyWithNoSSR,
