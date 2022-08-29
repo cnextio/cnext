@@ -538,7 +538,7 @@ const FileExplorer = (props: any) => {
                             className="icon"
                             onClick={handleAddProjectBtn}
                             fontSize="small"
-                            style={{ height: 18 }}
+                            style={{ height: 19 }}
                         />
                     </Tooltip>
 
@@ -547,7 +547,7 @@ const FileExplorer = (props: any) => {
                             className="icon"
                             onClick={() => selectContextMenuCommand(FileContextMenuCommand.NEW_FILE)}
                             fontSize="small"
-                            style={{ height: 17 }}
+                            style={{ height: 18 }}
                         />
                     </Tooltip>
                     <Tooltip title="New folder" enterDelay={500} placement="bottom-end">
