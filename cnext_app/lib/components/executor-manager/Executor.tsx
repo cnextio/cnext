@@ -35,7 +35,9 @@ const ExecutorComponent = () => {
     const handleClickClearOutputs = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
-        dispatch(clearAllOutputs(inViewID));
+        if (inViewID) {
+            dispatch(clearAllOutputs(inViewID));
+        }
     };
     const handleClick = (name: string) => {
         if (name === SideBarName.CLEAR_OUTPUTS) {
