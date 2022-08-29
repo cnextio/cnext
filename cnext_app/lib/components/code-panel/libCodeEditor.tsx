@@ -260,14 +260,14 @@ const getCMState = (state: RootState) => {
 
 const setCodeTextAndStates = (state: RootState, view: EditorView) => {
     let codeText = getJoinedCodeText(state);
-    let jsCMState: { [key: string]: any } | null = getCMState(state);
+    let cmState: { [key: string]: any } | null = getCMState(state);
 
     if (view) {
-        if (jsCMState == null) {
+        if (cmState == null) {
             view.setState(EditorState.create({ doc: codeText }));
         } else {
             view.setState(
-                EditorState.fromJSON({ ...jsCMState, doc: codeText }, {}, { fold: foldState })
+                EditorState.fromJSON({ ...cmState, doc: codeText }, {}, { fold: foldState })
             );
         }
     }
@@ -400,9 +400,9 @@ const getLineRangeOfGroup = (codeLines: ICodeLine[], lineNumber: number): ILineR
 
 const fileClosingHandler = (state: EditorState, curInViewID: string) => {
     let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
-    let jsState = state.toJSON({ fold: foldState });
-    delete jsState["doc"];
-    let data = { inViewID: curInViewID, scrollPos: scrollEl.scrollTop, cmState: jsState };
+    let cmState = state.toJSON({ fold: foldState });
+    delete cmState["doc"];
+    let data = { inViewID: curInViewID, scrollPos: scrollEl.scrollTop, cmState: cmState };
     // console.log("CodeEditor closeFile: ", data, jsState);
     store.dispatch(setCodeStates(data));
 };
@@ -541,7 +541,7 @@ function onMouseOver(event: MouseEvent, view: EditorView) {
                     setOpacityWidget(mouseOverGroupID, "0");
                 }
                 let currentGroupID = lines[lineNumber].groupID;
-                console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
+                // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
                 if (currentGroupID) {
                     setOpacityWidget(currentGroupID, "1");
                 }

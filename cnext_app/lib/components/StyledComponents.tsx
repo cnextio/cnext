@@ -843,8 +843,10 @@ export const DFStatsForm = styled(FormControl)`
     height: 100%;
     width: 88px;
     font-size: 13px;
-    // border-radius: 10px;
-    // border-color: red;
+
+    .Mui-focused {
+        border-color: white;
+    }
 `;
 
 export const DFStatsParentCheckbox = styled(Checkbox)`
@@ -852,6 +854,7 @@ export const DFStatsParentCheckbox = styled(Checkbox)`
         font-size: 18px;
     }
 `;
+
 export const DFStatsSelector = styled(Select)`
     font-size: 13px;
     .MuiTypography-root {
@@ -859,6 +862,16 @@ export const DFStatsSelector = styled(Select)`
     }
     .MuiCheckbox-root {
         padding: 5px 5px 5px 0px;
+    }
+
+    .MuiOutlinedInput-notchedOutline {
+        border: none;
+    }
+
+    &:hover {
+        .MuiOutlinedInput-notchedOutline {
+            border: none;
+        }
     }
 `;
 
