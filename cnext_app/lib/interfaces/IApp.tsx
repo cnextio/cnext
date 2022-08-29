@@ -167,6 +167,7 @@ export interface IColumnMetadata {
 
 export interface IMetadata {
     df_id: string;
+    type: string;
     shape: number[];
     columns: { [id: string]: IColumnMetadata };
 }

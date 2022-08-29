@@ -23,6 +23,7 @@ const options = {
     pingTimeout: 60000,
 };
 const io = new socketIo.Server(server, options);
+const httpProxyMiddleware = require('http-proxy-middleware');
 
 // TODO: move to Interfaces.tsx
 const CodeEditor = "CodeEditor";
@@ -144,6 +145,13 @@ class PythonProcess {
 // let clientMessage;
 try {
     app.use(express.static(path.resolve(__dirname, "../public")));
+    const proxy = httpProxyMiddleware.createProxyMiddleware({
+        target:'http://localhost:5008',
+        changeOrigin: true,
+        pathRewrite: {'^/jps': ''},
+        ws: true,
+    });
+    app.use('/jps', proxy);
 
     io.on("connection", (socket) => {
         socket.on("ping", (message) => {
