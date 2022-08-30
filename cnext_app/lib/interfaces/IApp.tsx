@@ -104,7 +104,8 @@ export enum StandardMimeType {
     IMAGE_PNG = "image/png",
     IMAGE_JPG = "image/jpg",
     IMAGE_JPEG = "image/jpeg",
-    IMAGE_SVG = "image/svg+xml",
+    IMAGE_SVG = "image/svg",
+    IMAGE_SVG_XML = "image/svg+xml",
     IMAGE_PLOTLY = "image/plotly+json",
     TEXT_HTML = "text/html",
     TEXT_PLAIN = "text/plain",
@@ -214,12 +215,13 @@ export enum ViewMode {
 
 export enum SideBarName {
     PROJECT = "Projects",
-    INBOX = "Inbox",
-    CLEAR_OUTPUTS = "ClearOuputs",
     CHANGE_LAYOUT = "ChangeLayout",
+}
+
+export enum ExecutorToolbarItem {
+    CLEAR_OUTPUTS = "ClearOuputs",
     RESTART_KERNEL = "RestartKernel",
     INTERRUPT_KERNEL = "InterruptKernel",
-    ADD_CELL = "ADD_CELL",
 }
 
 // export interface IDFUpdates {

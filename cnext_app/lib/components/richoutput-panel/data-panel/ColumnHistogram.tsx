@@ -1,13 +1,13 @@
 import dynamic from "next/dynamic";
-import React, { useEffect, useRef, useState } from "react";
-import { SmallVizContainer, VizContainer } from "../../StyledComponents";
+import React from "react";
+import { SmallVizContainer} from "../../StyledComponents";
 // const Plot = require("react-plotly.js");
 // import Plot from "react-plotly.js";
 
 const PlotWithNoSSR = dynamic(() => import("react-plotly.js"), { ssr: false });
 // redux
-import { useSelector, useDispatch } from "react-redux";
-import { MIMEType, StandardMimeType } from "../../../interfaces/IApp";
+import { useSelector } from "react-redux";
+import { StandardMimeType } from "../../../interfaces/IApp";
 import { RootState } from "../../../../redux/store";
 
 export function ColumnHistogram({ df_id, col_name, width = 80, height = 50 }) {

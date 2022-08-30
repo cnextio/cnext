@@ -129,7 +129,7 @@ def _tmp():
     else:
         return None
 _tmp()`;
-        
+
         let message = createMessage(CommandName.plot_column_quantile, content, 1, {
             df_id: df_id,
             col_name: col_name,
@@ -199,10 +199,10 @@ _tmp()`;
     const getDefinedStat = (df_id: string, columns: string[]) => {
         if (dataFrameConfig.quantile) {
             getQuantilesPlot(df_id, columns);
-        }
+        } 
         if (dataFrameConfig.histogram) {
             getHistogramPlot(df_id, columns);
-        }
+        } 
     };
 
     /** select columns to get stats based on the update type */
@@ -356,7 +356,7 @@ _tmp()`;
                         handleGetDFMetadata(message);
                     } else {
                         // console.log("dispatch text output");
-                        dispatch(setTextOutput(message))
+                        dispatch(setTextOutput(message));
                     }
                 } else {
                     dispatch(setTextOutput(message));
@@ -384,7 +384,7 @@ _tmp()`;
     useEffect(() => {
         if (dfFilter != null) {
             // clear the text output message
-            dispatch(setTextOutput({content: ''}));
+            dispatch(setTextOutput({ content: "" }));
             sendGetTableData(dfFilter.df_id, dfFilter.query);
         }
     }, [dfFilter]);

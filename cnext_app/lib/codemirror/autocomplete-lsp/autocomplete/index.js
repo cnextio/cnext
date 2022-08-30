@@ -1167,6 +1167,9 @@ const startCompletion = (view) => {
 Close the currently active completion.
 */
 const closeCompletion = (view) => {
+    let signature = view.dom.querySelector(".cm-tooltip-signature");
+    if (signature) signature.style.display = "none";
+
     let cState = view.state.field(completionState, false);
     if (!cState || !cState.active.some((a) => a.state != 0 /* Inactive */)) return false;
     view.dispatch({ effects: closeCompletionEffect.of(null) });
