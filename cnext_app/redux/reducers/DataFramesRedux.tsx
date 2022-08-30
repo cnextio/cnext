@@ -318,6 +318,17 @@ export const dataFrameSlice = createSlice({
         setStatsConfig: (state, action) => {
             if (action.payload) {
                 state.stats = { ...action.payload };
+
+                const df_id = state.activeDataFrame + "";
+                let columns = state.metadata[df_id].columns;
+                if (!state.stats.histogram)
+                    for (let column_name in columns) {
+                        columns[column_name].histogram_plot = null;
+                    }
+                if (!state.stats.quantile)
+                    for (let column_name in columns) {
+                        columns[column_name].quantile_plot = null;
+                    }
             }
         },
 
