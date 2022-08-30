@@ -12,13 +12,17 @@ import {
     FileItemLabel,
     ProjectExplorerContainer,
     OpenProjectItem,
+    ProjectExplorerToolbar,
 } from "../StyledComponents";
+import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolderOutlined";
+import FolderCopyIcon from "@mui/icons-material/FolderCopyOutlined";
+import NoteAddIcon from "@mui/icons-material/NoteAddOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LockIcon from "@mui/icons-material/Lock";
 import { useDispatch, useSelector } from "react-redux";
 import {
-    FileContextMenuItem,
+    FileContextMenuCommand,
     IDirectoryMetadata,
     IDirListResult,
     IFileMetadata,
@@ -56,7 +60,7 @@ const NameWithTooltip = ({ children, tooltip }) => {
         </Tooltip>
     );
 };
-interface ContextMenuInfo {
+interface ProjectTreeItemInfo {
     parent: string;
     item: string;
     is_file?: boolean;
@@ -76,7 +80,7 @@ const FileExplorer = (props: any) => {
         (state: RootState) => state.projectManager.workspaceMetadata
     );
 
-    const [contextMenuItems, setContextMenuItems] = useState<ContextMenuInfo | null>(null);
+    const [focusedProjectTreeItem, setFocusedProjectTreeItem] = useState<ProjectTreeItemInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
     const [createProjectInProgress, setCreateProjectInprogress] = useState<boolean>(false);
     const [txtError, setTxtError] = useState<string | null>(null);
@@ -237,7 +241,7 @@ const FileExplorer = (props: any) => {
                   // With this behavior we prevent contextmenu from the backdrop to re-locale existing context menus.
                   null
         );
-        setContextMenuItems({
+        setFocusedProjectTreeItem({
             parent: parentItemPath,
             item: clickedItemPath,
             is_file: is_file,
@@ -245,28 +249,30 @@ const FileExplorer = (props: any) => {
         });
     };
 
-    const selectContextMenuItem = (item: FileContextMenuItem) => {
+    const selectContextMenuCommand = (item: FileContextMenuCommand) => {
+        console.log(`FileExplorer item =>>>`, item, focusedProjectTreeItem);
+
         switch (item) {
-            case FileContextMenuItem.NEW_FILE:
-                if (contextMenuItems) {
+            case FileContextMenuCommand.NEW_FILE:
+                if (focusedProjectTreeItem) {
                     // Expanded the folder when creating new file
-                    const newExpanded = [...expandedDirs, contextMenuItems.item];
+                    const newExpanded = [...expandedDirs, focusedProjectTreeItem.item];
                     setExpandedDirs([...new Set(newExpanded)]); // Remove duplicate expanded note ID
                     setProjectCommand(ProjectCommand.create_file);
                     setCreateItemInProgress(true);
                 }
                 break;
-            case FileContextMenuItem.NEW_FOLDER:
-                if (contextMenuItems) {
+            case FileContextMenuCommand.NEW_FOLDER:
+                if (focusedProjectTreeItem) {
                     // Expanded the folder when creating new file
-                    const newExpanded = [...expandedDirs, contextMenuItems.item];
+                    const newExpanded = [...expandedDirs, focusedProjectTreeItem.item];
                     setExpandedDirs([...new Set(newExpanded)]); // Remove duplicate expanded note ID
                     setProjectCommand(ProjectCommand.create_folder);
                     setCreateItemInProgress(true);
                 }
                 break;
-            case FileContextMenuItem.DELETE:
-                if (contextMenuItems) {
+            case FileContextMenuCommand.DELETE:
+                if (focusedProjectTreeItem) {
                     setDeleteDialog(true);
                 }
                 break;
@@ -324,15 +330,15 @@ const FileExplorer = (props: any) => {
         const state = store.getState();
         const projectPath = state.projectManager.activeProject?.path;
         if (event.key === "Enter") {
-            if (isNameNotEmpty(value) && contextMenuItems) {
+            if (isNameNotEmpty(value) && focusedProjectTreeItem) {
                 /** this will create path format that conforms to the style of the client OS
                  * but not that of server OS. The server will have to use os.path.norm to correct
                  * the path */
-                let relativePath = path.join(relativeProjectPath, contextMenuItems.item, value);
+                let relativePath = path.join(relativeProjectPath, focusedProjectTreeItem.item, value);
                 console.log(
                     "FileExplorer create new item: ",
                     relativePath,
-                    contextMenuItems.item,
+                    focusedProjectTreeItem.item,
                     value
                 );
                 let message = createMessage(projectCommand, {
@@ -341,7 +347,7 @@ const FileExplorer = (props: any) => {
                     open_order: store.getState().projectManager.openOrder,
                 });
                 sendMessage(message);
-                fetchDirChildNodes(contextMenuItems.item);
+                fetchDirChildNodes(focusedProjectTreeItem.item);
                 setCreateItemInProgress(false);
             }
         } else if (event.key === "Escape") {
@@ -357,17 +363,17 @@ const FileExplorer = (props: any) => {
     };
 
     const handleDeleteDialogClose = (confirm) => {
-        if (confirm && contextMenuItems) {
+        if (confirm && focusedProjectTreeItem) {
             const state = store.getState();
             const projectPath = state.projectManager.activeProject?.path;
             let message = createMessage(ProjectCommand.delete, {
                 project_path: projectPath,
-                path: contextMenuItems.item,
-                is_file: contextMenuItems.is_file,
+                path: focusedProjectTreeItem.item,
+                is_file: focusedProjectTreeItem.is_file,
                 open_order: store.getState().projectManager.openOrder,
             });
             sendMessage(message);
-            fetchDirChildNodes(contextMenuItems.parent);
+            fetchDirChildNodes(focusedProjectTreeItem.parent);
         }
         setDeleteDialog(false);
     };
@@ -381,7 +387,10 @@ const FileExplorer = (props: any) => {
             <Fragment>
                 {Object.keys(openDirs).includes(relativeParentPath) ? (
                     openDirs[relativeParentPath]
-                        .filter((value) => ![".DS_Store", ".gitignore", "__pycache__"].includes(value.name))
+                        .filter(
+                            (value) =>
+                                ![".DS_Store", ".gitignore", "__pycache__"].includes(value.name)
+                        )
                         .sort(function (a, b) {
                             if (a.name < b.name) {
                                 return -1;
@@ -409,6 +418,14 @@ const FileExplorer = (props: any) => {
                                     onClick={() => {
                                         value.is_file ? dispatch(setFileToOpen(value.path)) : null;
                                     }}
+                                    onMouseDown={() => {
+                                        setFocusedProjectTreeItem({
+                                            parent: relativeParentPath,
+                                            item: value.path,
+                                            is_file: value.is_file,
+                                            deletable: value.deletable,
+                                        });
+                                    }}
                                     onContextMenu={(event: React.MouseEvent) => {
                                         openContextMenu(
                                             event,
@@ -427,8 +444,8 @@ const FileExplorer = (props: any) => {
                     <FileItem nodeId="stub" />
                 )}
                 {createItemInProgress &&
-                contextMenuItems &&
-                contextMenuItems["item"] === relativeParentPath ? (
+                focusedProjectTreeItem &&
+                focusedProjectTreeItem["item"] === relativeParentPath ? (
                     <FileItem
                         nodeId="new_item"
                         label={
@@ -446,9 +463,7 @@ const FileExplorer = (props: any) => {
     const renderProjectItem = (projectItem: IProjectInfoInWorkspace) => {
         if (projectItem.id !== activeProject?.id) {
             return (
-                <ClosedProjectItem
-                    onDoubleClick={() => changeActiveProject(projectItem?.id)}
-                >
+                <ClosedProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)}>
                     <LockIcon
                         style={{
                             fontSize: "15px",
@@ -480,6 +495,14 @@ const FileExplorer = (props: any) => {
                                     <FileItemLabel>{activeProject?.name}</FileItemLabel>
                                 </NameWithTooltip>
                             }
+                            onMouseDown={() => {
+                                setFocusedProjectTreeItem({
+                                    parent: relativeProjectPath,
+                                    item: relativeProjectPath,
+                                    is_file: false,
+                                    deletable: false
+                                });
+                            }}
                             onContextMenu={(event: React.MouseEvent) => {
                                 openContextMenu(
                                     event,
@@ -502,26 +525,40 @@ const FileExplorer = (props: any) => {
         <ProjectExplorerContainer>
             <ProjectToolbar>
                 <FileExplorerHeaderName variant="overline">Projects</FileExplorerHeaderName>
-                <Tooltip
-                    title="Add project"
-                    enterDelay={500}
-                    enterNextDelay={500}
-                    placement="bottom-end"
-                    style={{ marginLeft: "auto" }}
-                >
-                    <AddBoxIcon
-                        id="add-project-button"
-                        onClick={handleAddProjectBtn}
-                        fontSize="small"
-                        style={{ cursor: "pointer" }}
-                    />
-                </Tooltip>
-                {/* <Tooltip title="Add folder" enterDelay={500} placement="bottom-end">
-                    <CreateNewFolderIcon fontSize="small" style={{ cursor: "pointer" }} />
-                </Tooltip>
-                <Tooltip title="Add file" enterDelay={500} placement="bottom-end">
-                    <NoteAddIcon fontSize="small" style={{ cursor: "pointer" }} />
-                </Tooltip> */}
+                <ProjectExplorerToolbar>
+                    <Tooltip
+                        title="Add project"
+                        enterDelay={500}
+                        enterNextDelay={500}
+                        placement="bottom-end"
+                        style={{ marginLeft: "auto" }}
+                    >
+                        <FolderCopyIcon
+                            id="add-project-button"
+                            className="icon"
+                            onClick={handleAddProjectBtn}
+                            fontSize="small"
+                            style={{ height: 19 }}
+                        />
+                    </Tooltip>
+
+                    <Tooltip title="New file" enterDelay={500} placement="bottom-end">
+                        <NoteAddIcon
+                            className="icon"
+                            onClick={() => selectContextMenuCommand(FileContextMenuCommand.NEW_FILE)}
+                            fontSize="small"
+                            style={{ height: 18 }}
+                        />
+                    </Tooltip>
+                    <Tooltip title="New folder" enterDelay={500} placement="bottom-end">
+                        <CreateNewFolderIcon
+                            className="icon"
+                            onClick={() => selectContextMenuCommand(FileContextMenuCommand.NEW_FOLDER)}
+                            fontSize="small"
+                            style={{ height: 22 }}
+                        />
+                    </Tooltip>
+                </ProjectExplorerToolbar>
             </ProjectToolbar>
             <ProjectList>
                 {workspaceMetadata.open_projects.map((item) => renderProjectItem(item))}
@@ -540,14 +577,14 @@ const FileExplorer = (props: any) => {
             <FileContextMenu
                 contextMenuPos={contextMenuPos}
                 handleClose={closeContextMenu}
-                handleSelection={selectContextMenuItem}
-                contextMenuItem={contextMenuItems}
+                handleSelection={selectContextMenuCommand}
+                contextMenuItem={focusedProjectTreeItem}
             />
-            {deleteDialog && contextMenuItems?.item != null && (
+            {deleteDialog && focusedProjectTreeItem?.item != null && (
                 <DeleteConfirmation
                     deleteDialog={deleteDialog}
                     confirmDelete={handleDeleteDialogClose}
-                    itemName={contextMenuItems?.item}
+                    itemName={focusedProjectTreeItem?.item}
                 />
             )}
             {runQueueBusy && <OverlayComponent />}
