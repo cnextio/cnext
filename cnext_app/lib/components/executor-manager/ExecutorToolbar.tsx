@@ -1,62 +1,55 @@
-import { AppToolbarList, StyledExecutor } from "../StyledComponents";
+import { ExecutorToolbar as StyledExecutorToolbar } from "../StyledComponents";
 import * as React from "react";
-import { Fragment, useEffect, useState } from "react";
-import AddCardIcon from "@mui/icons-material/AddCard";
-import FolderIcon from "@mui/icons-material/Folder";
-import PauseIcon from "@mui/icons-material/Pause";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
-import ViewCompactIcon from "@mui/icons-material/ViewCompact";
-import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
+import { useState } from "react";
+import AddCardIcon from "@mui/icons-material/AddCardOutlined";
+import PauseIcon from "@mui/icons-material/PauseOutlined";
+import RestartAltIcon from "@mui/icons-material/RestartAltOutlined";
+import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemoveOutlined";
 
-import {
-    AppToolbar,
-    AppToolbarItem as StyledAppToolbarItem,
-    SidebarButton as StyledSidebarButton,
-    SideBarDividerContainer,
-    MainContainerDivider,
-    Sidebar,
-} from "../StyledComponents";
-import { SideBarName } from "../../interfaces/IApp";
-import { Tooltip } from "@mui/material";
+import { ExecutorToolbarItem, SideBarName } from "../../interfaces/IApp";
+import { Divider, Tooltip } from "@mui/material";
 import { clearAllOutputs, setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { useDispatch } from "react-redux";
 import store from "../../../redux/store";
 import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
 import { interruptKernel, restartKernel } from "./ExecutorManager";
-const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
+import { CellCommand } from "../../interfaces/ICodeEditor";
+
+const ExecutorToolbarItemComponent = ({ icon, selectedIcon, handleClick }) => {
     return (
-        <span key={icon.name} selected={selectedIcon === icon.name} className="sidebar-icons">
-            <Tooltip title={icon.tooltip} placement="bottom-end">
-                <span
-                    className="icon"
-                    id={"sidebar_" + icon.name}
-                    onClick={() => handleClick(icon.name)}
-                >
-                    {icon.component}
-                </span>
-            </Tooltip>
-        </span>
+        <Tooltip title={icon.tooltip} placement="bottom-end">
+            <span
+                className="icon"
+                id={"sidebar_" + icon.name}
+                onClick={() => handleClick(icon.name)}
+            >
+                {icon.component}
+            </span>
+        </Tooltip>
     );
 };
-const ExecutorComponent = () => {
+
+const ExecutorToolbar = () => {
     const [selectedIcon, setSelectedIcon] = React.useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const dispatch = useDispatch();
     const handleClickClearOutputs = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
-        dispatch(clearAllOutputs(inViewID));
+        if (inViewID) {
+            dispatch(clearAllOutputs(inViewID));
+        }
     };
     const handleClick = (name: string) => {
-        if (name === SideBarName.CLEAR_OUTPUTS) {
+        if (name === ExecutorToolbarItem.CLEAR_OUTPUTS) {
             handleClickClearOutputs();
-        } else if (name === SideBarName.RESTART_KERNEL) {
+        } else if (name === ExecutorToolbarItem.RESTART_KERNEL) {
             setKernelCommand(ExecutorManagerCommand.restart_kernel);
-        } else if (name === SideBarName.INTERRUPT_KERNEL) {
+        } else if (name === ExecutorToolbarItem.INTERRUPT_KERNEL) {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
-        } else if (name === SideBarName.ADD_CELL) {
-            store.dispatch(setCellCommand(SideBarName.ADD_CELL));
+        } else if (name === CellCommand.ADD_CELL) {
+            store.dispatch(setCellCommand(CellCommand.ADD_CELL));
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -75,32 +68,49 @@ const ExecutorComponent = () => {
             }
         }
     };
-    const executorManagerIconList = [
+
+    const executorToolbarItems = [
         {
-            name: SideBarName.RESTART_KERNEL,
+            name: ExecutorToolbarItem.RESTART_KERNEL,
             component: <RestartAltIcon fontSize="small" />,
             tooltip: "Restart kernel",
         },
         {
-            name: SideBarName.INTERRUPT_KERNEL,
+            name: ExecutorToolbarItem.INTERRUPT_KERNEL,
             component: <PauseIcon fontSize="small" />,
             tooltip: "Interrupt kernel",
         },
         {
-            name: SideBarName.CLEAR_OUTPUTS,
+            name: ExecutorToolbarItem.CLEAR_OUTPUTS,
             component: <PlaylistRemoveIcon fontSize="small" />,
             tooltip: "Clear results and outputs",
         },
+    ];
+    const cellCommandIconList = [
         {
-            name: SideBarName.ADD_CELL,
-            component: <AddCardIcon fontSize="small" />,
+            name: CellCommand.ADD_CELL,
+            component: <AddCardIcon />,
             tooltip: "Add Cell",
         },
     ];
+    const ExecutorDivider = () => {
+        return (
+            <Divider style={{ marginTop: "5px", height: "18px" }} orientation="vertical" flexItem />
+        );
+    };
     return (
-        <StyledExecutor>
-            {executorManagerIconList.map((icon, index) => (
-                <AppToolbarItem
+        <StyledExecutorToolbar>
+            {executorToolbarItems.map((icon, index) => (
+                <ExecutorToolbarItemComponent
+                    key={index}
+                    selectedIcon={selectedIcon}
+                    icon={icon}
+                    handleClick={handleClick}
+                />
+            ))}
+            <ExecutorDivider />
+            {cellCommandIconList.map((icon, index) => (
+                <ExecutorToolbarItemComponent
                     key={index}
                     selectedIcon={selectedIcon}
                     icon={icon}
@@ -113,8 +123,8 @@ const ExecutorComponent = () => {
                     confirmHandler={commandDialogConfirm}
                 />
             )}
-        </StyledExecutor>
+        </StyledExecutorToolbar>
     );
 };
 
-export default ExecutorComponent;
+export default ExecutorToolbar;

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { ProjectCommand } from "../../interfaces/IFileManager";
-import { ContextMenuNewItem } from "../StyledComponents";
+import { ProjectExplorerNewItem } from "../StyledComponents";
 import CypressIds from "../tests/CypressIds";
 
 const NewItemInput = ({ handleKeyPress, command, ...props }) => {
@@ -15,7 +15,7 @@ const NewItemInput = ({ handleKeyPress, command, ...props }) => {
     }, [newItemRef]);
 
     return (
-        <ContextMenuNewItem
+        <ProjectExplorerNewItem
             inputRef={newItemRef}
             defaultValue={command == ProjectCommand.create_file ? ".py" : ""}
             placeholder={command === ProjectCommand.add_project ? "Enter the new project path" : ""}

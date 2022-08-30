@@ -196,7 +196,15 @@ export const FileExplorerHeaderName = styled(Typography)`
         props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A100};
     // }
 `;
-
+export const ProjectExplorerToolbar = styled.div`
+    display: flex;
+    align-items: center;
+    .icon {
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 22px;
+        cursor: pointer;
+    }
+`;
 export const FileTree = styled(TreeView)`
     max-width: 100%;
     // height: 100%;
@@ -269,9 +277,10 @@ export const ContextMenuItem = styled(MenuItem)`
     font-size: 14px;
 `;
 
-export const ContextMenuNewItem = styled(TextField)`
+export const ProjectExplorerNewItem = styled(TextField)`
+    margin-left: -5px;
     .MuiInputBase-input {
-        font-size: 14px;
+        font-size: 12px;
         padding: 5px;
         width: 100%;
     }
@@ -298,8 +307,9 @@ export const StyledCodePanel = styled.div`
 export const CodeToolbar = styled.div`
     display: flex;
     --var-height: 30px;
-    width: calc(100% - 125px);
+    width: calc(100% - 115px);
     height: calc(var(--var-height));
+    min-height: calc(var(--var-height));
     align-items: center;
     background-color: ${(props) => props.theme.palette.grey.A200};
     overflow: auto;
@@ -317,6 +327,7 @@ export const ProjectExplorerContainer = styled.div`
 `;
 
 export const ProjectToolbar = styled.div`
+    justify-content: space-between;
     display: flex;
     --var-height: 30px;
     height: calc(var(--var-height));
@@ -587,39 +598,25 @@ export const StyledCodeEditor = styled.div`
         overflow: hidden;
     }
 `;
-export const StyledExecutor = styled.span`
+export const ExecutorToolbar = styled.span`
     background: #f6f5f5;
-    display: inline-block;
+    display: flex;
     position: absolute;
     padding-right: 10px;
     right: 0;
-    .sidebar-icons:last-child {
-        position: relative;
-        &::before {
-            content: "";
-            border-left: 1px solid #999898;
-            height: 18px;
-            position: absolute;
-            left: -1px;
-            top: 3px;
+    height: 30px;
+    .icon {
+        padding: 0px 3px 0px 3px;
+        cursor: pointer;
+        color: rgba(0, 0, 0, 0.6);
+        svg {
+            margin-top: 5px;
+            font-size: 20px;
         }
-    }
-    .sidebar-icons {
-        padding: 2px 4px;
-
-        .icon {
-            cursor: pointer;
-            color: rgba(0, 0, 0, 0.6);
+        &:hover {
             svg {
-                font-size: 20px;
-                margin-top: 3px;
-            }
-            margin: 2px 2px;
-            &:hover {
-                /* color: #8a8989; */
-                svg {
-                    background-color: #e6e5e5;
-                }
+                background-color: #e6e5e5;
+                background-clip: content-box;
             }
         }
     }
@@ -1028,8 +1025,8 @@ export const SingleResultContainer = styled(Paper)`
     overflow: auto;
 
     svg {
-        width: 1000px;
-        height: 1000px;
+        // width: 1000px;
+        // height: 1000px;
         overflow: scroll;
     }
 
