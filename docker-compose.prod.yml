@@ -1,33 +1,22 @@
 version: "3"
 
-# services:
-#     web:
-#         # image: ${IMAGE_NAME}:${IMAGE_TAG}
-#         build: .
-#         container_name: web
-#         working_dir: /app/cnext_app
-#         ports:
-#             - ${CLIENT_PORT}:3000
-#         command: npm start
-
-#     server:
-#         # image: ${IMAGE_NAME}:${IMAGE_TAG}
-#         build: .
-#         container_name: server
-#         working_dir: /app/cnext_server/server
-#         volumes:
-#             - ${SOURCE_PROJECT_DIR}:/app/cnext_server/server/cnext_sample_projects/Skywalker
-#         ports:
-#             - ${SERVER_PORT}:4000
-#         command: /bin/sh -c "./start.sh"
-
 services:
-    cnext:
-        image: ${IMAGE_NAME}:${IMAGE_TAG}
-        volumes:
-            - ${SOURCE_PROJECT_DIR}:/app/cnext_app/server/cnext_sample_projects/Skywalker
+    web:
+        # image: ${IMAGE_NAME}:${IMAGE_TAG}
+        build: .
+        container_name: web
+        working_dir: /app/cnext_app
         ports:
-            - ${CLIENT_PORT}:4000
+            - ${CLIENT_PORT}:3000
+        command: npm start
+
+    server:
+        # image: ${IMAGE_NAME}:${IMAGE_TAG}
+        build: .
+        container_name: server
+        working_dir: /app/cnext_server/server
+        volumes:
+            - ${SOURCE_PROJECT_DIR}:/app/cnext_server/server/cnext_sample_projects/Skywalker
+        ports:
             - ${SERVER_PORT}:4000
-            - 5000:5000
-            - 5008:5008
+        command: /bin/sh -c "./start.sh"
