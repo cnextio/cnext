@@ -146,7 +146,7 @@ class PythonProcess {
 try {
     app.use(express.static(path.resolve(__dirname, "../public")));
     const proxy = httpProxyMiddleware.createProxyMiddleware({
-        target:'http://localhost:5008',
+        target:'http://127.0.0.1:5008',
         changeOrigin: true,
         pathRewrite: {'^/jps': ''},
         ws: true,
