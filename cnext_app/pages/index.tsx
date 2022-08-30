@@ -23,13 +23,13 @@ const theme = createTheme({});
 const Home: NextPage = () => {
     useEffect(() => {
         if (typeof window !== "undefined") {
-            // window.logs = [];
-            // console.oldLog = console.log;
-            // console.log = function (value, ...optionalParams) {
-            //     console.oldLog(value, ...optionalParams);
-            //     window.logs.push(value);
-            //     // window.logs.push(...optionalParams);
-            // };
+            window.logs = [];
+            console.oldLog = console.log;
+            console.log = function (value, ...optionalParams) {
+                console.oldLog(value, ...optionalParams);
+                window.logs.push(value);
+                // window.logs.push(...optionalParams);
+            };
         }
     }, []);
 
