@@ -100,6 +100,8 @@ const ExecutorToolbar = () => {
             component: <AddCardIcon />,
             tooltip: "Add Cell",
         },
+    ];
+    const tocIconList = [
         {
             name: CellCommand.SHOW_TOC,
             component: <CodeIcon />,
@@ -123,6 +125,15 @@ const ExecutorToolbar = () => {
             ))}
             <ExecutorDivider />
             {cellCommandIconList.map((icon, index) => (
+                <ExecutorToolbarItemComponent
+                    key={index}
+                    selectedIcon={selectedIcon}
+                    icon={icon}
+                    handleClick={handleClick}
+                />
+            ))}
+            <ExecutorDivider />
+            {tocIconList.map((icon, index) => (
                 <ExecutorToolbarItemComponent
                     key={index}
                     selectedIcon={selectedIcon}
