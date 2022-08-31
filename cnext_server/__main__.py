@@ -1,6 +1,5 @@
 import glob
 import os
-from site import abs_paths
 import sys
 from subprocess import Popen
 from contextlib import contextmanager
@@ -14,6 +13,7 @@ import shutil
 import yaml
 import os
 from os import path as _path
+import hashlib
 from pathlib import Path
 if sys.platform.startswith("win"):
     from pyreadline import Readline
@@ -21,15 +21,16 @@ if sys.platform.startswith("win"):
 else:
     import readline
 
-
 current_dir_path = os.getcwd()
 basepath = _path.dirname(__file__)
 path = Path(basepath)
 current_dir_path = path.absolute()
 
-
 PROJECTS_PATH = os.path.abspath(os.path.join(current_dir_path,"projects"))
 SERVER_PATH = os.path.abspath(os.path.join(current_dir_path,"server"))
+NODE_MODULES_PATH = os.path.abspath(os.path.join(current_dir_path,"server","node_modules"))
+PACKAGE_LOCK_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package-lock.json"))
+STORE_MD5_FILE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","track-md5.txt"))
 DEFAULT_PROJECT = "Skywalker"
 WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
@@ -56,9 +57,20 @@ def change_workspace(name, path):
     print('change workspace done!')
 
 
-def install_node_modules():
+def update_md5():
+    md5 = hashlib.md5(open(PACKAGE_LOCK_PATH,'rb').read()).hexdigest()
+    f = open(STORE_MD5_FILE_PATH, "w")
+    f.write(md5)
+    f.close()
+
+
+def install():
     os.chdir(SERVER_PATH)
     os.system('npm i')
+
+    #track md5 package lock
+    update_md5()
+    
 
 samples = {
     "skywalker": "Skywalker",
@@ -83,7 +95,6 @@ def download_and_unzip(url, project_name, extract_to='.'):
     shutil.rmtree(path=os.path.join(extract_to, zipfile.namelist()[0]))
   
 
-
 def complete(text, state):
     return (glob.glob(os.path.expanduser(text+'*'))+[None])[state]
 
@@ -92,15 +103,50 @@ readline.set_completer_delims(' \t\n;')
 readline.parse_and_bind("tab: complete")
 readline.set_completer(complete)
 
+def is_first_time():
+    if(os.path.exists(NODE_MODULES_PATH)):
+        return False
+    else:
+        return True
+
+
+def is_updated():
+    if(os.path.exists(STORE_MD5_FILE_PATH)):
+        md5 = hashlib.md5(open(PACKAGE_LOCK_PATH,'rb').read()).hexdigest()
+        with open(STORE_MD5_FILE_PATH, 'r') as file:
+            data = file.read()
+            if data == md5:
+                return False
+            else:
+                return True
+    else:
+        return True
+    
+
 def main(args=sys.argv):
         if(len(args) == 1):
-            start()
+            # cnext the 1rst time
+            if(is_first_time()):
+                status = ask()
+                if(status == WITHOUT_PROJECT):
+                    install()
+                    start()
+                else:
+                    run_with_aks_path()
+            else:
+                # cnext many times - check is any update?
+                if(is_updated()):
+                    install()
+                start()
+
         elif(len(args) == 2):
+            # cnext with mode
             if(args[1].isnumeric()):
                 run_at_port(int(args[1]))
             else:
                 switch(args[1])
         elif(len(args) == 3):
+            # cnext with mode and param
             switch(args[1],args[2])
         else:
             default()
@@ -113,7 +159,7 @@ def run_help(choice):
         - cnext -s G:\DEV\PROJECTS     : START with `Skywalker` inside PROJECTS
 
         Using command
-        - cnext                        : RESUME APPLICATION 
+        - cnext                        : RESUME APPLICATION or START
         - cnext 8888                   : RESUME APPLICATION at PORT 8888
         """
     print(message)
@@ -131,8 +177,7 @@ def download_project(project_name, download_to_path):
     change_workspace(project_name, os.path.normpath(project_path).replace(os.sep, '/'))
 
 
-def start_with_sample_project(path_or_name):
-    
+def download(path_or_name):
     if(path_or_name):
         abs_paths = os.path.abspath(path_or_name)
         if os.path.isdir(abs_paths):
@@ -147,8 +192,10 @@ def start_with_sample_project(path_or_name):
     else:
         # cnext -s == cnext -s skywalker
         download_project(DEFAULT_PROJECT,PROJECTS_PATH)
-    
-    install_node_modules()
+
+def start_with_sample_project(path_or_name):
+    download(path_or_name)
+    install()
     start()
 
 switcher = {
@@ -158,6 +205,28 @@ switcher = {
     "help": run_help,
     "start": start_with_sample_project,
 }
+
+def ask():
+    answer = input('Would you like to download the sample project? [(y)/n]: ')
+    if(answer == 'y' or answer == 'Y'):
+        return HAVE_PROJECT
+    elif not answer:
+        return HAVE_PROJECT
+    elif (answer == 'n' or answer == 'N'):
+        return WITHOUT_PROJECT
+    else:
+        ask()
+
+def run_with_aks_path():
+    path = input(
+        'Please enter the directory to store the sample project: ')
+    abs_paths = os.path.abspath(path)
+
+    if os.path.isdir(abs_paths):
+        start_with_sample_project(abs_paths)
+    else:
+        print('The path is not a directory. Please try again!')
+        run_with_aks_path()
 
 def switch(command, data = None ):
     return switcher.get(command, default)(data)
