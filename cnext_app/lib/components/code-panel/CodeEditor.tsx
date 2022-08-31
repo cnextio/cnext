@@ -109,6 +109,7 @@ import { basicSetup } from "../../codemirror/basic-setup";
 import { cellWidget, cellWidgetStateField, setCodeMirrorCellWidget } from "./libCellWidget";
 import { getCellFoldRange } from "./libCellFold";
 import { cellDeco, cellDecoStateField, setCodeMirrorCellDeco } from "./libCellDeco";
+import TOC from "./TOC";
 
 // let pyLanguageServer = languageServer({
 //     serverUri: "ws://localhost:3001/python",
@@ -159,7 +160,6 @@ const CodeEditor = () => {
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
     const editorRef = useRef<HTMLDivElement>();
-    const test = useRef<HTMLDivElement>();
 
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
@@ -665,16 +665,9 @@ const CodeEditor = () => {
                             startLineChanged:
                                 changeStartLine.text != inViewCodeText[changeStartLineNumber],
                         };
-                        console.log(`updatedLineInfo`, updatedLineInfo);
 
                         dispatch(updateLines(updatedLineInfo));
                     } else if (updatedLineCount < 0) {
-                        console.log(
-                            "CodeEditor changeStartLine: ",
-                            changeStartLine,
-                            inViewCodeText[changeStartLineNumber],
-                            changeStartLine.text != inViewCodeText[changeStartLineNumber]
-                        );
                         // Note 1: _getCurrentLineNumber returns line number indexed starting from 1.
                         // Convert it to 0-indexed by -1.
                         let updatedLineInfo: ILineUpdate = {
@@ -686,7 +679,6 @@ const CodeEditor = () => {
                                 changeStartLine.text != inViewCodeText[changeStartLineNumber],
                         };
                         dispatch(updateLines(updatedLineInfo));
-                        console.log(`updatedLineInfo`, updatedLineInfo);
                     } else {
                         let updatedLineInfo: ILineUpdate = {
                             inViewID: inViewID,
@@ -697,7 +689,6 @@ const CodeEditor = () => {
                             // changeStartLine.text != inViewCodeText[changeStartLineNumber],
                         };
                         dispatch(updateLines(updatedLineInfo));
-                        console.log(`updatedLineInfo`, updatedLineInfo);
                     }
                     handleCAsisstTextUpdate();
                     // setCMUpdatedCounter(cmUpdatedCounter + 1);
@@ -705,26 +696,6 @@ const CodeEditor = () => {
             }
         } catch (error) {
             console.error(error);
-        }
-    }
-    const [codeToc, setCodeToc] = useState("");
-
-    useEffect(() => {
-        if (inViewID && store.getState().codeEditor?.codeText[inViewID]?.length > 0) {
-            console.log(`inViewID=>>>`, store.getState().codeEditor.codeText[inViewID].join("/n"));
-            setCodeToc(store.getState().codeEditor.codeText[inViewID].join("\n"));
-        }
-    }, [inViewID]);
-    function onCodeMirrorChange2(value: string, viewUpdate: ViewUpdate) {
-        if (inViewID) {
-            // const codeTextA = store.getState().codeEditor.codeText[inViewID];
-            console.log(`inViewID`, inViewID);
-
-            console.log(
-                `store.getState().codeEditor.codeText[inViewID]`,
-                store.getState().codeEditor,
-                store.getState().codeEditor.codeText[inViewID]
-            );
         }
     }
     /**
@@ -957,21 +928,15 @@ const CodeEditor = () => {
                     position: "absolute",
                     right: 0,
                     zIndex: 100000000,
-                    width: 120,
+                    width: 150,
                     background: "white",
                     boxShadow: "0px 10px 10px 1px #aaaaaa",
                     height: "100%",
+                    fontSize: 3,
+                    // overflow: "hidden",
                 }}
             >
-                <CodeMirror
-                    value={codeToc}
-                    basicSetup={false}
-                    // height="100%"
-                    style={{ overflow: "hidden", height: "100%", fontSize: "4px" }}
-                    theme="light"
-                    extensions={[...defaultExtensions, ...langExtensions]}
-                    onChange={(value, viewUpdate) => onCodeMirrorChange2(value, viewUpdate)}
-                />
+                <TOC></TOC>
             </div>
         </StyledCodeEditor>
     );

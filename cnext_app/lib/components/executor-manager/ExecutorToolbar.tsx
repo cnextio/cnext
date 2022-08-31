@@ -5,7 +5,7 @@ import AddCardIcon from "@mui/icons-material/AddCardOutlined";
 import PauseIcon from "@mui/icons-material/PauseOutlined";
 import RestartAltIcon from "@mui/icons-material/RestartAltOutlined";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemoveOutlined";
-
+import CodeIcon from '@mui/icons-material/Code';
 import { ExecutorToolbarItem, SideBarName } from "../../interfaces/IApp";
 import { Divider, Tooltip } from "@mui/material";
 import { clearAllOutputs, setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
@@ -91,6 +91,11 @@ const ExecutorToolbar = () => {
             name: CellCommand.ADD_CELL,
             component: <AddCardIcon />,
             tooltip: "Add Cell",
+        },
+        {
+            name: ``,
+            component: <CodeIcon />,
+            tooltip: "Show Toc",
         },
     ];
     const ExecutorDivider = () => {
