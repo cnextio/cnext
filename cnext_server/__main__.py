@@ -54,7 +54,6 @@ def change_workspace(name, path):
     os.chdir(current_dir_path)
     with open(r'workspace.yaml', 'w') as file:
         documents = yaml.dump(data, file, default_flow_style=False)
-    print('change workspace done!')
 
 
 def update_md5():
