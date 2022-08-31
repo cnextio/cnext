@@ -219,16 +219,20 @@ def ask():
 def run_with_aks_path():
     path = input(
         'Please enter the directory to store the sample project: ')
-    abs_paths = os.path.abspath(path)
-
-    if os.path.isdir(abs_paths):
-        start_with_sample_project(abs_paths)
+    if(len(path) > 0):
+        abs_paths = os.path.abspath(path)
+        if os.path.isdir(abs_paths):
+            start_with_sample_project(abs_paths)
+        else:
+            print('The path is not a directory. Please try again!')
+            run_with_aks_path()
     else:
-        print('The path is not a directory. Please try again!')
         run_with_aks_path()
+
 
 def switch(command, data = None ):
     return switcher.get(command, default)(data)
+
 
 @contextmanager
 def run_and_terminate_process(port):
