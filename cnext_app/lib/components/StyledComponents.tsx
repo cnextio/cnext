@@ -599,6 +599,19 @@ export const StyledCodeEditor = styled.div`
         overflow: hidden;
     }
 `;
+export const StyledTOC = styled.div`
+    position: absolute;
+    right: 0;
+    z-index: 100000000;
+    width: 110px;
+    background: white;
+    box-shadow: 0px 10px 10px 1px #aaaaaa;
+    height: 100%;
+    font-size: 3px;
+    .cm-scroller {
+        overflow-x: hidden !important;
+    }
+`;
 export const ExecutorToolbar = styled.span`
     background: #f6f5f5;
     display: flex;

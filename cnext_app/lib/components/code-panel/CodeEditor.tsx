@@ -11,7 +11,7 @@ import { EditorView, keymap, lineNumbers, ViewPlugin, ViewUpdate } from "@codemi
 import { Line } from "@codemirror/state";
 import { defaultKeymap, historyKeymap, insertNewlineAndIndent } from "@codemirror/commands";
 import { searchKeymap } from "@codemirror/search";
-import { StyledCodeEditor } from "../StyledComponents";
+import { StyledCodeEditor, StyledTOC } from "../StyledComponents";
 import { languageServer } from "../../codemirror/autocomplete-lsp/index.js";
 import TableOfContents from "../table-of-content";
 import CodeMirror from "@uiw/react-codemirror";
@@ -933,22 +933,13 @@ const CodeEditor = () => {
     return (
         <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>
             {console.log("CodeEditor render")}
-            <div
+            <StyledTOC
                 style={{
                     display: !isShowToc ? "none" : "",
-                    position: "absolute",
-                    right: 0,
-                    zIndex: 100000000,
-                    width: 160,
-                    background: "white",
-                    boxShadow: "0px 10px 10px 1px #aaaaaa",
-                    height: "100%",
-                    fontSize: 3,
-                    // overflow: "hidden",
                 }}
             >
                 <TOC></TOC>
-            </div>
+            </StyledTOC>
         </StyledCodeEditor>
     );
 };
