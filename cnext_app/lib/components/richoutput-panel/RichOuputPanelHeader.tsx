@@ -24,7 +24,15 @@ const RichOuputPanelHeader = ({ indicate, show, setShow }) => {
                     >
                         {name}
                         {indicate && indicate === name && indicate !== show ? (
-                            <CircleIcon sx={{ fontSize: "11px", marginTop: "3px" }} color="info" />
+                            <CircleIcon
+                                sx={{
+                                    fontSize: "11px",
+                                    marginBottom: "2px",
+                                    marginLeft: "-7px",
+                                    marginRight: "-4px",
+                                }}
+                                color="info"
+                            />
                         ) : null}
                     </RichOuputViewHeaderButton>
                 ))}
