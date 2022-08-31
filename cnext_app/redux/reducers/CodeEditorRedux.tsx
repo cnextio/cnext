@@ -347,11 +347,11 @@ export const CodeEditorRedux = createSlice({
         addResult: (state, action) => {
             let resultMessage: ICodeResultMessage = action.payload;
             let inViewID = resultMessage.inViewID;
-            let newContent: object | string | null = resultMessage.content;
+            let resultContent: object | string | null = resultMessage.content;
             let lineRange: ILineRange = resultMessage.metadata["line_range"];
             // console.log('CodeEditorRedux addResult: ', resultMessage);
             /* only create result when content has something */
-            if (lineRange != null && newContent != null && newContent !== "") {
+            if (lineRange != null && resultContent != null && resultContent !== "") {
                 /** TODO: double check this. for now only associate fromLine to result */
                 let fromLine = lineRange.fromLine;
                 let codeLines: ICodeLine[] = state.codeLines[inViewID];
@@ -361,18 +361,22 @@ export const CodeEditorRedux = createSlice({
                 if (resultMessage.type === ContentType.STRING) {
                     /** Remove backspace out of the text. TODO: move this to a function */
                     const backspaceReg = RegExp("[\b]+", "g");
+                    const strContent = resultContent as string;
                     let matchBackspace;
                     if (currentTextOutput != null) {
                         let curContent = currentTextOutput.content as string;
-                        if ((matchBackspace = backspaceReg.exec(newContent)) !== null) {
+                        if ((matchBackspace = backspaceReg.exec(strContent)) !== null) {
                             currentTextOutput.content = [
-                                curContent.substr(0, curContent.length - matchBackspace[0].length),
-                                newContent.substr(backspaceReg.lastIndex),
+                                curContent.substring(
+                                    0,
+                                    curContent.length - matchBackspace[0].length
+                                ),
+                                strContent.substring(backspaceReg.lastIndex),
                             ].join("");
                         } else {
                             currentTextOutput.content = [
                                 currentTextOutput.content,
-                                newContent,
+                                strContent,
                             ].join("");
                         }
                         // console.log("CodeEditorRedux ", codeLine.textOutput.content);
@@ -380,7 +384,7 @@ export const CodeEditorRedux = createSlice({
                         let newTextOutput = {
                             type: resultMessage.type,
                             subType: resultMessage.subType,
-                            content: newContent,
+                            content: resultContent,
                             // msg_id: resultMessage.metadata.msg_id,
                         };
                         // point every line in the group to the same text since this point to the same memory it is not costly
