@@ -65,6 +65,8 @@ type CodeEditorState = {
     cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
     /** this number need to be increase whenever cell association changed */
     cellAssocUpdateCount: number;
+    isShowToc: boolean;
+    toPosToc: number;
 };
 
 const initialState: CodeEditorState = {
@@ -92,6 +94,8 @@ const initialState: CodeEditorState = {
     mouseOverGroupID: null,
     cellCommand: null,
     mouseOverLine: null,
+    isShowToc: true,
+    toPosToc: 0,
 };
 
 /**
@@ -454,7 +458,15 @@ export const CodeEditorRedux = createSlice({
         setCellCommand: (state, action) => {
             state.cellCommand = action.payload;
         },
+        setShowToc: (state, action) => {
+            state.isShowToc = action.payload;
+        },
 
+        setPosToToc: (state, action) => {
+            console.log(` action.payload`,  action.payload);
+            
+            state.toPosToc = action.payload;
+        },
         setMouseOverLine: (state, action) => {
             state.mouseOverLine = action.payload;
         },
@@ -627,8 +639,10 @@ export const {
     resetCodeEditor,
     setMouseOverGroup,
     setCellCommand,
+    setShowToc,
     setMouseOverLine,
     setCodeStates,
+    setPosToToc
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

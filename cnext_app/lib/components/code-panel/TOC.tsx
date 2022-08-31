@@ -30,6 +30,7 @@ import {
     clearRunQueue,
     setCellCommand,
     clearAllOutputs,
+    setPosToToc,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     ICodeResultMessage,
@@ -343,15 +344,36 @@ const TOC = () => {
         };
     }, []);
 
+    function onMouseDown(event: MouseEvent, view: EditorView) {
+        try {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log("CodeEditor onMouseDown", view, event, dispatch);
+            if (view != null) {
+                let pos = view.posAtDOM(event.target);
+                store.dispatch(setPosToToc(pos));
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
     /**
      * FIXME: This is used to set onmousedown event handler. This does not seem to be the best way.
      * Also set the SOLID effect for generated lines
      * */
-
+    const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView) => {
+        if (container) {
+            container.onmousedown = (event) => onMouseDown(event, view);
+            // container.onmouseout = (event) => onMouseOut(event, view);
+            // let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
+            // if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(scrollEl);
+            // if (scrollEl) scrollEl.onscroll = scrollEventHandler(scrollEl, 100);
+        }
+    };
     useEffect(() => {
         console.log("CodeEditor useEffect container view", container, view);
         if (container && view) {
-            // setHTMLEventHandler(container, view);
+            setHTMLEventHandler(container, view);
         }
     }, [container, view]);
 

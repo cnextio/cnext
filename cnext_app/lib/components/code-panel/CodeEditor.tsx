@@ -120,6 +120,7 @@ import TOC from "./TOC";
 
 const CodeEditor = () => {
     const isShowToc = useSelector((state: RootState) => state.codeEditor.isShowToc);
+    const toPosToc = useSelector((state: RootState) => state.codeEditor.toPosToc);
 
     // const CodeEditor = (props: any) => {
     /** This state is used to indicate server sync status. Code doc need to be resynced only
@@ -921,7 +922,14 @@ const CodeEditor = () => {
             }
         }
     };
-
+    useEffect(() => {
+        if (view && inViewID) {
+            view.dispatch({
+                selection: { anchor: toPosToc, head: toPosToc },
+                scrollIntoView: true,
+            });
+        }
+    }, [toPosToc]);
     return (
         <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>
             {console.log("CodeEditor render")}
@@ -931,7 +939,7 @@ const CodeEditor = () => {
                     position: "absolute",
                     right: 0,
                     zIndex: 100000000,
-                    width: 150,
+                    width: 160,
                     background: "white",
                     boxShadow: "0px 10px 10px 1px #aaaaaa",
                     height: "100%",
@@ -946,11 +954,3 @@ const CodeEditor = () => {
 };
 
 export default CodeEditor;
-// basicSetup: false,
-// // container: test.current,
-// extensions: [...defaultExtensions, ...langExtensions],
-// height: "100%",
-// theme: "light",
-// onChange: (value, viewUpdate) => onCodeMirrorChange(value, viewUpdate),
-// /** do not allow edit when there are items in the run queue */
-// readOnly: isRunQueueBusy(runQueue),
