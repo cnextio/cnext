@@ -12,6 +12,7 @@ import { MarkdownProcessor } from "./result-panel/MarkdownProcessor";
 
 const RichOutputPanel = ({ stopMouseEvent }) => {
     const [show, setShow] = useState(RichOutputPanelToolbarItems.DATA);
+    const [indicate, setIndicate] = useState("");
 
     const resultUpdateCount = useSelector((state: RootState) => state.codeEditor.resultUpdateCount);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
@@ -22,19 +23,25 @@ const RichOutputPanel = ({ stopMouseEvent }) => {
 
     useEffect(() => {
         if (resultUpdateCount > 0) {
-            setShow(RichOutputPanelToolbarItems.RESULTS);
+            if (show !== RichOutputPanelToolbarItems.RESULTS) {
+                setIndicate(RichOutputPanelToolbarItems.RESULTS);
+            }
+            // setShow(RichOutputPanelToolbarItems.RESULTS);
         }
     }, [resultUpdateCount]);
 
     useEffect(() => {
         if (activeDataFrame != null && tableData != {}) {
-            setShow(RichOutputPanelToolbarItems.DATA);
+            if (show !== RichOutputPanelToolbarItems.DATA) {
+                setIndicate(RichOutputPanelToolbarItems.DATA);
+            }
+            // setShow(RichOutputPanelToolbarItems.DATA);
         }
     }, [activeDataFrame, tableData]);
 
     return (
         <StyledRichOutputPanel>
-            <RichOuputPanelHeader show={show} setShow={setShow} />
+            <RichOuputPanelHeader indicate={indicate} show={show} setShow={setShow} />
             {show === RichOutputPanelToolbarItems.DATA && <DataPanel />}
             {show === RichOutputPanelToolbarItems.RESULTS && (
                 <ResultPanel stopMouseEvent={stopMouseEvent} />
