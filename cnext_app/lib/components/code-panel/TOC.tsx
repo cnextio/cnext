@@ -118,6 +118,8 @@ import { cellDeco, cellDecoStateField, setCodeMirrorCellDeco } from "./libCellDe
 // });
 
 const TOC = () => {
+    const isShowToc = useSelector((state: RootState) => state.codeEditor.isShowToc);
+
     // const CodeEditor = (props: any) => {
     /** This state is used to indicate server sync status. Code doc need to be resynced only
      * when it is first opened or being selected to be in view */
@@ -662,7 +664,7 @@ const TOC = () => {
         }
     }
 
-    return <div style={{ overflowX: "hidden" }} ref={editorRef}></div>;
+    return <div ref={editorRef}></div>;
 };
 
 export default TOC;

@@ -119,6 +119,8 @@ import TOC from "./TOC";
 // });
 
 const CodeEditor = () => {
+    const isShowToc = useSelector((state: RootState) => state.codeEditor.isShowToc);
+
     // const CodeEditor = (props: any) => {
     /** This state is used to indicate server sync status. Code doc need to be resynced only
      * when it is first opened or being selected to be in view */
@@ -925,6 +927,7 @@ const CodeEditor = () => {
             {console.log("CodeEditor render")}
             <div
                 style={{
+                    display: !isShowToc ? "none" : "",
                     position: "absolute",
                     right: 0,
                     zIndex: 100000000,

@@ -5,13 +5,17 @@ import AddCardIcon from "@mui/icons-material/AddCardOutlined";
 import PauseIcon from "@mui/icons-material/PauseOutlined";
 import RestartAltIcon from "@mui/icons-material/RestartAltOutlined";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemoveOutlined";
-import CodeIcon from '@mui/icons-material/Code';
+import CodeIcon from "@mui/icons-material/Code";
 import { ExecutorToolbarItem, SideBarName } from "../../interfaces/IApp";
 import { Divider, Tooltip } from "@mui/material";
-import { clearAllOutputs, setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
+import {
+    clearAllOutputs,
+    setCellCommand,
+    setShowToc,
+} from "../../../redux/reducers/CodeEditorRedux";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
-import { useDispatch } from "react-redux";
-import store from "../../../redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import store, { RootState } from "../../../redux/store";
 import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
 import { interruptKernel, restartKernel } from "./ExecutorManager";
 import { CellCommand } from "../../interfaces/ICodeEditor";
@@ -31,6 +35,8 @@ const ExecutorToolbarItemComponent = ({ icon, selectedIcon, handleClick }) => {
 };
 
 const ExecutorToolbar = () => {
+    const isShowToc = useSelector((state: RootState) => state.codeEditor.isShowToc);
+
     const [selectedIcon, setSelectedIcon] = React.useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const dispatch = useDispatch();
@@ -50,6 +56,8 @@ const ExecutorToolbar = () => {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
         } else if (name === CellCommand.ADD_CELL) {
             store.dispatch(setCellCommand(CellCommand.ADD_CELL));
+        } else if (name === CellCommand.SHOW_TOC) {
+            store.dispatch(setShowToc(!isShowToc));
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -93,7 +101,7 @@ const ExecutorToolbar = () => {
             tooltip: "Add Cell",
         },
         {
-            name: ``,
+            name: CellCommand.SHOW_TOC,
             component: <CodeIcon />,
             tooltip: "Show Toc",
         },

@@ -129,6 +129,7 @@ export enum CellCommand {
     RUN_CELL = "RUN",
     CLEAR = "CLEAR",
     ADD_CELL = "ADD_CELL",
+    SHOW_TOC = "SHOW_TOC",
 }
 
 export type ICodeResultContent = string | object | IPlotResult;
