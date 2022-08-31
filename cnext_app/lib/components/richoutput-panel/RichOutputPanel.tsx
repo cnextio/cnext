@@ -38,10 +38,15 @@ const RichOutputPanel = ({ stopMouseEvent }) => {
             // setShow(RichOutputPanelToolbarItems.DATA);
         }
     }, [activeDataFrame, tableData]);
-
+    const setShowItem = (name: RichOutputPanelToolbarItems) => {
+        setShow(name);
+        if (name === indicate) {
+            setIndicate("");
+        }
+    };
     return (
         <StyledRichOutputPanel>
-            <RichOuputPanelHeader indicate={indicate} show={show} setShow={setShow} />
+            <RichOuputPanelHeader indicate={indicate} show={show} setShow={setShowItem} />
             {show === RichOutputPanelToolbarItems.DATA && <DataPanel />}
             {show === RichOutputPanelToolbarItems.RESULTS && (
                 <ResultPanel stopMouseEvent={stopMouseEvent} />
