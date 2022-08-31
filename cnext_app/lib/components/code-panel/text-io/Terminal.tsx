@@ -24,7 +24,17 @@ const TerminalComponent = () => {
     async function init() {
         if (config.port && config.token) {
             try {
-                const BASEURL = `${process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT}/jps`;
+                let base = process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT;
+
+                if (base?.endsWith("/")) {
+                    base = base.slice(0, -1);
+                }
+
+                if (base === "") {
+                    base = window.location.origin;
+                }
+
+                const BASEURL = `${base}/jps`;
                 const TOKEN = `${config.token}`;
                 const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
                 const connectionInfo = ServerConnection.makeSettings({
