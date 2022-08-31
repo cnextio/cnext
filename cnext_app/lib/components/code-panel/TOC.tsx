@@ -168,10 +168,11 @@ const TOC = () => {
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
     const defaultExtensions = [
-        editStatusGutter(store.getState().projectManager.inViewID, getCodeLine(store.getState())),
-
+        cellWidgetStateField,
+        // cellWidget(),
+        cellDecoStateField,
+        cellDeco(),
         syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-
         indentUnit.of("    "),
     ];
 
@@ -213,17 +214,7 @@ const TOC = () => {
         /** do not allow edit when there are items in the run queue */
         readOnly: true,
     });
-    //2
-    const { setContainer: setContainerToc } = useCodeMirror({
-        basicSetup: false,
-        // container: test.current,
-        extensions: [...defaultExtensions, ...langExtensions],
-        height: "100%",
-        theme: "light",
-        onChange: (value, viewUpdate) => onCodeMirrorChange(value, viewUpdate),
-        /** do not allow edit when there are items in the run queue */
-        readOnly: isRunQueueBusy(runQueue),
-    });
+
     const resetEditorState = (inViewID: string | null, view: EditorView | undefined) => {
         if (view != null) {
             setLangExtensions(getLangExtenstions(inViewID));

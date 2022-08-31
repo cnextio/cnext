@@ -605,11 +605,14 @@ export const StyledTOC = styled.div`
     z-index: 100000000;
     width: 110px;
     background: white;
-    box-shadow: 0px 10px 10px 1px #aaaaaa;
+    box-shadow: 0px 2px 5px 1px #d1cfcf;;
     height: 100%;
     font-size: 3px;
     .cm-scroller {
         overflow-x: hidden !important;
+    }
+    .cm-cursorLayer{
+        display: none !important;;
     }
 `;
 export const ExecutorToolbar = styled.span`
