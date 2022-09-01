@@ -924,10 +924,12 @@ const CodeEditor = () => {
     };
     useEffect(() => {
         if (view && inViewID) {
-            view.dispatch({
-                selection: { anchor: toPosToc, head: toPosToc },
-                scrollIntoView: true,
-            });
+            // setAnchorToPos()
+            // view.dispatch({
+            //     selection: { anchor: toPosToc, head: toPosToc },
+            //     scrollIntoView: true,
+            // });
+            setAnchorToPos(view, inViewID, toPosToc + 1);
         }
     }, [toPosToc]);
     return (
