@@ -71,9 +71,12 @@ const WorkingPanel = () => {
                         }}
                     >
                         <Pane size={codePanelSize}>
-                            <CodePanel workingPanelViewMode={projectConfig.view_mode} />
+                            <CodePanel
+                                workingPanelViewMode={projectConfig.view_mode}
+                                stopMouseEvent={resizing}
+                            />
                         </Pane>
-                        <Pane>
+                        <Pane>                            
                             <RichOutputPanel stopMouseEvent={resizing} />
                         </Pane>
                     </SplitPane>

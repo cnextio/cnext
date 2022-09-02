@@ -575,16 +575,20 @@ function onKeyDown(event: KeyboardEvent, view: EditorView) {
     }
 }
 
-const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView) => {
+const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView, stopMouseEvent: boolean) => {
+    console.log('CodeEditor stopMouseEvent ', stopMouseEvent);
     if (container) {
-        container.onmousedown = (event) => onMouseDown(event, view);
-        container.onkeydown = (event) => onKeyDown(event, view);
-        container.onmouseover = (event) => onMouseOver(event, view);
-        // container.onmouseout = (event) => onMouseOut(event, view);
-        container.onmouseleave = (event) => onMouseLeave(event, view);
-        // let scrollEl = document.querySelector("div.cm-scroller") as HTMLElement;
-        // if (scrollEl) scrollEl.onscroll = (event) => scrollTimer(scrollEl);
-        // if (scrollEl) scrollEl.onscroll = scrollEventHandler(scrollEl, 100);
+        if (!stopMouseEvent) {
+            container.onmousedown = (event) => onMouseDown(event, view);
+            container.onkeydown = (event) => onKeyDown(event, view);
+            container.onmouseover = (event) => onMouseOver(event, view);
+            container.onmouseleave = (event) => onMouseLeave(event, view);
+        } else {
+            container.onmousedown = null;
+            container.onkeydown = null;
+            container.onmouseover = null;
+            container.onmouseleave = null;
+        }
     }
 };
 

@@ -33,7 +33,7 @@ const RichOutputPanel = ({ stopMouseEvent }) => {
     }, [activeDataFrame, tableData]);
 
     return (
-        <StyledRichOutputPanel>
+        <StyledRichOutputPanel>            
             <RichOuputPanelHeader show={show} setShow={setShow} />
             {show === RichOutputPanelToolbarItems.DATA && <DataPanel />}
             {show === RichOutputPanelToolbarItems.RESULTS && (

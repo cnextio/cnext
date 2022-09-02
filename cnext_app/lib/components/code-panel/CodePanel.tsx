@@ -10,7 +10,7 @@ import { RootState } from "../../../redux/store";
 import TextIOComponent from "./TextIOComponent";
 import StyledExecutorToolbar from "../executor-manager/ExecutorToolbar";
 
-const CodePanel = ({ workingPanelViewMode }) => {
+const CodePanel = ({ workingPanelViewMode, stopMouseEvent }) => {
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     return (
         <StyledCodePanel style={{ position: "relative" }}>
@@ -26,7 +26,7 @@ const CodePanel = ({ workingPanelViewMode }) => {
                             : ViewMode.HORIZONTAL
                     }
                 >
-                    <Pane>{inViewID != null && <CodeEditor />}</Pane>
+                    <Pane>{inViewID != null && <CodeEditor stopMouseEvent={stopMouseEvent} />}</Pane>
                     <Pane size="30%">
                         <TextIOComponent />
                     </Pane>

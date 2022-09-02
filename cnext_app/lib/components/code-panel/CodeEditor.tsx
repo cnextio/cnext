@@ -115,7 +115,7 @@ import { cellDeco, cellDecoStateField, setCodeMirrorCellDeco } from "./libCellDe
 //     languageId: "python",
 // });
 
-const CodeEditor = () => {
+const CodeEditor = ({ stopMouseEvent }) => {
     // const CodeEditor = (props: any) => {
     /** This state is used to indicate server sync status. Code doc need to be resynced only
      * when it is first opened or being selected to be in view */
@@ -371,9 +371,9 @@ const CodeEditor = () => {
     useEffect(() => {
         console.log("CodeEditor useEffect container view", container, view);
         if (container && view) {
-            setHTMLEventHandler(container, view);
+            setHTMLEventHandler(container, view, stopMouseEvent);
         }
-    }, [container, view]);
+    });
 
     /**
      * Reset the code editor state when the doc is selected to be in view
