@@ -257,7 +257,7 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
             if (codeResult?.textOutput) {
                 let textElement = (
                     <pre
-                        style={{ fontSize: "12px" }}
+                        style={{ fontSize: "12px", whiteSpace: "pre-wrap"   }}
                         // children={codeResult?.textOutput.content}
                     >
                         <Ansi>{codeResult?.textOutput.content}</Ansi>
