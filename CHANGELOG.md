@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/cnextio/cnext/compare/v0.6.0...v0.6.1) (2022-09-01)
+
+
+### Bug Fixes
+
+* **docker:** change default shell from sh to bash ([ecac01d](https://github.com/cnextio/cnext/commit/ecac01d7d105ffc8b086cf1abe1e8ea52a53821c))
+
 ## [0.6.0](https://github.com/cnextio/cnext/compare/v0.5.3...v0.6.0) (2022-08-30)
 
 

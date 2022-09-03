@@ -37,7 +37,7 @@ PLEASE NOTE: CNext requires npm >= 18.4 and Python >= 3.9.7 . Please ensure your
 
 Step 1: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
 
-Step 2: `run` command `pip install cnext`
+Step 2: `run` command `pip install -U cnext`
 
 Step 3: `run` command `cnext-init`
 

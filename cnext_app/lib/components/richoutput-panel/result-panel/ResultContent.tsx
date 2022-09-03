@@ -128,7 +128,7 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
     const renderResultContent = () => {
         try {
             // const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
-            console.log("ResultContent: ", codeResult);
+            // console.log("ResultContent: ", codeResult);
             // const showMarkdown = store.getState().projectManager.settings?.rich_output?.show_markdown;
             let results = [];
             let resultElements = null;
@@ -257,7 +257,7 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
             if (codeResult?.textOutput) {
                 let textElement = (
                     <pre
-                        style={{ fontSize: "12px" }}
+                        style={{ fontSize: "12px", whiteSpace: "pre-wrap"   }}
                         // children={codeResult?.textOutput.content}
                     >
                         <Ansi>{codeResult?.textOutput.content}</Ansi>
