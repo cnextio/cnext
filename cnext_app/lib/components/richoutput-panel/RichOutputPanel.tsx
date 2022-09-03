@@ -12,6 +12,7 @@ import { MarkdownProcessor } from "./result-panel/MarkdownProcessor";
 
 const RichOutputPanel = ({ stopMouseEvent }) => {
     const [show, setShow] = useState(RichOutputPanelToolbarItems.DATA);
+    const [newItemIndicator, setNewItemIndicator] = useState<string | null>(null);
 
     const resultUpdateCount = useSelector((state: RootState) => state.codeEditor.resultUpdateCount);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
@@ -20,21 +21,38 @@ const RichOutputPanel = ({ stopMouseEvent }) => {
         (state: RootState) => state.projectManager?.settings?.rich_output?.show_markdown
     );
 
-    useEffect(() => {
-        if (resultUpdateCount > 0) {
-            setShow(RichOutputPanelToolbarItems.RESULTS);
-        }
-    }, [resultUpdateCount]);
+    // useEffect(() => {
+    //     if (resultUpdateCount > 0) {
+    //         if (show !== RichOutputPanelToolbarItems.RESULTS) {
+    //             setIndicate(RichOutputPanelToolbarItems.RESULTS);
+    //         }
+    //     }
+    // }, [resultUpdateCount]);
 
+    // since there is at least one update to resultUpdateCount on every execution we will only
+    // use the indicator for Data tab
     useEffect(() => {
         if (activeDataFrame != null && tableData != {}) {
-            setShow(RichOutputPanelToolbarItems.DATA);
+            if (show !== RichOutputPanelToolbarItems.DATA) {
+                setNewItemIndicator(RichOutputPanelToolbarItems.DATA);
+            }
         }
     }, [activeDataFrame, tableData]);
 
+    const setShowItem = (name: RichOutputPanelToolbarItems) => {
+        setShow(name);
+        if (name === newItemIndicator) {
+            setNewItemIndicator(null);
+        }
+    };
+
     return (
-        <StyledRichOutputPanel>            
-            <RichOuputPanelHeader show={show} setShow={setShow} />
+        <StyledRichOutputPanel>
+            <RichOuputPanelHeader
+                newItemIndicator={newItemIndicator}
+                show={show}
+                setShow={setShowItem}
+            />
             {show === RichOutputPanelToolbarItems.DATA && <DataPanel />}
             {show === RichOutputPanelToolbarItems.RESULTS && (
                 <ResultPanel stopMouseEvent={stopMouseEvent} />
