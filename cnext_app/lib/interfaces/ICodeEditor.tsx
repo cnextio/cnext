@@ -51,7 +51,7 @@ export interface ICodeLine {
     result?: ICodeResult[];
     textOutput?: ICodeResult;
     generated: boolean;
-    groupID?: string;
+    groupID: string|null;
     cAssistInfo?: ICAssistInfo;
 }
 
