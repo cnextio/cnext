@@ -4,7 +4,8 @@ import ReactDOM from "react-dom";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
-import { getMainEditorModel, setCodeTextAndStates, setEditorWidgets } from "./libCodeEditor";
+import { getMainEditorModel, setCodeTextAndStates } from "./libCodeEditor";
+import { setEditorWidgets } from "./libCodeWidget";
 import { MonacoEditor as StyledMonacoEditor } from "../styles";
 import { ILineUpdate } from "../../../interfaces/ICodeEditor";
 import { updateLines } from "../../../../redux/reducers/CodeEditorRedux";
@@ -52,9 +53,9 @@ const CodeEditor = () => {
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
-    
+
     const editorRef = useRef(null);
-    
+
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
