@@ -4,8 +4,10 @@ import ReactDOM from "react-dom";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
-import { setCodeTextAndStates, setEditorWidgets } from "./libCodeEditor";
+import { getMainEditorModel, setCodeTextAndStates, setEditorWidgets } from "./libCodeEditor";
 import { MonacoEditor as StyledMonacoEditor } from "../styles";
+import { ILineUpdate } from "../../../interfaces/ICodeEditor";
+import { updateLines } from "../../../../redux/reducers/CodeEditorRedux";
 
 const CodeEditor = () => {
     const monaco = useMonaco();
@@ -50,7 +52,9 @@ const CodeEditor = () => {
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
-
+    
+    const editorRef = useRef(null);
+    
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
@@ -65,30 +69,96 @@ const CodeEditor = () => {
         setCodeReloading(true);
     }, [inViewID]);
 
-    const editorRef = useRef(null);
-
-    /**
-     * Init CodeEditor value with content load from the file
-     * Also scroll the file to the previous position
-     */
     useEffect(() => {
         if (serverSynced && codeReloading) {
-            if (monaco) {
+            // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
+            // TODO: improve this by rely only on monaco
+            if (monaco && editorRef.current) {
                 setCodeTextAndStates(store.getState(), monaco);
-                setCodeReloading(false);
-            }
-            if (editorRef.current) {
                 setEditorWidgets(store.getState(), editorRef.current);
+                setCodeReloading(false);
             }
         }
     }, [serverSynced, codeReloading, monaco, editorRef]);
 
-    function handleEditorChange(value, event) {
-        console.log("Monaco here is the current model value:", value, event);
-    }
+    useEffect(() => {
+        if (editorRef.current) {
+            setEditorWidgets(store.getState(), editorRef.current);
+        }
+    }, [cellAssocUpdateCount]);
 
     const handleEditorDidMount = (editor, monaco) => {
+        // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
         editorRef.current = editor;
+    };
+
+    const handleEditorChange = (value, event) => {
+        try {
+            const state = store.getState();
+            let inViewID = state.projectManager.inViewID;
+            /** do nothing if the update is due to code reloading from external source */
+            if (event.isFlush) return;
+            console.log("Monaco here is the current model value:", event);
+            let serverSynced = store.getState().projectManager.serverSynced;
+            let model = getMainEditorModel(monaco);
+
+            if (serverSynced && inViewID && model) {
+                const inViewCodeText = state.codeEditor.codeText[inViewID];
+                let updatedLineCount = model.getLineCount() - inViewCodeText.length;
+                console.log(
+                    "Monaco updates ",
+                    updatedLineCount,
+                    event.changes,
+                    model?.getLineCount(),
+                    inViewCodeText.length
+                );
+                for (const change of event.changes) {
+                    // convert the line number 0-based index, which is what we use internally
+                    let changeStartLine1Based = change.range.startLineNumber;
+                    let changeStartLineNumber0Based = changeStartLine1Based - 1;
+                    // console.log(
+                    //     "Monaco updates ",
+                    //     model?.getLineContent(changeStartLine1Based),
+                    //     inViewCodeText[changeStartLineNumber0Based]
+                    // );
+                    if (updatedLineCount > 0) {
+                        let updatedLineInfo: ILineUpdate = {
+                            inViewID: inViewID,
+                            text: model.getLinesContent(),
+                            updatedStartLineNumber: changeStartLineNumber0Based,
+                            updatedLineCount: updatedLineCount,
+                            startLineChanged:
+                                model.getLineContent(changeStartLine1Based) !=
+                                inViewCodeText[changeStartLineNumber0Based],
+                        };
+                        dispatch(updateLines(updatedLineInfo));
+                    } else if (updatedLineCount < 0) {
+                        let updatedLineInfo: ILineUpdate = {
+                            inViewID: inViewID,
+                            text: model.getLinesContent(),
+                            updatedStartLineNumber: changeStartLineNumber0Based,
+                            updatedLineCount: updatedLineCount,
+                            startLineChanged:
+                                model.getLineContent(changeStartLine1Based) !=
+                                inViewCodeText[changeStartLineNumber0Based],
+                        };
+                        dispatch(updateLines(updatedLineInfo));
+                    } else {
+                        let updatedLineInfo: ILineUpdate = {
+                            inViewID: inViewID,
+                            text: model.getLinesContent(),
+                            updatedStartLineNumber: changeStartLineNumber0Based,
+                            updatedLineCount: updatedLineCount,
+                            startLineChanged: true,
+                        };
+                        dispatch(updateLines(updatedLineInfo));
+                    }
+                    // handleCAsisstTextUpdate();
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (

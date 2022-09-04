@@ -13,7 +13,7 @@ const getCodeText = (state: RootState) => {
     return null;
 };
 
-const getMainEditorModel = (monaco: Monaco) => {
+export const getMainEditorModel = (monaco: Monaco) => {
     if (monaco) {
         let models = monaco.editor.getModels();
         if (models.length > 0) return models[0];
@@ -21,28 +21,13 @@ const getMainEditorModel = (monaco: Monaco) => {
     return null;
 };
 
-// const getMainEditor = (monaco: Monaco) => {
-//     if (monaco) {
-//         let editors = monaco.editor?.getEditors();
-//         if (editors.length > 0) return editors[0];
-//     }
-//     return null;
-// };
-
 export const setCodeTextAndStates = (state: RootState, monaco: Monaco) => {
     let codeText = getCodeText(state);
     let editorModel = getMainEditorModel(monaco);
-    // let editor = getMainEditor(monaco);
     if (codeText) {
         editorModel?.setValue(codeText);
-        // monaco.editor.//changeViewZones(addCellWidget);
     }
 };
-
-// export const setCell = (state: RootState, monaco: Monaco) => {
-//     let editor = getMainEditor(monaco);
-//     // editor?.addContentWidget()
-// }
 
 const createCellWidgetDom = (groupID: string) => {
     let wrap = document.createElement("div");
