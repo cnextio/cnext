@@ -923,14 +923,16 @@ const CodeEditor = () => {
         }
     };
     useEffect(() => {
-        if (view && inViewID) {
-            // setAnchorToPos()
-            // view.dispatch({
-            //     selection: { anchor: toPosToc, head: toPosToc },
-            //     scrollIntoView: true,
-            // });
-            setAnchorToPos(view, inViewID, toPosToc + 1);
-        }
+        try {
+            if (view && inViewID) {
+                // setAnchorToPos()
+                // view.dispatch({
+                //     selection: { anchor: toPosToc, head: toPosToc },
+                //     scrollIntoView: true,
+                // });
+                setAnchorToPos(view, inViewID, toPosToc + 1);
+            }
+        } catch (error) {}
     }, [toPosToc]);
     return (
         <StyledCodeEditor data-cy={CypressIds.codeEditor} ref={editorRef}>

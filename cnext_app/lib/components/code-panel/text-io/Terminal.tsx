@@ -126,12 +126,12 @@ const TerminalComponent = () => {
             const content = [
                 event.rows,
                 event.cols,
-                elementTerminal.offsetHeight,
-                elementTerminal.offsetWidth,
+                elementTerminal?.offsetHeight,
+                elementTerminal?.offsetWidth,
             ];
             if (!session.isDisposed) {
                 fitAddon.fit();
-                // session.send({ type: "set_size", content });
+                session.send({ type: "set_size", content });
             }
         }
     };

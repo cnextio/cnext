@@ -602,7 +602,7 @@ export const StyledCodeEditor = styled.div`
 export const StyledTOC = styled.div`
     position: absolute;
     right: 0;
-    z-index: 100000000;
+    z-index: 999;
     width: 110px;
     background: white;
     box-shadow: 0px 2px 5px 1px #d1cfcf;;
