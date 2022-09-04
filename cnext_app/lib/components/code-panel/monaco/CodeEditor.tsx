@@ -84,7 +84,7 @@ const CodeEditor = () => {
     }, [serverSynced, codeReloading, monaco, editorRef]);
 
     function handleEditorChange(value, event) {
-        console.log("Monica here is the current model value:", value, event);
+        console.log("Monaco here is the current model value:", value, event);
     }
 
     const handleEditorDidMount = (editor, monaco) => {

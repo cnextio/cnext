@@ -87,7 +87,12 @@ const createCellWidgetDom = (groupID: string) => {
     return wrap;
 };
 
+const viewZones = [];
+
 const addCellWidgets = (changeAccessor) => {
+    // remove existing view zones
+    for(let viewZoneId of viewZones) changeAccessor.removeZone(viewZoneId);
+    
     let reduxState = store.getState();
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {
@@ -108,6 +113,7 @@ const addCellWidgets = (changeAccessor) => {
                         };
                         // console.log("Monaco: ", zone);
                         let viewZoneId = changeAccessor.addZone(zone);
+                        viewZones.push(viewZoneId);
                     }
                 }
                 currentGroupID = lines[ln].groupID;
@@ -117,7 +123,5 @@ const addCellWidgets = (changeAccessor) => {
 };
 
 export const setEditorWidgets = (state: RootState, editor) => {
-    // let editor = getMainEditor(monaco);
-    console.log("Monaco ", editor);
     editor.changeViewZones(addCellWidgets);
 };
