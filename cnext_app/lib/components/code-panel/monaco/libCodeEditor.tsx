@@ -1,8 +1,8 @@
 import { Monaco } from "@monaco-editor/react";
-import { setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
-import store, { RootState } from "../../../redux/store";
-import { CellCommand, ICodeLine } from "../../interfaces/ICodeEditor";
-import { getCodeLine } from "./libCodeEditor";
+import { setCellCommand } from "../../../../redux/reducers/CodeEditorRedux";
+import store, { RootState } from "../../../../redux/store";
+import { CellCommand, ICodeLine } from "../../../interfaces/ICodeEditor";
+import { getCodeLine } from "../libCodeEditor";
 
 const getCodeText = (state: RootState) => {
     let inViewID = state.projectManager.inViewID;
@@ -17,7 +17,7 @@ const getMainEditorModel = (monaco: Monaco) => {
     if (monaco) {
         let models = monaco.editor.getModels();
         if (models.length > 0) return models[0];
-    } 
+    }
     return null;
 };
 
@@ -34,8 +34,8 @@ export const setCodeTextAndStates = (state: RootState, monaco: Monaco) => {
     let editorModel = getMainEditorModel(monaco);
     // let editor = getMainEditor(monaco);
     if (codeText) {
-        editorModel?.setValue(codeText); 
-        // monaco.editor.//changeViewZones(addCellWidget);       
+        editorModel?.setValue(codeText);
+        // monaco.editor.//changeViewZones(addCellWidget);
     }
 };
 
@@ -80,20 +80,20 @@ const createCellWidgetDom = (groupID: string) => {
             store.dispatch(setCellCommand(element.cellCommand));
         });
     }
-    
+
     wrap.className = `groupwidget show`;
     wrap.id = `groupwidget-${groupID}`;
 
     return wrap;
-}
+};
 
-const addCellWidget = (changeAccessor) => {
+const addCellWidgets = (changeAccessor) => {
     let reduxState = store.getState();
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {
         let lines: ICodeLine[] | null = getCodeLine(reduxState);
         // console.log("Monaco: ", lines);
-        if (lines) {            
+        if (lines) {
             let currentGroupID = null;
             for (let ln = 0; ln < lines.length; ln++) {
                 /** convert to 1-based */
@@ -106,7 +106,7 @@ const addCellWidget = (changeAccessor) => {
                             heightInLines: 1,
                             domNode: domNode,
                         };
-                        console.log("Monaco: ", zone);
+                        // console.log("Monaco: ", zone);
                         let viewZoneId = changeAccessor.addZone(zone);
                     }
                 }
@@ -116,8 +116,8 @@ const addCellWidget = (changeAccessor) => {
     }
 };
 
-export const setEditorWidget = (state: RootState, editor) => {
+export const setEditorWidgets = (state: RootState, editor) => {
     // let editor = getMainEditor(monaco);
     console.log("Monaco ", editor);
-    editor.changeViewZones(addCellWidget);
+    editor.changeViewZones(addCellWidgets);
 };

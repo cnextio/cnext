@@ -3,9 +3,9 @@ import ReactDOM from "react-dom";
 
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
-import store, { RootState } from "../../../redux/store";
-import { setCodeTextAndStates, setEditorWidget } from "./libMonacoCodeEditor";
-import { MonacoEditor as StyledMonacoEditor } from "./styles";
+import store, { RootState } from "../../../../redux/store";
+import { setCodeTextAndStates, setEditorWidgets } from "./libCodeEditor";
+import { MonacoEditor as StyledMonacoEditor } from "../styles";
 
 const CodeEditor = () => {
     const monaco = useMonaco();
@@ -75,14 +75,17 @@ const CodeEditor = () => {
         if (serverSynced && codeReloading) {
             if (monaco) {
                 setCodeTextAndStates(store.getState(), monaco);
-                
                 setCodeReloading(false);
             }
-            if( editorRef.current){
-                setEditorWidget(store.getState(), editorRef.current);
+            if (editorRef.current) {
+                setEditorWidgets(store.getState(), editorRef.current);
             }
         }
     }, [serverSynced, codeReloading, monaco, editorRef]);
+
+    function handleEditorChange(value, event) {
+        console.log("Monica here is the current model value:", value, event);
+    }
 
     const handleEditorDidMount = (editor, monaco) => {
         editorRef.current = editor;
@@ -94,6 +97,7 @@ const CodeEditor = () => {
             defaultValue=""
             defaultLanguage="python"
             onMount={handleEditorDidMount}
+            onChange={handleEditorChange}
         />
     );
 };
