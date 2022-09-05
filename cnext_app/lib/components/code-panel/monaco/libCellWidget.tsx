@@ -34,8 +34,8 @@ const createCellWidgetDom = (groupID: string) => {
         dom.appendChild(tooltip);
         wrap.appendChild(dom);
 
-        dom.addEventListener("mousedown", (e) => {
-            e.stopPropagation();
+        dom.addEventListener("click", (e) => {            
+            e.stopPropagation();            
             store.dispatch(setCellCommand(element.cellCommand));
         });
     }

@@ -2,13 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
-import { getMainEditorModel, setCodeTextAndStates } from "./libCodeEditor";
+import { getMainEditorModel, setCodeTextAndStates, setHTMLEventHandler } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
 import { MonacoEditor as StyledMonacoEditor } from "../styles";
-import { ILineUpdate } from "../../../interfaces/ICodeEditor";
-import { updateLines } from "../../../../redux/reducers/CodeEditorRedux";
-
+import { CellCommand, ILineUpdate } from "../../../interfaces/ICodeEditor";
+import {
+    clearAllOutputs,
+    setCellCommand,
+    updateLines,
+} from "../../../../redux/reducers/CodeEditorRedux";
 
 const CodeEditor = () => {
     const monaco = useMonaco();
@@ -55,7 +58,13 @@ const CodeEditor = () => {
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
     const editorRef = useRef(null);
-
+    useEffect(() => {
+        // console.log("CodeEditor useEffect container view", container, view);
+        if (monaco) {
+            // editorRef.current = editor
+            // monaco.editor.on
+        }
+    });
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
@@ -82,18 +91,46 @@ const CodeEditor = () => {
             }
         }
     }, [serverSynced, codeReloading, monaco, editorRef]);
+    useEffect(() => {
+        const state = store.getState();
+        const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
+        if (cellCommand) {
+            let line = null;
+            // if (state.codeEditor.mouseOverLine) {
+            //     const inViewID = state.projectManager.inViewID;
+            //     line = state.codeEditor.mouseOverLine.number;
+            //     let activeLine: ICodeActiveLine = {
+            //         inViewID: inViewID || "",
+            //         lineNumber: line - 1,
+            //     };
+            //     store.dispatch(setActiveLineRedux(activeLine));
+            // }
 
+            switch (cellCommand) {
+                case CellCommand.RUN_CELL:
+                    // addToRunQueueHover(view);
+                    break;
+                case CellCommand.CLEAR:
+                    dispatch(clearAllOutputs({ inViewID, mouseOverGroupID }));
+                    break;
+                case CellCommand.ADD_CELL:
+                    // insertBelow(CodeInsertMode.GROUP, line);
+                    break;
+            }
+            dispatch(setCellCommand(undefined));
+        }
+    }, [cellCommand]);
     useEffect(() => {
         if (editorRef.current) {
             setCellDeco(monaco, editorRef.current);
-            setCellWidgets(editorRef.current);            
+            setCellWidgets(editorRef.current);
         }
     }, [cellAssocUpdateCount]);
-
 
     const handleEditorDidMount = (editor, monaco) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
         editorRef.current = editor;
+        setHTMLEventHandler(editor);
     };
 
     const handleEditorChange = (value, event) => {

@@ -30,6 +30,7 @@ export const MonacoEditor = styled(Editor)`
             opacity: 0;
             margin-left: 5px;
             position: relative;
+            z-index: 10000000;
             &:not(:last-child) {
                 /* border-right: 1px solid #42a5f5; */
             }
@@ -60,7 +61,7 @@ export const MonacoEditor = styled(Editor)`
                 min-width: 35px;
                 position: absolute;
                 z-index: 1;
-                bottom: -80%;
+                bottom: -150%;
                 left: 120%;
                 margin-left: -5px;
                 opacity: 1;
