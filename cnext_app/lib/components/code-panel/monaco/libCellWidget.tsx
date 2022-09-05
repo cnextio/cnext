@@ -1,9 +1,7 @@
 import { setCellCommand } from "../../../../redux/reducers/CodeEditorRedux";
-import store, { RootState } from "../../../../redux/store";
+import store from "../../../../redux/store";
 import { CellCommand, ICodeLine } from "../../../interfaces/ICodeEditor";
 import { getCodeLine } from "./libCodeEditor";
-
-const viewZones = [];
 
 const createCellWidgetDom = (groupID: string) => {
     let wrap = document.createElement("div");
@@ -42,36 +40,53 @@ const createCellWidgetDom = (groupID: string) => {
         });
     }
 
-    wrap.className = `groupwidget show`;
-    wrap.id = `groupwidget-${groupID}`;
+    wrap.className = `cellwidget show`;
+    wrap.id = `cellwidget-${groupID}`;
 
     return wrap;
 };
+
+const widgetViewZones = [];
+
 const addCellWidgets = (changeAccessor) => {
     // remove existing view zones
-    for (let viewZoneId of viewZones) changeAccessor.removeZone(viewZoneId);
+    for (let viewZoneId of widgetViewZones) changeAccessor.removeZone(viewZoneId);
 
     let reduxState = store.getState();
     let inViewID = reduxState.projectManager.inViewID;
     if (inViewID) {
         let lines: ICodeLine[] | null = getCodeLine(reduxState);
         // console.log("Monaco: ", lines);
-        if (lines) {
+        if (lines && lines.length > 0) {
             let currentGroupID = null;
             for (let ln = 0; ln < lines.length; ln++) {
-                /** convert to 1-based */
                 if (!lines[ln].generated) {
                     const groupID = lines[ln].groupID;
-                    if (groupID && groupID != currentGroupID) {
-                        var domNode = createCellWidgetDom(groupID);
-                        let zone = {
-                            afterLineNumber: ln,
-                            heightInLines: 1,
-                            domNode: domNode,
-                        };
-                        // console.log("Monaco: ", zone);
-                        let viewZoneId = changeAccessor.addZone(zone);
-                        viewZones.push(viewZoneId);
+                    let zone = null;
+                    if (groupID) {
+                        if (groupID != currentGroupID) {
+                            var domNode = createCellWidgetDom(groupID);
+                            zone = {
+                                afterLineNumber: ln,
+                                heightInLines: 1.5,
+                                domNode: domNode,
+                            };
+                        } else if (ln + 1 === lines.length) {
+                            /** add a special widget here is this if the line and also the last cell
+                             * this is used to marked the end boundary of the cell */
+                            var domNode = document.createElement("div");
+                            domNode.className = `cellwidget show`;
+                            // domNode.id = `cellwidget-${groupID}`;
+                            zone = {
+                                afterLineNumber: ln + 1,
+                                heightInLines: 0, // yes this is 0, this is not a bug
+                                domNode: domNode,
+                            };
+                        }
+                        if (zone) {
+                            let viewZoneId = changeAccessor.addZone(zone);
+                            widgetViewZones.push(viewZoneId);
+                        }
                     }
                 }
                 currentGroupID = lines[ln].groupID;
@@ -80,6 +95,6 @@ const addCellWidgets = (changeAccessor) => {
     }
 };
 
-export const setEditorWidgets = (state: RootState, editor) => {
+export const setCellWidgets = (editor) => {
     editor.changeViewZones(addCellWidgets);
 };
