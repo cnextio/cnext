@@ -2,7 +2,7 @@ import Editor from "@monaco-editor/react";
 import styled from "styled-components";
 
 export const MonacoEditor = styled(Editor)`
-    .groupwidget {
+    .cellwidget {
         height: 18px;
         width: 100%;
         /* padding-left: 5px; */
