@@ -20,14 +20,16 @@ export const getCodeText = (state: RootState) => {
     }
     return null;
 };
+
 function setOpacityWidget(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
     if (element) {
         // element.style.opacity = opacity;
-        if (opacity==="1") element.classList.add("show-children");
+        if (opacity === "1") element.classList.add("show-children");
         else element.classList.remove("show-children");
     }
 }
+
 function onMouseMove(event: MouseEvent) {
     try {
         if (event.target && !event.target?.detail?.viewZoneId) {
@@ -35,8 +37,8 @@ function onMouseMove(event: MouseEvent) {
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(reduxState);
             let lineNumber = event?.target?.position?.lineNumber - 1; /** 0-based */
-            console.log(`lineNumber`, event,lineNumber);
-            
+            // console.log(`lineNumber`, event, lineNumber);
+
             if (mouseOverGroupID) {
                 setOpacityWidget(mouseOverGroupID, "0");
             }
@@ -54,26 +56,28 @@ function onMouseMove(event: MouseEvent) {
         console.error(error);
     }
 }
-function onMouseLeave(event: MouseEvent,) {
+function onMouseLeave(event: MouseEvent) {
     try {
         if (event != null) {
             let reduxState = store.getState();
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
-            // if (mouseOverGroupID) {
-            //     /* eslint-disable */
-            //     setOpacityWidget(mouseOverGroupID, "0");
-            // }
-            // store.dispatch(setMouseOverGroup(undefined));
+            if (mouseOverGroupID) {
+                /* eslint-disable */
+                setOpacityWidget(mouseOverGroupID, "0");
+            }
+            store.dispatch(setMouseOverGroup(undefined));
             // store.dispatch(setMouseOverLine(undefined));
         }
     } catch (error) {
         console.error(error);
     }
 }
+
 export const setHTMLEventHandler = (editor) => {
-    editor.onMouseMove((e) => onMouseMove(e));
-    editor.onMouseLeave((e) => onMouseLeave(e));
+    editor.onMouseMove((event) => onMouseMove(event));
+    editor.onMouseLeave((event) => onMouseLeave(event));
 };
+
 export const getMainEditorModel = (monaco: Monaco) => {
     if (monaco) {
         let models = monaco.editor.getModels();

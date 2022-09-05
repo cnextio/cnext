@@ -91,6 +91,7 @@ const CodeEditor = () => {
             }
         }
     }, [serverSynced, codeReloading, monaco, editorRef]);
+
     useEffect(() => {
         const state = store.getState();
         const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
@@ -120,6 +121,7 @@ const CodeEditor = () => {
             dispatch(setCellCommand(undefined));
         }
     }, [cellCommand]);
+
     useEffect(() => {
         if (editorRef.current) {
             setCellDeco(monaco, editorRef.current);
@@ -146,13 +148,13 @@ const CodeEditor = () => {
             if (serverSynced && inViewID && model) {
                 const inViewCodeText = state.codeEditor.codeText[inViewID];
                 let updatedLineCount = model.getLineCount() - inViewCodeText.length;
-                console.log(
-                    "Monaco updates ",
-                    updatedLineCount,
-                    event.changes,
-                    model?.getLineCount(),
-                    inViewCodeText.length
-                );
+                // console.log(
+                //     "Monaco updates ",
+                //     updatedLineCount,
+                //     event.changes,
+                //     model?.getLineCount(),
+                //     inViewCodeText.length
+                // );
                 for (const change of event.changes) {
                     // convert the line number 0-based index, which is what we use internally
                     let changeStartLine1Based = change.range.startLineNumber;

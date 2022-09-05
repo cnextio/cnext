@@ -40,7 +40,7 @@ const createCellWidgetDom = (groupID: string) => {
         });
     }
 
-    wrap.className = `cellwidget show`;
+    wrap.className = `cellwidget celllastline`;
     wrap.id = `cellwidget-${groupID}`;
 
     return wrap;
@@ -75,7 +75,7 @@ const addCellWidgets = (changeAccessor) => {
                             /** add a special widget here is this if the line and also the last cell
                              * this is used to marked the end boundary of the cell */
                             var domNode = document.createElement("div");
-                            domNode.className = `cellwidget show`;
+                            domNode.className = `cellwidget celllastline`;
                             // domNode.id = `cellwidget-${groupID}`;
                             zone = {
                                 afterLineNumber: ln + 1,

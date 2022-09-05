@@ -6,13 +6,6 @@ export const MonacoEditor = styled(Editor)`
         height: 18px;
         width: 100%;
 
-        /* the following two properties are used to mark the end of the boundary of the previous cell */
-        /* can't do this directly from the cell deco because of the special way ME handle view zones */
-        border-top: 1px dashed rgb(153, 179, 171, 0.6);
-        :first-of-type {
-            border-top: none;
-        }
-
         > * {
             opacity: 0;
         }
@@ -25,6 +18,7 @@ export const MonacoEditor = styled(Editor)`
                 }
             }
         }
+
         .cellcommand {
             display: inline-block;
             cursor: pointer;
@@ -92,7 +86,7 @@ export const MonacoEditor = styled(Editor)`
     }
 
     .cellfirstline {
-        border-top: 1px dashed rgb(153, 179, 171, 0.5);
+        border-top: 1px dashed rgb(153, 179, 171, 0.6);
         // background-color: white; //rgb(218, 255, 237, 0.3);
     }
 
@@ -102,13 +96,13 @@ export const MonacoEditor = styled(Editor)`
     }
 
     .celllastline {
-        // border-top: 1px dashed rgb(153, 179, 171, 0.5);
-        border-bottom: 1px dashed rgb(153, 179, 171, 0.5);
-        // background-color: white; //rgb(218, 255, 237, 0.3);
+        border-top: 1px dashed rgb(153, 179, 171, 0.6);
+        :first-of-type {
+            border-top: none;
+        }
     }
 
     .celllastline.active {
-        // border-top: 1px solid rgb(153, 179, 171, 0.6);
         border-bottom: 1px solid rgb(153, 179, 171, 0.6);
         // background-color: rgb(218, 255, 237, 0.6);
     }
