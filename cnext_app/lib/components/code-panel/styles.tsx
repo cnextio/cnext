@@ -49,11 +49,11 @@ export const MonacoEditor = styled(Editor)`
                 text-align: center;
                 border-radius: 6px;
                 padding: 2px 4px;
-                min-width: 35px;
+                min-width: 65px;
                 position: absolute;
                 z-index: 1;
-                bottom: -150%;
-                left: 120%;
+                bottom: -80%;
+                left: 100%;
                 margin-left: -5px;
                 opacity: 1;
                 transition: opacity 0.3s;
