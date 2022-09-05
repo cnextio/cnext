@@ -23,7 +23,9 @@ export const getCodeText = (state: RootState) => {
 function setOpacityWidget(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
     if (element) {
-        element.style.opacity = opacity;
+        // element.style.opacity = opacity;
+        if (opacity==="1") element.classList.add("show-children");
+        else element.classList.remove("show-children");
     }
 }
 function onMouseMove(event: MouseEvent) {

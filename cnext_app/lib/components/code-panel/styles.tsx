@@ -12,23 +12,25 @@ export const MonacoEditor = styled(Editor)`
         :first-of-type {
             border-top: none;
         }
-        
-        /* padding-left: 5px; */
-        &.show {
-            cursor: pointer;
-            font-size: 11px;
-            /* opacity: 0.9; */
-            // opacity: 1;
-            color: rgba(0, 0, 0, 0.6);
-            &:hover {
+
+        > * {
+            opacity: 0;
+        }
+
+        &.show-children {
+            > * {
                 opacity: 1;
+                &:hover {
+                    opacity: 1;
+                }
             }
-            /* padding-top: 4px; */
         }
         .cellcommand {
             display: inline-block;
-            opacity: 0;
-            margin-left: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            color: rgba(0, 0, 0, 0.6);
+            margin-top: 8px;
             position: relative;
             z-index: 10000000;
             &:not(:last-child) {
