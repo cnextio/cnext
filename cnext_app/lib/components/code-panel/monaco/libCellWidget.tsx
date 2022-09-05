@@ -3,8 +3,13 @@ import store from "../../../../redux/store";
 import { CellCommand, ICodeLine } from "../../../interfaces/ICodeEditor";
 import { getCodeLine } from "./libCodeEditor";
 
-const createCellWidgetDom = (groupID: string) => {
-    let wrap = document.createElement("div");
+const createCellWidgetDom = (
+    groupID: string,
+    afterLineNumber: number,
+    endBoundaryWidget: boolean,
+    activeClass: string
+) => {
+    let wrapDiv = document.createElement("div");
     const cellItems = [
         {
             text: "Run Cell",
@@ -32,18 +37,33 @@ const createCellWidgetDom = (groupID: string) => {
         tooltip.textContent = element.text;
         tooltip.className = `tooltiptext`;
         dom.appendChild(tooltip);
-        wrap.appendChild(dom);
+        wrapDiv.appendChild(dom);
 
-        dom.addEventListener("click", (e) => {            
-            e.stopPropagation();            
+        dom.addEventListener("click", (e) => {
+            e.stopPropagation();
             store.dispatch(setCellCommand(element.cellCommand));
         });
     }
 
-    wrap.className = `cellwidget celllastline`;
-    wrap.id = `cellwidget-${groupID}`;
+    wrapDiv.className = "cellwidget celllastline " + activeClass;
+    wrapDiv.id = `cellwidget-${groupID}`;
 
-    return wrap;
+    let zone = null;
+    if (endBoundaryWidget) {
+        zone = {
+            afterLineNumber: afterLineNumber + 1,
+            heightInLines: 0, // yes this is 0, this is not a bug
+            domNode: wrapDiv,
+        };
+    } else {
+        zone = {
+            afterLineNumber: afterLineNumber,
+            heightInLines: 1.5,
+            domNode: wrapDiv,
+        };
+    }
+
+    return zone;
 };
 
 const widgetViewZones = [];
@@ -52,47 +72,55 @@ const addCellWidgets = (changeAccessor) => {
     // remove existing view zones
     for (let viewZoneId of widgetViewZones) changeAccessor.removeZone(viewZoneId);
 
-    let reduxState = store.getState();
-    let inViewID = reduxState.projectManager.inViewID;
+    let state = store.getState();
+    const activeGroup = state.codeEditor.activeGroup;
+    let inViewID = state.projectManager.inViewID;
     if (inViewID) {
-        let lines: ICodeLine[] | null = getCodeLine(reduxState);
+        let lines: ICodeLine[] | null = getCodeLine(state);
         // console.log("Monaco: ", lines);
         if (lines && lines.length > 0) {
             let currentGroupID = null;
             for (let ln = 0; ln < lines.length; ln++) {
                 if (!lines[ln].generated) {
                     const groupID = lines[ln].groupID;
+                    const active_clazz = activeGroup === groupID ? "active" : "";
                     let zone = null;
                     if (groupID) {
                         if (groupID != currentGroupID) {
-                            var domNode = createCellWidgetDom(groupID);
-                            zone = {
-                                afterLineNumber: ln,
-                                heightInLines: 1.5,
-                                domNode: domNode,
-                            };
-                        } else if (ln + 1 === lines.length) {
+                            zone = createCellWidgetDom(
+                                groupID,
+                                ln,
+                                false,
+                                active_clazz
+                            );
+                            if (zone) {
+                                let viewZoneId = changeAccessor.addZone(zone);
+                                widgetViewZones.push(viewZoneId);
+                            }
+                        } 
+                        
+                        if (ln + 1 === lines.length) {
                             /** add a special widget here is this if the line and also the last cell
                              * this is used to marked the end boundary of the cell */
-                            var domNode = document.createElement("div");
-                            domNode.className = `cellwidget celllastline`;
-                            // domNode.id = `cellwidget-${groupID}`;
-                            zone = {
-                                afterLineNumber: ln + 1,
-                                heightInLines: 0, // yes this is 0, this is not a bug
-                                domNode: domNode,
-                            };
+                            zone = createCellWidgetDom(
+                                groupID,
+                                ln,
+                                true,
+                                active_clazz
+                            );
+                            if (zone) {
+                                let viewZoneId = changeAccessor.addZone(zone);
+                                widgetViewZones.push(viewZoneId);
+                            }
                         }
-                        if (zone) {
-                            let viewZoneId = changeAccessor.addZone(zone);
-                            widgetViewZones.push(viewZoneId);
-                        }
+                        
                     }
                 }
                 currentGroupID = lines[ln].groupID;
             }
         }
     }
+    
 };
 
 export const setCellWidgets = (editor) => {

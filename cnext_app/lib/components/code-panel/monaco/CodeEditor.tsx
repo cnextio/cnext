@@ -127,7 +127,14 @@ const CodeEditor = () => {
             setCellDeco(monaco, editorRef.current);
             setCellWidgets(editorRef.current);
         }
-    }, [cellAssocUpdateCount]);
+    }, [cellAssocUpdateCount, activeGroup]);
+
+    // useEffect(() => {
+    //     if (editorRef.current) {
+    //         setCellDeco(monaco, editorRef.current);
+    //         setCellWidgets(editorRef.current);
+    //     }
+    // }, [cellAssocUpdateCount]);
 
     const handleEditorDidMount = (editor, monaco) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef

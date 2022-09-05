@@ -88,11 +88,10 @@ export const MonacoEditor = styled(Editor)`
     .cellfirstline {
         border-top: 1px dashed rgb(153, 179, 171, 0.6);
         // background-color: white; //rgb(218, 255, 237, 0.3);
-    }
-
-    .cellfirstline.active {
-        border-top: 1px solid rgb(153, 179, 171, 0.6);
-        // background-color: rgb(218, 255, 237, 0.6);
+        &.active {
+            border-top: 2px solid rgb(153, 179, 171, 0.6);
+            // background-color: rgb(218, 255, 237, 0.6);
+        }
     }
 
     .celllastline {
@@ -100,10 +99,12 @@ export const MonacoEditor = styled(Editor)`
         :first-of-type {
             border-top: none;
         }
-    }
-
-    .celllastline.active {
-        border-bottom: 1px solid rgb(153, 179, 171, 0.6);
-        // background-color: rgb(218, 255, 237, 0.6);
+        &.active {
+            // if this is the active cell, we have to activate the next widget
+            &+.cellwidget {
+                border-top: 2px solid rgb(153, 179, 171, 0.6);
+                // background-color: rgb(218, 255, 237, 0.6);
+            }
+        }
     }
 `;

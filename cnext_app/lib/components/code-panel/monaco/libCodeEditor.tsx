@@ -1,7 +1,11 @@
 import { Monaco } from "@monaco-editor/react";
-import { setMouseOverGroup, setMouseOverLine } from "../../../../redux/reducers/CodeEditorRedux";
+import {
+    setActiveLine as setActiveLineRedux,
+    setMouseOverGroup,
+    setMouseOverLine,
+} from "../../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../../redux/store";
-import { ICodeLine } from "../../../interfaces/ICodeEditor";
+import { ICodeActiveLine, ICodeLine } from "../../../interfaces/ICodeEditor";
 import { ifElse } from "../../libs";
 
 export const getCodeLine = (state: RootState): ICodeLine[] | null => {
@@ -21,6 +25,21 @@ export const getCodeText = (state: RootState) => {
     return null;
 };
 
+function setActiveLine(inViewID: string, lineNumber: number) {
+    try {
+        if (inViewID) {
+            let activeLine: ICodeActiveLine = {
+                inViewID: inViewID,
+                lineNumber: lineNumber,
+            };
+            store.dispatch(setActiveLineRedux(activeLine));
+            // console.log('CodeEditor onMouseDown', doc, pos, lineNumber);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 function setOpacityWidget(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
     if (element) {
@@ -30,7 +49,39 @@ function setOpacityWidget(id: string, opacity: string) {
     }
 }
 
-function onMouseMove(event: MouseEvent) {
+function onKeyUp(editor, event) {
+    try {
+        // event.stopPropagation();
+        // console.log("Monaco onMouseDown", event?.target?.position);
+        let ln1based = editor.getPosition().lineNumber;
+        let state = store.getState();
+        const activeLineNumber = state.codeEditor.activeLineNumber;
+        let inViewID = state.projectManager.inViewID;
+        if (inViewID && ln1based != null && activeLineNumber !== ln1based - 1) {
+            setActiveLine(inViewID, ln1based - 1);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function onMouseDown(event) {
+    try {
+        // event.stopPropagation();
+        // console.log("Monaco onMouseDown", event?.target?.position);
+        let ln1based = event?.target?.position?.lineNumber;
+        let state = store.getState();
+        const activeLineNumber = state.codeEditor.activeLineNumber;
+        let inViewID = store.getState().projectManager.inViewID;
+        if (inViewID && ln1based != null && activeLineNumber !== ln1based - 1) {
+            setActiveLine(inViewID, ln1based - 1);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function onMouseMove(event) {
     try {
         if (event.target && !event.target?.detail?.viewZoneId) {
             let reduxState = store.getState();
@@ -39,15 +90,16 @@ function onMouseMove(event: MouseEvent) {
             let lineNumber = event?.target?.position?.lineNumber - 1; /** 0-based */
             // console.log(`lineNumber`, event, lineNumber);
 
-            if (mouseOverGroupID) {
-                setOpacityWidget(mouseOverGroupID, "0");
-            }
             let currentGroupID = lines[lineNumber].groupID;
             // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
-            if (currentGroupID) {
+            if (currentGroupID && currentGroupID !== mouseOverGroupID) {
                 setOpacityWidget(currentGroupID, "1");
+                if (mouseOverGroupID) {
+                    setOpacityWidget(mouseOverGroupID, "0");
+                }
+                store.dispatch(setMouseOverGroup(currentGroupID));
             }
-            store.dispatch(setMouseOverGroup(currentGroupID));
+
             // store.dispatch(setMouseOverLine({ ...hoveredLine }));
         }
 
@@ -56,7 +108,8 @@ function onMouseMove(event: MouseEvent) {
         console.error(error);
     }
 }
-function onMouseLeave(event: MouseEvent) {
+
+function onMouseLeave(event) {
     try {
         if (event != null) {
             let reduxState = store.getState();
@@ -76,6 +129,8 @@ function onMouseLeave(event: MouseEvent) {
 export const setHTMLEventHandler = (editor) => {
     editor.onMouseMove((event) => onMouseMove(event));
     editor.onMouseLeave((event) => onMouseLeave(event));
+    editor.onMouseDown((event) => onMouseDown(event));
+    editor.onKeyUp((event) => onKeyUp(editor, event));
 };
 
 export const getMainEditorModel = (monaco: Monaco) => {

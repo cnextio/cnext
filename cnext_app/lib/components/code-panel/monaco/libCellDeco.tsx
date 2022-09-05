@@ -24,10 +24,10 @@ export const setCellDeco = (monaco, editor) => {
                             options: { blockClassName: "cellfirstline " + active_clazz },
                         });
                     } else {
-                        cellBoundaryDeco.push({
-                            range: new monaco.Range(ln1based, 1, ln1based, 1),
-                            options: { blockClassName: "cellline " + active_clazz },
-                        });
+                        // cellBoundaryDeco.push({
+                        //     range: new monaco.Range(ln1based, 1, ln1based, 1),
+                        //     options: { blockClassName: "cellline " + active_clazz },
+                        // });
                     }
                     /** due to the special way that ME use to handle view zones (see libCellWidget),
                      * the cell bottom boundary will be handle by the border-top of the .cellwidget */
@@ -47,6 +47,6 @@ export const setCellDeco = (monaco, editor) => {
             }
         }
     }
-    // console.log("Monaco libCellDeco: ", cellBoundaryDeco, monaco, editor);
+    // console.log("Monaco libCellDeco: ", cellBoundaryDeco);
     decorations = editor.deltaDecorations(decorations, cellBoundaryDeco);
 };
