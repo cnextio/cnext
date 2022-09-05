@@ -28,11 +28,13 @@ function setOpacityWidget(id: string, opacity: string) {
 }
 function onMouseMove(event: MouseEvent) {
     try {
-        if (event.target) {
+        if (event.target && !event.target?.detail?.viewZoneId) {
             let reduxState = store.getState();
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(reduxState);
             let lineNumber = event?.target?.position?.lineNumber - 1; /** 0-based */
+            console.log(`lineNumber`, event,lineNumber);
+            
             if (mouseOverGroupID) {
                 setOpacityWidget(mouseOverGroupID, "0");
             }
@@ -55,12 +57,12 @@ function onMouseLeave(event: MouseEvent,) {
         if (event != null) {
             let reduxState = store.getState();
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
-            if (mouseOverGroupID) {
-                /* eslint-disable */
-                setOpacityWidget(mouseOverGroupID, "0");
-            }
-            store.dispatch(setMouseOverGroup(undefined));
-            store.dispatch(setMouseOverLine(undefined));
+            // if (mouseOverGroupID) {
+            //     /* eslint-disable */
+            //     setOpacityWidget(mouseOverGroupID, "0");
+            // }
+            // store.dispatch(setMouseOverGroup(undefined));
+            // store.dispatch(setMouseOverLine(undefined));
         }
     } catch (error) {
         console.error(error);
