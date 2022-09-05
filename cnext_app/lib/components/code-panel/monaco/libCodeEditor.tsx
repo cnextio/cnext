@@ -1,5 +1,5 @@
 import { Monaco } from "@monaco-editor/react";
-import { setMouseOverGroup } from "../../../../redux/reducers/CodeEditorRedux";
+import { setMouseOverGroup, setMouseOverLine } from "../../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../../redux/store";
 import { ICodeLine } from "../../../interfaces/ICodeEditor";
 import { ifElse } from "../../libs";
@@ -32,8 +32,6 @@ function onMouseMove(event: MouseEvent) {
             let reduxState = store.getState();
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(reduxState);
-            // if (event.target.className.includes("cm-line")) {
-            // const anchor = view.state.selection.ranges[0].anchor;
             let lineNumber = event?.target?.position?.lineNumber - 1; /** 0-based */
             if (mouseOverGroupID) {
                 setOpacityWidget(mouseOverGroupID, "0");
@@ -43,8 +41,6 @@ function onMouseMove(event: MouseEvent) {
             if (currentGroupID) {
                 setOpacityWidget(currentGroupID, "1");
             }
-            console.log(`lineNumber`, lineNumber);
-
             store.dispatch(setMouseOverGroup(currentGroupID));
             // store.dispatch(setMouseOverLine({ ...hoveredLine }));
         }
@@ -54,8 +50,25 @@ function onMouseMove(event: MouseEvent) {
         console.error(error);
     }
 }
+function onMouseLeave(event: MouseEvent,) {
+    try {
+        if (event != null) {
+            let reduxState = store.getState();
+            const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
+            if (mouseOverGroupID) {
+                /* eslint-disable */
+                setOpacityWidget(mouseOverGroupID, "0");
+            }
+            store.dispatch(setMouseOverGroup(undefined));
+            store.dispatch(setMouseOverLine(undefined));
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
 export const setHTMLEventHandler = (editor) => {
     editor.onMouseMove((e) => onMouseMove(e));
+    editor.onMouseLeave((e) => onMouseLeave(e));
 };
 export const getMainEditorModel = (monaco: Monaco) => {
     if (monaco) {

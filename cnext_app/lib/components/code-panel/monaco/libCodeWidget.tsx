@@ -38,6 +38,8 @@ const createCellWidgetDom = (groupID: string) => {
 
         dom.addEventListener("mousedown", (e) => {
             e.stopPropagation();
+            console.log(`2323`);
+            
             store.dispatch(setCellCommand(element.cellCommand));
         });
     }
