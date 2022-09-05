@@ -4,11 +4,20 @@ import ReactDOM from "react-dom";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
-import { getMainEditorModel, setCodeTextAndStates } from "./libCodeEditor";
+import {
+    getCodeLine,
+    getMainEditorModel,
+    setCodeTextAndStates,
+    setHTMLEventHandler,
+} from "./libCodeEditor";
 import { setEditorWidgets } from "./libCodeWidget";
 import { MonacoEditor as StyledMonacoEditor } from "../styles";
-import { ILineUpdate } from "../../../interfaces/ICodeEditor";
-import { updateLines } from "../../../../redux/reducers/CodeEditorRedux";
+import { ICodeLine, ILineUpdate } from "../../../interfaces/ICodeEditor";
+import {
+    setMouseOverGroup,
+    setMouseOverLine,
+    updateLines,
+} from "../../../../redux/reducers/CodeEditorRedux";
 
 const CodeEditor = () => {
     const monaco = useMonaco();
@@ -55,7 +64,13 @@ const CodeEditor = () => {
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
     const editorRef = useRef(null);
-
+    useEffect(() => {
+        // console.log("CodeEditor useEffect container view", container, view);
+        if (monaco) {
+            // editorRef.current = editor
+            // monaco.editor.on
+        }
+    });
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
@@ -91,6 +106,7 @@ const CodeEditor = () => {
     const handleEditorDidMount = (editor, monaco) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
         editorRef.current = editor;
+        setHTMLEventHandler(editor);
     };
 
     const handleEditorChange = (value, event) => {
