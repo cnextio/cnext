@@ -21,7 +21,7 @@ export const getCodeText = (state: RootState) => {
     return null;
 };
 function setOpacityWidget(id: string, opacity: string) {
-    let element = document.getElementById(`groupwidget-${id}`) as HTMLElement | null;
+    let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
     if (element) {
         element.style.opacity = opacity;
     }

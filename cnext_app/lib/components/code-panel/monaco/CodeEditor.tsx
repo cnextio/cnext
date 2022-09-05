@@ -1,23 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
-import ReactDOM from "react-dom";
-
-import Editor, { useMonaco } from "@monaco-editor/react";
+import { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
-import {
-    getCodeLine,
-    getMainEditorModel,
-    setCodeTextAndStates,
-    setHTMLEventHandler,
-} from "./libCodeEditor";
-import { setEditorWidgets } from "./libCodeWidget";
+import { getMainEditorModel, setCodeTextAndStates, setHTMLEventHandler } from "./libCodeEditor";
+import { setCellWidgets } from "./libCellWidget";
+import { setCellDeco } from "./libCellDeco";
 import { MonacoEditor as StyledMonacoEditor } from "../styles";
-import { ICodeLine, ILineUpdate } from "../../../interfaces/ICodeEditor";
+import { ILineUpdate } from "../../../interfaces/ICodeEditor";
 import {
-    setMouseOverGroup,
-    setMouseOverLine,
     updateLines,
 } from "../../../../redux/reducers/CodeEditorRedux";
+
 
 const CodeEditor = () => {
     const monaco = useMonaco();
@@ -91,7 +84,8 @@ const CodeEditor = () => {
             // TODO: improve this by rely only on monaco
             if (monaco && editorRef.current) {
                 setCodeTextAndStates(store.getState(), monaco);
-                setEditorWidgets(store.getState(), editorRef.current);
+                setCellDeco(monaco, editorRef.current);
+                setCellWidgets(editorRef.current);
                 setCodeReloading(false);
             }
         }
@@ -99,9 +93,11 @@ const CodeEditor = () => {
 
     useEffect(() => {
         if (editorRef.current) {
-            setEditorWidgets(store.getState(), editorRef.current);
+            setCellDeco(monaco, editorRef.current);
+            setCellWidgets(editorRef.current);            
         }
     }, [cellAssocUpdateCount]);
+
 
     const handleEditorDidMount = (editor, monaco) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
