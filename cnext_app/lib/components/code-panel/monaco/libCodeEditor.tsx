@@ -57,12 +57,12 @@ function onMouseLeave(event: MouseEvent,) {
         if (event != null) {
             let reduxState = store.getState();
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
-            // if (mouseOverGroupID) {
-            //     /* eslint-disable */
-            //     setOpacityWidget(mouseOverGroupID, "0");
-            // }
-            // store.dispatch(setMouseOverGroup(undefined));
-            // store.dispatch(setMouseOverLine(undefined));
+            if (mouseOverGroupID) {
+                /* eslint-disable */
+                setOpacityWidget(mouseOverGroupID, "0");
+            }
+            store.dispatch(setMouseOverGroup(undefined));
+            store.dispatch(setMouseOverLine(undefined));
         }
     } catch (error) {
         console.error(error);
