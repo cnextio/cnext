@@ -170,8 +170,10 @@ const CodeEditor = ({ stopMouseEvent }) => {
     useEffect(() => {
         // console.log("CodeEditor useEffect container view", container, view);
         if (monaco) {
-            // editorRef.current = editor
-            // monaco.editor.on
+            monaco.languages.register({ id: "python" });
+            monaco.languages.registerFoldingRangeProvider("python", {
+                provideFoldingRanges: (model, context, token) => getCellFoldRange(),
+            });
         }
     });
 
@@ -238,7 +240,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 //     lineNumber: ln0based,
                 // };
                 // store.dispatch(setActiveLineRedux(activeLine));
-            }            
+            }
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
                     addToRunQueueHoverCell();
