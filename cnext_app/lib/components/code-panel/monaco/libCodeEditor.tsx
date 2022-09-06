@@ -94,7 +94,7 @@ function onMouseMove(event) {
             let lineNumber = event?.target?.position?.lineNumber - 1; /** 0-based */
             // console.log(`lineNumber`, event, lineNumber);
             if (lines && lineNumber>0) {
-                let currentGroupID = lines[lineNumber].groupID;
+                let currentGroupID = lines[lineNumber]?.groupID;
                 // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
                 if (currentGroupID && currentGroupID !== mouseOverGroupID) {
                     setOpacityWidget(currentGroupID, "1");
