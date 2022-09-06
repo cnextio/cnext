@@ -6,8 +6,8 @@ export const MonacoEditor = styled(Editor)`
     --var-color-failed: #f30c0c;
     --var-color-executing: #f59242;
     .line-status {
-        width: 2px !important;
-        margin-left: 23px;
+        width: 3px !important;
+        margin-left: 20px;
         &.ok {
             background: var(--var-color-ok);
         }
