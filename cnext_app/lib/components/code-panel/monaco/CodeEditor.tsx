@@ -2,18 +2,37 @@ import React, { useEffect, useRef, useState } from "react";
 import { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
-import { getMainEditorModel, setCodeTextAndStates, setHTMLEventHandler } from "./libCodeEditor";
+import {
+    execLines,
+    getMainEditorModel,
+    setCodeTextAndStates,
+    setHTMLEventHandler,
+    setLineStatus,
+} from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
 import { MonacoEditor as StyledMonacoEditor } from "../styles";
-import { CellCommand, ILineUpdate } from "../../../interfaces/ICodeEditor";
 import {
+    CellCommand,
+    ICodeResultMessage,
+    ILineUpdate,
+    LineStatus,
+    RunQueueStatus,
+} from "../../../interfaces/ICodeEditor";
+import {
+    addResult,
     clearAllOutputs,
+    clearRunQueue,
+    removeFirstItemFromRunQueue,
     setCellCommand,
+    setRunQueueStatus,
     updateLines,
 } from "../../../../redux/reducers/CodeEditorRedux";
+import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
+import socket from "../../Socket";
+import { addToRunQueueHoverCell } from "./libRunQueue";
 
-const CodeEditor = () => {
+const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
@@ -58,6 +77,92 @@ const CodeEditor = () => {
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
     const editorRef = useRef(null);
+
+    const handleResultData = (message: IMessage) => {
+        // console.log(`${WebAppEndpoint.CodeEditor} got result data`);
+        let inViewID = store.getState().projectManager.inViewID;
+        if (inViewID) {
+            let result: ICodeResultMessage = {
+                inViewID: inViewID,
+                content: message.content,
+                type: message.type,
+                subType: message.sub_type,
+                metadata: message.metadata,
+            };
+
+            // content['plot'] = JSON.parse(content['plot']);
+            console.log("CodeEditor dispatch result data: ", result);
+            dispatch(addResult(result));
+        }
+    };
+
+    /**
+     * Init CodeEditor socket connection. This should be run only once on the first mount.
+     */
+    const socketInit = () => {
+        socket.emit("ping", WebAppEndpoint.CodeEditor);
+        socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
+            console.log("CodeEditor got result ", result);
+            // console.log("CodeEditor: got results...");
+            try {
+                let codeOutput: IMessage = JSON.parse(result);
+                let inViewID = store.getState().projectManager.inViewID;
+                if (inViewID) {
+                    handleResultData(codeOutput);
+                    if (
+                        codeOutput.metadata?.msg_type === "execute_reply" &&
+                        codeOutput.content?.status != null
+                    ) {
+                        // let lineStatus: ICodeLineStatus;
+                        dispatch(removeFirstItemFromRunQueue());
+                        if (
+                            codeOutput.content?.status === "ok" &&
+                            "line_range" in codeOutput.metadata
+                        ) {
+                            setLineStatus(
+                                inViewID,
+                                codeOutput.metadata?.line_range,
+                                LineStatus.EXECUTED_SUCCESS
+                            );
+                            dispatch(setRunQueueStatus(RunQueueStatus.STOP));
+                        } else {
+                            if ("line_range" in codeOutput.metadata) {
+                                setLineStatus(
+                                    inViewID,
+                                    codeOutput.metadata?.line_range,
+                                    LineStatus.EXECUTED_FAILED
+                                );
+                            }
+                            dispatch(clearRunQueue());
+                        }
+                        // TODO: check the status output
+                        // console.log('CodeEditor socket ', lineStatus);
+                        // dispatch(setLineStatusRedux(lineStatus));
+                        /** set active code line to be the current line after it is excuted so the result will be show accordlingly
+                         * not sure if this is a good design but will live with it for now */
+                        // let activeLine: ICodeActiveLine = {
+                        //     inViewID: inViewID,
+                        //     lineNumber: codeOutput.metadata.line_range?.fromLine,
+                        // };
+                        // dispatch(setActiveLine(activeLine));
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+    };
+
+    useEffect(() => {
+        console.log("CodeEditor mount");
+        socketInit();
+        // resetEditorState(inViewID, view);
+        return () => {
+            console.log("CodeEditor unmount");
+            socket.off(WebAppEndpoint.CodeEditor);
+        };
+    }, []);
+
     useEffect(() => {
         // console.log("CodeEditor useEffect container view", container, view);
         if (monaco) {
@@ -65,6 +170,29 @@ const CodeEditor = () => {
             // monaco.editor.on
         }
     });
+
+    useEffect(() => {
+        console.log("CodeEditor runQueue");
+        if (runQueue.status === RunQueueStatus.STOP) {
+            if (runQueue.queue.length > 0) {
+                let runQueueItem = runQueue.queue[0];
+                dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
+                execLines(runQueueItem);
+            }
+        }
+    }, [runQueue]);
+
+    /** clear the run queue when the executor restarted */
+    useEffect(() => {
+        const runQueueItem = runQueue.queue[0];
+        let inViewID = store.getState().projectManager.inViewID;
+        if (inViewID != null && runQueueItem != null) {
+            dispatch(removeFirstItemFromRunQueue());
+            setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
+            dispatch(clearRunQueue());
+        }
+    }, [executorRestartCounter]);
+
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
@@ -95,6 +223,7 @@ const CodeEditor = () => {
     useEffect(() => {
         const state = store.getState();
         const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
+        // console.log("CodeEditor useEffect cellCommand: ", cellCommand);
         if (cellCommand) {
             let line = null;
             // if (state.codeEditor.mouseOverLine) {
@@ -105,11 +234,10 @@ const CodeEditor = () => {
             //         lineNumber: line - 1,
             //     };
             //     store.dispatch(setActiveLineRedux(activeLine));
-            // }
-
+            // }            
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
-                    // addToRunQueueHover(view);
+                    addToRunQueueHoverCell();
                     break;
                 case CellCommand.CLEAR:
                     dispatch(clearAllOutputs({ inViewID, mouseOverGroupID }));
@@ -139,7 +267,7 @@ const CodeEditor = () => {
     const handleEditorDidMount = (editor, monaco) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
         editorRef.current = editor;
-        setHTMLEventHandler(editor);
+        setHTMLEventHandler(editor, stopMouseEvent);
     };
 
     const handleEditorChange = (value, event) => {
@@ -150,60 +278,62 @@ const CodeEditor = () => {
             if (event.isFlush) return;
             console.log("Monaco here is the current model value:", event);
             let serverSynced = store.getState().projectManager.serverSynced;
-            let model = getMainEditorModel(monaco);
+            if (monaco) {
+                let model = getMainEditorModel(monaco);
 
-            if (serverSynced && inViewID && model) {
-                const inViewCodeText = state.codeEditor.codeText[inViewID];
-                let updatedLineCount = model.getLineCount() - inViewCodeText.length;
-                // console.log(
-                //     "Monaco updates ",
-                //     updatedLineCount,
-                //     event.changes,
-                //     model?.getLineCount(),
-                //     inViewCodeText.length
-                // );
-                for (const change of event.changes) {
-                    // convert the line number 0-based index, which is what we use internally
-                    let changeStartLine1Based = change.range.startLineNumber;
-                    let changeStartLineNumber0Based = changeStartLine1Based - 1;
+                if (serverSynced && inViewID && model) {
+                    const inViewCodeText = state.codeEditor.codeText[inViewID];
+                    let updatedLineCount = model.getLineCount() - inViewCodeText.length;
                     // console.log(
                     //     "Monaco updates ",
-                    //     model?.getLineContent(changeStartLine1Based),
-                    //     inViewCodeText[changeStartLineNumber0Based]
+                    //     updatedLineCount,
+                    //     event.changes,
+                    //     model?.getLineCount(),
+                    //     inViewCodeText.length
                     // );
-                    if (updatedLineCount > 0) {
-                        let updatedLineInfo: ILineUpdate = {
-                            inViewID: inViewID,
-                            text: model.getLinesContent(),
-                            updatedStartLineNumber: changeStartLineNumber0Based,
-                            updatedLineCount: updatedLineCount,
-                            startLineChanged:
-                                model.getLineContent(changeStartLine1Based) !=
-                                inViewCodeText[changeStartLineNumber0Based],
-                        };
-                        dispatch(updateLines(updatedLineInfo));
-                    } else if (updatedLineCount < 0) {
-                        let updatedLineInfo: ILineUpdate = {
-                            inViewID: inViewID,
-                            text: model.getLinesContent(),
-                            updatedStartLineNumber: changeStartLineNumber0Based,
-                            updatedLineCount: updatedLineCount,
-                            startLineChanged:
-                                model.getLineContent(changeStartLine1Based) !=
-                                inViewCodeText[changeStartLineNumber0Based],
-                        };
-                        dispatch(updateLines(updatedLineInfo));
-                    } else {
-                        let updatedLineInfo: ILineUpdate = {
-                            inViewID: inViewID,
-                            text: model.getLinesContent(),
-                            updatedStartLineNumber: changeStartLineNumber0Based,
-                            updatedLineCount: updatedLineCount,
-                            startLineChanged: true,
-                        };
-                        dispatch(updateLines(updatedLineInfo));
+                    for (const change of event.changes) {
+                        // convert the line number 0-based index, which is what we use internally
+                        let changeStartLine1Based = change.range.startLineNumber;
+                        let changeStartLineNumber0Based = changeStartLine1Based - 1;
+                        // console.log(
+                        //     "Monaco updates ",
+                        //     model?.getLineContent(changeStartLine1Based),
+                        //     inViewCodeText[changeStartLineNumber0Based]
+                        // );
+                        if (updatedLineCount > 0) {
+                            let updatedLineInfo: ILineUpdate = {
+                                inViewID: inViewID,
+                                text: model.getLinesContent(),
+                                updatedStartLineNumber: changeStartLineNumber0Based,
+                                updatedLineCount: updatedLineCount,
+                                startLineChanged:
+                                    model.getLineContent(changeStartLine1Based) !=
+                                    inViewCodeText[changeStartLineNumber0Based],
+                            };
+                            dispatch(updateLines(updatedLineInfo));
+                        } else if (updatedLineCount < 0) {
+                            let updatedLineInfo: ILineUpdate = {
+                                inViewID: inViewID,
+                                text: model.getLinesContent(),
+                                updatedStartLineNumber: changeStartLineNumber0Based,
+                                updatedLineCount: updatedLineCount,
+                                startLineChanged:
+                                    model.getLineContent(changeStartLine1Based) !=
+                                    inViewCodeText[changeStartLineNumber0Based],
+                            };
+                            dispatch(updateLines(updatedLineInfo));
+                        } else {
+                            let updatedLineInfo: ILineUpdate = {
+                                inViewID: inViewID,
+                                text: model.getLinesContent(),
+                                updatedStartLineNumber: changeStartLineNumber0Based,
+                                updatedLineCount: updatedLineCount,
+                                startLineChanged: true,
+                            };
+                            dispatch(updateLines(updatedLineInfo));
+                        }
+                        // handleCAsisstTextUpdate();
                     }
-                    // handleCAsisstTextUpdate();
                 }
             }
         } catch (error) {

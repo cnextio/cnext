@@ -5,8 +5,12 @@ import {
     setMouseOverLine,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../../redux/store";
-import { ICodeActiveLine, ICodeLine } from "../../../interfaces/ICodeEditor";
+import { ICodeActiveLine, ICodeLine, ICodeLineStatus, ILineRange, IRunningCommandContent, IRunQueueItem, LineStatus } from "../../../interfaces/ICodeEditor";
 import { ifElse } from "../../libs";
+import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/CodeEditorRedux";
+import socket from "../../Socket";
+import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
+import { Socket } from "socket.io-client";
 
 export const getCodeLine = (state: RootState): ICodeLine[] | null => {
     let inViewID = state.projectManager.inViewID;
@@ -84,23 +88,24 @@ function onMouseDown(event) {
 function onMouseMove(event) {
     try {
         if (event.target && !event.target?.detail?.viewZoneId) {
-            let reduxState = store.getState();
-            const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
-            let lines: ICodeLine[] | null = getCodeLine(reduxState);
+            let state = store.getState();
+            const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
+            let lines: ICodeLine[] | null = getCodeLine(state);
             let lineNumber = event?.target?.position?.lineNumber - 1; /** 0-based */
             // console.log(`lineNumber`, event, lineNumber);
-
-            let currentGroupID = lines[lineNumber].groupID;
-            // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
-            if (currentGroupID && currentGroupID !== mouseOverGroupID) {
-                setOpacityWidget(currentGroupID, "1");
-                if (mouseOverGroupID) {
-                    setOpacityWidget(mouseOverGroupID, "0");
+            if (lines && lineNumber>0) {
+                let currentGroupID = lines[lineNumber].groupID;
+                // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
+                if (currentGroupID && currentGroupID !== mouseOverGroupID) {
+                    setOpacityWidget(currentGroupID, "1");
+                    if (mouseOverGroupID) {
+                        setOpacityWidget(mouseOverGroupID, "0");
+                    }
+                    store.dispatch(setMouseOverGroup(currentGroupID));
                 }
-                store.dispatch(setMouseOverGroup(currentGroupID));
-            }
 
-            // store.dispatch(setMouseOverLine({ ...hoveredLine }));
+                // store.dispatch(setMouseOverLine({ ...hoveredLine }));
+            }
         }
 
         // console.log('CodeEditor onMouseDown', view, event, dispatch);
@@ -119,14 +124,14 @@ function onMouseLeave(event) {
                 setOpacityWidget(mouseOverGroupID, "0");
             }
             store.dispatch(setMouseOverGroup(undefined));
-            // store.dispatch(setMouseOverLine(undefined));
+            store.dispatch(setMouseOverLine(undefined));
         }
     } catch (error) {
         console.error(error);
     }
 }
 
-export const setHTMLEventHandler = (editor) => {
+export const setHTMLEventHandler = (editor, stopMouseEvent: boolean) => {
     editor.onMouseMove((event) => onMouseMove(event));
     editor.onMouseLeave((event) => onMouseLeave(event));
     editor.onMouseDown((event) => onMouseDown(event));
@@ -147,4 +152,73 @@ export const setCodeTextAndStates = (state: RootState, monaco: Monaco) => {
     if (codeText) {
         editorModel?.setValue(codeText);
     }
+};
+
+export const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
+    let lineStatus: ICodeLineStatus = {
+        inViewID: inViewID,
+        lineRange: lineRange,
+        status: status,
+    };
+    store.dispatch(setLineStatusRedux(lineStatus));
+};
+
+export const execLines = (runQueueItem: IRunQueueItem) => {
+    let fileID = runQueueItem.inViewID;
+    let lineRange = runQueueItem.lineRange;
+    if (fileID && lineRange.toLine != null && lineRange.fromLine != null) {
+        let content: IRunningCommandContent | null = getRunningCommandContent(fileID, lineRange);
+        if (content != null) {
+            console.log("CodeEditor execLines: ", content, lineRange);
+            sendMessage(socket, content);
+            setLineStatus(fileID, content.lineRange, LineStatus.EXECUTING);
+        }
+    }
+};
+
+export const getRunningCommandContent = (
+    fileID: string,
+    lineRange: ILineRange
+): IRunningCommandContent | null => {
+    let content: IRunningCommandContent | null = null;
+    let codeText = store.getState().codeEditor.codeText[fileID];
+    
+    // const doc = view.state.doc;
+    if (
+        codeText &&
+        lineRange.fromLine != null &&
+        lineRange.toLine != null &&
+        lineRange.fromLine < lineRange.toLine
+    ) {
+        /** the text include the content of the toLine */
+        let text = codeText.slice(lineRange.fromLine, lineRange.toLine + 1).join("\n");
+        content = {
+            lineRange: lineRange,
+            content: text,
+        };
+        console.log("CodeEditor getRunningCommandContent code group to run: ", content);
+    }
+
+    return content;
+};
+
+/** message */
+const createMessage = (content: IRunningCommandContent) => {
+    let message: IMessage = {
+        webapp_endpoint: WebAppEndpoint.CodeEditor,
+        command_name: CommandName.exec_line,
+        // seq_number: 1,
+        content: content.content,
+        type: ContentType.STRING,
+        error: false,
+        metadata: { line_range: content.lineRange },
+    };
+
+    return message;
+};
+
+export const sendMessage = (socket: Socket, content: IRunningCommandContent) => {
+    const message = createMessage(content);
+    console.log(`${message.webapp_endpoint} send message: `, message);
+    socket.emit(message.webapp_endpoint, JSON.stringify(message));
 };
