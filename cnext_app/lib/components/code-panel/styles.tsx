@@ -2,6 +2,22 @@ import Editor from "@monaco-editor/react";
 import styled from "styled-components";
 
 export const MonacoEditor = styled(Editor)`
+    --var-color-ok: #42a5f5;
+    --var-color-failed: #f30c0c;
+    --var-color-executing: #f59242;
+    .line-status {
+        width: 2px !important;
+        margin-left: 23px;
+        &.ok {
+            background: var(--var-color-ok);
+        }
+        &.failed {
+            background: var(--var-color-failed);
+        }
+        &.executing {
+            background: var(--var-color-executing);
+        }
+    }
     .cellwidget {
         height: 18px;
         width: 100%;
@@ -101,7 +117,7 @@ export const MonacoEditor = styled(Editor)`
         }
         &.active {
             // if this is the active cell, we have to activate the next widget
-            &+.cellwidget {
+            & + .cellwidget {
                 border-top: 2px solid rgb(153, 179, 171, 0.6);
                 // background-color: rgb(218, 255, 237, 0.6);
             }

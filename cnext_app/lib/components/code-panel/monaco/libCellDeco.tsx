@@ -1,5 +1,5 @@
 import store, { RootState } from "../../../../redux/store";
-import { ICodeLine } from "../../../interfaces/ICodeEditor";
+import { ICodeLine, LineStatus } from "../../../interfaces/ICodeEditor";
 import { getCodeLine } from "./libCodeEditor";
 
 let decorations = [];
@@ -8,6 +8,7 @@ export const setCellDeco = (monaco, editor) => {
     let state = store.getState();
     const activeGroup = state.codeEditor.activeGroup;
     const cellBoundaryDeco = [];
+    const lineStatus = [];
 
     let inViewID = state.projectManager.inViewID;
     if (inViewID) {
@@ -43,10 +44,36 @@ export const setCellDeco = (monaco, editor) => {
                     //     });
                     // }
                 }
+                lineStatus.push({
+                    range: new monaco.Range(ln + 1, 1, ln + 1, 1),
+                    options: {
+                        isWholeLine: true,
+                        linesDecorationsClassName: `${getClassLineStatus(lines[ln].status)}`,
+                    },
+                });
+
                 currentGroupID = lines[ln].groupID;
             }
         }
     }
     // console.log("Monaco libCellDeco: ", cellBoundaryDeco);
     decorations = editor.deltaDecorations(decorations, cellBoundaryDeco);
+    editor.deltaDecorations([], lineStatus);
 };
+const executedOkClass = "line-status  ok";
+const executedFailedClass = "line-status  failed";
+const executingClass = "line-status  executing";
+function getClassLineStatus(status: number) {
+    switch (status) {
+        case LineStatus.EDITED:
+            return "";
+        case LineStatus.EXECUTING:
+            return executingClass;
+        case LineStatus.EXECUTED_SUCCESS:
+            return executedOkClass;
+        case LineStatus.EXECUTED_FAILED:
+            return executedFailedClass;
+        case LineStatus.INQUEUE:
+            return executingClass;
+    }
+}

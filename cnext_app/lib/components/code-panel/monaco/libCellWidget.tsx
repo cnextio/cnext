@@ -52,7 +52,7 @@ const createCellWidgetDom = (
     if (endBoundaryWidget) {
         zone = {
             afterLineNumber: afterLineNumber + 1,
-            heightInLines: 0, // yes this is 0, this is not a bug
+            heightInLines: 5, // yes this is 0, this is not a bug
             domNode: wrapDiv,
         };
     } else {
@@ -87,40 +87,28 @@ const addCellWidgets = (changeAccessor) => {
                     let zone = null;
                     if (groupID) {
                         if (groupID != currentGroupID) {
-                            zone = createCellWidgetDom(
-                                groupID,
-                                ln,
-                                false,
-                                active_clazz
-                            );
-                            if (zone) {
-                                let viewZoneId = changeAccessor.addZone(zone);
-                                widgetViewZones.push(viewZoneId);
-                            }
-                        } 
-                        
-                        if (ln + 1 === lines.length) {
-                            /** add a special widget here is this if the line and also the last cell
-                             * this is used to marked the end boundary of the cell */
-                            zone = createCellWidgetDom(
-                                groupID,
-                                ln,
-                                true,
-                                active_clazz
-                            );
+                            zone = createCellWidgetDom(groupID, ln, false, active_clazz);
                             if (zone) {
                                 let viewZoneId = changeAccessor.addZone(zone);
                                 widgetViewZones.push(viewZoneId);
                             }
                         }
-                        
+
+                        if (ln + 1 === lines.length) {
+                            /** add a special widget here is this if the line and also the last cell
+                             * this is used to marked the end boundary of the cell */
+                            zone = createCellWidgetDom(groupID, ln, true, active_clazz);
+                            if (zone) {
+                                let viewZoneId = changeAccessor.addZone(zone);
+                                widgetViewZones.push(viewZoneId);
+                            }
+                        }
                     }
                 }
                 currentGroupID = lines[ln].groupID;
             }
         }
     }
-    
 };
 
 export const setCellWidgets = (editor) => {
