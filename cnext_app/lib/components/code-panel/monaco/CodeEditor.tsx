@@ -35,6 +35,7 @@ import {
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import socket from "../../Socket";
 import { addToRunQueueHoverCell } from "./libRunQueue";
+import { getCellFoldRange } from "./libCellFold";
 
 const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
@@ -214,8 +215,10 @@ const CodeEditor = ({ stopMouseEvent }) => {
         if (serverSynced && codeReloading && monaco && editor) {
             // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
             // TODO: improve this by rely only on monaco
+
             setCodeTextAndStates(store.getState(), monaco);
             setCellDeco(monaco, editor);
+            getCellFoldRange(monaco, editor);
             setCellWidgets(editor);
             setCodeReloading(false);
         }
