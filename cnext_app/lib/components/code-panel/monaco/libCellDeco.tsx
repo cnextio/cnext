@@ -56,13 +56,14 @@ export const setCellDeco = (monaco, editor) => {
             }
         }
     }
-    // console.log("Monaco libCellDeco: ", cellBoundaryDeco);
+    console.log("Monaco libCellDeco: ", cellBoundaryDeco);
     decorations = editor.deltaDecorations(decorations, cellBoundaryDeco);
     editor.deltaDecorations([], lineStatus);
 };
-const executedOkClass = "line-status  ok";
-const executedFailedClass = "line-status  failed";
-const executingClass = "line-status  executing";
+
+const executedOkClass = "line-status ok";
+const executedFailedClass = "line-status failed";
+const executingClass = "line-status executing";
 function getClassLineStatus(status: number) {
     switch (status) {
         case LineStatus.EDITED:

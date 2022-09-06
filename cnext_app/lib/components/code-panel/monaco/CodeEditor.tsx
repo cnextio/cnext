@@ -31,6 +31,7 @@ import {
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import socket from "../../Socket";
 import { addToRunQueueHoverCell } from "./libRunQueue";
+import { getCellFoldRange } from "./libCellFold";
 
 const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
@@ -214,6 +215,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (monaco && editorRef.current) {
                 setCodeTextAndStates(store.getState(), monaco);
                 setCellDeco(monaco, editorRef.current);
+                getCellFoldRange(monaco, editorRef.current);
                 setCellWidgets(editorRef.current);
                 setCodeReloading(false);
             }
@@ -234,7 +236,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             //         lineNumber: line - 1,
             //     };
             //     store.dispatch(setActiveLineRedux(activeLine));
-            // }            
+            // }
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
                     addToRunQueueHoverCell();
