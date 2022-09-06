@@ -32,6 +32,8 @@ export const getCellFoldRange = (monaco, editor) => {
                     } else {
                         end = end + 1;
                         if (countLineCurrentGroupID > 0 && ln === lines.length - 1) {
+                            console.log(`lines`, lines);
+
                             cellFold.push({
                                 start: start,
                                 end: end,

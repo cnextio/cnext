@@ -52,7 +52,7 @@ const createCellWidgetDom = (
     if (endBoundaryWidget) {
         zone = {
             afterLineNumber: afterLineNumber + 1,
-            heightInLines: 5, // yes this is 0, this is not a bug
+            heightInLines: 0, // yes this is 0, this is not a bug
             domNode: wrapDiv,
         };
     } else {
