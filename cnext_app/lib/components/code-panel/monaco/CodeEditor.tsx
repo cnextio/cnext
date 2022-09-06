@@ -5,6 +5,7 @@ import store, { RootState } from "../../../../redux/store";
 import {
     execLines,
     getMainEditorModel,
+    insertCellBelow,
     setCodeTextAndStates,
     setHTMLEventHandler,
     setLineStatus,
@@ -14,6 +15,8 @@ import { setCellDeco } from "./libCellDeco";
 import { MonacoEditor as StyledMonacoEditor } from "../styles";
 import {
     CellCommand,
+    CodeInsertMode,
+    ICodeActiveLine,
     ICodeResultMessage,
     ILineUpdate,
     LineStatus,
@@ -27,6 +30,7 @@ import {
     setCellCommand,
     setRunQueueStatus,
     updateLines,
+    setActiveLine as setActiveLineRedux,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import socket from "../../Socket";
@@ -222,16 +226,16 @@ const CodeEditor = ({ stopMouseEvent }) => {
         const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
         // console.log("CodeEditor useEffect cellCommand: ", cellCommand);
         if (cellCommand) {
-            let line = null;
-            // if (state.codeEditor.mouseOverLine) {
-            //     const inViewID = state.projectManager.inViewID;
-            //     line = state.codeEditor.mouseOverLine.number;
-            //     let activeLine: ICodeActiveLine = {
-            //         inViewID: inViewID || "",
-            //         lineNumber: line - 1,
-            //     };
-            //     store.dispatch(setActiveLineRedux(activeLine));
-            // }            
+            let ln0based = null;
+            if (state.codeEditor.mouseOverLine) {
+                // const inViewID = state.projectManager.inViewID;
+                ln0based = state.codeEditor.mouseOverLine;
+                // let activeLine: ICodeActiveLine = {
+                //     inViewID: inViewID || "",
+                //     lineNumber: ln0based,
+                // };
+                // store.dispatch(setActiveLineRedux(activeLine));
+            }            
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
                     addToRunQueueHoverCell();
@@ -241,6 +245,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     break;
                 case CellCommand.ADD_CELL:
                     // insertBelow(CodeInsertMode.GROUP, line);
+                    insertCellBelow(monaco, editor, CodeInsertMode.GROUP, ln0based);
                     break;
             }
             dispatch(setCellCommand(undefined));
