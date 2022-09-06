@@ -4,7 +4,7 @@ import { getCodeLine } from "./libCodeEditor";
 
 let cellFold: any[] = [];
 
-export const getCellFoldRange = () => {
+export const getCellFoldRange = () => {    
     let state = store.getState();
     let inViewID = state.projectManager.inViewID;
     cellFold = [];
