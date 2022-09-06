@@ -348,6 +348,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             defaultLanguage="python"
             onMount={handleEditorDidMount}
             onChange={handleEditorChange}
+            options={{ minimap: { enabled: false }, fontSize: 12, renderLineHighlight: "none"}}
         />
     );
 };

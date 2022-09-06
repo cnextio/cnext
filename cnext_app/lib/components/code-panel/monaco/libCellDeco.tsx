@@ -14,11 +14,11 @@ export const setCellDeco = (monaco, editor) => {
     if (inViewID) {
         let lines: ICodeLine[] | null = getCodeLine(state);
         if (lines) {
-            let currentGroupID = null;
+            let currentGroupID = null;            
             for (let ln = 0; ln < lines.length; ln++) {
+                const ln1based = ln + 1;
                 if (!lines[ln].generated && lines[ln].groupID != null) {
-                    const active_clazz = activeGroup === lines[ln].groupID ? "active" : "";
-                    const ln1based = ln + 1;
+                    const active_clazz = activeGroup === lines[ln].groupID ? "active" : "";                    
                     if (lines[ln].groupID != currentGroupID) {
                         cellBoundaryDeco.push({
                             range: new monaco.Range(ln1based, 1, ln1based, 1),
@@ -45,7 +45,7 @@ export const setCellDeco = (monaco, editor) => {
                     // }
                 }
                 lineStatus.push({
-                    range: new monaco.Range(ln + 1, 1, ln + 1, 1),
+                    range: new monaco.Range(ln1based, 1, ln1based, 1),
                     options: {
                         isWholeLine: true,
                         linesDecorationsClassName: `${getClassLineStatus(lines[ln].status)}`,
