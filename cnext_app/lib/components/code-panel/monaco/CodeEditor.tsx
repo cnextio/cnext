@@ -70,13 +70,12 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     // const [cAssistInfo, setCAssistInfo] = useState<ICAssistInfo|undefined>();
     const dispatch = useDispatch();
-    // const editorRef = useRef<HTMLDivElement>();
 
     /** this state is used to indicate when the codemirror view needs to be loaded from internal source
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
-    const editorRef = useRef(null);
+    const [editor, setEditor] = useState(null);
 
     const handleResultData = (message: IMessage) => {
         // console.log(`${WebAppEndpoint.CodeEditor} got result data`);
@@ -208,17 +207,15 @@ const CodeEditor = ({ stopMouseEvent }) => {
     }, [inViewID]);
 
     useEffect(() => {
-        if (serverSynced && codeReloading) {
+        if (serverSynced && codeReloading && monaco && editor) {
             // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
             // TODO: improve this by rely only on monaco
-            if (monaco && editorRef.current) {
-                setCodeTextAndStates(store.getState(), monaco);
-                setCellDeco(monaco, editorRef.current);
-                setCellWidgets(editorRef.current);
-                setCodeReloading(false);
-            }
+            setCodeTextAndStates(store.getState(), monaco);
+            setCellDeco(monaco, editor);
+            setCellWidgets(editor);
+            setCodeReloading(false);
         }
-    }, [serverSynced, codeReloading, monaco, editorRef]);
+    }, [serverSynced, codeReloading, monaco, editor]);
 
     useEffect(() => {
         const state = store.getState();
@@ -251,23 +248,16 @@ const CodeEditor = ({ stopMouseEvent }) => {
     }, [cellCommand]);
 
     useEffect(() => {
-        if (editorRef.current) {
-            setCellDeco(monaco, editorRef.current);
-            setCellWidgets(editorRef.current);
+        if (editor) {
+            setCellDeco(monaco, editor);
+            setCellWidgets(editor);
         }
     }, [cellAssocUpdateCount, activeGroup]);
 
-    // useEffect(() => {
-    //     if (editorRef.current) {
-    //         setCellDeco(monaco, editorRef.current);
-    //         setCellWidgets(editorRef.current);
-    //     }
-    // }, [cellAssocUpdateCount]);
-
-    const handleEditorDidMount = (editor, monaco) => {
+    const handleEditorDidMount = (mountedEditor, monaco) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
-        editorRef.current = editor;
-        setHTMLEventHandler(editor, stopMouseEvent);
+        setEditor(mountedEditor);
+        setHTMLEventHandler(mountedEditor, stopMouseEvent);
     };
 
     const handleEditorChange = (value, event) => {
