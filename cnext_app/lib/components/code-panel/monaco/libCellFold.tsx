@@ -12,25 +12,37 @@ export const getCellFoldRange = (monaco, editor) => {
         let lines: ICodeLine[] | null = getCodeLine(state);
         if (lines) {
             let currentGroupID = null;
+            let countLineCurrentGroupID = 0;
             let start = 1;
             let end = 1;
             for (let ln = 0; ln < lines.length; ln++) {
                 if (!lines[ln].generated && lines[ln].groupID != null) {
-                    console.log(`lines`, lines);
-
                     const ln1based = ln + 1;
-                    if (lines[ln].groupID != currentGroupID && start > end) {
-                        cellFold.push({
-                            start: start,
-                            end: end,
-                        });
-                        end = ln + 1;
-                        start = ln + 1;
+                    countLineCurrentGroupID = countLineCurrentGroupID + 1;
+
+                    if (lines[ln].groupID != currentGroupID) {
+                        if (start != end && countLineCurrentGroupID > 1) {
+                            cellFold.push({
+                                start: start,
+                                end: end,
+                            });
+                            end = ln1based;
+                            start = ln1based;
+                        }
                     } else {
                         end = end + 1;
+                        if (countLineCurrentGroupID > 0 && ln === lines.length - 1) {
+                            cellFold.push({
+                                start: start,
+                                end: end,
+                            });
+                            end = ln1based;
+                            start = ln1based;
+                        }
                     }
                 }
-
+                if (lines[ln].groupID !== currentGroupID) {
+                }
                 currentGroupID = lines[ln].groupID;
             }
         }
