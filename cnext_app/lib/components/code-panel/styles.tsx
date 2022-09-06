@@ -7,7 +7,7 @@ export const MonacoEditor = styled(Editor)`
     --var-color-executing: #f59242;
     .line-status {
         width: 3px !important;
-        margin-left: 20px;
+        margin-left: 22px;
         &.ok {
             background: var(--var-color-ok);
         }
