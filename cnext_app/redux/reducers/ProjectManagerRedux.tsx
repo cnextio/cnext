@@ -74,6 +74,7 @@ type ProjectManagerState = {
     workspaceMetadata: IWorkspaceMetadata;
     projectToAdd: null | string;
     projectToSetActive: null | string;
+    showMiniBar: boolean;
 };
 
 const initialState: ProjectManagerState = {
@@ -107,6 +108,7 @@ const initialState: ProjectManagerState = {
     },
     projectToAdd: null,
     projectToSetActive: null,
+    showMiniBar: true,
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -168,7 +170,9 @@ export const ProjectManagerRedux = createSlice({
         setFileToClose: (state, action) => {
             state.fileToClose = action.payload;
         },
-
+        setShowMiniBar: (state, action) => {
+            state.showMiniBar = action.payload;
+        },
         setFileToOpen: (state, action) => {
             let path = action.payload;
             if (Object.keys(state.openFiles).includes(path)) {
@@ -297,6 +301,7 @@ export const {
     setProjectToAdd,
     setProjectToSetActive,
     resetProjectRedux,
+    setShowMiniBar
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;
