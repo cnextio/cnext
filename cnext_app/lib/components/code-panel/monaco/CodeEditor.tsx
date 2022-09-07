@@ -338,7 +338,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             setCellDeco(monaco, editor);
             setCellWidgets(editor);
         }
-    }, [cellAssocUpdateCount, activeGroup]);
+    }, [cellAssocUpdateCount, activeGroup, lineStatusUpdate]);
 
     const handleEditorDidMount = (mountedEditor, monaco) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef

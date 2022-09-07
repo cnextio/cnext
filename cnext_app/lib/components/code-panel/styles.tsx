@@ -5,10 +5,19 @@ export const MonacoEditor = styled(Editor)`
     --var-color-ok: #42a5f5;
     --var-color-failed: #f30c0c;
     --var-color-executing: #f59242;
+
     .line-status {
         width: 3px !important;
         margin-left: 5px;
-        margin-top: 0.5px;
+        // margin-top: 0.5px;
+        &.first-status {
+            margin-top: -5px;
+            height: 23px !important;
+        }
+        &.last-status {
+            margin-bottom: -5px;
+            height: 24px !important;
+        }
         &.ok {
             background: var(--var-color-ok);
         }
@@ -17,14 +26,14 @@ export const MonacoEditor = styled(Editor)`
         }
         &.executing {
             /* background: var(--var-color-executing); */
-            animation: blink 2s infinite;
+            animation: blink 3s infinite;
         }
         @keyframes blink {
             0% {
                 background-color: var(--var-color-executing);
             }
             50% {
-                background-color: #f8d5b8;
+                background-color: white;
             }
             100% {
                 background-color: var(--var-color-executing);
@@ -36,18 +45,15 @@ export const MonacoEditor = styled(Editor)`
     }
     .cellwidget {
         height: 18px;
-        width: 100% !important;
+        // width: 100% !important;
 
         > * {
             opacity: 0;
         }
 
-        &.show-children {
+        &.show-toolbar {
             > * {
                 opacity: 1;
-                &:hover {
-                    opacity: 1;
-                }
             }
         }
 
@@ -56,7 +62,7 @@ export const MonacoEditor = styled(Editor)`
             cursor: pointer;
             font-size: 11px;
             color: rgba(0, 0, 0, 0.6);
-            margin-top: 3px;
+            margin-top: 7px;
             position: relative;
             z-index: 10000000;
             &:not(:last-child) {
@@ -119,6 +125,7 @@ export const MonacoEditor = styled(Editor)`
 
     .cellfirstline {
         border-top: 1px dashed rgb(153, 179, 171, 0.6);
+        margin-top: -5px;
         // background-color: white; //rgb(218, 255, 237, 0.3);
         &.active {
             border-top: 1px solid rgb(153, 179, 171, 1);
@@ -128,6 +135,7 @@ export const MonacoEditor = styled(Editor)`
 
     .celllastline {
         border-top: 1px dashed rgb(153, 179, 171, 0.6);
+        margin-top: 5px;
         :first-of-type {
             border-top: none;
         }

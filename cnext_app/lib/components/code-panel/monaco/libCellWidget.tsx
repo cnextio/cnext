@@ -45,6 +45,7 @@ const createCellWidgetDom = (
         });
     }
 
+    /** widget of the next cell will also has the top boundary to mark the end of prev cell */
     wrapDiv.className = "cellwidget celllastline " + activeClass;
     wrapDiv.id = `cellwidget-${groupID}`;
 
@@ -58,7 +59,7 @@ const createCellWidgetDom = (
     } else {
         zone = {
             afterLineNumber: afterLineNumber,
-            heightInLines: 1.2,
+            heightInLines: 2,
             domNode: wrapDiv,
         };
     }
@@ -83,7 +84,7 @@ const addCellWidgets = (changeAccessor) => {
             for (let ln = 0; ln < lines.length; ln++) {
                 if (!lines[ln].generated) {
                     const groupID = lines[ln].groupID;
-                    const active_clazz = activeGroup === groupID ? "active" : "";
+                    const active_clazz = activeGroup === groupID ? "active show-toolbar" : "";
                     let zone = null;
                     if (groupID) {
                         if (groupID != currentGroupID) {
@@ -95,9 +96,9 @@ const addCellWidgets = (changeAccessor) => {
                         }
 
                         if (ln + 1 === lines.length) {
-                            /** add a special widget here is this if the line and also the last cell
+                            /** add a special widget here if the line and also the last cell
                              * this is used to marked the end boundary of the cell */
-                            zone = createCellWidgetDom(groupID, ln, true, active_clazz);
+                            zone = createCellWidgetDom(groupID, ln, true, "");
                             if (zone) {
                                 let viewZoneId = changeAccessor.addZone(zone);
                                 widgetViewZones.push(viewZoneId);

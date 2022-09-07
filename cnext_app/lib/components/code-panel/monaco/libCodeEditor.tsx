@@ -52,12 +52,12 @@ function setActiveLine(inViewID: string, lineNumber: number) {
     }
 }
 
-function setOpacityWidget(id: string, opacity: string) {
+function setWidgetOpacity(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
     if (element) {        
         // element.style.opacity = opacity;
-        if (opacity === "1") element.classList.add("show-children");
-        else element.classList.remove("show-children");
+        if (opacity === "1") element.classList.add("show-toolbar");
+        else element.classList.remove("show-toolbar");
     }
 }
 
@@ -107,9 +107,9 @@ function onMouseMove(event) {
                 let currentGroupID = lines[ln0based]?.groupID;
                 // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
                 if (currentGroupID && currentGroupID !== mouseOverGroupID) {
-                    setOpacityWidget(currentGroupID, "1");
+                    setWidgetOpacity(currentGroupID, "1");
                     if (mouseOverGroupID) {
-                        setOpacityWidget(mouseOverGroupID, "0");
+                        setWidgetOpacity(mouseOverGroupID, "0");
                     }
                     store.dispatch(setMouseOverGroup(currentGroupID));
                 }
@@ -130,7 +130,7 @@ function onMouseLeave(event) {
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
             if (mouseOverGroupID) {
                 /* eslint-disable */
-                setOpacityWidget(mouseOverGroupID, "0");
+                setWidgetOpacity(mouseOverGroupID, "0");
             }
             store.dispatch(setMouseOverGroup(undefined));
             store.dispatch(setMouseOverLine(undefined));
@@ -226,7 +226,7 @@ export const execLines = (runQueueItem: IRunQueueItem) => {
         if (content != null) {
             console.log("CodeEditor execLines: ", content, lineRange);
             sendMessage(socket, content);
-            // setLineStatus(fileID, content.lineRange, LineStatus.EXECUTING);
+            setLineStatus(fileID, content.lineRange, LineStatus.EXECUTING);
         }
     }
 };
