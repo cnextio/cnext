@@ -7,7 +7,8 @@ export const MonacoEditor = styled(Editor)`
     --var-color-executing: #f59242;
     .line-status {
         width: 3px !important;
-        margin-left: 22px;
+        margin-left: 5px;
+        margin-top: 0.5px;
         &.ok {
             background: var(--var-color-ok);
         }
@@ -20,7 +21,7 @@ export const MonacoEditor = styled(Editor)`
     }
     .cellwidget {
         height: 18px;
-        width: 100%;
+        width: 100% !important;
 
         > * {
             opacity: 0;
@@ -40,7 +41,7 @@ export const MonacoEditor = styled(Editor)`
             cursor: pointer;
             font-size: 11px;
             color: rgba(0, 0, 0, 0.6);
-            margin-top: 8px;
+            margin-top: 3px;
             position: relative;
             z-index: 10000000;
             &:not(:last-child) {
@@ -105,7 +106,7 @@ export const MonacoEditor = styled(Editor)`
         border-top: 1px dashed rgb(153, 179, 171, 0.6);
         // background-color: white; //rgb(218, 255, 237, 0.3);
         &.active {
-            border-top: 2px solid rgb(153, 179, 171, 0.6);
+            border-top: 1px solid rgb(153, 179, 171, 1);
             // background-color: rgb(218, 255, 237, 0.6);
         }
     }
@@ -118,7 +119,7 @@ export const MonacoEditor = styled(Editor)`
         &.active {
             // if this is the active cell, we have to activate the next widget
             & + .cellwidget {
-                border-top: 2px solid rgb(153, 179, 171, 0.6);
+                border-top: 1px solid rgb(153, 179, 171, 1);
                 // background-color: rgb(218, 255, 237, 0.6);
             }
         }

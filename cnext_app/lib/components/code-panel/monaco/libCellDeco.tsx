@@ -56,7 +56,7 @@ export const setCellDeco = (monaco, editor) => {
             }
         }
     }
-    console.log("Monaco libCellDeco: ", cellBoundaryDeco);
+    // console.log("Monaco libCellDeco: ", cellBoundaryDeco);
     decorations = editor.deltaDecorations(decorations, cellBoundaryDeco);
     editor.deltaDecorations([], lineStatus);
 };

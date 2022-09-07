@@ -162,51 +162,6 @@ export const setCodeTextAndStates = (state: RootState, monaco: Monaco) => {
     }
 };
 
-export const insertCellBelow = (monaco: Monaco, editor, mode, ln0based: number | null): boolean => {
-    let model = getMainEditorModel(monaco);
-    let lnToInsertAfter;
-    let state = store.getState();
-    const inViewID = state.projectManager.inViewID;    
-    let posToInsertAfter;
-
-    if (ln0based) {
-        lnToInsertAfter = ln0based + 1;
-    } else {
-        lnToInsertAfter = editor.getPosition().lineNumber;
-    }
-
-    if (model && inViewID) {
-        const codeLines = state.codeEditor.codeLines[inViewID];
-        let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
-        while (
-            curGroupID != null &&
-            lnToInsertAfter < codeLines.length + 1 /** note that lnToInsertAfter is 1-based */ &&
-            codeLines[lnToInsertAfter - 1].groupID === curGroupID
-        ) {
-            lnToInsertAfter += 1;
-        }
-        if (lnToInsertAfter === 1 || curGroupID == null) {
-            /** insert from the end of the current line */
-            posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
-        } else {
-            /** insert from the end of the prev line */
-            lnToInsertAfter -= 1;
-            posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
-        }
-
-        let range = new monaco.Range(
-            lnToInsertAfter,
-            posToInsertAfter,
-            lnToInsertAfter,
-            posToInsertAfter
-        );
-        let id = { major: 1, minor: 1 };
-        let text = "\n";
-        var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
-        editor.executeEdits("insertCellBelow", [op]);
-    }
-    return true;
-};
 
 export const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
     let lineStatus: ICodeLineStatus = {

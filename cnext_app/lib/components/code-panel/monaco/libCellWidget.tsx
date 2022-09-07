@@ -58,7 +58,7 @@ const createCellWidgetDom = (
     } else {
         zone = {
             afterLineNumber: afterLineNumber,
-            heightInLines: 1.5,
+            heightInLines: 1.2,
             domNode: wrapDiv,
         };
     }
