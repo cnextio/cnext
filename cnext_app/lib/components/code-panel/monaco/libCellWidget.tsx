@@ -39,7 +39,7 @@ const createCellWidgetDom = (
         dom.appendChild(tooltip);
         wrapDiv.appendChild(dom);
 
-        dom.addEventListener("click", (e) => {
+        dom.addEventListener("mousedown", (e) => {
             e.stopPropagation();
             store.dispatch(setCellCommand(element.cellCommand));
         });
@@ -58,7 +58,7 @@ const createCellWidgetDom = (
     } else {
         zone = {
             afterLineNumber: afterLineNumber,
-            heightInLines: 1.5,
+            heightInLines: 1.2,
             domNode: wrapDiv,
         };
     }

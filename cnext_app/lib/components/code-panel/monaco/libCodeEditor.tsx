@@ -54,7 +54,7 @@ function setActiveLine(inViewID: string, lineNumber: number) {
 
 function setOpacityWidget(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
-    if (element) {
+    if (element) {        
         // element.style.opacity = opacity;
         if (opacity === "1") element.classList.add("show-children");
         else element.classList.remove("show-children");
@@ -82,6 +82,8 @@ function onMouseDown(event) {
         // event.stopPropagation();
         // console.log("Monaco onMouseDown", event?.target?.position);
         let ln1based = event?.target?.position?.lineNumber;
+        console.log(`onMouseDown`, onMouseDown);
+        
         let state = store.getState();
         const activeLineNumber = state.codeEditor.activeLineNumber;
         let inViewID = store.getState().projectManager.inViewID;
@@ -100,10 +102,9 @@ function onMouseMove(event) {
             const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(state);
             let ln0based = event?.target?.position?.lineNumber - 1; /** 0-based */
-            // console.log(`lineNumber`, event, lineNumber);
 
             if (lines && ln0based >= 0) {
-                let currentGroupID = lines[ln0based].groupID;
+                let currentGroupID = lines[ln0based]?.groupID;
                 // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
                 if (currentGroupID && currentGroupID !== mouseOverGroupID) {
                     setOpacityWidget(currentGroupID, "1");
@@ -112,7 +113,6 @@ function onMouseMove(event) {
                     }
                     store.dispatch(setMouseOverGroup(currentGroupID));
                 }
-
                 store.dispatch(setMouseOverLine(ln0based));
             }
         }
@@ -226,7 +226,7 @@ export const execLines = (runQueueItem: IRunQueueItem) => {
         if (content != null) {
             console.log("CodeEditor execLines: ", content, lineRange);
             sendMessage(socket, content);
-            setLineStatus(fileID, content.lineRange, LineStatus.EXECUTING);
+            // setLineStatus(fileID, content.lineRange, LineStatus.EXECUTING);
         }
     }
 };

@@ -5,6 +5,8 @@ import { getCodeLine } from "./libCodeEditor";
 let decorations = [];
 
 export const setCellDeco = (monaco, editor) => {
+    console.log(`setCellDeco`, setCellDeco);
+
     let state = store.getState();
     const activeGroup = state.codeEditor.activeGroup;
     const cellBoundaryDeco = [];
@@ -16,9 +18,9 @@ export const setCellDeco = (monaco, editor) => {
         if (lines) {
             let currentGroupID = null;
             for (let ln = 0; ln < lines.length; ln++) {
+                const ln1based = ln + 1;
                 if (!lines[ln].generated && lines[ln].groupID != null) {
                     const active_clazz = activeGroup === lines[ln].groupID ? "active" : "";
-                    const ln1based = ln + 1;
                     if (lines[ln].groupID != currentGroupID) {
                         cellBoundaryDeco.push({
                             range: new monaco.Range(ln1based, 1, ln1based, 1),
@@ -45,7 +47,7 @@ export const setCellDeco = (monaco, editor) => {
                     // }
                 }
                 lineStatus.push({
-                    range: new monaco.Range(ln + 1, 1, ln + 1, 1),
+                    range: new monaco.Range(ln1based, 1, ln1based + 1, 1),
                     options: {
                         isWholeLine: true,
                         linesDecorationsClassName: `${getClassLineStatus(lines[ln].status)}`,
@@ -56,14 +58,16 @@ export const setCellDeco = (monaco, editor) => {
             }
         }
     }
-    console.log("Monaco libCellDeco: ", cellBoundaryDeco);
+    // console.log("Monaco libCellDeco: ", cellBoundaryDeco);
     decorations = editor.deltaDecorations(decorations, cellBoundaryDeco);
-    editor.deltaDecorations([], lineStatus);
+    decorations = editor.deltaDecorations(decorations, lineStatus);
 };
 
 const executedOkClass = "line-status ok";
 const executedFailedClass = "line-status failed";
 const executingClass = "line-status executing";
+const inqueueClass = "line-status inqueue";
+
 function getClassLineStatus(status: number) {
     switch (status) {
         case LineStatus.EDITED:
@@ -75,6 +79,6 @@ function getClassLineStatus(status: number) {
         case LineStatus.EXECUTED_FAILED:
             return executedFailedClass;
         case LineStatus.INQUEUE:
-            return executingClass;
+            return inqueueClass;
     }
 }

@@ -5,7 +5,6 @@ import store, { RootState } from "../../../../redux/store";
 import {
     execLines,
     getMainEditorModel,
-    insertCellBelow,
     setCodeTextAndStates,
     setHTMLEventHandler,
     setLineStatus,
@@ -16,11 +15,13 @@ import { MonacoEditor as StyledMonacoEditor } from "../styles";
 import {
     CellCommand,
     CodeInsertMode,
-    ICodeActiveLine,
+    ICodeLineGroupStatus,
     ICodeResultMessage,
+    ICodeToInsertInfo,
     ILineUpdate,
     LineStatus,
     RunQueueStatus,
+    SetLineGroupCommand,
 } from "../../../interfaces/ICodeEditor";
 import {
     addResult,
@@ -31,11 +32,13 @@ import {
     setRunQueueStatus,
     updateLines,
     setActiveLine as setActiveLineRedux,
+    setLineGroupStatus,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import socket from "../../Socket";
 import { addToRunQueueHoverCell } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
+import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 
 const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
@@ -56,8 +59,10 @@ const CodeEditor = ({ stopMouseEvent }) => {
         (state: RootState) => state.codeEditor.cellAssocUpdateCount
     );
     const runQueue = useSelector((state: RootState) => state.codeEditor.runQueue);
-    const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
-    const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
+    // const cAssistInfo = useSelector((state: RootState) => state.codeEditor.cAssistInfo);
+    // const codeToInsert = useSelector((state: RootState) => state.codeEditor.codeToInsert);
+    const [codeToInsert, setCodeToInsert] = useState<ICodeToInsertInfo | null>(null);
+
     /** using this to trigger refresh in group highlight */
     const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
 
@@ -81,6 +86,78 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
     const [editor, setEditor] = useState(null);
+
+    const insertCellBelow = (mode: CodeInsertMode, ln0based: number | null): boolean => {
+        let model = getMainEditorModel(monaco);
+        let lnToInsertAfter;
+        let state = store.getState();
+        const inViewID = state.projectManager.inViewID;
+        let posToInsertAfter;
+
+        if (ln0based) {
+            lnToInsertAfter = ln0based + 1;
+        } else {
+            lnToInsertAfter = editor.getPosition().lineNumber;
+        }
+        // console.log("Monaco lnToInsertAfter ", lnToInsertAfter);
+        if (model && inViewID) {
+            const codeLines = state.codeEditor.codeLines[inViewID];
+            let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
+            while (
+                curGroupID != null &&
+                lnToInsertAfter <
+                    codeLines.length + 1 /** note that lnToInsertAfter is 1-based */ &&
+                codeLines[lnToInsertAfter - 1].groupID === curGroupID
+            ) {
+                lnToInsertAfter += 1;
+            }
+            if (lnToInsertAfter === 1 || curGroupID == null) {
+                /** insert from the end of the current line */
+                posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
+            } else {
+                /** insert from the end of the prev line */
+                lnToInsertAfter -= 1;
+                posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
+            }
+
+            let range = new monaco.Range(
+                lnToInsertAfter,
+                posToInsertAfter,
+                lnToInsertAfter,
+                posToInsertAfter
+            );
+            let id = { major: 1, minor: 1 };
+            let text = "\n";
+            var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+            editor.executeEdits("insertCellBelow", [op]);
+
+            setCodeToInsert({
+                code: "",
+                fromLine: lnToInsertAfter,
+                status: CodeInsertStatus.INSERTING,
+                mode: mode,
+            });
+        }
+        return true;
+    };
+
+    /** this is called after the code has been inserted to monaco */
+    useEffect(() => {
+        if (codeToInsert?.status === CodeInsertStatus.INSERTING && codeToInsert.fromLine) {
+            let lineStatus: ICodeLineGroupStatus = {
+                inViewID: inViewID,
+                fromLine: codeToInsert.fromLine,
+                toLine: codeToInsert.fromLine + 1,
+                status: LineStatus.EDITED,
+                setGroup:
+                    codeToInsert.mode === CodeInsertMode.GROUP
+                        ? SetLineGroupCommand.NEW
+                        : SetLineGroupCommand.UNDEF,
+            };
+            dispatch(setLineGroupStatus(lineStatus));
+            setCodeToInsert(null);
+        }
+    }, [cellAssocUpdateCount]);
 
     const handleResultData = (message: IMessage) => {
         // console.log(`${WebAppEndpoint.CodeEditor} got result data`);
@@ -170,8 +247,10 @@ const CodeEditor = ({ stopMouseEvent }) => {
     useEffect(() => {
         // console.log("CodeEditor useEffect container view", container, view);
         if (monaco) {
-            // editorRef.current = editor
-            // monaco.editor.on
+            monaco.languages.register({ id: "python" });
+            monaco.languages.registerFoldingRangeProvider("python", {
+                provideFoldingRanges: (model, context, token) => getCellFoldRange(),
+            });
         }
     });
 
@@ -215,7 +294,6 @@ const CodeEditor = ({ stopMouseEvent }) => {
         if (serverSynced && codeReloading && monaco && editor) {
             // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
             // TODO: improve this by rely only on monaco
-
             setCodeTextAndStates(store.getState(), monaco);
             setCellDeco(monaco, editor);
             getCellFoldRange(monaco, editor);
@@ -238,7 +316,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 //     lineNumber: ln0based,
                 // };
                 // store.dispatch(setActiveLineRedux(activeLine));
-            }            
+            }
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
                     addToRunQueueHoverCell();
@@ -247,8 +325,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     dispatch(clearAllOutputs({ inViewID, mouseOverGroupID }));
                     break;
                 case CellCommand.ADD_CELL:
-                    // insertBelow(CodeInsertMode.GROUP, line);
-                    insertCellBelow(monaco, editor, CodeInsertMode.GROUP, ln0based);
+                    /** TODO: fix the type issue with ln0based */
+                    insertCellBelow(CodeInsertMode.GROUP, ln0based);
                     break;
             }
             dispatch(setCellCommand(undefined));
@@ -346,6 +424,13 @@ const CodeEditor = ({ stopMouseEvent }) => {
             defaultLanguage="python"
             onMount={handleEditorDidMount}
             onChange={handleEditorChange}
+            options={{
+                minimap: { enabled: false },
+                fontSize: 12,
+                renderLineHighlight: "none",
+                scrollbar: { verticalScrollbarSize: 10 },
+                // foldingStrategy: "indentation",
+            }}
         />
     );
 };
