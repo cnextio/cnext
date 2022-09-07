@@ -5,7 +5,15 @@ import {
     setMouseOverLine,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../../redux/store";
-import { ICodeActiveLine, ICodeLine, ICodeLineStatus, ILineRange, IRunningCommandContent, IRunQueueItem, LineStatus } from "../../../interfaces/ICodeEditor";
+import {
+    ICodeActiveLine,
+    ICodeLine,
+    ICodeLineStatus,
+    ILineRange,
+    IRunningCommandContent,
+    IRunQueueItem,
+    LineStatus,
+} from "../../../interfaces/ICodeEditor";
 import { ifElse } from "../../libs";
 import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/CodeEditorRedux";
 import socket from "../../Socket";
@@ -91,10 +99,11 @@ function onMouseMove(event) {
             let state = store.getState();
             const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(state);
-            let lineNumber = event?.target?.position?.lineNumber - 1; /** 0-based */
+            let ln0based = event?.target?.position?.lineNumber - 1; /** 0-based */
             // console.log(`lineNumber`, event, lineNumber);
-            if (lines && lineNumber>0) {
-                let currentGroupID = lines[lineNumber]?.groupID;
+
+            if (lines && ln0based >= 0) {
+                let currentGroupID = lines[ln0based].groupID;
                 // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
                 if (currentGroupID && currentGroupID !== mouseOverGroupID) {
                     setOpacityWidget(currentGroupID, "1");
@@ -104,7 +113,7 @@ function onMouseMove(event) {
                     store.dispatch(setMouseOverGroup(currentGroupID));
                 }
 
-                // store.dispatch(setMouseOverLine({ ...hoveredLine }));
+                store.dispatch(setMouseOverLine(ln0based));
             }
         }
 
@@ -154,6 +163,52 @@ export const setCodeTextAndStates = (state: RootState, monaco: Monaco) => {
     }
 };
 
+export const insertCellBelow = (monaco: Monaco, editor, mode, ln0based: number | null): boolean => {
+    let model = getMainEditorModel(monaco);
+    let lnToInsertAfter;
+    let state = store.getState();
+    const inViewID = state.projectManager.inViewID;
+    let posToInsertAfter;
+
+    if (ln0based) {
+        lnToInsertAfter = ln0based + 1;
+    } else {
+        lnToInsertAfter = editor.getPosition().lineNumber;
+    }
+
+    if (model && inViewID) {
+        const codeLines = state.codeEditor.codeLines[inViewID];
+        let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
+        while (
+            curGroupID != null &&
+            lnToInsertAfter < codeLines.length + 1 /** note that lnToInsertAfter is 1-based */ &&
+            codeLines[lnToInsertAfter - 1].groupID === curGroupID
+        ) {
+            lnToInsertAfter += 1;
+        }
+        if (lnToInsertAfter === 1 || curGroupID == null) {
+            /** insert from the end of the current line */
+            posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
+        } else {
+            /** insert from the end of the prev line */
+            lnToInsertAfter -= 1;
+            posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
+        }
+
+        let range = new monaco.Range(
+            lnToInsertAfter,
+            posToInsertAfter,
+            lnToInsertAfter,
+            posToInsertAfter
+        );
+        let id = { major: 1, minor: 1 };
+        let text = "\n";
+        var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+        editor.executeEdits("insertCellBelow", [op]);
+    }
+    return true;
+};
+
 export const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
     let lineStatus: ICodeLineStatus = {
         inViewID: inViewID,
@@ -182,7 +237,7 @@ export const getRunningCommandContent = (
 ): IRunningCommandContent | null => {
     let content: IRunningCommandContent | null = null;
     let codeText = store.getState().codeEditor.codeText[fileID];
-    
+
     // const doc = view.state.doc;
     if (
         codeText &&
