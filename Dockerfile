@@ -38,4 +38,4 @@ ENV SHELL="/bin/bash"
 
 COPY ./docker/docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["cnext-run"]
+CMD ["cnext"]
