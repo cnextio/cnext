@@ -23,7 +23,7 @@ USER cnext
 ENV PATH "$PATH:/home/cnext/.local/bin"
 
 RUN pip install cnext${CNEXT_VERSION:+==$CNEXT_VERSION}
-RUN echo "n" | cnext-init
+# RUN echo "n" | cnext-init
 
 WORKDIR /home/cnext
 
@@ -32,10 +32,10 @@ RUN mkdir -p sample-projects \
     && tar -xzf master.tar.gz --strip-components 1 -C sample-projects \
     && rm master.tar.gz
 
-RUN echo "active_project: 0cb1b520-7100-4b7e-a858-d5534b7ba7aa\nopen_projects:\n  - id: 0cb1b520-7100-4b7e-a858-d5534b7ba7aa\n    name: Skywalker\n    path: /home/cnext/sample-projects/Skywalker\n  - id: 76d3ef55-70e1-4155-811f-dc32a989fe43\n    name: Jedi\n    path: /home/cnext/sample-projects/Jedi" > /home/cnext/.local/lib/python3.10/site-packages/cnext_server/server/workspace.yaml
+# RUN echo "active_project: 0cb1b520-7100-4b7e-a858-d5534b7ba7aa\nopen_projects:\n  - id: 0cb1b520-7100-4b7e-a858-d5534b7ba7aa\n    name: Skywalker\n    path: /home/cnext/sample-projects/Skywalker\n  - id: 76d3ef55-70e1-4155-811f-dc32a989fe43\n    name: Jedi\n    path: /home/cnext/sample-projects/Jedi" > /home/cnext/.local/lib/python3.10/site-packages/cnext_server/server/workspace.yaml
 
 ENV SHELL="/bin/bash"
 
 COPY ./docker/docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["cnext"]
+CMD ["cnext", "-s", "/home/cnext/sample-projects/Skywalker"]
