@@ -20,6 +20,7 @@ if sys.platform.startswith("win"):
     readline = Readline()
 else:
     import readline
+from cnext_server import __version__
 
 current_dir_path = os.getcwd()
 basepath = _path.dirname(__file__)
@@ -153,15 +154,20 @@ def main(args=sys.argv):
 def run_help(choice):
     message = """
         Installation command
-        - cnext -s                     : START with `Skywalker` project
-        # - cnext -s Skywalker                : START with `Skywalker` project
-        - cnext -s G:\DEV\PROJECTS     : START with `Skywalker` inside PROJECTS
+        - cnext -s                     : START with the sample project
+        - cnext -s G:\DEV\PROJECTS     : START with the sample inside PROJECTS
 
         Using command
         - cnext                        : RESUME APPLICATION or START
         - cnext 8888                   : RESUME APPLICATION at PORT 8888
+        - cnext -v                     : Show the Version
         """
     print(message)
+
+
+def show_version(data):
+    print(__version__)
+
     
 def default(data):
     run_help(data)
@@ -200,9 +206,11 @@ def start_with_sample_project(path_or_name):
 switcher = {
     "-h": run_help, 
     "-s": start_with_sample_project, 
+    "-v": show_version,
     # full case
     "help": run_help,
     "start": start_with_sample_project,
+    "-v": show_version,
 }
 
 def ask():
