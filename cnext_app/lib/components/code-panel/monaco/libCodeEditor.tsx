@@ -113,7 +113,7 @@ function onMouseMove(event) {
                     }
                     store.dispatch(setMouseOverGroup(currentGroupID));
                 }
-                store.dispatch(setMouseOverLine(ln0based));
+                // store.dispatch(setMouseOverLine(ln0based));
             }
         }
 
