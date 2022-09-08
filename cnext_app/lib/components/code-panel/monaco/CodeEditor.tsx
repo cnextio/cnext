@@ -254,6 +254,29 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     });
 
+    // add action
+    useEffect(() => {
+        // console.log("CodeEditor useEffect container view", container, view);
+        if (monaco && editor) {
+            let keymap: any[] = [
+                {
+                    keybindings: [
+                        monaco.KeyMod.WinCtrl | monaco.KeyMod.Shift | monaco.KeyCode.KeyG,
+                    ],
+                    run: () => insertCellBelow(CodeInsertMode.GROUP, null),
+                },
+                {
+                    keybindings: [
+                        monaco.KeyMod.WinCtrl | monaco.KeyMod.Shift | monaco.KeyCode.KeyL,
+                    ],
+                    run: () => insertCellBelow(CodeInsertMode.LINE, null),
+                },
+            ];
+            keymap.forEach(function (element, k) {
+                (editor as any).addAction({ ...element, id: `${k}`, label: `${k}` });
+            });
+        }
+    });
     useEffect(() => {
         console.log("CodeEditor runQueue");
         if (runQueue.status === RunQueueStatus.STOP) {
