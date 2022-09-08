@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/cnextio/cnext/compare/v0.6.1...v0.7.0) (2022-09-07)
+
+
+### Features
+
+* **core:** new cnext command ([47e8738](https://github.com/cnextio/cnext/commit/47e873803ceaf3a9a5496a8dfb2e201d312e5e05))
+
+
+### Bug Fixes
+
+* add stopMouseEvent to CodePanel ([403f8ad](https://github.com/cnextio/cnext/commit/403f8ad4659b6625a11d5c82c168a652bb53395d))
+* display result output with wrap text ([d33a69f](https://github.com/cnextio/cnext/commit/d33a69f0b57418aac41617ed01ad0971a91e6443))
+
 ## [0.6.1](https://github.com/cnextio/cnext/compare/v0.6.0...v0.6.1) (2022-09-01)
 
 
