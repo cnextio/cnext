@@ -39,12 +39,9 @@ Step 1: Make sure `Nodejs` is available in your computer (try `npm --version` an
 
 Step 2: `run` command `pip install -U cnext`
 
-Step 3: `run` command `cnext-init`
+Step 3: `run` command `cnext`
 
 -   Input `Enter path to the cnext sample project created in Step 1` and hit `Enter` (Example `C:/Skywalker`)
-    ​
-
-Step 4 `run` command `cnext-run`
 
 -   Web application will launch at : `http://localhost:CLIENT_PORT` or `http://127.0.0.1:CLIENT_PORT/` (CLIENT_PORT default is 4000)
 -   Stop application: `Ctrl + c | Command + c`
