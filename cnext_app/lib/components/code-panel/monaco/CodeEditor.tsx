@@ -434,7 +434,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             onMount={handleEditorDidMount}
             onChange={handleEditorChange}
             options={{
-                minimap: { enabled: false },
+                minimap: { enabled: true, autohide: true },
                 fontSize: 12,
                 renderLineHighlight: "none",
                 scrollbar: { verticalScrollbarSize: 10 },
