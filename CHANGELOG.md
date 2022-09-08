@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/cnextio/cnext/compare/v0.7.0...v0.7.1) (2022-09-08)
+
+
+### Bug Fixes
+
+* **docker:** fix docker build ([2b3da80](https://github.com/cnextio/cnext/commit/2b3da8074e829651f01a660974fd663358931cd8))
+
 ## [0.7.0](https://github.com/cnextio/cnext/compare/v0.6.1...v0.7.0) (2022-09-07)
 
 
