@@ -59,7 +59,6 @@ const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const dispatch = useDispatch();
-    const showMiniBar = useSelector((rootState: RootState) => rootState.projectManager.showMiniBar);
 
     const projectManagerIconList = [
         {
@@ -132,33 +131,32 @@ const MiniSidebar = () => {
 
     return (
         <Fragment>
-            {showMiniBar ? (
-                <Sidebar>
-                    <Logo />
-                    <AppToolbar variant="permanent">
-                        <AppToolbarList>
-                            {projectManagerIconList.map((icon, index) => (
-                                <AppToolbarItem
-                                    key={index}
-                                    icon={icon}
-                                    selectedIcon={selectedIcon}
-                                    handleClick={handleClick}
-                                />
-                            ))}
-                        </AppToolbarList>
-                        <SideBarDivider />
-                        <AppToolbarList>
-                            {layoutManagerIconList.map((icon, index) => (
-                                <AppToolbarItem
-                                    key={index}
-                                    icon={icon}
-                                    selectedIcon={selectedIcon}
-                                    handleClick={handleClick}
-                                />
-                            ))}
-                        </AppToolbarList>
-                        <SideBarDivider />
-                        {/* <AppToolbarList>
+            <Sidebar>
+                <Logo />
+                <AppToolbar variant="permanent">
+                    <AppToolbarList>
+                        {projectManagerIconList.map((icon, index) => (
+                            <AppToolbarItem
+                                key={index}
+                                icon={icon}
+                                selectedIcon={selectedIcon}
+                                handleClick={handleClick}
+                            />
+                        ))}
+                    </AppToolbarList>
+                    <SideBarDivider />
+                    <AppToolbarList>
+                        {layoutManagerIconList.map((icon, index) => (
+                            <AppToolbarItem
+                                key={index}
+                                icon={icon}
+                                selectedIcon={selectedIcon}
+                                handleClick={handleClick}
+                            />
+                        ))}
+                    </AppToolbarList>
+                    <SideBarDivider />
+                    {/* <AppToolbarList>
                         {executorManagerIconList.map((icon, index) => (
                             <AppToolbarItem
                                 key={index}
@@ -168,10 +166,10 @@ const MiniSidebar = () => {
                             />
                         ))}
                     </AppToolbarList> */}
-                    </AppToolbar>
-                    <Account />
-                </Sidebar>
-            ) : null}
+                </AppToolbar>
+                <Account />
+            </Sidebar>
+
             <MainContainerDivider orientation="vertical" />
             {kernelCommand !== null && (
                 <ExecutorCommandConfirmation
