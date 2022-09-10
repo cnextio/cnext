@@ -15,7 +15,7 @@ import {
     Sidebar,
 } from "../StyledComponents";
 import Logo from "./Logo";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
 import {
     setShowProjectExplorer,
@@ -59,6 +59,7 @@ const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const dispatch = useDispatch();
+    const showMiniBar = useSelector((rootState: RootState) => rootState.projectManager.showMiniBar);
 
     const projectManagerIconList = [
         {
@@ -131,32 +132,33 @@ const MiniSidebar = () => {
 
     return (
         <Fragment>
-            <Sidebar>
-                <Logo />
-                <AppToolbar variant="permanent">
-                    <AppToolbarList>
-                        {projectManagerIconList.map((icon, index) => (
-                            <AppToolbarItem
-                                key={index}
-                                icon={icon}
-                                selectedIcon={selectedIcon}
-                                handleClick={handleClick}
-                            />
-                        ))}
-                    </AppToolbarList>
-                    <SideBarDivider />
-                    <AppToolbarList>
-                        {layoutManagerIconList.map((icon, index) => (
-                            <AppToolbarItem
-                                key={index}
-                                icon={icon}
-                                selectedIcon={selectedIcon}
-                                handleClick={handleClick}
-                            />
-                        ))}
-                    </AppToolbarList>
-                    <SideBarDivider />
-                    {/* <AppToolbarList>
+            {showMiniBar ? (
+                <Sidebar>
+                    <Logo />
+                    <AppToolbar variant="permanent">
+                        <AppToolbarList>
+                            {projectManagerIconList.map((icon, index) => (
+                                <AppToolbarItem
+                                    key={index}
+                                    icon={icon}
+                                    selectedIcon={selectedIcon}
+                                    handleClick={handleClick}
+                                />
+                            ))}
+                        </AppToolbarList>
+                        <SideBarDivider />
+                        <AppToolbarList>
+                            {layoutManagerIconList.map((icon, index) => (
+                                <AppToolbarItem
+                                    key={index}
+                                    icon={icon}
+                                    selectedIcon={selectedIcon}
+                                    handleClick={handleClick}
+                                />
+                            ))}
+                        </AppToolbarList>
+                        <SideBarDivider />
+                        {/* <AppToolbarList>
                         {executorManagerIconList.map((icon, index) => (
                             <AppToolbarItem
                                 key={index}
@@ -166,9 +168,10 @@ const MiniSidebar = () => {
                             />
                         ))}
                     </AppToolbarList> */}
-                </AppToolbar>
-                <Account />
-            </Sidebar>
+                    </AppToolbar>
+                    <Account />
+                </Sidebar>
+            ) : null}
             <MainContainerDivider orientation="vertical" />
             {kernelCommand !== null && (
                 <ExecutorCommandConfirmation

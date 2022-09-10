@@ -7,16 +7,16 @@ import {
 } from "./StyledComponents";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
-import { setProjectSetting } from "../../redux/reducers/ProjectManagerRedux";
+import { setProjectSetting, setShowMiniBar } from "../../redux/reducers/ProjectManagerRedux";
 import socket from "./Socket";
 import { WebAppEndpoint } from "../interfaces/IApp";
 import { LogsCommand } from "../interfaces/ILogsManager";
 import { CircularProgress } from "@mui/material";
-
 const enum FootbarItemName {
     AUTOCOMPLETION = "Autocompletion",
     CODEANALYSIS = "Code Analysis",
     MARKDOWN = "Show Markdown",
+    MINIBAR = "Show Minibar",
 }
 
 interface IFootbarItem {
@@ -39,6 +39,7 @@ const FooterBarComponent = () => {
     const codeEditorSettings = useSelector(
         (rootState: RootState) => rootState.projectManager.settings.code_editor
     );
+    const showMiniBar = useSelector((rootState: RootState) => rootState.projectManager.showMiniBar);
     const richOutputSettings = useSelector(
         (rootState: RootState) => rootState.projectManager.settings.rich_output
     );
@@ -47,10 +48,12 @@ const FooterBarComponent = () => {
     const dispatch = useDispatch();
 
     const leftFootbarItems: IFootbarItem[] = [
+        { name: FootbarItemName.MINIBAR, setting: showMiniBar },
         { name: FootbarItemName.AUTOCOMPLETION, setting: codeEditorSettings.autocompletion },
         { name: FootbarItemName.CODEANALYSIS, setting: codeEditorSettings.lint },
         { name: FootbarItemName.MARKDOWN, setting: richOutputSettings.show_markdown },
     ];
+
     const changeHandler = (type: string) => {
         let updatedSettings = {}; //{ ...codeEditorConfig };
         switch (type) {
@@ -93,6 +96,9 @@ const FooterBarComponent = () => {
                         },
                     })
                 );
+                break;
+            case FootbarItemName.MINIBAR:
+                dispatch(setShowMiniBar(!showMiniBar));
                 break;
             default:
         }
@@ -137,7 +143,6 @@ const FooterBarComponent = () => {
                     </LeftFooterItem>
                 );
             })}
-
             <RightFooterItem>
                 <FooterItemText
                     onClick={() => {

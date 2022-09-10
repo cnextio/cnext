@@ -2,20 +2,58 @@ import Editor from "@monaco-editor/react";
 import styled from "styled-components";
 
 export const MonacoEditor = styled(Editor)`
+    --var-color-ok: #42a5f5;
+    --var-color-failed: #f30c0c;
+    --var-color-executing: #f59242;
+
+    .line-status {
+        width: 3px !important;
+        margin-left: 5px;
+        // margin-top: 0.5px;
+        &.first-status {
+            margin-top: -5px;
+            height: 23px !important;
+        }
+        &.last-status {
+            margin-bottom: -5px;
+            height: 24px !important;
+        }
+        &.ok {
+            background: var(--var-color-ok);
+        }
+        &.failed {
+            background: var(--var-color-failed);
+        }
+        &.executing {
+            /* background: var(--var-color-executing); */
+            animation: blink 3s infinite;
+        }
+        @keyframes blink {
+            0% {
+                background-color: var(--var-color-executing);
+            }
+            50% {
+                background-color: white;
+            }
+            100% {
+                background-color: var(--var-color-executing);
+            }
+        }
+        &.inqueue {
+            background: var(--var-color-executing);
+        }
+    }
     .cellwidget {
         height: 18px;
-        width: 100%;
+        // width: 100% !important;
 
         > * {
             opacity: 0;
         }
 
-        &.show-children {
+        &.show-toolbar {
             > * {
                 opacity: 1;
-                &:hover {
-                    opacity: 1;
-                }
             }
         }
 
@@ -24,7 +62,7 @@ export const MonacoEditor = styled(Editor)`
             cursor: pointer;
             font-size: 11px;
             color: rgba(0, 0, 0, 0.6);
-            margin-top: 8px;
+            margin-top: 7px;
             position: relative;
             z-index: 10000000;
             &:not(:last-child) {
@@ -87,22 +125,26 @@ export const MonacoEditor = styled(Editor)`
 
     .cellfirstline {
         border-top: 1px dashed rgb(153, 179, 171, 0.6);
+        margin-top: -5px;
+        width: 2000px !important;
         // background-color: white; //rgb(218, 255, 237, 0.3);
         &.active {
-            border-top: 2px solid rgb(153, 179, 171, 0.6);
+            border-top: 1px solid rgb(153, 179, 171, 1);
             // background-color: rgb(218, 255, 237, 0.6);
         }
     }
 
     .celllastline {
         border-top: 1px dashed rgb(153, 179, 171, 0.6);
+        margin-top: 5px;
+        width: 2000px !important;
         :first-of-type {
             border-top: none;
         }
         &.active {
             // if this is the active cell, we have to activate the next widget
-            &+.cellwidget {
-                border-top: 2px solid rgb(153, 179, 171, 0.6);
+            & + .cellwidget {
+                border-top: 1px solid rgb(153, 179, 171, 1);
                 // background-color: rgb(218, 255, 237, 0.6);
             }
         }
