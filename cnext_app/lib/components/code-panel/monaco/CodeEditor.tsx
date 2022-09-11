@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
 import {
     execLines,
+    foldAll,
+    unfoldAll,
     getMainEditorModel,
     setCodeTextAndStates,
     setHTMLEventHandler,
@@ -99,11 +101,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
         } else {
             lnToInsertAfter = editor.getPosition().lineNumber;
         }
-        
+
         if (model && inViewID) {
             const codeLines = state.codeEditor.codeLines[inViewID];
             let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
-            
+
             while (
                 curGroupID != null &&
                 lnToInsertAfter <
@@ -286,6 +288,20 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     id: shortcutKeysConfig.run_queue,
                     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
                     run: () => addToRunQueueHoverCell(),
+                },
+                {
+                    id: `foldAll`,
+                    keybindings: [
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
+                    ],
+                    run: () => foldAll(editor),
+                },
+                {
+                    id: `unfoldAll`,
+                    keybindings: [
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyU,
+                    ],
+                    run: () => unfoldAll(editor),
                 },
             ];
             keymap.forEach(function (element) {
