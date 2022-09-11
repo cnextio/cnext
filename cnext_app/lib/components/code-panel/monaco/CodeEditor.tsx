@@ -99,10 +99,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
         } else {
             lnToInsertAfter = editor.getPosition().lineNumber;
         }
-        // console.log("Monaco lnToInsertAfter ", lnToInsertAfter);
+        
         if (model && inViewID) {
             const codeLines = state.codeEditor.codeLines[inViewID];
             let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
+            
             while (
                 curGroupID != null &&
                 lnToInsertAfter <
@@ -111,6 +112,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             ) {
                 lnToInsertAfter += 1;
             }
+
             if (lnToInsertAfter === 1 || curGroupID == null) {
                 /** insert from the end of the current line */
                 posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
@@ -119,7 +121,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 lnToInsertAfter -= 1;
                 posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
             }
-
+            // console.log(
+            //     "Monaco lnToInsertAfter posToInsertAfter",
+            //     lnToInsertAfter,
+            //     posToInsertAfter
+            // );
             let range = new monaco.Range(
                 lnToInsertAfter,
                 posToInsertAfter,
@@ -133,6 +139,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
             setCodeToInsert({
                 code: "",
+                /** fromLine is 0-based while lnToInsertAfter is 1-based
+                 * so setting fromLine to lnToInsertAfter means fromLine will
+                 * point to the next line */
                 fromLine: lnToInsertAfter,
                 status: CodeInsertStatus.INSERTING,
                 mode: mode,
@@ -147,7 +156,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             let lineStatus: ICodeLineGroupStatus = {
                 inViewID: inViewID,
                 fromLine: codeToInsert.fromLine,
-                toLine: codeToInsert.fromLine + 1,
+                toLine: codeToInsert.fromLine,
                 status: LineStatus.EDITED,
                 setGroup:
                     codeToInsert.mode === CodeInsertMode.GROUP
@@ -455,7 +464,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             onMount={handleEditorDidMount}
             onChange={handleEditorChange}
             options={{
-                minimap: { enabled: false },
+                minimap: { enabled: true, autohide: true },
                 fontSize: 12,
                 renderLineHighlight: "none",
                 scrollbar: { verticalScrollbarSize: 10 },

@@ -126,6 +126,7 @@ export const MonacoEditor = styled(Editor)`
     .cellfirstline {
         border-top: 1px dashed rgb(153, 179, 171, 0.6);
         margin-top: -5px;
+        width: 2000px !important;
         // background-color: white; //rgb(218, 255, 237, 0.3);
         &.active {
             border-top: 1px solid rgb(153, 179, 171, 1);
@@ -136,6 +137,7 @@ export const MonacoEditor = styled(Editor)`
     .celllastline {
         border-top: 1px dashed rgb(153, 179, 171, 0.6);
         margin-top: 5px;
+        width: 2000px !important;
         :first-of-type {
             border-top: none;
         }
