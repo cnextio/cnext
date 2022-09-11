@@ -36,7 +36,7 @@ import {
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import socket from "../../Socket";
-import { addToRunQueueHoverCell } from "./libRunQueue";
+import { addToRunQueueHoverCell, addToRunQueueHoverLine } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 
@@ -269,20 +269,27 @@ const CodeEditor = ({ stopMouseEvent }) => {
         if (monaco && editor) {
             let keymap: any[] = [
                 {
+                    id: shortcutKeysConfig.insert_group_below,
                     keybindings: [
-                        monaco.KeyMod.WinCtrl | monaco.KeyMod.Shift | monaco.KeyCode.KeyG,
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyG,
                     ],
                     run: () => insertCellBelow(CodeInsertMode.GROUP, null),
                 },
                 {
+                    id: shortcutKeysConfig.insert_line_below,
                     keybindings: [
-                        monaco.KeyMod.WinCtrl | monaco.KeyMod.Shift | monaco.KeyCode.KeyL,
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyL,
                     ],
                     run: () => insertCellBelow(CodeInsertMode.LINE, null),
                 },
+                {
+                    id: shortcutKeysConfig.run_queue,
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
+                    run: () => addToRunQueueHoverCell(),
+                },
             ];
-            keymap.forEach(function (element, k) {
-                (editor as any).addAction({ ...element, id: `${k}`, label: `${k}` });
+            keymap.forEach(function (element) {
+                (editor as any).addAction({ ...element, label: element.id });
             });
         }
     });
