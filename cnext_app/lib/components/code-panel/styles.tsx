@@ -62,7 +62,7 @@ export const MonacoEditor = styled(Editor)`
             cursor: pointer;
             font-size: 11px;
             color: rgba(0, 0, 0, 0.6);
-            margin-top: 7px;
+            margin-top: 5px;
             position: relative;
             z-index: 10000000;
             &:not(:last-child) {
