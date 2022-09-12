@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
 import {
     execLines,
+    foldAll,
+    unfoldAll,
     getMainEditorModel,
     setCodeTextAndStates,
     setHTMLEventHandler,
@@ -36,7 +38,7 @@ import {
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import socket from "../../Socket";
-import { addToRunQueueHoverCell } from "./libRunQueue";
+import { addToRunQueueHoverCell, addToRunQueueHoverLine } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 
@@ -99,11 +101,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
         } else {
             lnToInsertAfter = editor.getPosition().lineNumber;
         }
-        
+
         if (model && inViewID) {
             const codeLines = state.codeEditor.codeLines[inViewID];
             let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
-            
+
             while (
                 curGroupID != null &&
                 lnToInsertAfter <
@@ -263,6 +265,50 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     });
 
+    // add action
+    useEffect(() => {
+        // console.log("CodeEditor useEffect container view", container, view);
+        if (monaco && editor) {
+            let keymap: any[] = [
+                {
+                    id: shortcutKeysConfig.insert_group_below,
+                    keybindings: [
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyG,
+                    ],
+                    run: () => insertCellBelow(CodeInsertMode.GROUP, null),
+                },
+                {
+                    id: shortcutKeysConfig.insert_line_below,
+                    keybindings: [
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyL,
+                    ],
+                    run: () => insertCellBelow(CodeInsertMode.LINE, null),
+                },
+                {
+                    id: shortcutKeysConfig.run_queue,
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
+                    run: () => addToRunQueueHoverCell(),
+                },
+                {
+                    id: `foldAll`,
+                    keybindings: [
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
+                    ],
+                    run: () => foldAll(editor),
+                },
+                {
+                    id: `unfoldAll`,
+                    keybindings: [
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyU,
+                    ],
+                    run: () => unfoldAll(editor),
+                },
+            ];
+            keymap.forEach(function (element) {
+                (editor as any).addAction({ ...element, label: element.id });
+            });
+        }
+    });
     useEffect(() => {
         console.log("CodeEditor runQueue");
         if (runQueue.status === RunQueueStatus.STOP) {
