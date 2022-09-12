@@ -4,7 +4,7 @@ import PauseIcon from "@mui/icons-material/Pause";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
-
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import {
     AppToolbar,
     AppToolbarList,
@@ -20,9 +20,10 @@ import { Fragment, useEffect, useState } from "react";
 import {
     setShowProjectExplorer,
     setProjectSetting,
+    setShowGitManager,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import { clearAllOutputs } from "../../../redux/reducers/CodeEditorRedux";
-import { ViewMode } from "../../interfaces/IApp";
+import { CommandName, ViewMode, WebAppEndpoint } from "../../interfaces/IApp";
 import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
@@ -31,6 +32,7 @@ import { restartKernel, interruptKernel } from "../executor-manager/ExecutorMana
 import ExecutorCommandConfirmation from "../executor-manager/ExecutorCommandConfirmation";
 import Account from "../user-manager/Account";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
+import socket from "../Socket";
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -75,7 +77,13 @@ const MiniSidebar = () => {
             tooltip: "Change layout",
         },
     ];
-
+    const gitManagerIconList = [
+        {
+            name: SideBarName.GIT,
+            component: <TrendingUpIcon />,
+            tooltip: "Git",
+        },
+    ];
     const handleClickClearOutputs = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
@@ -93,14 +101,8 @@ const MiniSidebar = () => {
     };
 
     const handleClick = (name: string) => {
-        if (name === SideBarName.CLEAR_OUTPUTS) {
-            handleClickClearOutputs();
-        } else if (name === SideBarName.CHANGE_LAYOUT) {
+        if (name === SideBarName.CHANGE_LAYOUT) {
             handleClickChangeLayout();
-        } else if (name === SideBarName.RESTART_KERNEL) {
-            setKernelCommand(ExecutorManagerCommand.restart_kernel);
-        } else if (name === SideBarName.INTERRUPT_KERNEL) {
-            setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -124,11 +126,43 @@ const MiniSidebar = () => {
     useEffect(() => {
         if (selectedIcon === SideBarName.PROJECT) {
             dispatch(setShowProjectExplorer(true));
+            dispatch(setShowGitManager(false));
+        } else if (selectedIcon === SideBarName.GIT) {
+            dispatch(setShowGitManager(true));
+            dispatch(setShowProjectExplorer(false));
         } else {
+            dispatch(setShowGitManager(false));
             dispatch(setShowProjectExplorer(false));
         }
     }, [selectedIcon]);
-
+    useEffect(() => {
+        setupSocket();
+        return () => {
+            socket.off(WebAppEndpoint.GitManager);
+        };
+    }, []);
+    const test = () => {
+        socket.emit(
+            WebAppEndpoint.GitManager,
+            JSON.stringify({
+                webapp_endpoint: WebAppEndpoint.GitManager,
+                content: "",
+                command_name: CommandName.connect_repo,
+            })
+        );
+    };
+    const setupSocket = () => {
+        socket.emit("ping", WebAppEndpoint.GitManager);
+        socket.on(WebAppEndpoint.GitManager, (result: string) => {
+            try {
+                if (JSON.parse(result).command_name === CommandName.get_jupyter_server_config) {
+                }
+            } catch (error) {
+                console.log(`error`, error);
+                throw error;
+            }
+        });
+    };
     return (
         <Fragment>
             <Sidebar>
@@ -156,16 +190,15 @@ const MiniSidebar = () => {
                         ))}
                     </AppToolbarList>
                     <SideBarDivider />
-                    {/* <AppToolbarList>
-                        {executorManagerIconList.map((icon, index) => (
-                            <AppToolbarItem
-                                key={index}
-                                selectedIcon={selectedIcon}
-                                icon={icon}
-                                handleClick={handleClick}
-                            />
-                        ))}
-                    </AppToolbarList> */}
+                    {gitManagerIconList.map((icon, index) => (
+                        <AppToolbarItem
+                            key={index}
+                            icon={icon}
+                            selectedIcon={selectedIcon}
+                            handleClick={handleClick}
+                        />
+                    ))}
+                    <SideBarDivider />
                 </AppToolbar>
                 <Account />
             </Sidebar>
