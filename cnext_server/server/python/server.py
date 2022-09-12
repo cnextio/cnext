@@ -73,6 +73,14 @@ def set_executor_working_dir(user_space, workspace_info: WorkspaceMetadata):
     if project_path:
         user_space.set_executor_working_dir(project_path)
 
+def create_message_handlers_for_user_space(user_space, p2n_queue):
+    message_handler = {
+        WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
+        WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
+        WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
+        WebappEndpoint.MagicCommandGen: ca.MessageHandler(p2n_queue, user_space)
+    }
+    return message_handler
 
 def main(argv):
     try:
@@ -85,31 +93,12 @@ def main(argv):
             executor_type = argv[0]
             user_space = None
             message_handler = None
+            p2n_queue = MessageQueuePush(
+                server_config.p2n_comm['host'], server_config.p2n_comm['port'])
+            jupyter_server_config = server_config.jupyter_server
+
             try:
-                p2n_queue = MessageQueuePush(
-                    server_config.p2n_comm['host'], server_config.p2n_comm['port'])
-                jupyter_server_config = server_config.jupyter_server
-                if executor_type == ExecutorType.CODE:
-                    # user_space = IPythonUserSpace(
-                    #     (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
-                    user_space = IPythonUserSpace(
-                        (TrackingDataframeType.PANDAS, TrackingDataframeType.CNEXT, TrackingDataframeType.DASK), 
-                        (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
-                    
-                    executor_manager = execm.MessageHandler(
-                        p2n_queue, user_space)
-
-                    message_handler = {
-                        WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.MagicCommandGen: ca.MessageHandler(
-                            p2n_queue, user_space)
-                    }
-
-                    set_executor_working_dir(user_space, workspace_metadata)
-
-                elif executor_type == ExecutorType.NONCODE:
+                if executor_type == ExecutorType.NONCODE:
                     user_space = BaseKernelUserSpace()
                     message_handler = {
                         WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
@@ -125,7 +114,16 @@ def main(argv):
                 exit(0)
 
             shutdowHandler = ShutdownSignalHandler(message_handler, user_space)
-            # this condition here is meaningless for now because the process will be exit inside ShutdownSignalHandler.exit_gracefully already
+            print('Server started')
+            # this condition here is meaningless for now because the process will be exit inside ShutdownSignalHandler.exit_gracefully 
+
+            default_user_space = IPythonUserSpace(
+                                (TrackingDataframeType.PANDAS, TrackingDataframeType.CNEXT, TrackingDataframeType.DASK), 
+                                (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
+            user_sapce_message_handlers = {
+                'default': create_message_handlers_for_user_space(default_user_space, p2n_queue),
+            }
+
             try:
                 # while shutdowHandler.running:
                 for line in sys.stdin:
@@ -140,8 +138,27 @@ def main(argv):
                                 log_content = message.content
                         log.info('Got message from %s command: "%s", content: \'%s\'' %
                                  (message.webapp_endpoint, message.command_name, log_content))
-                        message_handler[message.webapp_endpoint].handle_message(
-                            message)
+
+                        if message.webapp_endpoint == WebappEndpoint.AddRemoteIPythonKernel:
+                            user_space_name = message.content.name
+                            connection_info = message.content.connection_info
+                            user_space = IPythonUserSpace(
+                                (TrackingDataframeType.PANDAS, TrackingDataframeType.CNEXT, TrackingDataframeType.DASK), 
+                                (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS),
+                                connection_info)
+                            user_sapce_message_handlers[user_space_name] = create_message_handlers_for_user_space(user_space, p2n_queue)
+                            set_executor_working_dir(user_space, workspace_metadata)
+
+                        elif message.webapp_endpoint == WebappEndpoint.SelectIPythonKernel:
+                            user_space_name = message.content.name
+                            if not user_space_name in user_sapce_message_handlers:
+                                raise Exception('User space {} not found'.format(user_space_name))
+
+                            message_handler = user_sapce_message_handlers[user_space_name]
+
+                        else:
+                            message_handler[message.webapp_endpoint].handle_message(message)
+
                     except OSError as error:  # TODO check if this has to do with buffer error
                         # since this error might be related to the pipe, we do not send this error to nodejs
                         log.error("OSError: %s" % (error))

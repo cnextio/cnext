@@ -1,6 +1,7 @@
 from enum import Enum
 import threading
 import traceback
+import jupyter_client
 import simplejson as json
 import cnextlib.user_space as _cus
 import cnextlib.dataframe as _cd
@@ -48,9 +49,9 @@ class IPythonUserSpace(_cus.UserSpace):
         The code is executed on a kernel such as BaseKernel or IPythonKernel
     '''
 
-    def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
+    def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = (), connection_info: jupyter_client.KernelConnectionInfo = None):
         super().__init__(tracking_df_types, tracking_model_types)
-        self.executor: IPythonKernel = IPythonKernel()
+        self.executor: IPythonKernel = IPythonKernel(connection_info)
         self.init_executor()
         self.execution_lock = threading.Lock()
         self.result = None

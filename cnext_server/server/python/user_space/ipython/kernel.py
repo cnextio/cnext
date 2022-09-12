@@ -10,10 +10,18 @@ log = logs.get_logger(__name__)
 MESSSAGE_TIMEOUT = 1
 
 class IPythonKernel():
-    def __init__(self):
-        self.km = jupyter_client.KernelManager()
-        self.km.start_kernel()
-        self.kc = self.km.blocking_client()
+    def __init__(self, connection_info: jupyter_client.KernelConnectionInfo = None):
+        if connection_info:
+            self.remote = True
+            self.kc = jupyter_client.BlockingKernelClient()
+            self.kc.load_connection_info(connection_info)
+            self.kc.start_channels()
+        else:
+            self.remote = False
+            self.km = jupyter_client.KernelManager()
+            self.km.start_kernel()
+            self.kc = self.km.blocking_client()
+
         self.wait_for_ready()
 
         self.stop_stream_thread = False
@@ -30,6 +38,9 @@ class IPythonKernel():
         self._set_execution_complete_condition(False)
 
     def shutdown_kernel(self):
+        if not self.remote:
+            return
+
         try:
             if self.km.is_alive():
                 log.info('Kernel shutting down')
@@ -41,6 +52,9 @@ class IPythonKernel():
             log.info("Exception %s" % (trace))
 
     def restart_kernel(self):
+        if not self.remote:
+            return
+
         try:
             # if self.km.is_alive():
             log.info('Kernel restarting')
@@ -76,6 +90,9 @@ class IPythonKernel():
         return False
 
     def interrupt_kernel(self):
+        if not self.remote:
+            return
+
         try:
             if self.km.is_alive():
                 self.km.interrupt_kernel()

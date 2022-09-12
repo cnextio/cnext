@@ -17,6 +17,8 @@ class WebappEndpoint(str, Enum):
     ModelManager = 'ModelManager'
     Terminal = 'Terminal'
     LogsManager = 'LogsManager'
+    SelectIPythonKernel = 'SelectIPythonKernel'
+    AddRemoteIPythonKernel = 'AddRemoteIPythonKernel'
 
     def __str__(self):
         return str(self.value)
