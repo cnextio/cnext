@@ -13,12 +13,13 @@ import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interface
 import socket from "./Socket";
 import HotkeyComponent from "./hotkeys/HotKeys";
 import TerminalManager from "./terminal-manager/TerminalManager";
+import GitManager from "./git-manager/GitManager";
 
 const WorkingPanel = () => {
     const showProjectExplore = useSelector(
         (state: RootState) => state.projectManager.showProjectExplore
     );
-
+    const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
     const projectConfig = useSelector((state: RootState) => state.projectManager.settings);
     let experiment_tracking_uri = useSelector(
         (state: RootState) =>
@@ -52,13 +53,15 @@ const WorkingPanel = () => {
                 {console.log("WorkingPanel render")}
                 <Pane
                     size={
-                        showProjectExplore
+                        showProjectExplore || showGitManager
                             ? projectConfig.layout?.project_explorer_size + "px"
                             : "0px"
                     }
                 >
-                    <FileExplorer />
+                    {showProjectExplore ? <FileExplorer /> : null}
+                    {showGitManager ? <GitManager /> : null}
                 </Pane>
+
                 <Pane>
                     <SplitPane
                         split={projectConfig.view_mode}
@@ -76,7 +79,7 @@ const WorkingPanel = () => {
                                 stopMouseEvent={resizing}
                             />
                         </Pane>
-                        <Pane>                            
+                        <Pane>
                             <RichOutputPanel stopMouseEvent={resizing} />
                         </Pane>
                     </SplitPane>

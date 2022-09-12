@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useMonaco } from "@monaco-editor/react";
+import { DiffEditor, useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
 import {
     execLines,
+    foldAll,
+    unfoldAll,
     getMainEditorModel,
     setCodeTextAndStates,
     setHTMLEventHandler,
@@ -42,6 +44,8 @@ import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 
 const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
+    const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
+
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
         (state: RootState) => state.executorManager.executorRestartCounter
@@ -99,11 +103,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
         } else {
             lnToInsertAfter = editor.getPosition().lineNumber;
         }
-        
+
         if (model && inViewID) {
             const codeLines = state.codeEditor.codeLines[inViewID];
             let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
-            
+
             while (
                 curGroupID != null &&
                 lnToInsertAfter <
@@ -287,6 +291,20 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
                     run: () => addToRunQueueHoverCell(),
                 },
+                {
+                    id: `foldAll`,
+                    keybindings: [
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
+                    ],
+                    run: () => foldAll(editor),
+                },
+                {
+                    id: `unfoldAll`,
+                    keybindings: [
+                        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyU,
+                    ],
+                    run: () => unfoldAll(editor),
+                },
             ];
             keymap.forEach(function (element) {
                 (editor as any).addAction({ ...element, label: element.id });
@@ -384,7 +402,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         setEditor(mountedEditor);
         setHTMLEventHandler(mountedEditor, stopMouseEvent);
     };
-
+    const handleEditorDidMountDiff = () => {};
     const handleEditorChange = (value, event) => {
         try {
             const state = store.getState();
@@ -456,7 +474,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     };
 
-    return (
+    return !showGitManager ? (
         <StyledMonacoEditor
             height="90vh"
             defaultValue=""
@@ -470,6 +488,14 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 scrollbar: { verticalScrollbarSize: 10 },
                 // foldingStrategy: "indentation",
             }}
+        />
+    ) : (
+        <DiffEditor
+            height="90vh"
+            language="python"
+            original="// the original code"
+            modified="// the modified code"
+            onMount={handleEditorDidMountDiff}
         />
     );
 };

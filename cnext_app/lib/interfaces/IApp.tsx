@@ -80,6 +80,9 @@ export enum CommandName {
     plot_column_quantile = "plot_column_quantile",
     get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
     get_jupyter_server_config = "get_jupyter_server_config",
+    get_list_file_changed = "get_list_file_changed",
+    connect_repo = "connect_repo",
+    check_diff = "check_diff",
 }
 
 export enum ContentType {
@@ -141,6 +144,7 @@ export enum WebAppEndpoint {
     LanguageServerCompletion = "LanguageServerCompletion",
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
+    GitManager = "GitManager",
     LogsManager = "LogsManager",
 }
 
@@ -216,6 +220,7 @@ export enum ViewMode {
 export enum SideBarName {
     PROJECT = "Projects",
     CHANGE_LAYOUT = "ChangeLayout",
+    GIT = "Git",
 }
 
 export enum ExecutorToolbarItem {

@@ -74,6 +74,7 @@ type ProjectManagerState = {
     workspaceMetadata: IWorkspaceMetadata;
     projectToAdd: null | string;
     projectToSetActive: null | string;
+    showGitManager: boolean;
 };
 
 const initialState: ProjectManagerState = {
@@ -107,6 +108,7 @@ const initialState: ProjectManagerState = {
     },
     projectToAdd: null,
     projectToSetActive: null,
+    showGitManager: false,
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -228,7 +230,9 @@ export const ProjectManagerRedux = createSlice({
         setShowProjectExplorer: (state, action) => {
             state.showProjectExplore = action.payload;
         },
-
+        setShowGitManager: (state, action) => {
+            state.showGitManager = action.payload;
+        },
         setProjectSetting: (state, action) => {
             if (action.payload) {
                 state.settings = { ...state.settings, ...action.payload };
@@ -296,6 +300,7 @@ export const {
     setWorkspaceMetadata,
     setProjectToAdd,
     setProjectToSetActive,
+    setShowGitManager,
     resetProjectRedux,
 } = ProjectManagerRedux.actions;
 

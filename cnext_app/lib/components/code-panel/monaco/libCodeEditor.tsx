@@ -54,7 +54,7 @@ function setActiveLine(inViewID: string, lineNumber: number) {
 
 function setWidgetOpacity(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
-    if (element) {        
+    if (element) {
         // element.style.opacity = opacity;
         if (opacity === "1") element.classList.add("show-toolbar");
         else element.classList.remove("show-toolbar");
@@ -83,7 +83,7 @@ function onMouseDown(event) {
         // console.log("Monaco onMouseDown", event?.target?.position);
         let ln1based = event?.target?.position?.lineNumber;
         console.log(`onMouseDown`, onMouseDown);
-        
+
         let state = store.getState();
         const activeLineNumber = state.codeEditor.activeLineNumber;
         let inViewID = store.getState().projectManager.inViewID;
@@ -146,7 +146,12 @@ export const setHTMLEventHandler = (editor, stopMouseEvent: boolean) => {
     editor.onMouseDown((event) => onMouseDown(event));
     editor.onKeyUp((event) => onKeyUp(editor, event));
 };
-
+export const foldAll = (editor) => {
+    editor.trigger("fold", "editor.foldAll");
+};
+export const unfoldAll = (editor) => {
+    editor.trigger("unfold", "editor.unfoldAll");
+};
 export const getMainEditorModel = (monaco: Monaco) => {
     if (monaco) {
         let models = monaco.editor.getModels();
