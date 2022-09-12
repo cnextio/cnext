@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useMonaco } from "@monaco-editor/react";
+import { DiffEditor, useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
 import {
@@ -44,6 +44,8 @@ import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 
 const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
+    const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
+
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
         (state: RootState) => state.executorManager.executorRestartCounter
@@ -400,7 +402,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         setEditor(mountedEditor);
         setHTMLEventHandler(mountedEditor, stopMouseEvent);
     };
-
+    const handleEditorDidMountDiff = () => {};
     const handleEditorChange = (value, event) => {
         try {
             const state = store.getState();
@@ -472,7 +474,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     };
 
-    return (
+    return !showGitManager ? (
         <StyledMonacoEditor
             height="90vh"
             defaultValue=""
@@ -486,6 +488,14 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 scrollbar: { verticalScrollbarSize: 10 },
                 // foldingStrategy: "indentation",
             }}
+        />
+    ) : (
+        <DiffEditor
+            height="90vh"
+            language="python"
+            original="// the original code"
+            modified="// the modified code"
+            onMount={handleEditorDidMountDiff}
         />
     );
 };

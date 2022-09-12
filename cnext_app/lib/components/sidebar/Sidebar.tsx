@@ -15,7 +15,7 @@ import {
     Sidebar,
 } from "../StyledComponents";
 import Logo from "./Logo";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
 import {
     setShowProjectExplorer,
@@ -23,7 +23,7 @@ import {
     setShowGitManager,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import { clearAllOutputs } from "../../../redux/reducers/CodeEditorRedux";
-import { CommandName, ViewMode, WebAppEndpoint } from "../../interfaces/IApp";
+import { ViewMode } from "../../interfaces/IApp";
 import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
@@ -32,7 +32,6 @@ import { restartKernel, interruptKernel } from "../executor-manager/ExecutorMana
 import ExecutorCommandConfirmation from "../executor-manager/ExecutorCommandConfirmation";
 import Account from "../user-manager/Account";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
-import socket from "../Socket";
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -135,34 +134,7 @@ const MiniSidebar = () => {
             dispatch(setShowProjectExplorer(false));
         }
     }, [selectedIcon]);
-    useEffect(() => {
-        setupSocket();
-        return () => {
-            socket.off(WebAppEndpoint.GitManager);
-        };
-    }, []);
-    const test = () => {
-        socket.emit(
-            WebAppEndpoint.GitManager,
-            JSON.stringify({
-                webapp_endpoint: WebAppEndpoint.GitManager,
-                content: "",
-                command_name: CommandName.connect_repo,
-            })
-        );
-    };
-    const setupSocket = () => {
-        socket.emit("ping", WebAppEndpoint.GitManager);
-        socket.on(WebAppEndpoint.GitManager, (result: string) => {
-            try {
-                if (JSON.parse(result).command_name === CommandName.get_jupyter_server_config) {
-                }
-            } catch (error) {
-                console.log(`error`, error);
-                throw error;
-            }
-        });
-    };
+
     return (
         <Fragment>
             <Sidebar>
