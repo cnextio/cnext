@@ -158,7 +158,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             let lineStatus: ICodeLineGroupStatus = {
                 inViewID: inViewID,
                 fromLine: codeToInsert.fromLine,
-                toLine: codeToInsert.fromLine,
+                toLine: codeToInsert.fromLine + 1,
                 status: LineStatus.EDITED,
                 setGroup:
                     codeToInsert.mode === CodeInsertMode.GROUP
@@ -309,6 +309,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             });
         }
     });
+
     useEffect(() => {
         console.log("CodeEditor runQueue");
         if (runQueue.status === RunQueueStatus.STOP) {
