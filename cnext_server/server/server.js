@@ -38,8 +38,9 @@ const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const SelectIPythonKernel = "SelectIPythonKernel";
 const AddRemoteIPythonKernel = "AddRemoteIPythonKernel";
+const EnvManager = "EnvManager";
 const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager, SelectIPythonKernel, AddRemoteIPythonKernel];
-const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
+const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager, EnvManager];
 
 const LSPExecutor = [
     LanguageServer,
