@@ -42,7 +42,7 @@ const GitManager = (props: any) => {
         socket.emit("ping", WebAppEndpoint.GitManager);
         socket.on(WebAppEndpoint.GitManager, (result: string) => {
             try {
-                console.log(`result=>>>`, result);
+                console.log(`result=>>>`, JSON.parse(result));
 
                 if (JSON.parse(result).command_name === CommandName.connect_repo) {
                     setListChanged(JSON.parse(result).content);

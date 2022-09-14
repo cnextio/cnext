@@ -32,6 +32,8 @@ export const getCodeText = (state: RootState) => {
     let inViewID = state.projectManager.inViewID;
     if (inViewID) {
         let codeText = ifElse(state.codeEditor.codeText, inViewID, null);
+        console.log("joinjoin=>", codeText);
+        
         if (codeText) return codeText.join("\n");
     }
     return null;
@@ -164,6 +166,8 @@ export const setCodeTextAndStates = (state: RootState, monaco: Monaco) => {
     let codeText = getCodeText(state);
     let editorModel = getMainEditorModel(monaco);
     if (codeText) {
+        console.log(`codeText`, codeText.toString());
+        
         editorModel?.setValue(codeText);
     }
 };
