@@ -37,6 +37,45 @@ class IPythonKernel():
         self.execute_lock = threading.Lock()
         self._set_execution_complete_condition(False)
 
+    def start_kernel(self, kernel_name):
+        if not self.remote:
+            return
+
+        try:
+            # if self.km.is_alive():
+            log.info('Starting kernel')
+            self.km = jupyter_client.KernelManager(kernel_name=kernel_name)
+            self.km.restart_kernel()
+            self.stop_stream_thread = True
+            self.kc = self.km.blocking_client()
+            self.wait_for_ready()
+            # wait to make sure the stream threads will stop before proceeding
+            while self.shell_msg_thread.is_alive() or self.shell_msg_thread.is_alive():
+                time.sleep(1)
+            self.shell_msg_thread = threading.Thread(
+                target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
+            self.iobuf_msg_thread = threading.Thread(
+                target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
+            self.stop_stream_thread = False
+            self.shell_msg_thread.start()
+            self.iobuf_msg_thread.start()
+            log.info('Kernel started')
+
+            # release execution lock which might be locked during an execution
+            if self.execute_lock.locked():
+                self.execute_lock.release()
+                log.info('Kernel execution lock released')
+                self._set_execution_complete_condition(True)
+                
+            if self.km.is_alive():
+                return True
+            else:
+                return False
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))
+        return False
+
     def shutdown_kernel(self):
         if not self.remote:
             return

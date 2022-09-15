@@ -1,6 +1,6 @@
 import os
 import traceback
-
+import jupyter_client
 from pathlib import Path
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, EnvManagerCommand
@@ -18,6 +18,7 @@ class MessageHandler(BaseMessageHandler):
                 conda_enviroments_file = os.path.join(Path.home(), '.conda', 'environments.txt')
                 enviroments = {
                     'conda': [],
+                    'ipython': jupyter_client.kernelspec.find_kernel_specs(),
                 }
 
                 if os.path.exists(conda_enviroments_file):
@@ -26,6 +27,14 @@ class MessageHandler(BaseMessageHandler):
 
                 message.type = ContentType.ENV_LIST
                 message.content = enviroments
+                message.error = False
+                self._send_to_node(message)
+
+            elif message.command_name == EnvManagerCommand.start:
+                kernel_name = message.content
+
+                message.type = ContentType.KERNEL_START_RESULT
+                message.content = self.user_space.start_executor(kernel_name)
                 message.error = False
                 self._send_to_node(message)
 

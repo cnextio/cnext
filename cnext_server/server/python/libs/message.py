@@ -95,6 +95,7 @@ class ExecutorManagerCommand(str, Enum):
 
 class EnvManagerCommand(str, Enum):
     list = "list"
+    start = "start"
 
 class ModelManagerCommand(str, Enum):
     get_active_models_info = 'get_active_models_info'
@@ -126,6 +127,7 @@ class ContentType(str, Enum):
     IPYTHON_MSG = 'ipython_msg'
     PROJECT_LIST = 'project_list'
     ENV_LIST = 'env_list'
+    KERNEL_START_RESULT = 'kernel_start_result'
     WORKSPACE_METADATA = 'workspace_metadata'
     NONE = 'none'
 

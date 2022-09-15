@@ -154,6 +154,11 @@ class _UserSpace(BaseKernelUserSpace):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
 
+    def start_executor(self, kernel_name = None):
+        self.executor.start_kernel(kernel_name)
+        if self.execution_lock.locked():
+            self.execution_lock.release()
+
     def shutdown_executor(self):
         self.executor.shutdown_kernel()
         if self.execution_lock.locked():
