@@ -199,10 +199,10 @@ _tmp()`;
     const getDefinedStat = (df_id: string, columns: string[]) => {
         if (dataFrameConfig.quantile) {
             getQuantilesPlot(df_id, columns);
-        } 
+        }
         if (dataFrameConfig.histogram) {
             getHistogramPlot(df_id, columns);
-        } 
+        }
     };
 
     /** select columns to get stats based on the update type */
@@ -334,7 +334,7 @@ _tmp()`;
     const socketInit = () => {
         // console.log('DFManager useEffect');
         socket.emit("ping", "DFManager");
-        socket.on(WebAppEndpoint.DFManager, (result: string) => {
+        socket.on(WebAppEndpoint.DFManager, (result: string, ack) => {
             try {
                 let message: IMessage = JSON.parse(result);
                 console.log("DataFrameManager got results for command ", message);
@@ -361,7 +361,10 @@ _tmp()`;
                 } else {
                     dispatch(setTextOutput(message));
                 }
-            } catch {}
+                if (ack) ack();
+            } catch (error) {
+                console.error(error);
+            }
         });
         /** Load dataframe status */
         let message = createMessage(CommandName.reload_df_status, null, 1, {});

@@ -33,7 +33,6 @@ import {
 } from "../../interfaces/IFileManager";
 // import { IWorkSpaceConfig as IWorkSpaceMetadata } from "../../interfaces/IApp";
 import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
-import socket from "../Socket";
 import {
     setActiveProject,
     setFileToOpen,
@@ -52,6 +51,7 @@ import AddBoxIcon from "@mui/icons-material/AddBox";
 import Tooltip from "@mui/material/Tooltip";
 import { isRunQueueBusy } from "../code-panel/libCodeEditor";
 import { OverlayComponent } from "../libs/OverlayComponent";
+import socket from "../Socket";
 
 const NameWithTooltip = ({ children, tooltip }) => {
     return (
@@ -96,9 +96,10 @@ const FileExplorer = (props: any) => {
     const runQueueBusy = useSelector((state: RootState) =>
         isRunQueueBusy(state.codeEditor.runQueue)
     );
+
     const setupSocket = () => {
-        socket.emit("ping", "FileExplorer");
-        socket.on(WebAppEndpoint.FileExplorer, (result: string) => {
+        socket.emit("ping", WebAppEndpoint.FileExplorer);
+        socket.on(WebAppEndpoint.FileExplorer, (result: string, ack) => {
             console.log("FileExplorer got results...", result);
             try {
                 let fmResult: IMessage = JSON.parse(result);
@@ -133,9 +134,10 @@ const FileExplorer = (props: any) => {
                                 dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
-                    }
+                    }                    
                 } else {
                 }
+                if (ack) ack();
             } catch (error) {
                 console.error(error);
             }
@@ -151,7 +153,7 @@ const FileExplorer = (props: any) => {
 
     useEffect(() => {
         let projects: IProjectInfoInWorkspace[] = [];
-        workspaceMetadata.open_projects.forEach((project: IProjectInfoInWorkspace) => {
+        workspaceMetadata.open_projects?.forEach((project: IProjectInfoInWorkspace) => {
             if (project.id === workspaceMetadata.active_project) {
                 dispatch(setActiveProject(project));
             } else {
@@ -561,7 +563,7 @@ const FileExplorer = (props: any) => {
                 </ProjectExplorerToolbar>
             </ProjectToolbar>
             <ProjectList>
-                {workspaceMetadata.open_projects.map((item) => renderProjectItem(item))}
+                {workspaceMetadata.open_projects?.map((item) => renderProjectItem(item))}
                 {createProjectInProgress ? (
                     <Fragment>
                         <NewItemInput

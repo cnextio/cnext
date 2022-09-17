@@ -191,8 +191,9 @@ class BaseKernelUserSpace(_cus.UserSpace):
         # need to set user space on DataFrameTracker, it does not work if set with DataFrame
         _cd.DataFrameTracker.set_user_space(self)
         super().__init__(tracking_df_types, tracking_model_types)
-
-    def globals(self):
+    
+    @classmethod
+    def globals(cls):
         return globals()
 
     def execute(self, code, exec_mode: ExecutionMode = None):

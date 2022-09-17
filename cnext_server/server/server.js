@@ -5,6 +5,9 @@ const fs = require("fs");
 const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
+const { nanoid } = require("nanoid");
+
+// const { instrument } = require("@socket.io/admin-ui");
 const { PythonShell } = require("python-shell");
 const {
     LSPProcess,
@@ -20,10 +23,10 @@ const server = http.createServer(app);
 const options = {
     cors: true,
     maxHttpBufferSize: 1e8,
-    pingTimeout: 60000,
+    pingTimeout: 30000,
 };
 const io = new socketIo.Server(server, options);
-const httpProxyMiddleware = require('http-proxy-middleware');
+const httpProxyMiddleware = require("http-proxy-middleware");
 
 // TODO: move to Interfaces.tsx
 const CodeEditor = "CodeEditor";
@@ -146,14 +149,19 @@ class PythonProcess {
 try {
     app.use(express.static(path.resolve(__dirname, "../public")));
     const proxy = httpProxyMiddleware.createProxyMiddleware({
-        target:'http://127.0.0.1:5008',
+        target: "http://127.0.0.1:5008",
         changeOrigin: true,
-        pathRewrite: {'^/jps': ''},
+        pathRewrite: { "^/jps": "" },
         ws: true,
     });
-    app.use('/jps', proxy);
+    app.use("/jps", proxy);
 
+    let clientSocket;
+    let pendingMessagesForSocket = [];
     io.on("connection", (socket) => {
+        console.log("Socket connected socket's id =", socket.id);
+        clientSocket = socket;
+
         socket.on("ping", (message) => {
             const time = new Date().toLocaleString();
             console.log(`Got ping at ${time}: ${message}`);
@@ -182,11 +190,50 @@ try {
                 lspExecutor.sendMessageToLsp(message);
             }
         });
-        socket.once("disconnect", () => {});
+
+        socket.on('reconnect', () => {
+            /** resend the message in queue upon reconnected */ 
+            console.log("Socket reconnect socket's id =", socket.id)
+            for (const messageQueueItem of pendingMessagesForSocket) {
+                console.log("Sending queued message");
+                let message = messageQueueItem.content;
+                socket.emit(message["webapp_endpoint"], JSON.stringify(message), function () {
+                    let mid = messageQueueItem.id;
+                    console.log(`received ack on message mid=${mid}`);
+                    pendingMessagesForSocket = pendingMessagesForSocket.filter(
+                        (messageQueueItem) => {
+                            return messageQueueItem.id != mid;
+                        }
+                    );
+                });
+            }
+        });
+
+        socket.on("init", () => {
+            console.log("Init message queue for socket with id: ", socket.id); // "ping timeout"
+            pendingMessagesForSocket = [];
+        });
+
+        socket.on("disconnect", (reason) => {
+            clientSocket = null;
+            console.log("Socket disconnected: ", reason); // "ping timeout"
+        });
     });
 
     const sendOutput = (message) => {
-        io.emit(message["webapp_endpoint"], JSON.stringify(message));
+        const mid = nanoid();
+        pendingMessagesForSocket.push({ id: mid, content: message });
+        console.log(`Send message mid=${mid} pendingMessagesForSocket length = ${pendingMessagesForSocket.length}`, );
+        if (clientSocket) {
+            /** FIXME: there is a slight chance that this message will be send right after the socket is reconnected and before
+             * the rest of the queue has been sent. If that is the case the order of received message may be off */
+            clientSocket.emit(message["webapp_endpoint"], JSON.stringify(message), function () {                
+                console.log(`received ack on message mid=${mid}`);
+                pendingMessagesForSocket = pendingMessagesForSocket.filter((messageQueueItem) => {
+                    return messageQueueItem.id != mid;
+                });                
+            });
+        }
     };
 
     server.listen(port, () => console.log(`Waiting on port ${port}`));
