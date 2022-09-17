@@ -9,7 +9,7 @@ const socket = openSocket(CODE_SERVER_SOCKET_ENDPOINT, {
 });
 
 socket.on("connect", function () {
-    console.log(`Socket connect previouslyConnected=${previouslyConnected}`);
+    // console.log(`Socket connect previouslyConnected=${previouslyConnected}`);
     if (previouslyConnected) {
         // send reconnect message to the server so it will send back any message in queue
         socket.emit("reconnect");
