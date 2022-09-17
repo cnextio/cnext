@@ -75,6 +75,7 @@ type ProjectManagerState = {
     projectToAdd: null | string;
     projectToSetActive: null | string;
     showGitManager: boolean;
+    fileDiff: string;
 };
 
 const initialState: ProjectManagerState = {
@@ -109,6 +110,7 @@ const initialState: ProjectManagerState = {
     projectToAdd: null,
     projectToSetActive: null,
     showGitManager: false,
+    fileDiff: "",
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -170,7 +172,9 @@ export const ProjectManagerRedux = createSlice({
         setFileToClose: (state, action) => {
             state.fileToClose = action.payload;
         },
-
+        setFileDiff: (state, action) => {
+            state.fileDiff = action.payload;
+        },
         setFileToOpen: (state, action) => {
             let path = action.payload;
             if (Object.keys(state.openFiles).includes(path)) {
@@ -302,6 +306,7 @@ export const {
     setProjectToSetActive,
     setShowGitManager,
     resetProjectRedux,
+    setFileDiff,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;

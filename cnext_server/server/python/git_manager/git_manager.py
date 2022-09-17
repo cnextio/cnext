@@ -1,5 +1,6 @@
 
 import traceback
+import os
 from project_manager.interfaces import WorkspaceMetadata
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType
@@ -21,10 +22,9 @@ class MessageHandler(BaseMessageHandler):
             output = None
             type = None
             if message.command_name == GitCommand.connect_repo:
-                # print("o=>123")
                 o = self.repo.remotes.origin
                 changedFiles = [
-                    item.a_path for item in self.repo.index.diff(None)]
+                    os.path.normpath(item.a_path) for item in self.repo.index.diff(None)]
                 # print(changedFiles)
                 output = changedFiles
                 # print(self.repo.git.diff("Skywalker/model_training/pytorch.py"))
@@ -34,7 +34,11 @@ class MessageHandler(BaseMessageHandler):
                 #     for p in c.parents: = 
                 #         handle_diff(c.diff(p))
             # create reply message
-            # message.type = self.repo.git.diff("Skywalker/model_training/pytorch.py")
+            if message.command_name == GitCommand.check_diff:
+                print(message.content)
+                print("sdfsdfsd")
+                # output = self.repo.git.diff(self.repo.git.apply(['-3', 'Skywalker/model_training/pytorch.py']))
+                # print(self.repo.git.apply(['-3', 'Skywalker/model_training/pytorch.py']))
             message.content = output
             # message.abc = [
             #         item for item in self.repo.index.diff("Skywalker/model_training/pytorch.py")]
