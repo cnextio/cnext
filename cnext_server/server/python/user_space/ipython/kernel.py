@@ -11,7 +11,7 @@ MESSSAGE_TIMEOUT = 1
 
 class IPythonKernel():
 
-    def start_kernel(self, kernel_name):
+    def start_kernel(self, kernel_name: str = 'python'):
         try:
             # if self.km.is_alive():
             log.info('Starting kernel')
