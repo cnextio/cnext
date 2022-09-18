@@ -10,42 +10,13 @@ log = logs.get_logger(__name__)
 MESSSAGE_TIMEOUT = 1
 
 class IPythonKernel():
-    def __init__(self, connection_info: jupyter_client.KernelConnectionInfo = None):
-        if connection_info:
-            self.remote = True
-            self.kc = jupyter_client.BlockingKernelClient()
-            self.kc.load_connection_info(connection_info)
-            self.kc.start_channels()
-        else:
-            self.remote = False
-            self.km = jupyter_client.KernelManager()
-            self.km.start_kernel()
-            self.kc = self.km.blocking_client()
-
-        self.wait_for_ready()
-
-        self.stop_stream_thread = False
-        self.shell_msg_thread = threading.Thread(
-            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
-        self.iobuf_msg_thread = threading.Thread(
-            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
-        self.shell_msg_thread.start()
-        self.iobuf_msg_thread.start()
-
-        self.message_handler_callback = None
-        ## This lock is used to make sure only one execution is being executed at any moment in time #
-        self.execute_lock = threading.Lock()
-        self._set_execution_complete_condition(False)
 
     def start_kernel(self, kernel_name):
-        if not self.remote:
-            return
-
         try:
             # if self.km.is_alive():
             log.info('Starting kernel')
             self.km = jupyter_client.KernelManager(kernel_name=kernel_name)
-            self.km.restart_kernel()
+            self.km.start_kernel()
             self.stop_stream_thread = True
             self.kc = self.km.blocking_client()
             self.wait_for_ready()
@@ -77,9 +48,6 @@ class IPythonKernel():
         return False
 
     def shutdown_kernel(self):
-        if not self.remote:
-            return
-
         try:
             if self.km.is_alive():
                 log.info('Kernel shutting down')
@@ -91,9 +59,6 @@ class IPythonKernel():
             log.info("Exception %s" % (trace))
 
     def restart_kernel(self):
-        if not self.remote:
-            return
-
         try:
             # if self.km.is_alive():
             log.info('Kernel restarting')
@@ -129,9 +94,6 @@ class IPythonKernel():
         return False
 
     def interrupt_kernel(self):
-        if not self.remote:
-            return
-
         try:
             if self.km.is_alive():
                 self.km.interrupt_kernel()
