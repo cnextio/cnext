@@ -17,7 +17,7 @@ import {
 import { CommandName, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 import { useDispatch } from "react-redux";
-import { setFileDiff } from "../../../redux/reducers/ProjectManagerRedux";
+import { setFileDiff, setInView } from "../../../redux/reducers/ProjectManagerRedux";
 
 const GitManager = (props: any) => {
     const dispatch = useDispatch();
@@ -31,7 +31,7 @@ const GitManager = (props: any) => {
             socket.off(WebAppEndpoint.GitManager);
         };
     }, []);
-    const test = () => {
+    const connectDiff = () => {
         socket.emit(
             WebAppEndpoint.GitManager,
             JSON.stringify({
@@ -42,13 +42,11 @@ const GitManager = (props: any) => {
         );
     };
     useEffect(() => {
-        test();
+        connectDiff();
     }, []);
     const setupSocket = () => {
         socket.emit("ping", WebAppEndpoint.GitManager);
         socket.on(WebAppEndpoint.GitManager, (result: string) => {
-            console.log(`GitManager content`, JSON.parse(result).content);
-
             try {
                 if (JSON.parse(result).command_name === CommandName.connect_repo) {
                     setListChanged(JSON.parse(result).content);
@@ -59,9 +57,10 @@ const GitManager = (props: any) => {
             }
         });
     };
-    const sendFile = (item) => {
+    const openFileDiff = (item) => {
         setItemActive(item);
         dispatch(setFileDiff(item));
+        dispatch(setInView(`${item}?diff_view=true&&diff_mode=code&&commit1=HEAD&&commit2=`));
         socket.emit(
             WebAppEndpoint.GitManager,
             JSON.stringify({
@@ -78,7 +77,8 @@ const GitManager = (props: any) => {
             </ProjectToolbar>
             {listChanged.map((item) => (
                 <div
-                    onClick={() => sendFile(item)}
+                    key={item}
+                    onClick={() => openFileDiff(item)}
                     style={{
                         background: item === itemActice ? "#ddd" : "",
                         cursor: "pointer",
