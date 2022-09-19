@@ -25,25 +25,21 @@ class MessageHandler(BaseMessageHandler):
                 o = self.repo.remotes.origin
                 changedFiles = [
                     os.path.normpath(item.a_path) for item in self.repo.index.diff(None)]
-                # print(changedFiles)
                 output = changedFiles
-                # print(self.repo.git.diff("Skywalker/model_training/pytorch.py"))
-                # for c in repo.iter_commits():
-                #     print c.hexsha
-                #     print c.summary
-                #     for p in c.parents: = 
-                #         handle_diff(c.diff(p))
+
             # create reply message
             if message.command_name == GitCommand.check_diff:
-                print(message.content)
-                print("sdfsdfsd")
-                # output = self.repo.git.diff(self.repo.git.apply(['-3', 'Skywalker/model_training/pytorch.py']))
-                # print(self.repo.git.apply(['-3', 'Skywalker/model_training/pytorch.py']))
+                # print(self.repo.index.diff(
+                #     "HEAD", create_patch=True))
+                diff = self.repo.git.diff([message.content], R=True)
+             # print(self.repo.git.apply(['-3', 'Skywalker/model_training/pytorch.py']))
+                output = diff
+
             message.content = output
             # message.abc = [
             #         item for item in self.repo.index.diff("Skywalker/model_training/pytorch.py")]
             message.error = False
-            self._send_to_node(message)    
+            self._send_to_node(message)
         except:
             trace = traceback.format_exc()
             log.info("Exceptiono=> %s" % (trace))
