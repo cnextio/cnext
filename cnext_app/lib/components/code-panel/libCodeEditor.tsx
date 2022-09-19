@@ -307,6 +307,7 @@ const GenLineStateEffect = StateEffect.define<{
     lineInfo?: IInsertLinesInfo;
     type: GenLineEffectType;
 }>();
+
 const genLineDeco = (reduxState: RootState, view: EditorView) =>
     StateField.define<DecorationSet>({
         create() {
@@ -359,6 +360,7 @@ const genLineDeco = (reduxState: RootState, view: EditorView) =>
         },
         provide: (f) => EditorView.decorations.from(f),
     });
+    
 const setGenLineDeco = (reduxState: RootState, view: EditorView | undefined) => {
     if (view) {
         // console.log('CodeEditor set gencode solid')

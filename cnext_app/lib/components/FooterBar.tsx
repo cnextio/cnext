@@ -16,7 +16,6 @@ const enum FootbarItemName {
     AUTOCOMPLETION = "Autocompletion",
     CODEANALYSIS = "Code Analysis",
     MARKDOWN = "Show Markdown",
-    MINIBAR = "Show Minibar",
 }
 
 interface IFootbarItem {
@@ -39,7 +38,6 @@ const FooterBarComponent = () => {
     const codeEditorSettings = useSelector(
         (rootState: RootState) => rootState.projectManager.settings.code_editor
     );
-    const showMiniBar = useSelector((rootState: RootState) => rootState.projectManager.showMiniBar);
     const richOutputSettings = useSelector(
         (rootState: RootState) => rootState.projectManager.settings.rich_output
     );
@@ -48,7 +46,6 @@ const FooterBarComponent = () => {
     const dispatch = useDispatch();
 
     const leftFootbarItems: IFootbarItem[] = [
-        { name: FootbarItemName.MINIBAR, setting: showMiniBar },
         { name: FootbarItemName.AUTOCOMPLETION, setting: codeEditorSettings.autocompletion },
         { name: FootbarItemName.CODEANALYSIS, setting: codeEditorSettings.lint },
         { name: FootbarItemName.MARKDOWN, setting: richOutputSettings.show_markdown },
@@ -97,9 +94,7 @@ const FooterBarComponent = () => {
                     })
                 );
                 break;
-            case FootbarItemName.MINIBAR:
-                dispatch(setShowMiniBar(!showMiniBar));
-                break;
+
             default:
         }
     };
