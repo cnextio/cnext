@@ -25,7 +25,7 @@ export const MarkdownProcessor = () => {
             if (lineUpdate != null && codeLines != null) {
                 let lineNumber = lineUpdate.updatedStartLineNumber;
                 let markdownText: string[] = [];
-                const groupID = codeLines[lineNumber].groupID;
+                const groupID = codeLines[lineNumber]?.groupID;
                 let lineText = lineUpdate.text[lineNumber];
                 console.log(
                     "CodeEditorRedux markdownText: ",

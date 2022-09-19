@@ -39,6 +39,7 @@ import socket from "../../Socket";
 import { addToRunQueueHoverCell } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
+import PythonLanguageClient from "./languageClient";
 
 const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
@@ -99,11 +100,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
         } else {
             lnToInsertAfter = editor.getPosition().lineNumber;
         }
-        
         if (model && inViewID) {
             const codeLines = state.codeEditor.codeLines[inViewID];
             let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
-            
             while (
                 curGroupID != null &&
                 lnToInsertAfter <
@@ -262,6 +261,20 @@ const CodeEditor = ({ stopMouseEvent }) => {
             });
         }
     });
+
+    useEffect(() => {
+        if (monaco) {
+            const path = store.getState().projectManager.activeProject?.path;
+            const pyLanguageServer = {
+                serverUri: "ws://localhost:3001/python",
+                rootUri: "file:///" + path,
+                documentUri: "file:///" + path,
+                languageId: "python",
+            };
+            const pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco);
+            pyLanguageClient.setupLSConnection();
+        }
+    }, [monaco]);
 
     useEffect(() => {
         console.log("CodeEditor runQueue");
