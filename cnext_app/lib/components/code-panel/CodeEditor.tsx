@@ -273,7 +273,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
      */
     const socketInit = () => {
         socket.emit("ping", WebAppEndpoint.CodeEditor);
-        socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
+        socket.on(WebAppEndpoint.CodeEditor, (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -317,8 +317,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
                         //     lineNumber: codeOutput.metadata.line_range?.fromLine,
                         // };
                         // dispatch(setActiveLine(activeLine));
-                    }
+                    }                    
                 }
+                if (ack) ack();
             } catch (error) {
                 console.error(error);
             }

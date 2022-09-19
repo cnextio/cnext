@@ -54,7 +54,7 @@ const ModelManager = () => {
 
     const setupSocket = () => {
         socket.emit("ping", "ModelManager");
-        socket.on(WebAppEndpoint.ModelManager, (result: string) => {
+        socket.on(WebAppEndpoint.ModelManager, (result: string, ack) => {
             console.log("ModelManager got results...", result);
             try {
                 let mmResult: IMessage = JSON.parse(result);
@@ -74,6 +74,7 @@ const ModelManager = () => {
                 } else {
                     dispatch(setModelViewerInfo(null));
                 }
+                if (ack) ack();
             } catch (error) {
                 throw error;
             }

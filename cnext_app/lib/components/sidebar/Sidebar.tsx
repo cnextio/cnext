@@ -19,7 +19,7 @@ import { useDispatch } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
 import {
     setShowProjectExplorer,
-    setProjectSetting,
+    setProjectConfig,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import { clearAllOutputs } from "../../../redux/reducers/CodeEditorRedux";
 import { ViewMode } from "../../interfaces/IApp";
@@ -86,9 +86,9 @@ const MiniSidebar = () => {
         const state = store.getState();
         const viewMode = state.projectManager.settings.view_mode;
         if (viewMode === ViewMode.HORIZONTAL) {
-            dispatch(setProjectSetting({ view_mode: ViewMode.VERTICAL }));
+            dispatch(setProjectConfig({ view_mode: ViewMode.VERTICAL }));
         } else {
-            dispatch(setProjectSetting({ view_mode: ViewMode.HORIZONTAL }));
+            dispatch(setProjectConfig({ view_mode: ViewMode.HORIZONTAL }));
         }
     };
 

@@ -28,7 +28,7 @@ const CodeToolbar = () => {
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     // const fileSaved = useSelector((state: RootState) => state.codeEditor.fileSaved);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
-    const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
+    const stateFileToSave = useSelector((state: RootState) => state.projectManager.stateFileToSave);
     const savingFile = useSelector((state: RootState) => state.projectManager.savingFile);
     const savingStateFile = useSelector((state: RootState) => state.projectManager.savingStateFile);
     const runQueueBusy = useSelector((state: RootState) =>
@@ -69,7 +69,7 @@ const CodeToolbar = () => {
                         fileSaved={
                             !fileToSave.includes(id) &&
                             savingFile !== id &&
-                            !fileToSaveState.includes(id) &&
+                            !stateFileToSave.includes(id) &&
                             savingStateFile !== id
                         }
                         onMouseEnter={(event: React.MouseEvent) => {

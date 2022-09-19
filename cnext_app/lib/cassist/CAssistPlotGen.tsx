@@ -229,7 +229,7 @@ function sendMessage(message: IMessage, timeout = 10000) {
 
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
 
-        socket.once(WebAppEndpoint.MagicCommandGen, (result: string) => {
+        socket.once(WebAppEndpoint.MagicCommandGen, (result: string, ack) => {
             console.log(`${WebAppEndpoint.MagicCommandGen} got results...`);
             try {
                 let codeOutput: IMessage = JSON.parse(result);
@@ -247,6 +247,7 @@ function sendMessage(message: IMessage, timeout = 10000) {
                         // codeOutputComponent(codeOutput);
                     }
                 }
+                if (ack) ack();
             } catch {
                 resolve(null);
             }

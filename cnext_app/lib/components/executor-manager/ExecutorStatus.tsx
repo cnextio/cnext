@@ -17,7 +17,7 @@ const ExecutorStatus = () => {
     const dispatch = useDispatch();
     const socketInit = () => {
         socket.emit("ping", WebAppEndpoint.ExecutorManager);
-        socket.on(WebAppEndpoint.ExecutorManager, (result: string) => {
+        socket.on(WebAppEndpoint.ExecutorManager, (result: string, ack) => {
             let message: IMessage = JSON.parse(result);
             console.log(`${WebAppEndpoint.ExecutorManager} got results for command `, message);
             if (!message.error) {
@@ -36,6 +36,7 @@ const ExecutorStatus = () => {
                     }
                 }
             }
+            if (ack) ack();
         });
     };
 
