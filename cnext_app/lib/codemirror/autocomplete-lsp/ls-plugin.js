@@ -165,6 +165,10 @@ class LanguageServerPlugin {
                         dynamicRegistration: true,
                         linkSupport: true,
                     },
+                    diagnostic: {
+                        dynamicRegistration: true,
+                        relatedDocumentSupport: true,
+                    },
                 },
                 workspace: {
                     didChangeConfiguration: {
@@ -194,7 +198,6 @@ class LanguageServerPlugin {
                     version: this.documentVersion,
                 },
             });
-
             this.ready = true;
         }
     }
@@ -377,6 +380,8 @@ class LanguageServerPlugin {
                 this.sendChange({
                     documentText: this.view.state.doc.toString(),
                 });
+
+                console.log("testttttttt", line, character, triggerKind, triggerCharacter);
 
                 result = await this.requestLS(
                     WebAppEndpoint.LanguageServerCompletion,

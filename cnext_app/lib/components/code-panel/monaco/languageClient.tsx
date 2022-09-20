@@ -1,19 +1,70 @@
 import socket from "../../../components/Socket";
 import { WebAppEndpoint } from "../../../interfaces/IApp";
-import { getMainEditorModel } from "./libCodeEditor";
 import store, { RootState } from "../../../../redux/store";
 import { getCodeText } from "../libCodeEditor";
+import { CompletionTriggerKind } from "vscode-languageserver-protocol";
 
 class PythonLanguageClient {
     config: any;
     monaco: any;
     timeout = 10000;
     documentVersion = 0;
+    changesTimeout = 0;
+    changesDelay = 3000;
     settings = () => store.getState().projectManager.settings.code_editor;
 
     constructor(config: any, monaco: any) {
         this.config = config;
         this.monaco = monaco;
+        this.registerCompletion(monaco, config, this.requestLS, this.timeout);
+    }
+
+    registerCompletion(monaco: any, config: any, requestLS: Function, timeout: number) {
+        monaco.languages.registerCompletionItemProvider("python", {
+            provideCompletionItems: async function (model: any, position: any) {
+                var word = model.getWordUntilPosition(position);
+
+                var line = position.lineNumber - 1;
+                var character = position.column - 1;
+                var trigKind = CompletionTriggerKind.Invoked;
+                var documentUri = config.documentUri;
+
+                var range = {
+                    startLineNumber: position.lineNumber,
+                    endLineNumber: position.lineNumber,
+                    startColumn: word.startColumn,
+                    endColumn: word.endColumn,
+                };
+
+                let result = await requestLS(
+                    WebAppEndpoint.LanguageServerCompletion,
+                    "textDocument/completion",
+                    {
+                        textDocument: { uri: documentUri },
+                        position: { line, character },
+                        context: {
+                            trigKind,
+                            // triggerCharacter,
+                        },
+                    },
+                    timeout
+                );
+
+                if (result) {
+                    return {
+                        suggestions: result.items.map((item: any) => ({
+                            label: item.label,
+                            kind: item.kind,
+                            documentation: item.documentation,
+                            insertText: item.insertText,
+                            range: range,
+                        })),
+                    };
+                } else {
+                    return { suggestions: [] };
+                }
+            },
+        });
     }
 
     setupLSConnection() {
@@ -32,7 +83,6 @@ class PythonLanguageClient {
                 // );
                 switch (notification.method) {
                     case "textDocument/publishDiagnostics":
-                        console.log("notification.params", notification.params);
                     // if (this.config().lint) {
                     //     // this.processDiagnostics(notification.params);
                     // }
@@ -46,7 +96,7 @@ class PythonLanguageClient {
         this.initializeLS();
     }
 
-    async requestLS(channel: string, method: string, params: object) {
+    async requestLS(channel: string, method: string, params: object, timeout: number) {
         const rpcMessage = { jsonrpc: "2.0", id: 0, method: method, params: params };
 
         return new Promise((resolve, reject) => {
@@ -58,7 +108,7 @@ class PythonLanguageClient {
 
             setTimeout(() => {
                 resolve(null);
-            }, this.timeout);
+            }, timeout);
 
             if (channel) {
                 socket.once(channel, (result: any) => {
@@ -74,88 +124,125 @@ class PythonLanguageClient {
     }
 
     async initializeLS() {
-        const result = await this.requestLS(WebAppEndpoint.LanguageServer, "initialize", {
-            capabilities: {
-                textDocument: {
-                    hover: {
-                        dynamicRegistration: true,
-                        contentFormat: ["plaintext", "markdown"],
-                    },
-                    moniker: {},
-                    synchronization: {
-                        dynamicRegistration: true,
-                        willSave: false,
-                        didSave: false,
-                        willSaveWaitUntil: false,
-                    },
-                    completion: {
-                        dynamicRegistration: true,
-                        completionItem: {
-                            snippetSupport: false,
-                            commitCharactersSupport: true,
-                            documentationFormat: ["plaintext", "markdown"],
-                            deprecatedSupport: false,
-                            preselectSupport: false,
+        const result = await this.requestLS(
+            WebAppEndpoint.LanguageServer,
+            "initialize",
+            {
+                capabilities: {
+                    textDocument: {
+                        hover: {
+                            dynamicRegistration: true,
+                            contentFormat: ["plaintext", "markdown"],
                         },
-                        contextSupport: false,
-                    },
-                    signatureHelp: {
-                        dynamicRegistration: true,
-                        signatureInformation: {
-                            documentationFormat: ["plaintext", "markdown"],
-                            parameterInformation: {
-                                labelOffsetSupport: true,
+                        moniker: {},
+                        synchronization: {
+                            dynamicRegistration: true,
+                            willSave: false,
+                            didSave: false,
+                            willSaveWaitUntil: false,
+                        },
+                        completion: {
+                            dynamicRegistration: true,
+                            completionItem: {
+                                snippetSupport: false,
+                                commitCharactersSupport: true,
+                                documentationFormat: ["plaintext", "markdown"],
+                                deprecatedSupport: false,
+                                preselectSupport: false,
                             },
-                            activeParameterSupport: true,
+                            contextSupport: false,
                         },
-                        contextSupport: true,
+                        signatureHelp: {
+                            dynamicRegistration: true,
+                            signatureInformation: {
+                                documentationFormat: ["plaintext", "markdown"],
+                                parameterInformation: {
+                                    labelOffsetSupport: true,
+                                },
+                                activeParameterSupport: true,
+                            },
+                            contextSupport: true,
+                        },
+                        declaration: {
+                            dynamicRegistration: true,
+                            linkSupport: true,
+                        },
+                        definition: {
+                            dynamicRegistration: true,
+                            linkSupport: true,
+                        },
+                        typeDefinition: {
+                            dynamicRegistration: true,
+                            linkSupport: true,
+                        },
+                        implementation: {
+                            dynamicRegistration: true,
+                            linkSupport: true,
+                        },
+                        diagnostic: {
+                            dynamicRegistration: true,
+                            relatedDocumentSupport: true,
+                        },
                     },
-                    declaration: {
-                        dynamicRegistration: true,
-                        linkSupport: true,
-                    },
-                    definition: {
-                        dynamicRegistration: true,
-                        linkSupport: true,
-                    },
-                    typeDefinition: {
-                        dynamicRegistration: true,
-                        linkSupport: true,
-                    },
-                    implementation: {
-                        dynamicRegistration: true,
-                        linkSupport: true,
+                    workspace: {
+                        didChangeConfiguration: {
+                            dynamicRegistration: true,
+                        },
                     },
                 },
-                workspace: {
-                    didChangeConfiguration: {
-                        dynamicRegistration: true,
+                initializationOptions: null,
+                processId: null,
+                rootUri: this.config.rootUri,
+                workspaceFolders: [
+                    {
+                        name: "root",
+                        uri: this.config.rootUri,
                     },
-                },
+                ],
             },
-            initializationOptions: null,
-            processId: null,
-            rootUri: this.config.rootUri,
-            workspaceFolders: [
-                {
-                    name: "root",
-                    uri: this.config.rootUri,
-                },
-            ],
-        });
+            this.timeout
+        );
 
         let documentText = getCodeText(store.getState()).join("\n");
         if (result && result.capabilities) {
-            this.requestLS(WebAppEndpoint.LanguageServer, "initialized", {});
-            this.requestLS(WebAppEndpoint.LanguageServer, "textDocument/didOpen", {
+            this.requestLS(WebAppEndpoint.LanguageServer, "initialized", {}, this.timeout);
+            this.requestLS(
+                WebAppEndpoint.LanguageServer,
+                "textDocument/didOpen",
+                {
+                    textDocument: {
+                        uri: this.config.documentUri,
+                        languageId: this.config.languageId,
+                        text: documentText,
+                        version: this.documentVersion,
+                    },
+                },
+                this.timeout
+            );
+        }
+    }
+
+    update() {
+        if (this.changesTimeout) clearTimeout(this.changesTimeout);
+        this.changesTimeout = self.setTimeout(() => {
+            this.sendChange();
+        }, this.changesDelay);
+    }
+
+    sendChange() {
+        let documentText = getCodeText(store.getState()).join("\n");
+        this.requestLS(
+            WebAppEndpoint.LanguageServer,
+            "textDocument/didChange",
+            {
                 textDocument: {
                     uri: this.config.documentUri,
-                    languageId: this.config.languageId,
-                    text: documentText,
-                    version: this.documentVersion,
+                    version: this.documentVersion++,
                 },
-            });
-        }
+                contentChanges: [{ text: documentText }],
+            },
+            this.timeout
+        );
     }
 }
 

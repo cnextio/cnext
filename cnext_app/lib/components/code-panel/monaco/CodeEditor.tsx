@@ -89,6 +89,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
     const [editor, setEditor] = useState(null);
+    const [pyLanguageClient, setLanguageClient] = useState<any>(null);
 
     const insertCellBelow = (mode: CodeInsertMode, ln0based: number | null): boolean => {
         let model = getMainEditorModel(monaco);
@@ -320,7 +321,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 documentUri: "file:///" + path,
                 languageId: "python",
             };
-            const pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco);
+            let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco);
+            setLanguageClient(pyLanguageClient);
             pyLanguageClient.setupLSConnection();
         }
     }, [monaco]);
@@ -418,6 +420,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
     };
 
     const handleEditorChange = (value, event) => {
+        // for python language client update
+        if (pyLanguageClient) {
+            pyLanguageClient.update();
+        }
+
         try {
             const state = store.getState();
             let inViewID = state.projectManager.inViewID;
