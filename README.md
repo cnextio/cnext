@@ -100,7 +100,7 @@ CNext is a workspace for DS and AI workflows. This workspace is meant to consoli
 
 PLEASE NOTE: CNext requires npm >= 18.4 and Python >= 3.9.7 . Please ensure your environment meets the minimum requirements before beginning the installation. 
 
-Step 1: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
+Step 1: Make sure `Nodejs` is available in your computer (try `npm --version`)
 
 Step 2: `run` command `pip install -U cnext`
 
