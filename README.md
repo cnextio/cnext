@@ -1,10 +1,83 @@
-# CNext Instructions
+<div align="center">
+  <a href="https://www.cnext.io">
+    <img
+      src="https://avatars.githubusercontent.com/u/105595528?s=200&v=4"
+      alt="CNext Logo"
+      height="64"
+    />
+  </a>
+  <br />
+  <p>
+    <h3>
+      <b>
+        CNext
+      </b>
+    </h3>
+  </p>
+  <p>
+    <b>
+      Open source workspace designed for DS & AI workflows
+    </b>
+  </p>
+  <p>
+     <img
+        src="https://static.pepy.tech/personalized-badge/cnext?period=total&units=international_system&left_color=black&right_color=green&left_text=Downloads"
+        alt="Cnext"
+      />
+      <a href="https://docs.cnext.io/">
+      <img
+        src="https://img.shields.io/badge/docs-GitBook-blue"
+        alt="docs"
+      />
+      </a>
+      <a href="https://www.cnext.io/">
+      <img
+        src="https://img.shields.io/badge/website-CNext-brightgreen"
+        alt="site"
+      />
+      </a>
+      <a href="https://hub.docker.com/r/cycai/cnext">
+      <img
+        src="https://img.shields.io/badge/docker-CNext-blue"
+        alt="docker"
+      />
+      </a>
+      <a href="https://www.youtube.com/watch?v=5eWPkQIUfZw">
+      <img
+        src="https://img.shields.io/badge/demo-YouTube-red"
+        alt="youtube"
+      />
+      </a>
+      <a href="https://join.slack.com/t/cnextcommunity/shared_invite/zt-1ay12cvpx-M29uASHZbFfQ989tVgCHVg">
+      <img
+        src="https://img.shields.io/badge/chat-Slack-purple"
+        alt="slack"
+      />
+      </a>
+  </p>
+  <p>
+    <sub>
+      Built with ❤︎ by
+      <a href="https://github.com/cnextio/cnext/graphs/contributors">
+        contributors
+      </a>
+    </sub>
+  </p>
+  
+  <a href="https://www.cnext.io" target="_blank">
+      <img
+        src="https://www.cnext.io/gifs/2nd.gif"
+        alt="Cnext"
+        width="80%"
+      />
+</div>
 
-[Website] - [Documentation] - [Docker Image] - [Overview Video]
 
-## Setup and run the CNext workspace
 
-CNext is a data-centric workspace for DS and AI. Our workspace is meant to consolidate the most common tasks performed by data scientists and ML engineers. At a high level our workspace allows for:
+
+## 🔮 Overview
+
+CNext is a workspace for DS and AI workflows. This workspace is meant to consolidate the most common tasks performed by data scientists and ML engineers. At a high level our workspace allows for:
 
 -   Data exploration & transformation
 -   Model development / exploration
@@ -12,7 +85,7 @@ CNext is a data-centric workspace for DS and AI. Our workspace is meant to conso
 -   Dashboard & App Generation
 -   Experiment Management
 
-## Features
+## 📢 Features
 
 -   Interactive Python coding envrionment with native Python output (think Jupyter replacement)
 -   Smart code suggestion (categorical values and column names)
@@ -21,21 +94,13 @@ CNext is a data-centric workspace for DS and AI. Our workspace is meant to conso
 -   Experiment and model management
 -   Instant dashboarding
 
-## Installation via Docker
+🚀 **Requests:** We're actively developing features based off user feedback, if you'd like to make any suggestions please feel free to hit us up on Slack. 
 
-cnext is also available via pre-built Docker images. To get started, you can simply run the following command:
-
-```bash
-docker run --rm -it -p 4000:4000 -p 5000:5000 -p 5011:5011 -p 5008:5008 -p 5005:5005 cycai/cnext
-```
-
-The web application will launch at: `http://localhost:4000` or `http://127.0.0.1:4000/`
-
-## Installation via Pip
+## 📄 Installation via Pip
 
 PLEASE NOTE: CNext requires npm >= 18.4 and Python >= 3.9.7 . Please ensure your environment meets the minimum requirements before beginning the installation. 
 
-Step 1: Make sure `Nodejs` is available in your computer (try `npm --version` and make sure it work)
+Step 1: Make sure `Nodejs` is available in your computer (try `npm --version`)
 
 Step 2: `run` command `pip install -U cnext`
 
@@ -47,10 +112,19 @@ Step 3: `run` command `cnext`
 -   Stop application: `Ctrl + c | Command + c`
 -   Note: Pay attention at `CLIENT_PORT`, and `SERVER_PORT` in `.env` file (you will have to change these ports if you already use them on your machine)
 
+## 📄 Installation via Docker
+
+cnext is also available via pre-built Docker images. To get started, you can simply run the following command:
+
+```bash
+docker run --rm -it -p 4000:4000 -p 5000:5000 -p 5011:5011 -p 5008:5008 -p 5005:5005 cycai/cnext
+```
+
+The web application will launch at: `http://localhost:4000` or `http://127.0.0.1:4000/`
 
 ## License
 
-Copyright 2022 CycAI Inc.
+Copyright 2022 CycAI Inc. Distributed under MIT License. 
 ​
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 ​
