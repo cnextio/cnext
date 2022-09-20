@@ -25,7 +25,7 @@ class MessageHandler(BaseMessageHandler):
                     with open(conda_environments_file, 'r') as f:
                         environments['conda'] = f.read().splitlines()
 
-                message.type = ContentType.ENV_LIST
+                message.type = ContentType.ENVIRONMENT_LIST
                 message.content = environments
                 message.error = False
                 self._send_to_node(message)
