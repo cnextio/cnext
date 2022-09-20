@@ -11,9 +11,16 @@ MESSSAGE_TIMEOUT = 1
 
 class IPythonKernel():
 
+    def __init__(self):
+        self.km = None
+        self.message_handler_callback = None
+        self.execute_lock = threading.Lock()
+
     def start_kernel(self, kernel_name: str = 'python'):
         try:
-            # if self.km.is_alive():
+            if self.km is not None:
+                self.shutdown_kernel()
+
             log.info('Starting kernel')
             self.km = jupyter_client.KernelManager(kernel_name=kernel_name)
             self.km.start_kernel()

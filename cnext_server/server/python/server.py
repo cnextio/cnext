@@ -96,7 +96,8 @@ def main(argv):
                     user_space = IPythonUserSpace(
                         (TrackingDataframeType.PANDAS, TrackingDataframeType.CNEXT, TrackingDataframeType.DASK), 
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
-                    
+                    user_space.start_executor()
+
                     executor_manager = execm.MessageHandler(
                         p2n_queue, user_space)
 
@@ -106,7 +107,7 @@ def main(argv):
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.MagicCommandGen: ca.MessageHandler(
                             p2n_queue, user_space),
-                        WebappEndpoint.EnvManager: envm.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.EnvironmentManager: envm.MessageHandler(p2n_queue, user_space),
                     }
 
                     set_executor_working_dir(user_space, workspace_metadata)

@@ -36,11 +36,9 @@ const ExperimentManager = "ExperimentManager";
 const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
-const SelectIPythonKernel = "SelectIPythonKernel";
-const AddRemoteIPythonKernel = "AddRemoteIPythonKernel";
-const EnvManager = "EnvManager";
-const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager, SelectIPythonKernel, AddRemoteIPythonKernel];
-const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager, EnvManager];
+const EnvironmentManager = "EnvironmentManager";
+const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager];
+const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager, EnvironmentManager];
 
 const LSPExecutor = [
     LanguageServer,
@@ -155,6 +153,9 @@ try {
         ws: true,
     });
     app.use('/jps', proxy);
+    app.get('/test', function () {
+        nonCodeExecutor.send2executor(FileManager, {"webapp_endpoint":"FileManager","command_name":"read_file","type":"command","content":"","metadata":{"project_path":"/workspaces/cnext/abc","path":"b.py","timestamp":null},"error":false});
+    });
 
     io.on("connection", (socket) => {
         socket.on("ping", (message) => {
@@ -175,6 +176,7 @@ try {
                 }
                 codeExecutor.send2executor(endpoint, message);
             } else if (NonCodeEndpoints.includes(endpoint)) {
+                console.log('message', message);
                 let jsonMessage = JSON.parse(message);
                 console.log(
                     "Receive msg from client, server will run:",
@@ -186,9 +188,12 @@ try {
             }
         });
         socket.once("disconnect", () => {});
+
+
     });
 
     const sendOutput = (message) => {
+        console.log('output', message);
         io.emit(message["webapp_endpoint"], JSON.stringify(message));
     };
 
