@@ -19,6 +19,7 @@ from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
 from logs_manager import logs_manager as lm
+from environment_manager import environment_manager as envm
 from jupyter_server_manager import jupyter_server_manager as jsm
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, ExecutorManagerCommand, ExecutorType
@@ -96,6 +97,12 @@ def main(argv):
                         (TrackingDataframeType.PANDAS, TrackingDataframeType.CNEXT, TrackingDataframeType.DASK), 
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
                     
+                    ## start an ipython kernel with a default spec or spec from the config #
+                    default_ipython_kernel_spec = 'python'
+                    if hasattr(server_config, 'default_ipython_kernel_spec'):
+                        default_ipython_kernel_spec = server_config.default_ipython_kernel_spec
+                    user_space.start_executor(default_ipython_kernel_spec)
+
                     executor_manager = execm.MessageHandler(
                         p2n_queue, user_space)
 
@@ -104,7 +111,8 @@ def main(argv):
                         WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.MagicCommandGen: ca.MessageHandler(
-                            p2n_queue, user_space)
+                            p2n_queue, user_space),
+                        WebappEndpoint.EnvironmentManager: envm.MessageHandler(p2n_queue, user_space),
                     }
 
                     set_executor_working_dir(user_space, workspace_metadata)

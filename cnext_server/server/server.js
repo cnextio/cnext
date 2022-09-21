@@ -39,7 +39,15 @@ const ExperimentManager = "ExperimentManager";
 const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
-const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager];
+const EnvironmentManager = "EnvironmentManager";
+const CodeEndpoints = [
+    CodeEditor,
+    DFManager,
+    ModelManager,
+    MagicCommandGen,
+    ExecutorManager,
+    EnvironmentManager,
+];
 const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
 
 const LSPExecutor = [
