@@ -75,8 +75,8 @@ class IPythonKernel():
             self.kc = self.km.blocking_client()
             self.wait_for_ready()
             # wait to make sure the stream threads will stop before proceeding
-            # while self.shell_msg_thread.is_alive() or self.iobuf_msg_thread.is_alive():
-            #     time.sleep(1)
+            while self.shell_msg_thread.is_alive() or self.iobuf_msg_thread.is_alive():
+                time.sleep(1)
             self.shell_msg_thread = threading.Thread(
                 target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
             self.iobuf_msg_thread = threading.Thread(
