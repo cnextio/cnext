@@ -96,11 +96,11 @@ def main(argv):
                     user_space = IPythonUserSpace(
                         (TrackingDataframeType.PANDAS, TrackingDataframeType.CNEXT, TrackingDataframeType.DASK), 
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
+                    
+                    ## start an ipython kernel with a default spec or spec from the config #
                     default_ipython_kernel_spec = 'python'
-
                     if hasattr(server_config, 'default_ipython_kernel_spec'):
                         default_ipython_kernel_spec = server_config.default_ipython_kernel_spec
-
                     user_space.start_executor(default_ipython_kernel_spec)
 
                     executor_manager = execm.MessageHandler(

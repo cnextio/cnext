@@ -17,7 +17,7 @@ class IPythonKernel():
         self.message_handler_callback = None
         self.execute_lock = threading.Lock()
 
-    def start_kernel(self, kernel_name: str = 'python'):
+    def start_kernel(self, kernel_name: str):
         try:
             if self.km is not None:
                 self.shutdown_kernel()
@@ -183,7 +183,6 @@ class IPythonKernel():
             log.info("Exception %s" % (trace))
 
     def execute(self, code, exec_mode=None, message_handler_callback=None, client_message=None):
-        print("Execute code: %s" % code)
         self.execute_lock.acquire()
         log.info('Kernel execution lock acquired')
         self._set_execution_complete_condition(False)
