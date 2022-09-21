@@ -173,7 +173,6 @@ try {
                 }
                 codeExecutor.send2executor(endpoint, message);
             } else if (NonCodeEndpoints.includes(endpoint)) {
-                console.log('message', message);
                 let jsonMessage = JSON.parse(message);
                 console.log(
                     "Receive msg from client, server will run:",
