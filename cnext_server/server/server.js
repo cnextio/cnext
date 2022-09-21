@@ -153,9 +153,6 @@ try {
         ws: true,
     });
     app.use('/jps', proxy);
-    app.get('/test', function () {
-        nonCodeExecutor.send2executor(FileManager, {"webapp_endpoint":"FileManager","command_name":"read_file","type":"command","content":"","metadata":{"project_path":"/workspaces/cnext/abc","path":"b.py","timestamp":null},"error":false});
-    });
 
     io.on("connection", (socket) => {
         socket.on("ping", (message) => {
