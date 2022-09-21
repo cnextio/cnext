@@ -46,6 +46,7 @@ import {
     IRunQueueItem,
     IRunQueue,
     CellCommand,
+    IPythonMessageType,
 } from "../../interfaces/ICodeEditor";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
@@ -282,7 +283,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 if (inViewID) {
                     handleResultData(codeOutput);
                     if (
-                        codeOutput.metadata?.msg_type === "execute_reply" &&
+                        codeOutput.metadata?.msg_type === IPythonMessageType.EXECUTE_REPLY &&
                         codeOutput.content?.status != null
                     ) {
                         // let lineStatus: ICodeLineStatus;

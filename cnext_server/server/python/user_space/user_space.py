@@ -51,7 +51,6 @@ class IPythonUserSpace(_cus.UserSpace):
     def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
         super().__init__(tracking_df_types, tracking_model_types)
         self.executor: IPythonKernel = IPythonKernel()
-        self.init_executor()
         self.execution_lock = threading.Lock()
         self.result = None
 
@@ -153,6 +152,15 @@ class _UserSpace(BaseKernelUserSpace):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
 
+    def send_stdin(self, input_text):
+        return self.executor.send_stdin(input_text)
+
+    def start_executor(self, kernel_name: str):
+        self.executor.start_kernel(kernel_name)
+        self.init_executor()
+        if self.execution_lock.locked():
+            self.execution_lock.release()
+
     def shutdown_executor(self):
         self.executor.shutdown_kernel()
         if self.execution_lock.locked():
@@ -170,10 +178,10 @@ class _UserSpace(BaseKernelUserSpace):
         if self.execution_lock.locked():
             self.execution_lock.release()
         return result
-    
+
     def is_alive(self):
         return self.executor.is_alive()
-        
+
     def set_executor_working_dir(self, path):
         code = "import os; os.chdir('{}')".format(path)
         return self.executor.execute(code)
@@ -191,7 +199,7 @@ class BaseKernelUserSpace(_cus.UserSpace):
         # need to set user space on DataFrameTracker, it does not work if set with DataFrame
         _cd.DataFrameTracker.set_user_space(self)
         super().__init__(tracking_df_types, tracking_model_types)
-    
+
     @classmethod
     def globals(cls):
         return globals()

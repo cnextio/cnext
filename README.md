@@ -20,10 +20,12 @@
     </b>
   </p>
   <p>
+     <a href="https://pepy.tech/project/cnext">
      <img
         src="https://static.pepy.tech/personalized-badge/cnext?period=total&units=international_system&left_color=black&right_color=green&left_text=Downloads"
         alt="Cnext"
       />
+      </a>
       <a href="https://docs.cnext.io/">
       <img
         src="https://img.shields.io/badge/docs-GitBook-blue"
