@@ -316,7 +316,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         if (monaco) {
             const path = store.getState().projectManager.activeProject?.path;
             const pyLanguageServer = {
-                serverUri: "ws://localhost:3001/python",
+                serverUri: "ws://" + process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT + "/python",
                 rootUri: "file:///" + path,
                 documentUri: "file:///" + path,
                 languageId: "python",

@@ -380,9 +380,6 @@ class LanguageServerPlugin {
                 this.sendChange({
                     documentText: this.view.state.doc.toString(),
                 });
-
-                console.log("testttttttt", line, character, triggerKind, triggerCharacter);
-
                 result = await this.requestLS(
                     WebAppEndpoint.LanguageServerCompletion,
                     "textDocument/completion",
