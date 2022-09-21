@@ -19,7 +19,7 @@ from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
 from logs_manager import logs_manager as lm
-from env_manager import env_manager as envm
+from environment_manager import environment_manager as envm
 from jupyter_server_manager import jupyter_server_manager as jsm
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, ExecutorManagerCommand, ExecutorType
