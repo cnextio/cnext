@@ -91,7 +91,7 @@ class ExecutorManagerCommand(str, Enum):
     interrupt_kernel = 'interrupt_kernel'
     get_status = 'get_status'
 
-class EnvironmentManager(str, Enum):
+class EnvironmentManagerCommand(str, Enum):
     list = "list"
     start = "start"
 

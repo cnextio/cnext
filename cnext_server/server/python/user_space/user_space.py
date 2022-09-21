@@ -49,10 +49,9 @@ class IPythonUserSpace(_cus.UserSpace):
         The code is executed on a kernel such as BaseKernel or IPythonKernel
     '''
 
-    def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = (), connection_info: jupyter_client.KernelConnectionInfo = None):
+    def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
         super().__init__(tracking_df_types, tracking_model_types)
-        self.executor: IPythonKernel = IPythonKernel(connection_info)
-        self.init_executor()
+        self.executor: IPythonKernel = IPythonKernel()
         self.execution_lock = threading.Lock()
         self.result = None
 
@@ -154,8 +153,9 @@ class _UserSpace(BaseKernelUserSpace):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
 
-    def start_executor(self, kernel_name = None):
+    def start_executor(self, kernel_name: str = 'python'):
         self.executor.start_kernel(kernel_name)
+        self.init_executor()
         if self.execution_lock.locked():
             self.execution_lock.release()
 

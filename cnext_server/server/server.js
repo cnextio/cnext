@@ -37,8 +37,8 @@ const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
-const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager];
-const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager, EnvironmentManager];
+const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager, EnvironmentManager];
+const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
 
 const LSPExecutor = [
     LanguageServer,
@@ -190,7 +190,6 @@ try {
     });
 
     const sendOutput = (message) => {
-        console.log('output', message);
         io.emit(message["webapp_endpoint"], JSON.stringify(message));
     };
 

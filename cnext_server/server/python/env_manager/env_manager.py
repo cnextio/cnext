@@ -3,7 +3,7 @@ import traceback
 import jupyter_client
 from pathlib import Path
 from libs.message_handler import BaseMessageHandler
-from libs.message import ContentType, EnvironmentManager
+from libs.message import ContentType, EnvironmentManagerCommand
 from libs import logs
 
 log = logs.get_logger(__name__)
@@ -14,7 +14,7 @@ class MessageHandler(BaseMessageHandler):
 
     def handle_message(self, message):
         try:
-            if message.command_name == EnvironmentManager.list:
+            if message.command_name == EnvironmentManagerCommand.list:
                 conda_environments_file = os.path.join(Path.home(), '.conda', 'environments.txt')
                 environments = {
                     'conda': [],
@@ -30,7 +30,7 @@ class MessageHandler(BaseMessageHandler):
                 message.error = False
                 self._send_to_node(message)
 
-            elif message.command_name == EnvironmentManager.start:
+            elif message.command_name == EnvironmentManagerCommand.start:
                 kernel_name = message.content
 
                 message.type = ContentType.KERNEL_START_RESULT
