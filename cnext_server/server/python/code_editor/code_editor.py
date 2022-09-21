@@ -58,6 +58,13 @@ class MessageHandler(BaseMessageHandler):
             message.content = ipython_msg.content['data']
         return message
 
+    def _process_input_request_message(self, message, ipython_msg):
+        message.error = False
+        message.type = ContentType.INPUT_REQUEST
+        message.sub_type = SubContentType.NONE
+        message.content = ipython_msg.content
+        return message
+
     def _process_other_message(self, message, ipython_msg):
         message.error = False
         message.type = ContentType.IPYTHON_MSG
@@ -71,9 +78,10 @@ class MessageHandler(BaseMessageHandler):
             classify it according to the message type then return it to the client
         """
         ipython_message = IpythonResultMessage(**ipython_message)
-        message = Message(**{'webapp_endpoint': WebappEndpoint.CodeEditor, 'command_name': client_message.command_name})
+        message = Message(**{'webapp_endpoint': WebappEndpoint.CodeEditor,
+                             'command_name': client_message.command_name})
 
-        log.info('Got message from ipython: %s %s',
+        log.info('Got message from ipython: header["msg_type"]=%s content["status"]=%s',
                  ipython_message.header['msg_type'], ipython_message.content['status'] if 'status' in ipython_message.content else None)
 
         # Add header message from ipython to message metadata
@@ -92,6 +100,9 @@ class MessageHandler(BaseMessageHandler):
             message = self._process_stream_message(message, ipython_message)
         elif self._is_execute_result(ipython_message.header) or self._is_display_data_result(ipython_message.header):
             message = self._process_rich_ouput(message, ipython_message)
+        elif self._is_input_request(ipython_message.header):
+            message = self._process_input_request_message(
+                message, ipython_message)
         else:
             message = self._process_other_message(message, ipython_message)
 
@@ -101,7 +112,7 @@ class MessageHandler(BaseMessageHandler):
         try:
             # if self.request_metadata is not None:
             message = self._create_return_message(
-                ipython_message=ipython_message, stream_type=stream_type, client_message=client_message)            
+                ipython_message=ipython_message, stream_type=stream_type, client_message=client_message)
             # log.info('Reply message: %s' % message)
             if message != None:
                 self._send_to_node(message)
@@ -120,8 +131,9 @@ class MessageHandler(BaseMessageHandler):
             # self._get_active_model()
         except:
             trace = traceback.format_exc()
-            log.info("Exception %s" % (trace))            
-            error_message = BaseMessageHandler._create_error_message(message.webapp_endpoint, trace, message.command_name, {})
+            log.info("Exception %s" % (trace))
+            error_message = BaseMessageHandler._create_error_message(
+                message.webapp_endpoint, trace, message.command_name, {})
             self._send_to_node(error_message)
 
     def _get_active_dfs_status(self):
@@ -133,5 +145,5 @@ class MessageHandler(BaseMessageHandler):
     def _get_active_models_info(self):
         active_models = self.user_space.get_active_models_info()
         active_models_message = Message(**{"webapp_endpoint": WebappEndpoint.ModelManager, "command_name": ModelManagerCommand.get_active_models_info,
-                                              "seq_number": 1, "type": "dict", "content": active_models, "error": False})
+                                           "seq_number": 1, "type": "dict", "content": active_models, "error": False})
         self._send_to_node(active_models_message)

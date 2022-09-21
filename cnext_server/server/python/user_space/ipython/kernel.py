@@ -9,6 +9,7 @@ log = logs.get_logger(__name__)
 
 MESSSAGE_TIMEOUT = 1
 
+
 class IPythonKernel():
     def __init__(self):
         self.km = jupyter_client.KernelManager()
@@ -17,17 +18,30 @@ class IPythonKernel():
         self.wait_for_ready()
 
         self.stop_stream_thread = False
-        self.shell_msg_thread = threading.Thread(
-            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
-        self.iobuf_msg_thread = threading.Thread(
-            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
-        self.shell_msg_thread.start()
-        self.iobuf_msg_thread.start()
+        self.stream_types = [IPythonConstants.StreamType.SHELL,
+                             IPythonConstants.StreamType.IOBUF, IPythonConstants.StreamType.STDIN]
+        self.init_msg_thead()
 
         self.message_handler_callback = None
         ## This lock is used to make sure only one execution is being executed at any moment in time #
         self.execute_lock = threading.Lock()
         self._set_execution_complete_condition(False)
+
+    def init_msg_thead(self):
+        self.msg_threads = []
+        for type in self.stream_types:
+            self.msg_threads.append(threading.Thread(
+                target=self.handle_ipython_stream, args=(type,), daemon=True))
+            self.msg_threads[-1].start()
+        
+        
+
+    def is_msg_thead_alive(self):
+        self.msg_threads = []
+        for msg_thread in self.msg_threads:
+            if msg_thread.is_alive():
+                return True
+        return False
 
     def shutdown_kernel(self):
         try:
@@ -49,15 +63,10 @@ class IPythonKernel():
             self.kc = self.km.blocking_client()
             self.wait_for_ready()
             # wait to make sure the stream threads will stop before proceeding
-            while self.shell_msg_thread.is_alive() or self.shell_msg_thread.is_alive():
+            while self.is_msg_thead_alive():
                 time.sleep(1)
-            self.shell_msg_thread = threading.Thread(
-                target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
-            self.iobuf_msg_thread = threading.Thread(
-                target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
-            self.stop_stream_thread = False
-            self.shell_msg_thread.start()
-            self.iobuf_msg_thread.start()
+
+            self.init_msg_thead()
             log.info('Kernel restarted')
 
             # release execution lock which might be locked during an execution
@@ -65,7 +74,7 @@ class IPythonKernel():
                 self.execute_lock.release()
                 log.info('Kernel execution lock released')
                 self._set_execution_complete_condition(True)
-                
+
             if self.km.is_alive():
                 return True
             else:
@@ -124,6 +133,9 @@ class IPythonKernel():
                     elif stream_type == IPythonConstants.StreamType.IOBUF:
                         ipython_message = self.kc.get_iopub_msg(
                             timeout=MESSSAGE_TIMEOUT)
+                    elif stream_type == IPythonConstants.StreamType.STDIN:
+                        ipython_message = self.kc.get_stdin_msg(
+                            timeout=MESSSAGE_TIMEOUT)
 
                     if 'status' in ipython_message['content']:
                         log.info('%s msg: msg_type = %s, status = %s' % (
@@ -163,3 +175,7 @@ class IPythonKernel():
         self.message_handler_callback = message_handler_callback
         self.client_message = client_message
         self.kc.execute(code)
+
+    def send_stdin(self, input_text):
+        log.info('Send stdin input to kernel ')
+        self.kc.input(input_text)

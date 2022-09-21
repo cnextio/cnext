@@ -1,3 +1,4 @@
+import asyncio
 import time
 import psutil
 from traitlets.config import Configurable
@@ -43,8 +44,10 @@ class ResourceStatus:
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
+        event_loop = asyncio.get_event_loop()
+        ## we have to pass event_loop to the thread otherwise it won't have one #
         executor_manager_thread = threading.Thread(
-            target=self.handle_message, args=(user_space,), daemon=True)
+            target=self.handle_message, args=(event_loop,), daemon=True)
         executor_manager_thread.start()
 
         server_app = ServerApp()
@@ -139,8 +142,9 @@ class MessageHandler(BaseMessageHandler):
             metrics.update(cpu_percent=cpu_percent, cpu_count=cpu_count)
         return metrics
 
-    def handle_message(self, message):
+    def handle_message(self, event_loop):
         log.info("Kernel control thread started")
+        asyncio.set_event_loop(event_loop)
         ## reading config here to get the most updated version #
         server_config = read_config(SERVER_CONFIG_PATH)
         n2p_queue = MessageQueuePull(
@@ -175,7 +179,11 @@ class MessageHandler(BaseMessageHandler):
                                          'command_name': message.command_name,
                                          'content': {'alive': status}})
                     #  'content': {'alive': status, 'resource': resource_usage}})
-
+                elif message.command_name == ExecutorManagerCommand.send_stdin:
+                    self.user_space.send_stdin(message.content)
+                    message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
+                                         'command_name': message.command_name,
+                                         'content': {'status': 'done'}})
                 self._send_to_node(message)
         except:
             trace = traceback.format_exc()

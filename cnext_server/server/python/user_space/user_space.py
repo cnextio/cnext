@@ -153,6 +153,9 @@ class _UserSpace(BaseKernelUserSpace):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
 
+    def send_stdin(self, input_text):
+        return self.executor.send_stdin(input_text)
+
     def shutdown_executor(self):
         self.executor.shutdown_kernel()
         if self.execution_lock.locked():
@@ -170,10 +173,10 @@ class _UserSpace(BaseKernelUserSpace):
         if self.execution_lock.locked():
             self.execution_lock.release()
         return result
-    
+
     def is_alive(self):
         return self.executor.is_alive()
-        
+
     def set_executor_working_dir(self, path):
         code = "import os; os.chdir('{}')".format(path)
         return self.executor.execute(code)
@@ -191,7 +194,7 @@ class BaseKernelUserSpace(_cus.UserSpace):
         # need to set user space on DataFrameTracker, it does not work if set with DataFrame
         _cd.DataFrameTracker.set_user_space(self)
         super().__init__(tracking_df_types, tracking_model_types)
-    
+
     @classmethod
     def globals(cls):
         return globals()

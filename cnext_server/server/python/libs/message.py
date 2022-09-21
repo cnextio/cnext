@@ -89,6 +89,7 @@ class ExecutorManagerCommand(str, Enum):
     restart_kernel = 'restart_kernel'
     interrupt_kernel = 'interrupt_kernel'
     get_status = 'get_status'
+    send_stdin = 'send_stdin'
 
 
 class ModelManagerCommand(str, Enum):
@@ -121,6 +122,7 @@ class ContentType(str, Enum):
     IPYTHON_MSG = 'ipython_msg'
     PROJECT_LIST = 'project_list'
     WORKSPACE_METADATA = 'workspace_metadata'
+    INPUT_REQUEST = 'input_request'
     NONE = 'none'
 
     def __str__(self):
