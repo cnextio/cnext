@@ -23,7 +23,7 @@ const options = {
     pingTimeout: 60000,
 };
 const io = new socketIo.Server(server, options);
-const httpProxyMiddleware = require('http-proxy-middleware');
+const httpProxyMiddleware = require("http-proxy-middleware");
 
 // TODO: move to Interfaces.tsx
 const CodeEditor = "CodeEditor";
@@ -37,7 +37,14 @@ const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
-const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager, EnvironmentManager];
+const CodeEndpoints = [
+    CodeEditor,
+    DFManager,
+    ModelManager,
+    MagicCommandGen,
+    ExecutorManager,
+    EnvironmentManager,
+];
 const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
 
 const LSPExecutor = [
@@ -147,12 +154,12 @@ class PythonProcess {
 try {
     app.use(express.static(path.resolve(__dirname, "../public")));
     const proxy = httpProxyMiddleware.createProxyMiddleware({
-        target:'http://127.0.0.1:5008',
+        target: "http://127.0.0.1:5008",
         changeOrigin: true,
-        pathRewrite: {'^/jps': ''},
+        pathRewrite: { "^/jps": "" },
         ws: true,
     });
-    app.use('/jps', proxy);
+    app.use("/jps", proxy);
 
     io.on("connection", (socket) => {
         socket.on("ping", (message) => {
@@ -184,8 +191,6 @@ try {
             }
         });
         socket.once("disconnect", () => {});
-
-
     });
 
     const sendOutput = (message) => {
