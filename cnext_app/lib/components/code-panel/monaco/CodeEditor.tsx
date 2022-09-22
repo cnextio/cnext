@@ -44,7 +44,6 @@ import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 import { PythonLanguageClient, LanguageProvider } from "./languageClient";
 
 const CodeEditor = ({ stopMouseEvent }: any) => {
-    const [languageID, setLanguage] = useState<string | null>(null);
     const monaco = useMonaco();
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
@@ -264,7 +263,6 @@ const CodeEditor = ({ stopMouseEvent }: any) => {
             const nameSplit = inViewID.split(".");
             const fileExt = nameSplit[nameSplit.length - 1];
             const languageID = LanguageProvider[fileExt];
-            setLanguage(languageID);
             monaco.languages.register({ id: languageID });
 
             // TODO: make folding for JSON code
@@ -279,7 +277,7 @@ const CodeEditor = ({ stopMouseEvent }: any) => {
                     serverUri: "ws://" + process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT,
                     rootUri: "file:///" + path,
                     documentUri: "file:///" + path,
-                    languageId: "python",
+                    languageId: languageID,
                 };
                 let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco);
                 setLanguageClient(pyLanguageClient);
