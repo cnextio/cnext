@@ -41,15 +41,17 @@ import socket from "../../Socket";
 import { addToRunQueueHoverCell, addToRunQueueHoverLine } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
-import PythonLanguageClient from "./languageClient";
+import { PythonLanguageClient, LanguageProvider } from "./languageClient";
 
-const CodeEditor = ({ stopMouseEvent }) => {
+const CodeEditor = ({ stopMouseEvent }: any) => {
+    const [languageID, setLanguage] = useState<string | null>(null);
     const monaco = useMonaco();
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
         (state: RootState) => state.executorManager.executorRestartCounter
     );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+
     /** this is used to save the state such as scroll pos and folding status */
     const [curInViewID, setCurInViewID] = useState<string | null>(null);
     const activeProjectID = useSelector(
@@ -258,14 +260,33 @@ const CodeEditor = ({ stopMouseEvent }) => {
     }, []);
 
     useEffect(() => {
-        // console.log("CodeEditor useEffect container view", container, view);
-        if (monaco) {
-            monaco.languages.register({ id: "python" });
-            monaco.languages.registerFoldingRangeProvider("python", {
+        if (monaco && inViewID) {
+            const nameSplit = inViewID.split(".");
+            const fileExt = nameSplit[nameSplit.length - 1];
+            const languageID = LanguageProvider[fileExt];
+            setLanguage(languageID);
+            monaco.languages.register({ id: languageID });
+
+            // TODO: make folding for JSON code
+            monaco.languages.registerFoldingRangeProvider(languageID, {
                 provideFoldingRanges: (model, context, token) => getCellFoldRange(),
             });
+
+            // TODO: init LS for another code [json,sql]
+            if (languageID === LanguageProvider["py"]) {
+                const path = store.getState().projectManager.activeProject?.path;
+                const pyLanguageServer = {
+                    serverUri: "ws://" + process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT,
+                    rootUri: "file:///" + path,
+                    documentUri: "file:///" + path,
+                    languageId: "python",
+                };
+                let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco);
+                setLanguageClient(pyLanguageClient);
+                pyLanguageClient.setupLSConnection();
+            }
         }
-    });
+    }, [inViewID, monaco]);
 
     // add action
     useEffect(() => {
@@ -312,20 +333,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     });
 
-    useEffect(() => {
-        if (monaco) {
-            const path = store.getState().projectManager.activeProject?.path;
-            const pyLanguageServer = {
-                serverUri: "ws://" + process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT + "/python",
-                rootUri: "file:///" + path,
-                documentUri: "file:///" + path,
-                languageId: "python",
-            };
-            let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco);
-            setLanguageClient(pyLanguageClient);
-            pyLanguageClient.setupLSConnection();
-        }
-    }, [monaco]);
+    useEffect(() => {}, [monaco]);
 
     useEffect(() => {
         console.log("CodeEditor runQueue");

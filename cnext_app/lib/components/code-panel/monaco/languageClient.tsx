@@ -16,10 +16,10 @@ class PythonLanguageClient {
     constructor(config: any, monaco: any) {
         this.config = config;
         this.monaco = monaco;
-        this.registerCompletion(monaco, config, this.requestLS, this.timeout);
+        this.registerCompletion(monaco, config, this.requestLS, this.timeout, this.settings);
     }
 
-    registerCompletion(monaco: any, config: any, requestLS: Function, timeout: number) {
+    registerCompletion(monaco: any, config: any, requestLS: Function, timeout: number, settings) {
         monaco.languages.registerCompletionItemProvider("python", {
             provideCompletionItems: async function (model: any, position: any) {
                 var word = model.getWordUntilPosition(position);
@@ -35,20 +35,21 @@ class PythonLanguageClient {
                     startColumn: word.startColumn,
                     endColumn: word.endColumn,
                 };
-
-                let result = await requestLS(
-                    WebAppEndpoint.LanguageServerCompletion,
-                    "textDocument/completion",
-                    {
-                        textDocument: { uri: documentUri },
-                        position: { line, character },
-                        context: {
-                            trigKind,
-                            // triggerCharacter,
+                let result = [];
+                if (settings().autocompletion)
+                    result = await requestLS(
+                        WebAppEndpoint.LanguageServerCompletion,
+                        "textDocument/completion",
+                        {
+                            textDocument: { uri: documentUri },
+                            position: { line, character },
+                            context: {
+                                trigKind,
+                                // triggerCharacter,
+                            },
                         },
-                    },
-                    timeout
-                );
+                        timeout
+                    );
 
                 if (result) {
                     return {
@@ -83,9 +84,10 @@ class PythonLanguageClient {
                 // );
                 switch (notification.method) {
                     case "textDocument/publishDiagnostics":
-                    // if (this.config().lint) {
-                    //     // this.processDiagnostics(notification.params);
-                    // }
+                        if (this.settings().lint) {
+                            console.log("textDocument/publishDiagnostics", notification.params);
+                            // this.processDiagnostics(notification.params);
+                        }
                 }
             } catch (error) {
                 console.error(error);
@@ -246,4 +248,13 @@ class PythonLanguageClient {
     }
 }
 
-export default PythonLanguageClient;
+type LanguageObjectType = {
+    [key: string]: string;
+};
+const LanguageProvider: LanguageObjectType = {
+    py: "python",
+    json: "json",
+    sql: "sql",
+};
+
+export { PythonLanguageClient, LanguageProvider };
