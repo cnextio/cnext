@@ -142,6 +142,7 @@ class FileManagerMessageParams:
         self.open_order = []
         self.timestamp = None
         self.path = None
+        self.path_diff = None
         self.project_path = None
         self.is_file = None
 
@@ -162,5 +163,7 @@ class FileManagerMessageParams:
             self.open_order = params['open_order']
         if 'timestamp' in params.keys():
             self.timestamp = params['timestamp']
+        if 'path_diff' in params.keys():
+            self.path_diff = params['path_diff']    
         if 'is_file' in params.keys():
             self.is_file = params['is_file']

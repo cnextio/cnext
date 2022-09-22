@@ -1,5 +1,6 @@
 import os
 import traceback
+import git
 
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType
@@ -17,6 +18,7 @@ log = logs.get_logger(__name__)
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
+        self.repo = git.repo.Repo('D:\CNext\cnext_sample_projects')
         # active_project: projects.ProjectMetadata = None
         # open_projects = workspace_info.open_projects
         # if workspace_info.active_project is not None:
@@ -53,6 +55,24 @@ class MessageHandler(BaseMessageHandler):
                     type = ContentType.NONE
                 else:
                     type = ContentType.FILE_CONTENT
+            elif message.command_name == ProjectCommand.get_file_changed:
+                changedFiles = [
+                    item.a_path for item in self.repo.index.diff(None)]
+                print("changedFiles", changedFiles)
+                result = changedFiles
+                if result == None:
+                    type = ContentType.NONE
+                else:
+                    type = ContentType.FILE_CONTENT       
+            elif message.command_name == ProjectCommand.read_diff:
+                result = files.read_file(messageParams.norm_project_path, messageParams.norm_path,
+                                         messageParams.timestamp)
+                diff = self.repo.git.diff([messageParams.path_diff], R=True)
+                result.diff = diff
+                if result == None:
+                    type = ContentType.NONE
+                else:
+                    type = ContentType.FILE_CONTENT        
             elif message.command_name == ProjectCommand.save_file:
                 result = files.save_file(
                     messageParams.norm_project_path, messageParams.norm_path, content=message.content)

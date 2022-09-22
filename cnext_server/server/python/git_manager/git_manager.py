@@ -22,17 +22,13 @@ class MessageHandler(BaseMessageHandler):
             output = None
             type = None
             if message.command_name == GitCommand.connect_repo:
-                o = self.repo.remotes.origin
                 changedFiles = [
-                    os.path.normpath(item.a_path) for item in self.repo.index.diff(None)]
+                    item.a_path for item in self.repo.index.diff(None)]
                 output = changedFiles
-
             # create reply message
             if message.command_name == GitCommand.check_diff:
-                # print(self.repo.index.diff(
-                #     "HEAD", create_patch=True))
+                print(message.content)
                 diff = self.repo.git.diff([message.content], R=True)
-             # print(self.repo.git.apply(['-3', 'Skywalker/model_training/pytorch.py']))
                 output = diff
 
             message.content = output
@@ -43,3 +39,4 @@ class MessageHandler(BaseMessageHandler):
         except:
             trace = traceback.format_exc()
             log.info("Exceptiono=> %s" % (trace))
+    # def  get_diff()       
