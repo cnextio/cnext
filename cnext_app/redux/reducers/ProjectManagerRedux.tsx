@@ -178,10 +178,10 @@ export const ProjectManagerRedux = createSlice({
         setFileToOpen: (state, action) => {
             let path = action.payload;
             if (Object.keys(state.openFiles).includes(path)) {
-                console.log("ProjectManagerRedux setFileToOpen file already open: ", path);
+                console.log("ProjectManagerRedux setFileToOpen file already open: ",state, path);
                 state.inViewID = path;
             } else {
-                console.log("ProjectManagerRedux setFileToOpen: ", path);
+                console.log("ProjectManagerRedux setFileToOpen: ", state,path);
                 state.fileToOpen = action.payload;
             }
         },

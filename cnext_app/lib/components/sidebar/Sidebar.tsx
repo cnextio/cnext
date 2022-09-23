@@ -22,7 +22,7 @@ import {
     setProjectSetting,
     setShowGitManager,
 } from "../../../redux/reducers/ProjectManagerRedux";
-import { clearAllOutputs } from "../../../redux/reducers/CodeEditorRedux";
+import { clearAllOutputs, setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
 import { ViewMode } from "../../interfaces/IApp";
 import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
@@ -127,9 +127,13 @@ const MiniSidebar = () => {
             dispatch(setShowProjectExplorer(true));
             dispatch(setShowGitManager(false));
         } else if (selectedIcon === SideBarName.GIT) {
+            // dispatch(setDiffEditor(false))
+
             dispatch(setShowGitManager(true));
             dispatch(setShowProjectExplorer(false));
         } else {
+            dispatch(setDiffEditor(false))
+
             dispatch(setShowGitManager(false));
             dispatch(setShowProjectExplorer(false));
         }

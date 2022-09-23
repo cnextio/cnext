@@ -56,7 +56,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     const [original, setOriginal] = useState(``);
     const [modified, setModified] = useState(``);
-    
+
     //applyPatch
     useEffect(() => {
         if (codeTextDiffView.text) {
@@ -68,9 +68,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     }, [codeTextDiffView]);
     useEffect(() => {
-        setOriginal('')
-        setModified('')
-    }, [showGitManager])
+        // setOriginal('')
+        // setModified('')
+    }, [showGitManager]);
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
         (state: RootState) => state.executorManager.executorRestartCounter
@@ -136,7 +136,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             while (
                 curGroupID != null &&
                 lnToInsertAfter <
-                codeLines.length + 1 /** note that lnToInsertAfter is 1-based */ &&
+                    codeLines.length + 1 /** note that lnToInsertAfter is 1-based */ &&
                 codeLines[lnToInsertAfter - 1].groupID === curGroupID
             ) {
                 lnToInsertAfter += 1;
@@ -366,14 +366,16 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (curInViewID && monaco) {
                 // fileClosingHandler(view.state, curInViewID);
             }
-            console.log('curInViewID', curInViewID);
-            
             setCurInViewID(inViewID);
         }
         // resetEditorState(inViewID, view);
         setCodeReloading(true);
-    }, [inViewID]);
-
+    }, [inViewID, diffEditor]);
+    useEffect(() => {
+        setTimeout(() => {
+            setCodeReloading(true);
+        }, 0);
+    }, [diffEditor]);
     useEffect(() => {
         if (serverSynced && codeReloading && monaco && editor) {
             // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
@@ -429,7 +431,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         setEditor(mountedEditor);
         setHTMLEventHandler(mountedEditor, stopMouseEvent);
     };
-    const handleEditorDidMountDiff = () => { };
+    const handleEditorDidMountDiff = () => {};
     const handleEditorChange = (value, event) => {
         try {
             const state = store.getState();
@@ -524,7 +526,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             language="python"
             original={original}
             modified={modified}
-            onMount={handleEditorDidMountDiff}
+            // onMount={handleEditorDidMountDiff}
         />
     );
 };

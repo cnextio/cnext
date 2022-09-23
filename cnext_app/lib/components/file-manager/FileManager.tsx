@@ -334,6 +334,7 @@ const FileManager = () => {
                 const projectPath = state.projectManager.activeProject?.path;
                 const message: IMessage = createMessage(ProjectCommand.read_diff, "", {
                     project_path: projectPath,
+                    // remove Skywalker/ fix later
                     path: convertURL.path.substring(10),
                     path_diff: convertURL.path,
                     // timestamp: file.timestamp,

@@ -53,14 +53,13 @@ const CodeToolbar = () => {
         let openOrder = store.getState().projectManager.openOrder;
         // let keys = Object.keys(openFiles);
         dispatch(setInView(openOrder[openOrder.length - 1]));
-        console.log(`openOrder[openOrder.length - 1]`,store.getState().projectManager, openOrder[openOrder.length - 1]);
         
     }, [openFiles]);
     const getName = (name: string) => {
         let isURL =  isUrlFileDiff(name)
         if(!isURL) return name;
         const parse = parseUrl(name)
-        return `${parse.path} (WT)`
+        return `${parse.path}(WT)`
         
     };
     const renderFileNameComponent = (id: string, name: string) => {

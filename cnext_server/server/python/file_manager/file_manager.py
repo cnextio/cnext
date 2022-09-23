@@ -16,9 +16,9 @@ log = logs.get_logger(__name__)
 
 
 class MessageHandler(BaseMessageHandler):
-    def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata):
+    def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata,git_path):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
-        self.repo = git.repo.Repo('D:\CNext\cnext_sample_projects')
+        self.repo = git.repo.Repo(git_path)
         # active_project: projects.ProjectMetadata = None
         # open_projects = workspace_info.open_projects
         # if workspace_info.active_project is not None:
