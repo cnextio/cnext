@@ -71,9 +71,9 @@ const TerminalComponent = () => {
                         switch (msg.type) {
                             case "stdout":
                                 if (msg.content) {
-                                    // remove color yellow 
+                                    // remove color yellow , #ddd can check with window later
                                     const stripAnsiCodes = (str: string) =>
-                                        str.replaceAll("\u001b[93", "");
+                                        str.replaceAll("\u001b[93m", "").replaceAll("\u001b[97m","");
                                     let str = stripAnsiCodes(msg.content[0]);
                                     xtermRef?.current?.terminal.write(str);
                                 }
