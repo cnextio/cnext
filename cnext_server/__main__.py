@@ -34,6 +34,7 @@ NODE_MODULES_PATH = os.path.abspath(os.path.join(current_dir_path,"server","node
 PACKAGE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package.json"))
 PACKAGE_LOCK_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package-lock.json"))
 STORE_MD5_FILE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","track-md5.txt"))
+SETTINGS_PATH = os.path.abspath(os.path.join(current_dir_path,"server","settings.json"))
 
 DEFAULT_PROJECT = "Skywalker"
 WITHOUT_PROJECT = 0
@@ -153,6 +154,7 @@ def main(args=sys.argv):
             switch(args[1],args[2])
         else:
             default()
+            
 
 def run_help(choice):
     message = """
@@ -164,22 +166,43 @@ def run_help(choice):
         - cnext                        : RESUME APPLICATION or START
         - cnext 8888                   : RESUME APPLICATION at PORT 8888
         - cnext -v                     : Show the Version
+        - cnext -l on/off              : Enable/Disable Loggly Event
         """
     print(message)
 
 
 def show_version(data):
     f = open(PACKAGE_PATH)
-    data = json.load(f)
-    print(data["version"])
+    content = json.load(f)
+    print(content["version"])
+
+
+def change_log(status):
+    if(status is not None):
+        state = False
+        if(status == "on"):
+            state = True
+        else: 
+            state = False
+        settings_old = open(SETTINGS_PATH)
+        data = json.load(settings_old) 
+        settings_old.close() 
+
+        data["loggly-event"] = state
+        jsonFile = open(SETTINGS_PATH, "w+")
+        jsonFile.write(json.dumps(data))
+        jsonFile.close()
+    else:
+        run_help("")
 
     
 def default(data):
     run_help(data)
+
     
 def run_at_port(port):
     start(port)
-   
+
 
 def download_project(project_name, download_to_path):
     download_and_unzip(DOWNLOAD_PATH, project_name, download_to_path)
@@ -216,6 +239,7 @@ switcher = {
     "help": run_help,
     "start": start_with_sample_project,
     "-v": show_version,
+    "-l": change_log,
 }
 
 def ask():

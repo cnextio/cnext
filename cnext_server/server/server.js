@@ -6,8 +6,7 @@ const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
 const { nanoid } = require("nanoid");
-const request = require("request");
-
+const { logglyEvent } = require("./EventLog");
 // const { instrument } = require("@socket.io/admin-ui");
 const { PythonShell } = require("python-shell");
 const {
@@ -291,30 +290,8 @@ try {
         process.exit(1);
     });
 
-    function sendEventTrackingAfter(timeout, tag) {
-        setTimeout(() => {
-            const loggly_url =
-                "http://logs-01.loggly.com/inputs/c58f8bb2-2332-4915-b9f3-70c1975956bb/tag/" + tag;
-            request.post(loggly_url, { json: { key: "value" } }, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    // console.log("send to loggly", body);
-                }
-            });
-        }, timeout);
-    }
-
-    function tracking() {
-        const LAUNCH = 0;
-        const AFTER_5_MIN = 300000;
-        const AFTER_30_MIN = 1800000;
-
-        if (process.env.NODE_ENV != "development") {
-            sendEventTrackingAfter(LAUNCH, "launch");
-            sendEventTrackingAfter(AFTER_5_MIN, "launch_after_5_min");
-            sendEventTrackingAfter(AFTER_30_MIN, "launch_after_30_min");
-        }
-    }
-    tracking();
+    logglyEvent();
+    
 } catch (error) {
     console.log(error);
 }
