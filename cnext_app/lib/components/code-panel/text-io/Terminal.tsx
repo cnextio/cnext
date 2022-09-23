@@ -75,7 +75,7 @@ const TerminalComponent = () => {
                                     const stripAnsiCodes = (str: string) =>
                                         str.replaceAll("\u001b[93", "");
                                     let str = stripAnsiCodes(msg.content[0]);
-                                    xtermRef?.current?.terminal.write(msg.content[0]);
+                                    xtermRef?.current?.terminal.write(str);
                                 }
                                 break;
                             case "disconnect":
@@ -154,7 +154,7 @@ const TerminalComponent = () => {
                 cursorWidth: 2,
                 convertEol: true,
                 fontFamily: "monospace",
-                fontSize: 1,
+                fontSize: 13,
                 lineHeight: 1.2,
                 fontWeight: 400,
                 theme: {
