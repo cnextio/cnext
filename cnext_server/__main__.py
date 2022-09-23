@@ -21,6 +21,7 @@ if sys.platform.startswith("win"):
 else:
     import readline
 from cnext_server import __version__
+import json
 
 current_dir_path = os.getcwd()
 basepath = _path.dirname(__file__)
@@ -30,8 +31,10 @@ current_dir_path = path.absolute()
 PROJECTS_PATH = os.path.abspath(os.path.join(current_dir_path,"projects"))
 SERVER_PATH = os.path.abspath(os.path.join(current_dir_path,"server"))
 NODE_MODULES_PATH = os.path.abspath(os.path.join(current_dir_path,"server","node_modules"))
+PACKAGE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package.json"))
 PACKAGE_LOCK_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package-lock.json"))
 STORE_MD5_FILE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","track-md5.txt"))
+
 DEFAULT_PROJECT = "Skywalker"
 WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
@@ -166,7 +169,9 @@ def run_help(choice):
 
 
 def show_version(data):
-    print(__version__)
+    f = open(PACKAGE_PATH)
+    data = json.load(f)
+    print(data["version"])
 
     
 def default(data):
