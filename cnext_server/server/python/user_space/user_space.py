@@ -115,9 +115,8 @@ class _UserSpace(BaseKernelUserSpace):
             args[0].execution_lock.acquire()
             log.info('User_space execution lock acquired')
             func(*args, **kwargs)
-            ## the lock might be released by shutdown/restart/interrupt operation #
-            if args[0].execution_lock.locked():
-                args[0].execution_lock.release()
+            args[0].execution_lock.acquire()
+            args[0].execution_lock.release()
             log.info('User_space execution lock released')
             log.info("Results: %s" % args[0].result)
             return args[0].result

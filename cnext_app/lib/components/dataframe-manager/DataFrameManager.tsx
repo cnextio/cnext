@@ -335,7 +335,7 @@ _tmp()`;
 
     const socketInit = () => {
         // console.log('DFManager useEffect');
-        socket.emit("ping", "DFManager");
+        socket.emit("ping", "DataFrameManager");
         socket.on(WebAppEndpoint.DFManager, (result: string, ack) => {
             try {
                 let message: IMessage = JSON.parse(result);
