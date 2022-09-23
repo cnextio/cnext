@@ -142,15 +142,13 @@ function setLineStatusInternal(state: CodeEditorState, lineStatus: ICodeLineStat
             state.resultUpdateCount++;
         }
         const lineRange: ILineRange = lineStatus.lineRange;
-        /** status update need to include toLine as well */
-        for (let ln = lineRange.fromLine; ln < lineRange.toLine + 1; ln++) {
+        for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
             codeLines[ln].status = lineStatus.status;
         }
     }
     if (lineStatus.generated !== undefined) {
         const lineRange: ILineRange = lineStatus.lineRange;
-        /** status update need to include toLine as well */
-        for (let ln = lineRange.fromLine; ln < lineRange.toLine + 1; ln++) {
+        for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
             codeLines[ln].generated = lineStatus.generated;
         }
     }
@@ -326,8 +324,8 @@ export const CodeEditorRedux = createSlice({
                 /** there is a change in cell association */
                 state.cellAssocUpdateCount++;
             }
-            /** status update need to include toLine as well */
-            for (let i = lineGroupStatus.fromLine; i < lineGroupStatus.toLine+1; i++) {
+            
+            for (let i = lineGroupStatus.fromLine; i < lineGroupStatus.toLine; i++) {
                 if (lineGroupStatus.status !== undefined) {
                     if (
                         lineGroupStatus.status === LineStatus.EDITED &&
