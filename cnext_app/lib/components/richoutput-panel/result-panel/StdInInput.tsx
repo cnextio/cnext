@@ -18,8 +18,9 @@ export const InputComponent = ({ resultContent }) => {
         <StdInInput
             ref={inputRef}
             id="standard-basic"
-            variant="standard"
+            variant="outlined"
             size="small"
+            autoFocus={true}
             InputProps={{
                 startAdornment: (
                     <InputAdornment position="start" sx={{ paddingLeft: "10px", fontSize: "5px" }}>

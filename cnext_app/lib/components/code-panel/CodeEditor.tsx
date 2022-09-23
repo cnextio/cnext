@@ -320,10 +320,10 @@ const CodeEditor = ({ stopMouseEvent }) => {
                         // dispatch(setActiveLine(activeLine));
                     }                    
                 }
-                if (ack) ack();
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
     };
 

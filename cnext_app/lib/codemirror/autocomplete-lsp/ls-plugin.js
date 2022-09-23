@@ -54,10 +54,10 @@ class LanguageServerPlugin {
                             this.processDiagnostics(notification.params);
                         }
                 }
-                if (ack) ack();
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
 
         socket.on("connect", () => {

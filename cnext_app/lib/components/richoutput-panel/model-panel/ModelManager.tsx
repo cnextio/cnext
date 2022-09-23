@@ -74,10 +74,10 @@ const ModelManager = () => {
                 } else {
                     dispatch(setModelViewerInfo(null));
                 }
-                if (ack) ack();
             } catch (error) {
                 throw error;
             }
+            if (ack) ack();
         });
     };
 

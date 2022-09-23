@@ -81,8 +81,12 @@ class MessageHandler(BaseMessageHandler):
         message = Message(**{'webapp_endpoint': WebappEndpoint.CodeEditor,
                              'command_name': client_message.command_name})
 
-        log.info('Got message from ipython: header["msg_type"]=%s content["status"]=%s',
-                 ipython_message.header['msg_type'], ipython_message.content['status'] if 'status' in ipython_message.content else None)
+        if ipython_message.header['msg_type'] != "stream":
+            log.info('Got message from ipython: header["msg_type"]=%s content=%s',
+                     ipython_message.header['msg_type'], ipython_message.content)
+        else:
+            log.info('Got message from ipython: header["msg_type"]=%s',
+                     ipython_message.header['msg_type'])
 
         # Add header message from ipython to message metadata
         if message.metadata == None:

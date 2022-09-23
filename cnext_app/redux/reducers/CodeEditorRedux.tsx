@@ -69,6 +69,7 @@ type CodeEditorState = {
     /** this number keep track of where in the result array the input request is if any
      * this is used to remove this input request next time there is a result */
     inputRequestResultIndex: number;
+    executor_execution_state: string | null;
 };
 
 const initialState: CodeEditorState = {
@@ -97,6 +98,7 @@ const initialState: CodeEditorState = {
     cellCommand: null,
     mouseOverLine: null,
     inputRequestResultIndex: -1,
+    executor_execution_state: null,
 };
 
 /**
@@ -362,20 +364,21 @@ export const CodeEditorRedux = createSlice({
                 let codeLines: ICodeLine[] = state.codeLines[inViewID];
                 let currentTextOutput = state.codeLines[inViewID][fromLine].textOutput;
 
-                /** remove the input request if any at the end of work stream */
+                /** check to see if we have to remove the input request */
                 if (
                     resultMessage.type === ContentType.IPYTHON_MSG &&
-                    resultMessage.metadata.msg_type === IPythonMessageType.EXECUTE_REPLY
+                    resultMessage.metadata.msg_type === IPythonMessageType.STATUS
                 ) {
-                    if (
-                        state.inputRequestResultIndex >= 0 &&
-                        codeLines[fromLine].result instanceof Array
-                    ) {
-                        codeLines[fromLine].result?.splice(state.inputRequestResultIndex, 1);
-                        state.inputRequestResultIndex = -1;
+                    state.executor_execution_state = resultMessage.content.execution_state;
+                    /** remove the input request when the kernel execution state is idle */
+                    if (resultMessage.content.execution_state === "idle") {
+                        if (state.inputRequestResultIndex >= 0) {
+                            codeLines[fromLine].result?.splice(state.inputRequestResultIndex, 1);
+                            state.inputRequestResultIndex = -1;
+                        }
+                        state.resultUpdateCount++;
+                        state.saveCodeLineCounter++;
                     }
-                    state.resultUpdateCount++;
-                    state.saveCodeLineCounter++;
                 }
 
                 /** text result will be appended within each execution. The output will be cleared at the
@@ -442,40 +445,43 @@ export const CodeEditorRedux = createSlice({
                         msg_id: resultMessage.metadata.msg_id,
                     };
 
-                    // assign the result of a group only to the first line
-                    if (codeLines[fromLine].result != null) {
-                        let lineResult = codeLines[fromLine].result;
-                        // this is for backward compatible with the previous format of result
-                        if (!(lineResult instanceof Array)) {
-                            codeLines[fromLine].result = [lineResult];
-                        } else {
-                            if (newResult.subType === SubContentType.MARKDOWN) {
-                                /** we need a special handling of markdown */
-                                let foundMarkdown = false;
-                                for (let i = 0; i < lineResult.length; i++) {
-                                    if (lineResult[i].subType === SubContentType.MARKDOWN) {
-                                        lineResult[i] = newResult;
-                                        foundMarkdown = true;
-                                    }
-                                }
-                                if (!foundMarkdown) lineResult.push(newResult);
-                            } else {
-                                codeLines[fromLine].result?.push(newResult);
-                            }
-                        }
-                    } else {
-                        codeLines[fromLine].result = [newResult];
-                    }
+                    if (!codeLines[fromLine].result) codeLines[fromLine].result = [];
 
-                    /** remove the prev input request if any and keep track of where the input request is added if any*/
-                    if (
-                        newResult.type === ContentType.INPUT_REQUEST &&
-                        codeLines[fromLine].result instanceof Array
-                    ) {
-                        if (state.inputRequestResultIndex >= 0) {
-                            codeLines[fromLine].result?.splice(state.inputRequestResultIndex, 1);
+                    // assign the result of a group only to the first line
+                    let lineResult = codeLines[fromLine].result;
+                    // this is for backward compatible with the previous format of result
+                    if (!(lineResult instanceof Array)) {
+                        codeLines[fromLine].result = [lineResult];
+                    } else {
+                        if (newResult.type === ContentType.INPUT_REQUEST) {
+                            /** remove the prev input request whenever there is a new one */
+                            if (state.inputRequestResultIndex >= 0) {
+                                codeLines[fromLine].result?.splice(
+                                    state.inputRequestResultIndex,
+                                    1
+                                );
+                            }
+                            /** add new one only if the kernel execution state is busy 
+                             * there is case where jupyter sends input request when execution
+                             * state is idle */
+                            if (state.executor_execution_state === "busy") {
+                                codeLines[fromLine].result?.push(newResult);
+                                state.inputRequestResultIndex =
+                                    codeLines[fromLine].result?.length - 1;
+                            }
+                        } else if (newResult.subType === SubContentType.MARKDOWN) {
+                            /** we need a special handling of markdown */
+                            let foundMarkdown = false;
+                            for (let i = 0; i < lineResult.length; i++) {
+                                if (lineResult[i].subType === SubContentType.MARKDOWN) {
+                                    lineResult[i] = newResult;
+                                    foundMarkdown = true;
+                                }
+                            }
+                            if (!foundMarkdown) lineResult.push(newResult);
+                        } else {
+                            codeLines[fromLine].result?.push(newResult);
                         }
-                        state.inputRequestResultIndex = codeLines[fromLine].result?.length - 1;
                     }
 
                     state.resultUpdateCount++;
@@ -646,6 +652,7 @@ export const CodeEditorRedux = createSlice({
             state.cellAssocUpdateCount = 0;
             state.lastLineUpdate = {};
             state.inputRequestResultIndex = -1;
+            state.executor_execution_state = null;
         },
     },
 });

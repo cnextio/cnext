@@ -41,11 +41,11 @@ const TerminalManager = () => {
                     //     }, 500);
                     // }
                 }
-                if (ack) ack();
             } catch (error) {
                 console.error(error);
                 // throw error;
             }
+            if (ack) ack();
         });
     };
 

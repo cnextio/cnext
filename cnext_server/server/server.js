@@ -167,7 +167,7 @@ try {
     let clientSocket;
     let pendingMessagesForSocket = [];
     io.on("connection", (socket) => {
-        // console.log("Socket connected socket's id =", socket.id);
+        console.log("Socket connected >>>>> sid =", socket.id);
         clientSocket = socket;
 
         socket.on("ping", (message) => {
@@ -199,15 +199,17 @@ try {
             }
         });
 
-        socket.on('reconnect', () => {
-            /** resend the message in queue upon reconnected */ 
-            console.log("Socket reconnect socket's id =", socket.id)
+        socket.on("reconnect", () => {
+            /** resend the message in queue upon reconnected */
+            console.log("Socket reconnect sid=", socket.id);
             for (const messageQueueItem of pendingMessagesForSocket) {
                 // console.log("Sending queued message");
                 let message = messageQueueItem.content;
                 socket.emit(message["webapp_endpoint"], JSON.stringify(message), function () {
                     let mid = messageQueueItem.id;
-                    // console.log(`received ack on message mid=${mid}`);
+                    // console.log(
+                    //     `received ack on message mid=${mid} pendingMessagesForSocket.length=${pendingMessagesForSocket.length}`
+                    // );
                     pendingMessagesForSocket = pendingMessagesForSocket.filter(
                         (messageQueueItem) => {
                             return messageQueueItem.id != mid;
@@ -231,15 +233,19 @@ try {
     const sendOutput = (message) => {
         const mid = nanoid();
         pendingMessagesForSocket.push({ id: mid, content: message });
-        // console.log(`Send message mid=${mid} pendingMessagesForSocket length = ${pendingMessagesForSocket.length}`, );
+        // console.log(
+        //     `Sending message pendingMessagesForSocket.length = ${pendingMessagesForSocket.length} mid=${mid} message.webapp_endpoint=${message["webapp_endpoint"]}`
+        // );
         if (clientSocket) {
             /** FIXME: there is a slight chance that this message will be send right after the socket is reconnected and before
              * the rest of the queue has been sent. If that is the case the order of received message may be off */
-            clientSocket.emit(message["webapp_endpoint"], JSON.stringify(message), function () {                
-                // console.log(`received ack on message mid=${mid}`);
+            clientSocket.emit(message["webapp_endpoint"], JSON.stringify(message), function () {
+                // console.log(
+                //     `received ack on message mid=${mid} pendingMessagesForSocket.length=${pendingMessagesForSocket.length}`
+                // );
                 pendingMessagesForSocket = pendingMessagesForSocket.filter((messageQueueItem) => {
                     return messageQueueItem.id != mid;
-                });                
+                });
             });
         }
     };

@@ -94,7 +94,7 @@ class _UserSpace(BaseKernelUserSpace):
                     ipython_message['content']['data']['text/plain'])
             elif self._complete_execution_message(ipython_message) and self.execution_lock.locked():
                 self.execution_lock.release()
-                log.info('Execution unlocked')
+                log.info('User_space execution lock released')
             else:
                 # TODO: log everything else
                 log.info('Other messages: %s' % ipython_message)
@@ -110,11 +110,13 @@ class _UserSpace(BaseKernelUserSpace):
         def _result_waiting_execution_wrapper(*args, **kwargs):
             ## args[0] is self #
             args[0].result = None
+            log.info('User_space execution lock acquiring')
             args[0].execution_lock.acquire()
             log.info('User_space execution lock acquired')
             func(*args, **kwargs)
-            args[0].execution_lock.acquire()
-            args[0].execution_lock.release()
+            ## the lock might be released by shutdown/restart/interrupt operation #
+            if args[0].execution_lock.locked():
+                args[0].execution_lock.release()
             log.info('User_space execution lock released')
             log.info("Results: %s" % args[0].result)
             return args[0].result
@@ -160,23 +162,27 @@ class _UserSpace(BaseKernelUserSpace):
         self.init_executor()
         if self.execution_lock.locked():
             self.execution_lock.release()
+            log.info('User_space execution lock released')
 
     def shutdown_executor(self):
         self.executor.shutdown_kernel()
         if self.execution_lock.locked():
             self.execution_lock.release()
+            log.info('User_space execution lock released')
 
     def restart_executor(self):
         result = self.executor.restart_kernel()
         self.init_executor()
         if self.execution_lock.locked():
             self.execution_lock.release()
+            log.info('User_space execution lock released')
         return result
 
     def interrupt_executor(self):
         result = self.executor.interrupt_kernel()
         if self.execution_lock.locked():
             self.execution_lock.release()
+            log.info('User_space execution lock released')
         return result
 
     def is_alive(self):

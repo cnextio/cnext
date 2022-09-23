@@ -247,10 +247,10 @@ function sendMessage(message: IMessage, timeout = 10000) {
                         // codeOutputComponent(codeOutput);
                     }
                 }
-                if (ack) ack();
             } catch {
                 resolve(null);
             }
+            if (ack) ack();
         });
         // set timeout so if a response is not received within a
         // reasonable amount of time, the promise will reject

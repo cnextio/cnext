@@ -797,7 +797,7 @@ export const DFFilterInput = styled(OutlinedInput)`
 `;
 
 export const StdInInput = styled(TextField)`
-    height: 32px;
+    height: 34px;
     width: 100%;
     .MuiInput-root {
         height: 100%;
@@ -805,10 +805,13 @@ export const StdInInput = styled(TextField)`
     .MuiInputAdornment-root > p {
         font-size: 12px;
     }
-    .MuiInput-input {
+    .MuiOutlinedInput-root {
+        border-radius: 0px;
+    }
+    .MuiOutlinedInput-input {
         font-size: 12px;
-        padding: 0px;
-        height: 100%;
+        // padding: 0px;
+        // height: 100%;
         color: ${(props) => props.theme.palette.text.secondary};
     }
 `;

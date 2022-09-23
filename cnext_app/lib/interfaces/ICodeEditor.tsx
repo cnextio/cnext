@@ -207,5 +207,7 @@ export interface ICodeToInsertInfo {
 
 export enum IPythonMessageType {
     EXECUTE_REPLY = "execute_reply",
-    INPUT_REQUEST = "input_request"
+    INPUT_REQUEST = "input_request",
+    SHUTDOWN_REPLY = "shutdown_reply",
+    STATUS = "status"
 }
