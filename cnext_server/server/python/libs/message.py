@@ -90,6 +90,7 @@ class ExecutorManagerCommand(str, Enum):
     restart_kernel = 'restart_kernel'
     interrupt_kernel = 'interrupt_kernel'
     get_status = 'get_status'
+    send_stdin = 'send_stdin'
 
 class EnvironmentManagerCommand(str, Enum):
     list = "list"
@@ -127,6 +128,7 @@ class ContentType(str, Enum):
     ENVIRONMENT_LIST = 'environment_list'
     KERNEL_START_RESULT = 'kernel_start_result'
     WORKSPACE_METADATA = 'workspace_metadata'
+    INPUT_REQUEST = 'input_request'
     NONE = 'none'
 
     def __str__(self):

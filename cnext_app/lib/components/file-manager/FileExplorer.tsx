@@ -137,10 +137,10 @@ const FileExplorer = (props: any) => {
                     }                    
                 } else {
                 }
-                if (ack) ack();
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
     };
 

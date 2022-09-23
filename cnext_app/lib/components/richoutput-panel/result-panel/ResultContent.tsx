@@ -4,7 +4,7 @@ import ReactHtmlParser, { attributesToProps, domToReact } from "html-react-parse
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { SubContentType } from "../../../interfaces/IApp";
+import { ContentType, SubContentType } from "../../../interfaces/IApp";
 const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
     ssr: false,
 });
@@ -12,6 +12,7 @@ const PlotlyWithNoSSR = dynamic(() => import("react-plotly.js"), {
 import { useRef } from "react";
 import ReactDOM, { createPortal } from "react-dom";
 import Ansi from "../../ansi-to-react";
+import { InputComponent } from "./StdInInput";
 
 const ScriptComponent = ({ children, script }) => {
     /** We only use this ref for temp div holder of the position for the script.
@@ -132,6 +133,9 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
             // const showMarkdown = store.getState().projectManager.settings?.rich_output?.show_markdown;
             let results = [];
             let resultElements = null;
+            let inputElement;
+            let markdownElement;
+
             if (codeResult?.result) {
                 if (codeResult?.result instanceof Array) {
                     results = codeResult?.result;
@@ -142,113 +146,120 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
 
                 resultElements = results.map((result) => {
                     const contentKeys = Object.keys(result.content);
-                    let resultElements = contentKeys?.map((key, index) => {
-                        if (key === SubContentType.APPLICATION_JAVASCRIPT) {
-                            return (
-                                <ScriptComponent
-                                    script={null}
-                                    children={result?.content[key].toString("base64")}
-                                />
-                            );
-                        // } else if (key === SubContentType.APPLICATION_BOKEH) {
-                        //     return (
-                        //         <ScriptComponent
-                        //             script={null}
-                        //             children={result?.content[key].toString("base64")}
-                        //         />
-                        //     );
-                        } else if (key === SubContentType.APPLICATION_PLOTLY) {
-                            return React.createElement(
-                                PlotlyWithNoSSR,
-                                setPlotlyLayout(result?.content[key])
-                            );
-                        } else if (key === SubContentType.APPLICATION_JSON) {
-                            return JSON.stringify(result?.content[key]);
-                        } else if (key === SubContentType.IMAGE_SVG_XML) {
-                            return ReactHtmlParser(result?.content[key].toString("base64"), {
-                                replace: (domNode) => {
-                                    if (domNode.attribs && domNode.name === "svg") {
-                                        const props = attributesToProps(domNode.attribs);
-                                        // props.width = "500px";
-                                        // props.height = "500px";
-                                        return (
-                                            <svg
-                                                {...props}
-                                                children={domToReact(domNode.children)}
-                                            ></svg>
-                                        );
-                                    }
-                                },
-                            });
 
-                        } else if (isImageMime(key)) {
-                            // console.log("ResultView ", imageMime, result?.content[imageMime]);
-                            return (
-                                <img
-                                    src={
-                                        "data:" +
-                                        key +
-                                        ";base64," +
-                                        result?.content[key]
-                                    }
-                                />
-                            );
-                        } else if (key === SubContentType.TEXT_HTML) {
-                            const htmlRegex = new RegExp("<!DOCTYPE html|<html", "i");
-                            const iframeRegex = new RegExp("<iframe", "i");
-                            const htmlContent = result?.content[key];
-                            // console.log("ResultContent text/html content: ", htmlContent);
-                            let isIFrame = iframeRegex.test(htmlContent);
-                            let isHTMLPage = htmlRegex.test(htmlContent);
-                            let jsxElements = ReactHtmlParser(htmlContent.toString("base64"), {
-                                replace: function (domNode) {
-                                    // console.log("ResultContent domNode ", domNode.name);
-                                    if (domNode.type === "tag" && domNode.name === "iframe") {
-                                        // TODO: test this
-                                        return (
-                                            <IFrameComponent
-                                                attribs={domNode.attribs}
-                                                // children={domNode.children}
-                                                stopMouseEvent={stopMouseEvent}
-                                            ></IFrameComponent>
-                                        );
-                                    } else if (domNode.type === "script") {
-                                        return <ScriptComponent children={null} script={domNode} />;
-                                    }
-                                },
-                            });
-
-                            if (isHTMLPage) {
+                    let resultElements: (string | JSX.Element | JSX.Element[] | undefined)[] = [];
+                    if (result.type !== ContentType.INPUT_REQUEST) {
+                        resultElements = contentKeys?.map((key, index) => {
+                            if (key === SubContentType.APPLICATION_JAVASCRIPT) {
                                 return (
-                                    <IFrameComponent
-                                        children={jsxElements}
-                                        stopMouseEvent={stopMouseEvent}
-                                    ></IFrameComponent>
+                                    <ScriptComponent
+                                        script={null}
+                                        children={result?.content[key].toString("base64")}
+                                    />
                                 );
-                            } else if (isIFrame) {
-                                return jsxElements;
-                            } else {
-                                return <div>{jsxElements}</div>;
+                                // } else if (key === SubContentType.APPLICATION_BOKEH) {
+                                //     return (
+                                //         <ScriptComponent
+                                //             script={null}
+                                //             children={result?.content[key].toString("base64")}
+                                //         />
+                                //     );
+                            } else if (key === SubContentType.APPLICATION_PLOTLY) {
+                                return React.createElement(
+                                    PlotlyWithNoSSR,
+                                    setPlotlyLayout(result?.content[key])
+                                );
+                            } else if (key === SubContentType.APPLICATION_JSON) {
+                                return JSON.stringify(result?.content[key]);
+                            } else if (key === SubContentType.IMAGE_SVG_XML) {
+                                return ReactHtmlParser(result?.content[key].toString("base64"), {
+                                    replace: (domNode) => {
+                                        if (domNode.attribs && domNode.name === "svg") {
+                                            const props = attributesToProps(domNode.attribs);
+                                            // props.width = "500px";
+                                            // props.height = "500px";
+                                            return (
+                                                <svg
+                                                    {...props}
+                                                    children={domToReact(domNode.children)}
+                                                ></svg>
+                                            );
+                                        }
+                                    },
+                                });
+                            } else if (isImageMime(key)) {
+                                // console.log("ResultView ", imageMime, result?.content[imageMime]);
+                                return (
+                                    <img src={"data:" + key + ";base64," + result?.content[key]} />
+                                );
+                            } else if (key === SubContentType.TEXT_HTML) {
+                                const htmlRegex = new RegExp("<!DOCTYPE html|<html", "i");
+                                const iframeRegex = new RegExp("<iframe", "i");
+                                const htmlContent = result?.content[key];
+                                // console.log("ResultContent text/html content: ", htmlContent);
+                                let isIFrame = iframeRegex.test(htmlContent);
+                                let isHTMLPage = htmlRegex.test(htmlContent);
+                                let jsxElements = ReactHtmlParser(htmlContent.toString("base64"), {
+                                    replace: function (domNode) {
+                                        // console.log("ResultContent domNode ", domNode.name);
+                                        if (domNode.type === "tag" && domNode.name === "iframe") {
+                                            // TODO: test this
+                                            return (
+                                                <IFrameComponent
+                                                    attribs={domNode.attribs}
+                                                    // children={domNode.children}
+                                                    stopMouseEvent={stopMouseEvent}
+                                                ></IFrameComponent>
+                                            );
+                                        } else if (domNode.type === "script") {
+                                            return (
+                                                <ScriptComponent children={null} script={domNode} />
+                                            );
+                                        }
+                                    },
+                                });
+
+                                if (isHTMLPage) {
+                                    return (
+                                        <IFrameComponent
+                                            children={jsxElements}
+                                            stopMouseEvent={stopMouseEvent}
+                                        ></IFrameComponent>
+                                    );
+                                } else if (isIFrame) {
+                                    return jsxElements;
+                                } else {
+                                    return <div>{jsxElements}</div>;
+                                }
+                            } else if (
+                                showMarkdown &&
+                                key === SubContentType.MARKDOWN &&
+                                result?.content[SubContentType.MARKDOWN] != null
+                            ) {
+                                /** this will be added to the front at the end */
+                                markdownElement = (
+                                    <ReactMarkdown
+                                        className="markdown"
+                                        remarkPlugins={[remarkGfm]}
+                                        children={result?.content[key]}
+                                    />
+                                );
+                            } else if (
+                                key === SubContentType.TEXT_PLAIN &&
+                                contentKeys.length === 1
+                            ) {
+                                /** only display text/plain when it is the only content */
+                                return (
+                                    <pre
+                                        style={{ fontSize: "12px" }}
+                                        children={result?.content[key]}
+                                    />
+                                );
                             }
-                        } else if (
-                            showMarkdown &&
-                            key === SubContentType.MARKDOWN &&
-                            result?.content[SubContentType.MARKDOWN] != null
-                        ) {
-                            return (
-                                <ReactMarkdown
-                                    className="markdown"
-                                    remarkPlugins={[remarkGfm]}
-                                    children={result?.content[key]}
-                                />
-                            );
-                        } else if (key === SubContentType.TEXT_PLAIN && contentKeys.length === 1) {
-                            /** only display text/plain when it is the only content */
-                            return (
-                                <pre style={{ fontSize: "12px" }} children={result?.content[key]} />
-                            );
-                        }
-                    });
+                        });
+                    } else {
+                        inputElement = <InputComponent resultContent={result.content} />;
+                    }
                     if (resultElements instanceof Array) return resultElements.flat();
                     else return resultElements;
                 });
@@ -257,7 +268,7 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
             if (codeResult?.textOutput) {
                 let textElement = (
                     <pre
-                        style={{ fontSize: "12px", whiteSpace: "pre-wrap"   }}
+                        style={{ fontSize: "12px", whiteSpace: "pre-wrap", paddingLeft: "10px" }}
                         // children={codeResult?.textOutput.content}
                     >
                         <Ansi>{codeResult?.textOutput.content}</Ansi>
@@ -270,6 +281,11 @@ const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) 
                     resultElements = [textElement];
                 }
             }
+
+            /** inputElement has to be at the end */
+            if (inputElement) resultElements.push(inputElement);
+            /** markdown is pushed to the front of the array */
+            if (markdownElement) resultElements.unshift(markdownElement);
             // console.log("ResultContent renderResultContent: ", resultElements);
             return resultElements;
         } catch (error) {

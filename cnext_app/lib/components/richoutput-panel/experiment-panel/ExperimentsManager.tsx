@@ -218,10 +218,10 @@ const ExperimentManager = (props: any) => {
                 } else {
                     console.log("ExperimentView command error: ", emResult);
                 }
-                if (ack) ack();
             } catch (error) {
                 throw error;
             }
+            if (ack) ack();
         });
         // return () => socket.disconnect();
     };
