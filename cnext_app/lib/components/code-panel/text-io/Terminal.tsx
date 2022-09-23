@@ -71,7 +71,11 @@ const TerminalComponent = () => {
                         switch (msg.type) {
                             case "stdout":
                                 if (msg.content) {
-                                    xtermRef?.current?.terminal.write(msg.content[0] as string);
+                                    // remove color yellow 
+                                    const stripAnsiCodes = (str: string) =>
+                                        str.replaceAll("\u001b[93", "");
+                                    let str = stripAnsiCodes(msg.content[0]);
+                                    xtermRef?.current?.terminal.write(msg.content[0]);
                                 }
                                 break;
                             case "disconnect":
@@ -150,7 +154,7 @@ const TerminalComponent = () => {
                 cursorWidth: 2,
                 convertEol: true,
                 fontFamily: "monospace",
-                fontSize: 13,
+                fontSize: 1,
                 lineHeight: 1.2,
                 fontWeight: 400,
                 theme: {
