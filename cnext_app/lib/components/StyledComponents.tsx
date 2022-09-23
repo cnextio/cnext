@@ -796,6 +796,26 @@ export const DFFilterInput = styled(OutlinedInput)`
     padding: 0px;
 `;
 
+export const StdInInput = styled(TextField)`
+    height: 34px;
+    width: 100%;
+    .MuiInput-root {
+        height: 100%;
+    }
+    .MuiInputAdornment-root > p {
+        font-size: 12px;
+    }
+    .MuiOutlinedInput-root {
+        border-radius: 0px;
+    }
+    .MuiOutlinedInput-input {
+        font-size: 12px;
+        // padding: 0px;
+        // height: 100%;
+        color: ${(props) => props.theme.palette.text.secondary};
+    }
+`;
+
 export const QuerySample = styled.div`
     margin-top: 5px;
     // margin-right: 5px;

@@ -27,7 +27,7 @@ const TerminalManager = () => {
                 command_name: CommandName.get_jupyter_server_config,
             })
         );
-        socket.on(WebAppEndpoint.Terminal, (result: string) => {
+        socket.on(WebAppEndpoint.Terminal, (result: string, ack) => {
             try {
                 if (JSON.parse(result).command_name === CommandName.get_jupyter_server_config) {
                     const config = JSON.parse(result).content;
@@ -42,9 +42,10 @@ const TerminalManager = () => {
                     // }
                 }
             } catch (error) {
-                console.log(`error`, error);
-                throw error;
+                console.error(error);
+                // throw error;
             }
+            if (ack) ack();
         });
     };
 

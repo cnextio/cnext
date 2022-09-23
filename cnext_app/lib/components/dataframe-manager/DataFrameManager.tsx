@@ -199,10 +199,10 @@ _tmp()`;
     const getDefinedStat = (df_id: string, columns: string[]) => {
         if (dataFrameConfig.quantile) {
             getQuantilesPlot(df_id, columns);
-        } 
+        }
         if (dataFrameConfig.histogram) {
             getHistogramPlot(df_id, columns);
-        } 
+        }
     };
 
     /** select columns to get stats based on the update type */
@@ -245,33 +245,35 @@ _tmp()`;
         // console.log(dfStatusContent);
         // the UI is currently designed to handle only 1 reviewable update at a time
         // but will still scan through everything here for now
-        Object.keys(allDFStatus).forEach(function (df_id) {
-            // console.log("DataFrameManager reload: ", df_id, allDFStatus[df_id].is_updated, reload);
-            let is_updated = allDFStatus[df_id].is_updated;
-            if (is_updated == true || reload == true) {
-                // console.log(df_id, dfStatusContent[df_id]);
-                let status = allDFStatus[df_id];
-                let update = getLastUpdate(status);
-                if (update != null) {
-                    let updateType = update["update_type"];
-                    let updateContent = update["update_content"];
-                    console.log("DataFrameManager active df updates: ", update);
-                    sendGetDFMetadata(df_id);
-                    if (updateType == DataFrameUpdateType.add_rows) {
-                        // show data around added rows
-                        sendGetTableDataAroundRowIndex(df_id, updateContent[0]);
-                    } else {
-                        sendGetTableData(df_id);
+        if (allDFStatus) {
+            Object.keys(allDFStatus).forEach(function (df_id) {
+                // console.log("DataFrameManager reload: ", df_id, allDFStatus[df_id].is_updated, reload);
+                let is_updated = allDFStatus[df_id].is_updated;
+                if (is_updated == true || reload == true) {
+                    // console.log(df_id, dfStatusContent[df_id]);
+                    let status = allDFStatus[df_id];
+                    let update = getLastUpdate(status);
+                    if (update != null) {
+                        let updateType = update["update_type"];
+                        let updateContent = update["update_content"];
+                        console.log("DataFrameManager active df updates: ", update);
+                        sendGetDFMetadata(df_id);
+                        if (updateType == DataFrameUpdateType.add_rows) {
+                            // show data around added rows
+                            sendGetTableDataAroundRowIndex(df_id, updateContent[0]);
+                        } else {
+                            sendGetTableData(df_id);
+                        }
                     }
                 }
-            }
-            // make redux object conform to our standard
-            let dfUpdateMessage = {
-                df_id: df_id,
-                ...allDFStatus[df_id],
-            };
-            dispatch(setDFUpdates(dfUpdateMessage));
-        });
+                // make redux object conform to our standard
+                let dfUpdateMessage = {
+                    df_id: df_id,
+                    ...allDFStatus[df_id],
+                };
+                dispatch(setDFUpdates(dfUpdateMessage));
+            });
+        }
     };
 
     const isDataFrameUpdated = (df_id: string) => {
@@ -333,8 +335,8 @@ _tmp()`;
 
     const socketInit = () => {
         // console.log('DFManager useEffect');
-        socket.emit("ping", "DFManager");
-        socket.on(WebAppEndpoint.DFManager, (result: string) => {
+        socket.emit("ping", "DataFrameManager");
+        socket.on(WebAppEndpoint.DFManager, (result: string, ack) => {
             try {
                 let message: IMessage = JSON.parse(result);
                 console.log("DataFrameManager got results for command ", message);
@@ -361,7 +363,10 @@ _tmp()`;
                 } else {
                     dispatch(setTextOutput(message));
                 }
-            } catch {}
+            } catch (error) {
+                console.error(error);
+            }
+            if (ack) ack();
         });
         /** Load dataframe status */
         let message = createMessage(CommandName.reload_df_status, null, 1, {});

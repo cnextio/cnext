@@ -46,6 +46,7 @@ import {
     IRunQueueItem,
     IRunQueue,
     CellCommand,
+    IPythonMessageType,
 } from "../../interfaces/ICodeEditor";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
@@ -273,7 +274,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
      */
     const socketInit = () => {
         socket.emit("ping", WebAppEndpoint.CodeEditor);
-        socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
+        socket.on(WebAppEndpoint.CodeEditor, (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -282,7 +283,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 if (inViewID) {
                     handleResultData(codeOutput);
                     if (
-                        codeOutput.metadata?.msg_type === "execute_reply" &&
+                        codeOutput.metadata?.msg_type === IPythonMessageType.EXECUTE_REPLY &&
                         codeOutput.content?.status != null
                     ) {
                         // let lineStatus: ICodeLineStatus;
@@ -317,11 +318,12 @@ const CodeEditor = ({ stopMouseEvent }) => {
                         //     lineNumber: codeOutput.metadata.line_range?.fromLine,
                         // };
                         // dispatch(setActiveLine(activeLine));
-                    }
+                    }                    
                 }
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
     };
 

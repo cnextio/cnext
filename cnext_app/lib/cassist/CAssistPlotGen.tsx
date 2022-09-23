@@ -229,7 +229,7 @@ function sendMessage(message: IMessage, timeout = 10000) {
 
         socket.emit(message.webapp_endpoint, JSON.stringify(message));
 
-        socket.once(WebAppEndpoint.MagicCommandGen, (result: string) => {
+        socket.once(WebAppEndpoint.MagicCommandGen, (result: string, ack) => {
             console.log(`${WebAppEndpoint.MagicCommandGen} got results...`);
             try {
                 let codeOutput: IMessage = JSON.parse(result);
@@ -250,6 +250,7 @@ function sendMessage(message: IMessage, timeout = 10000) {
             } catch {
                 resolve(null);
             }
+            if (ack) ack();
         });
         // set timeout so if a response is not received within a
         // reasonable amount of time, the promise will reject

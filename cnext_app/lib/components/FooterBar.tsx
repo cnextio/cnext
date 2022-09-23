@@ -7,7 +7,7 @@ import {
 } from "./StyledComponents";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
-import { setProjectSetting, setShowMiniBar } from "../../redux/reducers/ProjectManagerRedux";
+import { setProjectConfig } from "../../redux/reducers/ProjectManagerRedux";
 import socket from "./Socket";
 import { WebAppEndpoint } from "../interfaces/IApp";
 import { LogsCommand } from "../interfaces/ILogsManager";
@@ -60,7 +60,7 @@ const FooterBarComponent = () => {
                     lint: codeEditorSettings.lint ? false : true,
                 };
                 dispatch(
-                    setProjectSetting({
+                    setProjectConfig({
                         code_editor: {
                             ...updatedSettings,
                         },
@@ -74,7 +74,7 @@ const FooterBarComponent = () => {
                     hover: codeEditorSettings.hover ? false : true,
                 };
                 dispatch(
-                    setProjectSetting({
+                    setProjectConfig({
                         code_editor: {
                             ...updatedSettings,
                         },
@@ -87,7 +87,7 @@ const FooterBarComponent = () => {
                     show_markdown: richOutputSettings.show_markdown ? false : true,
                 };
                 dispatch(
-                    setProjectSetting({
+                    setProjectConfig({
                         rich_output: {
                             ...updatedSettings,
                         },

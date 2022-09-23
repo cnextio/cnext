@@ -24,6 +24,7 @@ export const MarkdownProcessor = () => {
 
             if (lineUpdate != null && codeLines != null) {
                 let lineNumber = lineUpdate.updatedStartLineNumber;
+                let updatedLineCount = lineUpdate.updatedLineCount;
                 let markdownText: string[] = [];
                 const groupID = codeLines[lineNumber]?.groupID;
                 let lineText = lineUpdate.text[lineNumber];
@@ -47,7 +48,10 @@ export const MarkdownProcessor = () => {
 
                     lineText = lineUpdate.text[lineNumber];
                     /** now go get the markdown text */
-                    while (lineNumber < lineUpdate.text.length && isMarkdownLine(lineText)) {
+                    while (
+                        lineNumber < lineUpdate.updatedStartLineNumber + updatedLineCount + 1 &&
+                        isMarkdownLine(lineText)
+                    ) {
                         markdownText.push(lineText.slice(MARKDOWN_PREFIX_LENGTH));
                         lineNumber++;
                         lineText = lineUpdate.text[lineNumber];

@@ -41,7 +41,7 @@ class LanguageServerPlugin {
         });
 
         // listener notify from server
-        socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
+        socket.on(WebAppEndpoint.LanguageServerNotifier, (result, ack) => {
             try {
                 const notification = JSON.parse(result);
                 // console.log(
@@ -57,6 +57,7 @@ class LanguageServerPlugin {
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
 
         socket.on("connect", () => {

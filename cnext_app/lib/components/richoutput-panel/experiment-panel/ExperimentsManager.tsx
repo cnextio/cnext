@@ -176,7 +176,7 @@ const ExperimentManager = (props: any) => {
     const socketInit = () => {
         // const socket = openSocket(CODE_SERVER_SOCKET_ENDPOINT);
         socket.emit("ping", "ExperimentManager");
-        socket.on(WebAppEndpoint.ExperimentManager, (result: string) => {
+        socket.on(WebAppEndpoint.ExperimentManager, (result: string, ack) => {
             console.log("ExperimentManager got results...", result);
             try {
                 let emResult: IMessage = JSON.parse(result);
@@ -221,6 +221,7 @@ const ExperimentManager = (props: any) => {
             } catch (error) {
                 throw error;
             }
+            if (ack) ack();
         });
         // return () => socket.disconnect();
     };
