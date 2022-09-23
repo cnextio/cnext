@@ -1,6 +1,7 @@
 from enum import Enum
 import threading
 import traceback
+import jupyter_client
 import simplejson as json
 import cnextlib.user_space as _cus
 import cnextlib.dataframe as _cd

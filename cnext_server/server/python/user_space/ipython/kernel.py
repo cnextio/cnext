@@ -9,7 +9,6 @@ log = logs.get_logger(__name__)
 
 MESSSAGE_TIMEOUT = 1
 
-
 class IPythonKernel():
     def __init__(self):
         self.km = None
@@ -59,7 +58,6 @@ class IPythonKernel():
                 self.execute_lock.release()
                 log.info('Kernel execution lock released')
                 self._set_execution_complete_condition(True)
-
             if self.km.is_alive():
                 return True
             else:
