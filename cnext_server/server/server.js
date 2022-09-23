@@ -297,7 +297,7 @@ try {
                 "http://logs-01.loggly.com/inputs/c58f8bb2-2332-4915-b9f3-70c1975956bb/tag/" + tag;
             request.post(loggly_url, { json: { key: "value" } }, function (error, response, body) {
                 if (!error && response.statusCode == 200) {
-                    console.log("send to loggly", body);
+                    // console.log("send to loggly", body);
                 }
             });
         }, timeout);
