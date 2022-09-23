@@ -26,6 +26,7 @@ import { Line } from "@codemirror/state";
 
 type CodeEditorState = {
     codeText: { [id: string]: string[] };
+    codeTextDiffView :{ [id: string]: string[] | string };
     codeLines: { [id: string]: ICodeLine[] };
     codeStates: { [id: string]: ICodeState };
     /** file timestamp will be used to check whether the code need to be reloaded
@@ -65,10 +66,12 @@ type CodeEditorState = {
     cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
     /** this number need to be increase whenever cell association changed */
     cellAssocUpdateCount: number;
+    diffEditor:false
 };
 
 const initialState: CodeEditorState = {
     codeText: {},
+    codeTextDiffView:{},
     codeLines: {},
     codeStates: {},
     timestamp: {},
@@ -92,6 +95,7 @@ const initialState: CodeEditorState = {
     mouseOverGroupID: null,
     cellCommand: null,
     mouseOverLine: null,
+    diffEditor:false,
 };
 
 /**
@@ -214,7 +218,12 @@ export const CodeEditorRedux = createSlice({
             }
             state.codeLines[reduxFileID] = codeLines;
         },
-
+        initCodeTextDiffView : (state, action) => {
+            let codeTextData: any = action.payload;
+            state.codeTextDiffView["text"] = action.payload.codeText;
+            state.codeTextDiffView["diff"] = action.payload.diff;
+            console.log(`state.codeTextDiffView`,action.payload,state.codeTextDiffView);
+        },
         updateLines: (state, action) => {
             /** see the design: https://www.notion.so/Adding-and-deleting-lines-2e221653968d4d3b9f8286714e225e78 */
             let lineUpdate: ILineUpdate = action.payload;
@@ -557,7 +566,9 @@ export const CodeEditorRedux = createSlice({
         setCodeToInsert: (state, action) => {
             state.codeToInsert = action.payload;
         },
-
+        setDiffEditor: (state, action) => {
+            state.diffEditor = action.payload;
+        },
         clearAllOutputs: (state, action) => {
             // typeof action.payload === 'string' -> payload = inViewID
             // typeof action.payload === 'object' -> payload = { inViewID, mouseOverGroupID }
@@ -618,6 +629,7 @@ export const CodeEditorRedux = createSlice({
 export const {
     initCodeText,
     updateLines,
+    setDiffEditor,
     addResult,
     setLineStatus,
     setLineGroupStatus,
@@ -631,6 +643,7 @@ export const {
     clearRunningLineTextOutput,
     clearAllOutputs,
     resetCodeEditor,
+    initCodeTextDiffView,
     setMouseOverGroup,
     setCellCommand,
     setMouseOverLine,

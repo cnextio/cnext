@@ -65,6 +65,7 @@ export interface IMessage {
 
 export enum CommandName {
     exec_line = "exec_line",
+    get_file_changed="get_file_changed",
     exec_grouped_lines = "exec_grouped_lines",
     /** this command contained the updated information of the dataframe status. It is used
      * for the server to inform client about changes in the status */

@@ -17,7 +17,8 @@ import {
 import { CommandName, WebAppEndpoint } from "../../interfaces/IApp";
 import socket from "../Socket";
 import { useDispatch } from "react-redux";
-import { setFileDiff, setInView } from "../../../redux/reducers/ProjectManagerRedux";
+import { setFileDiff, setFileToOpen, setInView } from "../../../redux/reducers/ProjectManagerRedux";
+import { setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
 
 const GitManager = (props: any) => {
     const dispatch = useDispatch();
@@ -28,16 +29,16 @@ const GitManager = (props: any) => {
     useEffect(() => {
         setupSocket();
         return () => {
-            socket.off(WebAppEndpoint.GitManager);
+            socket.off(WebAppEndpoint.FileManager);
         };
     }, []);
     const connectDiff = () => {
         socket.emit(
-            WebAppEndpoint.GitManager,
+            WebAppEndpoint.FileManager,
             JSON.stringify({
-                webapp_endpoint: WebAppEndpoint.GitManager,
+                webapp_endpoint: WebAppEndpoint.FileManager,
                 content: "",
-                command_name: CommandName.connect_repo,
+                command_name: CommandName.get_file_changed,
             })
         );
     };
@@ -45,10 +46,12 @@ const GitManager = (props: any) => {
         connectDiff();
     }, []);
     const setupSocket = () => {
-        socket.emit("ping", WebAppEndpoint.GitManager);
-        socket.on(WebAppEndpoint.GitManager, (result: string) => {
+        socket.emit("ping", WebAppEndpoint.FileManager);
+        socket.on(WebAppEndpoint.FileManager, (result: string) => {
             try {
-                if (JSON.parse(result).command_name === CommandName.connect_repo) {
+                console.log(`JSON.parse(result).content`, JSON.parse(result).content);
+
+                if (JSON.parse(result).command_name === CommandName.get_file_changed) {
                     setListChanged(JSON.parse(result).content);
                 }
             } catch (error) {
@@ -59,16 +62,11 @@ const GitManager = (props: any) => {
     };
     const openFileDiff = (item) => {
         setItemActive(item);
-        dispatch(setFileDiff(item));
-        dispatch(setInView(`${item}?diff_view=true&&diff_mode=code&&commit1=HEAD&&commit2=`));
-        socket.emit(
-            WebAppEndpoint.GitManager,
-            JSON.stringify({
-                webapp_endpoint: WebAppEndpoint.GitManager,
-                content: item,
-                command_name: CommandName.check_diff,
-            })
-        );
+        let path = `${item}?diff_view=true&&diff_mode=code&&commit1=HEAD&&commit2=`;
+        dispatch(setFileToOpen(path));
+        dispatch(setDiffEditor(true))
+        // dispatch(setFileDiff(item));
+        // dispatch(setInView(`);
     };
     return (
         <ProjectExplorerContainer>

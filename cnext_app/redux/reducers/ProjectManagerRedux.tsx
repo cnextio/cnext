@@ -125,7 +125,7 @@ export const ProjectManagerRedux = createSlice({
             state.openFiles = {};
             let projectMetadata: IProjectMetadata = action.payload;
             let files: IFileMetadata[] = projectMetadata.open_files;
-            console.log("ProjectManagerRedux: ", files);
+            console.log("ProjectManagerRedux: projectMetadata", projectMetadata, files);
             files?.map((file: IFileMetadata) => {
                 let id = file.path;
                 state.openFiles[id] = file;

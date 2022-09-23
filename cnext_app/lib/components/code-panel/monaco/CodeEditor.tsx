@@ -44,185 +44,33 @@ import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 import { ifElse } from "../../libs";
 var patch = require("patch-text");
+// import  Diff  from "diff";
 const Diff = require("diff");
+var DiffMatchPatch = require("diff-match-patch");
 
 const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
     const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
-    const fileDiff = useSelector((state: RootState) => state.projectManager.fileDiff);
+    const codeTextDiffView = useSelector((state: RootState) => state.codeEditor.codeTextDiffView);
+    const diffEditor = useSelector((state: RootState) => state.codeEditor.diffEditor);
 
-    const [original, setOriginal] = useState(`import pandas as pd
-    from math import log, sqrt
-    import numpy as np
-    from bokeh.plotting import figure, show
-    from bokeh.io import output_notebook
-    output_notebook() 
-    df = pd.read_csv('~/.bokeh/data/antibiotics.csv')
-    drug_color = dict([
-        ("Penicillin",   "#0d3362"),
-        ("Streptomycin", "#c64737"), 
-        ("Neomycin",     "black"  ),
-    ])
+    const [original, setOriginal] = useState(``);
+    const [modified, setModified] = useState(``);
     
-    gram_color = dict([
-        ("negative", "#e69584"),
-        ("positive", "#aeaeb8"),
-    ])
-    
-    width = 500
-    height = 500
-    inner_radius = 90
-    outer_radius = 300 - 10
-    
-    minr = sqrt(log(.001 * 1E4))
-    maxr = sqrt(log(1000 * 1E4))
-    a = (outer_radius - inner_radius) / (minr - maxr)
-    b = inner_radius - a * maxr
-    
-    def rad(mic):
-        return a * np.sqrt(np.log(mic * 1E4)) + b
-    
-    big_angle = 2.0 * np.pi / (len(df) + 1)
-    small_angle = big_angle / 7
-    
-    p = figure(width=width, height=height, title="",
-        x_axis_type=None, y_axis_type=None,
-        x_range=(-420, 420), y_range=(-420, 420),
-        min_border=0, outline_line_color="blue",
-        background_fill_color="#f0e1d2")
-    
-    p.xgrid.grid_line_color = None
-    p.ygrid.grid_line_color = None
-    
-    # annular wedges
-    angles = np.pi/2 - big_angle/2 - df.index.to_series()*big_angle
-    colors = [gram_color[gram] for gram in df[' Gram']]
-    p.annular_wedge(
-        0, 0, inner_radius, outer_radius, -big_angle+angles, angles, color=colors,
-    )
-    
-    # small wedges
-    p.annular_wedge(0, 0, inner_radius, rad(df[' Penicillin']),
-                    -big_angle+angles+5*small_angle, -big_angle+angles+6*small_angle,
-                    color=drug_color['Penicillin'])
-    p.annular_wedge(0, 0, inner_radius, rad(df[' Streptomycin']),
-                    -big_angle+angles+3*small_angle, -big_angle+angles+4*small_angle,
-                    color=drug_color['Streptomycin'])
-    p.annular_wedge(0, 0, inner_radius, rad(df[' Neomycin']),
-                    -big_angle+angles+1*small_angle, -big_angle+angles+2*small_angle,
-                    color=drug_color['Neomycin'])
-    
-    # circular axes and lables
-    labels = np.power(10.0, np.arange(-3, 4))
-    radii = a * np.sqrt(np.log(labels * 1E4)) + b
-    p.circle(0, 0, radius=radii, fill_color=None, line_color="white")
-    p.text(0, radii[:-1], [str(r) for r in labels[:-1]],
-           text_font_size="11px", text_align="center", text_baseline="middle")
-    
-    # radial axes
-    p.annular_wedge(0, 0, inner_radius-10, outer_radius+10,
-                    -big_angle+angles, -big_angle+angles, color="black")
-    
-    # bacteria labels
-    xr = radii[0]*np.cos(np.array(-big_angle/2 + angles))
-    yr = radii[0]*np.sin(np.array(-big_angle/2 + angles))
-    label_angle=np.array(-big_angle/2+angles)
-    label_angle[label_angle < -np.pi/2] += np.pi # easier to read labels on the left side
-    p.text(xr, yr, df['Bacteria'], angle=label_angle,
-           text_font_size="12px", text_align="center", text_baseline="middle")
-    
-    # OK, these hand drawn legends are pretty clunky, will be improved in future release
-    p.circle([-40, -40], [-370, -390], color=list(gram_color.values()), radius=5)
-    p.text([-30, -30], [-370, -390], text=["Gram-" + gr for gr in gram_color.keys()],
-           text_font_size="9px", text_align="left", text_baseline="middle")
-    
-    p.rect([-40, -40, -40], [18, 0, -18], width=30, height=13,
-           color=list(drug_color.values()))
-    p.text([-15, -15, -15], [18, 0, -18], text=list(drug_color),
-           text_font_size="12px", text_align="left", text_baseline="middle")
-    
-    show(p)
-    # ## This is  a demo of Matplotlib
-    # ### this is the narative mode
-    import numpy as np
-    import matplotlib.pyplot as plt
-    plt.plot([1,2,1,2])
-    plt.title("GRID REPRESENTATION")
-    plt.xlabel("X-axis")
-    plt.ylabel("Y-axis")
-    import matplotlib.pyplot as plt
-    x = [1,2,3,4,5]
-    y = [50,40,70,80,20]
-    y2 = [80,20,20,50,60]
-    y3 = [70,20,60,40,60]
-    y4 = [80,20,20,50,60]
-    plt.plot(x,y,"g",label="Enfield", linewidth=5)
-    plt.plot(x,y2,"c",label="Honda",linewidth=5)
-    plt.plot(x,y3,"k",label="Yahama",linewidth=5)
-    plt.plot(x,y4,"y",label="KTM",linewidth=5)
-    plt.title("bike details in line plot")
-    plt.ylabel(" Distance in kms")
-    plt.xlabel("Days")
-    plt.legend()
-    
-    `);
-    const [modified, setModified] = useState(`import time1
-    for i in range(10):
-        time.sleep(2)
-        print(i)
-    import os
-    print(os.getcwd())
-    1234
-    
-    `);
+    //applyPatch
     useEffect(() => {
-        let a = Diff.applyPatch(
-            `import time233
-            for i in range(10):
-                time.sleep(2)
-                print(i)
-                a=3
-                b=6
-            import os
-            print(os.getcwd())
-            
-            `,
-            `diff --git a/Skywalker/main.py b/Skywalker/main.py
-            index 36fd350..6655b1f 100644
-            --- b/Skywalker/main.py
-            +++ a/Skywalker/main.py
-            @@ -1,7 +1,9 @@
-            -import time
-            +import time233
-             for i in range(10):
-                 time.sleep(2)
-                 print(i)
-            +    a=3
-            +    b=6
-             import os
-             print(os.getcwd())
-            `
-        );
-        let diff = Diff.diffLines(`format2`, `format1`);
-        console.log(`tesst`, a);
-
-        // console.log(`fileDiff`, fileDiff, inViewID);
-        // if (fileDiff) {
-        //     let file = fileDiff.substring(10);
-        //     let a = [];
-        //     if (file) {
-        //         a = ifElse(store.getState().codeEditor.codeText, file, null);
-        //         if (a) return a.join("\n");
-        //         console.log(`codeText`, file, store.getState().codeEditor);
-
-        //         setModified(a);
-        //     }
-        // }
-        // return () => {
-        //     console.log("This will be logged on unmount");
-        // };
-    });
-
+        if (codeTextDiffView.text) {
+            const codeTextDiff = codeTextDiffView.text.join("\n");
+            setModified(codeTextDiff);
+            const reverse_gitpatch = codeTextDiffView.diff;
+            const applyPatch = Diff.applyPatch(codeTextDiff, reverse_gitpatch);
+            setOriginal(applyPatch);
+        }
+    }, [codeTextDiffView]);
+    useEffect(() => {
+        setOriginal('')
+        setModified('')
+    }, [showGitManager])
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
         (state: RootState) => state.executorManager.executorRestartCounter
@@ -288,7 +136,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             while (
                 curGroupID != null &&
                 lnToInsertAfter <
-                    codeLines.length + 1 /** note that lnToInsertAfter is 1-based */ &&
+                codeLines.length + 1 /** note that lnToInsertAfter is 1-based */ &&
                 codeLines[lnToInsertAfter - 1].groupID === curGroupID
             ) {
                 lnToInsertAfter += 1;
@@ -518,6 +366,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (curInViewID && monaco) {
                 // fileClosingHandler(view.state, curInViewID);
             }
+            console.log('curInViewID', curInViewID);
+            
             setCurInViewID(inViewID);
         }
         // resetEditorState(inViewID, view);
@@ -579,7 +429,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         setEditor(mountedEditor);
         setHTMLEventHandler(mountedEditor, stopMouseEvent);
     };
-    const handleEditorDidMountDiff = () => {};
+    const handleEditorDidMountDiff = () => { };
     const handleEditorChange = (value, event) => {
         try {
             const state = store.getState();
@@ -653,7 +503,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
     useEffect(() => {
         // setModified(getCodeText(store.getState()));
     });
-    return !showGitManager ? (
+    return !diffEditor ? (
         <StyledMonacoEditor
             height="90vh"
             defaultValue=""
