@@ -71,7 +71,14 @@ const TerminalComponent = () => {
                         switch (msg.type) {
                             case "stdout":
                                 if (msg.content) {
-                                    xtermRef?.current?.terminal.write(msg.content[0] as string);
+                                    // xtermRef?.current?.terminal.write(msg.content[0] as string);
+                                    // remove color yellow , #ddd can check with window later
+                                    const stripAnsiCodes = (str: string) =>
+                                        str
+                                            .replaceAll("\u001b[93m", "")
+                                            .replaceAll("\u001b[97m", "");
+                                    let str = stripAnsiCodes(msg.content[0]);
+                                    xtermRef?.current?.terminal.write(str);
                                 }
                                 break;
                             case "disconnect":
