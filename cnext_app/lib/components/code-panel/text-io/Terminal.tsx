@@ -77,8 +77,8 @@ const TerminalComponent = () => {
                                         str
                                             .replaceAll("\u001b[93m", "")
                                             .replaceAll("\u001b[97m", "");
-                                    let str = stripAnsiCodes(msg.content[0]);
-                                    xtermRef?.current?.terminal.write(str);
+                                    const stdout = stripAnsiCodes(msg.content[0] as string);
+                                    xtermRef?.current?.terminal.write(stdout);
                                 }
                                 break;
                             case "disconnect":
@@ -133,8 +133,8 @@ const TerminalComponent = () => {
             const content = [
                 event.rows,
                 event.cols,
-                elementTerminal.offsetHeight,
-                elementTerminal.offsetWidth,
+                elementTerminal?.offsetHeight,
+                elementTerminal?.offsetWidth,
             ];
             if (!session.isDisposed) {
                 fitAddon.fit();
