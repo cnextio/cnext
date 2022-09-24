@@ -1,7 +1,7 @@
 const request = require("request");
 const fs = require("fs");
 
-function logglyEvent() {
+function eventLog() {
     const LAUNCH = 0;
     const AFTER_5_MIN = 300000;
     const AFTER_30_MIN = 1800000;
@@ -34,4 +34,4 @@ function sendEventTrackingAfter(timeout, tag) {
     }, timeout);
 }
 
-module.exports = { logglyEvent };
+module.exports = { eventLog };

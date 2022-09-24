@@ -6,7 +6,7 @@ const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
 const { nanoid } = require("nanoid");
-const { logglyEvent } = require("./EventLog");
+const { eventLog } = require("./EventLog");
 // const { instrument } = require("@socket.io/admin-ui");
 const { PythonShell } = require("python-shell");
 const {
@@ -290,8 +290,7 @@ try {
         process.exit(1);
     });
 
-    logglyEvent();
-    
+    eventLog();
 } catch (error) {
     console.log(error);
 }

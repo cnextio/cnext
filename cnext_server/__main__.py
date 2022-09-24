@@ -165,8 +165,8 @@ def run_help(choice):
         Using command
         - cnext                        : RESUME APPLICATION or START
         - cnext 8888                   : RESUME APPLICATION at PORT 8888
-        - cnext -v                     : Show the Version
-        - cnext -l on/off              : Enable/Disable Loggly Event
+        - cnext -v                     : show the version
+        - cnext -l on/off              : enable/disable event log
         """
     print(message)
 
