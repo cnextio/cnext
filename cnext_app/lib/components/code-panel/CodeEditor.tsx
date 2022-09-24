@@ -373,7 +373,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * */
 
     useEffect(() => {
-        console.log("CodeEditor useEffect container view", container, view);
+        // console.log("CodeEditor useEffect container view", container, view);
         if (container && view) {
             setHTMLEventHandler(container, view, stopMouseEvent);
         }

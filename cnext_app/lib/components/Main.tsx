@@ -9,7 +9,8 @@ import openConnection, { io, Socket } from "socket.io-client";
 
 const Main: FC = (props: any) => {
     const [connected, setConnected] = useState(false);
-    const [socket, setSocket] = useState<Socket|null>(null);
+    const [socket, setSocket] = useState<Socket | null>(null);
+    
     useEffect(() => {
         const socket = openConnection(SERVER_SOCKET_ENDPOINT, {
             closeOnBeforeunload: false,
@@ -17,8 +18,8 @@ const Main: FC = (props: any) => {
         });
 
         socket?.on("connect", function () {
-            // console.log(`Socket connect previouslyConnected=${previouslyConnected}`);
-            if (connected) {
+            // the use of function here is to make sure the latest value will be read
+            if (() => connected) {
                 // send reconnect message to the server so it will send back any message in queue
                 socket.emit("reconnect");
             } else {
