@@ -28,6 +28,9 @@ from libs.constants import TrackingModelType, TrackingDataframeType
 from project_manager.interfaces import SERVER_CONFIG_PATH, WORKSPACE_METADATA_PATH, WorkspaceMetadata
 from user_space.user_space import IPythonUserSpace, BaseKernelUserSpace
 import cnextlib.dataframe as cd
+import hashlib
+import jupyter_client
+import subprocess
 
 
 log = logs.get_logger(__name__)
@@ -78,6 +81,15 @@ def set_executor_working_dir(user_space, workspace_info: WorkspaceMetadata):
 def main(argv):
     try:
         if argv and len(argv) > 0:
+            bin_path = sys.executable
+            bin_path_hash = hashlib.md5(bin_path.encode()).hexdigest()
+            cnext_kernel_spec_name = 'cnext-' + bin_path_hash
+
+            try:
+                jupyter_client.kernelspec.get_kernel_spec(cnext_kernel_spec_name)
+            except jupyter_client.kernelspec.NoSuchKernel:
+                subprocess.run([bin_path, '-m', 'ipykernel', 'install', '--user', '--name', cnext_kernel_spec_name, '--display-name', cnext_kernel_spec_name])
+
             server_config = read_config(SERVER_CONFIG_PATH)
             # workspace_metadata = read_config(WORKSPACE_METADATA_PATH)
             workspace_metadata = WorkspaceMetadata(
@@ -98,7 +110,7 @@ def main(argv):
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
                     
                     ## start an ipython kernel with a default spec or spec from the config #
-                    default_ipython_kernel_spec = 'python'
+                    default_ipython_kernel_spec = cnext_kernel_spec_name
                     if hasattr(server_config, 'default_ipython_kernel_spec'):
                         default_ipython_kernel_spec = server_config.default_ipython_kernel_spec
                     user_space.start_executor(default_ipython_kernel_spec)
