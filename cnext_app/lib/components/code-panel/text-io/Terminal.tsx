@@ -157,9 +157,8 @@ const TerminalComponent = () => {
                 cursorWidth: 2,
                 convertEol: true,
                 fontFamily: "monospace",
-                fontSize: 13,
+                fontSize: 12,
                 lineHeight: 1.2,
-                fontWeight: 400,
                 theme: {
                     selection: "#b1b1b155",
                     background: "white",
