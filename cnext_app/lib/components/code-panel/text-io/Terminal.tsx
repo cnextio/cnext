@@ -8,6 +8,7 @@ import { XTerm } from "../../../@xterm";
 import styled from "styled-components";
 import { deleteAllCookies, delete_cookie } from "../../../../utils";
 import { getDomain } from "../../../../utils/domain";
+import { SERVER_SOCKET_ENDPOINT } from "../../Socket";
 const errorTokenExpired = "Failed to fetch";
 const Terminal = "terminalIO";
 let elementTerminal: HTMLElement | null;
@@ -24,7 +25,7 @@ const TerminalComponent = () => {
     async function init() {
         if (config.port && config.token) {
             try {
-                let base = process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT;
+                let base = SERVER_SOCKET_ENDPOINT;
 
                 if (base?.endsWith("/")) {
                     base = base.slice(0, -1);
@@ -100,6 +101,7 @@ const TerminalComponent = () => {
             }
         }
     }
+    
     useEffect(() => {
         init();
         return () => {
