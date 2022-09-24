@@ -72,7 +72,14 @@ const TerminalComponent = () => {
                         switch (msg.type) {
                             case "stdout":
                                 if (msg.content) {
-                                    xtermRef?.current?.terminal.write(msg.content[0] as string);
+                                    // xtermRef?.current?.terminal.write(msg.content[0] as string);
+                                    // remove color yellow , #ddd can check with window later
+                                    const stripAnsiCodes = (str: string) =>
+                                        str
+                                            .replaceAll("\u001b[93m", "")
+                                            .replaceAll("\u001b[97m", "");
+                                    const stdout = stripAnsiCodes(msg.content[0] as string);
+                                    xtermRef?.current?.terminal.write(stdout);
                                 }
                                 break;
                             case "disconnect":
@@ -128,8 +135,8 @@ const TerminalComponent = () => {
             const content = [
                 event.rows,
                 event.cols,
-                elementTerminal.offsetHeight,
-                elementTerminal.offsetWidth,
+                elementTerminal?.offsetHeight,
+                elementTerminal?.offsetWidth,
             ];
             if (!session.isDisposed) {
                 fitAddon.fit();
@@ -152,9 +159,8 @@ const TerminalComponent = () => {
                 cursorWidth: 2,
                 convertEol: true,
                 fontFamily: "monospace",
-                fontSize: 13,
+                fontSize: 12,
                 lineHeight: 1.2,
-                fontWeight: 400,
                 theme: {
                     selection: "#b1b1b155",
                     background: "white",
