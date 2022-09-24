@@ -107,13 +107,6 @@ class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'
     exec_grouped_lines = 'exec_grouped_lines'
 
-
-class GitCommand():
-    get_list_file_changed = 'get_list_file_changed'
-    connect_repo = 'connect_repo'
-    check_diff = 'check_diff'
-
-
 class ContentType(str, Enum):
     COMMAND = 'command'
     STRING = 'str'

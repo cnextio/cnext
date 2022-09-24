@@ -36,9 +36,8 @@ const ExperimentManager = "ExperimentManager";
 const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
-const GitManager = 'GitManager';
 const CodeEndpoints = [CodeEditor, DFManager, ModelManager, MagicCommandGen, ExecutorManager];
-const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager, GitManager];
+const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
 
 const LSPExecutor = [
     LanguageServer,
