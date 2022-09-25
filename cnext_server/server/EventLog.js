@@ -6,7 +6,7 @@ function eventLog() {
     const AFTER_30_MIN = 1800000;
 
     if (process.env.NODE_ENV != "development") {
-        sendEventTrackingAfter(LAUNCH, "launch");
+        sendEventTrackingAfter(LAUNCH, "launch_after_1_min");
         sendEventTrackingAfter(AFTER_5_MIN, "launch_after_5_min");
         sendEventTrackingAfter(AFTER_30_MIN, "launch_after_30_min");
     }
