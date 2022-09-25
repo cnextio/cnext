@@ -4,7 +4,6 @@ import sys
 from subprocess import Popen
 from contextlib import contextmanager
 import time
-
 from urllib.request import urlopen
 from io import BytesIO
 from zipfile import ZipFile
@@ -22,6 +21,11 @@ else:
     import readline
 from cnext_server import __version__
 import json
+from time import sleep
+from multiprocessing import Process, Pipe
+import signal
+import requests
+from datetime import datetime
 
 current_dir_path = os.getcwd()
 basepath = _path.dirname(__file__)
@@ -34,12 +38,12 @@ NODE_MODULES_PATH = os.path.abspath(os.path.join(current_dir_path,"server","node
 PACKAGE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package.json"))
 PACKAGE_LOCK_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package-lock.json"))
 STORE_MD5_FILE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","track-md5.txt"))
-SETTINGS_PATH = os.path.abspath(os.path.join(current_dir_path,"server","settings.json"))
 
 DEFAULT_PROJECT = "Skywalker"
 WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
 DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/master.zip'
+
 
 def change_permissions_recursive(path, mode):
     for root, dirs, files in os.walk(path, topdown=False):
@@ -177,13 +181,13 @@ def show_version(data):
     print(content["version"])
 
 
-def change_log(status):
-    if status is not None:
-        jsonFile= open(SETTINGS_PATH),"w+"
-        settings = json.load(jsonFile) 
-        settings["loggly-event"] = status
-        jsonFile.write(json.dumps(settings))
-        jsonFile.close()
+def change_log(cmd_param):
+    if cmd_param ==  'True' or cmd_param == 'False':
+        os.chdir(current_dir_path)
+        data = yaml.safe_load(open('workspace.yaml', 'r'))
+        data['event_log_enable'] = cmd_param
+        with open(r'workspace.yaml', 'w') as file:
+            documents = yaml.dump(data, file, default_flow_style=False)
     else:
         run_help("")
 
@@ -263,8 +267,58 @@ def switch(command, data = None ):
     return switcher.get(command, default)(data)
 
 
+def send_event_log(tag):
+    print("Send event log with tag: ", tag)
+    root_url = "http://logs-01.loggly.com/inputs/c58f8bb2-2332-4915-b9f3-70c1975956bb/tag/"
+    url = root_url + tag
+    x = requests.post(url, json={"key": datetime.utcnow().strftime("%d/%m/%Y, %H:%M:%S")})
+
+   
+def timer(seconds,tag):
+    _timer = seconds
+    for x in range(_timer):
+        _timer = _timer - 1
+        sleep(1)
+    if tag == THIRTY_MINS_TAG:
+        proc_30_mins_loop.start()
+        conn_30_mins_loop.send(proc_30_mins_loop.pid)
+    
+    send_event_log(tag)
+
+# for testing
+# ONE_MIN = 1
+# FIVE_MINS = 2
+# THIRTY_MINS = 3 
+ONE_MIN = 60
+FIVE_MINS = 300
+THIRTY_MINS = 1800 
+ONE_MIN_TAG = "launch_after_1_min"
+FIVE_MINS_TAG = "launch_after_5_mins"
+THIRTY_MINS_TAG = "launch_after_30_min"
+
+conn_30_mins, conn_30_mins_loop = Pipe(duplex = True)
+conn_1_min, conn_5_mins = Pipe(duplex = True)
+proc_30_mins_loop = Process(target=timer, args =(THIRTY_MINS, THIRTY_MINS_TAG,))
+
 @contextmanager
 def run_and_terminate_process(port):
+
+    os.chdir(current_dir_path)
+    data = yaml.safe_load(open('workspace.yaml', 'r'))
+    event_log_enable =  data.get('event_log_enable')
+    if event_log_enable == 'True':
+        proc_30_mins = Process(target=timer, args =(THIRTY_MINS, THIRTY_MINS_TAG))
+        proc_30_mins.start()
+        conn_30_mins.send(proc_30_mins.pid)
+
+        proc_1_min = Process(target = timer, args =(ONE_MIN, ONE_MIN_TAG))
+        proc_1_min.start()
+        conn_1_min.send(proc_1_min.pid)
+
+        proc_5_mins = Process(target=timer,args=(THIRTY_MINS, FIVE_MINS_TAG))
+        proc_5_mins.start()
+        conn_5_mins.send(proc_5_mins.pid)
+
     try:
         os.chdir(SERVER_PATH)
         my_env = os.environ.copy()
@@ -277,6 +331,10 @@ def run_and_terminate_process(port):
     finally:
         ser_proc.terminate()  # send sigterm, or ...
         ser_proc.kill()      # send sigkill
+        os.kill(conn_30_mins.recv(),signal.SIGTERM)
+        os.kill(conn_30_mins_loop.recv(),signal.SIGTERM)
+        os.kill(conn_1_min.recv(),signal.SIGTERM)
+        os.kill(conn_5_mins.recv(),signal.SIGTERM)
 
 
 def start(port=4000):
