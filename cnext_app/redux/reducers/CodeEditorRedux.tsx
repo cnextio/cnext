@@ -26,7 +26,7 @@ import { Line } from "@codemirror/state";
 
 type CodeEditorState = {
     codeText: { [id: string]: string[] };
-    codeTextDiffView :{ [id: string]: string[] | string };
+    codeTextDiffView: { [id: string]: string[] | string };
     codeLines: { [id: string]: ICodeLine[] };
     codeStates: { [id: string]: ICodeState };
     /** file timestamp will be used to check whether the code need to be reloaded
@@ -47,7 +47,7 @@ type CodeEditorState = {
     /** This count is used to trigger the update of CodeOutput view.
      * It will increase whenever there is an update to text output results*/
     textOutputUpdateCount: number;
-
+    codeTextDiffUpdateCounter: number;
     lineStatusUpdateCount: number;
     activeLine: string | null;
     activeGroup: string | undefined;
@@ -66,12 +66,12 @@ type CodeEditorState = {
     cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
     /** this number need to be increase whenever cell association changed */
     cellAssocUpdateCount: number;
-    diffView:false
+    diffView: false;
 };
 
 const initialState: CodeEditorState = {
     codeText: {},
-    codeTextDiffView:{},
+    codeTextDiffView: {},
     codeLines: {},
     codeStates: {},
     timestamp: {},
@@ -80,6 +80,7 @@ const initialState: CodeEditorState = {
     resultUpdateCount: 0,
     maxTextOutputOrder: 0,
     textOutputUpdateCount: 0,
+    codeTextDiffUpdateCounter: 0,
     lineStatusUpdateCount: 0,
     cellAssocUpdateCount: 0,
     activeLine: null,
@@ -95,7 +96,7 @@ const initialState: CodeEditorState = {
     mouseOverGroupID: null,
     cellCommand: null,
     mouseOverLine: null,
-    diffView:false,
+    diffView: false,
 };
 
 /**
@@ -216,11 +217,11 @@ export const CodeEditorRedux = createSlice({
             }
             state.codeLines[reduxFileID] = codeLines;
         },
-        initCodeTextDiffView : (state, action) => {
+        initCodeTextDiffView: (state, action) => {
             let codeTextData: any = action.payload;
             state.codeTextDiffView["text"] = action.payload.codeText;
             state.codeTextDiffView["diff"] = action.payload.diff;
-            console.log(`state.codeTextDiffView`,action.payload,state.codeTextDiffView);
+            state.codeTextDiffUpdateCounter +=1;
         },
         updateLines: (state, action) => {
             /** see the design: https://www.notion.so/Adding-and-deleting-lines-2e221653968d4d3b9f8286714e225e78 */
@@ -324,7 +325,7 @@ export const CodeEditorRedux = createSlice({
                 /** there is a change in cell association */
                 state.cellAssocUpdateCount++;
             }
-            
+
             for (let i = lineGroupStatus.fromLine; i < lineGroupStatus.toLine; i++) {
                 if (lineGroupStatus.status !== undefined) {
                     if (

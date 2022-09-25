@@ -53,6 +53,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
     const codeTextDiffView = useSelector((state: RootState) => state.codeEditor.codeTextDiffView);
     const diffView = useSelector((state: RootState) => state.codeEditor.diffView);
+    const codeTextDiffUpdateCounter = useSelector(
+        (state: RootState) => state.codeEditor.codeTextDiffUpdateCounter
+    );
 
     const [original, setOriginal] = useState(``);
     const [modified, setModified] = useState(``);
@@ -66,7 +69,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             const applyPatch = Diff.applyPatch(codeTextDiff, reverse_gitpatch);
             setOriginal(applyPatch);
         }
-    }, [codeTextDiffView]);
+    }, [codeTextDiffUpdateCounter]);
 
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
@@ -370,9 +373,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
         setCodeReloading(true);
     }, [inViewID, diffView]);
     useEffect(() => {
-        setTimeout(() => {
-            setCodeReloading(true);
-        }, 0);
+        if (!diffView) {
+            setTimeout(() => {
+                setCodeReloading(true);
+            }, 0);
+        }
     }, [diffView]);
     useEffect(() => {
         if (serverSynced && codeReloading && monaco && editor) {
@@ -384,7 +389,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             setCellWidgets(editor);
             setCodeReloading(false);
         }
-    }, [serverSynced, codeReloading, monaco, editor]);
+    }, [serverSynced, codeReloading, monaco, editor, diffView]);
 
     useEffect(() => {
         const state = store.getState();

@@ -35,9 +35,7 @@ const GitManager = (props: any) => {
     }, []);
     const connectDiff = () => {
         const state = store.getState();
-
         const projectPath = state.projectManager.activeProject?.path;
-
         socket.emit(
             WebAppEndpoint.FileManager,
             JSON.stringify({
