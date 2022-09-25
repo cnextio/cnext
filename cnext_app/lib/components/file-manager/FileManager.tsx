@@ -38,7 +38,7 @@ import {
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
 import socket from "../Socket";
-import { isUrlFileDiff, isUrlValid, parseUrl } from "../libs";
+import { isDiffFile, isUrlValid, parseUrl } from "../libs";
 
 const FileManager = () => {
     const dispatch = useDispatch();
@@ -306,12 +306,12 @@ const FileManager = () => {
              * other UI components
              */
             // console.log(`23454=>inViewID`, isUrlValid("main.py"));
-            dispatch(setDiffEditor(isUrlFileDiff(inViewID)));
+            dispatch(setDiffEditor(isDiffFile(inViewID)));
             if (
                 (codeText == null ||
                     (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
                     isSettingsFile(inViewID)) &&
-                !isUrlFileDiff(inViewID)
+                !isDiffFile(inViewID)
             ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 const projectPath = state.projectManager.activeProject?.path;
@@ -327,7 +327,7 @@ const FileManager = () => {
                 (codeText == null ||
                     (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
                     isSettingsFile(inViewID)) &&
-                isUrlFileDiff(inViewID)
+                isDiffFile(inViewID)
             ) {
                 let convertURL = parseUrl(inViewID);
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];

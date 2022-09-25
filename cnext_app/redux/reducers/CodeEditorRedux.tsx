@@ -66,7 +66,7 @@ type CodeEditorState = {
     cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
     /** this number need to be increase whenever cell association changed */
     cellAssocUpdateCount: number;
-    diffEditor:false
+    diffView:false
 };
 
 const initialState: CodeEditorState = {
@@ -95,7 +95,7 @@ const initialState: CodeEditorState = {
     mouseOverGroupID: null,
     cellCommand: null,
     mouseOverLine: null,
-    diffEditor:false,
+    diffView:false,
 };
 
 /**
@@ -565,7 +565,7 @@ export const CodeEditorRedux = createSlice({
             state.codeToInsert = action.payload;
         },
         setDiffEditor: (state, action) => {
-            state.diffEditor = action.payload;
+            state.diffView = action.payload;
         },
         clearAllOutputs: (state, action) => {
             // typeof action.payload === 'string' -> payload = inViewID

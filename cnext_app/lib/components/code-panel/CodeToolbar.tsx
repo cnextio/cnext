@@ -13,7 +13,7 @@ import store, { RootState } from "../../../redux/store";
 import { isRunQueueBusy } from "./libCodeEditor";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 import { OverlayComponent } from "../libs/OverlayComponent";
-import { isUrlFileDiff, parseUrl } from "../libs";
+import { isDiffFile, parseUrl } from "../libs";
 
 const FileCloseIcon = (props) => {
     return (
@@ -56,7 +56,7 @@ const CodeToolbar = () => {
         
     }, [openFiles]);
     const getName = (name: string) => {
-        let isURL =  isUrlFileDiff(name)
+        let isURL =  isDiffFile(name)
         if(!isURL) return name;
         const parse = parseUrl(name)
         return `${parse.path}(WT)`

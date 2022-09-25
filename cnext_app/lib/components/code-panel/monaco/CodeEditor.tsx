@@ -52,7 +52,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
     const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
     const codeTextDiffView = useSelector((state: RootState) => state.codeEditor.codeTextDiffView);
-    const diffEditor = useSelector((state: RootState) => state.codeEditor.diffEditor);
+    const diffView = useSelector((state: RootState) => state.codeEditor.diffView);
 
     const [original, setOriginal] = useState(``);
     const [modified, setModified] = useState(``);
@@ -368,12 +368,12 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
         // resetEditorState(inViewID, view);
         setCodeReloading(true);
-    }, [inViewID, diffEditor]);
+    }, [inViewID, diffView]);
     useEffect(() => {
         setTimeout(() => {
             setCodeReloading(true);
         }, 0);
-    }, [diffEditor]);
+    }, [diffView]);
     useEffect(() => {
         if (serverSynced && codeReloading && monaco && editor) {
             // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
@@ -501,7 +501,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     };
 
-    return !diffEditor ? (
+    return !diffView ? (
         <StyledMonacoEditor
             height="90vh"
             defaultValue=""

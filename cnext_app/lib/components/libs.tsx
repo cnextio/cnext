@@ -18,7 +18,7 @@ export const isJsonString = (data: string) => {
     }
     return true;
 };
-export const isUrlFileDiff = (url: string) => {
+export const isDiffFile= (url: string) => {
     let parse = parseUrl(url);
     if (parse.path && parse.params?.diff_view) return true;
     return false;
