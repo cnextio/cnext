@@ -26,7 +26,11 @@ const CodePanel = ({ workingPanelViewMode, stopMouseEvent }) => {
                             : ViewMode.HORIZONTAL
                     }
                 >
-                    <Pane>{inViewID != null && <CodeEditor stopMouseEvent={stopMouseEvent} />}</Pane>
+                    {inViewID != null && (
+                        <Pane>
+                            <CodeEditor stopMouseEvent={stopMouseEvent} />
+                        </Pane>
+                    )}
                     <Pane size="30%">
                         <TextIOComponent />
                     </Pane>

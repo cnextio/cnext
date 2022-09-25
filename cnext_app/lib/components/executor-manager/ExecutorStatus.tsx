@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import CircleIcon from "@mui/icons-material/Circle";
 import { ExecutorManagerCommand, IExecutorStatus } from "../../interfaces/IExecutorManager";
-import socket from "../Socket";
+import { SocketContext } from "../Socket";
 import { TextIOHeaderText } from "../StyledComponents";
 import { green, red } from "@mui/material/colors";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,11 +13,12 @@ import {
 import { RootState } from "../../../redux/store";
 
 const ExecutorStatus = () => {
+    const socket = useContext(SocketContext);
     const executorStatus = useSelector((state: RootState) => state.executorManager.executorStatus);
     const dispatch = useDispatch();
     const socketInit = () => {
-        socket.emit("ping", WebAppEndpoint.ExecutorManager);
-        socket.on(WebAppEndpoint.ExecutorManager, (result: string, ack) => {
+        socket?.emit("ping", WebAppEndpoint.ExecutorManager);
+        socket?.on(WebAppEndpoint.ExecutorManager, (result: string, ack) => {
             try {
                 let message: IMessage = JSON.parse(result);
                 console.log(`${WebAppEndpoint.ExecutorManager} got results for command `, message);
@@ -44,9 +45,9 @@ const ExecutorStatus = () => {
     useEffect(() => {
         socketInit();
         return () => {
-            socket.off(WebAppEndpoint.ExecutorManager);
+            socket?.off(WebAppEndpoint.ExecutorManager);
         };
-    }, []);
+    }, [socket]);
 
     const showResourceUsage = () => {
         if (executorStatus?.resource_usage?.limits?.memory.rss > 0) {

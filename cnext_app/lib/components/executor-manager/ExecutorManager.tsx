@@ -1,6 +1,7 @@
+import { Socket } from "socket.io-client";
 import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
-import socket from "../Socket";
+// import socket from "../Socket";
 
 const createMessage = (commandName: ExecutorManagerCommand) => {
     let message: IMessage = {
@@ -14,19 +15,19 @@ const createMessage = (commandName: ExecutorManagerCommand) => {
     return message;
 };
 
-const sendMessage = (message: IMessage) => {
+const sendMessage = (socket: Socket, message: IMessage) => {
     console.log("ExecutorManager send message: ", message.webapp_endpoint, JSON.stringify(message));
-    socket.emit(message.webapp_endpoint, JSON.stringify(message));
+    socket?.emit(message.webapp_endpoint, JSON.stringify(message));
 };
 
-const restartKernel = () => {
+const restartKernel = (socket: Socket) => {
     const message = createMessage(ExecutorManagerCommand.restart_kernel);
-    sendMessage(message);
+    sendMessage(socket, message);
 };
 
-const interruptKernel = () => {
+const interruptKernel = (socket: Socket) => {
     const message = createMessage(ExecutorManagerCommand.interrupt_kernel);
-    sendMessage(message);
+    sendMessage(socket, message);
 };
 
 export { restartKernel, interruptKernel };

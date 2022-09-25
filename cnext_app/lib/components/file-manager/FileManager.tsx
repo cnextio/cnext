@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useBeforeunload } from "react-beforeunload";
 import {
@@ -35,9 +35,10 @@ import {
     IWorkspaceMetadata,
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
-import socket from "../Socket";
+import { SocketContext } from "../Socket";
 
 const FileManager = () => {
+    const socket = useContext(SocketContext);
     const dispatch = useDispatch();
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     const fileToClose = useSelector((state: RootState) => state.projectManager.fileToClose);
@@ -78,8 +79,8 @@ const FileManager = () => {
     };
 
     const setupSocket = () => {
-        socket.emit("ping", WebAppEndpoint.FileManager);
-        socket.on(WebAppEndpoint.FileManager, (result: string, ack) => {
+        socket?.emit("ping", WebAppEndpoint.FileManager);
+        socket?.on(WebAppEndpoint.FileManager, (result: string, ack) => {
             console.log("FileManager got results...", result);
             try {
                 let fmResult: IMessage = JSON.parse(result);
@@ -233,7 +234,7 @@ const FileManager = () => {
 
     const sendMessage = (message: IMessage) => {
         console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
-        socket.emit(message.webapp_endpoint, JSON.stringify(message));
+        socket?.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
     const createMessage = (
@@ -578,9 +579,9 @@ const FileManager = () => {
         // sendMessage(message);
 
         return () => {
-            socket.off(WebAppEndpoint.FileManager);
+            socket?.off(WebAppEndpoint.FileManager);
         };
-    }, []); //run this only once - not on rerender
+    }, [socket]); //run this only once - not on rerender
 
     return null;
 };

@@ -15,7 +15,8 @@ import {
 import store from "../../redux/store";
 import { ifElse } from "../components/libs";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interfaces/IApp";
-import socket from "../components/Socket";
+import { Socket } from "socket.io-client";
+// import socket from "../components/Socket";
 // import shortid from "shortid";
 
 // export function socketInit() {
@@ -222,7 +223,7 @@ function createGetDimStatsMessage(
     return message;
 }
 
-function sendMessage(message: IMessage, timeout = 10000) {
+function sendMessage(socket: Socket, message: IMessage, timeout = 10000) {
     return new Promise((resolve, reject) => {
         console.log(`send ${WebAppEndpoint.MagicCommandGen} message: `, message);
         // let timer;
@@ -432,6 +433,7 @@ function handleXMultivariatePlot(
 }
 
 export function cAssistGetPlotCommand(
+    socket: Socket,
     plotData: CAssistPlotData
 ): Promise<ICodeGenResult> | ICodeGenResult {
     if (plotData.df == null) {
@@ -456,7 +458,7 @@ export function cAssistGetPlotCommand(
             let y = plotData.y;
             let x = plotData.x;
             let df_id = plotData.df;
-            return sendMessage(message).then((dimStats: IDimStatsResult) => {
+            return sendMessage(socket, message).then((dimStats: IDimStatsResult) => {
                 console.log(
                     "cAssistGetPlotCommand message handler: ",
                     dimStats,

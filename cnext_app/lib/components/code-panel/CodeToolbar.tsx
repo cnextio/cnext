@@ -65,12 +65,14 @@ const CodeToolbar = () => {
                         /** not allow switching tab when the runQueue is busy */
                         // onClick={(event: React.MouseEvent) => runQueueSafe(event, () => onClick(id))}
                         onClick={() => onClick(id)}
-                        runQueueBusy={id === inViewID && runQueueBusy}
-                        fileSaved={
+                        executing={id === inViewID && runQueueBusy ? 1 : 0}
+                        saved={
                             !fileToSave.includes(id) &&
                             savingFile !== id &&
                             !stateFileToSave.includes(id) &&
                             savingStateFile !== id
+                                ? 1
+                                : 0
                         }
                         onMouseEnter={(event: React.MouseEvent) => {
                             // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
@@ -113,6 +115,7 @@ const CodeToolbar = () => {
                             behavior: "auto",
                             // boundary: document.getElementById(codeOutputContentID),
                         }}
+                        children={""}
                     />
                 )}
             </Fragment>

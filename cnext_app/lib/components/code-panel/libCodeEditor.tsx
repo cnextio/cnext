@@ -41,7 +41,6 @@ import {
 import { ifElse } from "../libs";
 import store from "../../../redux/store";
 import { RootState } from "../../../redux/store";
-import socket from "../Socket";
 
 const markerDiv = () => {
     let statusDiv = document.createElement("div");
@@ -575,8 +574,12 @@ function onKeyDown(event: KeyboardEvent, view: EditorView) {
     }
 }
 
-const setHTMLEventHandler = (container: HTMLDivElement, view: EditorView, stopMouseEvent: boolean) => {
-    console.log('CodeEditor stopMouseEvent ', stopMouseEvent);
+const setHTMLEventHandler = (
+    container: HTMLDivElement,
+    view: EditorView,
+    stopMouseEvent: boolean
+) => {
+    console.log("CodeEditor stopMouseEvent ", stopMouseEvent);
     if (container) {
         if (!stopMouseEvent) {
             container.onmousedown = (event) => onMouseDown(event, view);
@@ -853,7 +856,11 @@ function addToRunQueueThenMoveDown(view: EditorView | undefined) {
     }
     return true;
 }
-const execLines = (view: EditorView | undefined, runQueueItem: IRunQueueItem) => {
+const execLines = (
+    socket: Socket | null,
+    view: EditorView | undefined,
+    runQueueItem: IRunQueueItem
+) => {
     let inViewID = runQueueItem.inViewID;
     let lineRange = runQueueItem.lineRange;
     if (inViewID && view && lineRange.toLine != null && lineRange.fromLine != null) {
@@ -882,10 +889,10 @@ const createMessage = (content: IRunningCommandContent) => {
     return message;
 };
 
-const sendMessage = (socket: Socket, content: IRunningCommandContent) => {
+const sendMessage = (socket: Socket | null, content: IRunningCommandContent) => {
     const message = createMessage(content);
     console.log(`${message.webapp_endpoint} send message: `, message);
-    socket.emit(message.webapp_endpoint, JSON.stringify(message));
+    socket?.emit(message.webapp_endpoint, JSON.stringify(message));
 };
 /** */
 

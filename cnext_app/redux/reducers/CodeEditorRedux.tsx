@@ -624,7 +624,7 @@ export const CodeEditorRedux = createSlice({
 
         setCodeStates: (state, action) => {
             let data: ICodeStateMessage = action.payload;
-            if (data.inViewID != null) {
+            if (data.inViewID != null && state.codeStates[data.inViewID]) {
                 state.codeStates[data.inViewID].scrollPos = data.scrollPos;
                 state.codeStates[data.inViewID].cmState = data.cmState;
             }
