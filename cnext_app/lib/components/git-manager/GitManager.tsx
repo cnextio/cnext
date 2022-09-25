@@ -19,6 +19,7 @@ import socket from "../Socket";
 import { useDispatch } from "react-redux";
 import { setFileDiff, setFileToOpen, setInView } from "../../../redux/reducers/ProjectManagerRedux";
 import { setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
+import store from "../../../redux/store";
 
 const GitManager = (props: any) => {
     const dispatch = useDispatch();
@@ -33,12 +34,19 @@ const GitManager = (props: any) => {
         };
     }, []);
     const connectDiff = () => {
+        const state = store.getState();
+
+        const projectPath = state.projectManager.activeProject?.path;
+
         socket.emit(
             WebAppEndpoint.FileManager,
             JSON.stringify({
                 webapp_endpoint: WebAppEndpoint.FileManager,
                 content: "",
                 command_name: CommandName.get_file_changed,
+                metadata: {
+                    project_path: projectPath,
+                },
             })
         );
     };
@@ -64,7 +72,7 @@ const GitManager = (props: any) => {
         setItemActive(item);
         let path = `${item}?diff_view=true&&diff_mode=code&&commit1=HEAD&&commit2=`;
         dispatch(setFileToOpen(path));
-        dispatch(setDiffEditor(true))
+        dispatch(setDiffEditor(true));
         // dispatch(setFileDiff(item));
         // dispatch(setInView(`);
     };

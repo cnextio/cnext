@@ -16,9 +16,8 @@ log = logs.get_logger(__name__)
 
 
 class MessageHandler(BaseMessageHandler):
-    def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata,git_path):
+    def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata, git_path):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
-        self.repo = git.repo.Repo(git_path)
         # active_project: projects.ProjectMetadata = None
         # open_projects = workspace_info.open_projects
         # if workspace_info.active_project is not None:
@@ -56,14 +55,15 @@ class MessageHandler(BaseMessageHandler):
                 else:
                     type = ContentType.FILE_CONTENT
             elif message.command_name == ProjectCommand.get_file_changed:
+                self.repo = git.repo.Repo(
+                    messageParams.norm_project_path, search_parent_directories=True)
                 changedFiles = [
                     item.a_path for item in self.repo.index.diff(None)]
-                print("changedFiles", changedFiles)
                 result = changedFiles
                 if result == None:
                     type = ContentType.NONE
                 else:
-                    type = ContentType.FILE_CONTENT       
+                    type = ContentType.FILE_CONTENT
             elif message.command_name == ProjectCommand.read_diff:
                 result = files.read_file(messageParams.norm_project_path, messageParams.norm_path,
                                          messageParams.timestamp)
@@ -72,7 +72,7 @@ class MessageHandler(BaseMessageHandler):
                 if result == None:
                     type = ContentType.NONE
                 else:
-                    type = ContentType.FILE_CONTENT        
+                    type = ContentType.FILE_CONTENT
             elif message.command_name == ProjectCommand.save_file:
                 result = files.save_file(
                     messageParams.norm_project_path, messageParams.norm_path, content=message.content)
