@@ -18,7 +18,7 @@ function languageServer(options) {
         rootUri.of(options.rootUri),
         documentUri.of(options.documentUri),
         languageId.of(options.languageId),
-        ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view, settings))),
+        ViewPlugin.define((view) => (plugin = new LanguageServerPlugin(view, settings, options.socket))),
         signatureTooltip(async (view, pos) => {
             if (!settings().autocompletion) return null;
 

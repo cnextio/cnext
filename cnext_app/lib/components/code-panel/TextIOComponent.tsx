@@ -27,7 +27,7 @@ const TextIOComponent = React.memo(() => {
                             key={key}
                             onClick={() => setTextIOPanelID(item)}
                             variant="overline"
-                            underline={textIOPanelID === item ? true : false}
+                            underline={textIOPanelID === item ? 1 : 0}
                             component="span"
                         >
                             {item}

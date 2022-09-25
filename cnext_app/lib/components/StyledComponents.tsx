@@ -368,13 +368,13 @@ export const FileNameTab = styled(Typography)`
     font-size: 13px;
 
     animation: ${(props) =>
-            props.runQueueBusy
+            props.executing
                 ? textTransitionToColor("#F59242", props.theme.palette.grey.A200)
                 : null}
         2s ease infinite;
 
     color: ${(props) =>
-        props.fileSaved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
+        props.saved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
 
     background-color: ${(props) =>
         props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};

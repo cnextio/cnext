@@ -3,7 +3,6 @@ const changesDelay = 3000;
 
 import { setParamOptions } from "./autocomplete";
 import { setDiagnostics } from "@codemirror/lint";
-import socket from "../../components/Socket";
 import { WebAppEndpoint } from "../../interfaces/IApp";
 import { DiagnosticSeverity, SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
 
@@ -16,7 +15,7 @@ import DFFilterPlugin from "./df-plugin";
  * if `dfFilter=true`, no connection to server is needed.
  */
 class LanguageServerPlugin {
-    constructor(view, config) {
+    constructor(view, config, socket) {
         this.view = view;
         this.signatureData = null;
         this.rootUri = this.view.state.facet(rootUri);
@@ -30,18 +29,17 @@ class LanguageServerPlugin {
         this.setupLSConnection();
 
         this.dfPlugin = new DFFilterPlugin();
+        this.socket = socket;
+        // console.log("LanguageServer: ", this.socket);
     }
 
     async setupLSConnection() {
         // console.log('setupLSConnection');
         this.ready = false;
-        socket.emit("ping", WebAppEndpoint.LanguageServer);
-        socket.on("pong", (message) => {
-            // console.log('Get pong from server when init LSP');
-        });
+        this.socket?.emit("ping", WebAppEndpoint.LanguageServer);
 
         // listener notify from server
-        socket.on(WebAppEndpoint.LanguageServerNotifier, (result, ack) => {
+        this.socket?.on(WebAppEndpoint.LanguageServerNotifier, (result, ack) => {
             try {
                 const notification = JSON.parse(result);
                 // console.log(
@@ -60,7 +58,7 @@ class LanguageServerPlugin {
             if (ack) ack();
         });
 
-        socket.on("connect", () => {
+        this.socket?.on("connect", () => {
             this.initializeLS({ documentText: this.view.state.doc.toString() });
         });
 
@@ -77,14 +75,14 @@ class LanguageServerPlugin {
             //     `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
             //     rpcMessage
             // );
-            socket.emit(channel, JSON.stringify(rpcMessage));
+            this.socket?.emit(channel, JSON.stringify(rpcMessage));
 
             setTimeout(() => {
                 resolve(null);
             }, time);
 
             if (channel) {
-                socket.once(channel, (result) => {
+                this.socket?.once(channel, (result) => {
                     const response = JSON.parse(result.toString());
                     // console.log(
                     //     `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,

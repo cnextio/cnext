@@ -7,10 +7,10 @@
  * if `isUpdated == True` and `isDisplayed == True` then DF metadata and 10 rows of table data will be updated.
  * */
 
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { IMessage, WebAppEndpoint, CommandName, ContentType } from "../../interfaces/IApp";
 import { DataFrameUpdateType, IAllDataFrameStatus } from "../../interfaces/IDataFrameStatus";
-import socket from "../Socket";
+import { SocketContext } from "../Socket";
 import {
     setTableData,
     setColumnHistogramPlot,
@@ -27,6 +27,7 @@ import { getLastUpdate, hasDefinedStats } from "./libDataFrameManager";
 import { setTextOutput } from "../../../redux/reducers/RichOutputRedux";
 
 const DataFrameManager = () => {
+    const socket = useContext(SocketContext);
     const dispatch = useDispatch();
     const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
 
@@ -38,7 +39,7 @@ const DataFrameManager = () => {
 
     const sendMessage = (message: IMessage) => {
         console.log(`Send DataFrameManager request: `, JSON.stringify(message));
-        socket.emit(WebAppEndpoint.DFManager, JSON.stringify(message));
+        socket?.emit(WebAppEndpoint.DFManager, JSON.stringify(message));
     };
 
     const createMessage = (
@@ -335,8 +336,8 @@ _tmp()`;
 
     const socketInit = () => {
         // console.log('DFManager useEffect');
-        socket.emit("ping", "DataFrameManager");
-        socket.on(WebAppEndpoint.DFManager, (result: string, ack) => {
+        socket?.emit("ping", "DataFrameManager");
+        socket?.on(WebAppEndpoint.DFManager, (result: string, ack) => {
             try {
                 let message: IMessage = JSON.parse(result);
                 console.log("DataFrameManager got results for command ", message);
@@ -376,9 +377,9 @@ _tmp()`;
     useEffect(() => {
         socketInit();
         return () => {
-            socket.off(WebAppEndpoint.DFManager);
+            socket?.off(WebAppEndpoint.DFManager);
         };
-    }, []); //TODO: run this only once - not on rerender
+    }, [socket]); //TODO: run this only once - not on rerender
 
     useEffect(() => {
         if (loadDataRequest.df_id != null) {

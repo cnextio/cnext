@@ -21,13 +21,14 @@ const RichOutputPanel = ({ stopMouseEvent }) => {
         (state: RootState) => state.projectManager?.settings?.rich_output?.show_markdown
     );
 
-    // useEffect(() => {
-    //     if (resultUpdateCount > 0) {
-    //         if (show !== RichOutputPanelToolbarItems.RESULTS) {
-    //             setIndicate(RichOutputPanelToolbarItems.RESULTS);
-    //         }
-    //     }
-    // }, [resultUpdateCount]);
+    useEffect(() => {
+        if (resultUpdateCount > 0) {
+            // if (show !== RichOutputPanelToolbarItems.RESULTS) {
+                // setIndicate(RichOutputPanelToolbarItems.RESULTS);
+            // }
+            setShow(RichOutputPanelToolbarItems.RESULTS);
+        }
+    }, [resultUpdateCount]);
 
     // since there is at least one update to resultUpdateCount on every execution we will only
     // use the indicator for Data tab
