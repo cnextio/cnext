@@ -67,10 +67,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             setOriginal(applyPatch);
         }
     }, [codeTextDiffView]);
-    useEffect(() => {
-        // setOriginal('')
-        // setModified('')
-    }, [showGitManager]);
+
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
         (state: RootState) => state.executorManager.executorRestartCounter
@@ -503,9 +500,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             console.error(error);
         }
     };
-    useEffect(() => {
-        // setModified(getCodeText(store.getState()));
-    });
+
     return !diffEditor ? (
         <StyledMonacoEditor
             height="90vh"

@@ -32,6 +32,7 @@ import { restartKernel, interruptKernel } from "../executor-manager/ExecutorMana
 import ExecutorCommandConfirmation from "../executor-manager/ExecutorCommandConfirmation";
 import Account from "../user-manager/Account";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
+import { GitSVG } from "../icons/GitSVG";
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -79,7 +80,7 @@ const MiniSidebar = () => {
     const gitManagerIconList = [
         {
             name: SideBarName.GIT,
-            component: <TrendingUpIcon />,
+            component: <GitSVG />,
             tooltip: "Git",
         },
     ];
@@ -132,7 +133,7 @@ const MiniSidebar = () => {
             dispatch(setShowGitManager(true));
             dispatch(setShowProjectExplorer(false));
         } else {
-            dispatch(setDiffEditor(false))
+            dispatch(setDiffEditor(false));
 
             dispatch(setShowGitManager(false));
             dispatch(setShowProjectExplorer(false));
