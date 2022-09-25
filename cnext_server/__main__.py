@@ -166,7 +166,7 @@ def run_help(choice):
         - cnext                        : RESUME APPLICATION or START
         - cnext 8888                   : RESUME APPLICATION at PORT 8888
         - cnext -v                     : show the version
-        - cnext -l on/off              : enable/disable event log
+        - cnext -l True/False          : enable/disable event log
         """
     print(message)
 
@@ -179,18 +179,11 @@ def show_version(data):
 
 def change_log(status):
     if status is not None:
-        state = False
-        if status == "on":
-            state = True
-        else: 
-            state = False
-        settings_old = open(SETTINGS_PATH)
-        data = json.load(settings_old) 
-        settings_old.close() 
-
-        data["loggly-event"] = state
+        settings = json.load(open(SETTINGS_PATH)) 
+        settings.close() 
+        settings["loggly-event"] = status
         jsonFile = open(SETTINGS_PATH, "w+")
-        jsonFile.write(json.dumps(data))
+        jsonFile.write(json.dumps(settings))
         jsonFile.close()
     else:
         run_help("")
