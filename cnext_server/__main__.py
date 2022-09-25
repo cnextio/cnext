@@ -180,7 +180,6 @@ def show_version(data):
 def change_log(status):
     if status is not None:
         settings = json.load(open(SETTINGS_PATH)) 
-        settings.close() 
         settings["loggly-event"] = status
         jsonFile = open(SETTINGS_PATH, "w+")
         jsonFile.write(json.dumps(settings))
