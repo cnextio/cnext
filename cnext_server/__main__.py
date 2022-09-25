@@ -108,14 +108,14 @@ readline.parse_and_bind("tab: complete")
 readline.set_completer(complete)
 
 def is_first_time():
-    if(os.path.exists(NODE_MODULES_PATH)):
+    if os.path.exists(NODE_MODULES_PATH):
         return False
     else:
         return True
 
 
 def is_updated():
-    if(os.path.exists(STORE_MD5_FILE_PATH)):
+    if os.path.exists(STORE_MD5_FILE_PATH):
         md5 = hashlib.md5(open(PACKAGE_LOCK_PATH,'rb').read()).hexdigest()
         with open(STORE_MD5_FILE_PATH, 'r') as file:
             data = file.read()
@@ -128,28 +128,28 @@ def is_updated():
     
 
 def main(args=sys.argv):
-        if(len(args) == 1):
+        if len(args) == 1:
             # cnext the 1rst time
-            if(is_first_time()):
+            if is_first_time():
                 status = ask()
-                if(status == WITHOUT_PROJECT):
+                if status == WITHOUT_PROJECT:
                     install()
                     start()
                 else:
                     run_with_aks_path()
             else:
                 # cnext many times - check is any update?
-                if(is_updated()):
+                if is_updated():
                     install()
                 start()
 
-        elif(len(args) == 2):
+        elif len(args) == 2:
             # cnext with mode
             if(args[1].isnumeric()):
                 run_at_port(int(args[1]))
             else:
                 switch(args[1])
-        elif(len(args) == 3):
+        elif len(args) == 3:
             # cnext with mode and param
             switch(args[1],args[2])
         else:
@@ -178,9 +178,9 @@ def show_version(data):
 
 
 def change_log(status):
-    if(status is not None):
+    if status is not None:
         state = False
-        if(status == "on"):
+        if status == "on":
             state = True
         else: 
             state = False
@@ -211,12 +211,12 @@ def download_project(project_name, download_to_path):
 
 
 def download(path_or_name):
-    if(path_or_name):
+    if path_or_name:
         abs_paths = os.path.abspath(path_or_name)
         if os.path.isdir(abs_paths):
             # cnext -s G:\DEV\PROJECTS
             download_project(DEFAULT_PROJECT,abs_paths)
-        elif(path_or_name.lower() in list(samples.keys())):
+        elif path_or_name.lower() in list(samples.keys()):
             # cnext -s skywalker|Jedi
             download_project(samples[path_or_name.lower()], PROJECTS_PATH)
         else:
@@ -244,11 +244,11 @@ switcher = {
 
 def ask():
     answer = input('Would you like to download the sample project? [(y)/n]: ')
-    if(answer == 'y' or answer == 'Y'):
+    if answer == 'y' or answer == 'Y':
         return HAVE_PROJECT
     elif not answer:
         return HAVE_PROJECT
-    elif (answer == 'n' or answer == 'N'):
+    elif answer == 'n' or answer == 'N':
         return WITHOUT_PROJECT
     else:
         ask()
@@ -256,7 +256,7 @@ def ask():
 def run_with_aks_path():
     path = input(
         'Please enter the directory to store the sample project: ')
-    if(len(path) > 0):
+    if len(path) > 0:
         abs_paths = os.path.abspath(path)
         if os.path.isdir(abs_paths):
             start_with_sample_project(abs_paths)
