@@ -58,7 +58,7 @@ class MessageHandler(BaseMessageHandler):
                 self.repo = git.repo.Repo(
                     messageParams.norm_project_path, search_parent_directories=True)
                 changedFiles = [
-                    item.a_path for item in self.repo.index.diff(None)]
+                    os.path.normpath(item.a_path) for item in self.repo.index.diff(None)]
                 result = changedFiles
                 if result == None:
                     type = ContentType.NONE

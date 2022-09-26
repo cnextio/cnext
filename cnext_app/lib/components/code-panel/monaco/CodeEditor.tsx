@@ -62,7 +62,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     //applyPatch
     useEffect(() => {
-        if (codeTextDiffView.text) {
+        if (codeTextDiffView.text && codeTextDiffView.text.length > 0) {
             const codeTextDiff = codeTextDiffView.text.join("\n");
             setModified(codeTextDiff);
             const reverse_gitpatch = codeTextDiffView.diff;
@@ -372,6 +372,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         setCodeReloading(true);
     }, [inViewID, diffView]);
+    
     useEffect(() => {
         if (!diffView) {
             setTimeout(() => {
@@ -383,7 +384,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         if (serverSynced && codeReloading && monaco && editor) {
             // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
             // TODO: improve this by rely only on monaco
-            setCodeTextAndStates(store.getState(), monaco);            
+            setCodeTextAndStates(store.getState(), monaco);
             setCellDeco(monaco, editor);
             getCellFoldRange(monaco, editor);
             setCellWidgets(editor);
@@ -527,6 +528,13 @@ const CodeEditor = ({ stopMouseEvent }) => {
             language="python"
             original={original}
             modified={modified}
+            options={{
+                minimap: { enabled: true, autohide: true },
+                fontSize: 11,
+                renderLineHighlight: "none",
+                scrollbar: { verticalScrollbarSize: 10 },
+                // foldingStrategy: "indentation",
+            }}
             // onMount={handleEditorDidMountDiff}
         />
     );

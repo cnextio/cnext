@@ -1,6 +1,6 @@
 import os
 import platform
-from pathlib import PureWindowsPath
+from pathlib import PureWindowsPath, PurePosixPath
 import simplejson as json
 
 ## path to the server config file #
@@ -124,16 +124,22 @@ class WorkspaceMetadata(JsonSerializable):
             for project in projects_config['open_projects']:
                 self.open_projects.append(ProjectInfoInWorkspace(**project))
 
+
 class Platform:
-    MAC =  'Darwin'
+    MAC = 'Darwin'
     LINUX = 'Linux'
     WINDOWNS = 'Windows'
 
+
 def get_platform_path(path):
+    if path == "":
+        return path
+
     if platform.system() == Platform.WINDOWNS:
         return str(PureWindowsPath(path))
     else:
-        return PureWindowsPath(path).as_posix()
+        return str(PurePosixPath(path))
+
 
 class FileManagerMessageParams:
     def __init__(self, params: dict):
@@ -164,6 +170,6 @@ class FileManagerMessageParams:
         if 'timestamp' in params.keys():
             self.timestamp = params['timestamp']
         if 'path_diff' in params.keys():
-            self.path_diff = params['path_diff']    
+            self.path_diff = params['path_diff']
         if 'is_file' in params.keys():
             self.is_file = params['is_file']
