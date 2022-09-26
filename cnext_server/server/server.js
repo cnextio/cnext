@@ -23,7 +23,8 @@ const server = http.createServer(app);
 const options = {
     cors: true,
     maxHttpBufferSize: 1e8,
-    pingTimeout: 30000,
+    pingInterval: 30000,
+    pingTimeout: 60000,
 };
 const io = new socketIo.Server(server, options);
 const httpProxyMiddleware = require("http-proxy-middleware");
@@ -201,7 +202,7 @@ try {
 
         socket.on("reconnect", () => {
             /** resend the message in queue upon reconnected */
-            console.log("Socket reconnect sid=", socket.id);
+            console.log("Socket reconnect sid =", socket.id);
             for (const messageQueueItem of pendingMessagesForSocket) {
                 // console.log("Sending queued message");
                 let message = messageQueueItem.content;
