@@ -6,7 +6,7 @@ const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
 const { nanoid } = require("nanoid");
-
+const { eventLog } = require("./EventLog");
 // const { instrument } = require("@socket.io/admin-ui");
 const { PythonShell } = require("python-shell");
 const {
@@ -289,6 +289,10 @@ try {
         nonCodeExecutor.shutdown("SIGTERM");
         process.exit(1);
     });
+
+    if (config.event_log == "on") {
+        eventLog();
+    }
 } catch (error) {
     console.log(error);
 }

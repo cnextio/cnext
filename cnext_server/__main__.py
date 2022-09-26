@@ -30,6 +30,7 @@ current_dir_path = path.absolute()
 
 PROJECTS_PATH = os.path.abspath(os.path.join(current_dir_path,"projects"))
 SERVER_PATH = os.path.abspath(os.path.join(current_dir_path,"server"))
+SERVER_YAML_PATH = os.path.abspath(os.path.join(current_dir_path,"server","server.yaml"))
 NODE_MODULES_PATH = os.path.abspath(os.path.join(current_dir_path,"server","node_modules"))
 PACKAGE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package.json"))
 PACKAGE_LOCK_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package-lock.json"))
@@ -163,7 +164,8 @@ def run_help(choice):
         Using command
         - cnext                        : RESUME APPLICATION or START
         - cnext 8888                   : RESUME APPLICATION at PORT 8888
-        - cnext -v                     : Show the Version
+        - cnext -v                     : show the version
+        - cnext -l on/off              : enable/disable event log
         """
     print(message)
 
@@ -208,6 +210,18 @@ def start_with_sample_project(path_or_name):
     install()
     start()
 
+
+def change_event_log_setting(on_or_off):
+    if on_or_off is not None:
+        if on_or_off.lower() == 'on' or on_or_off.lower() == 'off':
+            data = yaml.safe_load(open(SERVER_YAML_PATH, 'r'))
+            data['event_log'] = on_or_off.lower()
+            with open(SERVER_YAML_PATH, 'w') as file:
+                documents = yaml.dump(data, file, default_flow_style=False)
+        else: run_help("")
+    else: run_help("")
+
+
 switcher = {
     "-h": run_help, 
     "-s": start_with_sample_project, 
@@ -216,6 +230,7 @@ switcher = {
     "help": run_help,
     "start": start_with_sample_project,
     "-v": show_version,
+    "-l": change_event_log_setting,
 }
 
 def ask():
