@@ -11,6 +11,7 @@ import {
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
+import { IDataFrameFilter } from "../../lib/interfaces/IDataFrameManager";
 
 interface ILoadDataRequest {
     df_id: string | null;
@@ -32,7 +33,7 @@ export type DataFrameState = {
     // currently only support loading by row index. 'count' is used to indicate new request
     loadDataRequest: ILoadDataRequest;
     loadColumnHistogram: boolean;
-    dfFilter: null;
+    dfFilter: IDataFrameFilter | null;
     stats: IDataFrameStatsConfig;
     dataViewMode: string;
     // dfUpdateCount: number;
