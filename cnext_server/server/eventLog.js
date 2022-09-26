@@ -5,13 +5,11 @@ function eventLog() {
     const AFTER_5_MINS = 300000;
     const AFTER_30_MINS = 1800000;
 
-    if (!process.env.CNEXT_DISABLE_EVENT) {
-        sendEventTrackingAfter(AFTER_1_MIN, "launch_after_1_min");
-        sendEventTrackingAfter(AFTER_5_MINS, "launch_after_5_mins");
-        setInterval(() => {
-            sendEventTrackingAfter(0, "launch_after_30_mins");
-        }, AFTER_30_MINS);
-    }
+    sendEventTrackingAfter(AFTER_1_MIN, "launch_after_1_min");
+    sendEventTrackingAfter(AFTER_5_MINS, "launch_after_5_mins");
+    setInterval(() => {
+        sendEventTrackingAfter(0, "launch_after_30_mins");
+    }, AFTER_30_MINS);
 }
 
 function sendEventTrackingAfter(timeout, tag) {
