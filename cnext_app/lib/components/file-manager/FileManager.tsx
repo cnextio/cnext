@@ -330,6 +330,8 @@ const FileManager = () => {
                 isDiffFile(inViewID)
             ) {
                 let convertURL = parseUrl(inViewID);
+                console.log(`convertURL`, convertURL);
+
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 const projectPath = state.projectManager.activeProject?.path;
                 const message: IMessage = createMessage(ProjectCommand.read_diff, "", {
@@ -337,6 +339,10 @@ const FileManager = () => {
                     // remove Skywalker/ fix later
                     path: convertURL.path.substring(10),
                     path_diff: convertURL.path,
+                    diff_view: convertURL.params?.diff_view === "true",
+                    diff_mode: convertURL.params?.diff_mode,
+                    commit1: convertURL.params?.commit1,
+                    commit2: convertURL.params?.commit2,
                     // timestamp: file.timestamp,
                 });
                 sendMessage(message);

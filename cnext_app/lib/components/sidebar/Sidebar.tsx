@@ -81,15 +81,9 @@ const MiniSidebar = () => {
         {
             name: SideBarName.GIT,
             component: <GitSVG />,
-            tooltip: "Git",
+            tooltip: "Source Control",
         },
     ];
-    const handleClickClearOutputs = () => {
-        const state = store.getState();
-        const inViewID = state.projectManager.inViewID;
-        dispatch(clearAllOutputs(inViewID));
-    };
-
     const handleClickChangeLayout = () => {
         const state = store.getState();
         const viewMode = state.projectManager.settings.view_mode;
