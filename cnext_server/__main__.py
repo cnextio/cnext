@@ -174,11 +174,12 @@ def show_version(data):
     print(data["version"])
 
     
-def default(data):
-    run_help(data)
+def default(param):
+    run_help(param)
     
 def run_at_port(port):
-    start(port)
+    options["command"]= "set PORT="+ f'{port}' + "&& node server.js"
+    start()
    
 
 def download_project(project_name, download_to_path):
@@ -209,8 +210,9 @@ def start_with_sample_project(path_or_name):
     start()
 
 
-def run_without_event_log(data):
-    start("with-out-log")
+def run_without_event_log(param):
+    options["command"]= "set EVENT_LOG_DISABLE= true && node server.js"
+    start()
     
 
 switcher = {
@@ -249,25 +251,18 @@ def run_with_aks_path():
         run_with_aks_path()
 
 
-def switch(command, data = None ):
-    return switcher.get(command, default)(data)
+def switch(command, param = None ):
+    return switcher.get(command, default)(param)
 
 
 @contextmanager
-def run_and_terminate_process(port_or_with_out_log):
-    if port_or_with_out_log == "with-out-log":
-        command = "set EVENT_LOG_DISABLE=1 && node server.js"
-    elif port_or_with_out_log is None:
-        port = 4000 
-        command = "set PORT="+ f'{port}' + "&& node server.js"
-    else:
-        command = "set PORT="+ f'{port_or_with_out_log}' + "&& node server.js"
+def run_and_terminate_process():
     try:
         os.chdir(SERVER_PATH)
         my_env = os.environ.copy()
         my_env["PATH"] = os.path.dirname(
         sys.executable) + os.path.pathsep + my_env["PATH"]
-        ser_proc = Popen(command, shell=True, env=my_env)
+        ser_proc = Popen(options["command"], shell=True, env=my_env)
         yield
 
     finally:
@@ -275,8 +270,11 @@ def run_and_terminate_process(port_or_with_out_log):
         ser_proc.kill()      # send sigkill
 
 
-def start(options = None):
-    with run_and_terminate_process(options) as running_proc:
+options =	{
+  "command": "set PORT= 4000 && node server.js",
+}
+def start():
+    with run_and_terminate_process() as running_proc:
         while True:
             time.sleep(1000)
 
