@@ -4,7 +4,6 @@ import sys
 from subprocess import Popen
 from contextlib import contextmanager
 import time
-
 from urllib.request import urlopen
 from io import BytesIO
 from zipfile import ZipFile
@@ -211,15 +210,9 @@ def start_with_sample_project(path_or_name):
     start()
 
 
-def change_event_log_setting(on_or_off):
-    if on_or_off is not None:
-        if on_or_off.lower() == 'on' or on_or_off.lower() == 'off':
-            data = yaml.safe_load(open(SERVER_YAML_PATH, 'r'))
-            data['event_log'] = on_or_off.lower()
-            with open(SERVER_YAML_PATH, 'w') as file:
-                documents = yaml.dump(data, file, default_flow_style=False)
-        else: run_help("")
-    else: run_help("")
+def run_without_event_log(data):
+    start("with-out-log")
+    
 
 
 switcher = {
@@ -230,7 +223,7 @@ switcher = {
     "help": run_help,
     "start": start_with_sample_project,
     "-v": show_version,
-    "-l": change_event_log_setting,
+    "--no-event-log": run_without_event_log,
 }
 
 def ask():
@@ -263,13 +256,19 @@ def switch(command, data = None ):
 
 
 @contextmanager
-def run_and_terminate_process(port):
+def run_and_terminate_process(port_or_with_out_log):
+    if port_or_with_out_log == "with-out-log":
+        command = "set CNEXT_DISABLE_EVENT=1 && node server.js"
+    elif port_or_with_out_log is None:
+        port = 4000 
+        command = "set PORT="+ f'{port}' + "&& node server.js"
+    else:
+        command = "set PORT="+ f'{port_or_with_out_log}' + "&& node server.js"
     try:
         os.chdir(SERVER_PATH)
         my_env = os.environ.copy()
         my_env["PATH"] = os.path.dirname(
-            sys.executable) + os.path.pathsep + my_env["PATH"]
-        command = "set PORT="+ f'{port}' + "&& node server.js"
+        sys.executable) + os.path.pathsep + my_env["PATH"]
         ser_proc = Popen(command, shell=True, env=my_env)
         yield
 
@@ -278,8 +277,8 @@ def run_and_terminate_process(port):
         ser_proc.kill()      # send sigkill
 
 
-def start(port=4000):
-    with run_and_terminate_process(port) as running_proc:
+def start(options = None):
+    with run_and_terminate_process(options) as running_proc:
         while True:
             time.sleep(1000)
 
