@@ -29,7 +29,6 @@ current_dir_path = path.absolute()
 
 PROJECTS_PATH = os.path.abspath(os.path.join(current_dir_path,"projects"))
 SERVER_PATH = os.path.abspath(os.path.join(current_dir_path,"server"))
-SERVER_YAML_PATH = os.path.abspath(os.path.join(current_dir_path,"server","server.yaml"))
 NODE_MODULES_PATH = os.path.abspath(os.path.join(current_dir_path,"server","node_modules"))
 PACKAGE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package.json"))
 PACKAGE_LOCK_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package-lock.json"))
