@@ -213,7 +213,6 @@ def run_without_event_log(data):
     start("with-out-log")
     
 
-
 switcher = {
     "-h": run_help, 
     "-s": start_with_sample_project, 
