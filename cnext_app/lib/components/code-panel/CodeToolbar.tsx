@@ -25,6 +25,10 @@ const FileCloseIcon = (props) => {
 
 const CodeToolbar = () => {
     const openFiles = useSelector((state: RootState) => state.projectManager.openFiles);
+    const openFilesUpdateCount = useSelector(
+        (state: RootState) => state.projectManager.openFilesUpdateCount
+    );
+
     // const executorID = useSelector((state: RootState) => state.projectManager.executorID);
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     // const fileSaved = useSelector((state: RootState) => state.codeEditor.fileSaved);
@@ -53,14 +57,12 @@ const CodeToolbar = () => {
         let openOrder = store.getState().projectManager.openOrder;
         // let keys = Object.keys(openFiles);
         dispatch(setInView(openOrder[openOrder.length - 1]));
-        
-    }, [openFiles]);
+    }, [openFilesUpdateCount]);
     const getName = (name: string) => {
-        let isURL =  isDiffFile(name)
-        if(!isURL) return name;
-        const parse = parseUrl(name)
-        return `${parse.path}(WT)`
-        
+        let isURL = isDiffFile(name);
+        if (!isURL) return name;
+        const parse = parseUrl(name);
+        return `${parse.path}(WT)`;
     };
     const renderFileNameComponent = (id: string, name: string) => {
         return (

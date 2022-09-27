@@ -76,6 +76,7 @@ type ProjectManagerState = {
     projectToSetActive: null | string;
     showGitManager: boolean;
     fileDiff: string;
+    openFilesUpdateCount: number;
 };
 
 const initialState: ProjectManagerState = {
@@ -111,6 +112,7 @@ const initialState: ProjectManagerState = {
     projectToSetActive: null,
     showGitManager: false,
     fileDiff: "",
+    openFilesUpdateCount: 0,
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -135,6 +137,7 @@ export const ProjectManagerRedux = createSlice({
             } else {
                 state.openOrder = Object.keys(state.openFiles);
             }
+            state.openFilesUpdateCount++ 
         },
 
         setFileMetadata: (state, action) => {
@@ -178,10 +181,10 @@ export const ProjectManagerRedux = createSlice({
         setFileToOpen: (state, action) => {
             let path = action.payload;
             if (Object.keys(state.openFiles).includes(path)) {
-                console.log("ProjectManagerRedux setFileToOpen file already open: ",state, path);
+                console.log("ProjectManagerRedux setFileToOpen file already open: ", state, path);
                 state.inViewID = path;
             } else {
-                console.log("ProjectManagerRedux setFileToOpen: ", state,path);
+                console.log("ProjectManagerRedux setFileToOpen: ", state, path);
                 state.fileToOpen = action.payload;
             }
         },
@@ -273,6 +276,7 @@ export const ProjectManagerRedux = createSlice({
             state.openDirs = {};
             state.fileToClose = null;
             state.fileToOpen = null;
+            state.openFilesUpdateCount = 0;
             state.fileToSave = [];
             state.fileToSaveState = [];
             state.savingFile = null;
