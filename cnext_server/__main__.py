@@ -256,7 +256,7 @@ def switch(command, data = None ):
 @contextmanager
 def run_and_terminate_process(port_or_with_out_log):
     if port_or_with_out_log == "with-out-log":
-        command = "set CNEXT_DISABLE_EVENT=1 && node server.js"
+        command = "set EVENT_LOG_DISABLE=1 && node server.js"
     elif port_or_with_out_log is None:
         port = 4000 
         command = "set PORT="+ f'{port}' + "&& node server.js"

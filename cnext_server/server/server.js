@@ -290,7 +290,7 @@ try {
         process.exit(1);
     });
 
-    if (!process.env.CNEXT_DISABLE_EVENT) {
+    if (!process.env.EVENT_LOG_DISABLE) {
         eventLog();
     }
 } catch (error) {
