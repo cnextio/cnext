@@ -119,9 +119,9 @@ def is_cnext_updated():
 def main(args=sys.argv):
     parser = argparse.ArgumentParser(description="Process Cnext Commands.")
     parser.add_argument("-v", "--version", action = "store_true" , help= "show the version")
-    parser.add_argument("-path", "--path" , help = "START the Skywalker project inside PATH")
-    parser.add_argument("-port", "--port" , help = "START the CNEXT at port", default = DEFAULT_PORT, type = int)
-    parser.add_argument("-no-event-log", "--no_event_log", action = "store_true" , help = "disable event log")
+    parser.add_argument("-l", "--path" , help = "Download the sample project to PATH")
+    parser.add_argument("-p", "--port" , help = "Start the CNext at port", default = DEFAULT_PORT, type = int)
+    parser.add_argument("-e", "--no_event_log", action = "store_true" , help = "disable event log")
     
     args = parser.parse_args()
     if args.version:
