@@ -1,9 +1,11 @@
 import glob
 import os
+import string
 import sys
 from subprocess import Popen
 from contextlib import contextmanager
 import time
+from tokenize import String
 from urllib.request import urlopen
 from io import BytesIO
 from zipfile import ZipFile
@@ -21,19 +23,22 @@ else:
     import readline
 from cnext_server import __version__
 import json
+import argparse
+
 
 current_dir_path = os.getcwd()
 basepath = _path.dirname(__file__)
 path = Path(basepath)
 current_dir_path = path.absolute()
 
-PROJECTS_PATH = os.path.abspath(os.path.join(current_dir_path,"projects"))
+DEFAULT_PROJECTS_PATH = os.path.abspath(os.path.join(current_dir_path,"projects"))
 SERVER_PATH = os.path.abspath(os.path.join(current_dir_path,"server"))
 NODE_MODULES_PATH = os.path.abspath(os.path.join(current_dir_path,"server","node_modules"))
 PACKAGE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package.json"))
 PACKAGE_LOCK_PATH = os.path.abspath(os.path.join(current_dir_path,"server","package-lock.json"))
 STORE_MD5_FILE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","track-md5.txt"))
 
+DEFAULT_PORT = 4000
 DEFAULT_PROJECT = "Skywalker"
 WITHOUT_PROJECT = 0
 HAVE_PROJECT = 1
@@ -56,7 +61,7 @@ def change_workspace(name, path):
     
     os.chdir(current_dir_path)
     with open(r'workspace.yaml', 'w') as file:
-        documents = yaml.dump(data, file, default_flow_style=False)
+        yaml.dump(data, file, default_flow_style=False)
 
 
 def update_md5():
@@ -79,8 +84,8 @@ samples = {
 }
 
 def download_and_unzip(url, project_name, extract_to='.'):
-    if not os.path.exists(PROJECTS_PATH): 
-        os.makedirs(PROJECTS_PATH)
+    if not os.path.exists(DEFAULT_PROJECTS_PATH): 
+        os.makedirs(DEFAULT_PROJECTS_PATH)
 
     http_response = urlopen(url)
     zipfile = ZipFile(BytesIO(http_response.read()))
@@ -105,14 +110,8 @@ readline.set_completer_delims(' \t\n;')
 readline.parse_and_bind("tab: complete")
 readline.set_completer(complete)
 
-def is_first_time():
-    if(os.path.exists(NODE_MODULES_PATH)):
-        return False
-    else:
-        return True
 
-
-def is_updated():
+def is_cnext_updated():
     if(os.path.exists(STORE_MD5_FILE_PATH)):
         md5 = hashlib.md5(open(PACKAGE_LOCK_PATH,'rb').read()).hexdigest()
         with open(STORE_MD5_FILE_PATH, 'r') as file:
@@ -126,60 +125,32 @@ def is_updated():
     
 
 def main(args=sys.argv):
-        if(len(args) == 1):
-            # cnext the 1rst time
-            if(is_first_time()):
-                status = ask()
-                if(status == WITHOUT_PROJECT):
-                    install()
-                    start()
-                else:
-                    run_with_aks_path()
-            else:
-                # cnext many times - check is any update?
-                if(is_updated()):
-                    install()
-                start()
+    parser = argparse.ArgumentParser(description='Process Cnext Commands.')
+    parser.add_argument('-v', '--version', action = 'store_true' , help= 'show the version')
+    parser.add_argument('-path', '--path' , help = 'START the Skywalker project inside PATH', default = DEFAULT_PROJECTS_PATH )
+    parser.add_argument('-port', '--port' , help = 'START the CNEXT at port', default = DEFAULT_PORT, type = int)
+    parser.add_argument('-no-event-log', '--no_event_log', action = 'store_true' , help = 'disable event log')
+    
+    args = parser.parse_args()
+    if args.version:
+        show_the_version()
+    elif args.path:
+        start_with_sample_project(args.path, args.port)
+    elif args.port:
+        start_at_port(args.port)
+    elif args.no_event_log:
+        start_without_log()
+    else:
+        start_at_port(args.port)
 
-        elif(len(args) == 2):
-            # cnext with mode
-            if(args[1].isnumeric()):
-                run_at_port(int(args[1]))
-            else:
-                switch(args[1])
-        elif(len(args) == 3):
-            # cnext with mode and param
-            switch(args[1],args[2])
-        else:
-            default()
-
-def run_help(choice):
-    message = """
-        Installation command
-        - cnext -s                     : START with the sample project
-        - cnext -s G:\DEV\PROJECTS     : START with the sample inside PROJECTS
-
-        Using command
-        - cnext                        : RESUME APPLICATION or START
-        - cnext 8888                   : RESUME APPLICATION at PORT 8888
-        - cnext -v                     : show the version
-        - cnext --no-event-log         : disable event log
-        """
-    print(message)
-
-
-def show_version(data):
+def show_the_version():
     f = open(PACKAGE_PATH)
     data = json.load(f)
     print(data["version"])
-
     
-def default(param):
-    run_help(param)
-    
-def run_at_port(port):
-    options["command"]= "set PORT="+ f'{port}' + "&& node server.js"
-    start()
+def start_at_port(port):
+    command = "set PORT="+ f'{port}' + "&& node server.js"
+    start(command)
    
 
 def download_project(project_name, download_to_path):
@@ -188,81 +159,34 @@ def download_project(project_name, download_to_path):
     change_workspace(project_name, os.path.normpath(project_path).replace(os.sep, '/'))
 
 
-def download(path_or_name):
-    if(path_or_name):
-        abs_paths = os.path.abspath(path_or_name)
-        if os.path.isdir(abs_paths):
-            # cnext -s G:\DEV\PROJECTS
-            download_project(DEFAULT_PROJECT,abs_paths)
-        elif(path_or_name.lower() in list(samples.keys())):
-            # cnext -s skywalker|Jedi
-            download_project(samples[path_or_name.lower()], PROJECTS_PATH)
-        else:
-            print("your path or name isn't correctly")
-            return
+def start_with_sample_project(path, port):
+    abs_paths = os.path.abspath(path)
+    if os.path.isdir(abs_paths):
+        download_project(DEFAULT_PROJECT,abs_paths)
+        install()
+        command = "set PORT="+ f'{port}' + "&& node server.js"
+        start(command)
     else:
-        # cnext -s == cnext -s skywalker
-        download_project(DEFAULT_PROJECT,PROJECTS_PATH)
-
-def start_with_sample_project(path_or_name):
-    download(path_or_name)
-    install()
-    start()
+        print("your path isn't correctly")
 
 
-def run_without_event_log(param):
-    options["command"]= "set EVENT_LOG_DISABLE= true && node server.js"
-    start()
-    
-
-switcher = {
-    "-h": run_help, 
-    "-s": start_with_sample_project, 
-    "-v": show_version,
-    # full case
-    "help": run_help,
-    "start": start_with_sample_project,
-    "-v": show_version,
-    "--no-event-log": run_without_event_log,
-}
-
-def ask():
-    answer = input('Would you like to download the sample project? [(y)/n]: ')
-    if(answer == 'y' or answer == 'Y'):
-        return HAVE_PROJECT
-    elif not answer:
-        return HAVE_PROJECT
-    elif (answer == 'n' or answer == 'N'):
-        return WITHOUT_PROJECT
-    else:
-        ask()
-
-def run_with_aks_path():
-    path = input(
-        'Please enter the directory to store the sample project: ')
-    if(len(path) > 0):
-        abs_paths = os.path.abspath(path)
-        if os.path.isdir(abs_paths):
-            start_with_sample_project(abs_paths)
-        else:
-            print('The path is not a directory. Please try again!')
-            run_with_aks_path()
-    else:
-        run_with_aks_path()
-
-
-def switch(command, param = None ):
-    return switcher.get(command, default)(param)
+def start_without_log():
+    command = "set EVENT_LOG_DISABLE= true && node server.js"
+    start(command)
 
 
 @contextmanager
-def run_and_terminate_process():
+def run_and_terminate_process(command):
+    
     try:
+        if is_cnext_updated():
+            install()
+
         os.chdir(SERVER_PATH)
         my_env = os.environ.copy()
         my_env["PATH"] = os.path.dirname(
         sys.executable) + os.path.pathsep + my_env["PATH"]
-        ser_proc = Popen(options["command"], shell=True, env=my_env)
+        ser_proc = Popen(command, shell=True, env=my_env)
         yield
 
     finally:
@@ -270,11 +194,8 @@ def run_and_terminate_process():
         ser_proc.kill()      # send sigkill
 
 
-options =	{
-  "command": "set PORT= 4000 && node server.js",
-}
-def start():
-    with run_and_terminate_process() as running_proc:
+def start(comand):
+    with run_and_terminate_process(comand) as running_proc:
         while True:
             time.sleep(1000)
 
