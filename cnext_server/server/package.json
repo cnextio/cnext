@@ -12,15 +12,16 @@
         "express": "~4.17.1",
         "http-proxy": "^1.18.1",
         "http-proxy-middleware": "^2.0.6",
+        "nanoid": "^3.1.23",
         "node-addon-api": "~4.2.0",
         "node-gyp-build": "~4.3.0",
         "nodemon": "~2.0.15",
         "python-shell": "~3.0.1",
+        "request": "^2.88.2",
         "socket.io": "~4.2.0",
         "socket.io-client": "~4.2.0",
         "ssh2": "^1.11.0",
         "yaml": "~1.10.2",
-        "zeromq": "~6.0.0-beta.6",
-        "nanoid": "^3.1.23"
+        "zeromq": "~6.0.0-beta.6"
     }
 }
