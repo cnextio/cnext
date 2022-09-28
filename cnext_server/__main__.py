@@ -119,7 +119,7 @@ def is_cnext_updated():
 def main(args=sys.argv):
     parser = argparse.ArgumentParser(description="Process Cnext Commands.")
     parser.add_argument("-v", "--version", action = "store_true" , help= "show the version")
-    parser.add_argument("-path", "--path" , help = "START the Skywalker project inside PATH", default = DEFAULT_PROJECTS_PATH )
+    parser.add_argument("-path", "--path" , help = "START the Skywalker project inside PATH")
     parser.add_argument("-port", "--port" , help = "START the CNEXT at port", default = DEFAULT_PORT, type = int)
     parser.add_argument("-no-event-log", "--no_event_log", action = "store_true" , help = "disable event log")
     
@@ -136,9 +136,9 @@ def show_the_version():
     print(data["version"])
 
 
-def start_with_command(path= None, port = DEFAULT_PORT, is_have_log = False):
+def start_with_command(path= None, port = DEFAULT_PORT, no_event_log = False):
     global command
-    if is_have_log: 
+    if no_event_log: 
         command = "set PORT="+ f"{port} " + "set EVENT_LOG_DISABLE= true " + "&& node server.js"
     else:
         command = "set PORT="+ f"{port}" + "&& node server.js"
