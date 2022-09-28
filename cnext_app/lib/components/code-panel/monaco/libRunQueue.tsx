@@ -109,3 +109,41 @@ export const addToRunQueueHoverCell = () => {
     }
     return true;
 };
+export const addToRunQueueMoveDown = (editor: any) => {
+    addToRunQueueHoverCell();
+    let inViewID = store.getState().projectManager.inViewID;
+    if (inViewID != null) {
+        let codeLines = store.getState().codeEditor.codeLines[inViewID];
+        let curLineNumber = editor.getPosition().lineNumber - 1; // 0-based
+        setToNextGroup( codeLines, curLineNumber, editor);
+    }
+};
+const setToNextGroup = (
+    codeLines: ICodeLine[],
+    lineNumber: number,
+    editor: any
+) => {
+    let originGroupID = codeLines[lineNumber].groupID;
+    console.log("CodeEditor setToNextGroup: ", lineNumber, originGroupID);
+    if (originGroupID != null) {
+        let curlineNumber = lineNumber;
+        let curGroupID: string | undefined = originGroupID;
+        while (
+            curlineNumber < codeLines.length - 1 &&
+            (curGroupID == null || curGroupID === originGroupID)
+        ) {
+            curlineNumber += 1;
+            curGroupID = codeLines[curlineNumber]?.groupID;
+        }
+        console.log(
+            "CodeEditor setAnchorToNextGroup: ",
+            lineNumber,
+            originGroupID,
+            curlineNumber,
+            curGroupID
+        );
+        if (curGroupID !== originGroupID) {
+            editor.setPosition({ column: 1, lineNumber: curlineNumber +1 });
+        }
+    }
+};

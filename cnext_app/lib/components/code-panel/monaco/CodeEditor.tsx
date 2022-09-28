@@ -38,7 +38,7 @@ import {
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import socket from "../../Socket";
-import { addToRunQueueHoverCell, addToRunQueueHoverLine } from "./libRunQueue";
+import { addToRunQueueHoverCell, addToRunQueueHoverLine, addToRunQueueMoveDown } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 
@@ -288,6 +288,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     id: shortcutKeysConfig.run_queue,
                     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
                     run: () => addToRunQueueHoverCell(),
+                },
+                {
+                    id: shortcutKeysConfig.run_queue_then_move_down,
+                    keybindings: [monaco.KeyMod.Shift | monaco.KeyCode.Enter],
+                    run: () => addToRunQueueMoveDown(editor),
                 },
                 {
                     id: `foldAll`,
