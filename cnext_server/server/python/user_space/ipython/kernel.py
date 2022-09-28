@@ -185,7 +185,7 @@ class IPythonKernel():
 
     def execute(self, code, exec_mode=None, message_handler_callback=None, client_message=None):
         self.execute_lock.acquire()
-        log.info('Kernel execution lock acquired for executing %s', code[:50])
+        log.info('Kernel execution lock acquired for executing \n"""\n%s ...\n"""', code[:50])
         self._set_execution_complete_condition(False)
         self.message_handler_callback = message_handler_callback
         self.client_message = client_message

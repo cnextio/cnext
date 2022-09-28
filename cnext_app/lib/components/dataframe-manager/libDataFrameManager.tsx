@@ -20,7 +20,7 @@ import {
     IAllDataFrameStatus,
     IDataFrameStatus,
 } from "../../interfaces/IDataFrameStatus";
-import { getHistogramPlots } from "./udf/histogram_plots/libHistogramPlots";
+import { sendHistogramRequest } from "./udf/histogram_plots/libHistogramPlots";
 import { getQuantilePlots } from "./udf/quantile_plots/libQuantilePlots";
 
 export const sendMessage = (socket: Socket | null, message: IMessage) => {
@@ -218,7 +218,7 @@ export const getDefinedStat = (
         getQuantilePlots(socket, df_id, columns);
     }
     if (dataFrameConfig.histogram) {
-        getHistogramPlots(socket, df_id, columns);
+        sendHistogramRequest(socket, df_id, columns);
     }
 };
 

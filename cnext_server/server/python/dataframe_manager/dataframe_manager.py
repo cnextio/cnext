@@ -216,6 +216,7 @@ class MessageHandler(BaseMessageHandler):
                 message.metadata.update({'stream_type': stream_type})
 
                 if client_message.command_name == DFManagerCommand.plot_column_histogram:
+                    log.info("DFManagerCommand.plot_column_histogram size=%d", total_size(result))
                     if total_size(result) < MessageHandler.MAX_PLOTLY_SIZE:
                         message.content = result
                         message.type = ContentType.RICH_OUTPUT

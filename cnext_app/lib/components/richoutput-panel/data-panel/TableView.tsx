@@ -87,7 +87,7 @@ const TableView = (props: any) => {
                 ) : (
                     <DataTableCell
                         key={shortid.generate()}
-                        align='right'
+                        align="right"
                         review={review}
                         head={head}
                     >
@@ -103,7 +103,8 @@ const TableView = (props: any) => {
                                         <ColumnHistogram
                                             df_id={activeDataFrame}
                                             col_name={colName}
-                                            smallLayout={true}
+                                            width={80}
+                                            height={50}
                                         />
                                         <CountNA df_id={activeDataFrame} col_name={colName} />
                                     </Fragment>

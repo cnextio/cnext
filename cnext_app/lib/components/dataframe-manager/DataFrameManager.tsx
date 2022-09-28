@@ -71,7 +71,7 @@ const DataFrameManager = () => {
                 let message: IMessage = JSON.parse(result);
                 console.log("DataFrameManager got results for command ", message);
                 if (!message.error) {
-                    if (message.type === ContentType.STRING || message.error === true) {
+                    if (message.type === ContentType.STRING) {
                         dispatch(setTextOutput(message));
                     } else if (message.command_name == CommandName.update_df_status) {
                         handleActiveDFStatus(socket, message);
