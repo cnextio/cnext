@@ -95,7 +95,6 @@ class ExecutorManagerCommand(str, Enum):
 class EnvironmentManagerCommand(str, Enum):
     list = "list"
     start = "start"
-    start_conda = "start_conda"
 
 class ModelManagerCommand(str, Enum):
     get_active_models_info = 'get_active_models_info'

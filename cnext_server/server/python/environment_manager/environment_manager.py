@@ -1,6 +1,7 @@
 import hashlib
 import os
 import subprocess
+import sys
 import traceback
 import jupyter_client
 from pathlib import Path
@@ -9,6 +10,26 @@ from libs.message import ContentType, EnvironmentManagerCommand
 from libs import logs
 
 log = logs.get_logger(__name__)
+
+def get_cnext_default_kernel_spec():
+    bin_path = sys.executable
+    bin_path_hash = hashlib.md5(bin_path.encode()).hexdigest()
+    cnext_ipython_kernel_spec = 'cnext-' + bin_path_hash
+
+    try:
+        jupyter_client.kernelspec.get_kernel_spec(cnext_ipython_kernel_spec)
+        log.info("Get the default cnext kernel spec %s" % cnext_ipython_kernel_spec)
+    except jupyter_client.kernelspec.NoSuchKernel:
+        try:
+            subprocess.run([bin_path, '-m', 'ipykernel', 'install', '--user', '--name',
+                            cnext_ipython_kernel_spec, '--display-name', cnext_ipython_kernel_spec])
+            log.info("Create the default cnext kernel spec %s" %
+                     cnext_ipython_kernel_spec)
+        except:
+            cnext_ipython_kernel_spec = "python"
+            log.info("Failed to get the default cnext kernel spec %s with the current env. Return the default kernel spec name \"python\"")
+
+    return cnext_ipython_kernel_spec
 
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
@@ -32,68 +53,72 @@ class MessageHandler(BaseMessageHandler):
                 message.error = False
                 self._send_to_node(message)
 
-            elif message.command_name == EnvironmentManagerCommand.start_conda:
-                conda_env_name = message.content
-                proc = subprocess.run(
-                    ['conda', 'run', '-n', conda_env_name, 'which', 'python'],
-                    check=True,
-                    capture_output=True
-                )
-                message.type = ContentType.KERNEL_START_RESULT
+            elif message.command_name == EnvironmentManagerCommand.start:
+                message_content = message.content
+                kernel_spec_name = None
 
-                if proc.returncode != 0:
-                    err_message = proc.stderr.decode()
-                    message.error = True
-
-                    if "EnvironmentLocationNotFound" in err_message:
-                        message.content = 'Environment not found'
-                    else:
-                        message.content = err_message
-
-                    self._send_to_node(message)
-                    return
-
-                result = proc.stdout.decode()
-                bin_path = result.strip()
-                bin_path_hash = hashlib.md5(bin_path.encode()).hexdigest()
-                kernel_spec_name = 'cnext-' + bin_path_hash
-
-                try:
-                    jupyter_client.kernelspec.get_kernel_spec(kernel_spec_name)
-                except jupyter_client.kernelspec.NoSuchKernel:
+                # if the kernel spec is not specified
+                if message_content['kernel_spec'] is None:
+                    conda_env_name = message_content['conda_environment']
                     proc = subprocess.run(
-                        ['conda', 'install', '-n', conda_env_name, '-y', '-c', 'anaconda', 'ipykernel'],
-                    check=True,
-                        capture_output=True
-                    )
-
-                    if proc.returncode != 0:
-                        message.error = True
-                        message.content = 'Failed to install ipykernel: ' + proc.stderr.decode()
-                        self._send_to_node(message)
-                        return
-
-                    proc = subprocess.run(
-                        ['conda', 'run', '-n', conda_env_name, 'python', '-m', 'ipykernel', 'install', '--user', '--name', kernel_spec_name, '--display-name', kernel_spec_name],
+                        ['conda', 'run', '-n', conda_env_name, 'which', 'python'],
                         check=True,
                         capture_output=True
                     )
+                    message.type = ContentType.KERNEL_START_RESULT
 
                     if proc.returncode != 0:
+                        err_message = proc.stderr.decode()
                         message.error = True
-                        message.content = 'Failed to create kernel spec: ' + proc.stderr.decode()
+
+                        if "EnvironmentLocationNotFound" in err_message:
+                            message.content = 'Environment not found'
+                        else:
+                            message.content = err_message
+
                         self._send_to_node(message)
                         return
 
-                message.content = self.user_space.start_executor(kernel_spec_name)
-                message.error = False
-                self._send_to_node(message)
+                    result = proc.stdout.decode()
+                    bin_path = result.strip()
+                    bin_path_hash = hashlib.md5(bin_path.encode()).hexdigest()
+                    kernel_spec_name = 'cnext-' + bin_path_hash
 
-            elif message.command_name == EnvironmentManagerCommand.start:
-                kernel_name = message.content
+                    try:
+                        jupyter_client.kernelspec.get_kernel_spec(kernel_spec_name)
+                    except jupyter_client.kernelspec.NoSuchKernel:
+                        proc = subprocess.run(
+                            ['conda', 'install', '-n', conda_env_name, '-y', '-c', 'anaconda', 'ipykernel'],
+                        check=True,
+                            capture_output=True
+                        )
 
-                message.type = ContentType.KERNEL_START_RESULT
-                message.content = self.user_space.start_executor(kernel_name)
+                        if proc.returncode != 0:
+                            message.error = True
+                            message.content = 'Failed to install ipykernel: ' + proc.stderr.decode()
+                            self._send_to_node(message)
+                            return
+
+                        proc = subprocess.run(
+                            ['conda', 'run', '-n', conda_env_name, 'python', '-m', 'ipykernel', 'install', '--user', '--name', kernel_spec_name, '--display-name', kernel_spec_name],
+                            check=True,
+                            capture_output=True
+                        )
+
+                        if proc.returncode != 0:
+                            message.error = True
+                            message.content = 'Failed to create kernel spec: ' + proc.stderr.decode()
+                            self._send_to_node(message)
+                            return
+                else:
+                    kernel_spec_name = message_content['kernel_spec']
+
+                result = self.user_space.start_executor(kernel_spec_name)
+                message.content = {
+                    'kernel_spec': kernel_spec_name,
+                    'conda_environment': message_content['conda_environment'],
+                    'result': result,
+                }
                 message.error = False
                 self._send_to_node(message)
 
