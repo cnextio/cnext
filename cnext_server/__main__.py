@@ -1,6 +1,5 @@
 import glob
 import os
-import string
 import sys
 from subprocess import Popen
 from contextlib import contextmanager
@@ -40,8 +39,6 @@ STORE_MD5_FILE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","tr
 
 DEFAULT_PORT = 4000
 DEFAULT_PROJECT = "Skywalker"
-WITHOUT_PROJECT = 0
-HAVE_PROJECT = 1
 DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/master.zip'
 
 def change_permissions_recursive(path, mode):
@@ -78,10 +75,6 @@ def install():
     #track md5 package lock
     update_md5()
     
-
-samples = {
-    "skywalker": "Skywalker",
-}
 
 def download_and_unzip(url, project_name, extract_to='.'):
     if not os.path.exists(DEFAULT_PROJECTS_PATH): 
@@ -134,24 +127,27 @@ def main(args=sys.argv):
     args = parser.parse_args()
     if args.version:
         show_the_version()
-    elif args.path:
-        start_with_sample_project(args.path, args.port)
-    elif args.port:
-        start_at_port(args.port)
-    elif args.no_event_log:
-        start_without_log()
     else:
-        start_at_port(args.port)
+        start_with_command(args.path, args.port, args.no_event_log)
+
 
 def show_the_version():
     f = open(PACKAGE_PATH)
     data = json.load(f)
     print(data["version"])
-    
-def start_at_port(port):
-    command = "set PORT="+ f'{port}' + "&& node server.js"
-    start(command)
-   
+
+
+def start_with_command(path= None, port = DEFAULT_PORT, is_have_log = False):
+    global command
+    if is_have_log: 
+        command = "set PORT="+ f'{port} ' + "set EVENT_LOG_DISABLE= true " + "&& node server.js"
+    else:
+        command = "set PORT="+ f'{port}' + "&& node server.js"
+
+    if path:
+        start_with_sample_project(command, path)
+    else:
+        start(command)
 
 def download_project(project_name, download_to_path):
     download_and_unzip(DOWNLOAD_PATH, project_name, download_to_path)
@@ -159,12 +155,10 @@ def download_project(project_name, download_to_path):
     change_workspace(project_name, os.path.normpath(project_path).replace(os.sep, '/'))
 
 
-def start_with_sample_project(path, port):
+def start_with_sample_project(command, path):
     abs_paths = os.path.abspath(path)
     if os.path.isdir(abs_paths):
         download_project(DEFAULT_PROJECT,abs_paths)
-        install()
-        command = "set PORT="+ f'{port}' + "&& node server.js"
         start(command)
     else:
         print("your path isn't correctly")
@@ -194,8 +188,8 @@ def run_and_terminate_process(command):
         ser_proc.kill()      # send sigkill
 
 
-def start(comand):
-    with run_and_terminate_process(comand) as running_proc:
+def start(command):
+    with run_and_terminate_process(command) as running_proc:
         while True:
             time.sleep(1000)
 
