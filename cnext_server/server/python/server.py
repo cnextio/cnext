@@ -78,27 +78,6 @@ def set_executor_working_dir(user_space, workspace_info: WorkspaceMetadata):
         user_space.set_executor_working_dir(project_path)
 
 
-def get_cnext_default_kernel_spec():
-    bin_path = sys.executable
-    bin_path_hash = hashlib.md5(bin_path.encode()).hexdigest()
-    cnext_ipython_kernel_spec = 'cnext-' + bin_path_hash
-
-    try:
-        jupyter_client.kernelspec.get_kernel_spec(cnext_ipython_kernel_spec)
-        log.info("Get the default cnext kernel spec %s" % cnext_ipython_kernel_spec)
-    except jupyter_client.kernelspec.NoSuchKernel:
-        try:
-            subprocess.run([bin_path, '-m', 'ipykernel', 'install', '--user', '--name',
-                            cnext_ipython_kernel_spec, '--display-name', cnext_ipython_kernel_spec])
-            log.info("Create the default cnext kernel spec %s" %
-                     cnext_ipython_kernel_spec)
-        except:
-            cnext_ipython_kernel_spec = "python"
-            log.info("Failed to get the default cnext kernel spec %s with the current env. Return the default kernel spec name \"python\"")
-
-    return cnext_ipython_kernel_spec
-
-
 def main(argv):
     try:
         if argv and len(argv) > 0:
@@ -122,12 +101,17 @@ def main(argv):
                          TrackingDataframeType.CNEXT, TrackingDataframeType.DASK),
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
 
-                    ## start an ipython kernel with a default spec or spec from the config #                    
+                    ## start an ipython kernel with a default spec or spec from the config #
                     if hasattr(server_config, 'default_ipython_kernel_spec'):
-                        default_ipython_kernel_spec = server_config.default_ipython_kernel_spec
+                        default_ipython_kernel_spec = envm.verify_kernel_spec(
+                            server_config.default_ipython_kernel_spec)
                     else:
-                        default_ipython_kernel_spec = get_cnext_default_kernel_spec()
-                    user_space.start_executor(default_ipython_kernel_spec)
+                        default_ipython_kernel_spec = envm.get_cnext_default_kernel_spec()
+
+                    if default_ipython_kernel_spec:
+                        user_space.start_executor(default_ipython_kernel_spec)
+                    else:
+                        log.info("Kernel spec does not exist. Kernel failed to run.")
 
                     executor_manager = execm.MessageHandler(
                         p2n_queue, user_space)

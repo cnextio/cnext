@@ -113,7 +113,7 @@ class MessageHandler(BaseMessageHandler):
     def _display_model(self, modelInfo: ModelInfo):
         # torch.nn.Module, tensorflow.keras.Model
         output = self._save_model(modelInfo)
-        # log.info("Code to run: {}".format(code))
+        log.info("Model manager output: {}".format(output))
         if output['status'] == IPythonConstants.IOBufMessageStatus.OK:
             netron_status = self._start_netron_server(output['result'])
             return {'address': self.netron_address, 'status': netron_status}
@@ -129,17 +129,25 @@ class MessageHandler(BaseMessageHandler):
             message.content = message.content.replace("'", '"')
 
         try:
-            if message.command_name == ModelManagerCommand.get_active_models_info:
-                active_models_info = self.user_space.get_active_models_info()
-                active_models_info_message = Message(**{"webapp_endpoint": WebappEndpoint.ModelManager, "command_name": message.command_name,
-                                                        "seq_number": 1, "type": "dict", "content": active_models_info, "error": False})
-                self._send_to_node(active_models_info_message)
-            if message.command_name == ModelManagerCommand.display_model:
-                modelInfo = ModelInfo(**message.content)
-                display_info = self._display_model(modelInfo)
-                display_info_message = Message(**{"webapp_endpoint": WebappEndpoint.ModelManager, "command_name": message.command_name,
-                                                  "seq_number": 1, "type": "dict", "content": display_info, "error": False})
-                self._send_to_node(display_info_message)
+            if self.user_space.is_alive():
+                if message.command_name == ModelManagerCommand.get_active_models_info:
+                    active_models_info = self.user_space.get_active_models_info()
+                    active_models_info_message = Message(**{"webapp_endpoint": WebappEndpoint.ModelManager, "command_name": message.command_name,
+                                                            "seq_number": 1, "type": "dict", "content": active_models_info, "error": False})
+                    self._send_to_node(active_models_info_message)
+                if message.command_name == ModelManagerCommand.display_model:
+                    modelInfo = ModelInfo(**message.content)
+                    display_info = self._display_model(modelInfo)
+                    display_info_message = Message(**{"webapp_endpoint": WebappEndpoint.ModelManager, "command_name": message.command_name,
+                                                    "seq_number": 1, "type": "dict", "content": display_info, "error": False})
+                    self._send_to_node(display_info_message)
+            else:
+                text = "No executor running"
+                log.info(text)
+                error_message = MessageHandler._create_error_message(
+                    message.webapp_endpoint, text, message.command_name)
+                self._send_to_node(error_message)
+
 
         except:
             trace = traceback.format_exc()

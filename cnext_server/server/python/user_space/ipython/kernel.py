@@ -116,7 +116,7 @@ class IPythonKernel():
         return False
 
     def is_alive(self):
-        return self.kc.is_alive()
+        return self.kc.is_alive() if self.kc else False
 
     def wait_for_ready(self):
         try:
@@ -184,13 +184,32 @@ class IPythonKernel():
             log.info("Exception %s" % (trace))
 
     def execute(self, code, exec_mode=None, message_handler_callback=None, client_message=None):
+<<<<<<< HEAD
         self.execute_lock.acquire()
         log.info('Kernel execution lock acquired for executing \n"""\n%s ...\n"""', code[:50])
         self._set_execution_complete_condition(False)
         self.message_handler_callback = message_handler_callback
         self.client_message = client_message
         self.kc.execute(code)
+=======
+        try:
+            if self.kc:         
+                self.execute_lock.acquire()
+                log.info('Kernel execution lock acquired for executing %s', code[:50])
+                self._set_execution_complete_condition(False)
+                self.message_handler_callback = message_handler_callback
+                self.client_message = client_message
+                self.kc.execute(code)
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))
+>>>>>>> main
 
     def send_stdin(self, input_text):
-        log.info('Send stdin input to kernel ')
-        self.kc.input(input_text)
+        try:
+            if self.kc:
+                log.info('Send stdin input to kernel ')
+                self.kc.input(input_text)
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))
