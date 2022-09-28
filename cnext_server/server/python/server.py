@@ -77,6 +77,7 @@ def set_executor_working_dir(user_space, workspace_info: WorkspaceMetadata):
     if project_path:
         user_space.set_executor_working_dir(project_path)
 
+
 def main(argv):
     try:
         if argv and len(argv) > 0:
@@ -100,12 +101,17 @@ def main(argv):
                          TrackingDataframeType.CNEXT, TrackingDataframeType.DASK),
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
 
-                    ## start an ipython kernel with a default spec or spec from the config #                    
+                    ## start an ipython kernel with a default spec or spec from the config #
                     if hasattr(server_config, 'default_ipython_kernel_spec'):
-                        default_ipython_kernel_spec = server_config.default_ipython_kernel_spec
+                        default_ipython_kernel_spec = envm.verify_kernel_spec(
+                            server_config.default_ipython_kernel_spec)
                     else:
                         default_ipython_kernel_spec = envm.get_cnext_default_kernel_spec()
-                    user_space.start_executor(default_ipython_kernel_spec)
+
+                    if default_ipython_kernel_spec:
+                        user_space.start_executor(default_ipython_kernel_spec)
+                    else:
+                        log.info("Kernel spec does not exist. Kernel failed to run.")
 
                     executor_manager = execm.MessageHandler(
                         p2n_queue, user_space)

@@ -11,25 +11,52 @@ from libs import logs
 
 log = logs.get_logger(__name__)
 
+def verify_kernel_spec(kernel_spec):
+    """verify if the `kernel_spec` exists. If yes then return `kernel_spec`, else return None
+
+    Returns:
+        _type_: kernel spec | None
+    """
+    try:
+        jupyter_client.kernelspec.get_kernel_spec(kernel_spec)
+        return kernel_spec
+    except jupyter_client.kernelspec.NoSuchKernel:
+        return None
+
+    
 def get_cnext_default_kernel_spec():
+    """Get default cnext kernel spec name. If failed, try spec with name `python`. If failed, return None.
+
+    Returns:
+        _type_: kernel spec | None
+    """
     bin_path = sys.executable
     bin_path_hash = hashlib.md5(bin_path.encode()).hexdigest()
     cnext_ipython_kernel_spec = 'cnext-' + bin_path_hash
 
     try:
         jupyter_client.kernelspec.get_kernel_spec(cnext_ipython_kernel_spec)
-        log.info("Get the default cnext kernel spec %s" % cnext_ipython_kernel_spec)
+        log.info("Get the default cnext kernel spec %s" %
+                    cnext_ipython_kernel_spec)
     except jupyter_client.kernelspec.NoSuchKernel:
         try:
             subprocess.run([bin_path, '-m', 'ipykernel', 'install', '--user', '--name',
                             cnext_ipython_kernel_spec, '--display-name', cnext_ipython_kernel_spec])
             log.info("Create the default cnext kernel spec %s" %
-                     cnext_ipython_kernel_spec)
+                        cnext_ipython_kernel_spec)
         except:
             cnext_ipython_kernel_spec = "python"
-            log.info("Failed to get the default cnext kernel spec %s with the current env. Return the default kernel spec name \"python\"")
+            log.info(
+                "Failed to get the default cnext kernel spec in the current env. Try with kernel spec name \"python\"")
+            try:
+                jupyter_client.kernelspec.get_kernel_spec(
+                    cnext_ipython_kernel_spec)
+            except jupyter_client.kernelspec.NoSuchKernel:
+                cnext_ipython_kernel_spec = None
+                log.info("Kernel spec name \"python\" does not exist")
 
     return cnext_ipython_kernel_spec
+
 
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
@@ -38,7 +65,8 @@ class MessageHandler(BaseMessageHandler):
     def handle_message(self, message):
         try:
             if message.command_name == EnvironmentManagerCommand.list:
-                conda_environments_file = os.path.join(Path.home(), '.conda', 'environments.txt')
+                conda_environments_file = os.path.join(
+                    Path.home(), '.conda', 'environments.txt')
                 environments = {
                     'conda': [],
                     'ipython': jupyter_client.kernelspec.find_kernel_specs(),
@@ -85,11 +113,13 @@ class MessageHandler(BaseMessageHandler):
                     kernel_spec_name = 'cnext-' + bin_path_hash
 
                     try:
-                        jupyter_client.kernelspec.get_kernel_spec(kernel_spec_name)
+                        jupyter_client.kernelspec.get_kernel_spec(
+                            kernel_spec_name)
                     except jupyter_client.kernelspec.NoSuchKernel:
                         proc = subprocess.run(
-                            ['conda', 'install', '-n', conda_env_name, '-y', '-c', 'anaconda', 'ipykernel'],
-                        check=True,
+                            ['conda', 'install', '-n', conda_env_name,
+                                '-y', '-c', 'anaconda', 'ipykernel'],
+                            check=True,
                             capture_output=True
                         )
 
@@ -100,7 +130,8 @@ class MessageHandler(BaseMessageHandler):
                             return
 
                         proc = subprocess.run(
-                            ['conda', 'run', '-n', conda_env_name, 'python', '-m', 'ipykernel', 'install', '--user', '--name', kernel_spec_name, '--display-name', kernel_spec_name],
+                            ['conda', 'run', '-n', conda_env_name, 'python', '-m', 'ipykernel', 'install',
+                                '--user', '--name', kernel_spec_name, '--display-name', kernel_spec_name],
                             check=True,
                             capture_output=True
                         )

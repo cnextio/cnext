@@ -129,14 +129,21 @@ class MessageHandler(BaseMessageHandler):
 
     def handle_message(self, message):
         try:
-            self.user_space.execute(
-                message.content, None, self.message_handler_callback, client_message=message)
-            self._get_active_dfs_status()
-            # self._get_active_model()
+            if self.user_space.is_alive():
+                self.user_space.execute(
+                    message.content, None, self.message_handler_callback, client_message=message)
+                self._get_active_dfs_status()
+                # self._get_active_model()
+            else:
+                text = "No executor running"
+                log.info(text)
+                error_message = MessageHandler._create_error_message(
+                    message.webapp_endpoint, text, message.command_name, {})
+                self._send_to_node(error_message)
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
-            error_message = BaseMessageHandler._create_error_message(
+            error_message = MessageHandler._create_error_message(
                 message.webapp_endpoint, trace, message.command_name, {})
             self._send_to_node(error_message)
 
