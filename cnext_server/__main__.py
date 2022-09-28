@@ -160,7 +160,7 @@ def start_with_sample_project(command, path):
         download_project(DEFAULT_PROJECT,abs_paths)
         start(command)
     else:
-        print("your path isn"t correctly")
+        print("your path isn't correctly")
 
 
 def start_without_log():
