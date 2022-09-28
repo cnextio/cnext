@@ -163,11 +163,6 @@ def start_with_sample_project(command, path):
         print("your path isn't correctly")
 
 
-def start_without_log():
-    command = "set EVENT_LOG_DISABLE= true && node server.js"
-    start(command)
-
-
 @contextmanager
 def run_and_terminate_process(command):
     
