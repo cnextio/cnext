@@ -4,7 +4,6 @@ import sys
 from subprocess import Popen
 from contextlib import contextmanager
 import time
-from tokenize import String
 from urllib.request import urlopen
 from io import BytesIO
 from zipfile import ZipFile
@@ -52,17 +51,17 @@ def change_permissions_recursive(path, mode):
 def change_workspace(name, path):
     project_id = str(uuid.uuid1())
     data = {
-        'active_project': project_id,
-        'open_projects': [{"id": project_id, 'name': name, 'path': path}],
+        "active_project": project_id,
+        "open_projects": [{"id": project_id, "name": name, "path": path}],
     }
     
     os.chdir(current_dir_path)
-    with open(r'workspace.yaml', 'w') as file:
+    with open(r"workspace.yaml", "w") as file:
         yaml.dump(data, file, default_flow_style=False)
 
 
 def update_md5():
-    md5 = hashlib.md5(open(PACKAGE_LOCK_PATH,'rb').read()).hexdigest()
+    md5 = hashlib.md5(open(PACKAGE_LOCK_PATH,"rb").read()).hexdigest()
     f = open(STORE_MD5_FILE_PATH, "w")
     f.write(md5)
     f.close()
@@ -70,13 +69,13 @@ def update_md5():
 
 def install():
     os.chdir(SERVER_PATH)
-    os.system('npm i')
+    os.system("npm i")
 
     #track md5 package lock
     update_md5()
     
 
-def download_and_unzip(url, project_name, extract_to='.'):
+def download_and_unzip(url, project_name, extract_to="."):
     if not os.path.exists(DEFAULT_PROJECTS_PATH): 
         os.makedirs(DEFAULT_PROJECTS_PATH)
 
@@ -96,18 +95,18 @@ def download_and_unzip(url, project_name, extract_to='.'):
   
 
 def complete(text, state):
-    return (glob.glob(os.path.expanduser(text+'*'))+[None])[state]
+    return (glob.glob(os.path.expanduser(text+"*"))+[None])[state]
 
 
-readline.set_completer_delims(' \t\n;')
+readline.set_completer_delims(" \t\n;")
 readline.parse_and_bind("tab: complete")
 readline.set_completer(complete)
 
 
 def is_cnext_updated():
     if(os.path.exists(STORE_MD5_FILE_PATH)):
-        md5 = hashlib.md5(open(PACKAGE_LOCK_PATH,'rb').read()).hexdigest()
-        with open(STORE_MD5_FILE_PATH, 'r') as file:
+        md5 = hashlib.md5(open(PACKAGE_LOCK_PATH,"rb").read()).hexdigest()
+        with open(STORE_MD5_FILE_PATH, "r") as file:
             data = file.read()
             if data == md5:
                 return False
@@ -118,11 +117,11 @@ def is_cnext_updated():
     
 
 def main(args=sys.argv):
-    parser = argparse.ArgumentParser(description='Process Cnext Commands.')
-    parser.add_argument('-v', '--version', action = 'store_true' , help= 'show the version')
-    parser.add_argument('-path', '--path' , help = 'START the Skywalker project inside PATH', default = DEFAULT_PROJECTS_PATH )
-    parser.add_argument('-port', '--port' , help = 'START the CNEXT at port', default = DEFAULT_PORT, type = int)
-    parser.add_argument('-no-event-log', '--no_event_log', action = 'store_true' , help = 'disable event log')
+    parser = argparse.ArgumentParser(description="Process Cnext Commands.")
+    parser.add_argument("-v", "--version", action = "store_true" , help= "show the version")
+    parser.add_argument("-path", "--path" , help = "START the Skywalker project inside PATH", default = DEFAULT_PROJECTS_PATH )
+    parser.add_argument("-port", "--port" , help = "START the CNEXT at port", default = DEFAULT_PORT, type = int)
+    parser.add_argument("-no-event-log", "--no_event_log", action = "store_true" , help = "disable event log")
     
     args = parser.parse_args()
     if args.version:
@@ -140,9 +139,9 @@ def show_the_version():
 def start_with_command(path= None, port = DEFAULT_PORT, is_have_log = False):
     global command
     if is_have_log: 
-        command = "set PORT="+ f'{port} ' + "set EVENT_LOG_DISABLE= true " + "&& node server.js"
+        command = "set PORT="+ f"{port} " + "set EVENT_LOG_DISABLE= true " + "&& node server.js"
     else:
-        command = "set PORT="+ f'{port}' + "&& node server.js"
+        command = "set PORT="+ f"{port}" + "&& node server.js"
 
     if path:
         start_with_sample_project(command, path)
@@ -152,7 +151,7 @@ def start_with_command(path= None, port = DEFAULT_PORT, is_have_log = False):
 def download_project(project_name, download_to_path):
     download_and_unzip(DOWNLOAD_PATH, project_name, download_to_path)
     project_path = os.path.join(download_to_path, project_name)
-    change_workspace(project_name, os.path.normpath(project_path).replace(os.sep, '/'))
+    change_workspace(project_name, os.path.normpath(project_path).replace(os.sep, "/"))
 
 
 def start_with_sample_project(command, path):
@@ -161,7 +160,7 @@ def start_with_sample_project(command, path):
         download_project(DEFAULT_PROJECT,abs_paths)
         start(command)
     else:
-        print("your path isn't correctly")
+        print("your path isn"t correctly")
 
 
 def start_without_log():
@@ -194,5 +193,5 @@ def start(command):
             time.sleep(1000)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start()
