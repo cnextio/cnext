@@ -43,9 +43,6 @@ class PythonLanguageClient {
                         this.timeout
                     );
                 }
-
-                console.log(signatureResult);
-
                 return {
                     dispose: () => {},
                     value: signatureResult,
