@@ -41,7 +41,7 @@ const getLineRangeOfGroup = (codeLines: ICodeLine[], groupID: string): ILineRang
         for (let ln = 0; ln < codeLines.length; ln++) {
             if (codeLines[ln].groupID === groupID) {
                 if (fromLine === null) fromLine = ln;
-                else toLine = ln;
+                else toLine = ln + 1;
             }
         }
         if (fromLine !== null && toLine !== null) return { fromLine: fromLine, toLine: toLine };

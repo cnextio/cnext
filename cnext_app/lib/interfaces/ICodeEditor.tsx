@@ -200,6 +200,7 @@ export enum CodeInsertMode {
 export interface ICodeToInsertInfo {
     code: string;
     fromPos?: number;
+    fromLine?: number;
     status: CodeInsertStatus;
     mode: CodeInsertMode;
 }

@@ -5,7 +5,15 @@ import {
     setMouseOverLine,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../../redux/store";
-import { ICodeActiveLine, ICodeLine, ICodeLineStatus, ILineRange, IRunningCommandContent, IRunQueueItem, LineStatus } from "../../../interfaces/ICodeEditor";
+import {
+    ICodeActiveLine,
+    ICodeLine,
+    ICodeLineStatus,
+    ILineRange,
+    IRunningCommandContent,
+    IRunQueueItem,
+    LineStatus,
+} from "../../../interfaces/ICodeEditor";
 import { ifElse } from "../../libs";
 import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/CodeEditorRedux";
 import socket from "../../Socket";
@@ -44,12 +52,12 @@ function setActiveLine(inViewID: string, lineNumber: number) {
     }
 }
 
-function setOpacityWidget(id: string, opacity: string) {
+function setWidgetOpacity(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
     if (element) {
         // element.style.opacity = opacity;
-        if (opacity === "1") element.classList.add("show-children");
-        else element.classList.remove("show-children");
+        if (opacity === "1") element.classList.add("show-toolbar");
+        else element.classList.remove("show-toolbar");
     }
 }
 
@@ -74,6 +82,8 @@ function onMouseDown(event) {
         // event.stopPropagation();
         // console.log("Monaco onMouseDown", event?.target?.position);
         let ln1based = event?.target?.position?.lineNumber;
+        console.log(`onMouseDown`, onMouseDown);
+
         let state = store.getState();
         const activeLineNumber = state.codeEditor.activeLineNumber;
         let inViewID = store.getState().projectManager.inViewID;
@@ -91,20 +101,19 @@ function onMouseMove(event) {
             let state = store.getState();
             const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(state);
-            let lineNumber = event?.target?.position?.lineNumber - 1; /** 0-based */
-            // console.log(`lineNumber`, event, lineNumber);
-            if (lines && lineNumber>0) {
-                let currentGroupID = lines[lineNumber].groupID;
+            let ln0based = event?.target?.position?.lineNumber - 1; /** 0-based */
+
+            if (lines && ln0based >= 0) {
+                let currentGroupID = lines[ln0based]?.groupID;
                 // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));
                 if (currentGroupID && currentGroupID !== mouseOverGroupID) {
-                    setOpacityWidget(currentGroupID, "1");
+                    setWidgetOpacity(currentGroupID, "1");
                     if (mouseOverGroupID) {
-                        setOpacityWidget(mouseOverGroupID, "0");
+                        setWidgetOpacity(mouseOverGroupID, "0");
                     }
                     store.dispatch(setMouseOverGroup(currentGroupID));
                 }
-
-                // store.dispatch(setMouseOverLine({ ...hoveredLine }));
+                // store.dispatch(setMouseOverLine(ln0based));
             }
         }
 
@@ -121,7 +130,7 @@ function onMouseLeave(event) {
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
             if (mouseOverGroupID) {
                 /* eslint-disable */
-                setOpacityWidget(mouseOverGroupID, "0");
+                setWidgetOpacity(mouseOverGroupID, "0");
             }
             store.dispatch(setMouseOverGroup(undefined));
             store.dispatch(setMouseOverLine(undefined));
@@ -137,7 +146,12 @@ export const setHTMLEventHandler = (editor, stopMouseEvent: boolean) => {
     editor.onMouseDown((event) => onMouseDown(event));
     editor.onKeyUp((event) => onKeyUp(editor, event));
 };
-
+export const foldAll = (editor) => {
+    editor.trigger("fold", "editor.foldAll");
+};
+export const unfoldAll = (editor) => {
+    editor.trigger("unfold", "editor.unfoldAll");
+};
 export const getMainEditorModel = (monaco: Monaco) => {
     if (monaco) {
         let models = monaco.editor.getModels();
@@ -152,6 +166,52 @@ export const setCodeTextAndStates = (state: RootState, monaco: Monaco) => {
     if (codeText) {
         editorModel?.setValue(codeText);
     }
+};
+
+export const insertCellBelow = (monaco: Monaco, editor, mode, ln0based: number | null): boolean => {
+    let model = getMainEditorModel(monaco);
+    let lnToInsertAfter;
+    let state = store.getState();
+    const inViewID = state.projectManager.inViewID;
+    let posToInsertAfter;
+
+    if (ln0based) {
+        lnToInsertAfter = ln0based + 1;
+    } else {
+        lnToInsertAfter = editor.getPosition().lineNumber;
+    }
+
+    if (model && inViewID) {
+        const codeLines = state.codeEditor.codeLines[inViewID];
+        let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
+        while (
+            curGroupID != null &&
+            lnToInsertAfter < codeLines.length + 1 /** note that lnToInsertAfter is 1-based */ &&
+            codeLines[lnToInsertAfter - 1].groupID === curGroupID
+        ) {
+            lnToInsertAfter += 1;
+        }
+        if (lnToInsertAfter === 1 || curGroupID == null) {
+            /** insert from the end of the current line */
+            posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
+        } else {
+            /** insert from the end of the prev line */
+            lnToInsertAfter -= 1;
+            posToInsertAfter = model?.getLineLength(lnToInsertAfter) + 1;
+        }
+
+        let range = new monaco.Range(
+            lnToInsertAfter,
+            posToInsertAfter,
+            lnToInsertAfter,
+            posToInsertAfter
+        );
+        let id = { major: 1, minor: 1 };
+        let text = "\n";
+        var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+        editor.executeEdits("insertCellBelow", [op]);
+    }
+    return true;
 };
 
 export const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
@@ -182,7 +242,7 @@ export const getRunningCommandContent = (
 ): IRunningCommandContent | null => {
     let content: IRunningCommandContent | null = null;
     let codeText = store.getState().codeEditor.codeText[fileID];
-    
+
     // const doc = view.state.doc;
     if (
         codeText &&

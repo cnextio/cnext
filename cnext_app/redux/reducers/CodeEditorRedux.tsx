@@ -315,7 +315,7 @@ export const CodeEditorRedux = createSlice({
                 /** there is a change in cell association */
                 state.cellAssocUpdateCount++;
             }
-
+            
             for (let i = lineGroupStatus.fromLine; i < lineGroupStatus.toLine; i++) {
                 if (lineGroupStatus.status !== undefined) {
                     if (
