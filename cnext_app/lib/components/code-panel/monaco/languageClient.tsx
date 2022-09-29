@@ -74,15 +74,15 @@ class PythonLanguageClient {
 
                 if (!hoverResult) return null;
 
-                let { contents, range } = hoverResult;
+                let { contents } = hoverResult;
                 return {
                     range: new this.monaco.Range(
-                        range?.start?.line + 1,
-                        range?.start?.character + 1,
-                        range?.end?.line + 1,
-                        range?.end?.character + 1
+                        position.lineNumber,
+                        position.column,
+                        position.lineNumber,
+                        position.column
                     ),
-                    contents,
+                    contents: [{ value: contents[0]?.value }, { value: contents[1] }],
                 };
             },
         });
