@@ -2,7 +2,7 @@ import socket from "../../../components/Socket";
 import { WebAppEndpoint } from "../../../interfaces/IApp";
 import store, { RootState } from "../../../../redux/store";
 import { getCodeText } from "../libCodeEditor";
-import { CompletionTriggerKind } from "vscode-languageserver-protocol";
+import { CompletionTriggerKind, SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
 
 class PythonLanguageClient {
     config: any;
@@ -16,18 +16,90 @@ class PythonLanguageClient {
     constructor(config: any, monaco: any) {
         this.config = config;
         this.monaco = monaco;
-        this.registerCompletion(monaco, config, this.requestLS, this.timeout, this.settings);
     }
 
-    registerCompletion(monaco: any, config: any, requestLS: Function, timeout: number, settings) {
-        monaco.languages.registerCompletionItemProvider("python", {
-            provideCompletionItems: async function (model: any, position: any) {
+    registerSignatureHelp() {
+        this.monaco.languages.registerSignatureHelpProvider("python", {
+            signatureHelpTriggerCharacters: ["(", ","],
+            provideSignatureHelp: async (model: any, position: any) => {
+                var documentUri = this.config.documentUri;
+                var line = position.lineNumber - 1;
+                var character = position.column - 1;
+
+                let signatureResult;
+                if (this.settings().autocompletion) {
+                    await this.sendChange();
+                    signatureResult = await this.requestLS(
+                        WebAppEndpoint.LanguageServerSignature,
+                        "textDocument/signatureHelp",
+                        {
+                            textDocument: { uri: documentUri },
+                            position: { line, character },
+                            context: {
+                                triggerKind: SignatureHelpTriggerKind.Invoked,
+                                triggerCharacter: character,
+                            },
+                        },
+                        this.timeout
+                    );
+                }
+
+                console.log(signatureResult);
+
+                return {
+                    dispose: () => {},
+                    value: signatureResult,
+                };
+            },
+        });
+    }
+
+    registerHover() {
+        this.monaco.languages.registerHoverProvider("python", {
+            provideHover: async (model: any, position: any) => {
+                var documentUri = this.config.documentUri;
+                var line = position.lineNumber - 1;
+                var character = position.column - 1;
+
+                let hoverResult;
+                if (this.settings().autocompletion) {
+                    await this.sendChange();
+                    hoverResult = await this.requestLS(
+                        WebAppEndpoint.LanguageServerHover,
+                        "textDocument/hover",
+                        {
+                            textDocument: { uri: documentUri },
+                            position: { line, character },
+                        },
+                        this.timeout
+                    );
+                }
+
+                if (!hoverResult) return null;
+
+                let { contents, range } = hoverResult;
+                return {
+                    range: new this.monaco.Range(
+                        range?.start?.line + 1,
+                        range?.start?.character + 1,
+                        range?.end?.line + 1,
+                        range?.end?.character + 1
+                    ),
+                    contents,
+                };
+            },
+        });
+    }
+
+    registerAutocompletion() {
+        this.monaco.languages.registerCompletionItemProvider("python", {
+            provideCompletionItems: async (model: any, position: any) => {
                 var word = model.getWordUntilPosition(position);
 
                 var line = position.lineNumber - 1;
                 var character = position.column - 1;
                 var trigKind = CompletionTriggerKind.Invoked;
-                var documentUri = config.documentUri;
+                var documentUri = this.config.documentUri;
 
                 var range = {
                     startLineNumber: position.lineNumber,
@@ -35,9 +107,10 @@ class PythonLanguageClient {
                     startColumn: word.startColumn,
                     endColumn: word.endColumn,
                 };
-                let result = [];
-                if (settings().autocompletion)
-                    result = await requestLS(
+                let completionResult;
+                if (this.settings().autocompletion) {
+                    await this.sendChange();
+                    completionResult = await this.requestLS(
                         WebAppEndpoint.LanguageServerCompletion,
                         "textDocument/completion",
                         {
@@ -48,12 +121,13 @@ class PythonLanguageClient {
                                 // triggerCharacter,
                             },
                         },
-                        timeout
+                        this.timeout
                     );
+                }
 
-                if (result) {
+                if (completionResult) {
                     return {
-                        suggestions: result.items.map((item: any) => ({
+                        suggestions: completionResult.items.map((item: any) => ({
                             label: item.label,
                             kind: item.kind,
                             documentation: item.documentation,
@@ -231,7 +305,7 @@ class PythonLanguageClient {
         }, this.changesDelay);
     }
 
-    sendChange() {
+    async sendChange() {
         let documentText = getCodeText(store.getState()).join("\n");
         this.requestLS(
             WebAppEndpoint.LanguageServer,

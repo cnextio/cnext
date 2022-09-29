@@ -283,6 +283,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco);
                 setLanguageClient(pyLanguageClient);
                 pyLanguageClient.setupLSConnection();
+                pyLanguageClient.registerHover();
+                pyLanguageClient.registerAutocompletion();
+                pyLanguageClient.registerSignatureHelp();
             }
         }
     }, [inViewID, monaco]);
