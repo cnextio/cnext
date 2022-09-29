@@ -40,9 +40,17 @@ const ScriptComponent = ({ children, script }) => {
             scriptElem.appendChild(document.createTextNode(children));
         }
 
+        let parent = ReactDOM.findDOMNode(tmpRef?.current)?.parentNode;
+
+        /** Some ipython pluggin need an elemen named `element` to work. So we create one here */
+        var ipyElement = document.createElement("script");
+        ipyElement.appendChild(
+            document.createTextNode("var element = document.currentScript.parentNode")
+        );
+        parent?.appendChild(ipyElement);
+
         // console.log("ResultContent parent scriptElem ", parent, scriptElem);
         /** the script will be appended to the parent div which is the correct position of the script in the dom */
-        let parent = ReactDOM.findDOMNode(tmpRef?.current)?.parentNode;
         parent?.appendChild(scriptElem);
     }, [script]);
 
