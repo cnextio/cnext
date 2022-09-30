@@ -260,7 +260,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     useEffect(() => {
         // console.log("CodeEditor useEffect container view", container, view);
-        if (monaco) {
+        if (monaco && inViewID) {
             const nameSplit = inViewID.split(".");
             const fileExt = nameSplit[nameSplit.length - 1];
             const languageID = LanguageProvider[fileExt];
@@ -288,7 +288,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 pyLanguageClient.registerSignatureHelp();
             }
         }
-    }, [inViewID, monaco]);
+    }, [monaco]);
 
     // add action
     useEffect(() => {
@@ -429,11 +429,6 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     const handleEditorChange = (value, event) => {
         try {
-            // for python language client update
-            if (pyLanguageClient) {
-                pyLanguageClient.update();
-            }
-
             const state = store.getState();
             let inViewID = state.projectManager.inViewID;
             /** do nothing if the update is due to code reloading from external source */

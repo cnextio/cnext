@@ -28,7 +28,7 @@ class PythonLanguageClient {
 
                 let signatureResult;
                 if (this.settings().autocompletion) {
-                    await this.sendChange();
+                    this.sendChange();
                     signatureResult = await this.requestLS(
                         WebAppEndpoint.LanguageServerSignature,
                         "textDocument/signatureHelp",
@@ -60,7 +60,7 @@ class PythonLanguageClient {
 
                 let hoverResult;
                 if (this.settings().autocompletion) {
-                    await this.sendChange();
+                    this.sendChange();
                     hoverResult = await this.requestLS(
                         WebAppEndpoint.LanguageServerHover,
                         "textDocument/hover",
@@ -106,7 +106,7 @@ class PythonLanguageClient {
                 };
                 let completionResult;
                 if (this.settings().autocompletion) {
-                    await this.sendChange();
+                    this.sendChange();
                     completionResult = await this.requestLS(
                         WebAppEndpoint.LanguageServerCompletion,
                         "textDocument/completion",
@@ -293,13 +293,6 @@ class PythonLanguageClient {
                 this.timeout
             );
         }
-    }
-
-    update() {
-        if (this.changesTimeout) clearTimeout(this.changesTimeout);
-        this.changesTimeout = self.setTimeout(() => {
-            this.sendChange();
-        }, this.changesDelay);
     }
 
     async sendChange() {
