@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/cnextio/cnext/compare/v0.8.0...v0.8.1) (2022-09-30)
+
+
+### Bug Fixes
+
+* **core:** cnextlib version ([#61](https://github.com/cnextio/cnext/issues/61)) ([c5bd579](https://github.com/cnextio/cnext/commit/c5bd5791d49601618fc1449f61f2931908d35a17))
+
 ## [0.8.0](https://github.com/cnextio/cnext/compare/v0.7.1...v0.8.0) (2022-09-29)
 
 
