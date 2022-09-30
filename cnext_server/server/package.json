@@ -1,11 +1,12 @@
 {
     "name": "cnext-server",
-    "version": "0.4.29",
+    "version": "0.8.0",
     "private": true,
     "scripts": {
         "start": "nodemon server.js",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start-prod": "node server.js"
+        "start-prod": "node server.js",
+        "start-dev": "set EVENT_LOG_DISABLE=true && nodemon server.js"
     },
     "dependencies": {
         "dotenv": "~16.0.0",

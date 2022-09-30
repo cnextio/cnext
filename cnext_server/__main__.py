@@ -38,6 +38,8 @@ STORE_MD5_FILE_PATH = os.path.abspath(os.path.join(current_dir_path,"server","tr
 
 DEFAULT_PORT = 4000
 DEFAULT_PROJECT = "Skywalker"
+WITHOUT_PROJECT = 0
+HAVE_PROJECT = 1
 DOWNLOAD_PATH = 'https://bitbucket.org/robotdreamers/cnext_sample_projects/get/master.zip'
 
 def change_permissions_recursive(path, mode):
@@ -136,6 +138,32 @@ def show_the_version():
     print(data["version"])
 
 
+def asking_choice():
+    answer = input('Would you like to download the sample project? [(y)/n]: ')
+    if(answer == 'y' or answer == 'Y'):
+        return HAVE_PROJECT
+    elif not answer:
+        return HAVE_PROJECT
+    elif (answer == 'n' or answer == 'N'):
+        return WITHOUT_PROJECT
+    else:
+        asking_choice()
+
+
+def asking_path(command):
+    path = input(
+        'Please enter the directory to store the sample project: ')
+    if(len(path) > 0):
+        abs_paths = os.path.abspath(path)
+        if os.path.isdir(abs_paths):
+            start_with_sample_project(command, abs_paths)
+        else:
+            print('The path is not a directory. Please try again!')
+            asking_path(command)
+    else:
+        asking_path(command)
+
+
 def start_with_command(path= None, port = DEFAULT_PORT, no_event_log = False):
     global command
     if no_event_log: 
@@ -146,12 +174,26 @@ def start_with_command(path= None, port = DEFAULT_PORT, no_event_log = False):
     if path:
         start_with_sample_project(command, path)
     else:
-        start(command)
+        if(is_first_time()):
+            status = asking_choice()
+            if(status == WITHOUT_PROJECT):
+                start(command)
+            else:
+                asking_path(command)
+        else: start(command)
+
 
 def download_project(project_name, download_to_path):
     download_and_unzip(DOWNLOAD_PATH, project_name, download_to_path)
     project_path = os.path.join(download_to_path, project_name)
     change_workspace(project_name, os.path.normpath(project_path).replace(os.sep, "/"))
+
+
+def is_first_time():
+    if(os.path.exists(NODE_MODULES_PATH)):
+        return False
+    else:
+        return True
 
 
 def start_with_sample_project(command, path):
