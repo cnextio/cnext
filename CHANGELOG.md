@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.3](https://github.com/cnextio/cnext/compare/v0.8.2...v0.8.3) (2022-10-01)
+
+
+### Bug Fixes
+
+* **docker:** fix wrong arg ([bff434c](https://github.com/cnextio/cnext/commit/bff434c6b52ffeade1e068abec9bb56705f87818))
+
 ## [0.8.2](https://github.com/cnextio/cnext/compare/v0.8.1...v0.8.2) (2022-10-01)
 
 
