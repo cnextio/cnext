@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/cnextio/cnext/compare/v0.8.1...v0.8.2) (2022-10-01)
+
+
+### Bug Fixes
+
+* **server:** wrong file name ([5909528](https://github.com/cnextio/cnext/commit/590952858e8570fa572f6be47a65b07359f734bf))
+
 ## [0.8.1](https://github.com/cnextio/cnext/compare/v0.8.0...v0.8.1) (2022-09-30)
 
 
