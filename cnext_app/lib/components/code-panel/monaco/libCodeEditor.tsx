@@ -282,3 +282,14 @@ export const sendMessage = (socket: Socket, content: IRunningCommandContent) => 
     console.log(`${message.webapp_endpoint} send message: `, message);
     socket.emit(message.webapp_endpoint, JSON.stringify(message));
 };
+export const deleteCellHover = () => {
+    let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
+    let state = store.getState();
+
+    const inViewID = state.projectManager.inViewID;
+    if (inViewID) {
+        const codeLines = state.codeEditor.codeLines[inViewID];
+        console.log(`codeLines`, codeLines);
+        
+    }
+};

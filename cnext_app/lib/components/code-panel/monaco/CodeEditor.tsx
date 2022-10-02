@@ -10,6 +10,7 @@ import {
     setCodeTextAndStates,
     setHTMLEventHandler,
     setLineStatus,
+    deleteCellHover,
 } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
@@ -38,7 +39,11 @@ import {
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import socket from "../../Socket";
-import { addToRunQueueHoverCell, addToRunQueueHoverLine, addToRunQueueMoveDown } from "./libRunQueue";
+import {
+    addToRunQueueHoverCell,
+    addToRunQueueHoverLine,
+    addToRunQueueMoveDown,
+} from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 
@@ -388,6 +393,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 case CellCommand.ADD_CELL:
                     /** TODO: fix the type issue with ln0based */
                     insertCellBelow(CodeInsertMode.GROUP, ln0based);
+                    break;
+                case CellCommand.DELL_CELL:
+                    deleteCellHover();
                     break;
             }
             dispatch(setCellCommand(undefined));

@@ -2,6 +2,7 @@ import { setCellCommand } from "../../../../redux/reducers/CodeEditorRedux";
 import store from "../../../../redux/store";
 import { CellCommand, ICodeLine } from "../../../interfaces/ICodeEditor";
 import { getCodeLine } from "./libCodeEditor";
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 const createCellWidgetDom = (
     groupID: string,
@@ -25,7 +26,12 @@ const createCellWidgetDom = (
             text: "Add Cell",
             cellCommand: CellCommand.ADD_CELL,
             svg: `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall icon-cellcommand" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="AddCardIcon"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h10v-2H4v-6h18V6c0-1.11-.89-2-2-2zm0 4H4V6h16v2zm4 9v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3z"></path></svg>`,
+        }, {
+            text: "Delete Cell",
+            cellCommand: CellCommand.DELL_CELL,
+            svg: `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall icon-cellcommand" focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="DeleteOutlineIcon" aria-label="fontSize large"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
         },
+
     ];
     for (let i = 0; i < cellItems.length; i++) {
         const element = cellItems[i];
