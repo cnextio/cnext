@@ -290,6 +290,7 @@ export const deleteCellHover = () => {
     if (inViewID) {
         const codeLines = state.codeEditor.codeLines[inViewID];
         console.log(`codeLines`, codeLines);
-        
     }
 };
+export const runCellAboveGroup = () => {};
+export const runCellBelowGroup = () => {};

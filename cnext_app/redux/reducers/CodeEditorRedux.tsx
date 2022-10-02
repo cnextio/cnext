@@ -62,7 +62,7 @@ type CodeEditorState = {
     lastLineUpdate: { [key: string]: ILineUpdate };
     mouseOverGroupID: string | null;
     mouseOverLine: Line | null;
-    cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | CellCommand.DELL_CELL;
+    cellCommand: keyof typeof CellCommand | null;
     /** this number need to be increase whenever cell association changed */
     cellAssocUpdateCount: number;
 };

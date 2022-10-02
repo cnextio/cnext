@@ -11,6 +11,8 @@ import {
     setHTMLEventHandler,
     setLineStatus,
     deleteCellHover,
+    runCellAboveGroup,
+    runCellBelowGroup,
 } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
@@ -396,6 +398,12 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     break;
                 case CellCommand.DELL_CELL:
                     deleteCellHover();
+                    break;
+                case CellCommand.RUN_ABOVE_CELL:
+                    runCellAboveGroup();
+                    break;
+                case CellCommand.RUN_BELOW_CELL:
+                    runCellBelowGroup();
                     break;
             }
             dispatch(setCellCommand(undefined));
