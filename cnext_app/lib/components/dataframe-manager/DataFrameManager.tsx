@@ -7,18 +7,9 @@
  * if `isUpdated == True` and `isDisplayed == True` then DF metadata and 10 rows of table data will be updated.
  * */
 
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { IMessage, WebAppEndpoint, CommandName, ContentType } from "../../interfaces/IApp";
-import { DataFrameUpdateType, IAllDataFrameStatus } from "../../interfaces/IDataFrameStatus";
 import { SocketContext } from "../Socket";
-import {
-    setTableData,
-    setColumnHistogramPlot,
-    setMetadata,
-    setDFUpdates,
-    setActiveDF,
-    setColumnQuantilePlot,
-} from "../../../redux/reducers/DataFramesRedux";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -26,42 +17,34 @@ import store, { RootState } from "../../../redux/store";
 import {
     createMessage,
     getColumnsToGetStats,
-    getDefinedStat,
     getLastUpdate,
+    calculateUDFs,
     handleActiveDFStatus,
     handleGetDFMetadata,
+    handleGetRegisteredUDFs,
     handleGetTableData,
-    hasDefinedStats,
     sendGetTableData,
     sendGetTableDataAroundRowIndex,
     sendMessage,
 } from "./libDataFrameManager";
 import { setTextOutput } from "../../../redux/reducers/RichOutputRedux";
-import { Socket } from "socket.io-client";
-import { handlePlotColumnHistogram } from "./udf/histogram_plots/libHistogramPlots";
-import { handlePlotColumnQuantile } from "./udf/quantile_plots/libQuantilePlots";
-import { IDataFrameFilter } from "../../interfaces/IDataFrameManager";
+
+import { handleGetComputeUDFs } from "./udf/libUDF";
 
 const DataFrameManager = () => {
     const socket = useContext(SocketContext);
     const dispatch = useDispatch();
     const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
-
     const dfFilter = useSelector((state: RootState) => state.dataFrames.dfFilter);
-
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
+    const udfsConfig = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.udfsConfig[activeDataFrame] : null
+    );
 
-    const dataFrameConfig = useSelector((state: RootState) => state.dataFrames.stats);
-
-    useEffect(() => {
-        const state = store.getState().dataFrames;
-        const activeDF = state.activeDataFrame;
-        if (activeDF != null && state.metadata[activeDF] != null && socket) {
-            const df_id = state.metadata[activeDF].df_id;
-            const columns = getColumnsToGetStats(df_id);
-            if (columns) getDefinedStat(socket, dataFrameConfig, df_id, columns);
-        }
-    }, [dataFrameConfig]);
+    const dataPanelFocusSignal = useSelector(
+        (state: RootState) => state.dataFrames.dataPanelFocusSignal
+    );
+    const [executing, setExecuting] = useState(false);
 
     const socketInit = () => {
         // console.log('DFManager useEffect');
@@ -80,12 +63,12 @@ const DataFrameManager = () => {
                         handleActiveDFStatus(socket, message, true);
                     } else if (message.command_name == CommandName.get_table_data) {
                         handleGetTableData(message);
-                    } else if (message.command_name == CommandName.plot_column_histogram) {
-                        handlePlotColumnHistogram(message);
-                    } else if (message.command_name == CommandName.plot_column_quantile) {
-                        handlePlotColumnQuantile(message);
                     } else if (message.command_name == CommandName.get_df_metadata) {
-                        handleGetDFMetadata(socket, dataFrameConfig, message);
+                        handleGetDFMetadata(message);
+                    } else if (message.command_name == CommandName.get_registered_udfs) {
+                        handleGetRegisteredUDFs(message);
+                    } else if (message.command_name == CommandName.compute_udf) {
+                        handleGetComputeUDFs(message);
                     } else {
                         // console.log("dispatch text output");
                         dispatch(setTextOutput(message));
@@ -104,11 +87,31 @@ const DataFrameManager = () => {
     };
 
     useEffect(() => {
+        const state = store.getState().dataFrames;
+        const activeDataFrame = state.activeDataFrame;
+        if (
+            udfsConfig &&
+            activeDataFrame != null &&
+            state.metadata[activeDataFrame] != null &&
+            socket
+        ) {
+            // const df_id = state.metadata[activeDataFrame].df_id;
+            const columns = getColumnsToGetStats(activeDataFrame);
+            if (columns) calculateUDFs(socket, udfsConfig, activeDataFrame, columns);
+        }
+    }, [udfsConfig]);
+
+    useEffect(() => {
         socketInit();
         return () => {
             socket?.off(WebAppEndpoint.DFManager);
         };
     }, [socket]); //TODO: run this only once - not on rerender
+
+    useEffect(() => {
+        let message = createMessage(CommandName.get_registered_udfs, null, {});
+        sendMessage(socket, message);
+    }, [dataPanelFocusSignal]);
 
     useEffect(() => {
         if (loadDataRequest.df_id && socket) {
@@ -127,19 +130,6 @@ const DataFrameManager = () => {
             sendGetTableData(socket, dfFilter.df_id, dfFilter.query);
         }
     }, [dfFilter]);
-
-    useEffect(() => {
-        if (activeDataFrame != null) {
-            let state = store.getState();
-            if (!hasDefinedStats(activeDataFrame, state.dataFrames)) {
-                let metadata = state.dataFrames.metadata[activeDataFrame];
-                if (metadata) {
-                    let columns: string[] = Object.keys(metadata.columns);
-                    getDefinedStat(socket, dataFrameConfig, activeDataFrame, columns);
-                }
-            }
-        }
-    }, [activeDataFrame]);
 
     return null;
 };

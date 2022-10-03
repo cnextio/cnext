@@ -58,6 +58,7 @@ class IPythonUserSpace(_cus.UserSpace):
     def init_executor(self):
         code = """
 import cnextlib.dataframe as _cd
+import cnextlib.udf as {_udf}
 import pandas as _pd
 from dataframe_manager import dataframe_manager as _dm
 from cassist import cassist as _ca
@@ -75,7 +76,8 @@ class _UserSpace(BaseKernelUserSpace):
            _df_manager=IPythonInteral.DF_MANAGER.value,
            _cassist=IPythonInteral.CASSIST.value,
            _tracking_df_types=self.tracking_df_types,
-           _tracking_model_types=self.tracking_model_types)
+           _tracking_model_types=self.tracking_model_types,
+           _udf = IPythonInteral.UDF_MODULE.value)
         self.executor.execute(code)
 
     def globals(self):

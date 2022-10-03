@@ -2,15 +2,15 @@ import React, { Fragment } from "react";
 
 // redux
 import { useSelector } from 'react-redux'
+import { RootState } from "../../../../redux/store";
 import { CountNAContainer } from "../../StyledComponents";
 
 const CountNA = ({df_id, col_name}) => {
-    const countna = useSelector((state) => _getCountNA(state));
-    console.log("CountNa", df_id);
-    const shape = useSelector((state) => state.dataFrames.metadata[df_id].shape);
+    const countna = useSelector((state: RootState) => _getCountNA(state));
+    const shape = useSelector((state: RootState) => state.dataFrames.metadata[df_id].shape);
     const naPct = (shape) ? countna/shape[0]*100 : 0.;    
     
-    function _getCountNA(state){
+    function _getCountNA(state: RootState){
         if (state.dataFrames.metadata[df_id]){
             let colMetadata = state.dataFrames.metadata[df_id].columns[col_name];
             if (colMetadata){

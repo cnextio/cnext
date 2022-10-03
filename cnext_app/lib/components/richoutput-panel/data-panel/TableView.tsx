@@ -15,142 +15,204 @@ import {
     DataTableHeadText,
     ImageMimeCell,
 } from "../../StyledComponents";
-import {
-    FileMimeType,
-    IDFUpdatesReview,
-    ReviewType,
-} from "../../../interfaces/IApp";
+import { FileMimeType, IDFUpdatesReview, ReviewType } from "../../../interfaces/IApp";
 import ColumnHistogram from "./ColumnHistogram";
 import { useSelector } from "react-redux";
 import { ifElse } from "../../libs";
 import CountNA from "./CountNA";
 import store from "../../../../redux/store";
 import { RootState } from "../../../../redux/store";
+import { UDFView } from "../../../interfaces/IDataFrameManager";
+import UDFContainer from "./UDFContainer";
 
 const TableView = (props: any) => {
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
-
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
+    const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
+        getReviewRequest(state)
+    );
+    const udfsConfig = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.udfsConfig[activeDataFrame] : null
+    );
 
-    const dfReview: IDFUpdatesReview = useSelector((state: RootState) => getReviewRequest(state));
-
-    function getReviewRequest(state: RootState): IDFUpdatesReview {
-        return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
+    function getReviewRequest(state: RootState): IDFUpdatesReview | null {
+        if (state.dataFrames.activeDataFrame) {
+            return ifElse(state.dataFrames.dfUpdatesReview, state.dataFrames.activeDataFrame, null);
+        } else {
+            return null;
+        }
     }
 
-    const createCell = (
-        colName: string,
-        rowIndex: number,
-        item: any,
-        head: boolean = false,
-        indexCell: boolean = false
-    ) => {
-        let review: boolean = false;
-        let state = store.getState();
-        let activeDataFrame = state.dataFrames.activeDataFrame;
-        let dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
-        // console.log("TableView: ", dfReview);
-
-        const metadata = state.dataFrames.metadata[activeDataFrame];
-
+    const isReviewingCell = (colName: string, rowIndexData: any, dfReview: {}) => {
+        let review = false;
         if (dfReview) {
             if (dfReview.type === ReviewType.col) {
                 review = dfReview.name == colName;
             } else if (dfReview.type === ReviewType.row) {
-                review = dfReview.name == rowIndex;
+                review = dfReview.name == rowIndexData;
             } else if (dfReview.type === ReviewType.cell) {
                 // console.log(dfReview.name);
                 let name = dfReview.name as [string, number];
-                review = name[0] == colName && name[1] == rowIndex;
+                review = name[0] == colName && name[1] == rowIndexData;
                 // console.log("TableView: ", name, colName, rowIndex);
             }
         }
-        // if (review){
-        // console.log('dfReview: ', dfReview, dfColName, dfRowIndex, head);
-        // }
-        // console.log('RichOutputView _createCell: ', dfColName);
+        return review;
+    };
+
+    const renderHeadCell = (colName: string, rowIndexData: any) => {
+        if (activeDataFrame) {
+            let state = store.getState();
+            // const dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
+            const metadata = state.dataFrames.metadata[activeDataFrame];
+            let review = isReviewingCell(colName, rowIndexData, dfReview);
+
+            return (
+                <DataTableCell key={shortid.generate()} align="right" review={review} head={true}>
+                    {colName}
+                    {renderUDF(activeDataFrame, metadata, colName)}
+                    {dfReview && review && dfReview.type == ReviewType.col && (
+                        <ScrollIntoViewIfNeeded
+                            options={{
+                                active: true,
+                                block: "nearest",
+                                inline: "center",
+                                behavior: "smooth",
+                            }}
+                        />
+                    )}
+                </DataTableCell>
+            );
+        }
+    };
+
+    const renderUDF = (activeDataFrame: string, dfMetadata: {}, colName: string) => {
+        const registeredUDFs = store.getState().dataFrames.registeredUDFs;
+        const showedUDFs = Object.keys(registeredUDFs).reduce((showedUDFs: any[], key) => {
+            // console.log("showedUDFs: ", key, udfsConfig, registeredUDFs[key].config.locations);
+            if (udfsConfig[key] && UDFView.TABLE_HEAD in registeredUDFs[key].config.locations) {
+                showedUDFs.push({ name: key, udf: registeredUDFs[key] });
+            }
+            return showedUDFs;
+        }, []);
+
+        /** for UDFView.TABLE_HEAD UDFs we only support 1 UDF per row so only sort by row */
+        showedUDFs.sort(
+            (a, b) =>
+                a.udf.config.locations[UDFView.TABLE_HEAD].row -
+                b.udf.config.locations[UDFView.TABLE_HEAD].row
+        );
+        // console.log("showedUDFs: ", showedUDFs);
         return (
-            <Fragment>
-                {indexCell ? (
-                    <DataTableIndexCell key={shortid.generate()} review={review}>
-                        {rowIndex}
-                        {dfReview && dfReview.type == ReviewType.row && review && (
-                            <ScrollIntoViewIfNeeded
-                                options={{
-                                    active: true,
-                                    block: "nearest",
-                                    inline: "center",
-                                }}
-                            />
-                        )}
-                    </DataTableIndexCell>
-                ) : (
-                    <DataTableCell
-                        key={shortid.generate()}
-                        align="right"
-                        review={review}
-                        head={head}
-                    >
-                        {head ? (
-                            <Fragment>
-                                {item}
-                                {metadata &&
-                                metadata.columns[colName] &&
-                                !Object.values(FileMimeType).includes(
-                                    metadata.columns[colName].type
-                                ) ? (
-                                    <Fragment>
-                                        <ColumnHistogram
-                                            df_id={activeDataFrame}
-                                            col_name={colName}
-                                            width={80}
-                                            height={50}
-                                        />
-                                        <CountNA df_id={activeDataFrame} col_name={colName} />
-                                    </Fragment>
-                                ) : null}
-                            </Fragment>
-                        ) : metadata &&
-                          metadata.columns[colName] &&
-                          [FileMimeType.FILE_PNG, FileMimeType.URL_PNG].includes(
-                              metadata.columns[colName].type
-                          ) ? (
-                            <ImageMimeCell src={"data:image/png;base64," + item.binary} />
-                        ) : (
-                            item
-                        )}
-                        {dfReview && dfReview.type == ReviewType.col && head && review && (
-                            <ScrollIntoViewIfNeeded
-                                options={{
-                                    active: true,
-                                    block: "nearest",
-                                    inline: "center",
-                                    behavior: "smooth",
-                                }}
-                            />
-                        )}
-                        {dfReview && dfReview.type == ReviewType.cell && review && (
-                            <ScrollIntoViewIfNeeded
-                                options={{
-                                    active: true,
-                                    block: "nearest",
-                                    inline: "center",
-                                    behavior: "smooth",
-                                }}
-                            />
-                        )}
-                    </DataTableCell>
-                )}
-            </Fragment>
+            <>
+                {dfMetadata &&
+                    dfMetadata.columns[colName] &&
+                    !Object.values(FileMimeType).includes(dfMetadata.columns[colName].type) && (
+                        <>
+                            {/* <ColumnHistogram
+                                df_id={activeDataFrame}
+                                col_name={colName}
+                                width={80}
+                                height={50}
+                            /> */}
+                            {showedUDFs.map((data, index) => {
+                                return (
+                                    <UDFContainer
+                                        key={index}
+                                        udfName={data.name}
+                                        df_id={activeDataFrame}
+                                        col_name={colName}
+                                        width={80}
+                                        height={50}
+                                    />
+                                );
+                            })}
+
+                            <CountNA df_id={activeDataFrame} col_name={colName} />
+                        </>
+                    )}
+            </>
         );
     };
 
-    const _createRow = (colNames: [], rowIndex: any, rowData: any[]) => {
+    const renderBodyInnerCell = (
+        item: string,
+        metadata: {},
+        colName: string,
+        dfReview: {},
+        review: {}
+    ) => {
+        return (
+            <DataTableCell key={shortid.generate()} align="right" review={review} head={false}>
+                {metadata &&
+                metadata.columns[colName] &&
+                [FileMimeType.FILE_PNG, FileMimeType.URL_PNG].includes(
+                    metadata.columns[colName].type
+                ) ? (
+                    <ImageMimeCell src={"data:image/png;base64," + item.binary} />
+                ) : (
+                    item
+                )}
+                {dfReview && review && dfReview.type == ReviewType.cell && (
+                    <ScrollIntoViewIfNeeded
+                        options={{
+                            active: true,
+                            block: "nearest",
+                            inline: "center",
+                            behavior: "smooth",
+                        }}
+                    />
+                )}
+            </DataTableCell>
+        );
+    };
+
+    const renderBodyIndexCell = (rowIndexData: any, dfReview: {}, review: {}) => {
+        return (
+            <DataTableIndexCell key={shortid.generate()} review={review}>
+                {rowIndexData}
+                {dfReview && dfReview.type == ReviewType.row && review && (
+                    <ScrollIntoViewIfNeeded
+                        options={{
+                            active: true,
+                            block: "nearest",
+                            inline: "center",
+                        }}
+                    />
+                )}
+            </DataTableIndexCell>
+        );
+    };
+
+    const renderBodyCell = (
+        colName: string | number | null,
+        rowIndexData: any,
+        rowCellData: any,
+        indexCell: boolean = false
+    ) => {
+        let state = store.getState();
+        if (activeDataFrame && colName != null) {
+            const dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
+            const metadata = state.dataFrames.metadata[activeDataFrame];
+            let review = isReviewingCell(colName, rowIndexData, dfReview);
+            return (
+                <>
+                    {indexCell
+                        ? renderBodyIndexCell(rowIndexData, dfReview, review)
+                        : renderBodyInnerCell(rowCellData, metadata, colName, dfReview, review)}
+                </>
+            );
+        }
+    };
+
+    const renderBodyRow = (colNames: string[], rowIndexData: any, rowData: any[]) => {
         return (
             <DataTableRow hover key={shortid.generate()}>
-                {createCell(null, rowIndex, null, false, true)}
-                {rowData.map((item: any, index: number) =>
-                    createCell(colNames[index], rowIndex, item)
+                {/** render index cell */}
+                {renderBodyCell(rowIndexData, rowIndexData, null, true)}
+                {/** render data cell */}
+                {rowData.map((rowCellData: any, index: number) =>
+                    renderBodyCell(colNames[index], rowIndexData, rowCellData)
                 )}
             </DataTableRow>
         );
@@ -160,28 +222,22 @@ const TableView = (props: any) => {
         <StyledTableView>
             {/* {console.log("Render TableContainer: ", tableData)} */}
             {console.log("Render TableContainer")}
-            {tableData[activeDataFrame] && (
-                <DataTable sx={{ minWidth: 650 }} size='small' stickyHeader>
+            {activeDataFrame && tableData[activeDataFrame] && (
+                <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
                     {/* {console.log(tableData)} */}
-
                     <DataTableHead>
                         <DataTableHeadRow>
-                            <DataTableHeadCell>
-                                <DataTableHeadText>
-                                    {tableData[activeDataFrame]?.index.name}
-                                </DataTableHeadText>
-                            </DataTableHeadCell>
+                            {renderHeadCell(tableData[activeDataFrame]?.index.name, 0)}
                             {tableData[activeDataFrame]?.column_names.map(
-                                (dfColName: string, index: number) =>
-                                    createCell(dfColName, 0, dfColName, true)
+                                (colName: string, index: number) => renderHeadCell(colName, 0)
                             )}
                         </DataTableHeadRow>
                     </DataTableHead>
                     <TableBody>
-                        {tableData[activeDataFrame]?.rows.map((rowData: any[], index: number) =>
-                            _createRow(
+                        {tableData[activeDataFrame]?.rows.map((rowData: any[], rowNumber: number) =>
+                            renderBodyRow(
                                 tableData[activeDataFrame]?.column_names,
-                                tableData[activeDataFrame]?.index.data[index],
+                                tableData[activeDataFrame]?.index.data[rowNumber],
                                 rowData
                             )
                         )}

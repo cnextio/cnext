@@ -8,10 +8,11 @@ import {
     IMetadata,
     IDataFrameStatsConfig,
     DFViewMode,
+    IDataFrameUDFConfig,
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
-import { IDataFrameFilter } from "../../lib/interfaces/IDataFrameManager";
+import { IDataFrameFilter, UDF } from "../../lib/interfaces/IDataFrameManager";
 
 interface ILoadDataRequest {
     df_id: string | null;
@@ -34,9 +35,12 @@ export type DataFrameState = {
     loadDataRequest: ILoadDataRequest;
     loadColumnHistogram: boolean;
     dfFilter: IDataFrameFilter | null;
-    stats: IDataFrameStatsConfig;
     dataViewMode: string;
     // dfUpdateCount: number;
+    /** this number increase whenever DataPanel is focused */
+    dataPanelFocusSignal: number;
+    udfsConfig: { [id: string]: IDataFrameUDFConfig };
+    registeredUDFs: { [name: string]: UDF };
 };
 
 const initialState: DataFrameState = {
@@ -54,9 +58,11 @@ const initialState: DataFrameState = {
     loadDataRequest: { df_id: null, count: 0, row_index: 0 },
     loadColumnHistogram: false,
     dfFilter: null,
-    stats: { histogram: false, quantile: false },
     dataViewMode: DFViewMode.TABLE_VIEW,
     // dfUpdateCount: 0,
+    dataPanelFocusSignal: 0,
+    udfsConfig: {},
+    registeredUDFs: {},
 };
 
 export const dataFrameSlice = createSlice({
@@ -86,37 +92,13 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             state.metadata[df_id] = action.payload;
-        },
-
-        // setColumnHistogramPlot: (state, action) => {
-        //     // for testing
-        //     // state.data = testTableData
-        //     const df_id = action.payload['df_id'];
-        //     const col_name = action.payload['col_name'];
-        //     if (!(df_id in state.columnHistogram)){
-        //         state.columnHistogram[df_id] = {};
-        //     }
-        //     // if ('plot' in action.payload){
-        //         // state.columnHistogram[df_id][col_name] = action.payload['plot'];
-        //     // }
-        //     state.columnHistogram[df_id][col_name] = ifElseDict(action.payload, 'plot');
-        //     state.loadColumnHistogram = false;
-        // },
-
-        setColumnHistogramPlot: (state, action) => {
-            // for testing
-            // state.data = testTableData
-            const df_id = action.payload["df_id"];
-            const col_name = action.payload["col_name"];
-            state.metadata[df_id].columns[col_name].histogram_plot = action.payload["data"];
-        },
-
-        setColumnQuantilePlot: (state, action) => {
-            // for testing
-            // state.data = testTableData
-            const df_id = action.payload["df_id"];
-            const col_name = action.payload["col_name"];
-            state.metadata[df_id].columns[col_name].quantile_plot = action.payload["data"];
+            let config: { [udfName: string]: boolean } = {};
+            if (state.registeredUDFs instanceof Object) {
+                for (const udfName in state.registeredUDFs) {
+                    config[udfName] = false;
+                }
+                state.udfsConfig[df_id] = config;
+            }
         },
 
         /**
@@ -316,27 +298,44 @@ export const dataFrameSlice = createSlice({
             state.dfFilter = action.payload;
         },
 
-        setStatsConfig: (state, action) => {
-            if (action.payload) {
-                state.stats = { ...action.payload };
-
-                const df_id = state.activeDataFrame + "";
-                let columns = state.metadata[df_id].columns;
-                if (!state.stats.histogram)
-                    for (let column_name in columns) {
-                        columns[column_name].histogram_plot = null;
-                    }
-                if (!state.stats.quantile)
-                    for (let column_name in columns) {
-                        columns[column_name].quantile_plot = null;
-                    }
-            }
-        },
-
         setDataViewMode: (state, action) => {
             if (action.payload) {
                 state.dataViewMode = action.payload;
             }
+        },
+
+        setDataPanelFocusSignal: (state) => {
+            state.dataPanelFocusSignal++;
+        },
+
+        setRegisteredUDFs: (state, action) => {
+            console.log("DataFrameManager got results 3 ", action.payload);
+            state.registeredUDFs = action.payload;
+        },
+
+        setUDFsConfig: (state, action) => {
+            const data = action.payload;
+            if (data) {
+                state.udfsConfig[data.df_id] = data.config;
+
+                let columns = state.metadata[data.df_id].columns;
+                for (const udf in data.config) {
+                    if (!data.config[udf]) {
+                        for (let column_name in columns) {
+                            if (columns[column_name].udfs) columns[column_name].udfs[udf] = null;
+                        }
+                    }
+                }
+            }
+        },
+
+        setComputeUDFData: (state, action) => {
+            const udfName = action.payload["udf_name"];
+            const df_id = action.payload["df_id"];
+            const col_name = action.payload["col_name"];
+            if (!("udfs" in state.metadata[df_id].columns[col_name]))
+                state.metadata[df_id].columns[col_name].udfs = {};
+            state.metadata[df_id].columns[col_name].udfs[udfName] = action.payload["data"];
         },
     },
 });
@@ -345,15 +344,16 @@ export const dataFrameSlice = createSlice({
 export const {
     setTableData,
     setMetadata,
-    setColumnHistogramPlot,
     setDFUpdates,
     setReview,
     setActiveDF,
     setDFFilter,
-    setColumnQuantilePlot,
-    setStatsConfig,
     setDataViewMode,
     setDFStatusShowed,
+    setDataPanelFocusSignal,
+    setRegisteredUDFs,
+    setUDFsConfig,
+    setComputeUDFData,
 } = dataFrameSlice.actions;
 
 export default dataFrameSlice.reducer;

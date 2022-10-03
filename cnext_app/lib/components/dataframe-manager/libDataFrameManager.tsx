@@ -1,27 +1,27 @@
 import { Socket } from "socket.io-client";
 import {
-    DataFrameState,
     setActiveDF,
     setDFUpdates,
     setMetadata,
+    setRegisteredUDFs,
     setTableData,
 } from "../../../redux/reducers/DataFramesRedux";
 import store from "../../../redux/store";
 import {
     CommandName,
     ContentType,
-    IDataFrameStatsConfig,
+    IDataFrameUDFConfig,
     IMessage,
     WebAppEndpoint,
 } from "../../interfaces/IApp";
-import { IDataFrameMessageMetadata } from "../../interfaces/IDataFrameManager";
+import {
+    IDataFrameMessageMetadata,
+} from "../../interfaces/IDataFrameManager";
 import {
     DataFrameUpdateType,
     IAllDataFrameStatus,
     IDataFrameStatus,
 } from "../../interfaces/IDataFrameStatus";
-import { sendHistogramRequest } from "./udf/histogram_plots/libHistogramPlots";
-import { getQuantilePlots } from "./udf/quantile_plots/libQuantilePlots";
 
 export const sendMessage = (socket: Socket | null, message: IMessage) => {
     console.log(`Send DataFrameManager request: `, JSON.stringify(message));
@@ -145,10 +145,7 @@ export const handleGetTableData = (message: IMessage) => {
     }
 };
 
-const showDefinedStats = true;
 export const handleGetDFMetadata = (
-    socket: Socket,
-    dataFrameConfig: IDataFrameStatsConfig,
     message: IMessage
 ) => {
     if (message.metadata) {
@@ -160,10 +157,11 @@ export const handleGetDFMetadata = (
         let dfMetadata = message.content;
         store.dispatch(setMetadata(dfMetadata));
 
-        let df_id = metadata.df_id;
-        if (df_id != null && isDataFrameUpdated(df_id) && showDefinedStats) {
-            getDefinedStatsOnUpdate(socket, dataFrameConfig, df_id);
-        }
+        /** FIXME: temporarily comment this out while implmenting UDFs */
+        // let df_id = metadata.df_id;
+        // if (df_id != null && isDataFrameUpdated(df_id)) {
+        // getDefinedStatsOnUpdate(socket, dataFrameConfig, df_id);
+        // }
     }
 };
 
@@ -198,38 +196,34 @@ export const getColumnsToGetStats = (df_id: string): string[] | null => {
     return columns;
 };
 
-/** Check whether defined stats has been loaded. The current defined stats includes quantile and histogram
- * A hacky algorithm is being used here i.e. only check if one of the stat i.e. "quantile_plot" is present */
-export function hasDefinedStats(df_id: string, dataFrameState: DataFrameState) {
-    let metadata = dataFrameState.metadata[df_id];
-    if (metadata != null) {
-        let column_0 = Object.keys(metadata.columns)[0];
-        return "quantile_plot" in metadata.columns[column_0];
-    }
-}
-
-export const getDefinedStat = (
-    socket: Socket,
-    dataFrameConfig: IDataFrameStatsConfig,
-    df_id: string,
-    columns: string[]
-) => {
-    if (dataFrameConfig.quantile) {
-        getQuantilePlots(socket, df_id, columns);
-    }
-    if (dataFrameConfig.histogram) {
-        sendHistogramRequest(socket, df_id, columns);
-    }
+export const handleGetRegisteredUDFs = (result: IMessage) => {
+    console.log("DataFrameManager got results 2");
+    store.dispatch(setRegisteredUDFs(result.content));
 };
 
-/** Get defined stats if the dataframe has been updated */
-export const getDefinedStatsOnUpdate = (
+const sendCalculateUDF = (socket: Socket, udfName: string, df_id: string, col_list: string[]) => {
+    let message = createMessage(CommandName.compute_udf, udfName, {
+        df_id: df_id,
+        col_list: col_list,
+    });
+    sendMessage(socket, message);
+};
+
+const isUDFCalculated = (df_id: string, col_list: string[], udfName: string) => {
+    const dfMetadata = store.getState().dataFrames.metadata[df_id];
+    /** only need to check the first column */
+    return dfMetadata.columns[col_list[0]].udfs && dfMetadata.columns[col_list[0]].udfs[udfName];
+}
+
+export const calculateUDFs = (
     socket: Socket,
-    dataFrameConfig: IDataFrameStatsConfig,
-    df_id: string
+    udfConfig: IDataFrameUDFConfig,
+    df_id: string,
+    col_list: string[]
 ) => {
-    let columns = getColumnsToGetStats(df_id);
-    if (columns != null) {
-        getDefinedStat(socket, dataFrameConfig, df_id, columns);
+    for (const udfName in udfConfig) {
+        if (udfConfig[udfName] && !isUDFCalculated(df_id, col_list, udfName)) {
+            sendCalculateUDF(socket, udfName, df_id, col_list);
+        }
     }
 };

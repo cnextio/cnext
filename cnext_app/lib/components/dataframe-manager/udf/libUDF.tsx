@@ -1,14 +1,17 @@
 import dynamic from "next/dynamic";
 import React from "react";
-import { SubContentType } from "../../../interfaces/IApp";
+import { IMessage, SubContentType, WebAppEndpoint } from "../../../interfaces/IApp";
 import { isImageMime, setPlotlyLayout } from "../../libs";
 const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false });
 import ReactHtmlParser, { attributesToProps, domToReact } from "html-react-parser";
+import { IDataFrameMessageMetadata } from "../../../interfaces/IDataFrameManager";
+import { setComputeUDFData } from "../../../../redux/reducers/DataFramesRedux";
+import store from "../../../../redux/store";
 
 export const createPlot = (
     data: { [index: string]: string } | null,
     width: number,
-    height: number,
+    height: number
 ) => {
     if (data) {
         const resultElements = Object.keys(data)?.map((key, index) => {
@@ -25,8 +28,7 @@ export const createPlot = (
                             props.width = `${width}pt`;
                             props.height = `${height}pt`;
                             props.preserveAspectRatio = "none";
-                            // props.viewBox = `0, 0, ${width}, ${height}`; 
-                            console.log("svg :", props.viewBox);
+                            // props.viewBox = `0, 0, ${width}, ${height}`;
                             return <svg {...props} children={domToReact(domNode.children)}></svg>;
                         }
                     },
@@ -36,5 +38,22 @@ export const createPlot = (
             }
         });
         return resultElements;
+    }
+};
+
+export const handleGetComputeUDFs = (message: IMessage) => {
+    if (message.metadata) {
+        const metadata = message.metadata as IDataFrameMessageMetadata;
+        console.log(
+            `${WebAppEndpoint.DFManager} got calculate UDF data for "${metadata.df_id}" "${metadata.col_name}"`,
+            message.content
+        );
+        const payload = {
+            udf_name: metadata.udf_name,
+            df_id: metadata.df_id,
+            col_name: metadata.col_name,
+            data: message.content,
+        };
+        store.dispatch(setComputeUDFData(payload));
     }
 };

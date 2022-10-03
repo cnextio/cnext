@@ -42,7 +42,7 @@ export interface IMessage {
         | IExecutorManagerResultContent
         | null; // the command string and output string|object
     error?: boolean;
-    metadata?: object; // store info about the dataframe and columns
+    metadata?: object | null; // store info about the dataframe and columns
     // related to this command
 }
 
@@ -81,6 +81,8 @@ export enum CommandName {
     plot_column_quantile = "plot_column_quantile",
     get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
     get_jupyter_server_config = "get_jupyter_server_config",
+    get_registered_udfs = "get_registered_udfs",
+    compute_udf = "compute_udf",
 }
 
 export enum ContentType {
@@ -100,7 +102,7 @@ export enum ContentType {
     PROJECT_LIST = "project_list",
     WORKSPACE_METADATA = "workspace_metadata",
     INPUT_REQUEST = "input_request",
-    IPYTHON_MSG = "ipython_msg"
+    IPYTHON_MSG = "ipython_msg",
 }
 
 export enum StandardMimeType {
@@ -167,6 +169,7 @@ export interface IColumnMetadata {
     countna: number;
     quantile_plot: IPlot;
     histogram_plot: IPlot;
+    udfs: { [udfName: string]: {}|null };
 }
 
 export interface IMetadata {
@@ -294,6 +297,10 @@ export interface IDFMetadata {
 export interface IDataFrameStatsConfig {
     histogram: boolean;
     quantile: boolean;
+}
+
+export interface IDataFrameUDFConfig {
+    [UDFName: string]: boolean;
 }
 
 interface IExperimentManagerConfig {

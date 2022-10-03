@@ -4,54 +4,188 @@ import React, { Fragment } from "react";
 
 // redux
 import { useSelector } from "react-redux";
-import { StandardMimeType } from "../../../interfaces/IApp";
+import { FileMimeType, StandardMimeType } from "../../../interfaces/IApp";
 import { DataTable, DataTableCell, StyledTableView } from "../../StyledComponents";
 import CountNA from "../data-panel/CountNA";
-import ColumnHistogram from "../data-panel/ColumnHistogram";
-import { RootState } from "../../../../redux/store";
+import store, { RootState } from "../../../../redux/store";
 import CypressIds from "../../tests/CypressIds";
-import { createPlot } from "../../dataframe-manager/udf/libUDF";
-
-const PlotWithNoSSR = dynamic(() => import("react-plotly.js"), { ssr: false });
+import { UDFView } from "../../../interfaces/IDataFrameManager";
+import UDFContainer from "../data-panel/UDFContainer";
 
 const ColumnSummary = (props: any) => {
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
-
-    const dfMetadata = useSelector(
-        (state: RootState) => state.dataFrames.metadata[activeDataFrame]
+    const udfsConfig = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.udfsConfig[activeDataFrame] : null
+    );
+    const dfMetadata = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.metadata[activeDataFrame] : null
     );
 
-    const createPlotlyFig = (plot, width: number = 80, height: number = 50) => {
-        try {
-            /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
-            let plotData = JSON.parse(JSON.stringify(plot?.data));
-            plotData["data"][0]["hovertemplate"] = "%{x}: %{y}";
-            plotData["layout"] = {
-                width: width,
-                height: height,
-                margin: { b: 0, l: 0, r: 0, t: 0 },
-                xaxis: { showticklabels: false },
-                yaxis: { showticklabels: false },
-                hoverlabel: {
-                    bgcolor: "rgba(0,0,0,0.04)",
-                    bordercolor: "rgba(0,0,0,0.04)",
-                    font: { color: "rgba(0,0,0,0.6)", size: 12 },
-                },
-            };
-            plotData["config"] = { displayModeBar: false };
-            return plotData;
-        } catch {
-            return null;
-        }
+    const renderColumnMetadata = (col_name: string) => {
+        return (
+            <>
+                <DataTableCell
+                    style={{
+                        "text-align": "left",
+                        "white-space": "nowrap",
+                    }}
+                >
+                    <Typography
+                        sx={{
+                            "font-size": "14px",
+                            "font-weight": "bold",
+                        }}
+                        variant="subtitle2"
+                    >
+                        {col_name}
+                    </Typography>
+                </DataTableCell>
+                <DataTableCell
+                    style={{
+                        "text-align": "left",
+                        "white-space": "nowrap",
+                    }}
+                >
+                    <Typography sx={{ "font-size": "14px" }} variant="caption">
+                        {dfMetadata.columns[col_name].type}
+                    </Typography>
+                </DataTableCell>
+            </>
+        );
     };
 
-    const createBinaryFig = (plot, width: number = 80, height: number = 50) => {
+    const renderQuantilePlot = (col_name: string) => {
         return (
-            <img
-                width={width}
-                height={height}
-                src={"data:" + plot?.mime_type + ";base64," + plot?.data}
-            />
+            <>
+                <UDFContainer
+                    // key={index}
+                    udfName={"quantile"}
+                    df_id={activeDataFrame}
+                    col_name={col_name}
+                    width={250}
+                    height={50}
+                />
+            </>
+        );
+    };
+
+    const renderColumnSummary = (col_name: string) => {
+        if (dfMetadata) {
+            return (
+                <>
+                    <DataTableCell
+                        style={{
+                            "text-align": "left",
+                            "white-space": "nowrap",
+                        }}
+                    >
+                        <CountNA df_id={activeDataFrame} col_name={col_name}></CountNA>
+                    </DataTableCell>
+                    <DataTableCell
+                        style={{
+                            "text-align": "left",
+                            width: "1%",
+                            "white-space": "nowrap",
+                        }}
+                    >
+                        {/* {console.log(dfMetadata.columns[col_name].desribe)} */}
+                        <div>
+                            {dfMetadata.columns[col_name].describe &&
+                                Object.keys(dfMetadata.columns[col_name].describe).map(
+                                    (item: String, index: number) => (
+                                        <Typography
+                                            sx={{
+                                                "font-size": "14px",
+                                            }}
+                                            variant="caption"
+                                        >
+                                            {dfMetadata.columns[col_name].describe[item] ? (
+                                                <>
+                                                    <Typography
+                                                        sx={{
+                                                            "font-size": "14px",
+                                                        }}
+                                                        variant="caption"
+                                                    >
+                                                        {item}:{" "}
+                                                    </Typography>
+                                                    {typeof dfMetadata.columns[col_name].describe[
+                                                        item
+                                                    ] != "string"
+                                                        ? Number.isInteger(
+                                                              dfMetadata.columns[col_name].describe[
+                                                                  item
+                                                              ]
+                                                          )
+                                                            ? dfMetadata.columns[col_name].describe[
+                                                                  item
+                                                              ]
+                                                            : Number.parseFloat(
+                                                                  dfMetadata.columns[col_name]
+                                                                      .describe[item]
+                                                              ).toFixed(2)
+                                                        : dfMetadata.columns[col_name].describe[
+                                                              item
+                                                          ]}
+                                                    &nbsp;&nbsp;
+                                                </>
+                                            ) : null}
+                                            {item === "std" ? <br /> : null}
+                                        </Typography>
+                                    )
+                                )}
+                        </div>
+                        <div>{renderQuantilePlot(col_name)}</div>
+                    </DataTableCell>
+                </>
+            );
+        } else return null;
+    };
+
+    const renderUDF = (col_name: string) => {
+        const registeredUDFs = store.getState().dataFrames.registeredUDFs;
+        const showedUDFs = Object.keys(registeredUDFs).reduce((showedUDFs: any[], key) => {
+            /** we will show "quantile" plot seperately in renderColumnSummary */
+            if (
+                key !== "quantile" &&
+                udfsConfig[key] &&
+                UDFView.SUMMARY in registeredUDFs[key].config.locations
+            ) {
+                showedUDFs.push({ name: key, udf: registeredUDFs[key] });
+            }
+            return showedUDFs;
+        }, []);
+
+        /** for UDFView.SUMMARY UDFs we only support 1 UDF per col so only sort by col */
+        showedUDFs.sort(
+            (a, b) =>
+                a.udf.config.locations[UDFView.SUMMARY].col -
+                b.udf.config.locations[UDFView.SUMMARY].col
+        );
+
+        return (
+            <>
+                {dfMetadata &&
+                    dfMetadata.columns[col_name] &&
+                    !Object.values(FileMimeType).includes(dfMetadata.columns[col_name].type) && (
+                        <>
+                            {showedUDFs.map((data, index) => {
+                                return (
+                                    <DataTableCell style={{ "text-align": "left" }}>
+                                        <UDFContainer
+                                            key={index}
+                                            udfName={data.name}
+                                            df_id={activeDataFrame}
+                                            col_name={col_name}
+                                            width={200}
+                                            height={70}
+                                        />
+                                    </DataTableCell>
+                                );
+                            })}
+                        </>
+                    )}
+            </>
         );
     };
 
@@ -64,110 +198,9 @@ const ColumnSummary = (props: any) => {
                         {Object.keys(dfMetadata.columns).map((col_name: string, index: number) => (
                             <TableRow key={index}>
                                 {/* , 'width': '1%', 'white-space': 'nowrap' */}
-                                <DataTableCell
-                                    style={{
-                                        "text-align": "left",
-                                        "white-space": "nowrap",
-                                    }}
-                                >
-                                    <Typography
-                                        sx={{
-                                            "font-size": "14px",
-                                            "font-weight": "bold",
-                                        }}
-                                        variant="subtitle2"
-                                    >
-                                        {col_name}
-                                    </Typography>
-                                </DataTableCell>
-                                <DataTableCell
-                                    style={{
-                                        "text-align": "left",
-                                        "white-space": "nowrap",
-                                    }}
-                                >
-                                    <Typography sx={{ "font-size": "14px" }} variant="caption">
-                                        {dfMetadata.columns[col_name].type}
-                                    </Typography>
-                                </DataTableCell>
-                                <DataTableCell
-                                    style={{
-                                        "text-align": "left",
-                                        "white-space": "nowrap",
-                                    }}
-                                >
-                                    <CountNA df_id={activeDataFrame} col_name={col_name}></CountNA>
-                                </DataTableCell>
-                                <DataTableCell
-                                    style={{
-                                        "text-align": "left",
-                                        width: "1%",
-                                        "white-space": "nowrap",
-                                    }}
-                                >
-                                    {/* {console.log(dfMetadata.columns[col_name].desribe)} */}
-                                    <div>
-                                        {dfMetadata.columns[col_name].describe &&
-                                            Object.keys(dfMetadata.columns[col_name].describe).map(
-                                                (item: String, index: number) => (
-                                                    <Typography
-                                                        sx={{
-                                                            "font-size": "14px",
-                                                        }}
-                                                        variant="caption"
-                                                    >
-                                                        {dfMetadata.columns[col_name].describe[
-                                                            item
-                                                        ] ? (
-                                                            <Fragment>
-                                                                <Typography
-                                                                    sx={{
-                                                                        "font-size": "14px",
-                                                                    }}
-                                                                    variant="caption"
-                                                                >
-                                                                    {item}:{" "}
-                                                                </Typography>
-                                                                {typeof dfMetadata.columns[col_name]
-                                                                    .describe[item] != "string"
-                                                                    ? Number.isInteger(
-                                                                          dfMetadata.columns[
-                                                                              col_name
-                                                                          ].describe[item]
-                                                                      )
-                                                                        ? dfMetadata.columns[
-                                                                              col_name
-                                                                          ].describe[item]
-                                                                        : Number.parseFloat(
-                                                                              dfMetadata.columns[
-                                                                                  col_name
-                                                                              ].describe[item]
-                                                                          ).toFixed(2)
-                                                                    : dfMetadata.columns[col_name]
-                                                                          .describe[item]}
-                                                                &nbsp;&nbsp;
-                                                            </Fragment>
-                                                        ) : null}
-                                                        {item === "std" ? <br /> : null}
-                                                    </Typography>
-                                                )
-                                            )}
-                                    </div>
-                                    <div>
-                                        {dfMetadata.columns[col_name].quantile_plot
-                                            ? createPlot(dfMetadata.columns[col_name].quantile_plot, 250, 50, true)
-                                            : null}
-                                    </div>
-                                </DataTableCell>
-                                <DataTableCell style={{ "text-align": "left" }}>
-                                    {/* TODO: consider unify ColumnHistogram with quantile plot*/}
-                                    <ColumnHistogram
-                                        df_id={activeDataFrame}
-                                        col_name={col_name}
-                                        width={200}
-                                        height={70}
-                                    />
-                                </DataTableCell>
+                                {renderColumnMetadata(col_name)}
+                                {renderColumnSummary(col_name)}
+                                {renderUDF(col_name)}
                             </TableRow>
                         ))}
                     </TableBody>
