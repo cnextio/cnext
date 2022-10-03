@@ -309,7 +309,6 @@ export const dataFrameSlice = createSlice({
         },
 
         setRegisteredUDFs: (state, action) => {
-            console.log("DataFrameManager got results 3 ", action.payload);
             state.registeredUDFs = action.payload;
         },
 
