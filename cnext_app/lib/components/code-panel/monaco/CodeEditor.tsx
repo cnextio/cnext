@@ -13,6 +13,7 @@ import {
     deleteCellHover,
     runCellAboveGroup,
     runCellBelowGroup,
+    runAllGroup,
 } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
@@ -397,13 +398,16 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     insertCellBelow(CodeInsertMode.GROUP, ln0based);
                     break;
                 case CellCommand.DELL_CELL:
-                    deleteCellHover();
+                    deleteCellHover(editor,monaco);
                     break;
                 case CellCommand.RUN_ABOVE_CELL:
                     runCellAboveGroup();
                     break;
                 case CellCommand.RUN_BELOW_CELL:
                     runCellBelowGroup();
+                    break;
+                case CellCommand.RUN_ALL_CELL:
+                    runAllGroup();
                     break;
             }
             dispatch(setCellCommand(undefined));

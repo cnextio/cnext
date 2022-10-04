@@ -131,7 +131,8 @@ export enum CellCommand {
     ADD_CELL = "ADD_CELL",
     DELL_CELL = "DELL_CELL",
     RUN_ABOVE_CELL="RUN_ABOVE_CELL",
-    RUN_BELOW_CELL="RUN_BELOW_CELL"
+    RUN_BELOW_CELL="RUN_BELOW_CELL",
+    RUN_ALL_CELL="RUN_ALL_CELL"
 }
 
 export type ICodeResultContent = string | object | IPlotResult;

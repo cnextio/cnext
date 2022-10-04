@@ -3,6 +3,7 @@ import {
     setActiveLine as setActiveLineRedux,
     setMouseOverGroup,
     setMouseOverLine,
+    updateLines,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../../redux/store";
 import {
@@ -282,15 +283,68 @@ export const sendMessage = (socket: Socket, content: IRunningCommandContent) => 
     console.log(`${message.webapp_endpoint} send message: `, message);
     socket.emit(message.webapp_endpoint, JSON.stringify(message));
 };
-export const deleteCellHover = () => {
+export const deleteCellHover = (editor: any, monaco: any): boolean => {
+    let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
+    let state = store.getState();
+    const inViewID = state.projectManager.inViewID;
+    if (inViewID) {
+        const codeLines = state.codeEditor.codeLines[inViewID];
+        let startLineNumber = 0;
+        let lengthRange = 0;
+        codeLines.forEach((item, index) => {
+            if (item.groupID && item.groupID === groupID) {
+                lengthRange = lengthRange + 1;
+                if (lengthRange === 1) {
+                    startLineNumber = index + 1;
+                }
+            }
+        });
+        let range = new monaco.Range(startLineNumber, 1, startLineNumber + lengthRange, 1);
+        let id = { major: 1, minor: 1 };
+        let text = "";
+        var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+        editor.executeEdits("deleteCell", [op]);
+    }
+
+    // setCodeToInsert({
+    //     code: "",
+    //     /** fromLine is 0-based while lnToInsertAfter is 1-based
+    //      * so setting fromLine to lnToInsertAfter means fromLine will
+    //      * point to the next line */
+    //     fromLine: lnToInsertAfter,
+    //     status: CodeInsertStatus.INSERTING,
+    //     mode: mode,
+    // });
+    // }
+    // return true;
+};
+export const runCellAboveGroup = () => {
     let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
     let state = store.getState();
 
     const inViewID = state.projectManager.inViewID;
-    if (inViewID) {
+    if (inViewID && groupID) {
         const codeLines = state.codeEditor.codeLines[inViewID];
-        console.log(`codeLines`, codeLines);
+        console.log(`codeLines`, codeLines, groupID);
+        runQueueForm(groupID, inViewID, codeLines, "above");
+        // let updatedLineInfo: any = {
+        //     inViewID: inViewID,
+        //     text:
+        //     updatedStartLineNumber: 2,
+        //     updatedLineCount: -3,
+        // };
+        // store.dispatch(updateLines(updatedLineInfo));
     }
+    // runForm(groupID, "");
 };
-export const runCellAboveGroup = () => {};
 export const runCellBelowGroup = () => {};
+export const runAllGroup = () => {};
+
+export const runQueueForm = (
+    originGroupID: string,
+    inViewID: string,
+    codeLines: ICodeLine[],
+    type: "above" | "below"
+) => {
+    //addGroupToRunQueue
+};
