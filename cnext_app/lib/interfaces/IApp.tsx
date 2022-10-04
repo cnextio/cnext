@@ -169,7 +169,7 @@ export interface IColumnMetadata {
     countna: number;
     quantile_plot: IPlot;
     histogram_plot: IPlot;
-    udfs: { [udfName: string]: {}|null };
+    udfs: { [udfName: string]: {} | null };
 }
 
 export interface IMetadata {
@@ -284,8 +284,8 @@ export interface IColumnMetadata {
     countna: number;
     unique: string | number[];
     describe: {};
-    histogram_plot: {} | null;
-    quantile_plot: {} | null;
+    // histogram_plot: {} | null;
+    // quantile_plot: {} | null;
 }
 
 export interface IDFMetadata {
@@ -294,13 +294,14 @@ export interface IDFMetadata {
     columns: { [key: string]: IColumnMetadata };
 }
 
-export interface IDataFrameStatsConfig {
-    histogram: boolean;
-    quantile: boolean;
-}
+// export interface IDataFrameStatsConfig {
+//     histogram: boolean;
+//     quantile: boolean;
+// }
 
-export interface IDataFrameUDFConfig {
-    [UDFName: string]: boolean;
+export interface IDataFrameUDFSelection {
+    udfs: { [UDFName: string]: boolean };
+    timestamp: string;
 }
 
 interface IExperimentManagerConfig {

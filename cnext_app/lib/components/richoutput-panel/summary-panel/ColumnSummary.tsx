@@ -15,7 +15,7 @@ import UDFContainer from "../data-panel/UDFContainer";
 const ColumnSummary = (props: any) => {
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     const udfsConfig = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.udfsConfig[activeDataFrame] : null
+        activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
     );
     const dfMetadata = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.metadata[activeDataFrame] : null
@@ -144,14 +144,15 @@ const ColumnSummary = (props: any) => {
 
     const renderUDF = (col_name: string) => {
         const registeredUDFs = store.getState().dataFrames.registeredUDFs;
-        const showedUDFs = Object.keys(registeredUDFs).reduce((showedUDFs: any[], key) => {
+        const showedUDFs = Object.keys(registeredUDFs.udfs).reduce((showedUDFs: any[], key) => {
             /** we will show "quantile" plot seperately in renderColumnSummary */
             if (
                 key !== "quantile" &&
-                udfsConfig[key] &&
-                UDFView.SUMMARY in registeredUDFs[key].config.locations
+                udfsConfig &&
+                udfsConfig.udfs[key] &&
+                UDFView.SUMMARY in registeredUDFs.udfs[key].config.locations
             ) {
-                showedUDFs.push({ name: key, udf: registeredUDFs[key] });
+                showedUDFs.push({ name: key, udf: registeredUDFs.udfs[key] });
             }
             return showedUDFs;
         }, []);

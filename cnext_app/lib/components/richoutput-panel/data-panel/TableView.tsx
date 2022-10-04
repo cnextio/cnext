@@ -32,7 +32,7 @@ const TableView = (props: any) => {
         getReviewRequest(state)
     );
     const udfsConfig = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.udfsConfig[activeDataFrame] : null
+        activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
     );
 
     function getReviewRequest(state: RootState): IDFUpdatesReview | null {
@@ -88,10 +88,14 @@ const TableView = (props: any) => {
 
     const renderUDF = (activeDataFrame: string, dfMetadata: {}, colName: string) => {
         const registeredUDFs = store.getState().dataFrames.registeredUDFs;
-        const showedUDFs = Object.keys(registeredUDFs).reduce((showedUDFs: any[], key) => {
+        const showedUDFs = Object.keys(registeredUDFs.udfs).reduce((showedUDFs: any[], key) => {
             // console.log("showedUDFs: ", key, udfsConfig, registeredUDFs[key].config.locations);
-            if (udfsConfig[key] && UDFView.TABLE_HEAD in registeredUDFs[key].config.locations) {
-                showedUDFs.push({ name: key, udf: registeredUDFs[key] });
+            if (
+                udfsConfig &&
+                udfsConfig.udfs[key] &&
+                UDFView.TABLE_HEAD in registeredUDFs.udfs[key].config.locations
+            ) {
+                showedUDFs.push({ name: key, udf: registeredUDFs.udfs[key] });
             }
             return showedUDFs;
         }, []);

@@ -13,34 +13,33 @@ import {
 import store, { RootState } from "../../../../redux/store";
 import { FormControlLabel, OutlinedInput } from "@mui/material";
 import CypressIds from "../../tests/CypressIds";
-import { setUDFsConfig } from "../../../../redux/reducers/DataFramesRedux";
+import { setUDFsSelection } from "../../../../redux/reducers/DataFramesRedux";
 
 const UDFSelector = () => {
     const dispatch = useDispatch();
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
-    // const statConfig: Object = useSelector((state: RootState) => state.dataFrames.stats);
-    const udfsConfig = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.udfsConfig[activeDataFrame] : null
+    const udfsSelector = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
     );
 
     const handleSelectChildrenChecbox = (event: SelectChangeEvent) => {
-        if (udfsConfig) {
+        if (udfsSelector) {
             const {
                 target: { value },
             } = event;
             // console.log("DataStats: ", value);
             // let udfsConfig = store.getState().dataFrames.udfsConfig;
-            let newUDFConfig = { ...udfsConfig };
+            let newUDFConfig = { ...udfsSelector.udfs };
             newUDFConfig[value[0]] = !newUDFConfig[value[0]];
-            dispatch(setUDFsConfig({ df_id: activeDataFrame, config: newUDFConfig }));
+            dispatch(setUDFsSelection({ df_id: activeDataFrame, selections: newUDFConfig }));
         }
     };
 
     const handleSelectParentChecbox = (event: SelectChangeEvent) => {
-        if (udfsConfig) {
+        if (udfsSelector) {
             // let udfConfig = store.getState().dataFrames.udfsConfig;
-            let newUDFConfig = { ...udfsConfig };
-            let selectedStatsLen = Object.values(udfsConfig).filter((value) => {
+            let newUDFConfig = { ...udfsSelector.udfs };
+            let selectedStatsLen = Object.values(udfsSelector.udfs).filter((value) => {
                 return value;
             }).length;
             if (selectedStatsLen > 0) {
@@ -52,22 +51,22 @@ const UDFSelector = () => {
                     newUDFConfig[key] = true;
                 }
             }
-            dispatch(setUDFsConfig({ df_id: activeDataFrame, config: newUDFConfig }));
+            dispatch(setUDFsSelection({ df_id: activeDataFrame, selections: newUDFConfig }));
         }
     };
 
     const renderComponent = () => {
-        if (udfsConfig) {
-            let selectedStatsLen = Object.values(udfsConfig).filter((value) => {
+        if (udfsSelector) {
+            let selectedStatsLen = Object.values(udfsSelector.udfs).filter((value) => {
                 return value;
             }).length;
-            let allStatsLen = Object.values(udfsConfig).length;
+            let allStatsLen = Object.values(udfsSelector.udfs).length;
             return (
                 <DFStats>
                     <FormControlLabel
                         control={
                             <DFStatsParentCheckbox
-                                checked={selectedStatsLen == allStatsLen}
+                                checked={selectedStatsLen > 0 && selectedStatsLen == allStatsLen}
                                 indeterminate={
                                     selectedStatsLen > 0 && selectedStatsLen != allStatsLen
                                 }
@@ -98,7 +97,7 @@ const UDFSelector = () => {
                             input={<OutlinedInput />}
                         >
                             {/* <MenuList dense> */}
-                            {Object.entries(udfsConfig).map(([key, value]) => (
+                            {Object.entries(udfsSelector.udfs).map(([key, value]) => (
                                 <DFStatsMenuItem value={key}>
                                     <Checkbox checked={value} size="small" />
                                     {key}

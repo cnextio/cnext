@@ -6,13 +6,12 @@ import {
     ReviewRequestType,
     IDFUpdatesReview,
     IMetadata,
-    IDataFrameStatsConfig,
     DFViewMode,
-    IDataFrameUDFConfig,
+    IDataFrameUDFSelection,
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
-import { IDataFrameFilter, UDF } from "../../lib/interfaces/IDataFrameManager";
+import { IDataFrameFilter, IRegisteredUDFs, UDF } from "../../lib/interfaces/IDataFrameManager";
 
 interface ILoadDataRequest {
     df_id: string | null;
@@ -39,8 +38,8 @@ export type DataFrameState = {
     // dfUpdateCount: number;
     /** this number increase whenever DataPanel is focused */
     dataPanelFocusSignal: number;
-    udfsConfig: { [id: string]: IDataFrameUDFConfig };
-    registeredUDFs: { [name: string]: UDF };
+    udfsSelector: { [id: string]: IDataFrameUDFSelection };
+    registeredUDFs: IRegisteredUDFs; //{ [name: string]: UDF };
 };
 
 const initialState: DataFrameState = {
@@ -61,8 +60,8 @@ const initialState: DataFrameState = {
     dataViewMode: DFViewMode.TABLE_VIEW,
     // dfUpdateCount: 0,
     dataPanelFocusSignal: 0,
-    udfsConfig: {},
-    registeredUDFs: {},
+    udfsSelector: {},
+    registeredUDFs: { udfs: {}, timestamp: "0" },
 };
 
 export const dataFrameSlice = createSlice({
@@ -92,12 +91,15 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             state.metadata[df_id] = action.payload;
-            let config: { [udfName: string]: boolean } = {};
+            let udfSelector: { [udfName: string]: boolean } = {};
             if (state.registeredUDFs instanceof Object) {
-                for (const udfName in state.registeredUDFs) {
-                    config[udfName] = false;
+                for (const udfName in state.registeredUDFs.udfs) {
+                    udfSelector[udfName] = false;
                 }
-                state.udfsConfig[df_id] = config;
+                state.udfsSelector[df_id] = {
+                    udfs: udfSelector,
+                    timestamp: state.registeredUDFs.timestamp,
+                };
             }
         },
 
@@ -310,16 +312,38 @@ export const dataFrameSlice = createSlice({
 
         setRegisteredUDFs: (state, action) => {
             state.registeredUDFs = action.payload;
+            for (const df_id in state.udfsSelector) {
+                /** reset udfSelector if timestamp is different */
+                if (state.udfsSelector[df_id].timestamp !== state.registeredUDFs.timestamp) {
+                    let udfSelector: { [udfName: string]: boolean } = {};
+                    for (const udfName in state.registeredUDFs.udfs) {
+                        udfSelector[udfName] = false;
+                    }
+                    state.udfsSelector[df_id] = {
+                        udfs: udfSelector,
+                        timestamp: state.registeredUDFs.timestamp,
+                    };
+                    /** remove all existing udf data */
+                    let columns = state.metadata[df_id].columns;
+                    for (const udfName in state.registeredUDFs.udfs) {
+                        for (let column_name in columns) {
+                            if (columns[column_name].udfs)
+                                columns[column_name].udfs[udfName] = null;
+                        }
+                    }
+                }
+            }
         },
 
-        setUDFsConfig: (state, action) => {
+        setUDFsSelection: (state, action) => {
             const data = action.payload;
             if (data) {
-                state.udfsConfig[data.df_id] = data.config;
+                state.udfsSelector[data.df_id].udfs = data.selections;
 
+                /** remove udf data if unselected */
                 let columns = state.metadata[data.df_id].columns;
-                for (const udf in data.config) {
-                    if (!data.config[udf]) {
+                for (const udf in data.selections) {
+                    if (!data.selections[udf]) {
                         for (let column_name in columns) {
                             if (columns[column_name].udfs) columns[column_name].udfs[udf] = null;
                         }
@@ -351,7 +375,7 @@ export const {
     setDFStatusShowed,
     setDataPanelFocusSignal,
     setRegisteredUDFs,
-    setUDFsConfig,
+    setUDFsSelection,
     setComputeUDFData,
 } = dataFrameSlice.actions;
 

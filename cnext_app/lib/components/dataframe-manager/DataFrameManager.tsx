@@ -37,8 +37,8 @@ const DataFrameManager = () => {
     const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
     const dfFilter = useSelector((state: RootState) => state.dataFrames.dfFilter);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
-    const udfsConfig = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.udfsConfig[activeDataFrame] : null
+    const udfsSelector = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
     );
 
     const dataPanelFocusSignal = useSelector(
@@ -90,16 +90,16 @@ const DataFrameManager = () => {
         const state = store.getState().dataFrames;
         const activeDataFrame = state.activeDataFrame;
         if (
-            udfsConfig &&
+            udfsSelector &&
             activeDataFrame != null &&
             state.metadata[activeDataFrame] != null &&
             socket
         ) {
             // const df_id = state.metadata[activeDataFrame].df_id;
             const columns = getColumnsToGetStats(activeDataFrame);
-            if (columns) calculateUDFs(socket, udfsConfig, activeDataFrame, columns);
+            if (columns) calculateUDFs(socket, udfsSelector, activeDataFrame, columns);
         }
-    }, [udfsConfig]);
+    }, [udfsSelector]);
 
     useEffect(() => {
         socketInit();

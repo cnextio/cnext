@@ -44,7 +44,8 @@ export interface UDF {
     func: UDFFunc;
 }
 export interface IRegisteredUDFs {
-    [name: string]: UDF;
+    udfs: {[name: string]: UDF};
+    timestamp: string
 }
 
 export interface IGetUDFCommand {

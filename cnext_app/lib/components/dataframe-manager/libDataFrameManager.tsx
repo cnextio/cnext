@@ -10,13 +10,11 @@ import store from "../../../redux/store";
 import {
     CommandName,
     ContentType,
-    IDataFrameUDFConfig,
+    IDataFrameUDFSelection,
     IMessage,
     WebAppEndpoint,
 } from "../../interfaces/IApp";
-import {
-    IDataFrameMessageMetadata,
-} from "../../interfaces/IDataFrameManager";
+import { IDataFrameMessageMetadata } from "../../interfaces/IDataFrameManager";
 import {
     DataFrameUpdateType,
     IAllDataFrameStatus,
@@ -145,9 +143,7 @@ export const handleGetTableData = (message: IMessage) => {
     }
 };
 
-export const handleGetDFMetadata = (
-    message: IMessage
-) => {
+export const handleGetDFMetadata = (message: IMessage) => {
     if (message.metadata) {
         const metadata = message.metadata as IDataFrameMessageMetadata;
         console.log(
@@ -213,16 +209,16 @@ const isUDFCalculated = (df_id: string, col_list: string[], udfName: string) => 
     const dfMetadata = store.getState().dataFrames.metadata[df_id];
     /** only need to check the first column */
     return dfMetadata.columns[col_list[0]].udfs && dfMetadata.columns[col_list[0]].udfs[udfName];
-}
+};
 
 export const calculateUDFs = (
     socket: Socket,
-    udfConfig: IDataFrameUDFConfig,
+    udfSelection: IDataFrameUDFSelection,
     df_id: string,
     col_list: string[]
 ) => {
-    for (const udfName in udfConfig) {
-        if (udfConfig[udfName] && !isUDFCalculated(df_id, col_list, udfName)) {
+    for (const udfName in udfSelection.udfs) {
+        if (udfSelection.udfs[udfName] && !isUDFCalculated(df_id, col_list, udfName)) {
             sendCalculateUDF(socket, udfName, df_id, col_list);
         }
     }
