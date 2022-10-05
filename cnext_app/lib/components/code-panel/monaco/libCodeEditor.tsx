@@ -389,4 +389,50 @@ export const setGroup = (editor: any) => {
     }
     return true;
 };
-export const setUnGroup = (editor: any) => {};
+export const setUnGroup = (editor: any) => {
+    let reduxState = store.getState();
+    let inViewID = reduxState.projectManager.inViewID;
+    let lineNumberCurent = editor.getPosition().lineNumber;
+    if (inViewID) {
+        let codeLines = reduxState.codeEditor.codeLines[inViewID];
+        let lineRange = getLineRangeOfGroup(codeLines, lineNumberCurent - 1);
+        console.log("CodeEditor setUnGroup: ", lineRange);
+        if (inViewID && lineRange && lineRange.toLine > lineRange.fromLine) {
+            let lineStatus: ICodeLineGroupStatus = {
+                inViewID: inViewID,
+                fromLine: lineRange.fromLine,
+                toLine: lineRange.toLine,
+                // status: LineStatus.EDITED,
+                setGroup: SetLineGroupCommand.UNDEF,
+            };
+            store.dispatch(setLineGroupStatus(lineStatus));
+        }
+    }
+};
+const getLineRangeOfGroup = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
+    console.log("lineNumber", lineNumber, codeLines[lineNumber]);
+
+    let groupID = codeLines[lineNumber].groupID;
+    let fromLine = lineNumber;
+    let toLine = lineNumber;
+    if (groupID === undefined) {
+        toLine = fromLine + 1;
+    } else {
+        while (
+            fromLine > 0 &&
+            codeLines[fromLine - 1].groupID &&
+            codeLines[fromLine - 1].groupID === groupID
+        ) {
+            fromLine -= 1;
+        }
+        while (
+            toLine < codeLines.length &&
+            codeLines[toLine].groupID &&
+            codeLines[toLine].groupID === groupID
+        ) {
+            toLine += 1;
+        }
+    }
+    return { fromLine: fromLine, toLine: toLine };
+};
+/** */
