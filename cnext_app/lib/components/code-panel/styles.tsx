@@ -149,4 +149,8 @@ export const MonacoEditor = styled(Editor)`
             }
         }
     }
+
+    .message {
+        font-size: 10px;
+    }
 `;
