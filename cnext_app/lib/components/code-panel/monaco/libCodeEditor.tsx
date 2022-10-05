@@ -312,60 +312,54 @@ export const deleteCellHover = (editor: any, monaco: any): boolean => {
 
     return true;
 };
-export const runCellAboveGroup = () => {
+export const runCellAboveGroup = (editor: any) => {
     let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
     let state = store.getState();
 
     const inViewID = state.projectManager.inViewID;
     if (inViewID && groupID) {
         const codeLines = state.codeEditor.codeLines[inViewID];
-        console.log(`codeLines`, codeLines, groupID);
-        runQueueForm(groupID, inViewID, codeLines, "above");
-        // let updatedLineInfo: any = {
-        //     inViewID: inViewID,
-        //     text:
-        //     updatedStartLineNumber: 2,
-        //     updatedLineCount: -3,
-        // };
-        // store.dispatch(updateLines(updatedLineInfo));
+        let position = codeLines.findIndex((item) => item.groupID === groupID);
+        runQueueForm(null, codeLines, 0, position);
     }
-    // runForm(groupID, "");
 };
-export const runCellBelowGroup = () => {};
+export const runCellBelowGroup = () => {
+    let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
+    let state = store.getState();
+
+    const inViewID = state.projectManager.inViewID;
+    if (inViewID && groupID) {
+        const codeLines = state.codeEditor.codeLines[inViewID];
+        let position = codeLines.findIndex((item) => item.groupID === groupID);
+        runQueueForm(groupID, codeLines, position, codeLines.length);
+    }
+};
 export const runAllGroup = () => {
     let state = store.getState();
 
     const inViewID = state.projectManager.inViewID;
     const codeLines = state.codeEditor.codeLines[inViewID];
+    runQueueForm(null, codeLines, 0, codeLines.length);
+};
+
+export const runQueueForm = (
+    groupID: string | null,
+    codeLines: ICodeLine[],
+    form: number,
+    to: number
+) => {
     let runGroups: any = {};
-    for (let i = 0; i < codeLines.length; i++) {
-        if (codeLines[i].groupID) {
+
+    for (let i = form; i < to; i++) {
+        if (codeLines[i].groupID && (codeLines[i].groupID !== groupID || !groupID)) {
             runGroups["groupID=" + codeLines[i].groupID] = codeLines[i].groupID;
         }
     }
     for (const groupID of Object.keys(runGroups)) {
         let a = groupID.replace("groupID=", "");
-        console.log("run=>", a);
-
+        console.log("CodeEditor addGroupToRunQueue=>", a);
         addGroupToRunQueue(groupID.replace("groupID=", ""));
     }
-};
-
-export const runQueueForm = (
-    originGroupID: string,
-    inViewID: string,
-    codeLines: ICodeLine[],
-    type: "above" | "below"
-) => {
-    //addGroupToRunQueue
-
-    let runGroup: any = {};
-    for (let i = 0; i < codeLines.length; i++) {
-        if (codeLines[i].groupID) {
-            runGroup["groupID=" + codeLines[i].groupID] = codeLines[i].groupID;
-        }
-    }
-    console.log("runGroup", runGroup);
 };
 export const setGroup = (editor: any) => {
     if (editor) {
@@ -410,8 +404,6 @@ export const setUnGroup = (editor: any) => {
     }
 };
 const getLineRangeOfGroup = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
-    console.log("lineNumber", lineNumber, codeLines[lineNumber]);
-
     let groupID = codeLines[lineNumber].groupID;
     let fromLine = lineNumber;
     let toLine = lineNumber;
