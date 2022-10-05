@@ -1,6 +1,7 @@
 import { Monaco } from "@monaco-editor/react";
 import {
     setActiveLine as setActiveLineRedux,
+    setLineGroupStatus,
     setMouseOverGroup,
     setMouseOverLine,
     updateLines,
@@ -9,11 +10,13 @@ import store, { RootState } from "../../../../redux/store";
 import {
     ICodeActiveLine,
     ICodeLine,
+    ICodeLineGroupStatus,
     ICodeLineStatus,
     ILineRange,
     IRunningCommandContent,
     IRunQueueItem,
     LineStatus,
+    SetLineGroupCommand,
 } from "../../../interfaces/ICodeEditor";
 import { ifElse } from "../../libs";
 import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/CodeEditorRedux";
@@ -341,10 +344,10 @@ export const runAllGroup = () => {
         }
     }
     for (const groupID of Object.keys(runGroups)) {
-        let a=  groupID.replace("groupID=","")
-        console.log("run=>",a);
-        
-        addGroupToRunQueue(groupID.replace("groupID=",""));
+        let a = groupID.replace("groupID=", "");
+        console.log("run=>", a);
+
+        addGroupToRunQueue(groupID.replace("groupID=", ""));
     }
 };
 
@@ -364,5 +367,26 @@ export const runQueueForm = (
     }
     console.log("runGroup", runGroup);
 };
-export const setGroup = (editor: any) => {};
+export const setGroup = (editor: any) => {
+    if (editor) {
+        let selection = editor.getSelection();
+        let lineRange = {
+            fromLine: selection.startLineNumber - 1,
+            endLineNumber: selection.endLineNumber,
+        };
+        let inViewID = store.getState().projectManager.inViewID;
+        console.log("CodeEditor setGroup: ", lineRange, lineRange);
+        if (inViewID && lineRange && lineRange.endLineNumber > lineRange.fromLine) {
+            let lineStatus: ICodeLineGroupStatus = {
+                inViewID: inViewID,
+                fromLine: lineRange.fromLine,
+                toLine: lineRange.endLineNumber,
+                status: LineStatus.EDITED,
+                setGroup: SetLineGroupCommand.NEW,
+            };
+            store.dispatch(setLineGroupStatus(lineStatus));
+        }
+    }
+    return true;
+};
 export const setUnGroup = (editor: any) => {};
