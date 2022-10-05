@@ -78,7 +78,7 @@ function addGroupAroundLineToRunQueue(line) {
     }
 }
 
-function addGroupToRunQueue(groupID: string) {
+export function addGroupToRunQueue(groupID: string) {
     let lineRange: ILineRange | null;
     let inViewID = store.getState().projectManager.inViewID;
     let codeLines: ICodeLine[] | null = getCodeLine(store.getState());
@@ -115,14 +115,10 @@ export const addToRunQueueMoveDown = (editor: any) => {
     if (inViewID != null) {
         let codeLines = store.getState().codeEditor.codeLines[inViewID];
         let curLineNumber = editor.getPosition().lineNumber - 1; // 0-based
-        setToNextGroup( codeLines, curLineNumber, editor);
+        setToNextGroup(codeLines, curLineNumber, editor);
     }
 };
-const setToNextGroup = (
-    codeLines: ICodeLine[],
-    lineNumber: number,
-    editor: any
-) => {
+const setToNextGroup = (codeLines: ICodeLine[], lineNumber: number, editor: any) => {
     let originGroupID = codeLines[lineNumber].groupID;
     console.log("CodeEditor setToNextGroup: ", lineNumber, originGroupID);
     if (originGroupID != null) {
@@ -143,7 +139,8 @@ const setToNextGroup = (
             curGroupID
         );
         if (curGroupID !== originGroupID) {
-            editor.setPosition({ column: 1, lineNumber: curlineNumber +1 });
+            editor.setPosition({ column: 1, lineNumber: curlineNumber + 1 });
         }
     }
 };
+

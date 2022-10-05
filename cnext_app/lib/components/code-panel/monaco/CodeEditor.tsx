@@ -14,6 +14,8 @@ import {
     runCellAboveGroup,
     runCellBelowGroup,
     runAllGroup,
+    setGroup,
+    setUnGroup,
 } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
@@ -316,6 +318,16 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     ],
                     run: () => unfoldAll(editor),
                 },
+                {
+                    id: shortcutKeysConfig.set_group,
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG],
+                    run: () => setGroup(editor),
+                },
+                {
+                    id: shortcutKeysConfig.set_ungroup,
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyU],
+                    run: () => setUnGroup(editor),
+                },
             ];
             keymap.forEach(function (element) {
                 (editor as any).addAction({ ...element, label: element.id });
@@ -398,7 +410,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     insertCellBelow(CodeInsertMode.GROUP, ln0based);
                     break;
                 case CellCommand.DELL_CELL:
-                    deleteCellHover(editor,monaco);
+                    deleteCellHover(editor, monaco);
                     break;
                 case CellCommand.RUN_ABOVE_CELL:
                     runCellAboveGroup();

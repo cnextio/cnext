@@ -20,6 +20,7 @@ import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/
 import socket from "../../Socket";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { Socket } from "socket.io-client";
+import { addGroupToRunQueue } from "./libRunQueue";
 
 export const getCodeLine = (state: RootState): ICodeLine[] | null => {
     let inViewID = state.projectManager.inViewID;
@@ -290,33 +291,23 @@ export const deleteCellHover = (editor: any, monaco: any): boolean => {
     if (inViewID) {
         const codeLines = state.codeEditor.codeLines[inViewID];
         let startLineNumber = 0;
-        let lengthRange = 0;
+        let length = 0;
         codeLines.forEach((item, index) => {
             if (item.groupID && item.groupID === groupID) {
-                lengthRange = lengthRange + 1;
-                if (lengthRange === 1) {
+                length = length + 1;
+                if (length === 1) {
                     startLineNumber = index + 1;
                 }
             }
         });
-        let range = new monaco.Range(startLineNumber, 1, startLineNumber + lengthRange, 1);
+        let range = new monaco.Range(startLineNumber, 1, startLineNumber + length, 1);
         let id = { major: 1, minor: 1 };
         let text = "";
         var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
         editor.executeEdits("deleteCell", [op]);
     }
 
-    // setCodeToInsert({
-    //     code: "",
-    //     /** fromLine is 0-based while lnToInsertAfter is 1-based
-    //      * so setting fromLine to lnToInsertAfter means fromLine will
-    //      * point to the next line */
-    //     fromLine: lnToInsertAfter,
-    //     status: CodeInsertStatus.INSERTING,
-    //     mode: mode,
-    // });
-    // }
-    // return true;
+    return true;
 };
 export const runCellAboveGroup = () => {
     let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
@@ -338,7 +329,24 @@ export const runCellAboveGroup = () => {
     // runForm(groupID, "");
 };
 export const runCellBelowGroup = () => {};
-export const runAllGroup = () => {};
+export const runAllGroup = () => {
+    let state = store.getState();
+
+    const inViewID = state.projectManager.inViewID;
+    const codeLines = state.codeEditor.codeLines[inViewID];
+    let runGroups: any = {};
+    for (let i = 0; i < codeLines.length; i++) {
+        if (codeLines[i].groupID) {
+            runGroups["groupID=" + codeLines[i].groupID] = codeLines[i].groupID;
+        }
+    }
+    for (const groupID of Object.keys(runGroups)) {
+        let a=  groupID.replace("groupID=","")
+        console.log("run=>",a);
+        
+        addGroupToRunQueue(groupID.replace("groupID=",""));
+    }
+};
 
 export const runQueueForm = (
     originGroupID: string,
@@ -347,4 +355,14 @@ export const runQueueForm = (
     type: "above" | "below"
 ) => {
     //addGroupToRunQueue
+
+    let runGroup: any = {};
+    for (let i = 0; i < codeLines.length; i++) {
+        if (codeLines[i].groupID) {
+            runGroup["groupID=" + codeLines[i].groupID] = codeLines[i].groupID;
+        }
+    }
+    console.log("runGroup", runGroup);
 };
+export const setGroup = (editor: any) => {};
+export const setUnGroup = (editor: any) => {};
