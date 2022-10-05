@@ -334,7 +334,7 @@ export const runCellBelowGroup = () => {
         runQueueForm(groupID, codeLines, position, codeLines.length);
     }
 };
-export const runAllGroup = () => {
+export const runAllCell = () => {
     let state = store.getState();
 
     const inViewID = state.projectManager.inViewID;
@@ -352,6 +352,7 @@ export const runQueueForm = (
 
     for (let i = form; i < to; i++) {
         if (codeLines[i].groupID && (codeLines[i].groupID !== groupID || !groupID)) {
+            // add groupID into keyObject avoid reorder
             runGroups["groupID=" + codeLines[i].groupID] = codeLines[i].groupID;
         }
     }

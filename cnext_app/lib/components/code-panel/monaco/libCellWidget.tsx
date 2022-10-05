@@ -18,6 +18,16 @@ const createCellWidgetDom = (
             svg: `<svg class="icon-cellcommand MuiSvgIcon-root MuiSvgIcon-fontSizeSmall" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="PlayArrowIcon"><path d="M8 5v14l11-7z"></path></svg>`,
         },
         {
+            text: "Run Above",
+            cellCommand: CellCommand.RUN_ABOVE_CELL,
+            svg: `<svg class="MuiSvgIcon-fontSizeSmall icon-cellcommand" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="currentColor"><path d="M1.77 1.01L1 1.42v12l.78.42 9-6v-.83l-9.01-6zM2 12.49V2.36l7.6 5.07L2 12.49zM12.15 8h.71l2.5 2.5-.71.71L13 9.56V15h-1V9.55l-1.65 1.65-.7-.7 2.5-2.5z"/></svg>`,
+        },
+        {
+            text: "Run Below",
+            cellCommand: CellCommand.RUN_BELOW_CELL,
+            svg: `<svg class="MuiSvgIcon-fontSizeSmall icon-cellcommand" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="currentColor"><path d="M1.8 1.01l-.78.41v12l.78.42 9-6v-.83l-9-6zm.22 11.48V2.36l7.6 5.07-7.6 5.06zM12.85 15h-.71l-2.5-2.5.71-.71L12 13.44V8h1v5.45l1.65-1.65.71.71L12.85 15z"/></svg>`,
+        },
+        {
             text: "Clear Result",
             cellCommand: CellCommand.CLEAR,
             svg: `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall icon-cellcommand" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="PlaylistRemoveIcon"><path d="M14 10H3v2h11v-2zm0-4H3v2h11V6zM3 16h7v-2H3v2zm11.41 6L17 19.41 19.59 22 21 20.59 18.41 18 21 15.41 19.59 14 17 16.59 14.41 14 13 15.41 15.59 18 13 20.59 14.41 22z"></path></svg>`,
@@ -31,16 +41,6 @@ const createCellWidgetDom = (
             text: "Delete Cell",
             cellCommand: CellCommand.DELL_CELL,
             svg: `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall icon-cellcommand" focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="DeleteOutlineIcon" aria-label="fontSize large"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
-        },
-        {
-            text: "Run Above",
-            cellCommand: CellCommand.RUN_ABOVE_CELL,
-            svg: `<svg class="MuiSvgIcon-fontSizeSmall icon-cellcommand" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="currentColor"><path d="M1.77 1.01L1 1.42v12l.78.42 9-6v-.83l-9.01-6zM2 12.49V2.36l7.6 5.07L2 12.49zM12.15 8h.71l2.5 2.5-.71.71L13 9.56V15h-1V9.55l-1.65 1.65-.7-.7 2.5-2.5z"/></svg>`,
-        },
-        {
-            text: "Run Below",
-            cellCommand: CellCommand.RUN_BELOW_CELL,
-            svg: `<svg class="MuiSvgIcon-fontSizeSmall icon-cellcommand" xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" fill="currentColor"><path d="M1.8 1.01l-.78.41v12l.78.42 9-6v-.83l-9-6zm.22 11.48V2.36l7.6 5.07-7.6 5.06zM12.85 15h-.71l-2.5-2.5.71-.71L12 13.44V8h1v5.45l1.65-1.65.71.71L12.85 15z"/></svg>`,
         },
     ];
     for (let i = 0; i < cellItems.length; i++) {
