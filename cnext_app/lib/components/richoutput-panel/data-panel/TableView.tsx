@@ -22,7 +22,7 @@ import { ifElse } from "../../libs";
 import CountNA from "./CountNA";
 import store from "../../../../redux/store";
 import { RootState } from "../../../../redux/store";
-import { UDFView } from "../../../interfaces/IDataFrameManager";
+import { UDFLocation } from "../../../interfaces/IDataFrameManager";
 import UDFContainer from "./UDFContainer";
 
 const TableView = (props: any) => {
@@ -89,11 +89,11 @@ const TableView = (props: any) => {
     const renderUDF = (activeDataFrame: string, dfMetadata: {}, colName: string) => {
         const registeredUDFs = store.getState().dataFrames.registeredUDFs;
         const showedUDFs = Object.keys(registeredUDFs.udfs).reduce((showedUDFs: any[], key) => {
-            // console.log("showedUDFs: ", key, udfsConfig, registeredUDFs[key].config.locations);
+            // console.log("showedUDFs: ", key, udfsConfig, registeredUDFs[key].config.view_configs);
             if (
                 udfsConfig &&
                 udfsConfig.udfs[key] &&
-                UDFView.TABLE_HEAD in registeredUDFs.udfs[key].config.locations
+                UDFLocation.TABLE_HEAD in registeredUDFs.udfs[key].config.view_configs
             ) {
                 showedUDFs.push({ name: key, udf: registeredUDFs.udfs[key] });
             }
@@ -103,8 +103,8 @@ const TableView = (props: any) => {
         /** for UDFView.TABLE_HEAD UDFs we only support 1 UDF per row so only sort by row */
         showedUDFs.sort(
             (a, b) =>
-                a.udf.config.locations[UDFView.TABLE_HEAD].row -
-                b.udf.config.locations[UDFView.TABLE_HEAD].row
+                a.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row -
+                b.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row
         );
         // console.log("showedUDFs: ", showedUDFs);
         return (
@@ -120,14 +120,16 @@ const TableView = (props: any) => {
                                 height={50}
                             /> */}
                             {showedUDFs.map((data, index) => {
+                                let udfConfig =
+                                    data.udf.config.view_configs[UDFLocation.TABLE_HEAD];
                                 return (
                                     <UDFContainer
                                         key={index}
                                         udfName={data.name}
                                         df_id={activeDataFrame}
                                         col_name={colName}
-                                        width={80}
-                                        height={50}
+                                        width={udfConfig.shape ? udfConfig.shape.width : 80}
+                                        height={udfConfig.shape ? udfConfig.shape.height : 50}
                                     />
                                 );
                             })}

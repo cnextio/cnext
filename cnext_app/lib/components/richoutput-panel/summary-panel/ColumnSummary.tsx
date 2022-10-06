@@ -9,7 +9,7 @@ import { DataTable, DataTableCell, StyledTableView } from "../../StyledComponent
 import CountNA from "../data-panel/CountNA";
 import store, { RootState } from "../../../../redux/store";
 import CypressIds from "../../tests/CypressIds";
-import { UDFView } from "../../../interfaces/IDataFrameManager";
+import { UDFLocation } from "../../../interfaces/IDataFrameManager";
 import UDFContainer from "../data-panel/UDFContainer";
 
 const ColumnSummary = (props: any) => {
@@ -150,7 +150,7 @@ const ColumnSummary = (props: any) => {
                 key !== "quantile" &&
                 udfsConfig &&
                 udfsConfig.udfs[key] &&
-                UDFView.SUMMARY in registeredUDFs.udfs[key].config.locations
+                UDFLocation.SUMMARY in registeredUDFs.udfs[key].config.view_configs
             ) {
                 showedUDFs.push({ name: key, udf: registeredUDFs.udfs[key] });
             }
@@ -160,8 +160,8 @@ const ColumnSummary = (props: any) => {
         /** for UDFView.SUMMARY UDFs we only support 1 UDF per col so only sort by col */
         showedUDFs.sort(
             (a, b) =>
-                a.udf.config.locations[UDFView.SUMMARY].col -
-                b.udf.config.locations[UDFView.SUMMARY].col
+                a.udf.config.view_configs[UDFLocation.SUMMARY].position.col -
+                b.udf.config.view_configs[UDFLocation.SUMMARY].position.col
         );
 
         return (
@@ -171,6 +171,7 @@ const ColumnSummary = (props: any) => {
                     !Object.values(FileMimeType).includes(dfMetadata.columns[col_name].type) && (
                         <>
                             {showedUDFs.map((data, index) => {
+                                let udfConfig = data.udf.config.view_configs[UDFLocation.SUMMARY];
                                 return (
                                     <DataTableCell style={{ "text-align": "left" }}>
                                         <UDFContainer
@@ -178,8 +179,8 @@ const ColumnSummary = (props: any) => {
                                             udfName={data.name}
                                             df_id={activeDataFrame}
                                             col_name={col_name}
-                                            width={200}
-                                            height={70}
+                                            width={udfConfig.shape ? udfConfig.shape.width : 200}
+                                            height={udfConfig.shape ? udfConfig.shape.height : 70}
                                         />
                                     </DataTableCell>
                                 );

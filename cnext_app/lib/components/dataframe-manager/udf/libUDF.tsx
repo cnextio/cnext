@@ -12,7 +12,7 @@ export const createPlot = (
     data: { [index: string]: string } | null,
     width: number,
     height: number
-) => {
+) => {    
     if (data) {
         const resultElements = Object.keys(data)?.map((key, index) => {
             if (key === SubContentType.APPLICATION_PLOTLY) {

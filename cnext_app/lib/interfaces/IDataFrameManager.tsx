@@ -9,7 +9,7 @@ export interface IDataFrameFilter {
     query: string;
 }
 
-export enum UDFView {
+export enum UDFLocation {
     SUMMARY = "summary",
     TABLE_HEAD = "table_head",
     TABLE_BODY = "table_body",
@@ -26,13 +26,22 @@ export interface UDFPosition {
     col: number;
 }
 
+export interface UDFShape {
+    width: number;
+    height: number;
+}
+
+export interface UDFView {
+    position: UDFPosition;
+    shape: UDFShape;
+}
 // export interface UDFLocation {
 //     view: UDFView;
 //     position: UDFPosition;
 // }
 export interface UDFConfig {
     type: UDFOutputType;
-    locations: { [name: string]: UDFPosition };
+    view_configs: { [name: string]: UDFView };
     display_name: string;
 }
 
@@ -44,8 +53,8 @@ export interface UDF {
     func: UDFFunc;
 }
 export interface IRegisteredUDFs {
-    udfs: {[name: string]: UDF};
-    timestamp: string
+    udfs: { [name: string]: UDF };
+    timestamp: string;
 }
 
 export interface IGetUDFCommand {

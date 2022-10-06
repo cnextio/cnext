@@ -295,16 +295,7 @@ class MessageHandler(BaseMessageHandler):
 
         try:
             if self.user_space.is_alive():
-                if message.command_name == DFManagerCommand.plot_column_histogram:
-                    # result = eval(message.content, client_globals)
-                    self.user_space.execute(
-                        message.content, ExecutionMode.EVAL, self.message_handler_callback, message)
-
-                elif message.command_name == DFManagerCommand.plot_column_quantile:
-                    self.user_space.execute(
-                        message.content, ExecutionMode.EVAL, self.message_handler_callback, message)
-
-                elif message.command_name == DFManagerCommand.get_table_data:
+                if message.command_name == DFManagerCommand.get_table_data:
                     # TODO: turn _df_manager to variable
                     self.user_space.execute("{}._ipython_get_table_data('{}', '{}')".format(
                         IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content), ExecutionMode.EVAL, self.message_handler_callback, message)

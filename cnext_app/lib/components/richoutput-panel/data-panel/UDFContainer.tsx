@@ -32,6 +32,7 @@ export function UDFContainer({ udfName, df_id, col_name, width, height }) {
                 return null;
             }
         }
+        return null;
     };
 
     return renderUDF();
