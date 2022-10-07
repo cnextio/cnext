@@ -41,6 +41,7 @@ import {
     updateLines,
     setActiveLine as setActiveLineRedux,
     setLineGroupStatus,
+    setViewStateEditor,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import socket from "../../Socket";
@@ -59,10 +60,17 @@ const CodeEditor = ({ stopMouseEvent }) => {
         (state: RootState) => state.executorManager.executorRestartCounter
     );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+
+    const updateInViewIDCount = useSelector(
+        (state: RootState) => state.projectManager.updateInViewIDCount
+    );
     /** this is used to save the state such as scroll pos and folding status */
     const [curInViewID, setCurInViewID] = useState<string | null>(null);
     const activeProjectID = useSelector(
         (state: RootState) => state.projectManager.activeProject?.id
+    );
+    const saveViewStateEditor = useSelector(
+        (state: RootState) => state.codeEditor.saveViewStateEditor
     );
     /** using this to trigger refresh in gutter */
     // const codeText = useSelector((state: RootState) => getCodeText(state));
@@ -380,8 +388,23 @@ const CodeEditor = ({ stopMouseEvent }) => {
             getCellFoldRange(monaco, editor);
             setCellWidgets(editor);
             setCodeReloading(false);
+
+            //Destroy your instance for whatever reason
+            // editor.dispose();
+
+            // //When you create the new instance load the model that you saved
+            // var newInstance = monaco.editor.create(elem, options);
+            // newInstance.setModel(model);
+            // newInstance.restoreViewState(viewState);
         }
     }, [serverSynced, codeReloading, monaco, editor]);
+    useEffect(() => {
+        if (editor) {
+            if (inViewID && saveViewStateEditor[inViewID]) {
+                editor.restoreViewState(saveViewStateEditor[inViewID]);
+            }
+        }
+    });
 
     useEffect(() => {
         const state = store.getState();
@@ -440,6 +463,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
     };
 
     const handleEditorChange = (value, event) => {
+        var model = editor.getModel();
+
         try {
             const state = store.getState();
             let inViewID = state.projectManager.inViewID;
@@ -517,6 +542,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             defaultLanguage="python"
             onMount={handleEditorDidMount}
             onChange={handleEditorChange}
+            saveViewState
             options={{
                 minimap: { enabled: true, autohide: true },
                 fontSize: 12,

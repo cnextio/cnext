@@ -58,6 +58,32 @@ export const MonacoEditor = styled(Editor)`
         }
 
         .cellcommand {
+            .circle-excuting {
+                height: 5px;
+                width: 5px;
+                background-color: #f59242;
+                border-radius: 50%;
+                display: inline-block;
+                position: absolute;
+                right: 2px;
+                -webkit-animation: circle-bounce 2s infinite ease-in-out;
+                animation: circle-bounce 2s infinite ease-in-out;
+                -webkit-animation-delay: -1s;
+                animation-delay: -1s;
+            }
+            @keyframes circle-bounce {
+                0%,
+                100% {
+                    transform: scale(0);
+                    -webkit-transform: scale(0);
+                }
+                50% {
+                    transform: scale(1.5);
+                    -webkit-transform: scale(1.5);
+                    background-color: #f59242;
+                }
+            }
+            position: relative;
             display: inline-block;
             cursor: pointer;
             font-size: 11px;

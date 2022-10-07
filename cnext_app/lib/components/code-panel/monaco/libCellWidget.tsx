@@ -1,6 +1,6 @@
 import { setCellCommand } from "../../../../redux/reducers/CodeEditorRedux";
 import store from "../../../../redux/store";
-import { CellCommand, ICodeLine } from "../../../interfaces/ICodeEditor";
+import { CellCommand, ICodeLine, LineStatus } from "../../../interfaces/ICodeEditor";
 import { getCodeLine } from "./libCodeEditor";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
@@ -8,14 +8,15 @@ const createCellWidgetDom = (
     groupID: string,
     afterLineNumber: number,
     endBoundaryWidget: boolean,
-    activeClass: string
+    activeClass: string,
+    status: any
 ) => {
     let wrapDiv = document.createElement("div");
     const cellItems = [
         {
             text: "Run Cell",
             cellCommand: CellCommand.RUN_CELL,
-            svg: `<svg class="icon-cellcommand MuiSvgIcon-root MuiSvgIcon-fontSizeSmall" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="PlayArrowIcon"><path d="M8 5v14l11-7z"></path></svg>`,
+            svg: `<svg style="font-size:20px" class="icon-cellcommand MuiSvgIcon-root MuiSvgIcon-fontSizeSmall" focusable="false" viewBox="0 0 24 24" aria-hidden="true" data-testid="PlayArrowIcon"><path d="M8 5v14l11-7z"></path></svg>`,
         },
         {
             text: "Run Above",
@@ -49,6 +50,11 @@ const createCellWidgetDom = (
         let tooltip = document.createElement("span");
 
         dom.innerHTML = element.svg;
+        if (element.cellCommand === CellCommand.RUN_CELL && status === LineStatus.EXECUTING) {
+            let circlExcuting = document.createElement("span");
+            circlExcuting.className = "circle-excuting";
+            dom.appendChild(circlExcuting);
+        }
         dom.className = `cellcommand`;
         tooltip.textContent = element.text;
         tooltip.className = `tooltiptext`;
@@ -104,7 +110,13 @@ const addCellWidgets = (changeAccessor) => {
                     let zone = null;
                     if (groupID) {
                         if (groupID != currentGroupID) {
-                            zone = createCellWidgetDom(groupID, ln, false, active_clazz);
+                            zone = createCellWidgetDom(
+                                groupID,
+                                ln,
+                                false,
+                                active_clazz,
+                                lines[ln].status
+                            );
                             if (zone) {
                                 let viewZoneId = changeAccessor.addZone(zone);
                                 widgetViewZones.push(viewZoneId);

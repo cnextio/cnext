@@ -4,6 +4,7 @@ import {
     setLineGroupStatus,
     setMouseOverGroup,
     setMouseOverLine,
+    setViewStateEditor,
     updateLines,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../../redux/store";
@@ -128,9 +129,15 @@ function onMouseMove(event) {
     }
 }
 
-function onMouseLeave(event) {
+function onMouseLeave(event, editor) {
     try {
         if (event != null) {
+            const inViewID = store.getState().projectManager.inViewID;
+            if (inViewID && editor) {
+                const viewState = editor.saveViewState();
+                store.dispatch(setViewStateEditor({ inViewID, viewState }));
+            }
+
             let reduxState = store.getState();
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
             if (mouseOverGroupID) {
@@ -147,7 +154,7 @@ function onMouseLeave(event) {
 
 export const setHTMLEventHandler = (editor, stopMouseEvent: boolean) => {
     editor.onMouseMove((event) => onMouseMove(event));
-    editor.onMouseLeave((event) => onMouseLeave(event));
+    editor.onMouseLeave((event) => onMouseLeave(event, editor));
     editor.onMouseDown((event) => onMouseDown(event));
     editor.onKeyUp((event) => onKeyUp(editor, event));
 };
@@ -303,6 +310,8 @@ export const deleteCellHover = (editor: any, monaco: any): boolean => {
                 }
             }
         });
+        // let lineRange = getLineRangeOfGroup(codeLines, lineNumberCurent - 1);
+        // console.log("lineRange",lineNumberCurent, lineRange);
         let range = new monaco.Range(startLineNumber, 1, startLineNumber + length, 1);
         let id = { major: 1, minor: 1 };
         let text = "";
@@ -357,6 +366,7 @@ export const runQueueForm = (
         }
     }
     for (const groupID of Object.keys(runGroups)) {
+        // remove string groupID=
         let a = groupID.replace("groupID=", "");
         console.log("CodeEditor addGroupToRunQueue=>", a);
         addGroupToRunQueue(groupID.replace("groupID=", ""));
