@@ -63,7 +63,11 @@ function setWidgetOpacity(id: string, opacity: string) {
     if (element) {
         // element.style.opacity = opacity;
         if (opacity === "1") element.classList.add("show-toolbar");
-        else element.classList.remove("show-toolbar");
+        else {
+            if (element.getElementsByClassName("circle-excuting").length === 0) {
+                element.classList.remove("show-toolbar");
+            }
+        }
     }
 }
 
@@ -363,6 +367,13 @@ export const runQueueForm = (
         if (codeLines[i].groupID && (codeLines[i].groupID !== groupID || !groupID)) {
             // add groupID into keyObject avoid reorder
             runGroups["groupID=" + codeLines[i].groupID] = codeLines[i].groupID;
+            let element = document.getElementById(
+                `cellwidget-${codeLines[i].groupID}`
+            ) as HTMLElement | null;
+            if (element) {
+                // element.style.opacity = opacity;
+                element.classList.add("show-toolbar");
+            }
         }
     }
     for (const groupID of Object.keys(runGroups)) {

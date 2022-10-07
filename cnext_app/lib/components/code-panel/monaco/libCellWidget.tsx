@@ -51,11 +51,14 @@ const createCellWidgetDom = (
 
         dom.innerHTML = element.svg;
         if (element.cellCommand === CellCommand.RUN_CELL && status === LineStatus.EXECUTING) {
-            let circlExcuting = document.createElement("span");
-            circlExcuting.className = "circle-excuting";
-            dom.appendChild(circlExcuting);
+            // let circlExcuting = document.createElement("span");
+            // circlExcuting.className = "circle-excuting";
+            // dom.appendChild(circlExcuting);
+            dom.className = `cellcommand circle-excuting`;
+        } else {
+            dom.className = `cellcommand`;
         }
-        dom.className = `cellcommand`;
+
         tooltip.textContent = element.text;
         tooltip.className = `tooltiptext`;
         dom.appendChild(tooltip);

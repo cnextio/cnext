@@ -56,33 +56,37 @@ export const MonacoEditor = styled(Editor)`
                 opacity: 1;
             }
         }
-
-        .cellcommand {
-            .circle-excuting {
-                height: 5px;
-                width: 5px;
-                background-color: #f59242;
+        .circle-excuting {
+            svg {
+                border: 3px solid #f59242;
                 border-radius: 50%;
-                display: inline-block;
-                position: absolute;
-                right: 2px;
+                display: flex;
+                align-items: center;
+                text-align: center;
+                box-sizing: border-box;
                 -webkit-animation: circle-bounce 2s infinite ease-in-out;
                 animation: circle-bounce 2s infinite ease-in-out;
                 -webkit-animation-delay: -1s;
                 animation-delay: -1s;
             }
-            @keyframes circle-bounce {
-                0%,
-                100% {
-                    transform: scale(0);
-                    -webkit-transform: scale(0);
-                }
-                50% {
-                    transform: scale(1.5);
-                    -webkit-transform: scale(1.5);
-                    background-color: #f59242;
-                }
+
+            /* -webkit-animation: circle-bounce 2s infinite ease-in-out;
+            animation: circle-bounce 2s infinite ease-in-out;
+            -webkit-animation-delay: -1s;
+            animation-delay: -1s; */
+        }
+        @keyframes circle-bounce {
+            0%,
+            100% {
+                transform: scale(1);
+                -webkit-transform: scale(1);
             }
+            50% {
+                transform: scale(1.1);
+                -webkit-transform: scale(1.1);
+            }
+        }
+        .cellcommand {
             position: relative;
             display: inline-block;
             cursor: pointer;
@@ -109,6 +113,7 @@ export const MonacoEditor = styled(Editor)`
                 -webkit-transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
                 transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
                 font-size: 1rem;
+                margin-right: 4px;
             }
             .tooltiptext {
                 visibility: hidden;
@@ -144,6 +149,14 @@ export const MonacoEditor = styled(Editor)`
                 /* color: #8a8989; */
                 svg {
                     background-color: #f3f3f3;
+                    &:first-child {
+                        margin-left: 2px;
+                    }
+                }
+            }
+            svg {
+                &:first-child {
+                    margin-left: 2px;
                 }
             }
         }

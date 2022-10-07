@@ -83,7 +83,7 @@ function getClassLineStatus(status: number) {
         case LineStatus.EDITED:
             return "";
         case LineStatus.EXECUTING:
-            return "";
+            return inqueueClass;
         case LineStatus.EXECUTED_SUCCESS:
             return executedOkClass;
         case LineStatus.EXECUTED_FAILED:

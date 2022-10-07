@@ -66,6 +66,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
     );
     /** this is used to save the state such as scroll pos and folding status */
     const [curInViewID, setCurInViewID] = useState<string | null>(null);
+    const [oldState, setOldState] = useState<boolean>(false);
     const activeProjectID = useSelector(
         (state: RootState) => state.projectManager.activeProject?.id
     );
@@ -122,7 +123,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
         if (model && inViewID) {
             const codeLines = state.codeEditor.codeLines[inViewID];
-            let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
+            let curGroupID = codeLines[lnToInsertAfter - 1]?.groupID;
 
             while (
                 curGroupID != null &&
@@ -389,22 +390,21 @@ const CodeEditor = ({ stopMouseEvent }) => {
             setCellWidgets(editor);
             setCodeReloading(false);
 
-            //Destroy your instance for whatever reason
-            // editor.dispose();
-
             // //When you create the new instance load the model that you saved
-            // var newInstance = monaco.editor.create(elem, options);
-            // newInstance.setModel(model);
-            // newInstance.restoreViewState(viewState);
-        }
-    }, [serverSynced, codeReloading, monaco, editor]);
-    useEffect(() => {
-        if (editor) {
             if (inViewID && saveViewStateEditor[inViewID]) {
                 editor.restoreViewState(saveViewStateEditor[inViewID]);
+                // setOldState(true)
             }
         }
-    });
+    }, [serverSynced, codeReloading, monaco, editor]);
+    // useEffect(() => {
+    //     if (editor) {
+    //         if (inViewID && saveViewStateEditor[inViewID]) {
+    //             // editor.restoreViewState(saveViewStateEditor[inViewID]);
+    //             // setOldState(true)
+    //         }
+    //     }
+    // });
 
     useEffect(() => {
         const state = store.getState();
