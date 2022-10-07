@@ -15,15 +15,20 @@ import {
     DataTableHeadText,
     ImageMimeCell,
 } from "../../StyledComponents";
-import { FileMimeType, IDFUpdatesReview, ReviewType } from "../../../interfaces/IApp";
-import ColumnHistogram from "./ColumnHistogram";
+import { SpecialMimeType, IDFUpdatesReview, ReviewType } from "../../../interfaces/IApp";
 import { useSelector } from "react-redux";
 import { ifElse } from "../../libs";
 import CountNA from "./CountNA";
 import store from "../../../../redux/store";
 import { RootState } from "../../../../redux/store";
-import { UDFLocation } from "../../../interfaces/IDataFrameManager";
+import {
+    ICellDataURLImage,
+    UDFLocation,
+} from "../../../interfaces/IDataFrameManager";
 import UDFContainer from "./UDFContainer";
+import InputComponent from "./InputComponent";
+
+// const specialMimeTypes = [SpecialMimeType.FILE_PNG];
 
 const TableView = (props: any) => {
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
@@ -111,7 +116,7 @@ const TableView = (props: any) => {
             <>
                 {dfMetadata &&
                     dfMetadata.columns[colName] &&
-                    !Object.values(FileMimeType).includes(dfMetadata.columns[colName].type) && (
+                    !Object.values(SpecialMimeType).includes(dfMetadata.columns[colName].type) && (
                         <>
                             {/* <ColumnHistogram
                                 df_id={activeDataFrame}
@@ -141,10 +146,43 @@ const TableView = (props: any) => {
         );
     };
 
-    const renderBodyInnerCell = (
-        item: string,
-        metadata: {},
+    const renderSpecialMimeInnerCell = (
+        rowNumber: number,
+        index: string,
+        item: {},
         colName: string,
+        type: SpecialMimeType
+    ) => {        
+        console.log("Render image: ", item, type);
+        if ([SpecialMimeType.FILE_PNG, SpecialMimeType.URL_PNG].includes(type)) {
+            return (
+                <ImageMimeCell
+                    src={"data:image/png;base64," + (item as ICellDataURLImage).binary}
+                />
+            );
+        } else if ([SpecialMimeType.FILE_JPG, SpecialMimeType.URL_JPG].includes(type)) {
+            return (
+                <ImageMimeCell
+                    src={"data:image/jpg;base64," + (item as ICellDataURLImage).binary}
+                />
+            );
+        } else if (
+            [
+                SpecialMimeType.INPUT_SELECTION,
+                SpecialMimeType.INPUT_CHECKBOX,
+                SpecialMimeType.INPUT_TEXT,
+            ].includes(type)
+        ) {
+            return <InputComponent df_id={activeDataFrame} rowNumber={rowNumber} colName={colName} index={index} item={item} type={type} />;
+        }
+    };
+
+    const renderBodyInnerCell = (
+        rowNumber: number,
+        index: string,
+        item: string | {},
+        metadata: {},
+        colName: string | number,
         dfReview: {},
         review: {}
     ) => {
@@ -152,13 +190,16 @@ const TableView = (props: any) => {
             <DataTableCell key={shortid.generate()} align="right" review={review} head={false}>
                 {metadata &&
                 metadata.columns[colName] &&
-                [FileMimeType.FILE_PNG, FileMimeType.URL_PNG].includes(
-                    metadata.columns[colName].type
-                ) ? (
-                    <ImageMimeCell src={"data:image/png;base64," + item.binary} />
-                ) : (
-                    item
-                )}
+                Object.values(SpecialMimeType).includes(metadata.columns[colName].type)
+                    ? // <ImageMimeCell src={"data:image/png;base64," + item.binary} />
+                      renderSpecialMimeInnerCell(
+                          rowNumber,
+                          index,
+                          item,
+                          colName,
+                          metadata.columns[colName].type
+                      )
+                    : item}
                 {dfReview && review && dfReview.type == ReviewType.cell && (
                     <ScrollIntoViewIfNeeded
                         options={{
@@ -191,6 +232,7 @@ const TableView = (props: any) => {
     };
 
     const renderBodyCell = (
+        rowNumber: number,
         colName: string | number | null,
         rowIndexData: any,
         rowCellData: any,
@@ -205,20 +247,33 @@ const TableView = (props: any) => {
                 <>
                     {indexCell
                         ? renderBodyIndexCell(rowIndexData, dfReview, review)
-                        : renderBodyInnerCell(rowCellData, metadata, colName, dfReview, review)}
+                        : renderBodyInnerCell(
+                              rowNumber,
+                              rowIndexData,
+                              rowCellData,
+                              metadata,
+                              colName,
+                              dfReview,
+                              review
+                          )}
                 </>
             );
         }
     };
 
-    const renderBodyRow = (colNames: string[], rowIndexData: any, rowData: any[]) => {
+    const renderBodyRow = (
+        rowNumber: number,
+        colNames: string[],
+        rowIndexData: any,
+        rowData: any[]
+    ) => {
         return (
             <DataTableRow hover key={shortid.generate()}>
                 {/** render index cell */}
-                {renderBodyCell(rowIndexData, rowIndexData, null, true)}
+                {renderBodyCell(rowNumber, rowIndexData, rowIndexData, null, true)}
                 {/** render data cell */}
                 {rowData.map((rowCellData: any, index: number) =>
-                    renderBodyCell(colNames[index], rowIndexData, rowCellData)
+                    renderBodyCell(rowNumber, colNames[index], rowIndexData, rowCellData)
                 )}
             </DataTableRow>
         );
@@ -242,6 +297,7 @@ const TableView = (props: any) => {
                     <TableBody>
                         {tableData[activeDataFrame]?.rows.map((rowData: any[], rowNumber: number) =>
                             renderBodyRow(
+                                rowNumber,
                                 tableData[activeDataFrame]?.column_names,
                                 tableData[activeDataFrame]?.index.data[rowNumber],
                                 rowData

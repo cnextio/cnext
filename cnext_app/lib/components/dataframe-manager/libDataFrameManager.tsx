@@ -28,7 +28,7 @@ export const sendMessage = (socket: Socket | null, message: IMessage) => {
 
 export const createMessage = (
     command_name: CommandName,
-    content: string | null = null,
+    content: {} | string | null = null,
     metadata: {}
 ): IMessage => {
     let message: IMessage = {

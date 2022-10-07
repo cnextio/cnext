@@ -360,6 +360,14 @@ export const dataFrameSlice = createSlice({
                 state.metadata[df_id].columns[col_name].udfs = {};
             state.metadata[df_id].columns[col_name].udfs[udfName] = action.payload["data"];
         },
+
+        setTableDataCellValue: (state, action) => {
+            const data = action.payload;
+            const df_id = data.df_id as string;
+            const rowNumber = data.rowNumber;
+            const colNumber = state.tableData[df_id].column_names.indexOf(data.col_name);
+            state.tableData[df_id].rows[rowNumber][colNumber] = data.value;
+        }
     },
 });
 
@@ -377,6 +385,7 @@ export const {
     setRegisteredUDFs,
     setUDFsSelection,
     setComputeUDFData,
+    setTableDataCellValue,
 } = dataFrameSlice.actions;
 
 export default dataFrameSlice.reducer;

@@ -83,6 +83,7 @@ export enum CommandName {
     get_jupyter_server_config = "get_jupyter_server_config",
     get_registered_udfs = "get_registered_udfs",
     compute_udf = "compute_udf",
+    set_dataframe_cell_value = "set_dataframe_cell_value"
 }
 
 export enum ContentType {
@@ -153,7 +154,7 @@ export interface ITableData {
     df_id: string;
     index: { name: string; data: any[] };
     column_names: string[];
-    rows: [][];
+    rows: any[][];
 }
 
 export interface IPlot {
@@ -198,15 +199,19 @@ export enum FilterType {
     col = "col",
 }
 
-export enum FileMimeType {
+export enum SpecialMimeType {
     FILE_PNG = "file/png",
     FILE_JPG = "file/jpg",
     URL_PNG = "url/png",
     URL_JPG = "url/jpg",
+    URL_IMAGE = "url/image",
+    INPUT_SELECTION = "input/selection",
+    INPUT_CHECKBOX = "input/checkbox",
+    INPUT_TEXT = "input/text",
 }
 
-export const CNextMimeType = { ...FileMimeType, ...StandardMimeType };
-export type CNextMimeType = FileMimeType | StandardMimeType;
+export const CNextMimeType = { ...SpecialMimeType, ...StandardMimeType };
+export type CNextMimeType = SpecialMimeType | StandardMimeType;
 
 export interface DFFilter {
     type: FilterType;

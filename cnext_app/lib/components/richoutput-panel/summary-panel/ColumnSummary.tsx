@@ -1,10 +1,9 @@
-import dynamic from "next/dynamic";
 import { TableBody, TableRow, Typography } from "@mui/material";
-import React, { Fragment } from "react";
+import React from "react";
 
 // redux
 import { useSelector } from "react-redux";
-import { FileMimeType, StandardMimeType } from "../../../interfaces/IApp";
+import { SpecialMimeType } from "../../../interfaces/IApp";
 import { DataTable, DataTableCell, StyledTableView } from "../../StyledComponents";
 import CountNA from "../data-panel/CountNA";
 import store, { RootState } from "../../../../redux/store";
@@ -168,7 +167,7 @@ const ColumnSummary = (props: any) => {
             <>
                 {dfMetadata &&
                     dfMetadata.columns[col_name] &&
-                    !Object.values(FileMimeType).includes(dfMetadata.columns[col_name].type) && (
+                    !Object.values(SpecialMimeType).includes(dfMetadata.columns[col_name].type) && (
                         <>
                             {showedUDFs.map((data, index) => {
                                 let udfConfig = data.udf.config.view_configs[UDFLocation.SUMMARY];

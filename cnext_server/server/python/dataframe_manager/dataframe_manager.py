@@ -97,17 +97,20 @@ class MessageHandler(BaseMessageHandler):
         tableData['column_names'] = list(df.columns)
 
         for i, t in enumerate(df.dtypes):
-            if t.name not in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG, CnextMimeType.FILE_JPEG, CnextMimeType.URL_PNG, CnextMimeType.URL_JPG, CnextMimeType.URL_JPEG]:
+            if t.name not in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG,
+                              CnextMimeType.URL_PNG, CnextMimeType.URL_JPG,
+                              CnextMimeType.INPUT_SELECTION, CnextMimeType.INPUT_CHECKBOX, CnextMimeType.INPUT_TEXT]:
                 ## Convert everything else to string #
                 df[df.columns[i]] = df[df.columns[i]].apply(str)
 
         tableData['rows'] = df.values.tolist()
-
         # Modify data field of column with mime type of file/*. See note above
         #  We chose to do this outside of the dataframe, but it can also be done with a dataframe
         #  see https://stackoverflow.com/questions/41710501/is-there-a-way-to-have-a-dictionary-as-an-entry-of-a-pandas-dataframe-in-python ##
+        # log.info('Processing data type %s' % df.dtypes)
         for i, t in enumerate(df.dtypes):
-            if t.name in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG, CnextMimeType.FILE_JPEG]:
+            # log.info('Processing data type %s' % t.name)
+            if t.name in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG]:
                 log.info('Load file for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     file_path = df[df.columns[i]].iloc[r]
@@ -117,8 +120,8 @@ class MessageHandler(BaseMessageHandler):
                         'file_path': file_path,
                         'binary': base64.b64encode(self._get_file_content(file_path, t.name))
                     }
-            elif t.name in [CnextMimeType.URL_PNG, CnextMimeType.URL_JPG, CnextMimeType.URL_JPEG]:
-                log.info('Load file for mime %s' % t.name)
+            elif t.name in [CnextMimeType.URL_PNG, CnextMimeType.URL_JPG]:
+                log.info('Load url for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     url = df[df.columns[i]].iloc[r]
                     response = requests.get(url)
@@ -129,7 +132,13 @@ class MessageHandler(BaseMessageHandler):
                         'url': url,
                         'binary': base64.b64encode(response.content)
                     }
-
+            elif t.name in [CnextMimeType.INPUT_SELECTION, CnextMimeType.INPUT_CHECKBOX, CnextMimeType.INPUT_TEXT]:
+                log.info('Create table for mime %s' % t.name)
+                for r in range(df.shape[0]):
+                    tableData['rows'][r][i] = json.loads(
+                        df[df.columns[i]].iloc[r])
+                    # log.info('Create table for mime %s' % tableData['rows'][r][i])
+        
         tableData['index'] = {}
         tableData['index']['name'] = df.index.name
         tableData['index']['data'] = []
@@ -317,6 +326,10 @@ class MessageHandler(BaseMessageHandler):
                 elif message.command_name == DFManagerCommand.compute_udf:
                     self._compute_udf(message)
 
+                elif message.command_name == DFManagerCommand.set_dataframe_cell_value:
+                    ## Note: have to use single quote here because json.dumps will generate the double quote inside #
+                    self.user_space.execute("{}.at[{}, \"{}\"] = \'{}\'".format(
+                        message.content['df_id'], message.content['index'], message.content['col_name'], json.dumps(message.content['value'])), ExecutionMode.EVAL, self.message_handler_callback, message)
             else:
                 text = "No executor running"
                 log.info(text)

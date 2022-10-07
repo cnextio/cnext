@@ -40,6 +40,7 @@ class DFManagerCommand(str, Enum):
     get_registered_udfs = 'get_registered_udfs'
     compute_udf = "compute_udf"
     run_file = "run_file"
+    set_dataframe_cell_value = "set_dataframe_cell_value"
 
     def __str__(self):
         return str(self.value)

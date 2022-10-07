@@ -62,3 +62,27 @@ export interface IGetUDFCommand {
     col_names: string[];
     udf_name: string;
 }
+
+export interface ICellDataURLImage {
+    url: string;
+    binary: string;
+}
+
+export interface ICellDataFileImage {
+    file_name: string;
+    binary: string;
+}
+
+export interface ICellDataSelectionInput {
+    options: string;
+    input: string;
+}
+
+export interface ICellDataCheckboxInput {
+    name: string;
+    input: boolean;
+}
+
+export interface ICellDataTextInput {
+    input: string
+}
