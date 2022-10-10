@@ -35,12 +35,13 @@ const FileContextMenu = ({ contextMenuPos, handleClose, handleSelection, context
                     : undefined
             }
         >
-            {menu.map((item) => {
+            {menu.map((item, index:number) => {
                 return (
                     <ContextMenuItem
                         disabled={item.disable ? true : false}
                         divider={item.name === FileContextMenuCommand.DIVIDER}
                         onClick={() => handleSelection(item.name)}
+                        key={index}
                     >
                         {item.text}
                     </ContextMenuItem>

@@ -1,6 +1,6 @@
 import { Message } from "@lumino/messaging";
 import { IconButton } from "@mui/material";
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
     setModelInfo,
@@ -15,12 +15,13 @@ import {
     ModelManagerCommand,
     NetronStatus,
 } from "../../../interfaces/IModelManager";
-import socket from "../../Socket";
+import { SocketContext } from "../../Socket";
 import { DataToolbar as ModelManagerToolbar } from "../../StyledComponents";
 import ModelExplorer from "./ModelExplorer";
 import ReplayIcon from "@mui/icons-material/Replay";
 
 const ModelManager = () => {
+    const socket = useContext(SocketContext);
     const dispatch = useDispatch();
     const activeModel = useSelector((state: RootState) => state.modelManager.activeModel);
     const modelInfoReloadCounter = useSelector(
@@ -49,12 +50,12 @@ const ModelManager = () => {
 
     const sendMessage = (message: IMessage) => {
         console.log(`${message.webapp_endpoint} send message: ${JSON.stringify(message)}`);
-        socket.emit(message.webapp_endpoint, JSON.stringify(message));
+        socket?.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
     const setupSocket = () => {
-        socket.emit("ping", "ModelManager");
-        socket.on(WebAppEndpoint.ModelManager, (result: string) => {
+        socket?.emit("ping", "ModelManager");
+        socket?.on(WebAppEndpoint.ModelManager, (result: string, ack) => {
             console.log("ModelManager got results...", result);
             try {
                 let mmResult: IMessage = JSON.parse(result);
@@ -77,6 +78,7 @@ const ModelManager = () => {
             } catch (error) {
                 throw error;
             }
+            if (ack) ack();
         });
     };
 
@@ -88,7 +90,7 @@ const ModelManager = () => {
     useEffect(() => {
         setupSocket();
         return () => {
-            socket.off(WebAppEndpoint.ModelManager);
+            socket?.off(WebAppEndpoint.ModelManager);
         };
     }, []);
 

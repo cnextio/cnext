@@ -1,6 +1,7 @@
 from enum import Enum
 import threading
 import traceback
+import jupyter_client
 import simplejson as json
 import cnextlib.user_space as _cus
 import cnextlib.dataframe as _cd
@@ -51,7 +52,6 @@ class IPythonUserSpace(_cus.UserSpace):
     def __init__(self, tracking_df_types: tuple = (), tracking_model_types: tuple = ()):
         super().__init__(tracking_df_types, tracking_model_types)
         self.executor: IPythonKernel = IPythonKernel()
-        self.init_executor()
         self.execution_lock = threading.Lock()
         self.result = None
 
@@ -95,7 +95,7 @@ class _UserSpace(BaseKernelUserSpace):
                     ipython_message['content']['data']['text/plain'])
             elif self._complete_execution_message(ipython_message) and self.execution_lock.locked():
                 self.execution_lock.release()
-                log.info('Execution unlocked')
+                log.info('User_space execution lock released')
             else:
                 # TODO: log everything else
                 log.info('Other messages: %s' % ipython_message)
@@ -111,6 +111,7 @@ class _UserSpace(BaseKernelUserSpace):
         def _result_waiting_execution_wrapper(*args, **kwargs):
             ## args[0] is self #
             args[0].result = None
+            log.info('User_space execution lock acquiring')
             args[0].execution_lock.acquire()
             log.info('User_space execution lock acquired')
             func(*args, **kwargs)
@@ -153,27 +154,40 @@ class _UserSpace(BaseKernelUserSpace):
         self.reset_active_dfs_status()
         return self.executor.execute(code, exec_mode, message_handler_callback, client_message)
 
+    def send_stdin(self, input_text):
+        return self.executor.send_stdin(input_text)
+
+    def start_executor(self, kernel_name: str):
+        self.executor.start_kernel(kernel_name)
+        self.init_executor()
+        if self.execution_lock.locked():
+            self.execution_lock.release()
+            log.info('User_space execution lock released')
+
     def shutdown_executor(self):
         self.executor.shutdown_kernel()
         if self.execution_lock.locked():
             self.execution_lock.release()
+            log.info('User_space execution lock released')
 
     def restart_executor(self):
         result = self.executor.restart_kernel()
         self.init_executor()
         if self.execution_lock.locked():
             self.execution_lock.release()
+            log.info('User_space execution lock released')
         return result
 
     def interrupt_executor(self):
         result = self.executor.interrupt_kernel()
         if self.execution_lock.locked():
             self.execution_lock.release()
+            log.info('User_space execution lock released')
         return result
-    
+
     def is_alive(self):
         return self.executor.is_alive()
-        
+
     def set_executor_working_dir(self, path):
         code = "import os; os.chdir('{}')".format(path)
         return self.executor.execute(code)
@@ -192,7 +206,8 @@ class BaseKernelUserSpace(_cus.UserSpace):
         _cd.DataFrameTracker.set_user_space(self)
         super().__init__(tracking_df_types, tracking_model_types)
 
-    def globals(self):
+    @classmethod
+    def globals(cls):
         return globals()
 
     def execute(self, code, exec_mode: ExecutionMode = None):

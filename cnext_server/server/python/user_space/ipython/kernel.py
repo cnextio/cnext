@@ -11,23 +11,61 @@ MESSSAGE_TIMEOUT = 1
 
 class IPythonKernel():
     def __init__(self):
-        self.km = jupyter_client.KernelManager()
-        self.km.start_kernel()
-        self.kc = self.km.blocking_client()
-        self.wait_for_ready()
-
-        self.stop_stream_thread = False
-        self.shell_msg_thread = threading.Thread(
-            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
-        self.iobuf_msg_thread = threading.Thread(
-            target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
-        self.shell_msg_thread.start()
-        self.iobuf_msg_thread.start()
-
+        self.km = None
+        self.kc = None
         self.message_handler_callback = None
-        ## This lock is used to make sure only one execution is being executed at any moment in time #
+        self.msg_threads = []
+        self.stream_types = [IPythonConstants.StreamType.SHELL,
+                             IPythonConstants.StreamType.IOBUF, IPythonConstants.StreamType.STDIN]
         self.execute_lock = threading.Lock()
         self._set_execution_complete_condition(False)
+    
+    def start_msg_thead(self):        
+        for type in self.stream_types:
+            self.msg_threads.append(threading.Thread(
+                target=self.handle_ipython_stream, args=(type,), daemon=True))
+            self.msg_threads[-1].start()
+
+    def stop_msg_thread(self):
+        self.stop_msg_thread_signal = True
+        # wait to make sure the stream threads will stop before proceeding
+        while self.is_msg_thead_alive():            
+            time.sleep(1)
+        self.stop_msg_thread_signal = False
+
+    def is_msg_thead_alive(self):
+        for msg_thread in self.msg_threads:
+            if msg_thread.is_alive():
+                return True
+        return False
+
+    def start_kernel(self, kernel_name: str):
+        try:            
+            if self.km is not None:
+                self.shutdown_kernel()
+            self.stop_msg_thread()
+            log.info('Kernel starting')
+            self.km = jupyter_client.KernelManager(kernel_name=kernel_name)
+            self.km.start_kernel()                        
+            self.kc = self.km.blocking_client()
+            self.wait_for_ready()            
+            self.start_msg_thead()
+            
+            log.info('Kernel started')
+
+            # release execution lock which might be locked during an execution
+            if self.execute_lock.locked():
+                self.execute_lock.release()
+                log.info('Kernel execution lock released')
+                self._set_execution_complete_condition(True)
+            if self.km.is_alive():
+                return True
+            else:
+                return False
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))
+        return False
 
     def shutdown_kernel(self):
         try:
@@ -42,22 +80,13 @@ class IPythonKernel():
 
     def restart_kernel(self):
         try:
-            # if self.km.is_alive():
-            log.info('Kernel restarting')
+            # if self.km.is_alive():            
+            log.info('Kernel restarting')            
             self.km.restart_kernel()
-            self.stop_stream_thread = True
+            self.stop_msg_thread()
             self.kc = self.km.blocking_client()
             self.wait_for_ready()
-            # wait to make sure the stream threads will stop before proceeding
-            while self.shell_msg_thread.is_alive() or self.shell_msg_thread.is_alive():
-                time.sleep(1)
-            self.shell_msg_thread = threading.Thread(
-                target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.SHELL,), daemon=True)
-            self.iobuf_msg_thread = threading.Thread(
-                target=self.handle_ipython_stream, args=(IPythonConstants.StreamType.IOBUF,), daemon=True)
-            self.stop_stream_thread = False
-            self.shell_msg_thread.start()
-            self.iobuf_msg_thread.start()
+            self.start_msg_thead()
             log.info('Kernel restarted')
 
             # release execution lock which might be locked during an execution
@@ -65,7 +94,7 @@ class IPythonKernel():
                 self.execute_lock.release()
                 log.info('Kernel execution lock released')
                 self._set_execution_complete_condition(True)
-                
+
             if self.km.is_alive():
                 return True
             else:
@@ -87,7 +116,7 @@ class IPythonKernel():
         return False
 
     def is_alive(self):
-        return self.kc.is_alive()
+        return self.kc.is_alive() if self.kc else False
 
     def wait_for_ready(self):
         try:
@@ -115,7 +144,7 @@ class IPythonKernel():
     def handle_ipython_stream(self, stream_type: IPythonConstants.StreamType):
         try:
             log.info('Start stream %s' % stream_type)
-            while not self.stop_stream_thread:
+            while not self.stop_msg_thread_signal:
                 try:
                     ipython_message = None
                     if stream_type == IPythonConstants.StreamType.SHELL:
@@ -124,18 +153,16 @@ class IPythonKernel():
                     elif stream_type == IPythonConstants.StreamType.IOBUF:
                         ipython_message = self.kc.get_iopub_msg(
                             timeout=MESSSAGE_TIMEOUT)
+                    elif stream_type == IPythonConstants.StreamType.STDIN:
+                        ipython_message = self.kc.get_stdin_msg(
+                            timeout=MESSSAGE_TIMEOUT)
 
-                    if 'status' in ipython_message['content']:
-                        log.info('%s msg: msg_type = %s, status = %s' % (
-                            stream_type, ipython_message['header']['msg_type'], ipython_message['content']['status']))
-                    elif ipython_message['header']['msg_type'] == 'status' or ipython_message['header']['msg_type'] == 'error':
+                    if ipython_message['header']['msg_type'] != "stream":
                         log.info('%s msg: msg_type = %s, content = %s' % (
                             stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
-                    else:
+                    else: 
                         log.info('%s msg: msg_type = %s' % (
                             stream_type, ipython_message['header']['msg_type']))
-                        # log.info('%s msg: msg_type = %s msg_content = %s' % (
-                        #     stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
 
                     if ipython_message is not None and self.message_handler_callback is not None:
                         self.message_handler_callback(
@@ -157,9 +184,23 @@ class IPythonKernel():
             log.info("Exception %s" % (trace))
 
     def execute(self, code, exec_mode=None, message_handler_callback=None, client_message=None):
-        self.execute_lock.acquire()
-        log.info('Kernel execution lock acquired')
-        self._set_execution_complete_condition(False)
-        self.message_handler_callback = message_handler_callback
-        self.client_message = client_message
-        self.kc.execute(code)
+        try:
+            if self.kc:         
+                self.execute_lock.acquire()
+                log.info('Kernel execution lock acquired for executing %s', code[:50])
+                self._set_execution_complete_condition(False)
+                self.message_handler_callback = message_handler_callback
+                self.client_message = client_message
+                self.kc.execute(code)
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))
+
+    def send_stdin(self, input_text):
+        try:
+            if self.kc:
+                log.info('Send stdin input to kernel ')
+                self.kc.input(input_text)
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))

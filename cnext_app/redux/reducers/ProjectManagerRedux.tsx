@@ -64,7 +64,7 @@ type ProjectManagerState = {
     fileToClose: string | null;
     fileToOpen: string | null;
     fileToSave: string[];
-    fileToSaveState: string[];
+    stateFileToSave: string[];
     savingFile: null | string;
     savingStateFile: null | string;
     showProjectExplore: boolean;
@@ -86,7 +86,7 @@ const initialState: ProjectManagerState = {
     fileToClose: null,
     fileToOpen: null,
     fileToSave: [],
-    fileToSaveState: [],
+    stateFileToSave: [],
     savingFile: null,
     savingStateFile: null,
     showProjectExplore: false,
@@ -203,24 +203,24 @@ export const ProjectManagerRedux = createSlice({
                 });
         },
 
-        addFileToSaveState: (state, action) => {
+        addStateFileToSave: (state, action) => {
             if (action.payload) {
-                state.fileToSaveState.push(action.payload);
-                state.fileToSaveState = [...new Set(state.fileToSaveState)];
+                state.stateFileToSave.push(action.payload);
+                state.stateFileToSave = [...new Set(state.stateFileToSave)];
             }
         },
 
         /** Remove the first item from the list */
-        removeFileToSaveState: (state) => {
-            state.fileToSaveState.shift();
-            state.fileToSaveState = [...new Set(state.fileToSaveState)];
+        removeStateFileToSave: (state) => {
+            state.stateFileToSave.shift();
+            state.stateFileToSave = [...new Set(state.stateFileToSave)];
         },
 
         /** set savingStateFile and remove it from fileToSaveState if not null */
         setSavingStateFile: (state, action) => {
             state.savingStateFile = action.payload;
             if (state.savingStateFile != null)
-                state.fileToSaveState = state.fileToSaveState.filter(function (e) {
+                state.stateFileToSave = state.stateFileToSave.filter(function (e) {
                     return e !== state.savingStateFile;
                 });
         },
@@ -229,7 +229,7 @@ export const ProjectManagerRedux = createSlice({
             state.showProjectExplore = action.payload;
         },
 
-        setProjectSetting: (state, action) => {
+        setProjectConfig: (state, action) => {
             if (action.payload) {
                 state.settings = { ...state.settings, ...action.payload };
             }
@@ -242,10 +242,10 @@ export const ProjectManagerRedux = createSlice({
         setWorkspaceMetadata: (state, action) => {
             const workspaceMetadata = action.payload as IWorkspaceMetadata;
             state.workspaceMetadata = workspaceMetadata;
-            let activeProjects = workspaceMetadata["open_projects"].filter(
+            let activeProjects = workspaceMetadata["open_projects"]?.filter(
                 (project) => project["id"] === workspaceMetadata["active_project"]
             );
-            if (activeProjects.length > 0) {
+            if (activeProjects?.length > 0) {
                 state.activeProject = activeProjects[0];
             }
         },
@@ -266,7 +266,7 @@ export const ProjectManagerRedux = createSlice({
             state.fileToClose = null;
             state.fileToOpen = null;
             state.fileToSave = [];
-            state.fileToSaveState = [];
+            state.stateFileToSave = [];
             state.savingFile = null;
             state.savingStateFile = null;
             state.serverSynced = false;
@@ -285,13 +285,13 @@ export const {
     addFileToSave,
     // removeFileToSave,
     setSavingFile,
-    addFileToSaveState,
+    addStateFileToSave,
     // removeFileToSaveState,
     setSavingStateFile,
     setShowProjectExplorer,
     setFileMetadata,
     setServerSynced,
-    setProjectSetting,
+    setProjectConfig,
     setProjects,
     setWorkspaceMetadata,
     setProjectToAdd,

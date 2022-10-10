@@ -22,12 +22,12 @@ const RichOutputPanel = ({ stopMouseEvent }) => {
     );
 
     useEffect(() => {
-        setShow(RichOutputPanelToolbarItems.RESULTS)
-        // if (resultUpdateCount > 0) {
-        //     if (show !== RichOutputPanelToolbarItems.RESULTS) {
-        //         setIndicate(RichOutputPanelToolbarItems.RESULTS);
-        //     }
-        // }
+        if (resultUpdateCount > 0) {
+            // if (show !== RichOutputPanelToolbarItems.RESULTS) {
+                // setIndicate(RichOutputPanelToolbarItems.RESULTS);
+            // }
+            setShow(RichOutputPanelToolbarItems.RESULTS);
+        }
     }, [resultUpdateCount]);
 
     // since there is at least one update to resultUpdateCount on every execution we will only

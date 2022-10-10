@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
@@ -37,13 +37,15 @@ import {
     setLineGroupStatus,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
-import socket from "../../Socket";
+import { SocketContext } from "../../Socket";
 import { addToRunQueueHoverCell, addToRunQueueHoverLine } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 import { PythonLanguageClient, LanguageProvider } from "./languageClient";
 
 const CodeEditor = ({ stopMouseEvent }) => {
+    const socket = useContext(SocketContext);
+
     const monaco = useMonaco();
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
@@ -196,7 +198,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
      */
     const socketInit = () => {
         socket.emit("ping", WebAppEndpoint.CodeEditor);
-        socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
+        socket.on(WebAppEndpoint.CodeEditor, (result: strinsocketg) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
