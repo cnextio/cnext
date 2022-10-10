@@ -1,12 +1,12 @@
 import os
 import platform
-from pathlib import PureWindowsPath
+from pathlib import PureWindowsPath, PurePosixPath
 import simplejson as json
 
 ## path to the server config file #
 SERVER_CONFIG_PATH = 'server.yaml'
 ## path to the workspace config file #
-WORKSPACE_METADATA_PATH = 'workspace.yaml'
+WORKSPACE_METADATA_PATH = '../workspace.yaml'
 ## name of the folder where cnext stores project related information #
 CNEXT_PROJECT_FOLDER = '.cnext'
 ## name of the file where cnext stores project related config #
@@ -124,16 +124,22 @@ class WorkspaceMetadata(JsonSerializable):
             for project in projects_config['open_projects']:
                 self.open_projects.append(ProjectInfoInWorkspace(**project))
 
+
 class Platform:
-    MAC =  'Darwin'
+    MAC = 'Darwin'
     LINUX = 'Linux'
     WINDOWNS = 'Windows'
 
+
 def get_platform_path(path):
+    if path == "":
+        return path
+
     if platform.system() == Platform.WINDOWNS:
         return str(PureWindowsPath(path))
     else:
-        return PureWindowsPath(path).as_posix()
+        return str(PurePosixPath(path))
+
 
 class FileManagerMessageParams:
     def __init__(self, params: dict):
