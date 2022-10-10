@@ -1,7 +1,7 @@
 import socket from "../../../components/Socket";
 import { WebAppEndpoint } from "../../../interfaces/IApp";
 import store, { RootState } from "../../../../redux/store";
-import { getCodeText } from "../libCodeEditor";
+import { getCodeText, getMainEditorModel } from "./libCodeEditor";
 import { CompletionTriggerKind, SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
 
 class PythonLanguageClient {
@@ -16,6 +16,13 @@ class PythonLanguageClient {
     constructor(config: any, monaco: any) {
         this.config = config;
         this.monaco = monaco;
+    }
+
+    doValidate() {
+        if (this.changesTimeout) clearTimeout(this.changesTimeout);
+        this.changesTimeout = self.setTimeout(() => {
+            this.sendChange();
+        }, this.changesDelay);
     }
 
     registerSignatureHelp() {
@@ -156,8 +163,8 @@ class PythonLanguageClient {
                 switch (notification.method) {
                     case "textDocument/publishDiagnostics":
                         if (this.settings().lint) {
-                            console.log("textDocument/publishDiagnostics", notification.params);
-                            // this.processDiagnostics(notification.params);
+                            let diagnostics = notification.params.diagnostics;
+                            this.processDiagnostics(diagnostics);
                         }
                 }
             } catch (error) {
@@ -167,6 +174,24 @@ class PythonLanguageClient {
 
         // send initinalize
         this.initializeLS();
+    }
+
+    processDiagnostics(diagnostics: any) {
+        let model = getMainEditorModel(this.monaco);
+        this.monaco.editor.setModelMarkers(
+            model,
+            "lint",
+            diagnostics.map((diagnostic: any) => ({
+                startLineNumber: diagnostic.range.start.line + 1,
+                startColumn: diagnostic.range.start.character + 1,
+                endLineNumber: diagnostic.range.end.line + 1,
+                endColumn: diagnostic.range.end.character + 1,
+                severity: diagnostic.severity,
+                source: diagnostic.source,
+                message: diagnostic.message,
+                code: diagnostic.code,
+            }))
+        );
     }
 
     async requestLS(channel: string, method: string, params: object, timeout: number) {
@@ -276,7 +301,7 @@ class PythonLanguageClient {
             this.timeout
         );
 
-        let documentText = getCodeText(store.getState()).join("\n");
+        let documentText = getCodeText(store.getState());
         if (result && result.capabilities) {
             this.requestLS(WebAppEndpoint.LanguageServer, "initialized", {}, this.timeout);
             this.requestLS(
@@ -296,7 +321,7 @@ class PythonLanguageClient {
     }
 
     async sendChange() {
-        let documentText = getCodeText(store.getState()).join("\n");
+        let documentText = getCodeText(store.getState());
         this.requestLS(
             WebAppEndpoint.LanguageServer,
             "textDocument/didChange",
