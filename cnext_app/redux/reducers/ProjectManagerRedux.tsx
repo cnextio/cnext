@@ -77,6 +77,7 @@ type ProjectManagerState = {
     showGitManager: boolean;
     fileDiff: string;
     openFilesUpdateCount: number;
+    updateInViewIDCount:number
 };
 
 const initialState: ProjectManagerState = {
@@ -94,6 +95,7 @@ const initialState: ProjectManagerState = {
     savingStateFile: null,
     showProjectExplore: false,
     serverSynced: false,
+    updateInViewIDCount:0,
     settings: {
         view_mode: ViewMode.VERTICAL,
         layout: defaultLayoutSettings,
@@ -151,7 +153,9 @@ export const ProjectManagerRedux = createSlice({
 
         setInView: (state, action) => {
             let inViewID = action.payload;
+            state.updateInViewIDCount = state.updateInViewIDCount+1
             state.inViewID = inViewID;
+            
             if (
                 state.openOrder.includes(inViewID) &&
                 state.openOrder[state.openOrder.length - 1] !== inViewID

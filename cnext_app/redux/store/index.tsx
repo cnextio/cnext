@@ -19,8 +19,12 @@ const store = configureStore({
         richOutput: RichOutputRedux,
         notification: NotificationRedux,
         terminal: TerminalRedux,
-        executorManager: ExecutorManagerRedux
+        executorManager: ExecutorManagerRedux,
     },
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: false,
+        }),
 });
 
 // expose store when run in Cypress

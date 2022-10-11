@@ -51,7 +51,7 @@ export interface ICodeLine {
     result?: ICodeResult[];
     textOutput?: ICodeResult;
     generated: boolean;
-    groupID: string|null;
+    groupID: string | null;
     cAssistInfo?: ICAssistInfo;
 }
 
@@ -126,9 +126,13 @@ export interface ICodeResultMessage {
 }
 
 export enum CellCommand {
-    RUN_CELL = "RUN",
+    RUN_CELL = "RUN_CELL",
     CLEAR = "CLEAR",
     ADD_CELL = "ADD_CELL",
+    DELL_CELL = "DELL_CELL",
+    RUN_ABOVE_CELL="RUN_ABOVE_CELL",
+    RUN_BELOW_CELL="RUN_BELOW_CELL",
+    RUN_ALL_CELL="RUN_ALL_CELL"
 }
 
 export type ICodeResultContent = string | object | IPlotResult;
