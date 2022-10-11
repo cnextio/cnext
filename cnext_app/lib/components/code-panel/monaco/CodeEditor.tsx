@@ -194,8 +194,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     const socketInit = () => {
-        socket.emit("ping", WebAppEndpoint.CodeEditor);
-        socket.on(WebAppEndpoint.CodeEditor, (result: strinsocketg) => {
+          socket?.emit("ping", WebAppEndpoint.CodeEditor);
+          socket?.on(WebAppEndpoint.CodeEditor,  (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -253,7 +253,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         return () => {
             console.log("CodeEditor unmount");
-            socket.off(WebAppEndpoint.CodeEditor);
+              socket?.off(WebAppEndpoint.CodeEditor);
         };
     }, []);
 
@@ -377,6 +377,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
             }
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
+                    console.log("run cell");
+                    
                     addToRunQueueHoverCell();
                     break;
                 case CellCommand.CLEAR:
