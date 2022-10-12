@@ -8,6 +8,7 @@ import { XTerm } from "../../../@xterm";
 import styled from "styled-components";
 import { deleteAllCookies, delete_cookie } from "../../../../utils";
 import { getDomain } from "../../../../utils/domain";
+import { SERVER_SOCKET_ENDPOINT } from "../../Socket";
 const errorTokenExpired = "Failed to fetch";
 const Terminal = "terminalIO";
 let elementTerminal: HTMLElement | null;
@@ -24,13 +25,24 @@ const TerminalComponent = () => {
     async function init() {
         if (config.port && config.token) {
             try {
-                const BASEURL = `${getDomain()}:${config.port}`;
+                let base = SERVER_SOCKET_ENDPOINT;
+
+                if (base?.endsWith("/")) {
+                    base = base.slice(0, -1);
+                }
+
+                if (base === "") {
+                    base = window.location.origin;
+                }
+
+                const BASEURL = `${base}/jps`;
                 const TOKEN = `${config.token}`;
                 const WSURL = "ws:" + BASEURL.split(":").slice(1).join(":");
                 const connectionInfo = ServerConnection.makeSettings({
                     baseUrl: BASEURL,
-                    wsUrl: WSURL,
+                    wsUrl: BASEURL.replace("http", "ws"),
                     token: TOKEN,
+                    appendToken: true,
                     init: {},
                 });
                 PageConfig.setOption(`terminalsAvailable`, "true");
@@ -60,7 +72,14 @@ const TerminalComponent = () => {
                         switch (msg.type) {
                             case "stdout":
                                 if (msg.content) {
-                                    xtermRef?.current?.terminal.write(msg.content[0] as string);
+                                    // xtermRef?.current?.terminal.write(msg.content[0] as string);
+                                    // remove color yellow , #ddd can check with window later
+                                    const stripAnsiCodes = (str: string) =>
+                                        str
+                                            .replaceAll("\u001b[93m", "")
+                                            .replaceAll("\u001b[97m", "");
+                                    const stdout = stripAnsiCodes(msg.content[0] as string);
+                                    xtermRef?.current?.terminal.write(stdout);
                                 }
                                 break;
                             case "disconnect":
@@ -89,6 +108,7 @@ const TerminalComponent = () => {
             }
         }
     }
+    
     useEffect(() => {
         init();
         return () => {
@@ -115,8 +135,8 @@ const TerminalComponent = () => {
             const content = [
                 event.rows,
                 event.cols,
-                elementTerminal.offsetHeight,
-                elementTerminal.offsetWidth,
+                elementTerminal?.offsetHeight,
+                elementTerminal?.offsetWidth,
             ];
             if (!session.isDisposed) {
                 fitAddon.fit();
@@ -140,8 +160,7 @@ const TerminalComponent = () => {
                 convertEol: true,
                 fontFamily: "monospace",
                 fontSize: 13,
-                lineHeight: 1.2,
-                fontWeight: 400,
+                lineHeight: 1.4,
                 theme: {
                     selection: "#b1b1b155",
                     background: "white",

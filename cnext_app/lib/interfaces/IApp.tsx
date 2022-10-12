@@ -42,7 +42,7 @@ export interface IMessage {
         | IExecutorManagerResultContent
         | null; // the command string and output string|object
     error?: boolean;
-    metadata?: object; // store info about the dataframe and columns
+    metadata?: object | null; // store info about the dataframe and columns
     // related to this command
 }
 
@@ -66,6 +66,7 @@ export interface IMessage {
 export enum CommandName {
     exec_line = "exec_line",
     exec_grouped_lines = "exec_grouped_lines",
+    send_stdin = "send_stdin",
     /** this command contained the updated information of the dataframe status. It is used
      * for the server to inform client about changes in the status */
     update_df_status = "update_df_status",
@@ -80,6 +81,9 @@ export enum CommandName {
     plot_column_quantile = "plot_column_quantile",
     get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
     get_jupyter_server_config = "get_jupyter_server_config",
+    get_registered_udfs = "get_registered_udfs",
+    compute_udf = "compute_udf",
+    set_dataframe_cell_value = "set_dataframe_cell_value"
 }
 
 export enum ContentType {
@@ -98,13 +102,16 @@ export enum ContentType {
     PROJECT_METADATA = "project_metadata",
     PROJECT_LIST = "project_list",
     WORKSPACE_METADATA = "workspace_metadata",
+    INPUT_REQUEST = "input_request",
+    IPYTHON_MSG = "ipython_msg",
 }
 
 export enum StandardMimeType {
     IMAGE_PNG = "image/png",
     IMAGE_JPG = "image/jpg",
     IMAGE_JPEG = "image/jpeg",
-    IMAGE_SVG = "image/svg+xml",
+    IMAGE_SVG = "image/svg",
+    IMAGE_SVG_XML = "image/svg+xml",
     IMAGE_PLOTLY = "image/plotly+json",
     TEXT_HTML = "text/html",
     TEXT_PLAIN = "text/plain",
@@ -147,7 +154,7 @@ export interface ITableData {
     df_id: string;
     index: { name: string; data: any[] };
     column_names: string[];
-    rows: [][];
+    rows: any[][];
 }
 
 export interface IPlot {
@@ -163,6 +170,7 @@ export interface IColumnMetadata {
     countna: number;
     quantile_plot: IPlot;
     histogram_plot: IPlot;
+    udfs: { [udfName: string]: {} | null };
 }
 
 export interface IMetadata {
@@ -191,15 +199,19 @@ export enum FilterType {
     col = "col",
 }
 
-export enum FileMimeType {
+export enum SpecialMimeType {
     FILE_PNG = "file/png",
     FILE_JPG = "file/jpg",
     URL_PNG = "url/png",
     URL_JPG = "url/jpg",
+    URL_IMAGE = "url/image",
+    INPUT_SELECTION = "input/selection",
+    INPUT_CHECKBOX = "input/checkbox",
+    INPUT_TEXT = "input/text",
 }
 
-export const CNextMimeType = { ...FileMimeType, ...StandardMimeType };
-export type CNextMimeType = FileMimeType | StandardMimeType;
+export const CNextMimeType = { ...SpecialMimeType, ...StandardMimeType };
+export type CNextMimeType = SpecialMimeType | StandardMimeType;
 
 export interface DFFilter {
     type: FilterType;
@@ -214,12 +226,13 @@ export enum ViewMode {
 
 export enum SideBarName {
     PROJECT = "Projects",
-    INBOX = "Inbox",
-    CLEAR_OUTPUTS = "ClearOuputs",
     CHANGE_LAYOUT = "ChangeLayout",
+}
+
+export enum ExecutorToolbarItem {
+    CLEAR_OUTPUTS = "ClearOuputs",
     RESTART_KERNEL = "RestartKernel",
     INTERRUPT_KERNEL = "InterruptKernel",
-    ADD_CELL = "ADD_CELL",
 }
 
 // export interface IDFUpdates {
@@ -276,8 +289,8 @@ export interface IColumnMetadata {
     countna: number;
     unique: string | number[];
     describe: {};
-    histogram_plot: {} | null;
-    quantile_plot: {} | null;
+    // histogram_plot: {} | null;
+    // quantile_plot: {} | null;
 }
 
 export interface IDFMetadata {
@@ -286,9 +299,14 @@ export interface IDFMetadata {
     columns: { [key: string]: IColumnMetadata };
 }
 
-export interface IDataFrameStatsConfig {
-    histogram: boolean;
-    quantile: boolean;
+// export interface IDataFrameStatsConfig {
+//     histogram: boolean;
+//     quantile: boolean;
+// }
+
+export interface IDataFrameUDFSelection {
+    udfs: { [UDFName: string]: boolean };
+    timestamp: string;
 }
 
 interface IExperimentManagerConfig {

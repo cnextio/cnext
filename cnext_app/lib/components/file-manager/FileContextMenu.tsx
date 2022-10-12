@@ -1,24 +1,24 @@
 import React from "react";
 import { ContextMenu, ContextMenuItem } from "../StyledComponents";
-import { FileContextMenuItem } from "../../interfaces/IFileManager";
+import { FileContextMenuCommand } from "../../interfaces/IFileManager";
 
 //TODO: refactor to use libs/ContextMenu instead
 const FileContextMenu = ({ contextMenuPos, handleClose, handleSelection, contextMenuItem }) => {
     const menu = [
         {
-            name: FileContextMenuItem.NEW_FILE,
+            name: FileContextMenuCommand.NEW_FILE,
             text: "New file",
             disable: true ? contextMenuItem?.is_file : false, // disable create file function if context menu is file type
         },
         {
-            name: FileContextMenuItem.NEW_FOLDER,
+            name: FileContextMenuCommand.NEW_FOLDER,
             text: "New folder",
             disable: true ? contextMenuItem?.is_file : false, // disable create folder function if context menu is file type
         },
-        { name: FileContextMenuItem.DIVIDER },
-        { name: FileContextMenuItem.RENAME, text: "Rename", disable: true },
+        { name: FileContextMenuCommand.DIVIDER },
+        { name: FileContextMenuCommand.RENAME, text: "Rename", disable: true },
         {
-            name: FileContextMenuItem.DELETE,
+            name: FileContextMenuCommand.DELETE,
             text: "Delete",
             disable: true ? !contextMenuItem?.deletable : false,
         },
@@ -28,19 +28,20 @@ const FileContextMenu = ({ contextMenuPos, handleClose, handleSelection, context
         <ContextMenu
             open={contextMenuPos != null}
             onClose={handleClose}
-            anchorReference='anchorPosition'
+            anchorReference="anchorPosition"
             anchorPosition={
                 contextMenuPos !== null
                     ? { top: contextMenuPos.mouseY, left: contextMenuPos.mouseX }
                     : undefined
             }
         >
-            {menu.map((item) => {
+            {menu.map((item, index:number) => {
                 return (
                     <ContextMenuItem
                         disabled={item.disable ? true : false}
-                        divider={item.name === FileContextMenuItem.DIVIDER}
+                        divider={item.name === FileContextMenuCommand.DIVIDER}
                         onClick={() => handleSelection(item.name)}
+                        key={index}
                     >
                         {item.text}
                     </ContextMenuItem>

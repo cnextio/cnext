@@ -6,11 +6,12 @@ import {
     ReviewRequestType,
     IDFUpdatesReview,
     IMetadata,
-    IDataFrameStatsConfig,
     DFViewMode,
+    IDataFrameUDFSelection,
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
+import { IDataFrameFilter, IRegisteredUDFs, UDF } from "../../lib/interfaces/IDataFrameManager";
 
 interface ILoadDataRequest {
     df_id: string | null;
@@ -32,10 +33,13 @@ export type DataFrameState = {
     // currently only support loading by row index. 'count' is used to indicate new request
     loadDataRequest: ILoadDataRequest;
     loadColumnHistogram: boolean;
-    dfFilter: null;
-    stats: IDataFrameStatsConfig;
+    dfFilter: IDataFrameFilter | null;
     dataViewMode: string;
     // dfUpdateCount: number;
+    /** this number increase whenever DataPanel is focused */
+    dataPanelFocusSignal: number;
+    udfsSelector: { [id: string]: IDataFrameUDFSelection };
+    registeredUDFs: IRegisteredUDFs; //{ [name: string]: UDF };
 };
 
 const initialState: DataFrameState = {
@@ -53,9 +57,11 @@ const initialState: DataFrameState = {
     loadDataRequest: { df_id: null, count: 0, row_index: 0 },
     loadColumnHistogram: false,
     dfFilter: null,
-    stats: { histogram: false, quantile: false },
     dataViewMode: DFViewMode.TABLE_VIEW,
     // dfUpdateCount: 0,
+    dataPanelFocusSignal: 0,
+    udfsSelector: {},
+    registeredUDFs: { udfs: {}, timestamp: "0" },
 };
 
 export const dataFrameSlice = createSlice({
@@ -85,37 +91,16 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             state.metadata[df_id] = action.payload;
-        },
-
-        // setColumnHistogramPlot: (state, action) => {
-        //     // for testing
-        //     // state.data = testTableData
-        //     const df_id = action.payload['df_id'];
-        //     const col_name = action.payload['col_name'];
-        //     if (!(df_id in state.columnHistogram)){
-        //         state.columnHistogram[df_id] = {};
-        //     }
-        //     // if ('plot' in action.payload){
-        //         // state.columnHistogram[df_id][col_name] = action.payload['plot'];
-        //     // }
-        //     state.columnHistogram[df_id][col_name] = ifElseDict(action.payload, 'plot');
-        //     state.loadColumnHistogram = false;
-        // },
-
-        setColumnHistogramPlot: (state, action) => {
-            // for testing
-            // state.data = testTableData
-            const df_id = action.payload["df_id"];
-            const col_name = action.payload["col_name"];
-            state.metadata[df_id].columns[col_name].histogram_plot = action.payload["data"];
-        },
-
-        setColumnQuantilePlot: (state, action) => {
-            // for testing
-            // state.data = testTableData
-            const df_id = action.payload["df_id"];
-            const col_name = action.payload["col_name"];
-            state.metadata[df_id].columns[col_name].quantile_plot = action.payload["data"];
+            let udfSelector: { [udfName: string]: boolean } = {};
+            if (state.registeredUDFs instanceof Object) {
+                for (const udfName in state.registeredUDFs.udfs) {
+                    udfSelector[udfName] = false;
+                }
+                state.udfsSelector[df_id] = {
+                    udfs: udfSelector,
+                    timestamp: state.registeredUDFs.timestamp,
+                };
+            }
         },
 
         /**
@@ -315,17 +300,74 @@ export const dataFrameSlice = createSlice({
             state.dfFilter = action.payload;
         },
 
-        setStatsConfig: (state, action) => {
-            if (action.payload) {
-                state.stats = { ...action.payload };
-            }
-        },
-
         setDataViewMode: (state, action) => {
             if (action.payload) {
                 state.dataViewMode = action.payload;
             }
         },
+
+        setDataPanelFocusSignal: (state) => {
+            state.dataPanelFocusSignal++;
+        },
+
+        setRegisteredUDFs: (state, action) => {
+            state.registeredUDFs = action.payload;
+            for (const df_id in state.udfsSelector) {
+                /** reset udfSelector if timestamp is different */
+                if (state.udfsSelector[df_id].timestamp !== state.registeredUDFs.timestamp) {
+                    let udfSelector: { [udfName: string]: boolean } = {};
+                    for (const udfName in state.registeredUDFs.udfs) {
+                        udfSelector[udfName] = false;
+                    }
+                    state.udfsSelector[df_id] = {
+                        udfs: udfSelector,
+                        timestamp: state.registeredUDFs.timestamp,
+                    };
+                    /** remove all existing udf data */
+                    let columns = state.metadata[df_id].columns;
+                    for (const udfName in state.registeredUDFs.udfs) {
+                        for (let column_name in columns) {
+                            if (columns[column_name].udfs)
+                                columns[column_name].udfs[udfName] = null;
+                        }
+                    }
+                }
+            }
+        },
+
+        setUDFsSelection: (state, action) => {
+            const data = action.payload;
+            if (data) {
+                state.udfsSelector[data.df_id].udfs = data.selections;
+
+                /** remove udf data if unselected */
+                let columns = state.metadata[data.df_id].columns;
+                for (const udf in data.selections) {
+                    if (!data.selections[udf]) {
+                        for (let column_name in columns) {
+                            if (columns[column_name].udfs) columns[column_name].udfs[udf] = null;
+                        }
+                    }
+                }
+            }
+        },
+
+        setComputeUDFData: (state, action) => {
+            const udfName = action.payload["udf_name"];
+            const df_id = action.payload["df_id"];
+            const col_name = action.payload["col_name"];
+            if (!("udfs" in state.metadata[df_id].columns[col_name]))
+                state.metadata[df_id].columns[col_name].udfs = {};
+            state.metadata[df_id].columns[col_name].udfs[udfName] = action.payload["data"];
+        },
+
+        setTableDataCellValue: (state, action) => {
+            const data = action.payload;
+            const df_id = data.df_id as string;
+            const rowNumber = data.rowNumber;
+            const colNumber = state.tableData[df_id].column_names.indexOf(data.col_name);
+            state.tableData[df_id].rows[rowNumber][colNumber] = data.value;
+        }
     },
 });
 
@@ -333,15 +375,17 @@ export const dataFrameSlice = createSlice({
 export const {
     setTableData,
     setMetadata,
-    setColumnHistogramPlot,
     setDFUpdates,
     setReview,
     setActiveDF,
     setDFFilter,
-    setColumnQuantilePlot,
-    setStatsConfig,
     setDataViewMode,
     setDFStatusShowed,
+    setDataPanelFocusSignal,
+    setRegisteredUDFs,
+    setUDFsSelection,
+    setComputeUDFData,
+    setTableDataCellValue,
 } = dataFrameSlice.actions;
 
 export default dataFrameSlice.reducer;

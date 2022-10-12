@@ -34,7 +34,7 @@ const DataView = () => {
         }
     };
     //TODO: move all grid view related thing to under DataView
-    return <Fragment>{tableData[activeDataFrame] != null && renderData()}</Fragment>;
+    return <>{tableData[activeDataFrame] != null && renderData()}</>;
 };
 
 export default DataView;

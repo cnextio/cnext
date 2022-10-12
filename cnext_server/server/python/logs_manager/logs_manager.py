@@ -8,7 +8,7 @@ from libs import logs
 from libs.message import LogsCommand
 from os import path
 import requests
-root_url = "https://logs-01.loggly.com/bulk/edbf13fa-75a8-4297-a1ba-c0b6146deebc/tag/"
+root_url = "http://logs-01.loggly.com/inputs/c58f8bb2-2332-4915-b9f3-70c1975956bb/tag/"
 log = logs.get_logger(__name__)
 
 class MessageHandler(BaseMessageHandler):

@@ -204,3 +204,10 @@ export interface ICodeToInsertInfo {
     mode: CodeInsertMode;
 }
 /** */
+
+export enum IPythonMessageType {
+    EXECUTE_REPLY = "execute_reply",
+    INPUT_REQUEST = "input_request",
+    SHUTDOWN_REPLY = "shutdown_reply",
+    STATUS = "status"
+}

@@ -22,8 +22,8 @@ class BaseMessageHandler:
         return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
 
     @staticmethod
-    def _is_execute_reply(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY
+    def _is_input_request(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.INPUT_REQUEST
 
     @staticmethod
     def _is_stream_result(header) -> bool:
@@ -85,8 +85,10 @@ class BaseMessageHandler:
         #         result = message['content']['text']
         #         result = json.loads(result)
         elif message.header['msg_type'] == IPythonConstants.MessageType.DISPLAY_DATA:
-            if SubContentType.APPLICATION_PLOTLY in message.content['data']:
-                result = message.content['data'][SubContentType.APPLICATION_PLOTLY]
+            # if SubContentType.APPLICATION_PLOTLY in message.content['data']:
+            #     result = message.content['data'][SubContentType.APPLICATION_PLOTLY]
+            # else:
+            result = message.content['data']
         return result
 
     @staticmethod

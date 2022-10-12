@@ -1,3 +1,4 @@
+import asyncio
 import time
 import psutil
 from traitlets.config import Configurable
@@ -43,8 +44,12 @@ class ResourceStatus:
 class MessageHandler(BaseMessageHandler):
     def __init__(self, p2n_queue, user_space=None):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
+        self.resource_status = ResourceStatus()
+        
+        event_loop = asyncio.get_event_loop()
+        ## we have to pass event_loop to the thread otherwise it won't have one #
         executor_manager_thread = threading.Thread(
-            target=self.handle_message, args=(user_space,), daemon=True)
+            target=self.handle_message, args=(event_loop,), daemon=True)
         executor_manager_thread.start()
 
         server_app = ServerApp()
@@ -56,8 +61,6 @@ class MessageHandler(BaseMessageHandler):
         executor_status_thread = threading.Thread(
             target=self._update_resouce_usage, daemon=True)
         executor_status_thread.start()
-
-        self.resource_status = ResourceStatus()
 
     def _check_resource_threshold(self, alive_status, resource_usage):
         if self.resource_status.alive_status != alive_status:
@@ -139,8 +142,9 @@ class MessageHandler(BaseMessageHandler):
             metrics.update(cpu_percent=cpu_percent, cpu_count=cpu_count)
         return metrics
 
-    def handle_message(self, message):
+    def handle_message(self, event_loop):
         log.info("Kernel control thread started")
+        asyncio.set_event_loop(event_loop)
         ## reading config here to get the most updated version #
         server_config = read_config(SERVER_CONFIG_PATH)
         n2p_queue = MessageQueuePull(
@@ -150,33 +154,44 @@ class MessageHandler(BaseMessageHandler):
                 strMessage = n2p_queue.receive_msg()
                 message = Message(**json.loads(strMessage))
                 log.info("Received control message: %s" % message)
-                if message.command_name == ExecutorManagerCommand.restart_kernel:
-                    result = self.user_space.restart_executor()
-                    if result:
-                        # get the lastest config to make sure that it is updated with the lastest open project
-                        workspace_info = read_config(WORKSPACE_METADATA_PATH)
-                        workspace_metadata = WorkspaceMetadata(
-                            workspace_info.__dict__)
-                        set_executor_working_dir(
-                            self.user_space, workspace_metadata)
-                    message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
-                                         'command_name': message.command_name,
-                                         'content': {'success': result}})
-                elif message.command_name == ExecutorManagerCommand.interrupt_kernel:
-                    result = self.user_space.interrupt_executor()
-                    message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
-                                         'command_name': message.command_name,
-                                         'content': {'success': result}})
-                elif message.command_name == ExecutorManagerCommand.get_status:
-                    status = self.user_space.is_alive()
-                    # resource_usage = self._get_resource_usage()
-                    # log.info("Memory usage %s" % resource_usage)
-                    message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
-                                         'command_name': message.command_name,
-                                         'content': {'alive': status}})
-                    #  'content': {'alive': status, 'resource': resource_usage}})
-
-                self._send_to_node(message)
+                if self.user_space.is_alive():
+                    if message.command_name == ExecutorManagerCommand.restart_kernel:
+                        result = self.user_space.restart_executor()
+                        if result:
+                            # get the lastest config to make sure that it is updated with the lastest open project
+                            workspace_info = read_config(WORKSPACE_METADATA_PATH)
+                            workspace_metadata = WorkspaceMetadata(
+                                workspace_info.__dict__)
+                            set_executor_working_dir(
+                                self.user_space, workspace_metadata)
+                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
+                                            'command_name': message.command_name,
+                                            'content': {'success': result}})
+                    elif message.command_name == ExecutorManagerCommand.interrupt_kernel:
+                        result = self.user_space.interrupt_executor()
+                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
+                                            'command_name': message.command_name,
+                                            'content': {'success': result}})
+                    elif message.command_name == ExecutorManagerCommand.get_status:
+                        status = self.user_space.is_alive()
+                        # resource_usage = self._get_resource_usage()
+                        # log.info("Memory usage %s" % resource_usage)
+                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
+                                            'command_name': message.command_name,
+                                            'content': {'alive': status}})
+                        #  'content': {'alive': status, 'resource': resource_usage}})
+                    elif message.command_name == ExecutorManagerCommand.send_stdin:
+                        self.user_space.send_stdin(message.content)
+                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
+                                            'command_name': message.command_name,
+                                            'content': {'status': 'done'}})
+                    self._send_to_node(message)
+                else:
+                    text = "No executor running"
+                    log.info(text)
+                    error_message = BaseMessageHandler._create_error_message(
+                        message.webapp_endpoint, text, message.command_name, {})
+                    self._send_to_node(error_message)
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))

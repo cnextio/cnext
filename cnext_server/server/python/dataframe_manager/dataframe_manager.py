@@ -6,6 +6,7 @@ import itertools
 import sys
 import traceback
 import simplejson as json
+import copy
 
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
@@ -96,17 +97,20 @@ class MessageHandler(BaseMessageHandler):
         tableData['column_names'] = list(df.columns)
 
         for i, t in enumerate(df.dtypes):
-            if t.name not in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG, CnextMimeType.FILE_JPEG, CnextMimeType.URL_PNG, CnextMimeType.URL_JPG, CnextMimeType.URL_JPEG]:
+            if t.name not in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG,
+                              CnextMimeType.URL_PNG, CnextMimeType.URL_JPG,
+                              CnextMimeType.INPUT_SELECTION, CnextMimeType.INPUT_CHECKBOX, CnextMimeType.INPUT_TEXT]:
                 ## Convert everything else to string #
                 df[df.columns[i]] = df[df.columns[i]].apply(str)
 
         tableData['rows'] = df.values.tolist()
-
         # Modify data field of column with mime type of file/*. See note above
         #  We chose to do this outside of the dataframe, but it can also be done with a dataframe
         #  see https://stackoverflow.com/questions/41710501/is-there-a-way-to-have-a-dictionary-as-an-entry-of-a-pandas-dataframe-in-python ##
+        # log.info('Processing data type %s' % df.dtypes)
         for i, t in enumerate(df.dtypes):
-            if t.name in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG, CnextMimeType.FILE_JPEG]:
+            # log.info('Processing data type %s' % t.name)
+            if t.name in [CnextMimeType.FILE_PNG, CnextMimeType.FILE_JPG]:
                 log.info('Load file for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     file_path = df[df.columns[i]].iloc[r]
@@ -116,8 +120,8 @@ class MessageHandler(BaseMessageHandler):
                         'file_path': file_path,
                         'binary': base64.b64encode(self._get_file_content(file_path, t.name))
                     }
-            elif t.name in [CnextMimeType.URL_PNG, CnextMimeType.URL_JPG, CnextMimeType.URL_JPEG]:
-                log.info('Load file for mime %s' % t.name)
+            elif t.name in [CnextMimeType.URL_PNG, CnextMimeType.URL_JPG]:
+                log.info('Load url for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     url = df[df.columns[i]].iloc[r]
                     response = requests.get(url)
@@ -128,7 +132,13 @@ class MessageHandler(BaseMessageHandler):
                         'url': url,
                         'binary': base64.b64encode(response.content)
                     }
-
+            elif t.name in [CnextMimeType.INPUT_SELECTION, CnextMimeType.INPUT_CHECKBOX, CnextMimeType.INPUT_TEXT]:
+                log.info('Create table for mime %s' % t.name)
+                for r in range(df.shape[0]):
+                    tableData['rows'][r][i] = json.loads(
+                        df[df.columns[i]].iloc[r])
+                    # log.info('Create table for mime %s' % tableData['rows'][r][i])
+        
         tableData['index'] = {}
         tableData['index']['name'] = df.index.name
         tableData['index']['data'] = []
@@ -140,7 +150,7 @@ class MessageHandler(BaseMessageHandler):
         return tableData
 
     @ipython_internal_output
-    def _get_table_data(self, df_id, code):
+    def _ipython_get_table_data(self, df_id, code):
         output = None
         result = self.user_space.execute(code, ExecutionMode.EVAL)
         # print("get table data %s" % result)
@@ -151,7 +161,7 @@ class MessageHandler(BaseMessageHandler):
         return output
 
     @ipython_internal_output
-    def _get_metadata(self, df_id):
+    def _ipython_get_metadata(self, df_id):
         shape = self.user_space.execute("%s.shape" % df_id, ExecutionMode.EVAL)
         df_type = self.user_space.execute(
             "%s.__module__ + '.' + %s.__class__.__name__" % (df_id, df_id), ExecutionMode.EVAL)
@@ -185,6 +195,14 @@ class MessageHandler(BaseMessageHandler):
                   'shape': shape, 'columns': columns}
         return output
 
+    # this function is run inside ipython but we don't have to wrap it with ipython_internal_output
+    # because the UDF inherits JsonSerializable already #
+    # @ipython_internal_output
+    def _ipython_get_registered_udfs(self):
+        result = self.user_space.execute("{}.get_registered_udfs()".format(
+            IPythonInteral.UDF_MODULE.value), ExecutionMode.EVAL)
+        return result
+
     def _process_error_message(self, ipython_message, client_message):
         # log.error("Error %s" % (msg_ipython.content['traceback']))
         if isinstance(ipython_message.content['traceback'], list):
@@ -195,6 +213,21 @@ class MessageHandler(BaseMessageHandler):
             WebappEndpoint.DFManager, content, client_message.command_name, client_message.metadata)
 
     MAX_PLOTLY_SIZE = 1024*1024  # 1MB
+
+    def _compute_udf(self, message):
+        udf_name = message.content
+        metadata = message.metadata
+        df_id = metadata["df_id"]
+        col_list = metadata["col_list"]
+
+        for col_name in col_list:
+            return_message = copy.deepcopy(message)
+            return_message.metadata['col_name'] = col_name
+            return_message.metadata['udf_name'] = udf_name
+            executing_code = "{}.registered_udfs.udfs[\"{}\"].func.run(\"{}\", \"{}\")".format(
+                IPythonInteral.UDF_MODULE.value, udf_name, df_id, col_name)
+            self.user_space.execute(
+                executing_code, ExecutionMode.EVAL, self.message_handler_callback, return_message)
 
     def _create_return_message(self, ipython_message, stream_type, client_message):
         ipython_message = IpythonResultMessage(**ipython_message)
@@ -215,33 +248,29 @@ class MessageHandler(BaseMessageHandler):
                                              for k in ('msg_id', 'msg_type', 'session')))
                 message.metadata.update({'stream_type': stream_type})
 
-                if client_message.command_name == DFManagerCommand.plot_column_histogram:
-                    if total_size(result) < MessageHandler.MAX_PLOTLY_SIZE:
-                        message.content = result
-                        message.type = ContentType.RICH_OUTPUT
-                        message.sub_type = SubContentType.APPLICATION_PLOTLY
-                    else:
-                        message.content = "Warning: column histogram plot size is bigger than 1MB -> discard it"
-                        message.type = ContentType.STRING
-                        message.sub_type = SubContentType.NONE
-
-                elif client_message.command_name == DFManagerCommand.plot_column_quantile:
-                    message.content = result
-                    message.type = ContentType.RICH_OUTPUT
-                    message.sub_type = SubContentType.APPLICATION_PLOTLY
-
-                elif client_message.command_name == DFManagerCommand.get_table_data:
-                    # log.info('DFManagerCommand.get_table_data: %s' % result)
+                if client_message.command_name == DFManagerCommand.get_table_data:
+                    log.info('%s: %s' % (client_message.command_name, result))
                     log.info('DFManagerCommand.get_table_data')
                     message.content = result
                     message.type = ContentType.PANDAS_DATAFRAME
                     message.sub_type = SubContentType.NONE
 
                 elif client_message.command_name == DFManagerCommand.get_df_metadata:
-                    log.info('DFManagerCommand.get_df_metadata: %s' % result)
+                    log.info('%s: %s' % (client_message.command_name, result))
                     message.content = result
                     message.type = ContentType.DICT
                     message.sub_type = SubContentType.NONE
+
+                elif client_message.command_name == DFManagerCommand.get_registered_udfs:
+                    log.info('%s: %s' % (client_message.command_name, result))
+                    message.content = result
+                    message.type = ContentType.DICT
+                    message.sub_type = SubContentType.NONE
+
+                elif client_message.command_name == DFManagerCommand.compute_udf:
+                    message.content = result
+                    message.type = ContentType.RICH_OUTPUT
+                    # message.sub_type = SubContentType.APPLICATION_PLOTLY
 
                 message.error = False
 
@@ -274,29 +303,39 @@ class MessageHandler(BaseMessageHandler):
             message.content = message.content.replace("'", '"')
 
         try:
-            if message.command_name == DFManagerCommand.plot_column_histogram:
-                # result = eval(message.content, client_globals)
-                self.user_space.execute(
-                    message.content, ExecutionMode.EVAL, self.message_handler_callback, message)
+            if self.user_space.is_alive():
+                if message.command_name == DFManagerCommand.get_table_data:
+                    # TODO: turn _df_manager to variable
+                    self.user_space.execute("{}._ipython_get_table_data('{}', '{}')".format(
+                        IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content), ExecutionMode.EVAL, self.message_handler_callback, message)
 
-            elif message.command_name == DFManagerCommand.plot_column_quantile:
-                self.user_space.execute(
-                    message.content, ExecutionMode.EVAL, self.message_handler_callback, message)
+                elif message.command_name == DFManagerCommand.get_df_metadata:
+                    self.user_space.execute("{}._ipython_get_metadata('{}')".format(
+                        IPythonInteral.DF_MANAGER.value, message.metadata['df_id']), ExecutionMode.EVAL, self.message_handler_callback, message)
 
-            elif message.command_name == DFManagerCommand.get_table_data:
-                # TODO: turn _df_manager to variable
-                self.user_space.execute("{}._get_table_data('{}', '{}')".format(
-                    IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content), ExecutionMode.EVAL, self.message_handler_callback, message)
+                elif message.command_name == DFManagerCommand.reload_df_status:
+                    active_df_status = self.user_space.get_active_dfs_status()
+                    active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": message.command_name,
+                                                          "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
+                    self._send_to_node(active_df_status_message)
 
-            elif message.command_name == DFManagerCommand.get_df_metadata:
-                self.user_space.execute("{}._get_metadata('{}')".format(
-                    IPythonInteral.DF_MANAGER.value, message.metadata['df_id']), ExecutionMode.EVAL, self.message_handler_callback, message)
+                elif message.command_name == DFManagerCommand.get_registered_udfs:
+                    self.user_space.execute("{}._ipython_get_registered_udfs()".format(
+                        IPythonInteral.DF_MANAGER.value), ExecutionMode.EVAL, self.message_handler_callback, message)
 
-            elif message.command_name == DFManagerCommand.reload_df_status:
-                active_df_status = self.user_space.get_active_dfs_status()
-                active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": message.command_name,
-                                                      "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
-                self._send_to_node(active_df_status_message)
+                elif message.command_name == DFManagerCommand.compute_udf:
+                    self._compute_udf(message)
+
+                elif message.command_name == DFManagerCommand.set_dataframe_cell_value:
+                    ## Note: have to use single quote here because json.dumps will generate the double quote inside #
+                    self.user_space.execute("{}.at[{}, \"{}\"] = \'{}\'".format(
+                        message.content['df_id'], message.content['index'], message.content['col_name'], json.dumps(message.content['value'])), ExecutionMode.EVAL, self.message_handler_callback, message)
+            else:
+                text = "No executor running"
+                log.info(text)
+                error_message = MessageHandler._create_error_message(
+                    message.webapp_endpoint, text, message.command_name, {})
+                self._send_to_node(error_message)
 
         except:
             trace = traceback.format_exc()

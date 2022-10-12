@@ -18,6 +18,7 @@ class IpythonResultMessage(JsonSerializable):
 class IPythonConstants:
     class MessageType(str, Enum):
         EXECUTE_REPLY = 'execute_reply'
+        INPUT_REQUEST = 'input_request'
         INSPECT_REPLY = 'inspect_reply'
         COMPLETE_REPLY = 'complete_reply'
         HISTORY_REPLY = 'history_reply'
@@ -42,6 +43,7 @@ class IPythonConstants:
     class StreamType(str, Enum):
         IOBUF = 'iobuf'
         SHELL = 'shell'
+        STDIN = 'stdin'
         CONTROL = 'control'
 
     class ShellMessageStatus(str, Enum):
@@ -64,3 +66,4 @@ class IPythonInteral(Enum):
     DF_MANAGER = '_df_manager'
     CASSIST = '_cassist'
     USER_SPACE = '_user_space'
+    UDF_MODULE = '_udf'

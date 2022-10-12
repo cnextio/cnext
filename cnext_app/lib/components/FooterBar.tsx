@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
     FooterNavigation,
     LeftFooterItem,
@@ -7,11 +7,12 @@ import {
 } from "./StyledComponents";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
-import { setProjectSetting } from "../../redux/reducers/ProjectManagerRedux";
-import socket from "./Socket";
+import { setProjectConfig } from "../../redux/reducers/ProjectManagerRedux";
+// import socket from "./Socket";
 import { WebAppEndpoint } from "../interfaces/IApp";
 import { LogsCommand } from "../interfaces/ILogsManager";
 import { CircularProgress } from "@mui/material";
+import { SocketContext } from "./Socket";
 
 const enum FootbarItemName {
     AUTOCOMPLETION = "Autocompletion",
@@ -33,6 +34,7 @@ export const WhiteCircleProgress = () => {
 };
 
 const FooterBarComponent = () => {
+    const socket = useContext(SocketContext);
     // const [codeEditorConfig, setCodeEditorConfig] = useState({ lint: false, hover: false, autocompletion: false });
     const [sending, setSending] = useState(false);
 
@@ -60,7 +62,7 @@ const FooterBarComponent = () => {
                     lint: codeEditorSettings.lint ? false : true,
                 };
                 dispatch(
-                    setProjectSetting({
+                    setProjectConfig({
                         code_editor: {
                             ...updatedSettings,
                         },
@@ -74,7 +76,7 @@ const FooterBarComponent = () => {
                     hover: codeEditorSettings.hover ? false : true,
                 };
                 dispatch(
-                    setProjectSetting({
+                    setProjectConfig({
                         code_editor: {
                             ...updatedSettings,
                         },
@@ -87,7 +89,7 @@ const FooterBarComponent = () => {
                     show_markdown: richOutputSettings.show_markdown ? false : true,
                 };
                 dispatch(
-                    setProjectSetting({
+                    setProjectConfig({
                         rich_output: {
                             ...updatedSettings,
                         },
@@ -111,9 +113,9 @@ const FooterBarComponent = () => {
             };
 
             let channel = WebAppEndpoint.LogsManager;
-            socket.emit(channel, JSON.stringify(message));
+            socket?.emit(channel, JSON.stringify(message));
             if (channel) {
-                socket.once(channel, (result) => {
+                socket?.once(channel, (result) => {
                     const response = JSON.parse(result.toString());
                     setSending(false);
                     resolve(response);

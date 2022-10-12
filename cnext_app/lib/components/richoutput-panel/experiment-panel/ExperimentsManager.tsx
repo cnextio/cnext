@@ -1,10 +1,10 @@
 import { Checkbox, Typography } from "@mui/material";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useContext, useEffect, useState } from "react";
 import Moment from "react-moment";
 import "moment-timezone";
 import { CommandType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { ExperimentManagerCommand } from "../../../interfaces/IExperimentManager";
-import socket from "../../Socket";
+import { SocketContext } from "../../Socket";
 import {
     DFSelector as ExpSelector,
     SmallArrowIcon,
@@ -34,6 +34,7 @@ import { ifElse } from "../../libs";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 
 const ExperimentManager = (props: any) => {
+    const socket = useContext(SocketContext);
     const [metricPlotData, setMetricPlot] = useState();
     const [timer, setTimer] = useState();
     const [timeout, setTimeout] = useState(0);
@@ -175,8 +176,8 @@ const ExperimentManager = (props: any) => {
 
     const socketInit = () => {
         // const socket = openSocket(CODE_SERVER_SOCKET_ENDPOINT);
-        socket.emit("ping", "ExperimentManager");
-        socket.on(WebAppEndpoint.ExperimentManager, (result: string) => {
+        socket?.emit("ping", "ExperimentManager");
+        socket?.on(WebAppEndpoint.ExperimentManager, (result: string, ack) => {
             console.log("ExperimentManager got results...", result);
             try {
                 let emResult: IMessage = JSON.parse(result);
@@ -221,13 +222,14 @@ const ExperimentManager = (props: any) => {
             } catch (error) {
                 throw error;
             }
+            if (ack) ack();
         });
         // return () => socket.disconnect();
     };
 
     const sendMessage = (message: {}) => {
         console.log(`Send ${WebAppEndpoint.ExperimentManager} request: `, JSON.stringify(message));
-        socket.emit(WebAppEndpoint.ExperimentManager, JSON.stringify(message));
+        socket?.emit(WebAppEndpoint.ExperimentManager, JSON.stringify(message));
     };
 
     useEffect(() => {
@@ -244,9 +246,9 @@ const ExperimentManager = (props: any) => {
         };
         sendMessage(message);
         return () => {
-            socket.off(WebAppEndpoint.ExperimentManager);
+            socket?.off(WebAppEndpoint.ExperimentManager);
         };
-    }, []);
+    }, [socket]);
 
     function handleExpChange(event: React.SyntheticEvent) {
         console.log("ExperimentView handleExpChange: ", event.target);

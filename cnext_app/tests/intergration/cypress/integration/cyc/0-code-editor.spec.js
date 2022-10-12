@@ -26,9 +26,11 @@ describe("Test Code Editor", () => {
         cy.get("@editor").type("df.drop");
         cy.wait(WAIT_500MLS);
         cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-tooltip-autocomplete > .cm-tooltip").should("be.visible");
         cy.get(".cm-read-more-btn").should("be.visible");
         cy.get(".cm-read-more-btn").click();
-        cy.get("#code-doc-content").should("be.visible");
+        cy.wait(WAIT_500MLS);
+        cy.get(".cm-tooltip-autocomplete > .cm-tooltip").should("not.be.visible");
 
         // check data
         let content = cy
@@ -50,7 +52,7 @@ describe("Test Code Editor", () => {
 
         cy.get("@editor").type("{esc}");
         cy.wait(WAIT_1S);
-        cy.get(".cm-tooltip-signature").should("not.exist");
+        cy.get(".cm-tooltip-signature").should("not.be.visible");
 
         removeText(cy.get("@editor"));
         cy.get("@editor").type(codeTestDF);
