@@ -6,7 +6,7 @@ const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
 const { nanoid } = require("nanoid");
-const { eventLog } = require("./EventLog");
+const { eventLog } = require("./eventLog");
 // const { instrument } = require("@socket.io/admin-ui");
 const { PythonShell } = require("python-shell");
 const {
