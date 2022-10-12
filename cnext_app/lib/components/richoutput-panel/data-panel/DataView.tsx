@@ -5,6 +5,9 @@ import GridView from "./GridView";
 import TableView from "./TableView";
 import { DFViewMode } from "../../../interfaces/IApp";
 import SummaryView from "../summary-panel/SummaryView";
+import TableViewVirtual from "./TableViewVirtual";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const queryClient = new QueryClient();
 
 const DataView = () => {
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
@@ -18,7 +21,12 @@ const DataView = () => {
             case DFViewMode.GRID_VIEW:
                 return <GridView />;
             case DFViewMode.TABLE_VIEW:
-                return <TableView />;
+                return (
+                    <QueryClientProvider client={queryClient}>
+                        <TableViewVirtual />;
+                    </QueryClientProvider>
+                );
+
             case DFViewMode.SUMMARY_VIEW:
                 return <SummaryView />;
             default:
