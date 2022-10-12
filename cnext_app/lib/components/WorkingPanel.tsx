@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { WorkingPanel as StyledWorkingPanel } from "./StyledComponents";
 import CodePanel from "./code-panel/CodePanel";
 import RichOutputPanel from "./richoutput-panel/RichOutputPanel";
@@ -10,11 +10,12 @@ import Pane from "react-split-pane-v2";
 import { RootState } from "../../redux/store";
 import SplitPane from "react-split-pane-v2";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interfaces/IApp";
-import socket from "./Socket";
 import HotkeyComponent from "./hotkeys/HotKeys";
 import TerminalManager from "./terminal-manager/TerminalManager";
+import { SocketContext } from "./Socket";
 
 const WorkingPanel = () => {
+    const socket = useContext(SocketContext);
     const showProjectExplore = useSelector(
         (state: RootState) => state.projectManager.showProjectExplore
     );
@@ -34,7 +35,7 @@ const WorkingPanel = () => {
                 type: ContentType.STRING,
                 content: `import mlflow; mlflow.set_tracking_uri("${tracking_uri}")`,
             };
-            socket.emit(WebAppEndpoint.CodeEditor, JSON.stringify(message));
+            socket?.emit(WebAppEndpoint.CodeEditor, JSON.stringify(message));
         }
     };
 
@@ -46,10 +47,8 @@ const WorkingPanel = () => {
     const [codePanelSize, setCodePanelSize] = useState<string>("700px");
     return (
         <StyledWorkingPanel>
-            {/* have to do complicated inline style because of this 
-			https://newbedev.com/absolute-positioning-ignoring-padding-of-parent */}
+            {console.log("WorkingPanel render")}
             <SplitPane split="vertical">
-                {console.log("WorkingPanel render")}
                 <Pane
                     size={
                         showProjectExplore
@@ -76,7 +75,7 @@ const WorkingPanel = () => {
                                 stopMouseEvent={resizing}
                             />
                         </Pane>
-                        <Pane>                            
+                        <Pane>
                             <RichOutputPanel stopMouseEvent={resizing} />
                         </Pane>
                     </SplitPane>

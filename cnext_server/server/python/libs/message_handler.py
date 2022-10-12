@@ -22,8 +22,8 @@ class BaseMessageHandler:
         return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT
 
     @staticmethod
-    def _is_execute_reply(header) -> bool:
-        return header['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY
+    def _is_input_request(header) -> bool:
+        return header['msg_type'] == IPythonConstants.MessageType.INPUT_REQUEST
 
     @staticmethod
     def _is_stream_result(header) -> bool:

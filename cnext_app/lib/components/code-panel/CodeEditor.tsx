@@ -1,9 +1,9 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useContext, useEffect, useRef, useState } from "react";
 import { IMessage, WebAppEndpoint, ContentType, CommandName } from "../../interfaces/IApp";
 import { useSelector, useDispatch } from "react-redux";
 import { setTableData } from "../../../redux/reducers/DataFramesRedux";
 import store, { RootState } from "../../../redux/store";
-import socket from "../Socket";
+import { SocketContext } from "../Socket";
 import { python } from "../../codemirror/grammar/lang-cnext-python";
 import { sql } from "@codemirror/lang-sql";
 import { json } from "@codemirror/lang-json";
@@ -46,6 +46,7 @@ import {
     IRunQueueItem,
     IRunQueue,
     CellCommand,
+    IPythonMessageType,
 } from "../../interfaces/ICodeEditor";
 import { useCodeMirror } from "@uiw/react-codemirror";
 import { EditorState, Extension, Transaction, TransactionSpec } from "@codemirror/state";
@@ -116,6 +117,7 @@ import { cellDeco, cellDecoStateField, setCodeMirrorCellDeco } from "./libCellDe
 // });
 
 const CodeEditor = ({ stopMouseEvent }) => {
+    const socket = useContext(SocketContext);
     // const CodeEditor = (props: any) => {
     /** This state is used to indicate server sync status. Code doc need to be resynced only
      * when it is first opened or being selected to be in view */
@@ -213,6 +215,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             rootUri: "file:///" + path,
             documentUri: "file:///" + path,
             languageId: "python",
+            socket: socket
         });
 
         const fileLangExtensions: { [name: string]: Extension[] } = {
@@ -272,8 +275,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     const socketInit = () => {
-        socket.emit("ping", WebAppEndpoint.CodeEditor);
-        socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
+        socket?.emit("ping", WebAppEndpoint.CodeEditor);
+        socket?.on(WebAppEndpoint.CodeEditor, (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -282,7 +285,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 if (inViewID) {
                     handleResultData(codeOutput);
                     if (
-                        codeOutput.metadata?.msg_type === "execute_reply" &&
+                        codeOutput.metadata?.msg_type === IPythonMessageType.EXECUTE_REPLY &&
                         codeOutput.content?.status != null
                     ) {
                         // let lineStatus: ICodeLineStatus;
@@ -317,11 +320,12 @@ const CodeEditor = ({ stopMouseEvent }) => {
                         //     lineNumber: codeOutput.metadata.line_range?.fromLine,
                         // };
                         // dispatch(setActiveLine(activeLine));
-                    }
+                    }                    
                 }
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
     };
 
@@ -359,9 +363,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
         resetEditorState(inViewID, view);
         return () => {
             console.log("CodeEditor unmount");
-            socket.off(WebAppEndpoint.CodeEditor);
+            socket?.off(WebAppEndpoint.CodeEditor);
         };
-    }, []);
+    }, [socket]);
 
     /**
      * FIXME: This is used to set onmousedown event handler. This does not seem to be the best way.
@@ -369,7 +373,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * */
 
     useEffect(() => {
-        console.log("CodeEditor useEffect container view", container, view);
+        // console.log("CodeEditor useEffect container view", container, view);
         if (container && view) {
             setHTMLEventHandler(container, view, stopMouseEvent);
         }
@@ -487,7 +491,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(view, runQueueItem);
+                execLines(socket, view, runQueueItem);
             }
         }
     }, [runQueue]);
@@ -792,7 +796,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                         };
 
                         let result: Promise<ICodeGenResult> | ICodeGenResult =
-                            cAssistGetPlotCommand(parsedCAText);
+                            cAssistGetPlotCommand(socket, parsedCAText);
                         if (isPromise(result)) {
                             result.then((codeGenResult: ICodeGenResult) => {
                                 updateCAssistInfoWithGenCode(

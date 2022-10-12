@@ -74,7 +74,9 @@ const DFExplorer = () => {
             >
                 {dataFrameList &&
                     dataFrameList.list.map((item, index) => (
-                        <DFSelectorMenuItem value={item}>{item}</DFSelectorMenuItem>
+                        <DFSelectorMenuItem value={item} key={index}>
+                            {item}
+                        </DFSelectorMenuItem>
                     ))}
             </DFSelector>
         </DFSelectorForm>

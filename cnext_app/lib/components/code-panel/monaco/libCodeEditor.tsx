@@ -280,5 +280,5 @@ const createMessage = (content: IRunningCommandContent) => {
 export const sendMessage = (socket: Socket, content: IRunningCommandContent) => {
     const message = createMessage(content);
     console.log(`${message.webapp_endpoint} send message: `, message);
-    socket.emit(message.webapp_endpoint, JSON.stringify(message));
+    socket?.emit(message.webapp_endpoint, JSON.stringify(message));
 };

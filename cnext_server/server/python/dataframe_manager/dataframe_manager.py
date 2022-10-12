@@ -274,29 +274,36 @@ class MessageHandler(BaseMessageHandler):
             message.content = message.content.replace("'", '"')
 
         try:
-            if message.command_name == DFManagerCommand.plot_column_histogram:
-                # result = eval(message.content, client_globals)
-                self.user_space.execute(
-                    message.content, ExecutionMode.EVAL, self.message_handler_callback, message)
+            if self.user_space.is_alive():
+                if message.command_name == DFManagerCommand.plot_column_histogram:
+                    # result = eval(message.content, client_globals)
+                    self.user_space.execute(
+                        message.content, ExecutionMode.EVAL, self.message_handler_callback, message)
 
-            elif message.command_name == DFManagerCommand.plot_column_quantile:
-                self.user_space.execute(
-                    message.content, ExecutionMode.EVAL, self.message_handler_callback, message)
+                elif message.command_name == DFManagerCommand.plot_column_quantile:
+                    self.user_space.execute(
+                        message.content, ExecutionMode.EVAL, self.message_handler_callback, message)
 
-            elif message.command_name == DFManagerCommand.get_table_data:
-                # TODO: turn _df_manager to variable
-                self.user_space.execute("{}._get_table_data('{}', '{}')".format(
-                    IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content), ExecutionMode.EVAL, self.message_handler_callback, message)
+                elif message.command_name == DFManagerCommand.get_table_data:
+                    # TODO: turn _df_manager to variable
+                    self.user_space.execute("{}._get_table_data('{}', '{}')".format(
+                        IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.content), ExecutionMode.EVAL, self.message_handler_callback, message)
 
-            elif message.command_name == DFManagerCommand.get_df_metadata:
-                self.user_space.execute("{}._get_metadata('{}')".format(
-                    IPythonInteral.DF_MANAGER.value, message.metadata['df_id']), ExecutionMode.EVAL, self.message_handler_callback, message)
+                elif message.command_name == DFManagerCommand.get_df_metadata:
+                    self.user_space.execute("{}._get_metadata('{}')".format(
+                        IPythonInteral.DF_MANAGER.value, message.metadata['df_id']), ExecutionMode.EVAL, self.message_handler_callback, message)
 
-            elif message.command_name == DFManagerCommand.reload_df_status:
-                active_df_status = self.user_space.get_active_dfs_status()
-                active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": message.command_name,
-                                                      "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
-                self._send_to_node(active_df_status_message)
+                elif message.command_name == DFManagerCommand.reload_df_status:
+                    active_df_status = self.user_space.get_active_dfs_status()
+                    active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": message.command_name,
+                                                        "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
+                    self._send_to_node(active_df_status_message)
+            else:
+                text = "No executor running"
+                log.info(text)
+                error_message = MessageHandler._create_error_message(
+                    message.webapp_endpoint, text, message.command_name, {})
+                self._send_to_node(error_message)
 
         except:
             trace = traceback.format_exc()

@@ -28,7 +28,7 @@ const CodeToolbar = () => {
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     // const fileSaved = useSelector((state: RootState) => state.codeEditor.fileSaved);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
-    const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
+    const stateFileToSave = useSelector((state: RootState) => state.projectManager.stateFileToSave);
     const savingFile = useSelector((state: RootState) => state.projectManager.savingFile);
     const savingStateFile = useSelector((state: RootState) => state.projectManager.savingStateFile);
     const runQueueBusy = useSelector((state: RootState) =>
@@ -65,12 +65,14 @@ const CodeToolbar = () => {
                         /** not allow switching tab when the runQueue is busy */
                         // onClick={(event: React.MouseEvent) => runQueueSafe(event, () => onClick(id))}
                         onClick={() => onClick(id)}
-                        runQueueBusy={id === inViewID && runQueueBusy}
-                        fileSaved={
+                        executing={id === inViewID && runQueueBusy ? 1 : 0}
+                        saved={
                             !fileToSave.includes(id) &&
                             savingFile !== id &&
-                            !fileToSaveState.includes(id) &&
+                            !stateFileToSave.includes(id) &&
                             savingStateFile !== id
+                                ? 1
+                                : 0
                         }
                         onMouseEnter={(event: React.MouseEvent) => {
                             // {console.log('CodeToolbar onMouseEnter: ', id, name, displayState)}
@@ -113,6 +115,7 @@ const CodeToolbar = () => {
                             behavior: "auto",
                             // boundary: document.getElementById(codeOutputContentID),
                         }}
+                        children={""}
                     />
                 )}
             </Fragment>
