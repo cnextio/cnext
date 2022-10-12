@@ -37,7 +37,8 @@ const TableView = (props: any) => {
     function getReviewRequest(state: RootState): IDFUpdatesReview {
         return ifElse(state.dataFrames.dfUpdatesReview, activeDataFrame, null);
     }
-
+    console.log("tableData", tableData);
+    
     const createCell = (
         colName: string,
         rowIndex: number,
