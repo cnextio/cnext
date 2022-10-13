@@ -15,7 +15,7 @@ import {
     Sidebar,
 } from "../StyledComponents";
 import Logo from "./Logo";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
 import {
     setShowProjectExplorer,

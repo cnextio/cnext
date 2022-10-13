@@ -62,7 +62,7 @@ export const MonacoEditor = styled(Editor)`
             cursor: pointer;
             font-size: 11px;
             color: rgba(0, 0, 0, 0.6);
-            margin-top: 7px;
+            margin-top: 6px;
             position: relative;
             z-index: 10000000;
             &:not(:last-child) {
@@ -131,6 +131,15 @@ export const MonacoEditor = styled(Editor)`
         &.active {
             border-top: 1px solid rgb(153, 179, 171, 1);
             // background-color: rgb(218, 255, 237, 0.6);
+            // background-color: ${(props) => props.theme.palette.grey.A100};
+        }
+    }
+
+    .cellline {
+        width: 2000px !important;
+        margin-top: -5px;
+        &.active {
+            // background-color: ${(props) => props.theme.palette.grey.A100};
         }
     }
 
