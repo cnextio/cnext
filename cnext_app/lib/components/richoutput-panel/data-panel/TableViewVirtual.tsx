@@ -355,7 +355,6 @@ function TableViewVirtual() {
         (containerRefElement?: HTMLDivElement | null) => {
             if (containerRefElement) {
                 const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-                console.log("virtualItems", scrollHeight, virtualRows, flatData);
                 if (
                     scrollHeight - scrollTop - clientHeight < 300 &&
                     !isFetching &&
