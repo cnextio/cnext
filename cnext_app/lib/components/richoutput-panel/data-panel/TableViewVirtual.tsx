@@ -422,8 +422,6 @@ export const fetchData = (data: any, start: number, size: number, sorting: Sorti
             return a[id] > b[id] ? 1 : -1;
         });
     }
-    console.log("dbData", dbData);
-    console.log("start", start, start + size);
     return {
         data: dbData.slice(start, start + size),
         meta: {
