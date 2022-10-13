@@ -41,7 +41,7 @@ import { ICellDataURLImage, UDFLocation } from "../../../interfaces/IDataFrameMa
 import UDFContainer from "./UDFContainer";
 import InputComponent from "./InputComponent";
 
-const fetchSize = 5;
+const fetchSize = 10;
 
 function TableViewVirtual() {
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
@@ -330,27 +330,6 @@ function TableViewVirtual() {
     const flatData = React.useMemo(() => data?.pages?.flatMap((page) => page.data) ?? [], [data]);
     const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
     const totalFetched = flatData.length;
-
-    const fetchMoreOnBottomReached = React.useCallback(
-        (containerRefElement?: HTMLDivElement | null) => {
-            if (containerRefElement) {
-                const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-                if (
-                    scrollHeight - scrollTop - clientHeight < 300 &&
-                    !isFetching &&
-                    totalFetched < totalDBRowCount
-                ) {
-                    fetchNextPage();
-                }
-            }
-        },
-        [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
-    );
-
-    React.useEffect(() => {
-        fetchMoreOnBottomReached(tableContainerRef.current);
-    }, [fetchMoreOnBottomReached]);
-
     const table = useReactTable({
         data: flatData,
         columns,
@@ -368,10 +347,30 @@ function TableViewVirtual() {
     //Virtualizing is optional, but might be necessary if we are going to potentially have hundreds or thousands of rows
     const rowVirtualizer = useVirtual({
         parentRef: tableContainerRef,
-        size: rows.length,
+        size: 15,
         overscan: 10,
     });
     const { virtualItems: virtualRows, totalSize } = rowVirtualizer;
+    const fetchMoreOnBottomReached = React.useCallback(
+        (containerRefElement?: HTMLDivElement | null) => {
+            if (containerRefElement) {
+                const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
+                console.log("virtualItems", scrollHeight, virtualRows, flatData);
+                if (
+                    scrollHeight - scrollTop - clientHeight < 10 &&
+                    !isFetching &&
+                    totalFetched < totalDBRowCount
+                ) {
+                    fetchNextPage();
+                }
+            }
+        },
+        [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    );
+
+    React.useEffect(() => {
+        fetchMoreOnBottomReached(tableContainerRef.current);
+    }, [fetchMoreOnBottomReached]);
 
     if (isLoading) {
         return <>Loading...</>;
@@ -395,7 +394,7 @@ function TableViewVirtual() {
                         </DataTableHeadRow>
                     </DataTableHead>
                     <TableBody>
-                        {virtualRows.map((virtualRow, rowNumber) =>
+                        {flatData.map((virtualRow, rowNumber) =>
                             renderBodyRow(
                                 rowNumber,
                                 tableData[activeDataFrame]?.column_names,
@@ -423,7 +422,8 @@ export const fetchData = (data: any, start: number, size: number, sorting: Sorti
             return a[id] > b[id] ? 1 : -1;
         });
     }
-
+    console.log("dbData", dbData);
+    console.log("start", start, start + size);
     return {
         data: dbData.slice(start, start + size),
         meta: {
