@@ -244,6 +244,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
     };
 
@@ -318,7 +319,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(runQueueItem);
+                execLines(socket,runQueueItem);
             }
         }
     }, [runQueue]);
