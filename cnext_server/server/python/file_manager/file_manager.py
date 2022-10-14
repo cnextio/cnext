@@ -16,7 +16,7 @@ log = logs.get_logger(__name__)
 
 
 class MessageHandler(BaseMessageHandler):
-    def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata, git_path):
+    def __init__(self, p2n_queue, user_space, workspace_info: WorkspaceMetadata):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
         # active_project: projects.ProjectMetadata = None
         # open_projects = workspace_info.open_projects

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
 import { DiffEditor, useMonaco } from "@monaco-editor/react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
 import {
@@ -45,12 +45,12 @@ import {
     setViewStateEditor,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
-import socket from "../../Socket";
 import {
     addToRunQueueHoverCell,
     addToRunQueueHoverLine,
     addToRunQueueMoveDown,
 } from "./libRunQueue";
+import { SocketContext } from "../../Socket";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 import { ifElse } from "../../libs";
@@ -60,6 +60,8 @@ const Diff = require("diff");
 var DiffMatchPatch = require("diff-match-patch");
 
 const CodeEditor = ({ stopMouseEvent }) => {
+    const socket = useContext(SocketContext);
+
     const monaco = useMonaco();
     const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
     const codeTextDiffView = useSelector((state: RootState) => state.codeEditor.codeTextDiffView);
@@ -238,8 +240,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     const socketInit = () => {
-        socket.emit("ping", WebAppEndpoint.CodeEditor);
-        socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
+          socket?.emit("ping", WebAppEndpoint.CodeEditor);
+          socket?.on(WebAppEndpoint.CodeEditor,  (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -288,6 +290,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
     };
 
@@ -297,7 +300,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         return () => {
             console.log("CodeEditor unmount");
-            socket.off(WebAppEndpoint.CodeEditor);
+              socket?.off(WebAppEndpoint.CodeEditor);
         };
     }, []);
 
@@ -377,7 +380,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(runQueueItem);
+                execLines(socket,runQueueItem);
             }
         }
     }, [runQueue]);
@@ -449,6 +452,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
             }
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
+                    console.log("run cell");
+                    
                     addToRunQueueHoverCell();
                     break;
                 case CellCommand.CLEAR:

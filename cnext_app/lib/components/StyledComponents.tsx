@@ -368,13 +368,13 @@ export const FileNameTab = styled(Typography)`
     font-size: 13px;
 
     animation: ${(props) =>
-            props.runQueueBusy
+            props.executing
                 ? textTransitionToColor("#F59242", props.theme.palette.grey.A200)
                 : null}
         2s ease infinite;
 
     color: ${(props) =>
-        props.fileSaved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
+        props.saved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
 
     background-color: ${(props) =>
         props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
@@ -794,6 +794,26 @@ export const DFFilterForm = styled(FormControl)`
 export const DFFilterInput = styled(OutlinedInput)`
     font-size: 13px;
     padding: 0px;
+`;
+
+export const StdInInput = styled(TextField)`
+    height: 34px;
+    width: 100%;
+    .MuiInput-root {
+        height: 100%;
+    }
+    .MuiInputAdornment-root > p {
+        font-size: 12px;
+    }
+    .MuiOutlinedInput-root {
+        border-radius: 0px;
+    }
+    .MuiOutlinedInput-input {
+        font-size: 12px;
+        // padding: 0px;
+        // height: 100%;
+        color: ${(props) => props.theme.palette.text.secondary};
+    }
 `;
 
 export const QuerySample = styled.div`

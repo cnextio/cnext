@@ -9,7 +9,7 @@ export const setCellDeco = (monaco, editor) => {
 
     let state = store.getState();
     const activeGroup = state.codeEditor.activeGroup;
-    const cellBoundaryDeco = [];
+    const cellLineDeco = [];
     const lineStatus = [];
 
     let inViewID = state.projectManager.inViewID;
@@ -22,7 +22,7 @@ export const setCellDeco = (monaco, editor) => {
                 if (!lines[ln].generated && lines[ln].groupID != null) {
                     const active_clazz = activeGroup === lines[ln].groupID ? "active" : "";
                     if (lines[ln].groupID !== currentGroupID) {
-                        cellBoundaryDeco.push({
+                        cellLineDeco.push({
                             range: new monaco.Range(ln1based, 1, ln1based, 1),
                             options: { blockClassName: "cellfirstline " + active_clazz },
                         });
@@ -50,6 +50,10 @@ export const setCellDeco = (monaco, editor) => {
                                 },
                             });
                         } else {
+                            cellLineDeco.push({
+                                range: new monaco.Range(ln1based, 1, ln1based, 1),
+                                options: { blockClassName: "cellline " + active_clazz },
+                            });
                             lineStatus.push({
                                 range: new monaco.Range(ln1based, 1, ln1based, 1),
                                 options: {
@@ -70,7 +74,7 @@ export const setCellDeco = (monaco, editor) => {
         }
     }
     // console.log("Monaco libCellDeco: ", cellBoundaryDeco);
-    decorations = editor.deltaDecorations(decorations, cellBoundaryDeco.concat(lineStatus));
+    decorations = editor.deltaDecorations(decorations, cellLineDeco.concat(lineStatus));
 };
 
 const executedOkClass = "line-status ok";

@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useContext, useEffect, useState } from "react";
 import path from "path";
 import {
     ProjectToolbar,
@@ -15,14 +15,15 @@ import {
     ProjectExplorerToolbar,
 } from "../StyledComponents";
 import { CommandName, WebAppEndpoint } from "../../interfaces/IApp";
-import socket from "../Socket";
 import { useDispatch } from "react-redux";
 import { setFileDiff, setFileToOpen, setInView } from "../../../redux/reducers/ProjectManagerRedux";
 import { setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
 import store from "../../../redux/store";
+import { SocketContext } from "../Socket";
 
 const GitManager = (props: any) => {
     const dispatch = useDispatch();
+    const socket = useContext(SocketContext);
 
     const [listChanged, setListChanged] = useState([]);
     const [itemActice, setItemActive] = useState("");
@@ -30,13 +31,13 @@ const GitManager = (props: any) => {
     useEffect(() => {
         setupSocket();
         return () => {
-            socket.off(WebAppEndpoint.FileManager);
+            socket?.off(WebAppEndpoint.FileManager);
         };
     }, []);
     const connectDiff = () => {
         const state = store.getState();
         const projectPath = state.projectManager.activeProject?.path;
-        socket.emit(
+        socket?.emit(
             WebAppEndpoint.FileManager,
             JSON.stringify({
                 webapp_endpoint: WebAppEndpoint.FileManager,
@@ -52,8 +53,8 @@ const GitManager = (props: any) => {
         connectDiff();
     }, []);
     const setupSocket = () => {
-        socket.emit("ping", WebAppEndpoint.FileManager);
-        socket.on(WebAppEndpoint.FileManager, (result: string) => {
+        socket?.emit("ping", WebAppEndpoint.FileManager);
+        socket?.on(WebAppEndpoint.FileManager, (result: string) => {
             try {
                 console.log(`JSON.parse(result).content`, JSON.parse(result).content);
 

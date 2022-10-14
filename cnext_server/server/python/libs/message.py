@@ -15,6 +15,7 @@ class WebappEndpoint(str, Enum):
     ExperimentManager = 'ExperimentManager'
     ExecutorManager = 'ExecutorManager'
     ModelManager = 'ModelManager'
+    EnvironmentManager = 'EnvironmentManager'
     Terminal = 'Terminal'
     GitManager = 'GitManager'
     LogsManager = 'LogsManager'
@@ -92,7 +93,11 @@ class ExecutorManagerCommand(str, Enum):
     restart_kernel = 'restart_kernel'
     interrupt_kernel = 'interrupt_kernel'
     get_status = 'get_status'
+    send_stdin = 'send_stdin'
 
+class EnvironmentManagerCommand(str, Enum):
+    list = "list"
+    start = "start"
 
 class ModelManagerCommand(str, Enum):
     get_active_models_info = 'get_active_models_info'
@@ -122,7 +127,10 @@ class ContentType(str, Enum):
     PLOTLY_FIG = 'plotly_fig'  # It is used for code editor basekernel
     IPYTHON_MSG = 'ipython_msg'
     PROJECT_LIST = 'project_list'
+    ENVIRONMENT_LIST = 'environment_list'
+    KERNEL_START_RESULT = 'kernel_start_result'
     WORKSPACE_METADATA = 'workspace_metadata'
+    INPUT_REQUEST = 'input_request'
     NONE = 'none'
 
     def __str__(self):

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useBeforeunload } from "react-beforeunload";
 import {
@@ -12,9 +12,9 @@ import {
     setFileToClose,
     setFileToOpen,
     addFileToSave,
-    addFileToSaveState,
+    addStateFileToSave,
     setOpenFiles,
-    setProjectSetting,
+    setProjectConfig as setProjectConfig,
     setServerSynced,
     setSavingStateFile,
     setSavingFile,
@@ -26,6 +26,7 @@ import {
     ContentType,
     IConfigs,
     IMessage,
+    SETTING_FILE_PATH as CONFIG_FILE_PATH,
     SETTING_FILE_PATH,
     SubContentType,
     WebAppEndpoint,
@@ -37,16 +38,17 @@ import {
     IWorkspaceMetadata,
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
-import socket from "../Socket";
 import { isDiffFile, isUrlValid, parseUrl } from "../libs";
+import { SocketContext } from "../Socket";
 
 const FileManager = () => {
+    const socket = useContext(SocketContext);
     const dispatch = useDispatch();
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     const fileToClose = useSelector((state: RootState) => state.projectManager.fileToClose);
     const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
-    const fileToSaveState = useSelector((state: RootState) => state.projectManager.fileToSaveState);
+    const stateFileToSave = useSelector((state: RootState) => state.projectManager.stateFileToSave);
     const workspaceMetadata: IWorkspaceMetadata = useSelector(
         (state: RootState) => state.projectManager.workspaceMetadata
     );
@@ -81,8 +83,8 @@ const FileManager = () => {
     };
 
     const setupSocket = () => {
-        socket.emit("ping", WebAppEndpoint.FileManager);
-        socket.on(WebAppEndpoint.FileManager, (result: string) => {
+        socket?.emit("ping", WebAppEndpoint.FileManager);
+        socket?.on(WebAppEndpoint.FileManager, (result: string, ack) => {
             console.log("FileManager got results...", result);
             try {
                 let fmResult: IMessage = JSON.parse(result);
@@ -168,7 +170,7 @@ const FileManager = () => {
                         case ProjectCommand.get_project_settings:
                             console.log("FileManager got project configs result: ", fmResult);
                             if (fmResult.content != null) {
-                                dispatch(setProjectSetting(fmResult.content));
+                                dispatch(setProjectConfig(fmResult.content));
                             }
                             break;
                         case ProjectCommand.save_file:
@@ -240,10 +242,11 @@ const FileManager = () => {
                         case ProjectCommand.save_state:
                             let savingStateFile = state.projectManager.savingStateFile;
                             dispatch(setSavingStateFile(null));
-                            dispatch(addFileToSaveState(savingStateFile));
+                            dispatch(addStateFileToSave(savingStateFile));
                             break;
                     }
                 }
+                if (ack) ack();
             } catch (error) {
                 console.error(error);
             }
@@ -252,7 +255,7 @@ const FileManager = () => {
 
     const sendMessage = (message: IMessage) => {
         console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
-        socket.emit(message.webapp_endpoint, JSON.stringify(message));
+        socket?.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
     const createMessage = (
@@ -298,7 +301,6 @@ const FileManager = () => {
         if (inViewID != null) {
             const state = store.getState();
             const codeText = state.codeEditor.codeText;
-
             /** we will not load the file if it already exists in codeText in redux this design
              * will not allow client to stay update with server if there is out-of-channel changes
              * in server but this is good enough for our use case. Note that: since config.py won't
@@ -311,8 +313,8 @@ const FileManager = () => {
                 (codeText == null ||
                     (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
                     isSettingsFile(inViewID)) &&
-                !isDiffFile(inViewID)
-            ) {
+                !isDiffFile(inViewID))
+ {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 const projectPath = state.projectManager.activeProject?.path;
                 const message: IMessage = createMessage(ProjectCommand.read_file, "", {
@@ -330,8 +332,6 @@ const FileManager = () => {
                 isDiffFile(inViewID)
             ) {
                 let convertURL = parseUrl(inViewID);
-                console.log(`convertURL`, convertURL);
-
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 const projectPath = state.projectManager.activeProject?.path;
                 const message: IMessage = createMessage(ProjectCommand.read_diff, "", {
@@ -368,7 +368,9 @@ const FileManager = () => {
             sendMessage(message);
         }
     }, [fileToClose]);
-
+    const isSettingsFile = (filePath: string) => {
+        return filePath === SETTING_FILE_PATH;
+    };
     useEffect(() => {
         if (fileToOpen) {
             console.log(
@@ -417,19 +419,19 @@ const FileManager = () => {
         }
     }, [projectToAdd]);
 
-    const isSettingsFile = (filePath: string) => {
-        return filePath === SETTING_FILE_PATH;
+    const isConfigFile = (filePath: string) => {
+        return filePath === CONFIG_FILE_PATH;
     };
 
-    const reloadSettingIfChanged = (fileToSave: string[]) => {
+    const reloadConfigIfChanged = (fileToSave: string[]) => {
         let state = store.getState();
         try {
             for (let filePath of fileToSave) {
-                if (isSettingsFile(filePath)) {
+                if (isConfigFile(filePath)) {
                     let codeText = state.codeEditor.codeText[filePath];
-                    let settings = JSON.parse(codeText.join("\n"));
-                    console.log("FileManager reload settings: ", settings);
-                    dispatch(setProjectSetting(settings));
+                    let config = JSON.parse(codeText.join("\n"));
+                    console.log("FileManager reload config: ", config);
+                    dispatch(setProjectConfig(config));
                 }
             }
         } catch (error) {
@@ -450,9 +452,16 @@ const FileManager = () => {
         const fileToSave = state.projectManager.fileToSave;
         const savingFile = state.projectManager.savingFile;
 
-        if ((saveTimeout || !useTimeOut) && fileToSave.length > 0 && savingFile == null) {
-            // get the first file from the queue
-            let filePath = fileToSave[0];
+        if (saveTimeout || !useTimeOut) {
+            let filePath;
+            if (fileToSave.length > 0 && savingFile == null) {
+                /** get the first file from the queue */
+                filePath = fileToSave[0];
+            } else if (savingFile) {
+                /** if the savingFile is not saved after the timeout then send another request */
+                filePath = savingFile;
+            }
+
             if (filePath != null) {
                 let file: IFileMetadata = state.projectManager.openFiles[filePath];
                 console.log(
@@ -482,7 +491,7 @@ const FileManager = () => {
     };
     useEffect(() => {
         // console.log("FileManager useEffect: ", fileToSave);
-        reloadSettingIfChanged(fileToSave);
+        reloadConfigIfChanged(fileToSave);
         saveFile();
     }, [saveTimeout, fileToSave]);
 
@@ -496,12 +505,20 @@ const FileManager = () => {
      */
     const saveState = async (useTimeOut: boolean = true) => {
         const state = store.getState();
-        const fileToSaveState = state.projectManager.fileToSaveState;
+        const stateFileToSave = state.projectManager.stateFileToSave;
         const savingStateFile = state.projectManager.savingStateFile;
 
-        if ((saveTimeout || !useTimeOut) && fileToSaveState.length > 0 && savingStateFile == null) {
+        if (saveTimeout || !useTimeOut) {
+            let filePath;
+            if (stateFileToSave.length > 0 && savingStateFile == null) {
+                /** get the first file from the queue */
+                filePath = stateFileToSave[0];
+            } else if (savingStateFile) {
+                /** if the savingFile is not saved after the timeout then send another request */
+                filePath = savingStateFile;
+            }
             //get the first item in the queue
-            let filePath = fileToSaveState[0];
+            // let filePath = stateFileToSave[0];
             if (filePath != null) {
                 if (state.codeEditor.codeLines != null) {
                     const codeLines = state.codeEditor.codeLines[filePath];
@@ -526,17 +543,32 @@ const FileManager = () => {
                         // } else return codeLine;
                         return codeLine;
                     });
+                    // const codeLinesSaveState = codeLines.map((codeLine) => {
+                    //     // if (
+                    //     //     codeLine.result?.content &&
+                    //     //     Object.keys(codeLine.result?.content).includes(
+                    //     //         SubContentType.TEXT_HTML
+                    //     //     )
+                    //     // ) {
+                    //     //     let updatedResult = { ...codeLine.result };
+                    //     //     updatedResult.content = {
+                    //     //         "text/html":
+                    //     //             "<div>This result is too big to save. Please rerun the command!</div>",
+                    //     //     };
+                    //     //     return {
+                    //     //         ...codeLine,
+                    //     //         result: updatedResult,
+                    //     //     };
+                    //     // } else return codeLine;
+                    //     return codeLine;
+                    // });
                     const timestamp = state.codeEditor.timestamp[filePath];
                     const projectPath = state.projectManager.activeProject?.path;
-                    const message: IMessage = createMessage(
-                        ProjectCommand.save_state,
-                        codeLinesSaveState,
-                        {
-                            project_path: projectPath,
-                            path: filePath,
-                            timestamp: timestamp,
-                        }
-                    );
+                    const message: IMessage = createMessage(ProjectCommand.save_state, codeLines, {
+                        project_path: projectPath,
+                        path: filePath,
+                        timestamp: timestamp,
+                    });
                     dispatch(setSavingStateFile(filePath));
                     sendMessage(message);
                     setSaveTimeout(false);
@@ -547,7 +579,7 @@ const FileManager = () => {
     useEffect(() => {
         // console.log("FileManager useEffect: ", fileToSaveState);
         saveState();
-    }, [saveTimeout, fileToSaveState]);
+    }, [saveTimeout, stateFileToSave]);
 
     /**
      * Use fileToSave and fileToSaveState instead of codeText to trigger saveFile and saveState so we can control
@@ -569,7 +601,7 @@ const FileManager = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
         if (state.projectManager.serverSynced && inViewID != null) {
-            dispatch(addFileToSaveState(inViewID));
+            dispatch(addStateFileToSave(inViewID));
         }
     }, [saveCodeLineCounter]);
 
@@ -594,7 +626,7 @@ const FileManager = () => {
     useBeforeunload((event) => {
         let state = store.getState();
         let fileToSave = state.projectManager.fileToSave;
-        let fileToSaveState = state.projectManager.fileToSaveState;
+        let fileToSaveState = state.projectManager.stateFileToSave;
         let savingFile = state.projectManager.savingFile;
         let savingStateFile = state.projectManager.savingStateFile;
 
@@ -619,9 +651,9 @@ const FileManager = () => {
         // sendMessage(message);
 
         return () => {
-            socket.off(WebAppEndpoint.FileManager);
+            socket?.off(WebAppEndpoint.FileManager);
         };
-    }, []); //run this only once - not on rerender
+    }, [socket]); //run this only once - not on rerender
 
     return null;
 };

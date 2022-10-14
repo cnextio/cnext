@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useContext, useEffect, useState } from "react";
 import path from "path";
 import {
     ProjectToolbar,
@@ -33,7 +33,6 @@ import {
 } from "../../interfaces/IFileManager";
 // import { IWorkSpaceConfig as IWorkSpaceMetadata } from "../../interfaces/IApp";
 import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
-import socket from "../Socket";
 import {
     setActiveProject,
     setFileToOpen,
@@ -53,6 +52,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { isRunQueueBusy } from "../code-panel/libCodeEditor";
 import { OverlayComponent } from "../libs/OverlayComponent";
 import { setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
+import { SocketContext } from "../Socket";
 
 const NameWithTooltip = ({ children, tooltip }) => {
     return (
@@ -69,6 +69,7 @@ interface ProjectTreeItemInfo {
 }
 
 const FileExplorer = (props: any) => {
+    const socket = useContext(SocketContext);
     const activeProject: IProjectInfoInWorkspace | null = useSelector(
         (state: RootState) => state.projectManager.activeProject
     );
@@ -98,9 +99,10 @@ const FileExplorer = (props: any) => {
     const runQueueBusy = useSelector((state: RootState) =>
         isRunQueueBusy(state.codeEditor.runQueue)
     );
+
     const setupSocket = () => {
-        socket.emit("ping", "FileExplorer");
-        socket.on(WebAppEndpoint.FileExplorer, (result: string) => {
+        socket?.emit("ping", WebAppEndpoint.FileExplorer);
+        socket?.on(WebAppEndpoint.FileExplorer, (result: string, ack) => {
             console.log("FileExplorer got results...", result);
             try {
                 let fmResult: IMessage = JSON.parse(result);
@@ -135,25 +137,26 @@ const FileExplorer = (props: any) => {
                                 dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
-                    }
+                    }                    
                 } else {
                 }
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
     };
 
     useEffect(() => {
         setupSocket();
         return () => {
-            socket.off(WebAppEndpoint.FileExplorer);
+            socket?.off(WebAppEndpoint.FileExplorer);
         };
-    }, []);
+    }, [socket]);
 
     useEffect(() => {
         let projects: IProjectInfoInWorkspace[] = [];
-        workspaceMetadata.open_projects.forEach((project: IProjectInfoInWorkspace) => {
+        workspaceMetadata.open_projects?.forEach((project: IProjectInfoInWorkspace) => {
             if (project.id === workspaceMetadata.active_project) {
                 dispatch(setActiveProject(project));
             } else {
@@ -187,7 +190,7 @@ const FileExplorer = (props: any) => {
         console.log(
             `File Explorer Send Message: ${message.webapp_endpoint} ${JSON.stringify(message)}`
         );
-        socket.emit(message.webapp_endpoint, JSON.stringify(message));
+        socket?.emit(message.webapp_endpoint, JSON.stringify(message));
     };
 
     const fetchDirChildNodes = (path: string) => {
@@ -445,6 +448,7 @@ const FileExplorer = (props: any) => {
                                             value.deletable
                                         );
                                     }}
+                                    key={index}
                                 >
                                     {!value.is_file && renderFileItems(projectPath, value.path)}
                                 </FileItem>
@@ -470,10 +474,10 @@ const FileExplorer = (props: any) => {
         );
     };
 
-    const renderProjectItem = (projectItem: IProjectInfoInWorkspace) => {
+    const renderProjectItem = (projectItem: IProjectInfoInWorkspace, index: number) => {
         if (projectItem.id !== activeProject?.id) {
             return (
-                <ClosedProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)}>
+                <ClosedProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)} key={index}>
                     <LockIcon
                         style={{
                             fontSize: "15px",
@@ -542,6 +546,7 @@ const FileExplorer = (props: any) => {
                         enterNextDelay={500}
                         placement="bottom-end"
                         style={{ marginLeft: "auto" }}
+                        key="add_project"
                     >
                         <FolderCopyIcon
                             id="add-project-button"
@@ -551,8 +556,12 @@ const FileExplorer = (props: any) => {
                             style={{ height: 19 }}
                         />
                     </Tooltip>
-
-                    <Tooltip title="New file" enterDelay={500} placement="bottom-end">
+                    <Tooltip
+                        title="New file"
+                        enterDelay={500}
+                        placement="bottom-end"
+                        key="new_file"
+                    >
                         <NoteAddIcon
                             className="icon"
                             onClick={() =>
@@ -562,7 +571,12 @@ const FileExplorer = (props: any) => {
                             style={{ height: 18 }}
                         />
                     </Tooltip>
-                    <Tooltip title="New folder" enterDelay={500} placement="bottom-end">
+                    <Tooltip
+                        title="New folder"
+                        enterDelay={500}
+                        placement="bottom-end"
+                        key="add_folder"
+                    >
                         <CreateNewFolderIcon
                             className="icon"
                             onClick={() =>
@@ -575,7 +589,9 @@ const FileExplorer = (props: any) => {
                 </ProjectExplorerToolbar>
             </ProjectToolbar>
             <ProjectList>
-                {workspaceMetadata.open_projects.map((item) => renderProjectItem(item))}
+                {workspaceMetadata.open_projects?.map((item, index: number) =>
+                    renderProjectItem(item, index)
+                )}
                 {createProjectInProgress ? (
                     <Fragment>
                         <NewItemInput

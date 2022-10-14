@@ -19,6 +19,7 @@ from cassist import cassist as ca
 from file_explorer import file_explorer as fe
 from file_manager import file_manager as fm
 from logs_manager import logs_manager as lm
+from environment_manager import environment_manager as envm
 from jupyter_server_manager import jupyter_server_manager as jsm
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, ExecutorManagerCommand, ExecutorType
@@ -27,6 +28,9 @@ from libs.constants import TrackingModelType, TrackingDataframeType
 from project_manager.interfaces import SERVER_CONFIG_PATH, WORKSPACE_METADATA_PATH, WorkspaceMetadata
 from user_space.user_space import IPythonUserSpace, BaseKernelUserSpace
 import cnextlib.dataframe as cd
+import hashlib
+import jupyter_client
+import subprocess
 
 
 log = logs.get_logger(__name__)
@@ -89,14 +93,26 @@ def main(argv):
                 p2n_queue = MessageQueuePush(
                     server_config.p2n_comm['host'], server_config.p2n_comm['port'])
                 jupyter_server_config = server_config.jupyter_server
-                git_path = server_config.git_path
                 if executor_type == ExecutorType.CODE:
                     # user_space = IPythonUserSpace(
                     #     (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
                     user_space = IPythonUserSpace(
-                        (TrackingDataframeType.PANDAS, TrackingDataframeType.CNEXT, TrackingDataframeType.DASK), 
+                        (TrackingDataframeType.PANDAS,
+                         TrackingDataframeType.CNEXT, TrackingDataframeType.DASK),
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
-                    
+
+                    ## start an ipython kernel with a default spec or spec from the config #
+                    if hasattr(server_config, 'default_ipython_kernel_spec'):
+                        default_ipython_kernel_spec = envm.verify_kernel_spec(
+                            server_config.default_ipython_kernel_spec)
+                    else:
+                        default_ipython_kernel_spec = envm.get_cnext_default_kernel_spec()
+
+                    if default_ipython_kernel_spec:
+                        user_space.start_executor(default_ipython_kernel_spec)
+                    else:
+                        log.info("Kernel spec does not exist. Kernel failed to run.")
+
                     executor_manager = execm.MessageHandler(
                         p2n_queue, user_space)
 
@@ -105,7 +121,8 @@ def main(argv):
                         WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.MagicCommandGen: ca.MessageHandler(
-                            p2n_queue, user_space)
+                            p2n_queue, user_space),
+                        WebappEndpoint.EnvironmentManager: envm.MessageHandler(p2n_queue, user_space),
                     }
 
                     set_executor_working_dir(user_space, workspace_metadata)
@@ -114,7 +131,7 @@ def main(argv):
                     user_space = BaseKernelUserSpace()
                     message_handler = {
                         WebappEndpoint.ExperimentManager: em.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, workspace_metadata,git_path),
+                        WebappEndpoint.FileManager: fm.MessageHandler(p2n_queue, user_space, workspace_metadata),
                         WebappEndpoint.FileExplorer: fe.MessageHandler(
                             p2n_queue, user_space),
                         WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config),

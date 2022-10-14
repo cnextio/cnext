@@ -19,8 +19,9 @@ import { useDispatch } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
 import {
     setShowProjectExplorer,
-    setProjectSetting,
+
     setShowGitManager,
+    setProjectConfig,
 } from "../../../redux/reducers/ProjectManagerRedux";
 import { clearAllOutputs, setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
 import { ViewMode } from "../../interfaces/IApp";
@@ -33,6 +34,7 @@ import ExecutorCommandConfirmation from "../executor-manager/ExecutorCommandConf
 import Account from "../user-manager/Account";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { GitSVG } from "../icons/GitSVG";
+import { SocketContext } from "../Socket";
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -58,6 +60,8 @@ const SideBarDivider = () => {
 };
 
 const MiniSidebar = () => {
+    const socket = React.useContext(SocketContext);
+
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const dispatch = useDispatch();
@@ -88,9 +92,9 @@ const MiniSidebar = () => {
         const state = store.getState();
         const viewMode = state.projectManager.settings.view_mode;
         if (viewMode === ViewMode.HORIZONTAL) {
-            dispatch(setProjectSetting({ view_mode: ViewMode.VERTICAL }));
+            dispatch(setProjectConfig({ view_mode: ViewMode.VERTICAL }));
         } else {
-            dispatch(setProjectSetting({ view_mode: ViewMode.HORIZONTAL }));
+            dispatch(setProjectConfig({ view_mode: ViewMode.HORIZONTAL }));
         }
     };
 
@@ -110,9 +114,9 @@ const MiniSidebar = () => {
         setKernelCommand(null);
         if (confirm) {
             if (command === ExecutorManagerCommand.interrupt_kernel) {
-                interruptKernel();
+                interruptKernel(socket);
             } else if (command === ExecutorManagerCommand.restart_kernel) {
-                restartKernel();
+                restartKernel(socket);
             }
         }
     };

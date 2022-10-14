@@ -67,6 +67,7 @@ export enum CommandName {
     exec_line = "exec_line",
     get_file_changed="get_file_changed",
     exec_grouped_lines = "exec_grouped_lines",
+    send_stdin = "send_stdin",
     /** this command contained the updated information of the dataframe status. It is used
      * for the server to inform client about changes in the status */
     update_df_status = "update_df_status",
@@ -102,6 +103,8 @@ export enum ContentType {
     PROJECT_METADATA = "project_metadata",
     PROJECT_LIST = "project_list",
     WORKSPACE_METADATA = "workspace_metadata",
+    INPUT_REQUEST = "input_request",
+    IPYTHON_MSG = "ipython_msg"
 }
 
 export enum StandardMimeType {
