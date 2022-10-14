@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyledCodePanel, CodeContainer } from "../StyledComponents";
 import SplitPane from "react-split-pane-v2";
 // import CodeEditor from "./CodeEditor";
@@ -10,9 +10,34 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import TextIOComponent from "./TextIOComponent";
 import StyledExecutorToolbar from "../executor-manager/ExecutorToolbar";
+import * as Y from 'yjs';
+import { WebrtcProvider } from 'y-webrtc';
 
 const CodePanel = ({ workingPanelViewMode, stopMouseEvent }) => {
+    const ydoc = new Y.Doc();
+    const project = ydoc.getMap();
+    let provider;
+
+    useEffect(() => {
+        provider = new WebrtcProvider('codemirror', ydoc)
+    }, []);
+
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+
+    useEffect(() => {
+        if (inViewID) {
+            const path = inViewID;
+            if (!project.has(path)) {
+                const file = new Y.Map();
+                const source = new Y.Text();
+                file.set('source', source);
+                const json = new Y.Text();
+                file.set('json', json);
+                project.set(path, file);
+            }
+        }
+    }, [inViewID]);
+
     return (
         <StyledCodePanel style={{ position: "relative" }}>
             {console.log("CodePanel render ")}
@@ -29,7 +54,7 @@ const CodePanel = ({ workingPanelViewMode, stopMouseEvent }) => {
                 >
                     {inViewID != null && (
                         <Pane>
-                            <CodeEditor stopMouseEvent={stopMouseEvent} />
+                            <CodeEditor stopMouseEvent={stopMouseEvent} ydoc={ydoc} project={project} provider={provider} />
                         </Pane>
                     )}
                     <Pane size="30%">

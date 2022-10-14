@@ -41,8 +41,11 @@ import { SocketContext } from "../../Socket";
 import { addToRunQueueHoverCell, addToRunQueueHoverLine } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
+// @ts-ignore
+import { MonacoBinding } from 'y-monaco';
+// import * as monaco from 'monaco-editor';
 
-const CodeEditor = ({ stopMouseEvent }) => {
+const CodeEditor = ({ stopMouseEvent, ydoc, project, provider }) => {
     const socket = useContext(SocketContext);
 
     const monaco = useMonaco();
@@ -348,6 +351,27 @@ const CodeEditor = ({ stopMouseEvent }) => {
         setCodeReloading(true);
     }, [inViewID]);
 
+    // On current view change, update the editor binding
+    
+    let binding: MonacoBinding | null = null;
+
+    useEffect(() => {
+        if (binding) {
+            binding.destroy();
+        }
+        if (curInViewID) {
+            const file = project.get(curInViewID);
+            const source = file.get("source");
+            const model = (editor! as any).getModel();
+            binding = new MonacoBinding(
+                source,
+                model,
+                new Set([(editor! as any)]),
+                provider.awareness
+            );
+        }
+    }, [curInViewID]);
+
     useEffect(() => {
         if (serverSynced && codeReloading && monaco && editor) {
             // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
@@ -403,6 +427,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const handleEditorDidMount = (mountedEditor, monaco) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
         setEditor(mountedEditor);
+
+        const type = ydoc.getText('type');
+        const model = mountedEditor.getModel();
+        // const monacoBinding = new MonacoBinding(type, /** @type {monaco.editor.ITextModel} */ model, new Set([mountedEditor]), provider.awareness)
+
         setHTMLEventHandler(mountedEditor, stopMouseEvent);
     };
 
