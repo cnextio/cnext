@@ -14,7 +14,7 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 import { QueryClient, QueryClientProvider, useInfiniteQuery } from "@tanstack/react-query";
-import { useVirtual } from "react-virtual";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import ColumnHistogram from "./ColumnHistogram";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 
@@ -294,7 +294,7 @@ function TableViewVirtual() {
                 {/** render index cell */}
                 {renderBodyCell(rowNumber, rowIndexData, rowIndexData, null, true)}
                 {/** render data cell */}
-                {rowData.map((rowCellData: any, index: number) =>
+                {rowData?.map((rowCellData: any, index: number) =>
                     renderBodyCell(rowNumber, colNames[index], rowIndexData, rowCellData)
                 )}
             </DataTableRow>
@@ -343,21 +343,30 @@ function TableViewVirtual() {
     });
 
     const { rows } = table.getRowModel();
-
     //Virtualizing is optional, but might be necessary if we are going to potentially have hundreds or thousands of rows
-    const rowVirtualizer = useVirtual({
-        parentRef: tableContainerRef,
-        size: 15,
-        overscan: 10,
+    // const rowVirtualizer = useVirtual({
+    //     parentRef: tableContainerRef,
+    //     size: 1000,
+    //     overscan: 10,
+    // });
+    const rowVirtualizer = useVirtualizer({
+        count: 10000,
+        getScrollElement: () => tableContainerRef.current,
+        estimateSize: () => 25,
     });
-    const { virtualItems: virtualRows, totalSize } = rowVirtualizer;
+
     const fetchMoreOnBottomReached = React.useCallback(
         (containerRefElement?: HTMLDivElement | null) => {
             if (containerRefElement) {
                 const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-                console.log("virtualItems", scrollHeight, virtualRows, flatData);
+                console.log(
+                    "virtualItems",
+                    scrollHeight,
+                    flatData.length,
+                    rowVirtualizer.getVirtualItems()
+                );
                 if (
-                    scrollHeight - scrollTop - clientHeight < 300 &&
+                    scrollHeight - scrollTop - clientHeight < 50 &&
                     !isFetching &&
                     totalFetched < totalDBRowCount
                 ) {
@@ -394,7 +403,7 @@ function TableViewVirtual() {
                         </DataTableHeadRow>
                     </DataTableHead>
                     <TableBody>
-                        {flatData.map((virtualRow, rowNumber) =>
+                        {rowVirtualizer.getVirtualItems().map((virtualRow, rowNumber) =>
                             renderBodyRow(
                                 rowNumber,
                                 tableData[activeDataFrame]?.column_names,
