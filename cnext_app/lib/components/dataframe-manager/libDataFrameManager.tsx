@@ -48,7 +48,7 @@ const isDataFrameUpdated = (df_id: string) => {
     return status.is_updated;
 };
 
-const DF_DISPLAY_HALF_LENGTH = 15;
+const DF_DISPLAY_HALF_LENGTH = 50;
 export const sendGetTableDataAroundRowIndex = (
     socket: Socket,
     df_id: string,

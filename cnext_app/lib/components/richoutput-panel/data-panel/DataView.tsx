@@ -23,9 +23,10 @@ const DataView = () => {
             case DFViewMode.TABLE_VIEW:
                 return (
                     <QueryClientProvider client={queryClient}>
-                        <TableViewVirtual />;
+                        <TableViewVirtual />
                     </QueryClientProvider>
                 );
+                // return <TableView />;
 
             case DFViewMode.SUMMARY_VIEW:
                 return <SummaryView />;

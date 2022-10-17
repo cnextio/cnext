@@ -1,5 +1,4 @@
-import React, { Fragment, useEffect } from "react";
-import ReactDOM from "react-dom/client";
+import React from "react";
 import CountNA from "./CountNA";
 
 //3 TanStack Libraries!!!
@@ -12,10 +11,11 @@ import {
     SortingState,
     ColumnSort,
     useReactTable,
+    ColumnResizeMode,
 } from "@tanstack/react-table";
-import { QueryClient, QueryClientProvider, useInfiniteQuery } from "@tanstack/react-query";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import ColumnHistogram from "./ColumnHistogram";
+// import { QueryClient, QueryClientProvider, useInfiniteQuery } from "@tanstack/react-query";
+// import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtual } from "react-virtual";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 
 import { useSelector } from "react-redux";
@@ -23,7 +23,7 @@ import { RootState } from "../../../../redux/store";
 import { SpecialMimeType, IDFUpdatesReview, ReviewType } from "../../../interfaces/IApp";
 import { ifElse } from "../../libs";
 import {
-    DataTable,
+    // DataTable,
     DataTableCell,
     DataTableHead,
     DataTableHeadRow,
@@ -40,6 +40,8 @@ import { TableBody } from "@mui/material";
 import { ICellDataURLImage, UDFLocation } from "../../../interfaces/IDataFrameManager";
 import UDFContainer from "./UDFContainer";
 import InputComponent from "./InputComponent";
+import { relative } from "path";
+import { DataTable } from "./styles";
 
 const fetchSize = 10;
 
@@ -78,7 +80,8 @@ function TableViewVirtual() {
         return review;
     };
 
-    const renderHeadCell = (colName: string, rowIndexData: any) => {
+    const renderHeadCell = (header: any, rowIndexData: string | number) => {
+        let colName = header.column.columnDef.header;
         if (activeDataFrame) {
             let state = store.getState();
             // const dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
@@ -87,7 +90,9 @@ function TableViewVirtual() {
 
             return (
                 <DataTableCell key={shortid.generate()} align="right" review={review} head={true}>
-                    {colName}
+                    {header.isPlaceholder ? null : (
+                        <div>{flexRender(header.column.columnDef.header, header.getContext())}</div>
+                    )}
                     {renderUDF(activeDataFrame, metadata, colName)}
                     {dfReview && review && dfReview.type == ReviewType.col && (
                         <ScrollIntoViewIfNeeded
@@ -99,6 +104,23 @@ function TableViewVirtual() {
                             }}
                         />
                     )}
+                    <div
+                        {...{
+                            onMouseDown: header.getResizeHandler(),
+                            onTouchStart: header.getResizeHandler(),
+                            className: `resizer ${
+                                header.column.getIsResizing() ? "isResizing" : ""
+                            }`,
+                            style: {
+                                transform:
+                                    columnResizeMode === "onEnd" && header.column.getIsResizing()
+                                        ? `translateX(${
+                                              table.getState().columnSizingInfo.deltaOffset
+                                          }px)`
+                                        : "",
+                            },
+                        }}
+                    />
                 </DataTableCell>
             );
         }
@@ -199,223 +221,272 @@ function TableViewVirtual() {
         }
     };
 
-    const renderBodyInnerCell = (
-        rowNumber: number,
-        index: string,
-        item: string | {},
-        metadata: {},
-        colName: string | number,
-        dfReview: {},
-        review: {}
-    ) => {
-        return (
-            <DataTableCell key={shortid.generate()} align="right" review={review} head={false}>
-                {metadata &&
-                metadata.columns[colName] &&
-                Object.values(SpecialMimeType).includes(metadata.columns[colName].type)
-                    ? // <ImageMimeCell src={"data:image/png;base64," + item.binary} />
-                      renderSpecialMimeInnerCell(
-                          rowNumber,
-                          index,
-                          item,
-                          colName,
-                          metadata.columns[colName].type
-                      )
-                    : item}
-                {dfReview && review && dfReview.type == ReviewType.cell && (
-                    <ScrollIntoViewIfNeeded
-                        options={{
-                            active: true,
-                            block: "nearest",
-                            inline: "center",
-                            behavior: "smooth",
-                        }}
-                    />
-                )}
-            </DataTableCell>
-        );
-    };
-
-    const renderBodyIndexCell = (rowIndexData: any, dfReview: {}, review: {}) => {
-        return (
-            <DataTableIndexCell key={shortid.generate()} review={review}>
-                {rowIndexData}
-                {dfReview && dfReview.type == ReviewType.row && review && (
-                    <ScrollIntoViewIfNeeded
-                        options={{
-                            active: true,
-                            block: "nearest",
-                            inline: "center",
-                        }}
-                    />
-                )}
-            </DataTableIndexCell>
-        );
-    };
-
-    const renderBodyCell = (
-        rowNumber: number,
-        colName: string | number | null,
-        rowIndexData: any,
-        rowCellData: any,
-        indexCell: boolean = false
-    ) => {
+    const renderBodyCell = (rowNumber: number, cell: any, indexCell: boolean = false) => {
         let state = store.getState();
-        if (activeDataFrame && colName != null) {
+        if (activeDataFrame) {
             const dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
             const metadata = state.dataFrames.metadata[activeDataFrame];
-            let review = isReviewingCell(colName, rowIndexData, dfReview);
-            return (
-                <>
-                    {indexCell
-                        ? renderBodyIndexCell(rowIndexData, dfReview, review)
-                        : renderBodyInnerCell(
-                              rowNumber,
-                              rowIndexData,
-                              rowCellData,
-                              metadata,
-                              colName,
-                              dfReview,
-                              review
-                          )}
-                </>
-            );
+            const rowIndexData = tableData[activeDataFrame]?.index.data[rowNumber];
+            if (indexCell) {
+                //TODO: this seems wrong
+                const review = isReviewingCell(rowIndexData, rowIndexData, dfReview);
+                return (
+                    <DataTableIndexCell
+                        key="index"
+                        review={review}
+                        style={{ height: "max-content" }}
+                    >
+                        {rowIndexData}
+                        {dfReview && dfReview.type == ReviewType.row && review && (
+                            <ScrollIntoViewIfNeeded
+                                options={{
+                                    active: true,
+                                    block: "nearest",
+                                    inline: "center",
+                                }}
+                            />
+                        )}
+                    </DataTableIndexCell>
+                );
+            } else if (cell) {
+                const colName = tableData[activeDataFrame]?.column_names[cell.id];
+                const review = isReviewingCell(colName, rowIndexData, dfReview);
+                console.log("virtual cell: ", rowNumber, cell, cell.column?.columnDef?.cell);
+                return (
+                    <DataTableCell
+                        key={cell.id}
+                        align="right"
+                        review={review}
+                        head={false}
+                        style={{
+                            width: cell.column.getSize(),
+                            height: "max-content",
+                        }}
+                    >
+                        {metadata &&
+                        metadata.columns[colName] &&
+                        Object.values(SpecialMimeType).includes(metadata.columns[colName].type)
+                            ? // <ImageMimeCell src={"data:image/png;base64," + item.binary} />
+                              renderSpecialMimeInnerCell(
+                                  rowNumber,
+                                  rowIndexData,
+                                  cell.column.columnDef.cell,
+                                  colName,
+                                  metadata.columns[colName].type
+                              )
+                            : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {dfReview && review && dfReview.type == ReviewType.cell && (
+                            <ScrollIntoViewIfNeeded
+                                options={{
+                                    active: true,
+                                    block: "nearest",
+                                    inline: "center",
+                                    behavior: "smooth",
+                                }}
+                            />
+                        )}
+                    </DataTableCell>
+                );
+            }
         }
     };
 
-    const renderBodyRow = (
-        rowNumber: number,
-        colNames: string[],
-        rowIndexData: any,
-        rowData: any[]
-    ) => {
+    // const renderBodyRow = (
+    //     rowNumber: number,
+    //     colNames: string[],
+    //     rowIndexData: any,
+    //     rowData: any[],
+    //     virtualRow: any
+    // ) => {
+    //     return (
+    //         <DataTableRow
+    //             hover
+    //             key={virtualRow.index}
+    //             style={{
+    //                 position: "absolute",
+    //                 top: 0,
+    //                 left: 0,
+    //                 transform: `translateY(${virtualRow.start}px)`,
+    //             }}
+    //             ref={virtualRow.measureElement}
+    //             className={virtualRow.index % 2 ? "even-row" : "odd-row"}
+    //         >
+    //             {/** render index cell */}
+    //             {renderBodyCell(rowNumber, rowIndexData, rowIndexData, null, true)}
+    //             {/** render data cell */}
+    //             {rowData?.map((rowCellData: any, index: number) =>
+    //                 renderBodyCell(rowNumber, colNames[index], rowIndexData, rowCellData)
+    //             )}
+    //         </DataTableRow>
+    //     );
+    // };
+    const renderBodyRow = (virtualRow: any) => {
+        const row = rows[virtualRow.index] as Row;
+
         return (
-            <DataTableRow hover key={shortid.generate()}>
+            <DataTableRow
+                hover
+                key={row?.id}
+                // className={row?.index % 2 ? "even-row" : "odd-row"}
+            >
                 {/** render index cell */}
-                {renderBodyCell(rowNumber, rowIndexData, rowIndexData, null, true)}
+                {/* {renderBodyCell(row?.id, null, true)} */}
                 {/** render data cell */}
-                {rowData?.map((rowCellData: any, index: number) =>
-                    renderBodyCell(rowNumber, colNames[index], rowIndexData, rowCellData)
-                )}
+                {row?.getVisibleCells().map((cell: any) => renderBodyCell(row?.id, cell))}
             </DataTableRow>
         );
     };
     const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
     const [sorting, setSorting] = React.useState<SortingState>([]);
-    const columns = React.useMemo<ColumnDef<any>[]>(
-        () =>
-            tableData[activeDataFrame]?.column_names.map((item: any, index: any) => {
-                return { accessorKey: `${index}` };
-            }),
-        []
-    );
+    const columns = React.useMemo<ColumnDef<any>[]>(() => {
+        if (activeDataFrame) {
+            const columns = tableData[activeDataFrame]?.column_names.map(
+                (item: any, index: any) => {
+                    return { accessorKey: item, header: item, sixe: 100 };
+                }
+            );
+            // console.log("virtual table columns: ", columns);
+            return columns;
+        } else return [];
+    }, [activeDataFrame, tableData]);
 
-    let tableRow = tableData[activeDataFrame]?.rows;
-    const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery<any>(
-        ["table-data", sorting], //adding sorting state as key causes table to reset and fetch from new beginning upon sort
-        async ({ pageParam = 0 }) => {
-            const start = pageParam * fetchSize;
-            const fetchedData = fetchData(tableRow, start, fetchSize, sorting); //pretend api call
-            return fetchedData;
-        },
-        {
-            getNextPageParam: (_lastGroup, groups) => groups.length,
-            keepPreviousData: true,
-            refetchOnWindowFocus: false,
+    // const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery<any>(
+    //     ["table-data", sorting], //adding sorting state as key causes table to reset and fetch from new beginning upon sort
+    //     async ({ pageParam = 0 }) => {
+    //         const start = pageParam * fetchSize;
+    //         const fetchedData = fetchData(tableRow, start, fetchSize, sorting); //pretend api call
+    //         return fetchedData;
+    //     },
+    //     {
+    //         getNextPageParam: (_lastGroup, groups) => groups.length,
+    //         keepPreviousData: true,
+    //         refetchOnWindowFocus: false,
+    //     }
+    // );
+
+    const dictData = React.useMemo(() => {
+        const newData = [];
+
+        if (activeDataFrame) {
+            let tableRows = tableData[activeDataFrame]?.rows;
+            let tableCols = tableData[activeDataFrame]?.column_names;
+            let r = 0;
+            for (const row of tableRows) {
+                const rowDict: { [key: string]: any } = {};
+                for (let c = 0; c < row.length; c++) {
+                    if (r == 50 && c == 1) {
+                        rowDict[tableCols[c]] = `test \n\n\n\n\n test test test test test test`;
+                    } else {
+                        rowDict[tableCols[c]] = row[c];
+                    }
+                }
+                newData.push(rowDict);
+                r++;
+            }
         }
-    );
+        // console.log("virtual table data: ", newData);
+        return newData;
+    }, [activeDataFrame, tableData]);
 
+    const [columnResizeMode, setColumnResizeMode] = React.useState<ColumnResizeMode>("onChange");
+    const rerender = React.useReducer(() => ({}), {})[1];
     //we must flatten the array of arrays from the useInfiniteQuery hook
-    const flatData = React.useMemo(() => data?.pages?.flatMap((page) => page.data) ?? [], [data]);
-    const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
-    const totalFetched = flatData.length;
+    // const flatData = React.useMemo(() => data?.pages?.flatMap((page) => page.data) ?? [], [data]);
+    // const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+    // const totalFetched = flatData.length;
     const table = useReactTable({
-        data: flatData,
+        data: dictData,
         columns,
-        state: {
-            sorting,
-        },
+        columnResizeMode,
         onSortingChange: setSorting,
         getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
         debugTable: true,
+        debugHeaders: true,
+        debugColumns: true,
     });
 
     const { rows } = table.getRowModel();
-    //Virtualizing is optional, but might be necessary if we are going to potentially have hundreds or thousands of rows
-    // const rowVirtualizer = useVirtual({
-    //     parentRef: tableContainerRef,
-    //     size: 1000,
-    //     overscan: 10,
-    // });
-    const rowVirtualizer = useVirtualizer({
-        count: 10000,
-        getScrollElement: () => tableContainerRef.current,
-        estimateSize: () => 25,
+
+    const rowVirtualizer = useVirtual({
+        parentRef: tableContainerRef,
+        size: rows.length,
+        overscan: 10,
     });
+    const { virtualItems: virtualRows, totalSize } = rowVirtualizer;
 
-    const fetchMoreOnBottomReached = React.useCallback(
-        (containerRefElement?: HTMLDivElement | null) => {
-            if (containerRefElement) {
-                const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-                console.log(
-                    "virtualItems",
-                    scrollHeight,
-                    flatData.length,
-                    rowVirtualizer.getVirtualItems()
-                );
-                if (
-                    scrollHeight - scrollTop - clientHeight < 50 &&
-                    !isFetching &&
-                    totalFetched < totalDBRowCount
-                ) {
-                    fetchNextPage();
-                }
-            }
-        },
-        [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
-    );
+    const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
+    const paddingBottom =
+        virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
-    React.useEffect(() => {
-        fetchMoreOnBottomReached(tableContainerRef.current);
-    }, [fetchMoreOnBottomReached]);
+    // const fetchMoreOnBottomReached = React.useCallback(
+    //     (containerRefElement?: HTMLDivElement | null) => {
+    //         if (containerRefElement) {
+    //             const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
+    //             console.log(
+    //                 "virtualItems",
+    //                 scrollHeight,
+    //                 scrollTop,
+    //                 clientHeight,
+    //                 flatData.length,
+    //                 totalFetched,
+    //                 totalDBRowCount,
+    //                 rowVirtualizer.getVirtualItems(),
+    //                 data
+    //             );
+    //             if (
+    //                 scrollHeight - scrollTop - clientHeight < 50 &&
+    //                 !isFetching &&
+    //                 totalFetched < totalDBRowCount
+    //             ) {
+    //                 fetchNextPage();
+    //             }
+    //         }
+    //     },
+    //     [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    // );
 
-    if (isLoading) {
-        return <>Loading...</>;
-    }
+    // React.useEffect(() => {
+    //     // fetchMoreOnBottomReached(tableContainerRef.current);
+    // }, [fetchMoreOnBottomReached]);
+
+    // if (isLoading) {
+    //     return <>Loading...</>;
+    // }
     return (
-        <StyledTableView
-            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-            ref={tableContainerRef}
-        >
+        <StyledTableView ref={tableContainerRef} style={{ width: "fit-content" }}>
             {/* {console.log("Render TableContainer: ", tableData)} */}
-            {console.log("Render TableContainer")}
+            {console.log("Render TableContainer ")}
             {activeDataFrame && tableData[activeDataFrame] && (
-                <DataTable sx={{ minWidth: 650 }} size="small" stickyHeader>
-                    {/* {console.log(tableData)} */}
-                    <DataTableHead>
-                        <DataTableHeadRow>
-                            {renderHeadCell(tableData[activeDataFrame]?.index.name, 0)}
-                            {tableData[activeDataFrame]?.column_names.map(
-                                (colName: string, index: number) => renderHeadCell(colName, 0)
-                            )}
-                        </DataTableHeadRow>
+                <DataTable
+                    size="small"
+                    stickyHeader
+                >
+                    <DataTableHead style={{ border: "1px solid" }}>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <DataTableHeadRow key={headerGroup.id} style={{ border: "1px solid" }}>
+                                {headerGroup.headers.map((header) => renderHeadCell(header, 0))}
+                            </DataTableHeadRow>
+                        ))}
                     </DataTableHead>
                     <TableBody>
-                        {rowVirtualizer.getVirtualItems().map((virtualRow, rowNumber) =>
-                            renderBodyRow(
-                                rowNumber,
-                                tableData[activeDataFrame]?.column_names,
-                                tableData[activeDataFrame]?.index.data[rowNumber],
-                                tableData[activeDataFrame]?.rows[rowNumber]
-                            )
+                        {paddingTop > 0 && (
+                            <tr>
+                                <td style={{ height: `${paddingTop}px` }} />
+                            </tr>
+                        )}
+                        {virtualRows.map((virtualRow) => renderBodyRow(virtualRow))}
+                        {paddingBottom > 0 && (
+                            <tr>
+                                <td style={{ height: `${paddingBottom}px` }} />
+                            </tr>
                         )}
                     </TableBody>
                 </DataTable>
             )}
         </StyledTableView>
-    )
+        // </div>
+    );
 }
 
 export default TableViewVirtual;

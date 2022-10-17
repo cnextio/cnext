@@ -963,8 +963,12 @@ export const DataTableHead = styled(TableHead)`
 export const DataTableHeadRow = styled(TableRow)``;
 
 export const DataTableRow = styled(TableRow)`
-    &:nth-of-type(odd) {
+    & .odd-row {
         background-color: ${(props) => props.theme.palette.action.hover};
+    }
+
+    & .even-row {
+        background-color: none;
     }
 `;
 
