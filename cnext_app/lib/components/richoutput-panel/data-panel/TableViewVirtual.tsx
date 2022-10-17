@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import CountNA from "./CountNA";
 
 //3 TanStack Libraries!!!
@@ -183,41 +183,57 @@ function TableViewVirtual() {
 
     const renderSpecialMimeInnerCell = (
         rowNumber: number,
-        index: string,
-        item: {},
-        colName: string,
+        rowIndexData: string,
+        cell: any,
         type: SpecialMimeType
     ) => {
-        console.log("Render image: ", item, type);
-        if ([SpecialMimeType.FILE_PNG, SpecialMimeType.URL_PNG].includes(type)) {
-            return (
-                <ImageMimeCell
-                    src={"data:image/png;base64," + (item as ICellDataURLImage).binary}
-                />
-            );
-        } else if ([SpecialMimeType.FILE_JPG, SpecialMimeType.URL_JPG].includes(type)) {
-            return (
-                <ImageMimeCell
-                    src={"data:image/jpg;base64," + (item as ICellDataURLImage).binary}
-                />
-            );
-        } else if (
-            [
-                SpecialMimeType.INPUT_SELECTION,
-                SpecialMimeType.INPUT_CHECKBOX,
-                SpecialMimeType.INPUT_TEXT,
-            ].includes(type)
-        ) {
-            return (
-                <InputComponent
-                    df_id={activeDataFrame}
-                    rowNumber={rowNumber}
-                    colName={colName}
-                    index={index}
-                    item={item}
-                    type={type}
-                />
-            );
+        if (activeDataFrame) {
+            const cellContent = cell.getValue();
+            const colName = cell.column.id;
+            // console.log("Render special mimetype: ", cellContent, cell);
+            if ([SpecialMimeType.FILE_PNG, SpecialMimeType.URL_PNG].includes(type)) {
+                return (
+                    <>
+                        <ImageMimeCell
+                            src={
+                                "data:image/png;base64," + (cellContent as ICellDataURLImage).binary
+                            }
+                        />
+                        {flexRender("", cell.getContext())}
+                    </>
+                );
+            } else if ([SpecialMimeType.FILE_JPG, SpecialMimeType.URL_JPG].includes(type)) {
+                return (
+                    <>
+                        <ImageMimeCell
+                            src={
+                                "data:image/jpg;base64," + (cellContent as ICellDataURLImage).binary
+                            }
+                        />
+                        {flexRender("", cell.getContext())}
+                    </>
+                );
+            } else if (
+                [
+                    SpecialMimeType.INPUT_SELECTION,
+                    SpecialMimeType.INPUT_CHECKBOX,
+                    SpecialMimeType.INPUT_TEXT,
+                ].includes(type)
+            ) {
+                return (
+                    <>
+                        <InputComponent
+                            df_id={activeDataFrame}
+                            rowNumber={rowNumber}
+                            colName={colName}
+                            index={rowIndexData}
+                            item={cellContent}
+                            type={type}
+                        />
+                        {flexRender("", cell.getContext())}
+                    </>
+                );
+            }
         }
     };
 
@@ -227,6 +243,7 @@ function TableViewVirtual() {
             const dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
             const metadata = state.dataFrames.metadata[activeDataFrame];
             const rowIndexData = tableData[activeDataFrame]?.index.data[rowNumber];
+            const colName = cell.column.id;
             if (indexCell) {
                 //TODO: this seems wrong
                 const review = isReviewingCell(rowIndexData, rowIndexData, dfReview);
@@ -249,9 +266,15 @@ function TableViewVirtual() {
                     </DataTableIndexCell>
                 );
             } else if (cell) {
-                const colName = tableData[activeDataFrame]?.column_names[cell.id];
                 const review = isReviewingCell(colName, rowIndexData, dfReview);
-                console.log("virtual cell: ", rowNumber, cell, cell.column?.columnDef?.cell);
+                const type = metadata.columns[cell.column.id].type;
+                // console.log(
+                //     "virtual rowNumber, colName, cell.id, type: ",
+                //     rowNumber,
+                //     cell.column.id,
+                //     cell,
+                //     type
+                // );
                 return (
                     <DataTableCell
                         key={cell.id}
@@ -263,17 +286,8 @@ function TableViewVirtual() {
                             height: "max-content",
                         }}
                     >
-                        {metadata &&
-                        metadata.columns[colName] &&
-                        Object.values(SpecialMimeType).includes(metadata.columns[colName].type)
-                            ? // <ImageMimeCell src={"data:image/png;base64," + item.binary} />
-                              renderSpecialMimeInnerCell(
-                                  rowNumber,
-                                  rowIndexData,
-                                  cell.column.columnDef.cell,
-                                  colName,
-                                  metadata.columns[colName].type
-                              )
+                        {metadata && Object.values(SpecialMimeType).includes(type)
+                            ? renderSpecialMimeInnerCell(rowNumber, rowIndexData, cell, type)
                             : flexRender(cell.column.columnDef.cell, cell.getContext())}
                         {dfReview && review && dfReview.type == ReviewType.cell && (
                             <ScrollIntoViewIfNeeded
@@ -327,6 +341,7 @@ function TableViewVirtual() {
             <DataTableRow
                 hover
                 key={row?.id}
+                ref={virtualRow.measureRef}
                 // className={row?.index % 2 ? "even-row" : "odd-row"}
             >
                 {/** render index cell */}
@@ -411,6 +426,7 @@ function TableViewVirtual() {
     const rowVirtualizer = useVirtual({
         parentRef: tableContainerRef,
         size: rows.length,
+        // estimateSize: useCallback(() => 10, []),
         overscan: 10,
     });
     const { virtualItems: virtualRows, totalSize } = rowVirtualizer;
@@ -454,14 +470,11 @@ function TableViewVirtual() {
     //     return <>Loading...</>;
     // }
     return (
-        <StyledTableView ref={tableContainerRef} style={{ width: "fit-content" }}>
+        <StyledTableView ref={tableContainerRef}  style={{ width: "fit-content" }}>
             {/* {console.log("Render TableContainer: ", tableData)} */}
             {console.log("Render TableContainer ")}
             {activeDataFrame && tableData[activeDataFrame] && (
-                <DataTable
-                    size="small"
-                    stickyHeader
-                >
+                <DataTable size="small" stickyHeader>
                     <DataTableHead style={{ border: "1px solid" }}>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <DataTableHeadRow key={headerGroup.id} style={{ border: "1px solid" }}>
@@ -469,11 +482,16 @@ function TableViewVirtual() {
                             </DataTableHeadRow>
                         ))}
                     </DataTableHead>
-                    <TableBody>
+                    <TableBody style={{ height: "100%" }}>
                         {paddingTop > 0 && (
                             <tr>
                                 <td style={{ height: `${paddingTop}px` }} />
                             </tr>
+                        )}
+                        {console.log(
+                            "render special virtualRows.length: ",
+                            virtualRows.length,
+                            virtualRows?.[virtualRows.length - 1]
                         )}
                         {virtualRows.map((virtualRow) => renderBodyRow(virtualRow))}
                         {paddingBottom > 0 && (
