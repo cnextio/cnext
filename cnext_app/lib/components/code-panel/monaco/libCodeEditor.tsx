@@ -16,7 +16,6 @@ import {
 } from "../../../interfaces/ICodeEditor";
 import { ifElse } from "../../libs";
 import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/CodeEditorRedux";
-import socket from "../../Socket";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { Socket } from "socket.io-client";
 
@@ -223,7 +222,7 @@ export const setLineStatus = (inViewID: string, lineRange: ILineRange, status: L
     store.dispatch(setLineStatusRedux(lineStatus));
 };
 
-export const execLines = (runQueueItem: IRunQueueItem) => {
+export const execLines = (socket: any, runQueueItem: IRunQueueItem) => {
     let fileID = runQueueItem.inViewID;
     let lineRange = runQueueItem.lineRange;
     if (fileID && lineRange.toLine != null && lineRange.fromLine != null) {
@@ -280,5 +279,5 @@ const createMessage = (content: IRunningCommandContent) => {
 export const sendMessage = (socket: Socket, content: IRunningCommandContent) => {
     const message = createMessage(content);
     console.log(`${message.webapp_endpoint} send message: `, message);
-    socket.emit(message.webapp_endpoint, JSON.stringify(message));
+    socket?.emit(message.webapp_endpoint, JSON.stringify(message));
 };
