@@ -196,7 +196,8 @@ function TableViewVirtual() {
                     <>
                         <ImageMimeCell
                             src={
-                                "data:image/png;base64," + (cellContent as ICellDataURLImage).binary
+                                // "data:image/png;base64," + (cellContent as ICellDataURLImage).binary
+                                cellContent.url
                             }
                         />
                         {flexRender("", cell.getContext())}
@@ -207,7 +208,8 @@ function TableViewVirtual() {
                     <>
                         <ImageMimeCell
                             src={
-                                "data:image/jpg;base64," + (cellContent as ICellDataURLImage).binary
+                                // "data:image/jpg;base64," + (cellContent as ICellDataURLImage).binary
+                                cellContent.url
                             }
                         />
                         {flexRender("", cell.getContext())}
@@ -390,11 +392,7 @@ function TableViewVirtual() {
             for (const row of tableRows) {
                 const rowDict: { [key: string]: any } = {};
                 for (let c = 0; c < row.length; c++) {
-                    if (r == 50 && c == 1) {
-                        rowDict[tableCols[c]] = `test \n\n\n\n\n test test test test test test`;
-                    } else {
-                        rowDict[tableCols[c]] = row[c];
-                    }
+                    rowDict[tableCols[c]] = row[c];
                 }
                 newData.push(rowDict);
                 r++;
@@ -405,7 +403,7 @@ function TableViewVirtual() {
     }, [activeDataFrame, tableData]);
 
     const [columnResizeMode, setColumnResizeMode] = React.useState<ColumnResizeMode>("onChange");
-    const rerender = React.useReducer(() => ({}), {})[1];
+    // const rerender = React.useReducer(() => ({}), {})[1];
     //we must flatten the array of arrays from the useInfiniteQuery hook
     // const flatData = React.useMemo(() => data?.pages?.flatMap((page) => page.data) ?? [], [data]);
     // const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;

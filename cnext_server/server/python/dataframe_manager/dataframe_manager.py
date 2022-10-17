@@ -124,13 +124,13 @@ class MessageHandler(BaseMessageHandler):
                 log.info('Load url for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     url = df[df.columns[i]].iloc[r]
-                    response = requests.get(url)
+                    # response = requests.get(url)
                     # img = Image.open(BytesIO(response.content))
                     log.info('Load file for mime %s path %s' %
                              (t.name, url))
                     tableData['rows'][r][i] = {
                         'url': url,
-                        'binary': base64.b64encode(response.content)
+                        # 'binary': base64.b64encode(response.content)
                     }
             elif t.name in [CnextMimeType.INPUT_SELECTION, CnextMimeType.INPUT_CHECKBOX, CnextMimeType.INPUT_TEXT]:
                 log.info('Create table for mime %s' % t.name)
