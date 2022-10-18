@@ -38,6 +38,7 @@ export type DataFrameState = {
     // dfUpdateCount: number;
     /** this number increase whenever DataPanel is focused */
     dataPanelFocusSignal: number;
+    columnSelector: any;
     udfsSelector: { [id: string]: IDataFrameUDFSelection };
     registeredUDFs: IRegisteredUDFs; //{ [name: string]: UDF };
 };
@@ -62,6 +63,7 @@ const initialState: DataFrameState = {
     dataPanelFocusSignal: 0,
     udfsSelector: {},
     registeredUDFs: { udfs: {}, timestamp: "0" },
+    columnSelector: {},
 };
 
 export const dataFrameSlice = createSlice({
@@ -334,7 +336,14 @@ export const dataFrameSlice = createSlice({
                 }
             }
         },
-
+        setColumnSelection: (state, action) => {
+            const data = action.payload;
+            if (data) {
+                const asArray = Object.entries(data);
+                console.log("asArray", asArray,data);
+                state.columnSelector = Object.fromEntries(asArray.filter(([key, value]) => value === false))
+            }
+        },
         setUDFsSelection: (state, action) => {
             const data = action.payload;
             if (data) {
@@ -367,7 +376,7 @@ export const dataFrameSlice = createSlice({
             const rowNumber = data.rowNumber;
             const colNumber = state.tableData[df_id].column_names.indexOf(data.col_name);
             state.tableData[df_id].rows[rowNumber][colNumber] = data.value;
-        }
+        },
     },
 });
 
@@ -384,6 +393,7 @@ export const {
     setDataPanelFocusSignal,
     setRegisteredUDFs,
     setUDFsSelection,
+    setColumnSelection,
     setComputeUDFData,
     setTableDataCellValue,
 } = dataFrameSlice.actions;

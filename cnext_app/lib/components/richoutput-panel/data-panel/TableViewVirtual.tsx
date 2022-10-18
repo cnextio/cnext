@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import CountNA from "./CountNA";
 
 //3 TanStack Libraries!!!
@@ -48,6 +48,9 @@ const fetchSize = 10;
 function TableViewVirtual() {
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
+    const columnSelector = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.columnSelector : {}
+    );
     const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
         getReviewRequest(state)
     );
@@ -277,7 +280,7 @@ function TableViewVirtual() {
         if (activeDataFrame) {
             const dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
             const metadata = state.dataFrames.metadata[activeDataFrame];
-            const rowIndexData = tableData[activeDataFrame]?.index.data[rowNumber];            
+            const rowIndexData = tableData[activeDataFrame]?.index.data[rowNumber];
             const renderReviewer = (review) => {
                 return (
                     <>
@@ -440,10 +443,19 @@ function TableViewVirtual() {
     // const flatData = React.useMemo(() => data?.pages?.flatMap((page) => page.data) ?? [], [data]);
     // const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
     // const totalFetched = flatData.length;
+    const [columnVisibility, setColumnVisibility] = React.useState({ Id: false });
+
+    useEffect(() => {
+        setColumnVisibility(columnSelector);
+    }, [columnSelector]);
+
     const table = useReactTable({
         data: dictData,
         columns,
         columnResizeMode,
+        state: {
+            columnVisibility,
+        },
         onSortingChange: setSorting,
         getCoreRowModel: getCoreRowModel(),
         debugTable: true,
@@ -500,7 +512,7 @@ function TableViewVirtual() {
     //     return <>Loading...</>;
     // }
     return (
-        <StyledTableView ref={tableContainerRef} >
+        <StyledTableView ref={tableContainerRef}>
             {/* {console.log("Render TableContainer: ", tableData)} */}
             {console.log("Render TableContainer ")}
             {activeDataFrame && tableData[activeDataFrame] && (

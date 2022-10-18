@@ -9,6 +9,7 @@ import { RootState } from "../../../../redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 import { setDataPanelFocusSignal } from "../../../../redux/reducers/DataFramesRedux";
+import ColumnSelector from "./ColumnSelector";
 
 const DataPanel = (props: any) => {
     const dispatch = useDispatch();
@@ -31,6 +32,7 @@ const DataPanel = (props: any) => {
                     style={{ width: "100%" }}
                 >
                     <UDFSelector />
+                    <ColumnSelector/>
                     <DataViewMode />
                 </Box>
             )}

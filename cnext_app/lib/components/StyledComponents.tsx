@@ -917,6 +917,55 @@ export const DFViewModeMenuItem = styled(MenuItem)`
     }
 `;
 
+export const ColumnVisible = styled.div`
+    padding-left: 0px;
+    margin-top: 4px;
+`;
+
+export const ColumnVisibleForm = styled(FormControl)`
+    height: 100%;
+    width: 88px;
+    font-size: 13px;
+
+    .Mui-focused {
+        border-color: white;
+    }
+`;
+
+export const ColumnVisibleParentCheckbox = styled(Checkbox)`
+    .MuiSvgIcon-root {
+        font-size: 18px;
+    }
+`;
+
+export const ColumnVisibleSelector = styled(Select)`
+    font-size: 13px;
+    .MuiTypography-root {
+        font-size: 13px;
+    }
+    .MuiCheckbox-root {
+        padding: 5px 5px 5px 0px;
+    }
+
+    .MuiOutlinedInput-notchedOutline {
+        border: none;
+    }
+
+    &:hover {
+        .MuiOutlinedInput-notchedOutline {
+            border: none;
+        }
+    }
+`;
+
+export const ColumnVisibleMenuItem = styled(MenuItem)`
+    font-size: 13px;
+    padding: 5px 10px 5px 0px;
+    .MuiSvgIcon-root {
+        font-size: 18px;
+    }
+`;
+
 export const StyledTableViewHeader = styled.div`
     display: flex;
     flex-direction: row;
