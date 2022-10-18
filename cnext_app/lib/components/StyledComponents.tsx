@@ -903,7 +903,7 @@ export const DFStatsSelector = styled(Select)`
 
 export const DFStatsMenuItem = styled(MenuItem)`
     font-size: 13px;
-    padding: 5px 10px 5px 0px;
+    padding: 0px 5px 0px 0px;
     .MuiSvgIcon-root {
         font-size: 18px;
     }

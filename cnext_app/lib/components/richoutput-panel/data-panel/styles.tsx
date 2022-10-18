@@ -1,5 +1,9 @@
 import styled from "styled-components";
 import {
+    Checkbox,
+    FormControl,
+    MenuItem,
+    Select,
     Table,
     TableCell,
     TableContainer as MuiTableContainer,
@@ -50,8 +54,56 @@ export const DataTableCell = styled(TableCell)`
     vertical-align: ${(props) => (props.head ? "bottom" : "center")};
     text-align: ${(props) => (props.head ? "left" : "right")};
     font-size: 13px;
-    // flex: 1;
     animation: ${(props) =>
             props.review ? backgroundTransition(props.theme.palette.primary.light) : null}
         1s linear 0s;
+`;
+
+export const ColumnVisible = styled.div`
+    padding-left: 0px;
+    margin-top: 4px;
+`;
+
+export const ColumnVisibleForm = styled(FormControl)`
+    height: 100%;
+    width: 88px;
+    font-size: 13px;
+
+    .Mui-focused {
+        border-color: white;
+    }
+`;
+
+export const ColumnVisibleParentCheckbox = styled(Checkbox)`
+    .MuiSvgIcon-root {
+        font-size: 18px;
+    }
+`;
+
+export const ColumnVisibleSelector = styled(Select)`
+    font-size: 13px;
+    .MuiTypography-root {
+        font-size: 13px;
+    }
+    .MuiCheckbox-root {
+        padding: 5px 5px 5px 0px;
+    }
+
+    .MuiOutlinedInput-notchedOutline {
+        border: none;
+    }
+
+    &:hover {
+        .MuiOutlinedInput-notchedOutline {
+            border: none;
+        }
+    }
+`;
+
+export const ColumnVisibleMenuItem = styled(MenuItem)`
+    font-size: 13px;
+    padding: 0px 10px 0px 0px;
+    .MuiSvgIcon-root {
+        font-size: 18px;
+    }
 `;
