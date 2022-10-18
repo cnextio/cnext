@@ -500,7 +500,7 @@ function TableViewVirtual() {
     //     return <>Loading...</>;
     // }
     return (
-        <StyledTableView ref={tableContainerRef} style={{ width: "fit-content" }}>
+        <StyledTableView ref={tableContainerRef} >
             {/* {console.log("Render TableContainer: ", tableData)} */}
             {console.log("Render TableContainer ")}
             {activeDataFrame && tableData[activeDataFrame] && (
@@ -519,11 +519,11 @@ function TableViewVirtual() {
                                 <td style={{ height: `${paddingTop}px` }} />
                             </tr>
                         )}
-                        {console.log(
+                        {/* {console.log(
                             "render special virtualRows.length: ",
                             virtualRows.length,
                             virtualRows?.[virtualRows.length - 1]
-                        )}
+                        )} */}
                         {virtualRows.map((virtualRow) => renderBodyRow(virtualRow))}
                         {paddingBottom > 0 && (
                             <tr>

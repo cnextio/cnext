@@ -16,7 +16,7 @@ export const TableContainer = styled(MuiTableContainer)`
 export const DataTable = styled(Table)`
     border: 1px solid ${(props) => props.theme.palette.divider};
     margin-top: 0px; //see https://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par
-
+    width: fit-content;
     & .resizer {
         position: absolute;
         right: 0;
