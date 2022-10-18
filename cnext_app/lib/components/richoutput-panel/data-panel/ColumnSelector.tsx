@@ -102,7 +102,7 @@ const ColumnSelector = () => {
                             }}
                             IconComponent={SmallArrowIcon}
                             renderValue={() => {
-                                return <span>Column</span>;
+                                return <span>Columns</span>;
                             }}
                             input={<OutlinedInput />}
                         >
