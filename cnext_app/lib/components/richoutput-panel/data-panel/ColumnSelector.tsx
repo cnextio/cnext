@@ -87,7 +87,7 @@ const ColumnSelector = () => {
                             />
                         }
                         label=""
-                        sx={{ marginRight: "-10px", marginTop: "-102px", paddingLeft: "10px" }}
+                        sx={{ marginRight: "-10px", marginTop: "-12px", paddingLeft: "10px" }}
                     />
                     <ColumnVisibleForm size="small">
                         <ColumnVisibleSelector
