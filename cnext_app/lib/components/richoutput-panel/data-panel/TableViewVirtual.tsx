@@ -23,34 +23,26 @@ import { RootState } from "../../../../redux/store";
 import { SpecialMimeType, IDFUpdatesReview, ReviewType } from "../../../interfaces/IApp";
 import { ifElse } from "../../libs";
 import {
-    // DataTable,
-    DataTableCell,
     DataTableHead,
     DataTableHeadRow,
-    DataTableHeadCell,
     DataTableIndexCell,
     DataTableRow,
     StyledTableView,
-    DataTableHeadText,
     ImageMimeCell,
 } from "../../StyledComponents";
 import store from "../../../../redux/store";
-import shortid from "shortid";
 import { TableBody } from "@mui/material";
 import { ICellDataURLImage, UDFLocation } from "../../../interfaces/IDataFrameManager";
 import UDFContainer from "./UDFContainer";
 import InputComponent from "./InputComponent";
-import { relative } from "path";
-import { DataTable } from "./styles";
-
-const fetchSize = 10;
+import { DataTable, DataTableCell } from "./styles";
 
 function TableViewVirtual() {
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
-    const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
-        getReviewRequest(state)
-    );
+    // const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
+    //     getReviewRequest(state)
+    // );
     const udfsConfig = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
     );
