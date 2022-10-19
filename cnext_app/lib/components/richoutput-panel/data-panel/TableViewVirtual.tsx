@@ -42,7 +42,7 @@ function TableViewVirtual() {
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     const columnSelector = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.columnSelector : {}
+        activeDataFrame ? state.dataFrames.columnSelector[activeDataFrame].columns : {}
     );
     const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
         getReviewRequest(state)
@@ -389,12 +389,16 @@ function TableViewVirtual() {
     const [columnResizeMode, setColumnResizeMode] = React.useState<ColumnResizeMode>("onChange");
 
     const columnVisibility = React.useMemo<any>(() => {
-        if (columnSelector) {
-            const asArray = Object.entries(
-                store.getState().dataFrames.columnSelector[activeDataFrame].columns
-            );
-            return Object.fromEntries(asArray.filter(([key, value]) => value === false));
-        } else return {};
+        if (Object.keys(columnSelector).length > 0) {
+            const col = { ...columnSelector };
+            for (const i in columnSelector) {
+                if (columnSelector[i]) {
+                    delete col[i];
+                }
+            }
+            return col;
+        }
+        return {};
     }, [columnSelector, activeDataFrame]);
 
     const table = useReactTable({
@@ -402,7 +406,7 @@ function TableViewVirtual() {
         columns,
         columnResizeMode,
         state: {
-            columnVisibility, //format all value :false {a:false,b:false}
+            columnVisibility, //format all value :false  columnVisibility : {a:false,b:false}
         },
         getCoreRowModel: getCoreRowModel(),
         debugTable: true,

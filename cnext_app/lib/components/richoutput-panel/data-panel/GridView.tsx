@@ -68,6 +68,7 @@ const GridView = (props: any) => {
                 delete col[i];
             }
         }
+        // columnSelector{} to colNames[]
         let visibleColumns = Object.keys(col);
         const metadata = ifElse(store.getState().dataFrames.metadata, activeDataFrame, null);
 

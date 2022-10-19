@@ -192,14 +192,16 @@ const ColumnSummary = (props: any) => {
         );
     };
 
-    let visibleColumns = { ...dfMetadata?.columns };
-    // remove value false
-    for (const i in columnSelector) {
-        if (!columnSelector[i]) {
-            delete visibleColumns[i];
+    const visibleColumns = React.useMemo<any>(() => {
+        // remove value false
+        const col = { ...dfMetadata?.columns };
+        for (const i in columnSelector) {
+            if (!columnSelector[i]) {
+                delete col[i];
+            }
         }
-    }
-
+        return col;
+    }, [columnSelector, activeDataFrame, dfMetadata]);
     return (
         <StyledTableView style={{ padding: "10px" }} data-cy={CypressIds.dfSummaryTable}>
             {console.log("Render ColumnSummary ")}
