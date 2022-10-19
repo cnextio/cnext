@@ -20,7 +20,7 @@ const ColumnSummary = (props: any) => {
         activeDataFrame ? state.dataFrames.metadata[activeDataFrame] : null
     );
     const columnSelector = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.columnSelector : {}
+        activeDataFrame ? state.dataFrames.columnSelector[activeDataFrame].columns : {}
     );
     const renderColumnMetadata = (col_name: string) => {
         return (
@@ -191,19 +191,15 @@ const ColumnSummary = (props: any) => {
             </>
         );
     };
-    const [visibleColumns, setVisibleColumns] = React.useState({});
 
-    useEffect(() => {
-        if (dfMetadata?.columns) {
-            let col = Object.fromEntries(
-                Object.entries(dfMetadata.columns).filter(
-                    ([key]) =>
-                        !Object.keys(store.getState().dataFrames.columnSelector).includes(key)
-                )
-            );
-            setVisibleColumns(col);
+    let visibleColumns = { ...dfMetadata?.columns };
+    // remove value false
+    for (const i in columnSelector) {
+        if (!columnSelector[i]) {
+            delete visibleColumns[i];
         }
-    }, [columnSelector, dfMetadata]);
+    }
+
     return (
         <StyledTableView style={{ padding: "10px" }} data-cy={CypressIds.dfSummaryTable}>
             {console.log("Render ColumnSummary ")}

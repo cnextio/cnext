@@ -14,11 +14,11 @@ import store, { RootState } from "../../../../redux/store";
 
 const GridView = (props: any) => {
     const tableData = useSelector((state) => state.dataFrames.tableData);
-    const columnSelector = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.columnSelector : {}
-    );
-    const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
 
+    const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
+    const columnSelector = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.columnSelector[activeDataFrame].columns : {}
+    );
     const dfReview: IDFUpdatesReview = useSelector((state) => getReviewRequest(state));
 
     function getReviewRequest(state): IDFUpdatesReview {
@@ -61,9 +61,14 @@ const GridView = (props: any) => {
     };
 
     const createGridCell = (colNames: [], rowIndex: any, rowData: any[]) => {
-        let visibleColumns = colNames.filter(
-            (item) => !Object.keys(store.getState().dataFrames.columnSelector).includes(item)
-        );
+        let col = { ...columnSelector };
+        // remove value false
+        for (const i in col) {
+            if (!col[i]) {
+                delete col[i];
+            }
+        }
+        let visibleColumns = Object.keys(col);
         const metadata = ifElse(store.getState().dataFrames.metadata, activeDataFrame, null);
 
         // let colsWithMime = colNames.filter(
