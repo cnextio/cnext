@@ -1259,7 +1259,7 @@ export const ErrorText = styled.span`
     display: block;
 `;
 
-function backgroundTransition(color) {
+export function backgroundTransition(color) {
     return keyframes`
       50% {
         background-color: ${color};
@@ -1267,7 +1267,7 @@ function backgroundTransition(color) {
     `;
 }
 
-function backgroundTransitionToColor(color1, color2) {
+export function backgroundTransitionToColor(color1, color2) {
     return keyframes`
       0% {
         background-color: ${color1};
@@ -1281,7 +1281,7 @@ function backgroundTransitionToColor(color1, color2) {
     `;
 }
 
-function textTransitionToColor(color1, color2) {
+export function textTransitionToColor(color1, color2) {
     return keyframes`
       0% {
         color: ${color1};

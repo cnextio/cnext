@@ -32,10 +32,11 @@ import {
 } from "../../StyledComponents";
 import store from "../../../../redux/store";
 import { TableBody } from "@mui/material";
-import { ICellDataURLImage, UDFLocation } from "../../../interfaces/IDataFrameManager";
+import { UDFLocation } from "../../../interfaces/IDataFrameManager";
 import UDFContainer from "./UDFContainer";
 import InputComponent from "./InputComponent";
 import { DataTable, DataTableCell } from "./styles";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 function TableViewVirtual() {
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
@@ -43,9 +44,9 @@ function TableViewVirtual() {
     const columnSelector = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.columnSelector : {}
     );
-    // const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
-    //     getReviewRequest(state)
-    // );
+    const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
+        getReviewRequest(state)
+    );
     const udfsConfig = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
     );
@@ -290,7 +291,6 @@ function TableViewVirtual() {
                 );
             };
             if (indexCell) {
-                //TODO: this seems wrong
                 const review = isReviewingCell(rowIndexData, rowIndexData, dfReview);
                 return (
                     <DataTableIndexCell
@@ -327,6 +327,7 @@ function TableViewVirtual() {
                         {metadata && Object.values(SpecialMimeType).includes(type)
                             ? renderSpecialMimeInnerCell(rowNumber, rowIndexData, cell, type)
                             : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {/* tableData[activeDataFrame]?.rows[rowNumber][cellIndex]} */}
                         {renderReviewer(review)}
                     </DataTableCell>
                 );
@@ -334,35 +335,6 @@ function TableViewVirtual() {
         }
     };
 
-    // const renderBodyRow = (
-    //     rowNumber: number,
-    //     colNames: string[],
-    //     rowIndexData: any,
-    //     rowData: any[],
-    //     virtualRow: any
-    // ) => {
-    //     return (
-    //         <DataTableRow
-    //             hover
-    //             key={virtualRow.index}
-    //             style={{
-    //                 position: "absolute",
-    //                 top: 0,
-    //                 left: 0,
-    //                 transform: `translateY(${virtualRow.start}px)`,
-    //             }}
-    //             ref={virtualRow.measureElement}
-    //             className={virtualRow.index % 2 ? "even-row" : "odd-row"}
-    //         >
-    //             {/** render index cell */}
-    //             {renderBodyCell(rowNumber, rowIndexData, rowIndexData, null, true)}
-    //             {/** render data cell */}
-    //             {rowData?.map((rowCellData: any, index: number) =>
-    //                 renderBodyCell(rowNumber, colNames[index], rowIndexData, rowCellData)
-    //             )}
-    //         </DataTableRow>
-    //     );
-    // };
     const renderBodyRow = (virtualRow: any) => {
         const row = rows[virtualRow.index] as Row;
 
@@ -382,24 +354,9 @@ function TableViewVirtual() {
     };
     const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
-    const [sorting, setSorting] = React.useState<SortingState>([]);
-
-    // const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery<any>(
-    //     ["table-data", sorting], //adding sorting state as key causes table to reset and fetch from new beginning upon sort
-    //     async ({ pageParam = 0 }) => {
-    //         const start = pageParam * fetchSize;
-    //         const fetchedData = fetchData(tableRow, start, fetchSize, sorting); //pretend api call
-    //         return fetchedData;
-    //     },
-    //     {
-    //         getNextPageParam: (_lastGroup, groups) => groups.length,
-    //         keepPreviousData: true,
-    //         refetchOnWindowFocus: false,
-    //     }
-    // );
-
-    const dictData = React.useMemo(() => {
-        const newData = [];
+    /** convert data to dictionary type to make it compatible with react-table */
+    const rowsData = React.useMemo(() => {
+        const rowsData = [];
 
         if (activeDataFrame) {
             let tableRows = tableData[activeDataFrame]?.rows;
@@ -410,11 +367,11 @@ function TableViewVirtual() {
                 for (let c = 0; c < tableRows[i].length; c++) {
                     rowDict[tableCols[c]] = tableRows[i][c];
                 }
-                newData.push(rowDict);
+                rowsData.push(rowDict);
             }
         }
         // console.log("virtual table data: ", newData);
-        return newData;
+        return rowsData;
     }, [activeDataFrame, tableData]);
 
     const columns = React.useMemo<ColumnDef<any>[]>(() => {
@@ -430,25 +387,19 @@ function TableViewVirtual() {
     }, [activeDataFrame, tableData]);
 
     const [columnResizeMode, setColumnResizeMode] = React.useState<ColumnResizeMode>("onChange");
-    // const rerender = React.useReducer(() => ({}), {})[1];
-    //we must flatten the array of arrays from the useInfiniteQuery hook
-    // const flatData = React.useMemo(() => data?.pages?.flatMap((page) => page.data) ?? [], [data]);
-    // const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
-    // const totalFetched = flatData.length;
-    const [columnVisibility, setColumnVisibility] = React.useState({ Id: false });
+    const [columnVisibility, setColumnVisibility] = React.useState({});
 
     useEffect(() => {
         setColumnVisibility(columnSelector);
     }, [columnSelector]);
 
     const table = useReactTable({
-        data: dictData,
+        data: rowsData,
         columns,
         columnResizeMode,
         state: {
             columnVisibility,
         },
-        onSortingChange: setSorting,
         getCoreRowModel: getCoreRowModel(),
         debugTable: true,
         debugHeaders: true,
@@ -469,33 +420,34 @@ function TableViewVirtual() {
     const paddingBottom =
         virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
-    // const fetchMoreOnBottomReached = React.useCallback(
-    //     (containerRefElement?: HTMLDivElement | null) => {
-    //         if (containerRefElement) {
-    //             const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-    //             console.log(
-    //                 "virtualItems",
-    //                 scrollHeight,
-    //                 scrollTop,
-    //                 clientHeight,
-    //                 flatData.length,
-    //                 totalFetched,
-    //                 totalDBRowCount,
-    //                 rowVirtualizer.getVirtualItems(),
-    //                 data
-    //             );
-    //             if (
-    //                 scrollHeight - scrollTop - clientHeight < 50 &&
-    //                 !isFetching &&
-    //                 totalFetched < totalDBRowCount
-    //             ) {
-    //                 fetchNextPage();
-    //             }
-    //         }
-    //     },
-    //     [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
-    // );
+    const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery<any>(
+        async ({ pageParam = 0 }) => {
+            // const start = pageParam * fetchSize;
+            const fetchedData = []; // = fetchData(tableRow, start, fetchSize, sorting); //pretend api call
+            return fetchedData;
+        },
+        {
+            getNextPageParam: (_lastGroup, groups) => groups.length,
+            keepPreviousData: true,
+            refetchOnWindowFocus: false,
+        }
+    );
+    const fetchMoreOnBottomReached = React.useCallback(
+        (containerRefElement?: HTMLDivElement | null) => {
+            if (containerRefElement) {
+                const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
+                if (
+                    scrollHeight - scrollTop - clientHeight < 50 &&
+                    !isFetching //&& totalFetched < totalDBRowCount
+                ) {
+                    fetchNextPage();
+                }
+            }
+        },
+        [fetchNextPage, isFetching]
+    );
 
+    //a check on mount and after a fetch to see if the table is already scrolled to the bottom and immediately needs to fetch more data
     // React.useEffect(() => {
     //     // fetchMoreOnBottomReached(tableContainerRef.current);
     // }, [fetchMoreOnBottomReached]);

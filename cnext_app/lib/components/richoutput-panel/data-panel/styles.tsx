@@ -8,6 +8,7 @@ import {
     TableCell,
     TableContainer as MuiTableContainer,
 } from "@mui/material";
+import { backgroundTransition } from "../../StyledComponents";
 
 export const TableContainer = styled(MuiTableContainer)`
     background-color: ${(props) => props.theme.palette.background.paper};
