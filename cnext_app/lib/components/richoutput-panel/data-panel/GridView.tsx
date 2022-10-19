@@ -61,7 +61,7 @@ const GridView = (props: any) => {
     };
 
     const createGridCell = (colNames: [], rowIndex: any, rowData: any[]) => {
-        let colNamesVisibility = colNames.filter(
+        let visibleColumns = colNames.filter(
             (item) => !Object.keys(store.getState().dataFrames.columnSelector).includes(item)
         );
         const metadata = ifElse(store.getState().dataFrames.metadata, activeDataFrame, null);
@@ -84,14 +84,14 @@ const GridView = (props: any) => {
                     {rowData.map((item: any, index: number) => {
                         if (
                             metadata &&
-                            metadata.columns[colNamesVisibility[index]] &&
+                            metadata.columns[visibleColumns[index]] &&
                             Object.values(CNextMimeType).includes(
-                                metadata.columns[colNamesVisibility[index]].type
+                                metadata.columns[visibleColumns[index]].type
                             )
                         )
                             return createMimeElem(
                                 item,
-                                metadata.columns[colNamesVisibility[index]].type
+                                metadata.columns[visibleColumns[index]].type
                             );
                     })}
                 </div>
@@ -99,12 +99,12 @@ const GridView = (props: any) => {
                     {rowData.map((item: any, index: number) => {
                         if (
                             metadata &&
-                            metadata.columns[colNamesVisibility[index]] &&
+                            metadata.columns[visibleColumns[index]] &&
                             !Object.values(CNextMimeType).includes(
-                                metadata.columns[colNamesVisibility[index]].type
+                                metadata.columns[visibleColumns[index]].type
                             )
                         )
-                            return createMetaElem(item, colNamesVisibility[index]);
+                            return createMetaElem(item, visibleColumns[index]);
                     })}
                 </div>
             </DataGridItem>

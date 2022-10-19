@@ -435,18 +435,13 @@ function TableViewVirtual() {
     // const flatData = React.useMemo(() => data?.pages?.flatMap((page) => page.data) ?? [], [data]);
     // const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
     // const totalFetched = flatData.length;
-    const [columnVisibility, setColumnVisibility] = React.useState({});
-
-    useEffect(() => {
-        setColumnVisibility(columnSelector);
-    }, [columnSelector]);
 
     const table = useReactTable({
         data: dictData,
         columns,
         columnResizeMode,
         state: {
-            columnVisibility,
+            columnVisibility: store.getState().dataFrames.columnSelector,
         },
         onSortingChange: setSorting,
         getCoreRowModel: getCoreRowModel(),

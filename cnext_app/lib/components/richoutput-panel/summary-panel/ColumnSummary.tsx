@@ -191,26 +191,26 @@ const ColumnSummary = (props: any) => {
             </>
         );
     };
-    const [columnVisibility, setColumnVisibility] = React.useState({});
+    const [visibleColumns, setVisibleColumns] = React.useState({});
 
     useEffect(() => {
         if (dfMetadata?.columns) {
-            let colNamesVisibility = Object.fromEntries(
+            let col = Object.fromEntries(
                 Object.entries(dfMetadata.columns).filter(
                     ([key]) =>
                         !Object.keys(store.getState().dataFrames.columnSelector).includes(key)
                 )
             );
-            setColumnVisibility(colNamesVisibility);
+            setVisibleColumns(col);
         }
     }, [columnSelector, dfMetadata]);
     return (
         <StyledTableView style={{ padding: "10px" }} data-cy={CypressIds.dfSummaryTable}>
-            {console.log("Render ColumnSummary ", dfMetadata.columns)}
+            {console.log("Render ColumnSummary ")}
             {dfMetadata ? (
                 <DataTable style={{ border: 0 }} size="small">
                     <TableBody style={{ border: 0 }}>
-                        {Object.keys(columnVisibility).map((col_name: string, index: number) => (
+                        {Object.keys(visibleColumns).map((col_name: string, index: number) => (
                             <TableRow key={index}>
                                 {/* , 'width': '1%', 'white-space': 'nowrap' */}
                                 {renderColumnMetadata(col_name)}
