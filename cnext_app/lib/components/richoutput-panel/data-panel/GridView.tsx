@@ -10,11 +10,13 @@ import {
 import { CNextMimeType, SpecialMimeType, IDFUpdatesReview } from "../../../interfaces/IApp";
 import { useSelector } from "react-redux";
 import { ifElse } from "../../libs";
-import store from "../../../../redux/store";
+import store, { RootState } from "../../../../redux/store";
 
 const GridView = (props: any) => {
     const tableData = useSelector((state) => state.dataFrames.tableData);
-
+    const columnSelector = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.columnSelector : {}
+    );
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
 
     const dfReview: IDFUpdatesReview = useSelector((state) => getReviewRequest(state));
@@ -59,6 +61,9 @@ const GridView = (props: any) => {
     };
 
     const createGridCell = (colNames: [], rowIndex: any, rowData: any[]) => {
+        let visibleColumns = colNames.filter(
+            (item) => !Object.keys(store.getState().dataFrames.columnSelector).includes(item)
+        );
         const metadata = ifElse(store.getState().dataFrames.metadata, activeDataFrame, null);
 
         // let colsWithMime = colNames.filter(
@@ -79,24 +84,27 @@ const GridView = (props: any) => {
                     {rowData.map((item: any, index: number) => {
                         if (
                             metadata &&
-                            metadata.columns[colNames[index]] &&
+                            metadata.columns[visibleColumns[index]] &&
                             Object.values(CNextMimeType).includes(
-                                metadata.columns[colNames[index]].type
+                                metadata.columns[visibleColumns[index]].type
                             )
                         )
-                            return createMimeElem(item, metadata.columns[colNames[index]].type);
+                            return createMimeElem(
+                                item,
+                                metadata.columns[visibleColumns[index]].type
+                            );
                     })}
                 </div>
                 <div style={{ paddingTop: "5px" }}>
                     {rowData.map((item: any, index: number) => {
                         if (
                             metadata &&
-                            metadata.columns[colNames[index]] &&
+                            metadata.columns[visibleColumns[index]] &&
                             !Object.values(CNextMimeType).includes(
-                                metadata.columns[colNames[index]].type
+                                metadata.columns[visibleColumns[index]].type
                             )
                         )
-                            return createMetaElem(item, colNames[index]);
+                            return createMetaElem(item, visibleColumns[index]);
                     })}
                 </div>
             </DataGridItem>

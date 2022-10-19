@@ -2,14 +2,14 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectChangeEvent } from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
+import { SmallArrowIcon } from "../../StyledComponents";
 import {
-    SmallArrowIcon,    
-} from "../../StyledComponents";
-import {ColumnVisibleForm,
+    ColumnVisibleForm,
     ColumnVisible,
     ColumnVisibleSelector,
     ColumnVisibleMenuItem,
-    ColumnVisibleParentCheckbox} from "./styles";
+    ColumnVisibleParentCheckbox,
+} from "./styles";
 import { RootState } from "../../../../redux/store";
 import { FormControlLabel, OutlinedInput } from "@mui/material";
 import { setColumnSelection } from "../../../../redux/reducers/DataFramesRedux";
@@ -20,7 +20,9 @@ const ColumnSelector = () => {
     const columnSelector = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.columnSelector : null
     );
+
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
+    const [columnVisibility, setColumnVisibility] = React.useState<any>({});
     const columns = React.useMemo<any>(() => {
         if (activeDataFrame) {
             let col: { [key: string]: boolean } = {};
@@ -28,11 +30,14 @@ const ColumnSelector = () => {
                 const element = tableData[activeDataFrame]?.column_names[i];
                 col[element] = true;
             }
+            setColumnVisibility(col);
             return col;
-        } else return {};
+        } else {
+            setColumnVisibility({});
+            return {};
+        }
     }, [activeDataFrame, tableData]);
 
-    const [columnVisibility, setColumnVisibility] = React.useState<any>(columns);
     const handleSelectChildrenChecbox = (event: SelectChangeEvent) => {
         if (columnVisibility) {
             const {
