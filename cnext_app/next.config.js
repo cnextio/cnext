@@ -1,45 +1,40 @@
-const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
-const withTM = require("next-transpile-modules")([
-    // `monaco-editor` isn't published to npm correctly: it includes both CSS
-    // imports and non-Node friendly syntax, so it needs to be compiled.
-    "monaco-editor",
-    // "y-monaco",
-]);
+// /** @type {import('next').NextConfig} */
+// const { withSentryConfig } = require("@sentry/nextjs");
 
-module.exports = withTM({
-    webpack: (config) => {
-        const rule = config.module.rules
-            .find((rule) => rule.oneOf)
-            .oneOf.find(
-                (r) =>
-                    // Find the global CSS loader
-                    r.issuer && r.issuer.include && r.issuer.include.includes("_app")
-            );
-        if (rule) {
-            rule.issuer.include = [
-                rule.issuer.include,
-                // Allow `monaco-editor` to import global CSS:
-                /[\\/]node_modules[\\/]monaco-editor[\\/]/,
-            ];
-        }
+// const sentryWebpackPluginOptions = {
+//     // Additional config options for the Sentry Webpack plugin. Keep in mind that
+//     // the following options are set automatically, and overriding them is not
+//     // recommended:
+//     //   release, url, org, project, authToken, configFile, stripPrefix,
+//     //   urlPrefix, include, ignore
+//     dsn: "https://25a5df08f7ea47be8a9922441cba00d1@o1259763.ingest.sentry.io/6435278",
+//     tracesSampleRate: 0.1,
+//     silent: false, // Suppresses all logs
+//     // For all available options, see:
+//     // https://github.com/getsentry/sentry-webpack-plugin#options.
+// };
 
-        config.plugins.push(
-            new MonacoWebpackPlugin({
-                languages: [
-                    "json",
-                    "markdown",
-                    "css",
-                    "typescript",
-                    "javascript",
-                    "html",
-                    "graphql",
-                    "python",
-                    "scss",
-                    "yaml",
-                ],
-                filename: "static/[name].worker.js",
-            })
-        );
-        return config;
+// moduleExports = {
+//     reactStrictMode: true,
+//     typescript: {
+//         // !! WARN !!
+//         // Dangerously allow production builds to successfully complete even if
+//         // your project has type errors.
+//         // !! WARN !!
+//         ignoreBuildErrors: true,
+//     },
+// };
+
+// module.exports = withSentryConfig(moduleExports, sentryWebpackPluginOptions);
+
+/** @type {import('next').NextConfig} */
+module.exports = {
+    reactStrictMode: false,
+    typescript: {
+        // !! WARN !!
+        // Dangerously allow production builds to successfully complete even if
+        // your project has type errors.
+        // !! WARN !!
+        ignoreBuildErrors: true,
     },
-});
+};

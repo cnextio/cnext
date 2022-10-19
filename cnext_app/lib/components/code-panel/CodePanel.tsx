@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { StyledCodePanel, CodeContainer } from "../StyledComponents";
 import SplitPane from "react-split-pane-v2";
 // import CodeEditor from "./CodeEditor";
-import CodeEditor from "./monaco/CodeEditor";
+// import CodeEditor from "./monaco/CodeEditor";
 import { IMessage, ViewMode } from "../../interfaces/IApp";
 import CodeToolbar from "./CodeToolbar";
 import Pane from "react-split-pane-v2";
@@ -13,14 +13,25 @@ import StyledExecutorToolbar from "../executor-manager/ExecutorToolbar";
 import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
 
-const CodePanel = ({ workingPanelViewMode, stopMouseEvent }) => {
-    const ydoc = new Y.Doc();
-    const project = ydoc.getMap();
-    let provider;
+import dynamic from 'next/dynamic';
 
-    useEffect(() => {
-        provider = new WebrtcProvider('codemirror', ydoc)
-    }, []);
+const CodeEditor = dynamic(() => import('./monaco/CodeEditor'), {
+  ssr: false,
+});
+
+let provider;
+const ydoc = new Y.Doc();
+const project = ydoc.getMap('project');
+
+const CodePanel = ({ workingPanelViewMode, stopMouseEvent }) => {
+
+    if (typeof window !== 'undefined') {
+        if (!provider) {
+            provider = new WebrtcProvider('cnexttttt', ydoc)
+            console.log('WebrtcProvider');
+        }
+    }
+
 
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
 

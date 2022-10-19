@@ -497,6 +497,7 @@ const FileManager = () => {
                         path: filePath,
                         timestamp: timestamp,
                     });
+                    console.log("save code lines:", message.command_name, message.metadata);
                     dispatch(setSavingStateFile(filePath));
                     sendMessage(message);
                     setSaveTimeout(false);
