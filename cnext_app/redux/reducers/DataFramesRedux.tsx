@@ -343,8 +343,8 @@ export const dataFrameSlice = createSlice({
         setColumnSelection: (state, action) => {
             const data = action.payload;
             if (data) {
+                // 
                 state.columnSelector[data.df_id].columns = data.selections;
-                console.log("datadfgdfg", state.columnSelector, data);
             }
         },
         setUDFsSelection: (state, action) => {
