@@ -38,7 +38,7 @@ export type DataFrameState = {
     // dfUpdateCount: number;
     /** this number increase whenever DataPanel is focused */
     dataPanelFocusSignal: number;
-    columnSelector: any;
+    columnSelector: { [id: string]: any };
     udfsSelector: { [id: string]: IDataFrameUDFSelection };
     registeredUDFs: IRegisteredUDFs; //{ [name: string]: UDF };
 };
@@ -100,6 +100,10 @@ export const dataFrameSlice = createSlice({
                 }
                 state.udfsSelector[df_id] = {
                     udfs: udfSelector,
+                    timestamp: state.registeredUDFs.timestamp,
+                };
+                state.columnSelector[df_id] = {
+                    columns: {},
                     timestamp: state.registeredUDFs.timestamp,
                 };
             }
@@ -339,8 +343,8 @@ export const dataFrameSlice = createSlice({
         setColumnSelection: (state, action) => {
             const data = action.payload;
             if (data) {
-                const asArray = Object.entries(data);
-                state.columnSelector = Object.fromEntries(asArray.filter(([key, value]) => value === false))
+                state.columnSelector[data.df_id].columns = data.selections;
+                console.log("datadfgdfg", state.columnSelector, data);
             }
         },
         setUDFsSelection: (state, action) => {

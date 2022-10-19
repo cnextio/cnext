@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectChangeEvent } from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
@@ -18,43 +18,38 @@ const ColumnSelector = () => {
     const dispatch = useDispatch();
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     const columnSelector = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.columnSelector : null
+        activeDataFrame ? state.dataFrames.columnSelector[activeDataFrame] : null
     );
 
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
-    const [columnVisibility, setColumnVisibility] = React.useState<any>({});
-    const columns = React.useMemo<any>(() => {
-        if (activeDataFrame) {
+    useEffect(() => {
+        if (Object.keys(columnSelector.columns).length == 0) {
             let col: { [key: string]: boolean } = {};
             for (let i = 0; i < tableData[activeDataFrame]?.column_names.length; i++) {
                 const element = tableData[activeDataFrame]?.column_names[i];
                 col[element] = true;
             }
-            setColumnVisibility(col);
-            return col;
-        } else {
-            setColumnVisibility({});
-            return {};
+
+            dispatch(setColumnSelection({ df_id: activeDataFrame, selections: col }));
         }
-    }, [activeDataFrame, tableData]);
+    }, [columnSelector]);
 
     const handleSelectChildrenChecbox = (event: SelectChangeEvent) => {
-        if (columnVisibility) {
+        if (columnSelector) {
             const {
                 target: { value },
             } = event;
             console.log("DataStats: ", value);
-            let col = { ...columnVisibility };
+            let col = { ...columnSelector.columns };
             col[value[0]] = !col[value[0]];
-            setColumnVisibility(col);
-            dispatch(setColumnSelection(col));
+            dispatch(setColumnSelection({ df_id: activeDataFrame, selections: col }));
         }
     };
 
     const handleSelectParentChecbox = (event: SelectChangeEvent) => {
-        if (columnVisibility) {
-            let col = { ...columnVisibility };
-            let selectedColumnLen = Object.values(columnVisibility).filter((value) => {
+        if (columnSelector) {
+            let col = { ...columnSelector.columns };
+            let selectedColumnLen = Object.values(columnSelector.columns).filter((value) => {
                 return value;
             }).length;
             if (selectedColumnLen > 0) {
@@ -66,17 +61,16 @@ const ColumnSelector = () => {
                     col[key] = true;
                 }
             }
-            setColumnVisibility(col);
-            dispatch(setColumnSelection(col));
+            dispatch(setColumnSelection({ df_id: activeDataFrame, selections: col }));
         }
     };
 
     const renderComponent = () => {
-        if (columnVisibility) {
-            let selectedColumnLen = Object.values(columnVisibility).filter((value) => {
+        if (columnSelector) {
+            let selectedColumnLen = Object.values(columnSelector.columns).filter((value) => {
                 return value;
             }).length;
-            let allColumnLen = Object.values(columnVisibility).length;
+            let allColumnLen = Object.values(columnSelector.columns).length;
             return (
                 <ColumnVisible>
                     <FormControlLabel
@@ -112,7 +106,7 @@ const ColumnSelector = () => {
                             input={<OutlinedInput />}
                         >
                             {/* <MenuList dense> */}
-                            {Object.entries(columnVisibility).map(([key, value]) => (
+                            {Object.entries(columnSelector.columns).map(([key, value]) => (
                                 <ColumnVisibleMenuItem value={key}>
                                     <Checkbox checked={value} size="small" />
                                     {key}
