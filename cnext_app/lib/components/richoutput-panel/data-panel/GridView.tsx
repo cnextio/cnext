@@ -61,15 +61,7 @@ const GridView = (props: any) => {
     };
 
     const createGridCell = (colNames: [], rowIndex: any, rowData: any[]) => {
-        let col = { ...columnSelector };
-        // remove value false
-        for (const i in col) {
-            if (!col[i]) {
-                delete col[i];
-            }
-        }
-        // columnSelector{} to colNames[]
-        let visibleColumns = Object.keys(col);
+        let visibleColumns = Object.keys(columnSelector).filter((item) => columnSelector[item]);
         const metadata = ifElse(store.getState().dataFrames.metadata, activeDataFrame, null);
 
         // let colsWithMime = colNames.filter(

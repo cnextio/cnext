@@ -388,25 +388,12 @@ function TableViewVirtual() {
 
     const [columnResizeMode, setColumnResizeMode] = React.useState<ColumnResizeMode>("onChange");
 
-    const columnVisibility = React.useMemo<any>(() => {
-        if (Object.keys(columnSelector).length > 0) {
-            const col = { ...columnSelector };
-            for (const i in columnSelector) {
-                if (columnSelector[i]) {
-                    delete col[i];
-                }
-            }
-            return col;
-        }
-        return {};
-    }, [columnSelector, activeDataFrame]);
-
     const table = useReactTable({
         data: rowsData,
         columns,
         columnResizeMode,
         state: {
-            columnVisibility, //format all value :false  columnVisibility : {a:false,b:false}
+            columnVisibility: columnSelector,
         },
         getCoreRowModel: getCoreRowModel(),
         debugTable: true,
