@@ -104,7 +104,7 @@ export const handleActiveDFStatus = (
                     if (updateType == DataFrameUpdateType.add_rows) {
                         // show data around added rows
                         /** for now, only support number[] */
-                        if (updateContent instanceof Array<number> && typeof(updateContent[0]) == "number") {
+                        if ((updateContent instanceof Array<number>) && typeof(updateContent[0]) == "number") {
                             const fromIndex =
                                 updateContent[0] - DF_DISPLAY_LENGTH / 2 >= 0
                                     ? updateContent[0] - DF_DISPLAY_LENGTH / 2
