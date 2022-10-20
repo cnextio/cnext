@@ -48,9 +48,9 @@ const DataFrameManager = () => {
     const [executing, setExecuting] = useState(false);
 
     const socketInit = () => {
-        // console.log('DFManager useEffect');
+        // console.log('DataFrameManager useEffect');
         socket?.emit("ping", "DataFrameManager");
-        socket?.on(WebAppEndpoint.DFManager, (result: string, ack) => {
+        socket?.on(WebAppEndpoint.DataFrameManager, (result: string, ack) => {
             try {
                 let message: IMessage = JSON.parse(result);
                 console.log("DataFrameManager got results for command ", message);
@@ -105,7 +105,7 @@ const DataFrameManager = () => {
     useEffect(() => {
         socketInit();
         return () => {
-            socket?.off(WebAppEndpoint.DFManager);
+            socket?.off(WebAppEndpoint.DataFrameManager);
         };
     }, [socket]); //TODO: run this only once - not on rerender
 

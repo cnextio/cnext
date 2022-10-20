@@ -7,7 +7,7 @@ from enum import Enum
 
 
 class WebappEndpoint(str, Enum):
-    DFManager = 'DFManager'
+    DataFrameManager = 'DataFrameManager'
     CodeEditor = 'CodeEditor'
     FileManager = 'FileManager'
     MagicCommandGen = 'MagicCommandGen'

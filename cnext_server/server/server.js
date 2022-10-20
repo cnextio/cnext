@@ -31,7 +31,7 @@ const httpProxyMiddleware = require("http-proxy-middleware");
 
 // TODO: move to Interfaces.tsx
 const CodeEditor = "CodeEditor";
-const DFManager = "DFManager";
+const DataFrameManager = "DataFrameManager";
 const ModelManager = "ModelManager";
 const FileManager = "FileManager";
 const FileExplorer = "FileExplorer";
@@ -43,7 +43,7 @@ const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
 const CodeEndpoints = [
     CodeEditor,
-    DFManager,
+    DataFrameManager,
     ModelManager,
     MagicCommandGen,
     ExecutorManager,

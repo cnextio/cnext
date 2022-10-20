@@ -83,7 +83,7 @@ export enum CommandName {
     get_jupyter_server_config = "get_jupyter_server_config",
     get_registered_udfs = "get_registered_udfs",
     compute_udf = "compute_udf",
-    set_dataframe_cell_value = "set_dataframe_cell_value"
+    set_dataframe_cell_value = "set_dataframe_cell_value",
 }
 
 export enum ContentType {
@@ -132,7 +132,7 @@ export enum CommandType {
 }
 
 export enum WebAppEndpoint {
-    DFManager = "DFManager",
+    DataFrameManager = "DataFrameManager",
     ModelManager = "ModelManager",
     CodeEditor = "CodeEditor",
     FileManager = "FileManager",

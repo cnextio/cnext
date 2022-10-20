@@ -12,7 +12,7 @@ export const createPlot = (
     data: { [index: string]: string } | null,
     width: number,
     height: number
-) => {    
+) => {
     if (data) {
         const resultElements = Object.keys(data)?.map((key, index) => {
             if (key === SubContentType.APPLICATION_PLOTLY) {
@@ -45,7 +45,7 @@ export const handleGetComputeUDFs = (message: IMessage) => {
     if (message.metadata) {
         const metadata = message.metadata as IDataFrameMessageMetadata;
         console.log(
-            `${WebAppEndpoint.DFManager} got calculate UDF data for "${metadata.df_id}" "${metadata.col_name}"`,
+            `${WebAppEndpoint.DataFrameManager} got calculate UDF data for "${metadata.df_id}" "${metadata.col_name}"`,
             message.content
         );
         const payload = {

@@ -23,7 +23,7 @@ import {
 
 export const sendMessage = (socket: Socket | null, message: IMessage) => {
     console.log(`Send DataFrameManager request: `, JSON.stringify(message));
-    socket?.emit(WebAppEndpoint.DFManager, JSON.stringify(message));
+    socket?.emit(WebAppEndpoint.DataFrameManager, JSON.stringify(message));
 };
 
 export const createMessage = (
@@ -32,7 +32,7 @@ export const createMessage = (
     metadata: {}
 ): IMessage => {
     let message: IMessage = {
-        webapp_endpoint: WebAppEndpoint.DFManager,
+        webapp_endpoint: WebAppEndpoint.DataFrameManager,
         command_name: command_name,
         content: content,
         metadata: metadata,
@@ -104,13 +104,14 @@ export const handleActiveDFStatus = (
                     if (updateType == DataFrameUpdateType.add_rows) {
                         // show data around added rows
                         /** for now, only support number[] */
-                        if ((updateContent instanceof Array<number>) && typeof(updateContent[0]) == "number") {
-                            const fromIndex =
-                                updateContent[0] - DF_DISPLAY_LENGTH / 2 >= 0
-                                    ? updateContent[0] - DF_DISPLAY_LENGTH / 2
-                                    : 0;
-                            sendGetTableData(socket, df_id, null, fromIndex);
-                        }
+                        if (updateContent instanceof Array<number>)
+                            if (typeof updateContent[0] == "number") {
+                                const fromIndex =
+                                    updateContent[0] - DF_DISPLAY_LENGTH / 2 >= 0
+                                        ? updateContent[0] - DF_DISPLAY_LENGTH / 2
+                                        : 0;
+                                sendGetTableData(socket, df_id, null, fromIndex);
+                            }
                     } else {
                         sendGetTableData(socket, df_id);
                     }
@@ -144,7 +145,7 @@ export const handleGetDFMetadata = (message: IMessage) => {
     if (message.metadata) {
         const metadata = message.metadata as IDataFrameMessageMetadata;
         console.log(
-            `${WebAppEndpoint.DFManager} got metadata for "${metadata.df_id}": `,
+            `${WebAppEndpoint.DataFrameManager} got metadata for "${metadata.df_id}": `,
             message.content
         );
         let dfMetadata = message.content;

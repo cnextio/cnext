@@ -138,7 +138,7 @@ class MessageHandler(BaseMessageHandler):
                     tableData['rows'][r][i] = json.loads(
                         df[df.columns[i]].iloc[r])
                     # log.info('Create table for mime %s' % tableData['rows'][r][i])
-        
+
         tableData['index'] = {}
         tableData['index']['name'] = df.index.name
         tableData['index']['data'] = []
@@ -210,7 +210,7 @@ class MessageHandler(BaseMessageHandler):
         else:
             content = ipython_message.content['traceback']
         return self._create_error_message(
-            WebappEndpoint.DFManager, content, client_message.command_name, client_message.metadata)
+            WebappEndpoint.DataFrameManager, content, client_message.command_name, client_message.metadata)
 
     MAX_PLOTLY_SIZE = 1024*1024  # 1MB
 
@@ -238,7 +238,7 @@ class MessageHandler(BaseMessageHandler):
         else:
             result = self.get_execute_result(ipython_message)
             if result is not None:
-                message = Message(**{'webapp_endpoint': WebappEndpoint.DFManager,
+                message = Message(**{'webapp_endpoint': WebappEndpoint.DataFrameManager,
                                      'command_name': client_message.command_name})
                 # Add header message from ipython to message metadata
                 if message.metadata == None:
@@ -315,7 +315,7 @@ class MessageHandler(BaseMessageHandler):
 
                 elif message.command_name == DFManagerCommand.reload_df_status:
                     active_df_status = self.user_space.get_active_dfs_status()
-                    active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": message.command_name,
+                    active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": message.command_name,
                                                           "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
                     self._send_to_node(active_df_status_message)
 

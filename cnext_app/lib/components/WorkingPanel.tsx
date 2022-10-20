@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { WorkingPanel as StyledWorkingPanel } from "./StyledComponents";
 import CodePanel from "./code-panel/CodePanel";
 import RichOutputPanel from "./richoutput-panel/RichOutputPanel";
-import DFManager from "./dataframe-manager/DataFrameManager";
+import DataFrameManager from "./dataframe-manager/DataFrameManager";
 import FileManager from "./file-manager/FileManager";
 import FileExplorer from "./file-manager/FileExplorer";
 import { useSelector } from "react-redux";
@@ -81,7 +81,7 @@ const WorkingPanel = () => {
                     </SplitPane>
                 </Pane>
             </SplitPane>
-            <DFManager />
+            <DataFrameManager />
             <FileManager />
             <TerminalManager />
             <HotkeyComponent />

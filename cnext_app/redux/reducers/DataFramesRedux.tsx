@@ -29,7 +29,7 @@ export type DataFrameState = {
     // this variable is used to indicate whether the tableData is being loaded.
     // this is used mainly for TableComponent to know when to show the table updates
     tableDataReady: boolean;
-    // this is used to ask DFManager to load new data
+    // this is used to ask DataFrameManager to load new data
     // currently only support loading by row index. 'count' is used to indicate new request
     loadDataRequest: ILoadDataRequest;
     loadColumnHistogram: boolean;
@@ -53,7 +53,7 @@ const initialState: DataFrameState = {
     // this variable is used to indicate whether the tableData is being loaded.
     // this is used mainly for TableComponent to know when to show the table updates
     tableDataReady: false,
-    // this is used to ask DFManager to load new data
+    // this is used to ask DataFrameManager to load new data
     // currently only support loading by row index. 'count' is used to indicate new request
     loadDataRequest: { df_id: null, count: 0, from_index: 0 },
     loadColumnHistogram: false,
