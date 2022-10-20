@@ -48,33 +48,23 @@ const isDataFrameUpdated = (df_id: string) => {
     return status.is_updated;
 };
 
-const DF_DISPLAY_HALF_LENGTH = 50;
-export const sendGetTableDataAroundRowIndex = (
+export const DF_DISPLAY_LENGTH = 50;
+
+export const sendGetTableData = (
     socket: Socket,
     df_id: string,
-    around_index: number = 0
+    filter: string | null = null,
+    fromIndex: number = 0,
+    size: number = DF_DISPLAY_LENGTH
 ) => {
-    let queryStr: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
-                                if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
-                                :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;
+    let queryStr: string = `${df_id}${filter ? filter : ""}.iloc[${fromIndex}:${fromIndex + size}]`;
     let message = createMessage(CommandName.get_table_data, queryStr, {
         df_id: df_id,
+        filter: filter,
+        from_index: fromIndex,
+        size: size,
     });
     // console.log("Send get table: ", message);
-    sendMessage(socket, message);
-};
-
-export const sendGetTableData = (socket: Socket, df_id: string, filter: string | null = null) => {
-    let queryStr: string;
-    if (filter) {
-        queryStr = `${df_id}${filter}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
-    } else {
-        queryStr = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
-    }
-    let message = createMessage(CommandName.get_table_data, queryStr, {
-        df_id: df_id,
-    });
-    console.log(`DataFrameManager _send_get_table_data message: `, message);
     sendMessage(socket, message);
 };
 
@@ -113,7 +103,14 @@ export const handleActiveDFStatus = (
                     sendGetDFMetadata(socket, df_id);
                     if (updateType == DataFrameUpdateType.add_rows) {
                         // show data around added rows
-                        sendGetTableDataAroundRowIndex(socket, df_id, updateContent[0]);
+                        /** for now, only support number[] */
+                        if (updateContent instanceof Array<number> && typeof(updateContent[0]) == "number") {
+                            const fromIndex =
+                                updateContent[0] - DF_DISPLAY_LENGTH / 2 >= 0
+                                    ? updateContent[0] - DF_DISPLAY_LENGTH / 2
+                                    : 0;
+                            sendGetTableData(socket, df_id, null, fromIndex);
+                        }
                     } else {
                         sendGetTableData(socket, df_id);
                     }

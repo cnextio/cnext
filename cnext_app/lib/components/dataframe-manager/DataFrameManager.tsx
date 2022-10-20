@@ -24,7 +24,6 @@ import {
     handleGetRegisteredUDFs,
     handleGetTableData,
     sendGetTableData,
-    sendGetTableDataAroundRowIndex,
     sendMessage,
 } from "./libDataFrameManager";
 import { setTextOutput } from "../../../redux/reducers/RichOutputRedux";
@@ -35,10 +34,12 @@ const DataFrameManager = () => {
     const socket = useContext(SocketContext);
     const dispatch = useDispatch();
     const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
-    const dfFilter = useSelector((state: RootState) => state.dataFrames.dfFilter);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     const udfsSelector = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
+    );
+    const dfFilter = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.dfFilter[activeDataFrame] : null
     );
 
     const dataPanelFocusSignal = useSelector(
@@ -114,20 +115,21 @@ const DataFrameManager = () => {
     }, [dataPanelFocusSignal]);
 
     useEffect(() => {
-        if (loadDataRequest.df_id && socket) {
-            sendGetTableDataAroundRowIndex(
+        if (loadDataRequest.df_id && socket && activeDataFrame) {
+            sendGetTableData(
                 socket,
                 loadDataRequest.df_id,
-                loadDataRequest.row_index
+                dfFilter ? dfFilter.query : null,
+                loadDataRequest.from_index
             );
         }
     }, [loadDataRequest]);
 
     useEffect(() => {
-        if (dfFilter && socket) {
+        if (dfFilter && socket && activeDataFrame) {
             // clear the text output message
-            dispatch(setTextOutput({ content: "" }));
-            sendGetTableData(socket, dfFilter.df_id, dfFilter.query);
+            dispatch(setTextOutput({ content: null }));
+            sendGetTableData(socket, activeDataFrame, dfFilter.query);
         }
     }, [dfFilter]);
 
