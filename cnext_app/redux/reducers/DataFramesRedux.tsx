@@ -11,13 +11,13 @@ import {
     IDataFrameColumnSelection,
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
-import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
+import { DF_DISPLAY_LENGTH, getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
 import { IDataFrameFilter, IRegisteredUDFs, UDF } from "../../lib/interfaces/IDataFrameManager";
 
 interface ILoadDataRequest {
     df_id: string | null;
     count: number;
-    row_index: number;
+    from_index: number;
 }
 
 export type DataFrameState = {
@@ -34,7 +34,7 @@ export type DataFrameState = {
     // currently only support loading by row index. 'count' is used to indicate new request
     loadDataRequest: ILoadDataRequest;
     loadColumnHistogram: boolean;
-    dfFilter: IDataFrameFilter | null;
+    dfFilter: { [id: string]: IDataFrameFilter };
     dataViewMode: string;
     // dfUpdateCount: number;
     /** this number increase whenever DataPanel is focused */
@@ -56,9 +56,9 @@ const initialState: DataFrameState = {
     tableDataReady: false,
     // this is used to ask DFManager to load new data
     // currently only support loading by row index. 'count' is used to indicate new request
-    loadDataRequest: { df_id: null, count: 0, row_index: 0 },
+    loadDataRequest: { df_id: null, count: 0, from_index: 0 },
     loadColumnHistogram: false,
-    dfFilter: null,
+    dfFilter: {},
     dataViewMode: DFViewMode.TABLE_VIEW,
     // dfUpdateCount: 0,
     dataPanelFocusSignal: 0,
@@ -289,11 +289,15 @@ export const dataFrameSlice = createSlice({
                     // make data loading request if needed
                     if (
                         !tableData.index.data.includes(reviewingDFRowIndex)
-                        // && state.loadDataRequest.row_index != null
+                        // currently, only support instance of number
+                        && typeof(reviewingDFRowIndex) == "number"
                     ) {
                         state.loadDataRequest.df_id = state.activeDataFrame;
                         state.loadDataRequest.count += 1;
-                        state.loadDataRequest.row_index = reviewingDFRowIndex;
+                        state.loadDataRequest.from_index =
+                            reviewingDFRowIndex - DF_DISPLAY_LENGTH / 2 >= 0
+                                ? reviewingDFRowIndex - DF_DISPLAY_LENGTH / 2
+                                : 0;
                     }
                 }
             }
@@ -304,7 +308,7 @@ export const dataFrameSlice = createSlice({
         },
 
         setDFFilter: (state, action) => {
-            state.dfFilter = action.payload;
+            state.dfFilter[action.payload.df_id] = action.payload;
         },
 
         setDataViewMode: (state, action) => {
@@ -344,7 +348,6 @@ export const dataFrameSlice = createSlice({
         setColumnSelection: (state, action) => {
             const data = action.payload;
             if (data) {
-                // 
                 state.columnSelector[data.df_id].columns = data.selections;
             }
         },
