@@ -313,7 +313,10 @@ export interface IDataFrameUDFSelection {
     udfs: { [UDFName: string]: boolean };
     timestamp: string;
 }
-
+export interface IDataFrameColumnSelection {
+    columns: { [columnName: string]: boolean };
+    timestamp: string;
+}
 interface IExperimentManagerConfig {
     local_tmp_dir: string;
     mlflow_tracking_uri: string;

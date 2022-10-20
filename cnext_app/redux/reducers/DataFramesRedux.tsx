@@ -8,6 +8,7 @@ import {
     IMetadata,
     DFViewMode,
     IDataFrameUDFSelection,
+    IDataFrameColumnSelection,
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { DF_DISPLAY_LENGTH, getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
@@ -38,7 +39,7 @@ export type DataFrameState = {
     // dfUpdateCount: number;
     /** this number increase whenever DataPanel is focused */
     dataPanelFocusSignal: number;
-    columnSelector: { [id: string]: any };
+    columnSelector: { [id: string]: IDataFrameColumnSelection };
     udfsSelector: { [id: string]: IDataFrameUDFSelection };
     registeredUDFs: IRegisteredUDFs; //{ [name: string]: UDF };
 };
