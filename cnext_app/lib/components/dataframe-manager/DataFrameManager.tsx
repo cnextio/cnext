@@ -9,7 +9,7 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import { IMessage, WebAppEndpoint, CommandName, ContentType } from "../../interfaces/IApp";
-import { SocketContext } from "../Socket";
+import { sendMessage, SocketContext } from "../Socket";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -17,14 +17,12 @@ import store, { RootState } from "../../../redux/store";
 import {
     createMessage,
     getColumnsToGetStats,
-    getLastUpdate,
     calculateUDFs,
     handleActiveDFStatus,
     handleGetDFMetadata,
     handleGetRegisteredUDFs,
     handleGetTableData,
     sendGetTableData,
-    sendMessage,
 } from "./libDataFrameManager";
 import { setTextOutput } from "../../../redux/reducers/RichOutputRedux";
 
@@ -83,8 +81,13 @@ const DataFrameManager = () => {
             if (ack) ack();
         });
         /** Load dataframe status */
-        let message = createMessage(CommandName.reload_df_status, null, {});
-        sendMessage(socket, message);
+        let message = createMessage(
+            WebAppEndpoint.DataFrameManager,
+            CommandName.reload_df_status,
+            null,
+            {}
+        );
+        sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
     };
 
     useEffect(() => {
@@ -110,8 +113,13 @@ const DataFrameManager = () => {
     }, [socket]); //TODO: run this only once - not on rerender
 
     useEffect(() => {
-        let message = createMessage(CommandName.get_registered_udfs, null, {});
-        sendMessage(socket, message);
+        let message = createMessage(
+            WebAppEndpoint.DataFrameManager,
+            CommandName.get_registered_udfs,
+            null,
+            {}
+        );
+        sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
     }, [dataPanelFocusSignal]);
 
     useEffect(() => {

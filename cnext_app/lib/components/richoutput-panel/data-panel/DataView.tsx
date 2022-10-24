@@ -21,13 +21,8 @@ const DataView = () => {
             case DFViewMode.GRID_VIEW:
                 return <GridView />;
             case DFViewMode.TABLE_VIEW:
-                return (
-                    <QueryClientProvider client={queryClient}>
-                        <TableViewVirtual />
-                    </QueryClientProvider>
-                );
+                return <TableViewVirtual />;
                 // return <TableView />;
-
             case DFViewMode.SUMMARY_VIEW:
                 return <SummaryView />;
             default:
@@ -35,7 +30,7 @@ const DataView = () => {
         }
     };
     //TODO: move all grid view related thing to under DataView
-    return <>{tableData[activeDataFrame] != null && renderData()}</>;
+    return <>{activeDataFrame && tableData[activeDataFrame] != null && renderData()}</>;
 };
 
 export default DataView;

@@ -12,13 +12,7 @@ import {
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
 import { DF_DISPLAY_LENGTH, getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
-import { IDataFrameFilter, IRegisteredUDFs, UDF } from "../../lib/interfaces/IDataFrameManager";
-
-interface ILoadDataRequest {
-    df_id: string | null;
-    count: number;
-    from_index: number;
-}
+import { IDataFrameFilter, ILoadDataRequest, IRegisteredUDFs, UDF } from "../../lib/interfaces/IDataFrameManager";
 
 export type DataFrameState = {
     metadata: { [id: string]: IMetadata };

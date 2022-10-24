@@ -89,3 +89,9 @@ export interface ICellDataCheckboxInput {
 export interface ICellDataTextInput {
     input: string
 }
+
+export interface ILoadDataRequest {
+    df_id: string | null;
+    count: number;
+    from_index: number;
+}

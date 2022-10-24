@@ -148,6 +148,7 @@ export enum WebAppEndpoint {
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
     LogsManager = "LogsManager",
+    DataViewer = "DataViewer"
 }
 
 export interface ITableData {
@@ -155,8 +156,15 @@ export interface ITableData {
     index: { name: string; data: any[] };
     column_names: string[];
     rows: any[][];
+    size: number;
 }
 
+export interface ITableMetaData {
+    df_id: string;
+    filter: string;
+    page_number: number;
+    page_size: number;
+}
 export interface IPlot {
     mime_type: StandardMimeType;
     data: {};

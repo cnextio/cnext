@@ -18,6 +18,7 @@ class WebappEndpoint(str, Enum):
     EnvironmentManager = 'EnvironmentManager'
     Terminal = 'Terminal'
     LogsManager = 'LogsManager'
+    DataViewer = 'DataViewer'
 
     def __str__(self):
         return str(self.value)

@@ -119,7 +119,9 @@ def main(argv):
 
                     message_handler = {
                         WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.DataFrameManager: dm.MessageHandler(p2n_queue, user_space),
+                        ## DataViewer and DataFrameManager use the same handler#
+                        WebappEndpoint.DataFrameManager: dm.MessageHandler(p2n_queue, user_space),                        
+                        WebappEndpoint.DataViewer: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.MagicCommandGen: ca.MessageHandler(
                             p2n_queue, user_space),

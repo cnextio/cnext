@@ -22,11 +22,11 @@ const DFExplorer = () => {
         return activeDF
             ? {
                   activeDF: activeDF,
-                  list: Object.keys(state.dataFrames.tableData),
+                  list: Object.keys(state.dataFrames.metadata),
               }
             : {
                   activeDF: null,
-                  list: Object.keys(state.dataFrames.tableData),
+                  list: Object.keys(state.dataFrames.metadata),
               };
     }
 

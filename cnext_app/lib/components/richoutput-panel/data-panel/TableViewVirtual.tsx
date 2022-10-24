@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import CountNA from "./CountNA";
 
 //3 TanStack Libraries!!!
@@ -6,10 +6,7 @@ import {
     ColumnDef,
     flexRender,
     getCoreRowModel,
-    getSortedRowModel,
     Row,
-    SortingState,
-    ColumnSort,
     useReactTable,
     ColumnResizeMode,
 } from "@tanstack/react-table";
@@ -20,7 +17,11 @@ import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/store";
-import { SpecialMimeType, IDFUpdatesReview, ReviewType } from "../../../interfaces/IApp";
+import {
+    SpecialMimeType,
+    IDFUpdatesReview,
+    ReviewType
+} from "../../../interfaces/IApp";
 import { ifElse } from "../../libs";
 import {
     DataTableHead,
@@ -36,17 +37,25 @@ import { UDFLocation } from "../../../interfaces/IDataFrameManager";
 import UDFContainer from "./UDFContainer";
 import InputComponent from "./InputComponent";
 import { DataTable, DataTableCell } from "./styles";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useLoadTableData } from "./useLoadTableData";
 
-function TableViewVirtual() {
-    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
+/** data page size */
+const DF_PAGE_SIZE = 50;
+/** number of rows that will be rendered outside of the view */
+const OVER_SCAN = 10;
+/** number of pages to be retained */
+const NUM_KEEP_PAGE = 3;
+/** the difference between the rendered row and what is stored in the memory below which new data need to be loaded */
+const FETCH_THRESHOLD = 10;
+
+const TableViewVirtual = () => {
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     const columnSelector = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.columnSelector[activeDataFrame].columns : {}
     );
-    const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
-        getReviewRequest(state)
-    );
+    // const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
+    //     getReviewRequest(state)
+    // );
     const udfsConfig = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
     );
@@ -268,12 +277,16 @@ function TableViewVirtual() {
         }
     };
 
-    const renderBodyCell = (rowNumber: number, cell: any, indexCell: boolean = false) => {
+    const renderBodyCell = (
+        rowNumber: number,
+        cell: any,
+        rowIndex: any,
+        indexCell: boolean = false
+    ) => {
         let state = store.getState();
-        if (activeDataFrame) {
+        if (activeDataFrame && pagedTableData) {
             const dfReview = state.dataFrames.dfUpdatesReview[activeDataFrame];
             const metadata = state.dataFrames.metadata[activeDataFrame];
-            const rowIndexData = tableData[activeDataFrame]?.index.data[rowNumber];
             const renderReviewer = (review) => {
                 return (
                     <>
@@ -291,28 +304,22 @@ function TableViewVirtual() {
                 );
             };
             if (indexCell) {
-                const review = isReviewingCell(rowIndexData, rowIndexData, dfReview);
+                const review = isReviewingCell(rowIndex, rowIndex, dfReview);
                 return (
                     <DataTableIndexCell
                         key="index"
                         review={review}
                         style={{ height: "max-content" }}
                     >
-                        {rowIndexData}
+                        {rowIndex}
                         {renderReviewer(review)}
                     </DataTableIndexCell>
                 );
             } else if (cell) {
                 const colName = cell.column.id;
-                const review = isReviewingCell(colName, rowIndexData, dfReview);
+                const review = isReviewingCell(colName, rowIndex, dfReview);
+                // console.log("DataViewer metadata cell", metadata, cell);
                 const type = metadata.columns[cell.column.id].type;
-                // console.log(
-                //     "virtual rowNumber, colName, cell.id, type: ",
-                //     rowNumber,
-                //     cell.column.id,
-                //     cell,
-                //     type
-                // );
                 return (
                     <DataTableCell
                         key={cell.id}
@@ -325,7 +332,7 @@ function TableViewVirtual() {
                         }}
                     >
                         {metadata && Object.values(SpecialMimeType).includes(type)
-                            ? renderSpecialMimeInnerCell(rowNumber, rowIndexData, cell, type)
+                            ? renderSpecialMimeInnerCell(rowNumber, rowIndex, cell, type)
                             : flexRender(cell.column.columnDef.cell, cell.getContext())}
                         {/* tableData[activeDataFrame]?.rows[rowNumber][cellIndex]} */}
                         {renderReviewer(review)}
@@ -336,32 +343,54 @@ function TableViewVirtual() {
     };
 
     const renderBodyRow = (virtualRow: any) => {
-        const row = rows[virtualRow.index] as Row;
-
-        return (
-            <DataTableRow
-                hover
-                key={row?.id}
-                ref={virtualRow.measureRef}
-                // className={row?.index % 2 ? "even-row" : "odd-row"}
-            >
-                {/** render index cell */}
-                {renderBodyCell(row?.id, null, true)}
-                {/** render data cell */}
-                {row?.getVisibleCells().map((cell: any) => renderBodyCell(row?.id, cell))}
-            </DataTableRow>
-        );
+        if (fromPage != null) {
+            const startIndex = fromPage * DF_PAGE_SIZE;
+            /** since we only store a subset of data in pagedTableData therefore the rows, we have to map the index
+             * virtualRow.index to rows index with `virtualRow.index - startIndex` */
+            const shiftedIndex = virtualRow.index - startIndex;
+            if (shiftedIndex >= 0 && shiftedIndex < rows.length) {
+                const row = rows[shiftedIndex] as Row;
+                return (
+                    <DataTableRow
+                        hover
+                        key={row?.id}
+                        ref={virtualRow.measureRef}
+                        // className={row?.index % 2 ? "even-row" : "odd-row"}
+                    >
+                        {/** render index cell */}
+                        {renderBodyCell(row?.id, null, flatIndexData[row?.id], true)}
+                        {/** render data cell */}
+                        {row
+                            ?.getVisibleCells()
+                            .map((cell: any) =>
+                                renderBodyCell(row?.id, cell, flatIndexData[row?.id])
+                            )}
+                    </DataTableRow>
+                );
+            }
+        }
     };
+
     const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
+    /** Note: the numKeepPage can be sensitive with DF_PAGE_SIZE and overscan */
+    const {
+        pagedTableData,
+        getTableData,
+        fromPage,
+        toPage,
+        totalSize: pagedDataTotalSize,
+        isLoading,
+    } = useLoadTableData(activeDataFrame, NUM_KEEP_PAGE);
+
     /** convert data to dictionary type to make it compatible with react-table */
-    const rowsData = React.useMemo(() => {
+    const [flatIndexData, flatRowsData] = React.useMemo((): [any[], { [key: string]: any }[]] => {
         const rowsData = [];
-
-        if (activeDataFrame) {
-            let tableRows = tableData[activeDataFrame]?.rows;
-            let tableCols = tableData[activeDataFrame]?.column_names;
-
+        let indexData = [];
+        if (pagedTableData && pagedTableData.length > 0) {
+            indexData = pagedTableData.flatMap((data) => data.index.data);
+            let tableCols = pagedTableData[0].column_names;
+            let tableRows = pagedTableData.flatMap((data) => data.rows);
             for (let i = 0; i < tableRows.length; i++) {
                 const rowDict: { [key: string]: any } = {};
                 for (let c = 0; c < tableRows[i].length; c++) {
@@ -371,20 +400,8 @@ function TableViewVirtual() {
             }
         }
         // console.log("virtual table data: ", newData);
-        return rowsData;
-    }, [activeDataFrame, tableData]);
-
-    const columns = React.useMemo<ColumnDef<any>[]>(() => {
-        if (activeDataFrame) {
-            const columns = tableData[activeDataFrame]?.column_names.map(
-                (item: any, index: any) => {
-                    return { accessorKey: item, header: item };
-                }
-            );
-            // console.log("virtual table columns: ", columns);
-            return columns;
-        } else return [];
-    }, [activeDataFrame, tableData]);
+        return [indexData, rowsData];
+    }, [pagedTableData]);
 
     const [columnResizeMode, setColumnResizeMode] = React.useState<ColumnResizeMode>("onChange");
 
@@ -401,8 +418,20 @@ function TableViewVirtual() {
         return {};
     }, [columnSelector, activeDataFrame]);
 
+    const columns = React.useMemo<ColumnDef<any>[]>(() => {
+        const state = store.getState();
+        if (activeDataFrame) {
+            const metadata = state.dataFrames.metadata[activeDataFrame];
+            const columns = Object.keys(metadata.columns).map((item: any, index: any) => {
+                return { accessorKey: item, header: item };
+            });
+            // console.log("DataViewer columns: ", columns);
+            return columns;
+        } else return [];
+    }, [activeDataFrame]);
+
     const table = useReactTable({
-        data: rowsData,
+        data: flatRowsData,
         columns,
         columnResizeMode,
         state: {
@@ -416,58 +445,76 @@ function TableViewVirtual() {
 
     const { rows } = table.getRowModel();
 
-    const rowVirtualizer = useVirtual({
+    const { virtualItems: virtualRows, totalSize: virtualRowsTotalSize } = useVirtual({
         parentRef: tableContainerRef,
-        size: rows.length,
-        // estimateSize: useCallback(() => 10, []),
-        overscan: 10,
+        size: pagedDataTotalSize,
+        overscan: OVER_SCAN,
     });
-    const { virtualItems: virtualRows, totalSize } = rowVirtualizer;
 
     const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
     const paddingBottom =
-        virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
+        virtualRows.length > 0
+            ? virtualRowsTotalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0)
+            : 0;
 
-    const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery<any>(
-        async ({ pageParam = 0 }) => {
-            // const start = pageParam * fetchSize;
-            const fetchedData = []; // = fetchData(tableRow, start, fetchSize, sorting); //pretend api call
-            return fetchedData;
-        },
-        {
-            getNextPageParam: (_lastGroup, groups) => groups.length,
-            keepPreviousData: true,
-            refetchOnWindowFocus: false,
-        }
-    );
-    const fetchMoreOnBottomReached = React.useCallback(
-        (containerRefElement?: HTMLDivElement | null) => {
-            if (containerRefElement) {
+    const fetchMore = useCallback(
+        (containerRefElement: HTMLDivElement | null) => {
+            if (containerRefElement && !isLoading) {
                 const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-                if (
-                    scrollHeight - scrollTop - clientHeight < 50 &&
-                    !isFetching //&& totalFetched < totalDBRowCount
+                // console.log(
+                //     "DataViewer fetchMoreOnBottomReached pagedTableData, toPage, fromPage, scrollHeight, scrollTop, clientHeight, virtualRow.length: ",
+                //     pagedTableData,
+                //     toPage,
+                //     fromPage,
+                //     scrollHeight,
+                //     scrollTop,
+                //     clientHeight,
+                //     virtualRows.length,
+                //     activeDataFrame
+                // );
+                // if (scrollHeight - scrollTop - clientHeight < 50 && !isLoading) {
+                if (toPage == null && fromPage == null) {
+                    getTableData(0, DF_PAGE_SIZE);
+                } else if (
+                    toPage != null &&
+                    (toPage + 1) * DF_PAGE_SIZE - virtualRows[virtualRows.length - 1].index <
+                        FETCH_THRESHOLD
                 ) {
-                    fetchNextPage();
+                    getTableData(toPage + 1, DF_PAGE_SIZE);
+                } else if (
+                    fromPage != null &&
+                    fromPage > 0 &&
+                    virtualRows[0].index - fromPage * DF_PAGE_SIZE < FETCH_THRESHOLD
+                ) {
+                    getTableData(fromPage - 1, DF_PAGE_SIZE);
                 }
             }
         },
-        [fetchNextPage, isFetching]
+        [activeDataFrame, toPage, fromPage, isLoading, virtualRows]
     );
 
-    //a check on mount and after a fetch to see if the table is already scrolled to the bottom and immediately needs to fetch more data
-    // React.useEffect(() => {
-    //     // fetchMoreOnBottomReached(tableContainerRef.current);
-    // }, [fetchMoreOnBottomReached]);
+    /** a check on mount and after a fetch to see if the table is already scrolled to the bottom and immediately needs to fetch more data */
+    React.useEffect(() => {
+        if (activeDataFrame && fromPage == null) {
+            fetchMore(tableContainerRef.current);
+        }
+    }, [fetchMore]);
 
-    // if (isLoading) {
-    //     return <>Loading...</>;
-    // }
     return (
-        <StyledTableView ref={tableContainerRef}>
+        <StyledTableView
+            ref={tableContainerRef}
+            onScroll={(e) => {
+                /** this is hacky but we need to check this here to make sure fetchMore won't be call twice.
+                 * fetchMore will be called twice when changing from one dataframe to the other */                
+                if (fromPage != null) {
+                    console.log("DataViewer onScroll fetchMore");
+                    fetchMore(e.target as HTMLDivElement);
+                }
+            }}
+        >
             {/* {console.log("Render TableContainer: ", tableData)} */}
-            {console.log("Render TableContainer ")}
-            {activeDataFrame && tableData[activeDataFrame] && (
+            {console.log("DataViewer Render TableContainer ")}
+            {activeDataFrame && pagedTableData && (
                 <DataTable size="small" stickyHeader>
                     <DataTableHead>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -484,9 +531,12 @@ function TableViewVirtual() {
                             </tr>
                         )}
                         {/* {console.log(
-                            "render special virtualRows.length: ",
-                            virtualRows.length,
-                            virtualRows?.[virtualRows.length - 1]
+                            "DataViewer fromPage toPage rows.length, virtualRows start index, virtualRows end index: ",
+                            fromPage,
+                            toPage,
+                            rows.length,
+                            virtualRows[0]?.index,
+                            virtualRows[virtualRows.length - 1]?.index
                         )} */}
                         {virtualRows.map((virtualRow) => renderBodyRow(virtualRow))}
                         {paddingBottom > 0 && (
@@ -498,27 +548,7 @@ function TableViewVirtual() {
                 </DataTable>
             )}
         </StyledTableView>
-        // </div>
     );
-}
+};
 
 export default TableViewVirtual;
-export const fetchData = (data: any, start: number, size: number, sorting: SortingState) => {
-    const dbData = [...data];
-    if (sorting.length) {
-        const sort = sorting[0] as ColumnSort;
-        const { id, desc } = sort as { id: keyof any; desc: boolean };
-        dbData.sort((a, b) => {
-            if (desc) {
-                return a[id] < b[id] ? 1 : -1;
-            }
-            return a[id] > b[id] ? 1 : -1;
-        });
-    }
-    return {
-        data: dbData.slice(start, start + size),
-        meta: {
-            totalRowCount: dbData.length,
-        },
-    };
-};

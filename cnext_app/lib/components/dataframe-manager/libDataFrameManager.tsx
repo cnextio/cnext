@@ -20,19 +20,21 @@ import {
     IAllDataFrameStatus,
     IDataFrameStatus,
 } from "../../interfaces/IDataFrameStatus";
+import { sendMessage } from "../Socket";
 
-export const sendMessage = (socket: Socket | null, message: IMessage) => {
-    console.log(`Send DataFrameManager request: `, JSON.stringify(message));
-    socket?.emit(WebAppEndpoint.DataFrameManager, JSON.stringify(message));
-};
+// export const sendMessage = (socket: Socket | null, message: IMessage) => {
+//     console.log(`Send DataFrameManager request: `, JSON.stringify(message));
+//     socket?.emit(WebAppEndpoint.DataFrameManager, JSON.stringify(message));
+// };
 
 export const createMessage = (
+    endpoint: WebAppEndpoint,
     command_name: CommandName,
     content: {} | string | null = null,
     metadata: {}
 ): IMessage => {
     let message: IMessage = {
-        webapp_endpoint: WebAppEndpoint.DataFrameManager,
+        webapp_endpoint: endpoint,
         command_name: command_name,
         content: content,
         metadata: metadata,
@@ -58,23 +60,23 @@ export const sendGetTableData = (
     size: number = DF_DISPLAY_LENGTH
 ) => {
     let queryStr: string = `${df_id}${filter ? filter : ""}.iloc[${fromIndex}:${fromIndex + size}]`;
-    let message = createMessage(CommandName.get_table_data, queryStr, {
+    let message = createMessage(WebAppEndpoint.DataFrameManager, CommandName.get_table_data, queryStr, {
         df_id: df_id,
         filter: filter,
         from_index: fromIndex,
         size: size,
     });
     // console.log("Send get table: ", message);
-    sendMessage(socket, message);
+    sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
 };
 
 //TODO: create a targeted column function
 export const sendGetDFMetadata = (socket: Socket, df_id: string) => {
-    let message = createMessage(CommandName.get_df_metadata, "", {
+    let message = createMessage(WebAppEndpoint.DataFrameManager, CommandName.get_df_metadata, "", {
         df_id: df_id,
     });
     // console.log("_send_get_table_data message: ", message);
-    sendMessage(socket, message);
+    sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
 };
 
 export const handleActiveDFStatus = (
@@ -196,11 +198,11 @@ export const handleGetRegisteredUDFs = (result: IMessage) => {
 };
 
 const sendCalculateUDF = (socket: Socket, udfName: string, df_id: string, col_list: string[]) => {
-    let message = createMessage(CommandName.compute_udf, udfName, {
+    let message = createMessage(WebAppEndpoint.DataFrameManager, CommandName.compute_udf, udfName, {
         df_id: df_id,
         col_list: col_list,
     });
-    sendMessage(socket, message);
+    sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
 };
 
 const isUDFCalculated = (df_id: string, col_list: string[], udfName: string) => {

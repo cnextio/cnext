@@ -146,6 +146,7 @@ class MessageHandler(BaseMessageHandler):
             [tableData['index']['data'].append(str(idx)) for idx in df.index]
         else:
             tableData['index']['data'] = df.index.tolist()
+        tableData['size'] = df.shape[0]
         # log.info(tableData)
         return tableData
 
@@ -238,7 +239,8 @@ class MessageHandler(BaseMessageHandler):
         else:
             result = self.get_execute_result(ipython_message)
             if result is not None:
-                message = Message(**{'webapp_endpoint': WebappEndpoint.DataFrameManager,
+                ## note that this message might have either DataManager or DataViewer endpoint #
+                message = Message(**{'webapp_endpoint': client_message.webapp_endpoint,
                                      'command_name': client_message.command_name})
                 # Add header message from ipython to message metadata
                 if message.metadata == None:
@@ -249,8 +251,8 @@ class MessageHandler(BaseMessageHandler):
                 message.metadata.update({'stream_type': stream_type})
 
                 if client_message.command_name == DFManagerCommand.get_table_data:
-                    log.info('%s: %s' % (client_message.command_name, result))
-                    log.info('DFManagerCommand.get_table_data')
+                    log.info('%s: %s' % (client_message, result))
+                    # log.info('%s ', message)
                     message.content = result
                     message.type = ContentType.PANDAS_DATAFRAME
                     message.sub_type = SubContentType.NONE

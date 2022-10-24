@@ -41,6 +41,8 @@ const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
+const DataViewer = "DataViewer";
+
 const CodeEndpoints = [
     CodeEditor,
     DataFrameManager,
@@ -48,6 +50,7 @@ const CodeEndpoints = [
     MagicCommandGen,
     ExecutorManager,
     EnvironmentManager,
+    DataViewer,
 ];
 const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
 

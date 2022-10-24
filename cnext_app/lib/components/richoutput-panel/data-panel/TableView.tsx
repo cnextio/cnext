@@ -157,13 +157,15 @@ const TableView = (props: any) => {
         if ([SpecialMimeType.FILE_PNG, SpecialMimeType.URL_PNG].includes(type)) {
             return (
                 <ImageMimeCell
-                    src={"data:image/png;base64," + (item as ICellDataURLImage).binary}
+                    // src={"data:image/png;base64," + (item as ICellDataURLImage).binary}
+                    src={(item as ICellDataURLImage).url}
                 />
             );
         } else if ([SpecialMimeType.FILE_JPG, SpecialMimeType.URL_JPG].includes(type)) {
             return (
                 <ImageMimeCell
-                    src={"data:image/jpg;base64," + (item as ICellDataURLImage).binary}
+                    // src={"data:image/jpg;base64," + (item as ICellDataURLImage).binary}
+                    src={(item as ICellDataURLImage).url}
                 />
             );
         } else if (
