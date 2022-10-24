@@ -10,8 +10,6 @@ import {
     useReactTable,
     ColumnResizeMode,
 } from "@tanstack/react-table";
-// import { QueryClient, QueryClientProvider, useInfiniteQuery } from "@tanstack/react-query";
-// import { useVirtualizer } from "@tanstack/react-virtual";
 import { useVirtual } from "react-virtual";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 
@@ -235,7 +233,7 @@ const TableViewVirtual = () => {
                         <ImageMimeCell
                             src={
                                 // "data:image/png;base64," + (cellContent as ICellDataURLImage).binary
-                                cellContent.url
+                                cellContent?.url
                             }
                         />
                         {flexRender("", cell.getContext())}
@@ -247,7 +245,7 @@ const TableViewVirtual = () => {
                         <ImageMimeCell
                             src={
                                 // "data:image/jpg;base64," + (cellContent as ICellDataURLImage).binary
-                                cellContent.url
+                                cellContent?.url
                             }
                         />
                         {flexRender("", cell.getContext())}
@@ -460,7 +458,7 @@ const TableViewVirtual = () => {
     const fetchMore = useCallback(
         (containerRefElement: HTMLDivElement | null) => {
             if (containerRefElement && !isLoading) {
-                const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
+                // const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
                 // console.log(
                 //     "DataViewer fetchMoreOnBottomReached pagedTableData, toPage, fromPage, scrollHeight, scrollTop, clientHeight, virtualRow.length: ",
                 //     pagedTableData,
@@ -507,7 +505,7 @@ const TableViewVirtual = () => {
                 /** this is hacky but we need to check this here to make sure fetchMore won't be call twice.
                  * fetchMore will be called twice when changing from one dataframe to the other */                
                 if (fromPage != null) {
-                    console.log("DataViewer onScroll fetchMore");
+                    // console.log("DataViewer onScroll fetchMore");
                     fetchMore(e.target as HTMLDivElement);
                 }
             }}

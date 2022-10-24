@@ -6,8 +6,6 @@ import TableView from "./TableView";
 import { DFViewMode } from "../../../interfaces/IApp";
 import SummaryView from "../summary-panel/SummaryView";
 import TableViewVirtual from "./TableViewVirtual";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-const queryClient = new QueryClient();
 
 const DataView = () => {
     const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
