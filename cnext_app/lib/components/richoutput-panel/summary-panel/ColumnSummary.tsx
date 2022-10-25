@@ -194,9 +194,11 @@ const ColumnSummary = (props: any) => {
 
     const visibleColumns = React.useMemo<any>(() => {
         let colums = Object.keys(columnSelector).filter((item) => columnSelector[item]);
-        return Object.fromEntries(
-            Object.entries(dfMetadata?.columns).filter(([key, value]) => colums.includes(key))
-        );
+        if (dfMetadata?.columns) {
+            return Object.fromEntries(
+                Object.entries(dfMetadata?.columns).filter(([key, value]) => colums.includes(key))
+            );
+        }
     }, [columnSelector, activeDataFrame, dfMetadata]);
     return (
         <StyledTableView style={{ padding: "10px" }} data-cy={CypressIds.dfSummaryTable}>
