@@ -81,6 +81,8 @@ export enum CommandName {
     plot_column_quantile = "plot_column_quantile",
     get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
     get_jupyter_server_config = "get_jupyter_server_config",
+    get_environment = "list",
+    start_environment = "start",
 }
 
 export enum ContentType {
@@ -100,7 +102,7 @@ export enum ContentType {
     PROJECT_LIST = "project_list",
     WORKSPACE_METADATA = "workspace_metadata",
     INPUT_REQUEST = "input_request",
-    IPYTHON_MSG = "ipython_msg"
+    IPYTHON_MSG = "ipython_msg",
 }
 
 export enum StandardMimeType {
@@ -145,6 +147,7 @@ export enum WebAppEndpoint {
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
     LogsManager = "LogsManager",
+    EnvironmentManager = "EnvironmentManager",
 }
 
 export interface ITableData {

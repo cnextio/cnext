@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
     FooterNavigation,
     LeftFooterItem,
@@ -9,9 +9,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
 import { setProjectConfig } from "../../redux/reducers/ProjectManagerRedux";
 // import socket from "./Socket";
-import { WebAppEndpoint } from "../interfaces/IApp";
+import { CommandName, WebAppEndpoint } from "../interfaces/IApp";
 import { LogsCommand } from "../interfaces/ILogsManager";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Menu, MenuItem } from "@mui/material";
 import { SocketContext } from "./Socket";
 
 const enum FootbarItemName {
@@ -37,7 +37,9 @@ const FooterBarComponent = () => {
     const socket = useContext(SocketContext);
     // const [codeEditorConfig, setCodeEditorConfig] = useState({ lint: false, hover: false, autocompletion: false });
     const [sending, setSending] = useState(false);
+    const [listEnvironment, setlistEnvironment] = useState<any>([]);
 
+    const [environmentActive, setEnvironmentActive] = useState<any>({ name: "Python default" });
     const codeEditorSettings = useSelector(
         (rootState: RootState) => rootState.projectManager.settings.code_editor
     );
@@ -124,6 +126,92 @@ const FooterBarComponent = () => {
         });
     };
 
+    useEffect(() => {
+        setupSocket();
+        return () => {
+            socket?.off(WebAppEndpoint.EnvironmentManager);
+        };
+    }, [socket]);
+
+    const setupSocket = () => {
+        socket?.emit("ping", WebAppEndpoint.EnvironmentManager);
+        socket?.emit(
+            WebAppEndpoint.EnvironmentManager,
+            JSON.stringify({
+                webapp_endpoint: WebAppEndpoint.EnvironmentManager,
+                content: "",
+                command_name: CommandName.get_environment,
+            })
+        );
+        socket?.on(WebAppEndpoint.EnvironmentManager, (result: string, ack) => {
+            console.log("EnvironmentManager content", JSON.parse(result));
+            try {
+                if (JSON.parse(result).command_name === CommandName.get_environment) {
+                    const content = JSON.parse(result).content;
+                    console.log("content", content);
+
+                    let envs = [];
+                    for (const property in content) {
+                        if (Array.isArray(content[property])) {
+                            for (const env of content[property]) {
+                                envs.push({
+                                    name: env,
+                                    type: property,
+                                    note: "",
+                                });
+                            }
+                        }
+                        if (
+                            !Array.isArray(content[property]) &&
+                            typeof content[property] === "object"
+                        ) {
+                            for (const env in content[property]) {
+                                envs.push({
+                                    name: content[property][env],
+                                    type: property,
+                                    note: env,
+                                });
+                            }
+                        }
+                    }
+                    console.log("EnvironmentManager envs", envs);
+                    setlistEnvironment(envs);
+                }
+            } catch (error) {
+                console.error("error=>>>>", error);
+                // throw error;
+            }
+            if (ack) ack();
+        });
+    };
+    const startEnvironment = (nameEnv: string) => {
+        socket?.emit(
+            WebAppEndpoint.EnvironmentManager,
+            JSON.stringify({
+                webapp_endpoint: WebAppEndpoint.EnvironmentManager,
+                content: {
+                    conda_environment: nameEnv,
+                },
+                command_name: CommandName.start_environment,
+            })
+        );
+    };
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+    
+    //Menu Env
+    const openMenuSelectEnv = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleMenuItemClick = (event: React.MouseEvent<HTMLElement>, index: number) => {
+        setEnvironmentActive(listEnvironment[index]);
+        startEnvironment(listEnvironment[index].name);
+        setAnchorEl(null);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
     return (
         <FooterNavigation>
             {leftFootbarItems.map((item, index) => {
@@ -141,6 +229,17 @@ const FooterBarComponent = () => {
             })}
 
             <RightFooterItem>
+                <FooterItemText onClick={openMenuSelectEnv}>{environmentActive.name}</FooterItemText>
+                <Menu id="basic-menu" anchorEl={anchorEl} open={open} onClose={handleClose}>
+                    {listEnvironment.map((item: any, index) => (
+                        <MenuItem
+                            selected={item.name === environmentActive.name}
+                            onClick={(event) => handleMenuItemClick(event, index)}
+                        >
+                            {item.name}
+                        </MenuItem>
+                    ))}
+                </Menu>
                 <FooterItemText
                     onClick={() => {
                         sendLogs();
