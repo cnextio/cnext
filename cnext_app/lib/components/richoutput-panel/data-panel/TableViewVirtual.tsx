@@ -10,7 +10,7 @@ import {
     useReactTable,
     ColumnResizeMode,
 } from "@tanstack/react-table";
-import { useVirtual } from "react-virtual";
+import { useVirtual } from "../../../react-virtual";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 
 import { useSelector } from "react-redux";
