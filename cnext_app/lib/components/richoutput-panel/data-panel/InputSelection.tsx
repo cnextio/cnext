@@ -6,13 +6,13 @@ export const InputSelection = ({ input, options, handleChange }) => {
     const handleChangeInternal = (event) => {
         // console.log("InputText ", event);
         const value = event.target.value;
-        const index = options.indexOf(value);
+        const index = options?.indexOf(value);
         handleChange(index);
     };
 
     return (
         <Select
-            defaultValue={options[input]}
+            defaultValue={options?options[input]:null}
             onChange={handleChangeInternal}
             sx={{ fontSize: "12px", width: "100%", height: "30px" }}
         >

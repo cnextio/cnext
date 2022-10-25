@@ -1,5 +1,5 @@
 import React from "react";
-import { SmallVizContainer} from "../../StyledComponents";
+import { SmallVizContainer } from "../../StyledComponents";
 
 // redux
 import { useSelector } from "react-redux";
@@ -7,9 +7,7 @@ import { RootState } from "../../../../redux/store";
 import { createPlot } from "../../dataframe-manager/udf/libUDF";
 
 export function ColumnHistogram({ df_id, col_name, width, height }) {
-    const columnHistogram = useSelector((state: RootState) =>
-        getColumHistogram(state)
-    );
+    const columnHistogram = useSelector((state: RootState) => getColumHistogram(state));
 
     function getColumHistogram(state: RootState) {
         let dfMetadata = state.dataFrames.metadata[df_id];

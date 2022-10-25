@@ -20,19 +20,21 @@ import {
     IAllDataFrameStatus,
     IDataFrameStatus,
 } from "../../interfaces/IDataFrameStatus";
+import { sendMessage } from "../Socket";
 
-export const sendMessage = (socket: Socket | null, message: IMessage) => {
-    console.log(`Send DataFrameManager request: `, JSON.stringify(message));
-    socket?.emit(WebAppEndpoint.DFManager, JSON.stringify(message));
-};
+// export const sendMessage = (socket: Socket | null, message: IMessage) => {
+//     console.log(`Send DataFrameManager request: `, JSON.stringify(message));
+//     socket?.emit(WebAppEndpoint.DataFrameManager, JSON.stringify(message));
+// };
 
 export const createMessage = (
+    endpoint: WebAppEndpoint,
     command_name: CommandName,
     content: {} | string | null = null,
     metadata: {}
 ): IMessage => {
     let message: IMessage = {
-        webapp_endpoint: WebAppEndpoint.DFManager,
+        webapp_endpoint: endpoint,
         command_name: command_name,
         content: content,
         metadata: metadata,
@@ -48,43 +50,33 @@ const isDataFrameUpdated = (df_id: string) => {
     return status.is_updated;
 };
 
-const DF_DISPLAY_HALF_LENGTH = 15;
-export const sendGetTableDataAroundRowIndex = (
+export const DF_DISPLAY_LENGTH = 50;
+
+export const sendGetTableData = (
     socket: Socket,
     df_id: string,
-    around_index: number = 0
+    filter: string | null = null,
+    fromIndex: number = 0,
+    size: number = DF_DISPLAY_LENGTH
 ) => {
-    let queryStr: string = `${df_id}.iloc[(${df_id}.index.get_loc(${around_index})-${DF_DISPLAY_HALF_LENGTH} 
-                                if ${df_id}.index.get_loc(${around_index})>=${DF_DISPLAY_HALF_LENGTH} else 0)
-                                :${df_id}.index.get_loc(${around_index})+${DF_DISPLAY_HALF_LENGTH}]`;
-    let message = createMessage(CommandName.get_table_data, queryStr, {
+    let queryStr: string = `${df_id}${filter ? filter : ""}.iloc[${fromIndex}:${fromIndex + size}]`;
+    let message = createMessage(WebAppEndpoint.DataFrameManager, CommandName.get_table_data, queryStr, {
         df_id: df_id,
+        filter: filter,
+        from_index: fromIndex,
+        size: size,
     });
     // console.log("Send get table: ", message);
-    sendMessage(socket, message);
-};
-
-export const sendGetTableData = (socket: Socket, df_id: string, filter: string | null = null) => {
-    let queryStr: string;
-    if (filter) {
-        queryStr = `${df_id}${filter}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
-    } else {
-        queryStr = `${df_id}.head(${DF_DISPLAY_HALF_LENGTH * 2})`;
-    }
-    let message = createMessage(CommandName.get_table_data, queryStr, {
-        df_id: df_id,
-    });
-    console.log(`DataFrameManager _send_get_table_data message: `, message);
-    sendMessage(socket, message);
+    sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
 };
 
 //TODO: create a targeted column function
 export const sendGetDFMetadata = (socket: Socket, df_id: string) => {
-    let message = createMessage(CommandName.get_df_metadata, "", {
+    let message = createMessage(WebAppEndpoint.DataFrameManager, CommandName.get_df_metadata, "", {
         df_id: df_id,
     });
     // console.log("_send_get_table_data message: ", message);
-    sendMessage(socket, message);
+    sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
 };
 
 export const handleActiveDFStatus = (
@@ -113,9 +105,17 @@ export const handleActiveDFStatus = (
                     sendGetDFMetadata(socket, df_id);
                     if (updateType == DataFrameUpdateType.add_rows) {
                         // show data around added rows
-                        sendGetTableDataAroundRowIndex(socket, df_id, updateContent[0]);
+                        /** for now, only support number[] */
+                        if (updateContent instanceof Array<number>)
+                            if (typeof updateContent[0] == "number") {
+                                const fromIndex =
+                                    updateContent[0] - DF_DISPLAY_LENGTH / 2 >= 0
+                                        ? updateContent[0] - DF_DISPLAY_LENGTH / 2
+                                        : 0;
+                                // sendGetTableData(socket, df_id, null, fromIndex);
+                            }
                     } else {
-                        sendGetTableData(socket, df_id);
+                        // sendGetTableData(socket, df_id);
                     }
                 }
             }
@@ -147,7 +147,7 @@ export const handleGetDFMetadata = (message: IMessage) => {
     if (message.metadata) {
         const metadata = message.metadata as IDataFrameMessageMetadata;
         console.log(
-            `${WebAppEndpoint.DFManager} got metadata for "${metadata.df_id}": `,
+            `${WebAppEndpoint.DataFrameManager} got metadata for "${metadata.df_id}": `,
             message.content
         );
         let dfMetadata = message.content;
@@ -198,11 +198,11 @@ export const handleGetRegisteredUDFs = (result: IMessage) => {
 };
 
 const sendCalculateUDF = (socket: Socket, udfName: string, df_id: string, col_list: string[]) => {
-    let message = createMessage(CommandName.compute_udf, udfName, {
+    let message = createMessage(WebAppEndpoint.DataFrameManager, CommandName.compute_udf, udfName, {
         df_id: df_id,
         col_list: col_list,
     });
-    sendMessage(socket, message);
+    sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
 };
 
 const isUDFCalculated = (df_id: string, col_list: string[], udfName: string) => {

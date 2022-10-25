@@ -124,13 +124,13 @@ class MessageHandler(BaseMessageHandler):
                 log.info('Load url for mime %s' % t.name)
                 for r in range(df.shape[0]):
                     url = df[df.columns[i]].iloc[r]
-                    response = requests.get(url)
+                    # response = requests.get(url)
                     # img = Image.open(BytesIO(response.content))
                     log.info('Load file for mime %s path %s' %
                              (t.name, url))
                     tableData['rows'][r][i] = {
                         'url': url,
-                        'binary': base64.b64encode(response.content)
+                        # 'binary': base64.b64encode(response.content)
                     }
             elif t.name in [CnextMimeType.INPUT_SELECTION, CnextMimeType.INPUT_CHECKBOX, CnextMimeType.INPUT_TEXT]:
                 log.info('Create table for mime %s' % t.name)
@@ -138,7 +138,7 @@ class MessageHandler(BaseMessageHandler):
                     tableData['rows'][r][i] = json.loads(
                         df[df.columns[i]].iloc[r])
                     # log.info('Create table for mime %s' % tableData['rows'][r][i])
-        
+
         tableData['index'] = {}
         tableData['index']['name'] = df.index.name
         tableData['index']['data'] = []
@@ -146,6 +146,7 @@ class MessageHandler(BaseMessageHandler):
             [tableData['index']['data'].append(str(idx)) for idx in df.index]
         else:
             tableData['index']['data'] = df.index.tolist()
+        tableData['size'] = df.shape[0]
         # log.info(tableData)
         return tableData
 
@@ -210,7 +211,7 @@ class MessageHandler(BaseMessageHandler):
         else:
             content = ipython_message.content['traceback']
         return self._create_error_message(
-            WebappEndpoint.DFManager, content, client_message.command_name, client_message.metadata)
+            client_message.webapp_endpoint, content, client_message.command_name, client_message.metadata)
 
     MAX_PLOTLY_SIZE = 1024*1024  # 1MB
 
@@ -238,7 +239,8 @@ class MessageHandler(BaseMessageHandler):
         else:
             result = self.get_execute_result(ipython_message)
             if result is not None:
-                message = Message(**{'webapp_endpoint': WebappEndpoint.DFManager,
+                ## note that this message might have either DataManager or DataViewer endpoint #
+                message = Message(**{'webapp_endpoint': client_message.webapp_endpoint,
                                      'command_name': client_message.command_name})
                 # Add header message from ipython to message metadata
                 if message.metadata == None:
@@ -249,8 +251,8 @@ class MessageHandler(BaseMessageHandler):
                 message.metadata.update({'stream_type': stream_type})
 
                 if client_message.command_name == DFManagerCommand.get_table_data:
-                    log.info('%s: %s' % (client_message.command_name, result))
-                    log.info('DFManagerCommand.get_table_data')
+                    log.info('%s: %s' % (client_message, result))
+                    # log.info('%s ', message)
                     message.content = result
                     message.type = ContentType.PANDAS_DATAFRAME
                     message.sub_type = SubContentType.NONE
@@ -315,7 +317,7 @@ class MessageHandler(BaseMessageHandler):
 
                 elif message.command_name == DFManagerCommand.reload_df_status:
                     active_df_status = self.user_space.get_active_dfs_status()
-                    active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": message.command_name,
+                    active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": message.command_name,
                                                           "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
                     self._send_to_node(active_df_status_message)
 

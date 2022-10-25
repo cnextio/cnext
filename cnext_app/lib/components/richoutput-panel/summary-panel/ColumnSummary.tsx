@@ -1,5 +1,5 @@
 import { TableBody, TableRow, Typography } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 
 // redux
 import { useSelector } from "react-redux";
@@ -19,7 +19,9 @@ const ColumnSummary = (props: any) => {
     const dfMetadata = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.metadata[activeDataFrame] : null
     );
-
+    const columnSelector = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.columnSelector[activeDataFrame].columns : {}
+    );
     const renderColumnMetadata = (col_name: string) => {
         return (
             <>
@@ -190,13 +192,21 @@ const ColumnSummary = (props: any) => {
         );
     };
 
+    const visibleColumns = React.useMemo<any>(() => {
+        let colums = Object.keys(columnSelector).filter((item) => columnSelector[item]);
+        if (dfMetadata?.columns) {
+            return Object.fromEntries(
+                Object.entries(dfMetadata?.columns).filter(([key, value]) => colums.includes(key))
+            );
+        }
+    }, [columnSelector, activeDataFrame, dfMetadata]);
     return (
         <StyledTableView style={{ padding: "10px" }} data-cy={CypressIds.dfSummaryTable}>
             {console.log("Render ColumnSummary ")}
             {dfMetadata ? (
                 <DataTable style={{ border: 0 }} size="small">
                     <TableBody style={{ border: 0 }}>
-                        {Object.keys(dfMetadata.columns).map((col_name: string, index: number) => (
+                        {Object.keys(visibleColumns).map((col_name: string, index: number) => (
                             <TableRow key={index}>
                                 {/* , 'width': '1%', 'white-space': 'nowrap' */}
                                 {renderColumnMetadata(col_name)}

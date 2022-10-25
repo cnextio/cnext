@@ -111,14 +111,17 @@ def main(argv):
                     if default_ipython_kernel_spec:
                         user_space.start_executor(default_ipython_kernel_spec)
                     else:
-                        log.info("Kernel spec does not exist. Kernel failed to run.")
+                        log.info(
+                            "Kernel spec does not exist. Kernel failed to run.")
 
                     executor_manager = execm.MessageHandler(
                         p2n_queue, user_space)
 
                     message_handler = {
                         WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.DFManager: dm.MessageHandler(p2n_queue, user_space),
+                        ## DataViewer and DataFrameManager use the same handler#
+                        WebappEndpoint.DataFrameManager: dm.MessageHandler(p2n_queue, user_space),                        
+                        WebappEndpoint.DataViewer: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.MagicCommandGen: ca.MessageHandler(
                             p2n_queue, user_space),

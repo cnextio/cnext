@@ -9,7 +9,7 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import { IMessage, WebAppEndpoint, CommandName, ContentType } from "../../interfaces/IApp";
-import { SocketContext } from "../Socket";
+import { sendMessage, SocketContext } from "../Socket";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -17,15 +17,12 @@ import store, { RootState } from "../../../redux/store";
 import {
     createMessage,
     getColumnsToGetStats,
-    getLastUpdate,
     calculateUDFs,
     handleActiveDFStatus,
     handleGetDFMetadata,
     handleGetRegisteredUDFs,
     handleGetTableData,
     sendGetTableData,
-    sendGetTableDataAroundRowIndex,
-    sendMessage,
 } from "./libDataFrameManager";
 import { setTextOutput } from "../../../redux/reducers/RichOutputRedux";
 
@@ -34,11 +31,13 @@ import { handleGetComputeUDFs } from "./udf/libUDF";
 const DataFrameManager = () => {
     const socket = useContext(SocketContext);
     const dispatch = useDispatch();
-    const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
-    const dfFilter = useSelector((state: RootState) => state.dataFrames.dfFilter);
+    // const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     const udfsSelector = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
+    );
+    const dfFilter = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.dfFilter[activeDataFrame] : null
     );
 
     const dataPanelFocusSignal = useSelector(
@@ -47,9 +46,9 @@ const DataFrameManager = () => {
     const [executing, setExecuting] = useState(false);
 
     const socketInit = () => {
-        // console.log('DFManager useEffect');
+        // console.log('DataFrameManager useEffect');
         socket?.emit("ping", "DataFrameManager");
-        socket?.on(WebAppEndpoint.DFManager, (result: string, ack) => {
+        socket?.on(WebAppEndpoint.DataFrameManager, (result: string, ack) => {
             try {
                 let message: IMessage = JSON.parse(result);
                 console.log("DataFrameManager got results for command ", message);
@@ -61,8 +60,8 @@ const DataFrameManager = () => {
                     } else if (message.command_name == CommandName.reload_df_status) {
                         console.log("DataFrameManager reload_df_status:", message);
                         handleActiveDFStatus(socket, message, true);
-                    } else if (message.command_name == CommandName.get_table_data) {
-                        handleGetTableData(message);
+                    // } else if (message.command_name == CommandName.get_table_data) {
+                    //     handleGetTableData(message);
                     } else if (message.command_name == CommandName.get_df_metadata) {
                         handleGetDFMetadata(message);
                     } else if (message.command_name == CommandName.get_registered_udfs) {
@@ -82,8 +81,13 @@ const DataFrameManager = () => {
             if (ack) ack();
         });
         /** Load dataframe status */
-        let message = createMessage(CommandName.reload_df_status, null, {});
-        sendMessage(socket, message);
+        let message = createMessage(
+            WebAppEndpoint.DataFrameManager,
+            CommandName.reload_df_status,
+            null,
+            {}
+        );
+        sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
     };
 
     useEffect(() => {
@@ -104,32 +108,38 @@ const DataFrameManager = () => {
     useEffect(() => {
         socketInit();
         return () => {
-            socket?.off(WebAppEndpoint.DFManager);
+            socket?.off(WebAppEndpoint.DataFrameManager);
         };
     }, [socket]); //TODO: run this only once - not on rerender
 
     useEffect(() => {
-        let message = createMessage(CommandName.get_registered_udfs, null, {});
-        sendMessage(socket, message);
+        let message = createMessage(
+            WebAppEndpoint.DataFrameManager,
+            CommandName.get_registered_udfs,
+            null,
+            {}
+        );
+        sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
     }, [dataPanelFocusSignal]);
 
-    useEffect(() => {
-        if (loadDataRequest.df_id && socket) {
-            sendGetTableDataAroundRowIndex(
-                socket,
-                loadDataRequest.df_id,
-                loadDataRequest.row_index
-            );
-        }
-    }, [loadDataRequest]);
+    // useEffect(() => {
+        // if (loadDataRequest.df_id && socket && activeDataFrame) {
+        //     sendGetTableData(
+        //         socket,
+        //         loadDataRequest.df_id,
+        //         dfFilter ? dfFilter.query : null,
+        //         loadDataRequest.from_index
+        //     );
+        // }
+    // }, [loadDataRequest]);
 
-    useEffect(() => {
-        if (dfFilter && socket) {
-            // clear the text output message
-            dispatch(setTextOutput({ content: "" }));
-            sendGetTableData(socket, dfFilter.df_id, dfFilter.query);
-        }
-    }, [dfFilter]);
+    // useEffect(() => {
+    //     if (dfFilter && socket && activeDataFrame) {
+    //         // clear the text output message
+    //         dispatch(setTextOutput({ content: null }));
+    //         sendGetTableData(socket, activeDataFrame, dfFilter.query);
+    //     }
+    // }, [dfFilter]);
 
     return null;
 };

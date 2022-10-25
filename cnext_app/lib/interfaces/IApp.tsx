@@ -83,7 +83,7 @@ export enum CommandName {
     get_jupyter_server_config = "get_jupyter_server_config",
     get_registered_udfs = "get_registered_udfs",
     compute_udf = "compute_udf",
-    set_dataframe_cell_value = "set_dataframe_cell_value"
+    set_dataframe_cell_value = "set_dataframe_cell_value",
 }
 
 export enum ContentType {
@@ -132,7 +132,7 @@ export enum CommandType {
 }
 
 export enum WebAppEndpoint {
-    DFManager = "DFManager",
+    DataFrameManager = "DataFrameManager",
     ModelManager = "ModelManager",
     CodeEditor = "CodeEditor",
     FileManager = "FileManager",
@@ -148,6 +148,7 @@ export enum WebAppEndpoint {
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
     LogsManager = "LogsManager",
+    DataViewer = "DataViewer"
 }
 
 export interface ITableData {
@@ -155,8 +156,15 @@ export interface ITableData {
     index: { name: string; data: any[] };
     column_names: string[];
     rows: any[][];
+    size: number;
 }
 
+export interface ITableMetaData {
+    df_id: string;
+    filter: string;
+    page_number: number;
+    page_size: number;
+}
 export interface IPlot {
     mime_type: StandardMimeType;
     data: {};
@@ -209,7 +217,12 @@ export enum SpecialMimeType {
     INPUT_CHECKBOX = "input/checkbox",
     INPUT_TEXT = "input/text",
 }
-
+export enum FileMimeType {
+    FILE_PNG = "file/png",
+    FILE_JPG = "file/jpg",
+    URL_PNG = "url/png",
+    URL_JPG = "url/jpg",
+}
 export const CNextMimeType = { ...SpecialMimeType, ...StandardMimeType };
 export type CNextMimeType = SpecialMimeType | StandardMimeType;
 
@@ -308,7 +321,10 @@ export interface IDataFrameUDFSelection {
     udfs: { [UDFName: string]: boolean };
     timestamp: string;
 }
-
+export interface IDataFrameColumnSelection {
+    columns: { [columnName: string]: boolean };
+    timestamp: string;
+}
 interface IExperimentManagerConfig {
     local_tmp_dir: string;
     mlflow_tracking_uri: string;
@@ -362,7 +378,7 @@ export interface IConfigs {
 export enum DFViewMode {
     TABLE_VIEW = "Table View",
     SUMMARY_VIEW = "Summary View",
-    GRID_VIEW = "Grid View",
+    // GRID_VIEW = "Grid View",
 }
 
 interface WorkSpaceOpenProject {

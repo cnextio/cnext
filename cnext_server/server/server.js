@@ -6,7 +6,7 @@ const YAML = require("yaml");
 const zmq = require("zeromq");
 const path = require("path");
 const { nanoid } = require("nanoid");
-const { eventLog } = require("./EventLog");
+const { eventLog } = require("./eventLog");
 // const { instrument } = require("@socket.io/admin-ui");
 const { PythonShell } = require("python-shell");
 const {
@@ -31,7 +31,7 @@ const httpProxyMiddleware = require("http-proxy-middleware");
 
 // TODO: move to Interfaces.tsx
 const CodeEditor = "CodeEditor";
-const DFManager = "DFManager";
+const DataFrameManager = "DataFrameManager";
 const ModelManager = "ModelManager";
 const FileManager = "FileManager";
 const FileExplorer = "FileExplorer";
@@ -41,13 +41,16 @@ const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
+const DataViewer = "DataViewer";
+
 const CodeEndpoints = [
     CodeEditor,
-    DFManager,
+    DataFrameManager,
     ModelManager,
     MagicCommandGen,
     ExecutorManager,
     EnvironmentManager,
+    DataViewer,
 ];
 const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
 

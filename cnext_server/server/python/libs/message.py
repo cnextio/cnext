@@ -7,7 +7,7 @@ from enum import Enum
 
 
 class WebappEndpoint(str, Enum):
-    DFManager = 'DFManager'
+    DataFrameManager = 'DataFrameManager'
     CodeEditor = 'CodeEditor'
     FileManager = 'FileManager'
     MagicCommandGen = 'MagicCommandGen'
@@ -18,6 +18,7 @@ class WebappEndpoint(str, Enum):
     EnvironmentManager = 'EnvironmentManager'
     Terminal = 'Terminal'
     LogsManager = 'LogsManager'
+    DataViewer = 'DataViewer'
 
     def __str__(self):
         return str(self.value)

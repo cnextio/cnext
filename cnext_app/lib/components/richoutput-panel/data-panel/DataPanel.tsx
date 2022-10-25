@@ -9,6 +9,7 @@ import { RootState } from "../../../../redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 import { setDataPanelFocusSignal } from "../../../../redux/reducers/DataFramesRedux";
+import ColumnSelector from "./ColumnSelector";
 
 const DataPanel = (props: any) => {
     const dispatch = useDispatch();
@@ -20,22 +21,26 @@ const DataPanel = (props: any) => {
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     //TODO: move all grid view related thing to under DataView
     return (
-        <Fragment>
+        <>
+            {/* {console.log("DataPanel render activeDataFrame", activeDataFrame)} */}
             <DataToolbar>
                 <DFExplorer />
                 <DFFilter />
             </DataToolbar>
             {activeDataFrame != null && (
-                <Box
-                    sx={{ display: "inline-flex", justifyContent: "flex-start" }}
-                    style={{ width: "100%" }}
-                >
-                    <UDFSelector />
-                    <DataViewMode />
-                </Box>
+                <>
+                    <Box
+                        sx={{ display: "inline-flex", justifyContent: "flex-start" }}
+                        style={{ width: "100%" }}
+                    >
+                        <UDFSelector />
+                        <DataViewMode />
+                        <ColumnSelector />
+                    </Box>
+                    <DataView />
+                </>
             )}
-            <DataView />
-        </Fragment>
+        </>
     );
 };
 

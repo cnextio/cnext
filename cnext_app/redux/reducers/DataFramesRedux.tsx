@@ -8,16 +8,11 @@ import {
     IMetadata,
     DFViewMode,
     IDataFrameUDFSelection,
+    IDataFrameColumnSelection,
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
-import { getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
-import { IDataFrameFilter, IRegisteredUDFs, UDF } from "../../lib/interfaces/IDataFrameManager";
-
-interface ILoadDataRequest {
-    df_id: string | null;
-    count: number;
-    row_index: number;
-}
+import { DF_DISPLAY_LENGTH, getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
+import { IDataFrameFilter, ILoadDataRequest, IRegisteredUDFs, UDF } from "../../lib/interfaces/IDataFrameManager";
 
 export type DataFrameState = {
     metadata: { [id: string]: IMetadata };
@@ -29,17 +24,19 @@ export type DataFrameState = {
     // this variable is used to indicate whether the tableData is being loaded.
     // this is used mainly for TableComponent to know when to show the table updates
     tableDataReady: boolean;
-    // this is used to ask DFManager to load new data
+    // this is used to ask DataFrameManager to load new data
     // currently only support loading by row index. 'count' is used to indicate new request
     loadDataRequest: ILoadDataRequest;
     loadColumnHistogram: boolean;
-    dfFilter: IDataFrameFilter | null;
+    dfFilter: { [id: string]: IDataFrameFilter };
     dataViewMode: string;
     // dfUpdateCount: number;
     /** this number increase whenever DataPanel is focused */
     dataPanelFocusSignal: number;
+    columnSelector: { [id: string]: IDataFrameColumnSelection };
     udfsSelector: { [id: string]: IDataFrameUDFSelection };
     registeredUDFs: IRegisteredUDFs; //{ [name: string]: UDF };
+    tableMetadataUpdateSignal: number;
 };
 
 const initialState: DataFrameState = {
@@ -52,16 +49,18 @@ const initialState: DataFrameState = {
     // this variable is used to indicate whether the tableData is being loaded.
     // this is used mainly for TableComponent to know when to show the table updates
     tableDataReady: false,
-    // this is used to ask DFManager to load new data
+    // this is used to ask DataFrameManager to load new data
     // currently only support loading by row index. 'count' is used to indicate new request
-    loadDataRequest: { df_id: null, count: 0, row_index: 0 },
+    loadDataRequest: { df_id: null, count: 0, from_index: 0 },
     loadColumnHistogram: false,
-    dfFilter: null,
+    dfFilter: {},
     dataViewMode: DFViewMode.TABLE_VIEW,
     // dfUpdateCount: 0,
     dataPanelFocusSignal: 0,
     udfsSelector: {},
     registeredUDFs: { udfs: {}, timestamp: "0" },
+    columnSelector: {},
+    tableMetadataUpdateSignal: 0,
 };
 
 export const dataFrameSlice = createSlice({
@@ -100,7 +99,12 @@ export const dataFrameSlice = createSlice({
                     udfs: udfSelector,
                     timestamp: state.registeredUDFs.timestamp,
                 };
+                state.columnSelector[df_id] = {
+                    columns: {},
+                    timestamp: state.registeredUDFs.timestamp,
+                };
             }
+            state.tableMetadataUpdateSignal++;
         },
 
         /**
@@ -282,11 +286,15 @@ export const dataFrameSlice = createSlice({
                     // make data loading request if needed
                     if (
                         !tableData.index.data.includes(reviewingDFRowIndex)
-                        // && state.loadDataRequest.row_index != null
+                        // currently, only support instance of number
+                        && typeof(reviewingDFRowIndex) == "number"
                     ) {
                         state.loadDataRequest.df_id = state.activeDataFrame;
                         state.loadDataRequest.count += 1;
-                        state.loadDataRequest.row_index = reviewingDFRowIndex;
+                        state.loadDataRequest.from_index =
+                            reviewingDFRowIndex - DF_DISPLAY_LENGTH / 2 >= 0
+                                ? reviewingDFRowIndex - DF_DISPLAY_LENGTH / 2
+                                : 0;
                     }
                 }
             }
@@ -297,7 +305,7 @@ export const dataFrameSlice = createSlice({
         },
 
         setDFFilter: (state, action) => {
-            state.dfFilter = action.payload;
+            state.dfFilter[action.payload.df_id] = action.payload;
         },
 
         setDataViewMode: (state, action) => {
@@ -334,7 +342,12 @@ export const dataFrameSlice = createSlice({
                 }
             }
         },
-
+        setColumnSelection: (state, action) => {
+            const data = action.payload;
+            if (data) {
+                state.columnSelector[data.df_id].columns = data.selections;
+            }
+        },
         setUDFsSelection: (state, action) => {
             const data = action.payload;
             if (data) {
@@ -367,7 +380,7 @@ export const dataFrameSlice = createSlice({
             const rowNumber = data.rowNumber;
             const colNumber = state.tableData[df_id].column_names.indexOf(data.col_name);
             state.tableData[df_id].rows[rowNumber][colNumber] = data.value;
-        }
+        },
     },
 });
 
@@ -384,6 +397,7 @@ export const {
     setDataPanelFocusSignal,
     setRegisteredUDFs,
     setUDFsSelection,
+    setColumnSelection,
     setComputeUDFData,
     setTableDataCellValue,
 } = dataFrameSlice.actions;

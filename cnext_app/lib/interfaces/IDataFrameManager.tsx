@@ -6,7 +6,10 @@ export interface IDataFrameMessageMetadata {
 
 export interface IDataFrameFilter {
     df_id: string;
+    /** this is the compiled query that can run directly with the dataframe */
     query: string;
+    /** this is the query showed in the query box */
+    cnext_query: string;
 }
 
 export enum UDFLocation {
@@ -85,4 +88,10 @@ export interface ICellDataCheckboxInput {
 
 export interface ICellDataTextInput {
     input: string
+}
+
+export interface ILoadDataRequest {
+    df_id: string | null;
+    count: number;
+    from_index: number;
 }

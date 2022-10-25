@@ -182,10 +182,16 @@ export default function Ansi(props: Props): JSX.Element {
 //   https://stackoverflow.com/questions/55440152/multiple-b-doesnt-work-as-expected-in-jupyter#
 function fixBackspace(txt: string) {
   let tmp = txt;
-  do {
-    txt = tmp;
-    // Cancel out anything-but-newline followed by backspace
-    tmp = txt.replace(/[^\n]\x08/gm, "");
-  } while (tmp.length < txt.length);
-  return txt;
+  try{
+    do {
+      txt = tmp;      
+      // Cancel out anything-but-newline followed by backspace
+      tmp = txt.replace(/[^\n]\x08/gm, "");
+    } while (tmp.length < txt.length);
+    return txt;
+  } catch (error) {
+    console.log("Ansi to react: ", txt);
+    console.error(error);
+  }
+  
 }
