@@ -31,7 +31,7 @@ import { handleGetComputeUDFs } from "./udf/libUDF";
 const DataFrameManager = () => {
     const socket = useContext(SocketContext);
     const dispatch = useDispatch();
-    const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
+    // const loadDataRequest = useSelector((state: RootState) => state.dataFrames.loadDataRequest);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     const udfsSelector = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
@@ -122,7 +122,7 @@ const DataFrameManager = () => {
         sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
     }, [dataPanelFocusSignal]);
 
-    useEffect(() => {
+    // useEffect(() => {
         // if (loadDataRequest.df_id && socket && activeDataFrame) {
         //     sendGetTableData(
         //         socket,
@@ -131,7 +131,7 @@ const DataFrameManager = () => {
         //         loadDataRequest.from_index
         //     );
         // }
-    }, [loadDataRequest]);
+    // }, [loadDataRequest]);
 
     // useEffect(() => {
     //     if (dfFilter && socket && activeDataFrame) {
