@@ -133,13 +133,13 @@ const DataFrameManager = () => {
         // }
     }, [loadDataRequest]);
 
-    useEffect(() => {
-        if (dfFilter && socket && activeDataFrame) {
-            // clear the text output message
-            dispatch(setTextOutput({ content: null }));
-            sendGetTableData(socket, activeDataFrame, dfFilter.query);
-        }
-    }, [dfFilter]);
+    // useEffect(() => {
+    //     if (dfFilter && socket && activeDataFrame) {
+    //         // clear the text output message
+    //         dispatch(setTextOutput({ content: null }));
+    //         sendGetTableData(socket, activeDataFrame, dfFilter.query);
+    //     }
+    // }, [dfFilter]);
 
     return null;
 };

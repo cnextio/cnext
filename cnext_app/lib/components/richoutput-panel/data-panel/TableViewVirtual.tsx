@@ -371,6 +371,10 @@ const TableViewVirtual = () => {
 
     const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
+    const dfFilter = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.dfFilter[activeDataFrame] : null
+    );
+    
     /** Note: the numKeepPage can be sensitive with DF_PAGE_SIZE and overscan */
     const {
         pagedTableData,
@@ -379,7 +383,7 @@ const TableViewVirtual = () => {
         toPage,
         totalSize: pagedDataTotalSize,
         isLoading,
-    } = useLoadTableData(activeDataFrame, NUM_KEEP_PAGE);
+    } = useLoadTableData(activeDataFrame, dfFilter?.query, NUM_KEEP_PAGE);
 
     /** convert data to dictionary type to make it compatible with react-table */
     const [flatIndexData, flatRowsData] = React.useMemo((): [any[], { [key: string]: any }[]] => {
@@ -403,19 +407,6 @@ const TableViewVirtual = () => {
 
     const [columnResizeMode, setColumnResizeMode] = React.useState<ColumnResizeMode>("onChange");
 
-    const columnVisibility = React.useMemo<any>(() => {
-        if (Object.keys(columnSelector).length > 0) {
-            const col = { ...columnSelector };
-            for (const i in columnSelector) {
-                if (columnSelector[i]) {
-                    delete col[i];
-                }
-            }
-            return col;
-        }
-        return {};
-    }, [columnSelector, activeDataFrame]);
-
     const columns = React.useMemo<ColumnDef<any>[]>(() => {
         const state = store.getState();
         if (activeDataFrame) {
@@ -428,12 +419,13 @@ const TableViewVirtual = () => {
         } else return [];
     }, [activeDataFrame]);
 
+
     const table = useReactTable({
         data: flatRowsData,
         columns,
         columnResizeMode,
         state: {
-            columnVisibility, //format all value :false  columnVisibility : {a:false,b:false}
+            columnVisibility: columnSelector,
         },
         getCoreRowModel: getCoreRowModel(),
         debugTable: true,

@@ -211,7 +211,7 @@ class MessageHandler(BaseMessageHandler):
         else:
             content = ipython_message.content['traceback']
         return self._create_error_message(
-            WebappEndpoint.DataFrameManager, content, client_message.command_name, client_message.metadata)
+            client_message.webapp_endpoint, content, client_message.command_name, client_message.metadata)
 
     MAX_PLOTLY_SIZE = 1024*1024  # 1MB
 

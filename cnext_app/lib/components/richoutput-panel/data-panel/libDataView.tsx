@@ -11,7 +11,7 @@ export const sendGetTableData = (
     page_size: number,
 ) => {
     let fromIndex = page_number * page_size;
-    let queryStr: string = `${df_id}${filter ? filter : ""}.iloc[${fromIndex}:${
+    let queryStr: string = `${df_id}${filter ?? ""}.iloc[${fromIndex}:${
         fromIndex + page_size
     }]`;
     let message = createMessage(WebAppEndpoint.DataViewer, CommandName.get_table_data, queryStr, {

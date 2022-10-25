@@ -378,7 +378,7 @@ export interface IConfigs {
 export enum DFViewMode {
     TABLE_VIEW = "Table View",
     SUMMARY_VIEW = "Summary View",
-    GRID_VIEW = "Grid View",
+    // GRID_VIEW = "Grid View",
 }
 
 interface WorkSpaceOpenProject {

@@ -12,7 +12,11 @@ import {
 import { SocketContext } from "../../Socket";
 import { sendGetTableData } from "./libDataView";
 
-export const useLoadTableData = (df_id: string | null, numKeepPages = 3) => {
+export const useLoadTableData = (
+    df_id: string | null,
+    filter: string | null = null,
+    numKeepPages = 3
+) => {
     const socket = useContext(SocketContext);
     const [isLoading, setIsLoading] = useState(false);
     const [fromPage, setFromPage] = useState<number | null>(null);
@@ -20,14 +24,14 @@ export const useLoadTableData = (df_id: string | null, numKeepPages = 3) => {
     const [totalSize, setTotalSize] = useState<number>(0);
     const [pagedTableData, setPagedTableData] = useState<ITableData[] | null>(null);
     const dispatch = useDispatch();
-        
+
     useEffect(() => {
         // setIsLoading(false);
         setFromPage(null);
         setToPage(null);
         setTotalSize(0);
-        setPagedTableData(null);
-    }, [df_id]);
+        setPagedTableData(null);        
+    }, [df_id, filter]);
     // console.log("DataViewer useLoadTableData: ", df_id, pagedTableData);
 
     const updateTableData = (data: ITableData, metadata: ITableMetaData) => {
@@ -63,7 +67,6 @@ export const useLoadTableData = (df_id: string | null, numKeepPages = 3) => {
                 setPagedTableData(newPagedTableData);
             }
         }
-        
     };
 
     const socketInit = () => {
@@ -80,8 +83,7 @@ export const useLoadTableData = (df_id: string | null, numKeepPages = 3) => {
                         updateTableData(
                             message.content as ITableData,
                             message.metadata as ITableMetaData
-                        );
-                        setIsLoading(false);
+                        );                        
                     } else {
                         // console.log("dispatch text output");
                         dispatch(setTextOutput(message));
@@ -89,6 +91,7 @@ export const useLoadTableData = (df_id: string | null, numKeepPages = 3) => {
                 } else {
                     dispatch(setTextOutput(message));
                 }
+                setIsLoading(false);
             } catch (error) {
                 console.error(error);
             }
@@ -99,7 +102,9 @@ export const useLoadTableData = (df_id: string | null, numKeepPages = 3) => {
     const getTableData = (pageNumber: number, pageSize: number) => {
         if (socket && df_id && !isLoading) {
             setIsLoading(true);
-            sendGetTableData(socket, df_id, null, pageNumber, pageSize);
+            sendGetTableData(socket, df_id, filter, pageNumber, pageSize);
+            /** clear the message */
+            dispatch(setTextOutput({ content: null }));
         }
     };
 
