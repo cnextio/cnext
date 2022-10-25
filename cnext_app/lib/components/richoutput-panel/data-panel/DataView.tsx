@@ -8,10 +8,9 @@ import SummaryView from "../summary-panel/SummaryView";
 import TableViewVirtual from "./TableViewVirtual";
 
 const DataView = () => {
-    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
-
+    // const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
+    const metadata = useSelector((state: RootState) => state.dataFrames.metadata);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
-
     const dataViewMode = useSelector((state: RootState) => state.dataFrames.dataViewMode);
 
     const renderData = () => {
@@ -28,7 +27,7 @@ const DataView = () => {
         }
     };
     //TODO: move all grid view related thing to under DataView
-    return <>{activeDataFrame && tableData[activeDataFrame] != null && renderData()}</>;
+    return <>{activeDataFrame && metadata[activeDataFrame] != null && renderData()}</>;
 };
 
 export default DataView;

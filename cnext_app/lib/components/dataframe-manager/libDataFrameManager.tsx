@@ -112,10 +112,10 @@ export const handleActiveDFStatus = (
                                     updateContent[0] - DF_DISPLAY_LENGTH / 2 >= 0
                                         ? updateContent[0] - DF_DISPLAY_LENGTH / 2
                                         : 0;
-                                sendGetTableData(socket, df_id, null, fromIndex);
+                                // sendGetTableData(socket, df_id, null, fromIndex);
                             }
                     } else {
-                        sendGetTableData(socket, df_id);
+                        // sendGetTableData(socket, df_id);
                     }
                 }
             }

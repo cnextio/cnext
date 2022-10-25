@@ -110,7 +110,7 @@ const TableViewVirtual = () => {
             };
 
             if (indexCell) {
-                const indexName = state.dataFrames.tableData[activeDataFrame].index.name;
+                const indexName = state.dataFrames.tableData[activeDataFrame]?.index.name;
                 const review = isReviewingCell(indexName, rowIndexData, dfReview);
                 return (
                     <DataTableCell key={indexName} align="right" review={review} head={true}>

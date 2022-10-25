@@ -21,23 +21,26 @@ const DataPanel = (props: any) => {
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
     //TODO: move all grid view related thing to under DataView
     return (
-        <Fragment>
+        <>
+            {/* {console.log("DataPanel render activeDataFrame", activeDataFrame)} */}
             <DataToolbar>
                 <DFExplorer />
                 <DFFilter />
             </DataToolbar>
             {activeDataFrame != null && (
-                <Box
-                    sx={{ display: "inline-flex", justifyContent: "flex-start" }}
-                    style={{ width: "100%" }}
-                >
-                    <UDFSelector />
-                    <DataViewMode />
-                    <ColumnSelector />
-                </Box>
+                <>
+                    <Box
+                        sx={{ display: "inline-flex", justifyContent: "flex-start" }}
+                        style={{ width: "100%" }}
+                    >
+                        <UDFSelector />
+                        <DataViewMode />
+                        <ColumnSelector />
+                    </Box>
+                    <DataView />
+                </>
             )}
-            <DataView />
-        </Fragment>
+        </>
     );
 };
 

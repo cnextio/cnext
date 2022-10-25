@@ -36,6 +36,7 @@ export type DataFrameState = {
     columnSelector: { [id: string]: IDataFrameColumnSelection };
     udfsSelector: { [id: string]: IDataFrameUDFSelection };
     registeredUDFs: IRegisteredUDFs; //{ [name: string]: UDF };
+    tableMetadataUpdateSignal: number;
 };
 
 const initialState: DataFrameState = {
@@ -59,6 +60,7 @@ const initialState: DataFrameState = {
     udfsSelector: {},
     registeredUDFs: { udfs: {}, timestamp: "0" },
     columnSelector: {},
+    tableMetadataUpdateSignal: 0,
 };
 
 export const dataFrameSlice = createSlice({
@@ -102,6 +104,7 @@ export const dataFrameSlice = createSlice({
                     timestamp: state.registeredUDFs.timestamp,
                 };
             }
+            state.tableMetadataUpdateSignal++;
         },
 
         /**

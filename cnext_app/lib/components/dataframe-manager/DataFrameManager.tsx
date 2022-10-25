@@ -60,8 +60,8 @@ const DataFrameManager = () => {
                     } else if (message.command_name == CommandName.reload_df_status) {
                         console.log("DataFrameManager reload_df_status:", message);
                         handleActiveDFStatus(socket, message, true);
-                    } else if (message.command_name == CommandName.get_table_data) {
-                        handleGetTableData(message);
+                    // } else if (message.command_name == CommandName.get_table_data) {
+                    //     handleGetTableData(message);
                     } else if (message.command_name == CommandName.get_df_metadata) {
                         handleGetDFMetadata(message);
                     } else if (message.command_name == CommandName.get_registered_udfs) {
@@ -123,14 +123,14 @@ const DataFrameManager = () => {
     }, [dataPanelFocusSignal]);
 
     useEffect(() => {
-        if (loadDataRequest.df_id && socket && activeDataFrame) {
-            sendGetTableData(
-                socket,
-                loadDataRequest.df_id,
-                dfFilter ? dfFilter.query : null,
-                loadDataRequest.from_index
-            );
-        }
+        // if (loadDataRequest.df_id && socket && activeDataFrame) {
+        //     sendGetTableData(
+        //         socket,
+        //         loadDataRequest.df_id,
+        //         dfFilter ? dfFilter.query : null,
+        //         loadDataRequest.from_index
+        //     );
+        // }
     }, [loadDataRequest]);
 
     useEffect(() => {

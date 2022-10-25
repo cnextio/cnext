@@ -20,13 +20,13 @@ const ColumnSelector = () => {
     const columnSelector = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.columnSelector[activeDataFrame] : null
     );
+    const metadata = useSelector((state: RootState) => state.dataFrames.metadata);
 
-    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
     useEffect(() => {
-        if (Object.keys(columnSelector.columns).length == 0) {
+        if (activeDataFrame && columnSelector && Object.keys(columnSelector.columns).length == 0) {
+            const columnNames = Object.keys(metadata[activeDataFrame]?.columns); 
             let col: { [key: string]: boolean } = {};
-            for (let i = 0; i < tableData[activeDataFrame]?.column_names.length; i++) {
-                const element = tableData[activeDataFrame]?.column_names[i];
+            for (let element of columnNames) {
                 col[element] = true;
             }
 
