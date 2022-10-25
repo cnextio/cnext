@@ -18,18 +18,12 @@ import { EditorState, TransactionSpec } from "@codemirror/state";
 import { basicSetup } from "../../../codemirror/basic-setup";
 // import { history } from "@codemirror/history";
 import { setRichOutputFocused } from "../../../../redux/reducers/RichOutputRedux";
+import { IDataFrameFilter } from "../../../interfaces/IDataFrameManager";
 
 const ls = dfFilterLanguageServer();
 
-interface DFQuery {
-    df_id: string;
-    query: string | null;
-    /** String that is entered into the query box. */
-    raw_query: string;
-}
-
 const DFExplorer = () => {
-    const [query, setQuery] = useState<DFQuery | null>(null);
+    const [query, setQuery] = useState<IDataFrameFilter | null>(null);
     const dispatch = useDispatch();
     const filterCM = useRef();
 
@@ -47,7 +41,7 @@ const DFExplorer = () => {
                         codeEditorText: codeEditorText,
                     });
                     /** use this trick to avoid the enter keyboard event that is triggered by autocompletion  */
-                    if (query.raw_query === codeEditorText) {
+                    if (query.cnext_query === codeEditorText) {
                         dispatch(setDFFilter(query));
                     }
                 }
@@ -167,8 +161,8 @@ const DFExplorer = () => {
                 }
             }
         }
-        if (activeDF != null) {
-            let query = { df_id: activeDF, query: queryStr, raw_query: text };
+        if (activeDF && queryStr) {
+            let query = { df_id: activeDF, query: queryStr, cnext_query: text };
             console.log("DFExplorer query: ", query);
             setQuery(query);
         }
