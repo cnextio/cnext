@@ -4,7 +4,7 @@ import useIsomorphicLayoutEffect from './useIsomorphicLayoutEffect'
 
 const defaultEstimateSize = () => 50
 
-const defaultKeyExtractor = (inde: any) => index
+const defaultKeyExtractor = (index: any) => index
 
 const defaultMeasureSize = (el: any, horizontal: any) => {
   const key = horizontal ? 'offsetWidth' : 'offsetHeight'
