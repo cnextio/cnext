@@ -13,18 +13,14 @@ import ResultContent from "./ResultContent";
 
 const DashboardView = React.memo((props: any) => {
     const [showDashboard, setShowDashboard] = useState(false);
-    const activeLine = useSelector(
-        (state: RootState) => state.codeEditor.activeLine
-    );
+    const activeLine = useSelector((state: RootState) => state.codeEditor.activeLine);
     /** this is used to trigger the rerender of this component whenever there is a new result update */
     const resultUpdateCount = useSelector(
-        (state: RootState) => state.codeEditor.resultUpdateCount
+        (state: RootState) => state.codeEditor.resultUpdateSignal
     );
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
-    const serverSynced = useSelector(
-        (state: RootState) => state.projectManager.serverSynced
-    );
+    const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
 
     const gridRef = useRef();
     const rowHeight = 50; //unit: px
@@ -35,8 +31,7 @@ const DashboardView = React.memo((props: any) => {
         const state: RootState = store.getState();
         const inViewID = state.projectManager.inViewID;
         if (inViewID && state.codeEditor?.codeLines != null) {
-            const codeLines: ICodeLine[] =
-                state.codeEditor?.codeLines[inViewID];
+            const codeLines: ICodeLine[] = state.codeEditor?.codeLines[inViewID];
             const codeWithResult: ICodeLine[] = codeLines?.filter(
                 (code) => code.result?.type === ContentType.RICH_OUTPUT
             );

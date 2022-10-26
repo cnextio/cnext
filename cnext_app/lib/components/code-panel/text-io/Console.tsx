@@ -24,8 +24,8 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
-    const textOutputUpdateCount = useSelector(
-        (state: RootState) => state.codeEditor.textOutputUpdateCount
+    const textOutputUpdateSignal = useSelector(
+        (state: RootState) => state.codeEditor.textOutputUpdateSignal
     );
     const roTextOutputUpdateCount = useSelector(
         (state: RootState) => state.richOutput.textOutputUpdateCount

@@ -90,6 +90,7 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             state.metadata[df_id] = action.payload;
+            state.tableMetadataUpdateSignal++;
             let udfSelector: { [udfName: string]: boolean } = {};
             if (state.registeredUDFs instanceof Object) {
                 for (const udfName in state.registeredUDFs.udfs) {
@@ -103,8 +104,7 @@ export const dataFrameSlice = createSlice({
                     columns: {},
                     timestamp: state.registeredUDFs.timestamp,
                 };
-            }
-            state.tableMetadataUpdateSignal++;
+            }            
         },
 
         /**
