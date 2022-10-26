@@ -66,3 +66,4 @@ class IPythonInteral(Enum):
     DF_MANAGER = '_df_manager'
     CASSIST = '_cassist'
     USER_SPACE = '_user_space'
+    UDF_MODULE = '_udf'
