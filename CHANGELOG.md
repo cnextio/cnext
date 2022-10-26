@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/cnextio/cnext/compare/v0.9.0...v0.9.1) (2022-10-26)
+
+
+### Bug Fixes
+
+* add matplotlib-inline ([bbefd8a](https://github.com/cnextio/cnext/commit/bbefd8a1930d1bdcad05062124bb59f56557259f))
+
 ## [0.9.0](https://github.com/cnextio/cnext/compare/v0.8.3...v0.9.0) (2022-10-25)
 
 
