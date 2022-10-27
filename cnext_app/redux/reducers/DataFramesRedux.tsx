@@ -11,8 +11,28 @@ import {
     IDataFrameColumnSelection,
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
-import { DF_DISPLAY_LENGTH, getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
-import { IDataFrameFilter, ILoadDataRequest, IRegisteredUDFs, UDF } from "../../lib/interfaces/IDataFrameManager";
+import {
+    DF_DISPLAY_LENGTH,
+    getLastUpdate,
+} from "../../lib/components/dataframe-manager/libDataFrameManager";
+import {
+    IDataFrameFilter,
+    ILoadDataRequest,
+    IRegisteredUDFs,
+    UDF,
+} from "../../lib/interfaces/IDataFrameManager";
+
+const getPageAndIndexOfRow = (pagedTableData: ITableData[], rowNumber: number) => {
+    let curTotalSize = 0;
+    for (let i=0; i<pagedTableData.length; i++){
+        const page = pagedTableData[i];
+        if (rowNumber < curTotalSize + page.size){
+            return {pageNumber: i, rowInPageNumber: rowNumber-curTotalSize};
+        }
+        curTotalSize += page.size;
+    }
+    throw `Invalid case row number > total data size: ${rowNumber} > ${curTotalSize} `;
+};
 
 export type DataFrameState = {
     metadata: { [id: string]: IMetadata };
@@ -73,7 +93,7 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             // state.tableData[df_id] = action.payload;
-            state.tableData[df_id] = action.payload['data'];
+            state.tableData[df_id] = action.payload["data"];
 
             // comment out because this create side effect. explicitly set this outside when table is set.
             // state.activeDataFrame = df_id;
@@ -105,7 +125,7 @@ export const dataFrameSlice = createSlice({
                     columns: {},
                     timestamp: state.registeredUDFs.timestamp,
                 };
-            }            
+            }
         },
 
         /**
@@ -286,9 +306,9 @@ export const dataFrameSlice = createSlice({
                     }
                     // make data loading request if needed
                     if (
-                        !tableData.index.data.includes(reviewingDFRowIndex)
+                        !tableData.index.data.includes(reviewingDFRowIndex) &&
                         // currently, only support instance of number
-                        && typeof(reviewingDFRowIndex) == "number"
+                        typeof reviewingDFRowIndex == "number"
                     ) {
                         state.loadDataRequest.df_id = state.activeDataFrame;
                         state.loadDataRequest.count += 1;
@@ -378,9 +398,11 @@ export const dataFrameSlice = createSlice({
         setTableDataCellValue: (state, action) => {
             const data = action.payload;
             const df_id = data.df_id as string;
-            const rowNumber = data.rowNumber;
-            const colNumber = state.tableData[df_id].column_names.indexOf(data.col_name);
-            state.tableData[df_id].rows[rowNumber][colNumber] = data.value;
+            const colNumber = state.tableData[df_id][0].column_names.indexOf(data.col_name);
+            const location = getPageAndIndexOfRow(state.tableData[df_id], data.rowNumber);
+            if(location){
+                state.tableData[df_id][location.pageNumber].rows[location.rowInPageNumber][colNumber] = data.value;
+            }            
         },
     },
 });

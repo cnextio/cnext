@@ -157,6 +157,7 @@ export interface ITableData {
     column_names: string[];
     rows: any[][];
     size: number;
+    page?: number; 
 }
 
 export interface ITableMetaData {

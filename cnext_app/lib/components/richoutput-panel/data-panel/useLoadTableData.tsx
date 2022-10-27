@@ -46,6 +46,7 @@ export const useLoadTableData = (
     const updateTableData = (data: ITableData, metadata: ITableMetaData) => {
         const loadedPageNumber = metadata.page_number;
         let newPagedTableData: ITableData[];
+        data.page = loadedPageNumber;
         if (toPage === null && fromPage === null) {
             newPagedTableData = [data];
             setFromPage(loadedPageNumber);
