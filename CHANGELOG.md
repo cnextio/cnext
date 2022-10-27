@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/cnextio/cnext/compare/v0.9.1...v0.9.2) (2022-10-27)
+
+
+### Bug Fixes
+
+* implement data saving with paged data table ([b4e78ed](https://github.com/cnextio/cnext/commit/b4e78ed418bebbef1091c721b5eda380c2e239ee))
+
 ## [0.9.1](https://github.com/cnextio/cnext/compare/v0.9.0...v0.9.1) (2022-10-26)
 
 
