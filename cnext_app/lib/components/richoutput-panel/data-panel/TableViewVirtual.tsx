@@ -15,11 +15,7 @@ import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/store";
-import {
-    SpecialMimeType,
-    IDFUpdatesReview,
-    ReviewType
-} from "../../../interfaces/IApp";
+import { SpecialMimeType, IDFUpdatesReview, ReviewType } from "../../../interfaces/IApp";
 import { ifElse } from "../../libs";
 import {
     DataTableHead,
@@ -109,8 +105,9 @@ const TableViewVirtual = () => {
                 );
             };
 
-            if (indexCell) {
-                const indexName = state.dataFrames.tableData[activeDataFrame]?.index.name;
+            if (indexCell && pagedTableData) {
+                // const indexName = state.dataFrames.tableData[activeDataFrame]?.index.name;
+                const indexName = pagedTableData[0]?.index.name;
                 const review = isReviewingCell(indexName, rowIndexData, dfReview);
                 return (
                     <DataTableCell key={indexName} align="right" review={review} head={true}>
@@ -374,7 +371,7 @@ const TableViewVirtual = () => {
     const dfFilter = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.dfFilter[activeDataFrame] : null
     );
-    
+
     /** Note: the numKeepPage can be sensitive with DF_PAGE_SIZE and overscan */
     const {
         pagedTableData,
@@ -383,6 +380,7 @@ const TableViewVirtual = () => {
         toPage,
         totalSize: pagedDataTotalSize,
         isLoading,
+        isError,
     } = useLoadTableData(activeDataFrame, dfFilter?.query, NUM_KEEP_PAGE);
 
     /** convert data to dictionary type to make it compatible with react-table */
@@ -419,7 +417,6 @@ const TableViewVirtual = () => {
         } else return [];
     }, [activeDataFrame]);
 
-
     const table = useReactTable({
         data: flatRowsData,
         columns,
@@ -449,7 +446,7 @@ const TableViewVirtual = () => {
 
     const fetchMore = useCallback(
         (containerRefElement: HTMLDivElement | null) => {
-            if (containerRefElement && !isLoading) {
+            if (containerRefElement && !isLoading && !isError) {
                 // const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
                 // console.log(
                 //     "DataViewer fetchMoreOnBottomReached pagedTableData, toPage, fromPage, scrollHeight, scrollTop, clientHeight, virtualRow.length: ",
@@ -480,12 +477,12 @@ const TableViewVirtual = () => {
                 }
             }
         },
-        [activeDataFrame, toPage, fromPage, isLoading, virtualRows]
+        [toPage, fromPage, virtualRows, getTableData, isError, isLoading]
     );
 
     /** a check on mount and after a fetch to see if the table is already scrolled to the bottom and immediately needs to fetch more data */
     React.useEffect(() => {
-        if (activeDataFrame && fromPage == null) {
+        if (activeDataFrame) {
             fetchMore(tableContainerRef.current);
         }
     }, [fetchMore]);
@@ -494,8 +491,9 @@ const TableViewVirtual = () => {
         <StyledTableView
             ref={tableContainerRef}
             onScroll={(e) => {
-                /** this is hacky but we need to check this here to make sure fetchMore won't be call twice.
-                 * fetchMore will be called twice when changing from one dataframe to the other */                
+                /** this is hacky but we need to do this here to make sure fetchMore won't be call twice.
+                 * fetchMore will be called twice when changing from dataframe A to dataframe B
+                 * and data frame A has been scrolled */
                 if (fromPage != null) {
                     // console.log("DataViewer onScroll fetchMore");
                     fetchMore(e.target as HTMLDivElement);

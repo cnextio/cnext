@@ -1,6 +1,6 @@
 import { cnextQuery } from "../../../codemirror/grammar/lang-cnext-query";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
     DFFilterForm,
     DFFilterInput,
@@ -9,7 +9,7 @@ import {
 } from "../../StyledComponents";
 import { dfFilterLanguageServer } from "../../../codemirror/autocomplete-lsp/index.js";
 import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
-import store from "../../../../redux/store";
+import store, { RootState } from "../../../../redux/store";
 import { ViewUpdate } from "@codemirror/view";
 import { bracketMatching, defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { closeBrackets } from "@codemirror/autocomplete";
@@ -26,6 +26,7 @@ const DFExplorer = () => {
     const [query, setQuery] = useState<IDataFrameFilter | null>(null);
     const dispatch = useDispatch();
     const filterCM = useRef();
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
 
     const keyHandler = useCallback(
         (event: React.KeyboardEvent) => {
@@ -59,6 +60,14 @@ const DFExplorer = () => {
             };
         }
     }, [keyHandler]);
+
+    useEffect(() => {
+        const state = store.getState();
+        if (activeDataFrame) {
+            const query = state.dataFrames.dfFilter[activeDataFrame];
+            setQuery(query);
+        }
+    }, [activeDataFrame]);
 
     /**
      * All query string will be converted to loc/iloc pandas query
@@ -161,7 +170,7 @@ const DFExplorer = () => {
                 }
             }
         }
-        if (activeDF && queryStr) {
+        if (activeDF) {
             let query = { df_id: activeDF, query: queryStr, cnext_query: text };
             console.log("DFExplorer query: ", query);
             setQuery(query);
@@ -203,26 +212,32 @@ const DFExplorer = () => {
         // keymap.of([{ key: "Enter", run: () => enterKeyHandler() }]),
     ];
 
+    const renderCodeMirror = useCallback(() => {
+        const state = store.getState();
+        let queryStr = ""
+        if (activeDataFrame) {
+            const query = state.dataFrames.dfFilter[activeDataFrame];
+            queryStr = query?.cnext_query ?? "";
+        }
+        return (
+            <StyledFilterCodeMirror
+                extensions={extensions}
+                basicSetup={false}
+                onChange={(text, viewUpdate) => onCMChange(text, viewUpdate)}
+                onFocus={() => {
+                    dispatch(setRichOutputFocused(true));
+                }}
+                onBlur={() => {
+                    dispatch(setRichOutputFocused(false));
+                }}
+                value={queryStr}
+            />
+        );
+    }, [activeDataFrame]);
+
     return (
         <DFFilterForm>
-            <DFFilterInput
-                ref={filterCM}
-                inputComponent={useCallback(() => {
-                    return (
-                        <StyledFilterCodeMirror
-                            extensions={extensions}
-                            basicSetup={false}
-                            onChange={(text, viewUpdate) => onCMChange(text, viewUpdate)}
-                            onFocus={() => {
-                                dispatch(setRichOutputFocused(true));
-                            }}
-                            onBlur={() => {
-                                dispatch(setRichOutputFocused(false));
-                            }}
-                        />
-                    );
-                }, [])}
-            ></DFFilterInput>
+            <DFFilterInput ref={filterCM} inputComponent={renderCodeMirror}></DFFilterInput>
             {query && query.query && <QuerySample>{query.df_id + query.query}</QuerySample>}
         </DFFilterForm>
     );

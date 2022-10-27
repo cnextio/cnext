@@ -24,8 +24,8 @@ const DFExplorer = () => {
 
     const renderDFExplorer = () => {
         const state = store.getState();
-        const dataFrameList = Object.keys(state.dataFrames.metadata);
-        const activeDataFrame = state.dataFrames.activeDataFrame;
+        const dataFrameList = Object.keys(state.dataFrames?.metadata);
+        const activeDataFrame = state.dataFrames?.activeDataFrame;
 
         return (
             <DFSelectorForm>
@@ -69,7 +69,7 @@ const DFExplorer = () => {
                 </DFSelector>
             </DFSelectorForm>
         );
-    }
+    };
 
     return renderDFExplorer();
 };

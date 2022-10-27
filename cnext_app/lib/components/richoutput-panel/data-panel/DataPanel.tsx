@@ -18,7 +18,7 @@ const DataPanel = (props: any) => {
         dispatch(setDataPanelFocusSignal());
     }, []);
 
-    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames?.activeDataFrame);
     //TODO: move all grid view related thing to under DataView
     return (
         <>

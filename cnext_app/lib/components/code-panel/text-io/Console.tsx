@@ -74,7 +74,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     }
 
     function getActiveDataFrameStatus(state: RootState) {
-        const activeDataFrame = state.dataFrames.activeDataFrame;
+        const activeDataFrame = state.dataFrames?.activeDataFrame;
         if (
             activeDataFrame &&
             state.dataFrames.dfUpdates != null &&

@@ -1,6 +1,8 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setTableData } from "../../../../redux/reducers/DataFramesRedux";
 import { setTextOutput } from "../../../../redux/reducers/RichOutputRedux";
+import store, { RootState } from "../../../../redux/store";
 import {
     CommandName,
     ContentType,
@@ -19,32 +21,38 @@ export const useLoadTableData = (
 ) => {
     const socket = useContext(SocketContext);
     const [isLoading, setIsLoading] = useState(false);
+    const [isError, setIsError] = useState(false);
     const [fromPage, setFromPage] = useState<number | null>(null);
     const [toPage, setToPage] = useState<number | null>(null);
     const [totalSize, setTotalSize] = useState<number>(0);
-    const [pagedTableData, setPagedTableData] = useState<ITableData[] | null>(null);
+    // const [pagedTableData, setPagedTableData] = useState<ITableData[] | null>(null);
+    const pagedTableData = useSelector((state: RootState) =>
+        df_id ? state.dataFrames.tableData[df_id] : null
+    );
     const dispatch = useDispatch();
 
     useEffect(() => {
+        console.log("DataViewer useEffect filter", filter)
         // setIsLoading(false);
+        setIsError(false);
         setFromPage(null);
         setToPage(null);
         setTotalSize(0);
-        setPagedTableData(null);        
+        // setPagedTableData(null);
+        dispatch(setTableData({df_id: df_id, data: null}));
     }, [df_id, filter]);
     // console.log("DataViewer useLoadTableData: ", df_id, pagedTableData);
 
     const updateTableData = (data: ITableData, metadata: ITableMetaData) => {
         const loadedPageNumber = metadata.page_number;
-        let newPagedTableData: ITableData[] = [];
-        // const numKeepPages = 3;
-        // console.log("DataViewer: fromPage, toPage", fromPage, toPage);
+        let newPagedTableData: ITableData[];
         if (toPage === null && fromPage === null) {
             newPagedTableData = [data];
             setFromPage(loadedPageNumber);
             setToPage(loadedPageNumber);
             setTotalSize(data.size);
-            setPagedTableData(newPagedTableData);
+            // setPagedTableData(newPagedTableData);
+            dispatch(setTableData({ df_id: df_id, data: newPagedTableData }));
         } else if (fromPage !== null && toPage !== null && pagedTableData) {
             if (loadedPageNumber > toPage) {
                 /** page is rolling down */
@@ -53,7 +61,8 @@ export const useLoadTableData = (
                 setFromPage(fromPage + startKeepPage);
                 setToPage(loadedPageNumber);
                 setTotalSize(totalSize + data.size);
-                setPagedTableData(newPagedTableData);
+                // setPagedTableData(newPagedTableData);
+                dispatch(setTableData({ df_id: df_id, data: newPagedTableData }));
             } else if (loadedPageNumber < fromPage) {
                 /** page is rolling up */
                 const removePage = toPage - loadedPageNumber >= numKeepPages ? 1 : 0;
@@ -64,7 +73,8 @@ export const useLoadTableData = (
                     setTotalSize(totalSize - pagedTableData[pagedTableData.length - 1].size);
                 }
                 setFromPage(loadedPageNumber);
-                setPagedTableData(newPagedTableData);
+                // setPagedTableData(newPagedTableData);
+                dispatch(setTableData({ df_id: df_id, data: newPagedTableData }));
             }
         }
     };
@@ -78,21 +88,23 @@ export const useLoadTableData = (
                 if (!message.error) {
                     if (message.type === ContentType.STRING) {
                         dispatch(setTextOutput(message));
-                    } else if (message.command_name == CommandName.get_table_data) {
+                    } else if (message.command_name === CommandName.get_table_data) {
                         // handleGetTableData(message);
                         updateTableData(
                             message.content as ITableData,
                             message.metadata as ITableMetaData
-                        );                        
+                        );
                     } else {
                         // console.log("dispatch text output");
                         dispatch(setTextOutput(message));
                     }
                 } else {
+                    setIsError(true);
                     dispatch(setTextOutput(message));
                 }
                 setIsLoading(false);
             } catch (error) {
+                setIsError(true);
                 console.error(error);
             }
             if (ack) ack();
@@ -108,12 +120,14 @@ export const useLoadTableData = (
         }
     };
 
+    /** the updateTableData func is called inside socketInit so it is important to rerun this whenever 
+     * updateTableData func changed */
     useEffect(() => {
         socketInit();
         return () => {
             socket?.off(WebAppEndpoint.DataViewer);
         };
-    }, [socket, pagedTableData]);
+    }, [socket, updateTableData]);
 
-    return { pagedTableData, getTableData, fromPage, toPage, totalSize, isLoading };
+    return { pagedTableData, getTableData, fromPage, toPage, totalSize, isLoading, isError };
 };

@@ -16,7 +16,7 @@ import { IDataFrameFilter, ILoadDataRequest, IRegisteredUDFs, UDF } from "../../
 
 export type DataFrameState = {
     metadata: { [id: string]: IMetadata };
-    tableData: { [id: string]: ITableData };
+    tableData: { [id: string]: ITableData[] };
     // columnDataSummary: { [id: string]: {} };
     dfUpdates: { [id: string]: IDataFrameStatus };
     dfUpdatesReview: { [id: string]: IDFUpdatesReview };
@@ -72,7 +72,8 @@ export const dataFrameSlice = createSlice({
             // for testing
             // state.data = testTableData
             const df_id = action.payload["df_id"];
-            state.tableData[df_id] = action.payload;
+            // state.tableData[df_id] = action.payload;
+            state.tableData[df_id] = action.payload['data'];
 
             // comment out because this create side effect. explicitly set this outside when table is set.
             // state.activeDataFrame = df_id;

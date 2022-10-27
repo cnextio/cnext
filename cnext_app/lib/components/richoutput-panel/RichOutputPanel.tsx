@@ -17,9 +17,9 @@ const RichOutputPanel = ({ stopMouseEvent }) => {
     const resultNewOutputSignal = useSelector(
         (state: RootState) => state.codeEditor.resultNewOutputSignal
     );
-    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames?.activeDataFrame);
     const tableMetadataUpdateSignal = useSelector(
-        (state: RootState) => state.dataFrames.tableMetadataUpdateSignal
+        (state: RootState) => state.dataFrames?.tableMetadataUpdateSignal
     );
 
     const showMarkdown = useSelector(
