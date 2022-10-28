@@ -15,8 +15,8 @@ const DataView = () => {
 
     const renderData = () => {
         switch (dataViewMode) {
-            case DFViewMode.GRID_VIEW:
-                return <GridView />;
+            // case DFViewMode.GRID_VIEW:
+            //     return <GridView />;
             case DFViewMode.TABLE_VIEW:
                 return <TableViewVirtual />;
                 // return <TableView />;

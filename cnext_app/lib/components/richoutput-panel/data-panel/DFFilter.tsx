@@ -28,30 +28,15 @@ const DFExplorer = () => {
     const filterCM = useRef();
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
 
-    const enterKeyHandler = useCallback(
-        () => {
-            // console.log("DFExplorer event: ", event);
-            try {
-                if (query != null) {
-                    let codeEditorText = filterCM?.current
-                        ?.getElementsByClassName("cm-line")[0]
-                        .innerText.trim();
-
-                    // console.log(
-                    //     "DFExplorer dispatch query and codeEditorText: ",
-                    //     query,
-                    //     codeEditorText
-                    // );
-                    /** use this trick to avoid the enter keyboard event that is triggered by autocompletion  */
-                    if (query.cnext_query === codeEditorText) {
-                        dispatch(setDFFilter(query));
-                    }
-                }
-            } catch {}
-            return true;
-        },
-        [query]
-    );
+    const enterKeyHandler = (query: IDataFrameFilter | null) => {
+        // console.log("DFExplorer event: ", event);
+        try {
+            if (query != null) {
+                dispatch(setDFFilter(query));
+            }
+        } catch {}
+        return true;
+    };
 
     useEffect(() => {
         let element = filterCM.current;
@@ -203,7 +188,7 @@ const DFExplorer = () => {
             return transaction;
         }),
         oneLineExtension(),
-        keymap.of([{ key: "Enter", run: () => enterKeyHandler() }]),
+        keymap.of([{ key: "Enter", run: () => enterKeyHandler(query) }]),
     ];
 
     const { view, setContainer } = useCodeMirror({
