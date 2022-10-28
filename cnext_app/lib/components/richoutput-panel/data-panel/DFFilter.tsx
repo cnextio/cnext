@@ -10,11 +10,10 @@ import {
 import { dfFilterLanguageServer } from "../../../codemirror/autocomplete-lsp/index.js";
 import { setDFFilter } from "../../../../redux/reducers/DataFramesRedux";
 import store, { RootState } from "../../../../redux/store";
-import { ViewUpdate } from "@codemirror/view";
+import { ViewUpdate, keymap } from "@codemirror/view";
 import { bracketMatching, defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { closeBrackets } from "@codemirror/autocomplete";
-// import { EditorState, TransactionSpec } from "@codemirror/state";
-import { EditorState, TransactionSpec } from "@codemirror/state";
+import { EditorState } from "@codemirror/state";
 import { basicSetup } from "../../../codemirror/basic-setup";
 // import { history } from "@codemirror/history";
 import { setRichOutputFocused } from "../../../../redux/reducers/RichOutputRedux";
@@ -29,26 +28,27 @@ const DFExplorer = () => {
     const filterCM = useRef();
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
 
-    const keyHandler = useCallback(
-        (event: React.KeyboardEvent) => {
+    const enterKeyHandler = useCallback(
+        () => {
             // console.log("DFExplorer event: ", event);
             try {
-                if (event.key === "Enter" && query != null) {
+                if (query != null) {
                     let codeEditorText = filterCM?.current
                         ?.getElementsByClassName("cm-line")[0]
                         .innerText.trim();
 
-                    console.log("DFExplorer event", event);
-                    console.log("DFExplorer dispatch query and codeEditorText: ", {
-                        query: query,
-                        codeEditorText: codeEditorText,
-                    });
+                    // console.log(
+                    //     "DFExplorer dispatch query and codeEditorText: ",
+                    //     query,
+                    //     codeEditorText
+                    // );
                     /** use this trick to avoid the enter keyboard event that is triggered by autocompletion  */
                     if (query.cnext_query === codeEditorText) {
                         dispatch(setDFFilter(query));
                     }
                 }
             } catch {}
+            return true;
         },
         [query]
     );
@@ -57,12 +57,12 @@ const DFExplorer = () => {
         let element = filterCM.current;
         if (element != null) {
             console.log("DFFilter setKeyHandler");
-            element.addEventListener("keydown", keyHandler);
+            // element.addEventListener("keydown", keyHandler);
             return () => {
-                element.removeEventListener("keydown", keyHandler);
+                element.removeEventListener("keydown", enterKeyHandler);
             };
         }
-    }, [keyHandler]);
+    }, [enterKeyHandler]);
 
     /**
      * All query string will be converted to loc/iloc pandas query
@@ -203,7 +203,7 @@ const DFExplorer = () => {
             return transaction;
         }),
         oneLineExtension(),
-        // keymap.of([{ key: "Enter", run: () => enterKeyHandler() }]),
+        keymap.of([{ key: "Enter", run: () => enterKeyHandler() }]),
     ];
 
     const { view, setContainer } = useCodeMirror({
