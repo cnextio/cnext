@@ -229,7 +229,7 @@ export const execLines = (socket: any, runQueueItem: IRunQueueItem) => {
         let content: IRunningCommandContent | null = getRunningCommandContent(fileID, lineRange);
         if (content != null) {
             console.log("CodeEditor execLines: ", content, lineRange);
-            sendMessage(socket, content);
+            sendMessage(socket, { ...content, groupID: runQueueItem.groupID });
             setLineStatus(fileID, content.lineRange, LineStatus.EXECUTING);
         }
     }
@@ -270,7 +270,7 @@ const createMessage = (content: IRunningCommandContent) => {
         content: content.content,
         type: ContentType.STRING,
         error: false,
-        metadata: { line_range: content.lineRange },
+        metadata: { line_range: content.lineRange, groupID:content.groupID },
     };
 
     return message;

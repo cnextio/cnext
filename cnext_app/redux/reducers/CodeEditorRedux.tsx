@@ -24,6 +24,7 @@ import {
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 import { Line } from "@codemirror/state";
+import { getLineRangeOfGroup } from "../../lib/components/code-panel/monaco/libRunQueue";
 
 type CodeEditorState = {
     codeText: { [id: string]: string[] };
@@ -356,11 +357,14 @@ export const CodeEditorRedux = createSlice({
             let inViewID = resultMessage.inViewID;
             let resultContent: object | string | null = resultMessage.content;
             let lineRange: ILineRange = resultMessage.metadata["line_range"];
+            let codeLines: ICodeLine[] = state.codeLines[inViewID];
+
+            let newLineRange = getLineRangeOfGroup(codeLines,resultMessage.metadata.groupID)
             // console.log('CodeEditorRedux addResult: ', resultMessage);
             /* only create result when content has something */
             if (lineRange != null && resultContent != null && resultContent !== "") {
                 /** TODO: double check this. for now only associate fromLine to result */
-                let fromLine = lineRange.fromLine;
+                let fromLine = newLineRange?.fromLine ? newLineRange?.fromLine :lineRange.fromLine;
                 let codeLines: ICodeLine[] = state.codeLines[inViewID];
                 let currentTextOutput = state.codeLines[inViewID][fromLine].textOutput;
 
