@@ -167,7 +167,7 @@ const DFExplorer = () => {
         }
         if (activeDataFrame) {
             let query = { df_id: activeDataFrame, query: queryStr, cnext_query: text };
-            console.log("DFExplorer query: ", query);
+            // console.log("DFExplorer query: ", query);
             setQuery(query);
         }
     };

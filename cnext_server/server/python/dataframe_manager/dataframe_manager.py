@@ -225,7 +225,7 @@ class MessageHandler(BaseMessageHandler):
             return_message = copy.deepcopy(message)
             return_message.metadata['col_name'] = col_name
             return_message.metadata['udf_name'] = udf_name
-            executing_code = "{}.registered_udfs.udfs[\"{}\"].func.run(\"{}\", \"{}\")".format(
+            executing_code = "{}.run_udf(\"{}\", \"{}\", \"{}\")".format(
                 IPythonInteral.UDF_MODULE.value, udf_name, df_id, col_name)
             self.user_space.execute(
                 executing_code, ExecutionMode.EVAL, self.message_handler_callback, return_message)

@@ -5,6 +5,7 @@ import jupyter_client
 import simplejson as json
 import cnextlib.user_space as _cus
 import cnextlib.dataframe as _cd
+import cnextlib.udf as _udf
 from libs.constants import TrackingModelType, TrackingDataframeType
 from user_space.ipython.kernel import IPythonKernel
 from user_space.ipython.constants import IPythonInteral, IPythonConstants
@@ -67,6 +68,7 @@ from user_space.user_space import BaseKernelUserSpace
 ## need to create a new _UserSpace class here so that the global() will be represent this module where all the execution are #
 class _UserSpace(BaseKernelUserSpace):
     def globals(self):
+        ## this needs to be redefined here #
         return globals()
 
 {_user_space} = _UserSpace(tracking_df_types={_tracking_df_types}, tracking_model_types={_tracking_model_types})  
@@ -223,6 +225,7 @@ class BaseKernelUserSpace(_cus.UserSpace):
         self.executor = BaseKernel()
         # need to set user space on DataFrameTracker, it does not work if set with DataFrame
         _cd.DataFrameTracker.set_user_space(self)
+        _udf.set_user_space(self)
         super().__init__(tracking_df_types, tracking_model_types)
 
     @classmethod
