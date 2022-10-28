@@ -482,7 +482,7 @@ const TableViewVirtual = () => {
 
     /** a check on mount and after a fetch to see if the table is already scrolled to the bottom and immediately needs to fetch more data */
     React.useEffect(() => {
-        if (activeDataFrame) {
+        if (activeDataFrame && fromPage == null) {
             fetchMore(tableContainerRef.current);
         }
     }, [fetchMore]);

@@ -827,9 +827,18 @@ export const QuerySample = styled.div`
     background: ${(props) => props.theme.palette.grey.A100};
 `;
 
-export const StyledFilterCodeMirror = styled(CodeMirror)`
-    // height = "100%"
+// export const StyledFilterCodeMirror = styled(CodeMirror)`
+export const StyledFilterCodeMirror = styled.div`
+    border: 1px solid;
+    border-color: ${(props) => props.theme.palette.grey.A400};
+    border-radius: 4px;
+    overflow: hidden
+    line-height: 32px;
+    font-size: 14px;
+    padding: 0px 5px;
+    height: 34px;
     width: 100%;
+
     .cm-tooltip.cm-completionInfo {
         position: absolute;
         margin: 1px -4px;
@@ -842,16 +851,20 @@ export const StyledFilterCodeMirror = styled(CodeMirror)`
     }
 
     .cm-line {
-        line-height: 25px;
+        line-height: 32px;
         font-size: 14px;
-        padding: 5px;
+        // padding-top: 5px;
     }
 
     .cm-content {
-        padding: 0px 10px;
+        line-height: 32px;
+        font-size: 14px;
+        padding: 0px 0px;
     }
 
     .cm-editor.cm-focused {
+        // line-height: 32px;
+        // font-size: 14px;
         outline: none;
     }
 
