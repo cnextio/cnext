@@ -81,7 +81,7 @@ export const useLoadTableData = (
     };
 
     const socketInit = () => {
-        socket?.emit("ping", WebAppEndpoint.DataViewer);
+        // socket?.emit("ping", WebAppEndpoint.DataViewer);
         socket?.on(WebAppEndpoint.DataViewer, (result: string, ack) => {
             try {
                 let message: IMessage = JSON.parse(result);
