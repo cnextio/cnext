@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.3](https://github.com/cnextio/cnext/compare/v0.9.2...v0.9.3) (2022-10-28)
+
+
+### Bug Fixes
+
+* fix issue with DFFilter ([aa4cec1](https://github.com/cnextio/cnext/commit/aa4cec1704c2588f92d0cc530711c94dcef11d8c))
+* fix issue with handling enter key in autocompletion of DFFilter ([79653e3](https://github.com/cnextio/cnext/commit/79653e3b25f6b3b4e78d719e921cb6997ac59fe0))
+
 ## [0.9.2](https://github.com/cnextio/cnext/compare/v0.9.1...v0.9.2) (2022-10-27)
 
 
