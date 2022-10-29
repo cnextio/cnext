@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.4](https://github.com/cnextio/cnext/compare/v0.9.3...v0.9.4) (2022-10-29)
+
+
+### Bug Fixes
+
+* bug in user_space's execute lock release ([1b3a486](https://github.com/cnextio/cnext/commit/1b3a486694fa13e1cc4ea19b9f48eb4c46582f94))
+
 ## [0.9.3](https://github.com/cnextio/cnext/compare/v0.9.2...v0.9.3) (2022-10-28)
 
 
