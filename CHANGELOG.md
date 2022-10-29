@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.1](https://github.com/cnextio/cnext/compare/v0.10.0...v0.10.1) (2022-10-29)
+
+
+### Bug Fixes
+
+* release ([3f85e2e](https://github.com/cnextio/cnext/commit/3f85e2e24c0db0fdfd4be84070d2a6d8e42cd9c7))
+* use react-virtual 3 instead 2 ([062e17e](https://github.com/cnextio/cnext/commit/062e17efe796f64b621392d9d695f0c3092abcc5))
+
 ## [0.10.0](https://github.com/cnextio/cnext/compare/v0.9.6...v0.10.0) (2022-10-29)
 
 
