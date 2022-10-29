@@ -10,13 +10,12 @@ import {
     useReactTable,
     ColumnResizeMode,
 } from "@tanstack/react-table";
-import { useVirtual } from "../../../react-virtual";
-import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
+// import { useVirtual } from "../../../react-virtual";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/store";
-import { SpecialMimeType, IDFUpdatesReview, ReviewType } from "../../../interfaces/IApp";
-import { ifElse } from "../../libs";
+import { SpecialMimeType} from "../../../interfaces/IApp";
 import {
     DataTableHead,
     DataTableHeadRow,
@@ -366,7 +365,8 @@ const TableViewVirtual = () => {
                     <DataTableRow
                         hover
                         key={row?.id}
-                        ref={virtualRow.measureRef}
+                        // ref={virtualRow.measureRef}
+                        ref={virtualRow.measureElement}
                         // className={row?.index % 2 ? "even-row" : "odd-row"}
                     >
                         {/** render index cell */}
@@ -454,11 +454,19 @@ const TableViewVirtual = () => {
 
     const { rows } = table.getRowModel();
 
-    const { virtualItems: virtualRows, totalSize: virtualRowsTotalSize } = useVirtual({
-        parentRef: tableContainerRef,
-        size: pagedDataTotalSize,
-        overscan: OVER_SCAN,
+    // const { virtualItems: virtualRows, totalSize: virtualRowsTotalSize } = useVirtual({
+    //     parentRef: tableContainerRef,
+    //     size: pagedDataTotalSize,
+    //     overscan: OVER_SCAN,
+    // });
+
+    const rowVirtualizer = useVirtualizer({
+        count: pagedDataTotalSize,
+        getScrollElement: () => tableContainerRef.current,
+        estimateSize: () => 125,
     });
+    const virtualRows = rowVirtualizer.getVirtualItems(); 
+    const virtualRowsTotalSize = rowVirtualizer.getTotalSize();
 
     const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
     const paddingBottom =
