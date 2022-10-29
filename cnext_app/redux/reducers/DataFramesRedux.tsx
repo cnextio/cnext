@@ -125,6 +125,8 @@ export const dataFrameSlice = createSlice({
                     columns: {},
                     timestamp: state.registeredUDFs.timestamp,
                 };
+                /** clear data whenever new metadata is set */
+                state.tableData[df_id] = [];
             }
         },
 

@@ -7,6 +7,7 @@ import {
     CommandName,
     ContentType,
     IMessage,
+    IMetadata,
     ITableData,
     ITableMetaData,
     WebAppEndpoint,
@@ -16,6 +17,7 @@ import { sendGetTableData } from "./libDataView";
 
 export const useLoadTableData = (
     df_id: string | null,
+    metadata: IMetadata | null,
     filter: string | null = null,
     numKeepPages = 3
 ) => {
@@ -31,16 +33,20 @@ export const useLoadTableData = (
     );
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        console.log("DataViewer useEffect filter", filter)
+    const reset = useCallback(() => {
         // setIsLoading(false);
         setIsError(false);
         setFromPage(null);
         setToPage(null);
         setTotalSize(0);
         // setPagedTableData(null);
-        dispatch(setTableData({df_id: df_id, data: null}));
-    }, [df_id, filter]);
+        dispatch(setTableData({ df_id: df_id, data: null }));
+    }, []);
+
+    useEffect(() => {
+        reset();
+    }, [df_id, metadata, filter]);
+
     // console.log("DataViewer useLoadTableData: ", df_id, pagedTableData);
 
     const updateTableData = (data: ITableData, metadata: ITableMetaData) => {
@@ -121,7 +127,7 @@ export const useLoadTableData = (
         }
     };
 
-    /** the updateTableData func is called inside socketInit so it is important to rerun this whenever 
+    /** the updateTableData func is called inside socketInit so it is important to rerun this whenever
      * updateTableData func changed */
     useEffect(() => {
         socketInit();

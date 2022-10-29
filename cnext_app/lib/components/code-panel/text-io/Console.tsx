@@ -283,7 +283,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
                             <Ansi>{item.content}</Ansi>
                         </IndividualTextIOContent>
                     )}
-                    {item?.type === "df_updates" && (
+                    {/* {item?.type === "df_updates" && (
                         <IndividualTextIOContent key={index} component="pre" variant="body2">
                             {renderDFReviewsOutputComponent(
                                 outputContent.length,
@@ -294,7 +294,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
                                     updateTypeToReview.includes(item["content"]["updateType"])
                             )}
                         </IndividualTextIOContent>
-                    )}
+                    )} */}
                 </ScrollIntoViewIfNeeded>
             ))}
         </>
