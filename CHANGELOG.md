@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.6](https://github.com/cnextio/cnext/compare/v0.9.5...v0.9.6) (2022-10-29)
+
+
+### Bug Fixes
+
+* poetry lock ([1214083](https://github.com/cnextio/cnext/commit/1214083dbd12be695953f7211b6dd066569f98a2))
+
 ## [0.9.5](https://github.com/cnextio/cnext/compare/v0.9.4...v0.9.5) (2022-10-29)
 
 
