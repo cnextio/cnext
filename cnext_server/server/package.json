@@ -1,6 +1,6 @@
 {
     "name": "cnext-server",
-    "version": "0.9.6",
+    "version": "0.10.2",
     "private": true,
     "scripts": {
         "start": "nodemon server.js",
