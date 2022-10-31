@@ -187,6 +187,41 @@ export default function SelectVIZ() {
 
     return (
         <Root>
+            <div style={{ marginTop: 20 }}>
+                <Label {...getInputLabelProps()}>Plot type</Label>
+                <Box sx={{ minWidth: 120 }}>
+                    <FormControl fullWidth>
+                        <Select
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={age}
+                            label="Age"
+                            size="small"
+                            onChange={handleChange}
+                        >
+                            <MenuItem value={10}>Bar</MenuItem>
+                            <MenuItem value={10}>Line</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
+            </div>
+            <div style={{ marginTop: 20 }}>
+                <Label {...getInputLabelProps()}>Color</Label>
+                <Box sx={{ minWidth: 120 }}>
+                    <FormControl fullWidth>
+                        <Select
+                         size="small"
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={age}
+                            label="Age"
+                            onChange={handleChange}
+                        >
+                            <MenuItem value={10}>Blue</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
+            </div>
             <div {...getRootProps()}>
                 <Label {...getInputLabelProps()}>X Axis</Label>
                 <InputWrapper ref={setAnchorEl} className={focused ? "focused" : ""}>
@@ -207,7 +242,7 @@ export default function SelectVIZ() {
                 </Listbox>
             ) : null}
 
-            <div style={{marginTop:20}}>
+            <div style={{ marginTop: 20 }}>
                 <Label {...getInputLabelProps()}>Y Axis</Label>
                 <Box sx={{ minWidth: 120 }}>
                     <FormControl fullWidth>
@@ -216,6 +251,7 @@ export default function SelectVIZ() {
                             id="demo-simple-select"
                             value={age}
                             label="Age"
+                            size="small"
                             onChange={handleChange}
                         >
                             <MenuItem value={10}>Alley</MenuItem>
