@@ -19,6 +19,7 @@ import { SocketContext } from "../../Socket";
 import { DataToolbar as ModelManagerToolbar } from "../../StyledComponents";
 import ModelExplorer from "./ModelExplorer";
 import ReplayIcon from "@mui/icons-material/Replay";
+import SelectVIZ from "./SelectVIZ";
 
 const ModelManager = () => {
     const socket = useContext(SocketContext);
@@ -166,7 +167,7 @@ const ModelPanel = ({ stopMouseEvent }) => {
                         height: "100%",
                         border: "none",
                         paddingLeft: "10px",
-                        pointerEvents: stopMouseEvent?"none":"auto",
+                        pointerEvents: stopMouseEvent ? "none" : "auto",
                     }}
                     src={address}
                 />
@@ -184,6 +185,7 @@ const ModelPanel = ({ stopMouseEvent }) => {
                 <ReloadButton />
             </ModelManagerToolbar>
             {!firstRender.current && createModelViewerComponent()}
+            <SelectVIZ />
         </Fragment>
     );
 };
