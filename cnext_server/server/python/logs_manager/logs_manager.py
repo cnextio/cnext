@@ -49,8 +49,8 @@ def send_server_logs(tag):
 
     file =  open(filepath, "r")
     lines = file.readlines()
-    if len(lines) > 500:
-        lines = lines[-500:]
+    if len(lines) > 10000:
+        lines = lines[-10000:]
     
     x = requests.post(url, data = "\n".join(lines))
     log.info('Send log with tag: %s' %(tag) + " " + x.text)
