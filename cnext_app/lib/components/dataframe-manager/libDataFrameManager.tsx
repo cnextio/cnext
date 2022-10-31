@@ -71,8 +71,8 @@ export const sendGetTableData = (
 };
 
 //TODO: create a targeted column function
-export const sendGetDFMetadata = (socket: Socket, df_id: string) => {
-    let message = createMessage(WebAppEndpoint.DataFrameManager, CommandName.get_df_metadata, "", {
+export const sendGetDFMetadata = (endpoint: WebAppEndpoint, socket: Socket, df_id: string) => {
+    let message = createMessage(endpoint, CommandName.get_df_metadata, "", {
         df_id: df_id,
     });
     // console.log("_send_get_table_data message: ", message);
@@ -102,7 +102,7 @@ export const handleActiveDFStatus = (
                     let updateType = update["update_type"];
                     let updateContent = update["update_content"];
                     console.log("DataFrameManager active df updates: ", update);
-                    sendGetDFMetadata(socket, df_id);
+                    sendGetDFMetadata(WebAppEndpoint.DataFrameManager, socket, df_id);
                     if (updateType == DataFrameUpdateType.add_rows) {
                         // show data around added rows
                         /** for now, only support number[] */

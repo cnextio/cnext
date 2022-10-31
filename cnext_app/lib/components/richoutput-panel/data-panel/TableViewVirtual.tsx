@@ -320,7 +320,7 @@ const TableViewVirtual = () => {
                 const colName = cell.column.id;
                 // const review = isReviewingCell(colName, rowIndex, dfReview);
                 // console.log("DataViewer metadata cell", metadata, cell);
-                const type = metadata.columns[cell.column.id].type;
+                const type = metadata.columns[cell.column.id]?.type;
                 return (
                     // <DataTableCell
                     //     key={cell.id}
@@ -437,7 +437,7 @@ const TableViewVirtual = () => {
             // console.log("DataViewer columns: ", columns);
             return columns;
         } else return [];
-    }, [activeDataFrame]);
+    }, [activeDataFrame, metadata]);
 
     const table = useReactTable({
         data: flatRowsData,
