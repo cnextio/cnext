@@ -60,12 +60,17 @@ export const sendGetTableData = (
     size: number = DF_DISPLAY_LENGTH
 ) => {
     let queryStr: string = `${df_id}${filter ? filter : ""}.iloc[${fromIndex}:${fromIndex + size}]`;
-    let message = createMessage(WebAppEndpoint.DataFrameManager, CommandName.get_table_data, queryStr, {
-        df_id: df_id,
-        filter: filter,
-        from_index: fromIndex,
-        size: size,
-    });
+    let message = createMessage(
+        WebAppEndpoint.DataFrameManager,
+        CommandName.get_table_data,
+        queryStr,
+        {
+            df_id: df_id,
+            filter: filter,
+            from_index: fromIndex,
+            size: size,
+        }
+    );
     // console.log("Send get table: ", message);
     sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
 };
@@ -192,8 +197,16 @@ export const getColumnsToGetStats = (df_id: string): string[] | null => {
     return columns;
 };
 
+export const getSelectedColumns = (df_id: string): string[] | null => {
+    const state = store.getState();
+    const columnSelection = state.dataFrames.columnSelector[df_id].columns;
+    const columns = Object.keys(columnSelection).filter((item) => columnSelection[item] === true);
+    console.log("Columns: ", columns, columnSelection);
+    return columns;
+};
+
 export const handleGetRegisteredUDFs = (result: IMessage) => {
-    console.log("DataFrameManager got results 2");
+    // console.log("DataFrameManager got results 2");
     store.dispatch(setRegisteredUDFs(result.content));
 };
 
@@ -208,7 +221,14 @@ const sendCalculateUDF = (socket: Socket, udfName: string, df_id: string, col_li
 const isUDFCalculated = (df_id: string, col_list: string[], udfName: string) => {
     const dfMetadata = store.getState().dataFrames.metadata[df_id];
     /** only need to check the first column */
-    return dfMetadata.columns[col_list[0]].udfs && dfMetadata.columns[col_list[0]].udfs[udfName];
+    if (col_list.length > 0) {
+        return (
+            dfMetadata.columns[col_list[0]].udfs && dfMetadata.columns[col_list[0]].udfs[udfName]
+        );
+    } else {
+        /** nothing to calculate here */
+        return true;
+    }
 };
 
 export const calculateUDFs = (
@@ -218,7 +238,11 @@ export const calculateUDFs = (
     col_list: string[]
 ) => {
     for (const udfName in udfSelection.udfs) {
-        if (udfSelection.udfs[udfName] && !isUDFCalculated(df_id, col_list, udfName)) {
+        if (
+            col_list.length > 0 &&
+            udfSelection.udfs[udfName] &&
+            !isUDFCalculated(df_id, col_list, udfName)
+        ) {
             sendCalculateUDF(socket, udfName, df_id, col_list);
         }
     }

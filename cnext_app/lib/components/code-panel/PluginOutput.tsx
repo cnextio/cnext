@@ -32,7 +32,7 @@ const CodeOutputComponent = React.memo(() => {
      * the output is updated from server such as when inViewID changed */
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const roTextOutputUpdateCount = useSelector(
-        (state: RootState) => state.richOutput.textOutputUpdateCount
+        (state: RootState) => state.richOutput.textOutputUpdateSignal
     );
     let [outputContent, setOutputContent] = useState<(ITextOuput | null)[]>([]);
     let [lastItemIsROTextOutput, setLastItemIsROTextOutput] = useState<boolean>(false);

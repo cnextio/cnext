@@ -16,6 +16,7 @@ import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
 import { interruptKernel, restartKernel } from "./ExecutorManager";
 import { CellCommand } from "../../interfaces/ICodeEditor";
 import { SocketContext } from "../Socket";
+import { clearTextOutput } from "../../../redux/reducers/RichOutputRedux";
 
 const ExecutorToolbarItemComponent = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -40,8 +41,9 @@ const ExecutorToolbar = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
         if (inViewID) {
-            dispatch(clearAllOutputs(inViewID));
+            dispatch(clearAllOutputs(inViewID));            
         }
+        dispatch(clearTextOutput());
     };
     const handleClick = (name: string) => {
         if (name === ExecutorToolbarItem.CLEAR_OUTPUTS) {

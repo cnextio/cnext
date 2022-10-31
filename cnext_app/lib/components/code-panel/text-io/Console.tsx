@@ -28,7 +28,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         (state: RootState) => state.codeEditor.textOutputUpdateSignal
     );
     const roTextOutputUpdateCount = useSelector(
-        (state: RootState) => state.richOutput.textOutputUpdateCount
+        (state: RootState) => state.richOutput.textOutputUpdateSignal
     );
     // const richOutputFocused = useSelector((state: RootState) => state.richOutput.richOutputFocused);
     const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
