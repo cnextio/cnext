@@ -23,6 +23,7 @@ import {
     handleGetRegisteredUDFs,
     handleGetTableData,
     sendGetTableData,
+    getSelectedColumns,
 } from "./libDataFrameManager";
 import { setTextOutput } from "../../../redux/reducers/RichOutputRedux";
 
@@ -100,8 +101,8 @@ const DataFrameManager = () => {
             socket
         ) {
             // const df_id = state.metadata[activeDataFrame].df_id;
-            const columns = getColumnsToGetStats(activeDataFrame);
-            if (columns) calculateUDFs(socket, udfsSelector, activeDataFrame, columns);
+            const columns = getSelectedColumns(activeDataFrame);
+            if (columns && columns.length>0) calculateUDFs(socket, udfsSelector, activeDataFrame, columns);
         }
     }, [udfsSelector]);
 

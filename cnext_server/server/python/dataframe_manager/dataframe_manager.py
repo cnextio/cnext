@@ -7,6 +7,7 @@ import sys
 import traceback
 import simplejson as json
 import copy
+import time
 
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
@@ -193,7 +194,7 @@ class MessageHandler(BaseMessageHandler):
                                  'type': str(ctype.name), 'unique': unique,
                                  'countna': countna[col_name].item(), 'describe': describe[col_name].to_dict()}
         output = {'df_id': df_id, 'type': str(df_type),
-                  'shape': shape, 'columns': columns}
+                  'shape': shape, 'columns': columns, 'timestamp': time.time()}
         return output
 
     # this function is run inside ipython but we don't have to wrap it with ipython_internal_output
