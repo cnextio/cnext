@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.2](https://github.com/cnextio/cnext/compare/v0.10.1...v0.10.2) (2022-10-31)
+
+
+### Bug Fixes
+
+* change get numbers ([406902f](https://github.com/cnextio/cnext/commit/406902ff1d010e7edcd761d7e0f68f2cc5cc8d8d))
+* improve dataframe metadata reloading ([488354f](https://github.com/cnextio/cnext/commit/488354f55fb8fc5567aec5bcba12784cc5bfd191))
+
 ## [0.10.1](https://github.com/cnextio/cnext/compare/v0.10.0...v0.10.1) (2022-10-29)
 
 
