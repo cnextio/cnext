@@ -19,6 +19,7 @@ class WebappEndpoint(str, Enum):
     Terminal = 'Terminal'
     LogsManager = 'LogsManager'
     DataViewer = 'DataViewer'
+    DFExplorer = 'DFExplorer'
 
     def __str__(self):
         return str(self.value)

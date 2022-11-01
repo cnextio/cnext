@@ -1,7 +1,7 @@
 import {
-    createTheme,
-    StyledEngineProvider,
-    ThemeProvider as MuiThemeProvider,
+  createTheme,
+  StyledEngineProvider,
+  ThemeProvider as MuiThemeProvider,
 } from "@mui/material/styles";
 import type { NextPage } from "next";
 import React, { Fragment, useEffect } from "react";

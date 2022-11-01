@@ -780,8 +780,15 @@ export const DFViewModeSmallArrowIcon = styled(SmallArrowIcon)`
 `;
 
 export const DFSelectorMenuItem = styled(MenuItem)`
+    display: flex;
     font-size: 13px;
     padding: 5px 10px;
+    width: 200px;
+    height: 32px;
+    justify-content: space-between;
+    span:nth-child(2, 3) {
+        margin-left: auto;
+    }
 `;
 
 export const DFFilterForm = styled(FormControl)`
@@ -827,9 +834,18 @@ export const QuerySample = styled.div`
     background: ${(props) => props.theme.palette.grey.A100};
 `;
 
-export const StyledFilterCodeMirror = styled(CodeMirror)`
-    // height = "100%"
+// export const StyledFilterCodeMirror = styled(CodeMirror)`
+export const StyledFilterCodeMirror = styled.div`
+    border: 1px solid;
+    border-color: ${(props) => props.theme.palette.grey.A400};
+    border-radius: 4px;
+    overflow: hidden
+    line-height: 32px;
+    font-size: 14px;
+    padding: 0px 5px;
+    height: 34px;
     width: 100%;
+
     .cm-tooltip.cm-completionInfo {
         position: absolute;
         margin: 1px -4px;
@@ -842,16 +858,20 @@ export const StyledFilterCodeMirror = styled(CodeMirror)`
     }
 
     .cm-line {
-        line-height: 25px;
+        line-height: 32px;
         font-size: 14px;
-        padding: 5px;
+        // padding-top: 5px;
     }
 
     .cm-content {
-        padding: 0px 10px;
+        line-height: 32px;
+        font-size: 14px;
+        padding: 0px 0px;
     }
 
     .cm-editor.cm-focused {
+        // line-height: 32px;
+        // font-size: 14px;
         outline: none;
     }
 
@@ -1079,6 +1099,9 @@ export const SmallVizContainer = styled(MuiTableContainer)`
     padding: 0px;
     overflow: hidden;
     font-weight: normal;
+    &:hover {
+        cursor: zoom-in;
+    }
 `;
 
 export const ExperimentContainer = styled.div`

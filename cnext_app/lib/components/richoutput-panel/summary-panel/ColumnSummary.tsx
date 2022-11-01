@@ -9,7 +9,7 @@ import CountNA from "../data-panel/CountNA";
 import store, { RootState } from "../../../../redux/store";
 import CypressIds from "../../tests/CypressIds";
 import { UDFLocation } from "../../../interfaces/IDataFrameManager";
-import UDFContainer from "../data-panel/UDFContainer";
+import { IndividualUDFContainer } from "../data-panel/UDFContainer";
 
 const ColumnSummary = (props: any) => {
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
@@ -58,7 +58,7 @@ const ColumnSummary = (props: any) => {
     const renderQuantilePlot = (col_name: string) => {
         return (
             <>
-                <UDFContainer
+                <IndividualUDFContainer
                     // key={index}
                     udfName={"quantile"}
                     df_id={activeDataFrame}
@@ -169,13 +169,15 @@ const ColumnSummary = (props: any) => {
             <>
                 {dfMetadata &&
                     dfMetadata.columns[col_name] &&
-                    !Object.values(SpecialMimeType).includes(dfMetadata.columns[col_name].type) && (
+                    !Object.values(SpecialMimeType).includes(
+                        dfMetadata.columns[col_name].type as SpecialMimeType
+                    ) && (
                         <>
                             {showedUDFs.map((data, index) => {
                                 let udfConfig = data.udf.config.view_configs[UDFLocation.SUMMARY];
                                 return (
                                     <DataTableCell style={{ "text-align": "left" }}>
-                                        <UDFContainer
+                                        <IndividualUDFContainer
                                             key={index}
                                             udfName={data.name}
                                             df_id={activeDataFrame}

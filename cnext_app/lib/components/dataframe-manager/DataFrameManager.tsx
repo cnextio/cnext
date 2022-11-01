@@ -23,6 +23,7 @@ import {
     handleGetRegisteredUDFs,
     handleGetTableData,
     sendGetTableData,
+    getSelectedColumns,
 } from "./libDataFrameManager";
 import { setTextOutput } from "../../../redux/reducers/RichOutputRedux";
 
@@ -100,8 +101,8 @@ const DataFrameManager = () => {
             socket
         ) {
             // const df_id = state.metadata[activeDataFrame].df_id;
-            const columns = getColumnsToGetStats(activeDataFrame);
-            if (columns) calculateUDFs(socket, udfsSelector, activeDataFrame, columns);
+            const columns = getSelectedColumns(activeDataFrame);
+            if (columns && columns.length>0) calculateUDFs(socket, udfsSelector, activeDataFrame, columns);
         }
     }, [udfsSelector]);
 
@@ -112,15 +113,15 @@ const DataFrameManager = () => {
         };
     }, [socket]); //TODO: run this only once - not on rerender
 
-    useEffect(() => {
-        let message = createMessage(
-            WebAppEndpoint.DataFrameManager,
-            CommandName.get_registered_udfs,
-            null,
-            {}
-        );
-        sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
-    }, [dataPanelFocusSignal]);
+    // useEffect(() => {
+    //     let message = createMessage(
+    //         WebAppEndpoint.DataFrameManager,
+    //         CommandName.get_registered_udfs,
+    //         null,
+    //         {}
+    //     );
+    //     sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
+    // }, [dataPanelFocusSignal]);
 
     // useEffect(() => {
         // if (loadDataRequest.df_id && socket && activeDataFrame) {

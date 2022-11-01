@@ -7,6 +7,7 @@ import sys
 import traceback
 import simplejson as json
 import copy
+import time
 
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType, DFManagerCommand, SubContentType
@@ -193,7 +194,7 @@ class MessageHandler(BaseMessageHandler):
                                  'type': str(ctype.name), 'unique': unique,
                                  'countna': countna[col_name].item(), 'describe': describe[col_name].to_dict()}
         output = {'df_id': df_id, 'type': str(df_type),
-                  'shape': shape, 'columns': columns}
+                  'shape': shape, 'columns': columns, 'timestamp': time.time()}
         return output
 
     # this function is run inside ipython but we don't have to wrap it with ipython_internal_output
@@ -204,14 +205,14 @@ class MessageHandler(BaseMessageHandler):
             IPythonInteral.UDF_MODULE.value), ExecutionMode.EVAL)
         return result
 
-    def _process_error_message(self, ipython_message, client_message):
-        # log.error("Error %s" % (msg_ipython.content['traceback']))
-        if isinstance(ipython_message.content['traceback'], list):
-            content = '\n'.join(ipython_message.content['traceback'])
-        else:
-            content = ipython_message.content['traceback']
-        return self._create_error_message(
-            client_message.webapp_endpoint, content, client_message.command_name, client_message.metadata)
+    # def _process_error_message(self, ipython_message, client_message):
+    #     # log.error("Error %s" % (msg_ipython.content['traceback']))
+    #     if isinstance(ipython_message.content['traceback'], list):
+    #         content = '\n'.join(ipython_message.content['traceback'])
+    #     else:
+    #         content = ipython_message.content['traceback']
+    #     return self._create_error_message(
+    #         client_message.webapp_endpoint, content, client_message.command_name, client_message.metadata)
 
     MAX_PLOTLY_SIZE = 1024*1024  # 1MB
 
@@ -225,7 +226,7 @@ class MessageHandler(BaseMessageHandler):
             return_message = copy.deepcopy(message)
             return_message.metadata['col_name'] = col_name
             return_message.metadata['udf_name'] = udf_name
-            executing_code = "{}.registered_udfs.udfs[\"{}\"].func.run(\"{}\", \"{}\")".format(
+            executing_code = "{}.run_udf(\"{}\", \"{}\", \"{}\")".format(
                 IPythonInteral.UDF_MODULE.value, udf_name, df_id, col_name)
             self.user_space.execute(
                 executing_code, ExecutionMode.EVAL, self.message_handler_callback, return_message)
@@ -234,8 +235,10 @@ class MessageHandler(BaseMessageHandler):
         ipython_message = IpythonResultMessage(**ipython_message)
         message = None
         if self._is_error_message(ipython_message.header):
-            message = self._process_error_message(
-                ipython_message, client_message)
+            content = self._get_error_message_content(
+                ipython_message)
+            message = BaseMessageHandler._create_error_message(
+                client_message.webapp_endpoint, content, client_message.command_name, client_message.metadata)
         else:
             result = self.get_execute_result(ipython_message)
             if result is not None:
@@ -315,12 +318,6 @@ class MessageHandler(BaseMessageHandler):
                     self.user_space.execute("{}._ipython_get_metadata('{}')".format(
                         IPythonInteral.DF_MANAGER.value, message.metadata['df_id']), ExecutionMode.EVAL, self.message_handler_callback, message)
 
-                elif message.command_name == DFManagerCommand.reload_df_status:
-                    active_df_status = self.user_space.get_active_dfs_status()
-                    active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": message.command_name,
-                                                          "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
-                    self._send_to_node(active_df_status_message)
-
                 elif message.command_name == DFManagerCommand.get_registered_udfs:
                     self.user_space.execute("{}._ipython_get_registered_udfs()".format(
                         IPythonInteral.DF_MANAGER.value), ExecutionMode.EVAL, self.message_handler_callback, message)
@@ -332,6 +329,17 @@ class MessageHandler(BaseMessageHandler):
                     ## Note: have to use single quote here because json.dumps will generate the double quote inside #
                     self.user_space.execute("{}.at[{}, \"{}\"] = \'{}\'".format(
                         message.content['df_id'], message.content['index'], message.content['col_name'], json.dumps(message.content['value'])), ExecutionMode.EVAL, self.message_handler_callback, message)
+                
+                elif message.command_name == DFManagerCommand.reload_df_status:
+                    result = self.user_space.get_active_dfs_status()
+                    if result["status"] == IPythonConstants.ShellMessageStatus.OK:
+                        message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": DFManagerCommand.reload_df_status,
+                                             "seq_number": 1, "type": "dict", "content": result["content"], "error": False})
+                    else:
+                        message = MessageHandler._create_error_message(
+                            WebappEndpoint.DataFrameManager, result["content"], DFManagerCommand.update_df_status, {})
+                    self._send_to_node(message)
+                    
             else:
                 text = "No executor running"
                 log.info(text)

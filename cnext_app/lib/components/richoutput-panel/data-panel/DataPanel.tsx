@@ -12,13 +12,13 @@ import { setDataPanelFocusSignal } from "../../../../redux/reducers/DataFramesRe
 import ColumnSelector from "./ColumnSelector";
 
 const DataPanel = (props: any) => {
-    const dispatch = useDispatch();
+    // const dispatch = useDispatch();
 
-    useEffect(() => {
-        dispatch(setDataPanelFocusSignal());
-    }, []);
+    // useEffect(() => {
+    //     dispatch(setDataPanelFocusSignal());
+    // }, []);
 
-    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames?.activeDataFrame);
     //TODO: move all grid view related thing to under DataView
     return (
         <>
@@ -33,7 +33,7 @@ const DataPanel = (props: any) => {
                         sx={{ display: "inline-flex", justifyContent: "flex-start" }}
                         style={{ width: "100%" }}
                     >
-                        <UDFSelector />
+                        <UDFSelector/>
                         <DataViewMode />
                         <ColumnSelector />
                     </Box>

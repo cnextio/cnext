@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectChangeEvent } from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
@@ -55,7 +55,7 @@ const UDFSelector = () => {
         }
     };
 
-    const renderComponent = () => {
+    const renderComponent = useCallback(() => {
         if (udfsSelector) {
             let selectedStatsLen = Object.values(udfsSelector.udfs).filter((value) => {
                 return value;
@@ -109,7 +109,7 @@ const UDFSelector = () => {
                 </DFStats>
             );
         } else return null;
-    };
+    }, [udfsSelector]);
 
     return renderComponent();
 };

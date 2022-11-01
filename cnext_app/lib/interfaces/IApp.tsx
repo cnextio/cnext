@@ -148,7 +148,8 @@ export enum WebAppEndpoint {
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
     LogsManager = "LogsManager",
-    DataViewer = "DataViewer"
+    DataViewer = "DataViewer",
+    DFExplorer = "DFExplorer",
 }
 
 export interface ITableData {
@@ -157,6 +158,7 @@ export interface ITableData {
     column_names: string[];
     rows: any[][];
     size: number;
+    page?: number;
 }
 
 export interface ITableMetaData {
@@ -186,6 +188,7 @@ export interface IMetadata {
     type: string;
     shape: number[];
     columns: { [id: string]: IColumnMetadata };
+    timestamp: number;
 }
 
 export enum ReviewType {
