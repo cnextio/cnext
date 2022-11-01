@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.3](https://github.com/cnextio/cnext/compare/v0.10.2...v0.10.3) (2022-11-01)
+
+
+### Bug Fixes
+
+* improve get registered udfs ([dba8511](https://github.com/cnextio/cnext/commit/dba851139627e55aecb9c476de7f3b649a191fdb))
+
+
+### Performance Improvements
+
+* improve performance when loading udfs ([d73ccd0](https://github.com/cnextio/cnext/commit/d73ccd08999463b456a750ed2be4a548d73255c6))
+
 ## [0.10.2](https://github.com/cnextio/cnext/compare/v0.10.1...v0.10.2) (2022-10-31)
 
 
