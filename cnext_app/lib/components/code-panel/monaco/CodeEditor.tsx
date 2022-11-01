@@ -288,6 +288,7 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider, remoteProject }) 
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
     };
 
@@ -362,7 +363,7 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider, remoteProject }) 
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(runQueueItem);
+                execLines(socket,runQueueItem);
             }
         }
     }, [runQueue]);
@@ -629,7 +630,7 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider, remoteProject }) 
             onChange={handleEditorChange}
             options={{
                 minimap: { enabled: true, autohide: true },
-                fontSize: 12,
+                fontSize: 11,
                 renderLineHighlight: "none",
                 scrollbar: { verticalScrollbarSize: 10 },
                 readOnly: !!remoteProject,

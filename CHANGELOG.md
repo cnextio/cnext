@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.9.1](https://github.com/cnextio/cnext/compare/v0.9.0...v0.9.1) (2022-10-26)
+
+
+### Bug Fixes
+
+* add matplotlib-inline ([bbefd8a](https://github.com/cnextio/cnext/commit/bbefd8a1930d1bdcad05062124bb59f56557259f))
+
+## [0.9.0](https://github.com/cnextio/cnext/compare/v0.8.3...v0.9.0) (2022-10-25)
+
+
+### Features
+
+* add shape support in UDF ([593fb2d](https://github.com/cnextio/cnext/commit/593fb2de69d03e8db16239650e263bfeba96536b))
+* add support for UDFs ([0c3e1a7](https://github.com/cnextio/cnext/commit/0c3e1a76e611f987913baa76fe765fafa8e67fd4))
+* implement inifinite data scrolling ([52c6b6e](https://github.com/cnextio/cnext/commit/52c6b6e8247cf2b04332fc72c53ad7bfef2c955a))
+* implement inputable dataframe ([9c7b755](https://github.com/cnextio/cnext/commit/9c7b755b940e6e15534673dafe84ff005367c14a))
+* merge ColumnSelector and improve style ([05c9ea8](https://github.com/cnextio/cnext/commit/05c9ea896205dd9737a5ef6fe09e9c1f0b57a7eb))
+
+
+### Bug Fixes
+
+* add missing package.json ([5a1fc41](https://github.com/cnextio/cnext/commit/5a1fc41d84f7e64b1b73c5a6654d9a463f54893c))
+* add timestamp to UDFs ([b58d1a6](https://github.com/cnextio/cnext/commit/b58d1a6423ca4a906ee8045ba0601cca0706723b))
+* bug in type check ([202499d](https://github.com/cnextio/cnext/commit/202499de5a1cf9057a0bb2b5fa597ee9ec6a8723))
+* change dev command ([0da0a23](https://github.com/cnextio/cnext/commit/0da0a23b1485c23a367328803667061cb0c8071e))
+* display img mime with url instead of binary source ([d10a6df](https://github.com/cnextio/cnext/commit/d10a6dfb374d357d9a6f30819b4dd7fd341841df))
+* fix table horizontal scrolling ([30ad049](https://github.com/cnextio/cnext/commit/30ad04938ba98d2e4afe073a6a7234ef7be455f7))
+* **ide:** downgrade virtual-scroll from v3 to v2 ([059d70a](https://github.com/cnextio/cnext/commit/059d70a9b20c3c61fc9c45f962510e1a86bcb357))
+* improve styles ([9bd95b6](https://github.com/cnextio/cnext/commit/9bd95b6d29b908b7a75a25bad7539ad53e895a53))
+* remove unused imports ([c26e8a3](https://github.com/cnextio/cnext/commit/c26e8a365b44d0fedce57f9b88987ca830265682))
+* render index ([584b9cd](https://github.com/cnextio/cnext/commit/584b9cd84b5768f2e691c5e208820aaeb6b87380))
+* small bug ([004eb2e](https://github.com/cnextio/cnext/commit/004eb2e32f57ad19cc6c25c13bc7c76a80e68ae3))
+* small bug ([f22450c](https://github.com/cnextio/cnext/commit/f22450cf0a3051e22ed6007d001cc6a26c0f3f19))
+
 ## [0.8.3](https://github.com/cnextio/cnext/compare/v0.8.2...v0.8.3) (2022-10-01)
 
 
