@@ -37,6 +37,11 @@ class MessageHandler(BaseMessageHandler):
                 result = files.list_dir(
                     messageParams.norm_project_path, messageParams.norm_path)
                 type = ContentType.DIR_LIST
+            elif message.command_name == ProjectCommand.get_project_content:
+                print("messageParams", messageParams)
+                result = files.get_project_content(
+                    messageParams.norm_project_path, messageParams.norm_path)
+                type = ContentType.PROJECT_CONTENT
             elif message.command_name == ProjectCommand.get_open_files:
                 result = projects.get_open_files()
                 type = ContentType.FILE_METADATA

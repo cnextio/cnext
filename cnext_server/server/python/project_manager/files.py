@@ -38,6 +38,61 @@ def list_dir(project_path, relative_dir_path):
         log.error("%s - %s" % (error, traceback.format_exc()))
         raise Exception
 
+def get_project_tree(project_path):
+    try:
+        if project_path != None:
+            tree = dict()
+            for path, subdirs, files in os.walk(project_path):
+                for name in files:
+                    file_path = os.path.join(path, name)
+                    trimed_path = file_path[(len(project_path) + 1):]
+                    tree[trimed_path] = os.path.getmtime(file_path)
+            return tree
+        return None
+    except Exception as error:
+        log.error("%s - %s" % (error, traceback.format_exc()))
+        raise Exception
+
+def get_project_content(project_path):
+    lfiles = dict()
+    tree = dict()
+    try:
+        if project_path != None:
+            for path, subdirs, files in os.walk(project_path):
+                base_path = path[(len(project_path) + 1):]
+                tree[base_path] = []
+
+                for name in subdirs:
+                    file_path = os.path.join(path, name)
+                    trimed_path = file_path[(len(project_path) + 1):]
+                    new_file = DirMetatdata(
+                        trimed_path,
+                        name=name,
+                        is_file=False,
+                        deletable=False if trimed_path in UNDELETABLE_FILES else True,
+                        timestamp=os.path.getmtime(file_path)
+                    )
+                    tree[base_path].append(new_file)
+
+                for name in files:
+                    file_path = os.path.join(path, name)
+                    trimed_path = file_path[(len(project_path) + 1):]
+                    new_file = DirMetatdata(
+                        trimed_path,
+                        name=name,
+                        is_file=True,
+                        deletable=False if trimed_path in UNDELETABLE_FILES else True,
+                        timestamp=os.path.getmtime(file_path)
+                    )
+                    tree[base_path].append(new_file)
+
+                    with open(file_path, 'r') as file:
+                        lfiles[trimed_path] = file.read()
+
+        return { 'tree': tree, 'files': lfiles }
+    except Exception as error:
+        log.error("%s - %s" % (error, traceback.format_exc()))
+        raise Exception
 
 def get_file_metadata(path):
     try:

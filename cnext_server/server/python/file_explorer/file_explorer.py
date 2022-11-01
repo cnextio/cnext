@@ -26,6 +26,10 @@ class MessageHandler(BaseMessageHandler):
                 output = files.list_dir(
                     messageParams.norm_project_path, messageParams.norm_path)
                 type = ContentType.DIR_LIST
+            elif message.command_name == ProjectCommand.get_project_content:
+                output = files.get_project_content(
+                    messageParams.norm_project_path)
+                type = ContentType.PROJECT_CONTENT
             elif message.command_name == ProjectCommand.create_file:
                 files.create_file(
                     messageParams.norm_project_path, messageParams.norm_path)

@@ -52,6 +52,7 @@ class DFManagerCommand(str, Enum):
 
 class ProjectCommand(str, Enum):
     list_dir = 'list_dir'
+    get_project_content = 'get_project_content'
     get_file_metadata = 'get_file_metadata'
     read_file = 'read_file'
     save_file = 'save_file'
@@ -124,6 +125,7 @@ class ContentType(str, Enum):
     BINARY = 'binary'
     PANDAS_DATAFRAME = 'pandas_dataframe'
     DIR_LIST = 'dir_list'
+    PROJECT_CONTENT = 'project_content'
     FILE_METADATA = 'file_metadata'
     PROJECT_METADATA = 'project_metadata'
     FILE_CONTENT = 'file_content'

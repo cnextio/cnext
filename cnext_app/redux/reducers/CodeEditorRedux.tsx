@@ -308,6 +308,13 @@ export const CodeEditorRedux = createSlice({
             setLineStatusInternal(state, lineStatus);
         },
 
+        setCodeLines: (state, action) => {
+            let payload: any = action.payload;
+            let inViewID = payload.inViewID;
+
+            Object.assign(state.codeLines, { [inViewID]: payload.codeLines })
+        },
+
         setLineGroupStatus: (state, action) => {
             let lineGroupStatus: ICodeLineGroupStatus = action.payload;
             let inViewID = lineGroupStatus.inViewID;
@@ -339,6 +346,9 @@ export const CodeEditorRedux = createSlice({
                 }
                 codeLines[i].groupID = groupID;
             }
+
+            console.log('state.codeLines[inViewID]', JSON.stringify(state.codeLines[inViewID]))
+
             state.lineStatusUpdateCount++;
             state.saveCodeLineCounter++;
         },
@@ -663,6 +673,7 @@ export const {
     updateLines,
     addResult,
     setLineStatus,
+    setCodeLines,
     setLineGroupStatus,
     setActiveLine,
     addToRunQueue,

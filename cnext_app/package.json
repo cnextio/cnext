@@ -91,7 +91,11 @@
         "vscode-languageserver-protocol": "^3.16.0",
         "xterm": "^4.19.0",
         "xterm-addon-fit": "^0.5.0",
-        "xterm-addon-search": "^0.8.2"
+        "xterm-addon-search": "^0.8.2",
+        "y-monaco": "^0.1.4",
+        "y-webrtc": "^10.2.3",
+        "y-websocket": "^1.4.5",
+        "yjs": "^13.5.41"
     },
     "devDependencies": {
         "@lezer/common": "^1.0.0",
@@ -111,6 +115,8 @@
         "babel-plugin-styled-components": "^1.13.2",
         "eslint": "7.32.0",
         "eslint-config-next": "11.1.2",
+        "monaco-editor-webpack-plugin": "^7.0.1",
+        "next-transpile-modules": "^9.1.0",
         "plotly.js": "^2.5.1"
     }
 }
