@@ -7,7 +7,6 @@ import store, { RootState } from "../../../../redux/store";
 import { createPlot } from "../../dataframe-manager/udf/libUDF";
 import { UDFOutputType } from "../../../interfaces/IDataFrameManager";
 import Popover from "@mui/material/Popover";
-import Typography from "@mui/material/Typography";
 export function UDFContainer({ udfName, df_id, col_name, width, height }) {
     const udfData = useSelector((state: RootState) => getUDFData(state));
     const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
@@ -32,38 +31,26 @@ export function UDFContainer({ udfName, df_id, col_name, width, height }) {
         }
         return null;
     }
-
+    const id = open ? "zoom-viz" : undefined;
+    
     const renderUDF = () => {
         let registeredUDFs = store.getState().dataFrames.registeredUDFs;
         if (udfData && registeredUDFs) {
             if (registeredUDFs.udfs[udfName].config.type === UDFOutputType.IMAGE) {
                 return (
                     <div>
-                        <SmallVizContainer
-                            aria-owns={open ? "zoom-viz" : undefined}
-                            aria-haspopup="true"
-                            onMouseEnter={handlePopoverOpen}
-                            onMouseLeave={handlePopoverClose}
-                        >
+                        <SmallVizContainer aria-describedby={id} onClick={handlePopoverOpen}>
                             {createPlot(udfData, width, height)}
                         </SmallVizContainer>
                         <Popover
-                            id="zoom-viz"
-                            sx={{
-                                pointerEvents: "none",
-                            }}
+                            id={id}
                             open={open}
                             anchorEl={anchorEl}
+                            onClose={handlePopoverClose}
                             anchorOrigin={{
                                 vertical: "bottom",
                                 horizontal: "left",
                             }}
-                            transformOrigin={{
-                                vertical: "top",
-                                horizontal: "left",
-                            }}
-                            onClose={handlePopoverClose}
-                            disableRestoreFocus
                         >
                             <SmallVizContainer>
                                 {createPlot(udfData, width * 4, height * 4)}
