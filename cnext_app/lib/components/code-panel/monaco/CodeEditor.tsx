@@ -41,6 +41,7 @@ import { SocketContext } from "../../Socket";
 import { addToRunQueueHoverCell, addToRunQueueHoverLine } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
+import { PythonLanguageClient, LanguageProvider } from "./languageClient";
 
 const CodeEditor = ({ stopMouseEvent }) => {
     const socket = useContext(SocketContext);
@@ -90,6 +91,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
     const [editor, setEditor] = useState(null);
+
+    const [pyLanguageClient, setLanguageClient] = useState<any>(null);
 
     const insertCellBelow = (mode: CodeInsertMode, ln0based: number | null): boolean => {
         let model = getMainEditorModel(monaco);
@@ -260,13 +263,35 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     useEffect(() => {
         // console.log("CodeEditor useEffect container view", container, view);
-        if (monaco) {
-            monaco.languages.register({ id: "python" });
-            monaco.languages.registerFoldingRangeProvider("python", {
+        if (monaco && inViewID) {
+            const nameSplit = inViewID.split(".");
+            const fileExt = nameSplit[nameSplit.length - 1];
+            const languageID = LanguageProvider[fileExt];
+            monaco.languages.register({ id: languageID });
+
+            // TODO: make folding for JSON code
+            monaco.languages.registerFoldingRangeProvider(languageID, {
                 provideFoldingRanges: (model, context, token) => getCellFoldRange(),
             });
+
+            // TODO: init LS for another code [json,sql]
+            if (languageID === LanguageProvider["py"]) {
+                const path = store.getState().projectManager.activeProject?.path;
+                const pyLanguageServer = {
+                    serverUri: "ws://" + process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT,
+                    rootUri: "file:///" + path,
+                    documentUri: "file:///" + path,
+                    languageId: languageID,
+                };
+                let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco);
+                setLanguageClient(pyLanguageClient);
+                pyLanguageClient.setupLSConnection();
+                pyLanguageClient.registerHover();
+                pyLanguageClient.registerAutocompletion();
+                pyLanguageClient.registerSignatureHelp();
+            }
         }
-    });
+    }, [monaco]);
 
     // add action
     useEffect(() => {
@@ -409,6 +434,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     const handleEditorChange = (value, event) => {
         try {
+            pyLanguageClient.doValidate();
             const state = store.getState();
             let inViewID = state.projectManager.inViewID;
             /** do nothing if the update is due to code reloading from external source */
