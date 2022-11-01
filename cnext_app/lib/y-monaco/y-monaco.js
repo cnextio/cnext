@@ -5,7 +5,6 @@ import { createMutex } from 'lib0/mutex'
 import { Awareness } from 'y-protocols/awareness' // eslint-disable-line
 
 function getMonaco() {
-  console.log('window.monaco', window.monaco)
   return window.monaco;
 }
 

@@ -11,7 +11,6 @@ import { RootState } from "../../../redux/store";
 import TextIOComponent from "./TextIOComponent";
 import StyledExecutorToolbar from "../executor-manager/ExecutorToolbar";
 import * as Y from 'yjs';
-import { WebrtcProvider } from 'y-webrtc';
 
 import dynamic from 'next/dynamic';
 
@@ -19,35 +18,23 @@ const CodeEditor = dynamic(() => import('./monaco/CodeEditor'), {
   ssr: false,
 });
 
-let provider;
-const ydoc = new Y.Doc();
-const project = ydoc.getMap('project');
-
-const CodePanel = ({ workingPanelViewMode, stopMouseEvent }) => {
-
-    if (typeof window !== 'undefined') {
-        if (!provider) {
-            provider = new WebrtcProvider('cnexttttt', ydoc)
-            console.log('WebrtcProvider');
-        }
-    }
-
+const CodePanel = ({ workingPanelViewMode, stopMouseEvent, remoteProject, ydoc, project, provider }) => {
 
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
 
-    useEffect(() => {
-        if (inViewID) {
-            const path = inViewID;
-            if (!project.has(path)) {
-                const file = new Y.Map();
-                const source = new Y.Text();
-                file.set('source', source);
-                const json = new Y.Text();
-                file.set('json', json);
-                project.set(path, file);
-            }
-        }
-    }, [inViewID]);
+    // useEffect(() => {
+    //     if (inViewID) {
+    //         const path = inViewID;
+    //         if (!project.has(path)) {
+    //             const file = new Y.Map();
+    //             const source = new Y.Text();
+    //             file.set('source', source);
+    //             const json = new Y.Text();
+    //             file.set('json', json);
+    //             project.set(path, file);
+    //         }
+    //     }
+    // }, [inViewID]);
 
     return (
         <StyledCodePanel style={{ position: "relative" }}>
@@ -65,7 +52,7 @@ const CodePanel = ({ workingPanelViewMode, stopMouseEvent }) => {
                 >
                     {inViewID != null && (
                         <Pane>
-                            <CodeEditor stopMouseEvent={stopMouseEvent} ydoc={ydoc} project={project} provider={provider} />
+                            <CodeEditor stopMouseEvent={stopMouseEvent} ydoc={ydoc} project={project} provider={provider} remoteProject={remoteProject} />
                         </Pane>
                     )}
                     <Pane size="30%">

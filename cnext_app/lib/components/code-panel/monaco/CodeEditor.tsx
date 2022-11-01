@@ -45,10 +45,11 @@ import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 // @ts-ignore
 import dynamic from 'next/dynamic';
 import { MonacoBinding } from '../../../y-monaco';
-import { Transaction, YTextEvent } from "yjs";
+import { Transaction, YTextEvent, Text } from "yjs";
 // import * as monaco from 'monaco-editor';
 
-const CodeEditor = ({ stopMouseEvent, ydoc, project, provider }) => {
+const CodeEditor = ({ stopMouseEvent, ydoc, project, provider, remoteProject }) => {
+    console.log('remoteProject', remoteProject);
     const socket = useContext(SocketContext);
     const [monacoBindingLoaded, setMonacoBindingLoaded] = useState(true);
     const [monacoBinding, setMonacoBinding] = useState(null);
@@ -197,14 +198,17 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider }) => {
 
                 if (codeLines) {
                     const file = project.get(curInViewID);
-                    const json = file.get("json");
-                    const length = json.length;
-    
-                    if (length > 0) {
-                        json.delete(0, length);
+
+                    if (file) {
+                        const json = file.get("json");
+                        const length = json.length;
+        
+                        if (length > 0) {
+                            json.delete(0, length);
+                        }
+                        json.insert(0, JSON.stringify(codeLines));
+                        console.log('globalCodeLines save to yjs', json.toString());
                     }
-                    json.insert(0, JSON.stringify(codeLines));
-                    console.log('globalCodeLines save to yjs', json.toString());
                 }
             }
 
@@ -407,9 +411,12 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider }) => {
     useEffect(() => {
         if (curInViewID && !codeLinesObservers.hasOwnProperty(curInViewID)) {
             const file = project.get(curInViewID);
-            const json = file.get("json");
-            json.observe(codeLinesObserverFn(curInViewID));
-            codeLinesObservers[curInViewID] = true;
+
+            if (file) {
+                const json = file.get("json");
+                json.observe(codeLinesObserverFn(curInViewID));
+                codeLinesObservers[curInViewID] = true;
+            }
         }
     }, [curInViewID]);
 
@@ -431,27 +438,6 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider }) => {
     //         }
     //     }
     // }, [curInViewID, globalCodeLines]);
-
-    // On current view change, update the editor binding
-    
-    let binding: MonacoBinding | null = null;
-
-    useEffect(() => {
-        if (binding) {
-            binding.destroy();
-        }
-        if (curInViewID && editor && provider && monacoBindingLoaded) {
-            const file = project.get(curInViewID);
-            const source = file.get("source");
-            const model = (editor! as any).getModel();
-            binding = new MonacoBinding(
-                source,
-                model,
-                new Set([(editor! as any)]),
-                provider.awareness
-            );
-        }
-    }, [curInViewID, editor, monacoBindingLoaded]);
 
     useEffect(() => {
         if (serverSynced && codeReloading && monaco && editor) {
@@ -516,11 +502,58 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider }) => {
         setHTMLEventHandler(mountedEditor, stopMouseEvent);
     };
 
+
+    // On current view change, update the editor binding
+    
+    let binding: MonacoBinding | null = null;
+
+    useEffect(() => {
+        if (binding) {
+            binding.destroy();
+        }
+        if (curInViewID && editor && provider && monacoBindingLoaded) {
+            const file = project.get(curInViewID);
+            const source = file.get("source");
+            const model = (editor! as any).getModel();
+            binding = new MonacoBinding(
+                source,
+                model,
+                new Set([(editor! as any)]),
+                provider.awareness
+            );
+        }
+    }, [curInViewID, editor, monacoBindingLoaded]);
+
+    const bindEditor = (monano: any, ytext: Text) => {
+        if (!monaco) {
+            return;
+        }
+
+        if (binding) {
+            binding.destroy();
+        }
+
+        console.log('modelll', monano.editor.getModels());
+        
+        const model = getMainEditorModel(monaco);
+        // const editor = monaco.editor;
+
+        console.log('bindEditor', model, editor, ytext);
+        binding = new MonacoBinding(
+            ytext,
+            model,
+            new Set([editor]),
+            provider.awareness
+        );
+    }
+
     const handleEditorChange = (value, event) => {
         try {
             const state = store.getState();
             let inViewID = state.projectManager.inViewID;
+            console.log("value, eventvalue, event:", inViewID, value, event);
             /** do nothing if the update is due to code reloading from external source */
+            // bindEditor(monaco, project.get(inViewID).get("source"));
             if (event.isFlush) return;
             console.log("Monaco here is the current model value:", event);
             let serverSynced = store.getState().projectManager.serverSynced;
@@ -599,6 +632,7 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider }) => {
                 fontSize: 12,
                 renderLineHighlight: "none",
                 scrollbar: { verticalScrollbarSize: 10 },
+                readOnly: !!remoteProject,
                 // foldingStrategy: "indentation",
             }}
         />

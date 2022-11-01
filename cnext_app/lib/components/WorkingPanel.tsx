@@ -13,12 +13,108 @@ import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interface
 import HotkeyComponent from "./hotkeys/HotKeys";
 import TerminalManager from "./terminal-manager/TerminalManager";
 import { SocketContext } from "./Socket";
+import Router, { useRouter } from 'next/router'
+
+import * as Y from 'yjs';
+import { WebrtcProvider } from 'y-webrtc';
+import { ProjectCommand } from "../interfaces/IFileManager";
+
+let provider;
+const ydoc = new Y.Doc();
+const project = ydoc.getMap('project');
 
 const WorkingPanel = () => {
+    const router = useRouter()
+    const { share, remoteProject } = router.query;
+
+    if (typeof window !== 'undefined') {
+        if (share || remoteProject) {
+            if (!provider) {
+                provider = new WebrtcProvider(`cnext-${share || remoteProject}`, ydoc)
+            }
+        }
+    }
+
     const socket = useContext(SocketContext);
     const showProjectExplore = useSelector(
         (state: RootState) => state.projectManager.showProjectExplore
     );
+
+
+
+    const setupSocket = () => {
+        socket?.on(WebAppEndpoint.FileExplorer, (result: string, ack) => {
+            try {
+                let fmResult: IMessage = JSON.parse(result);
+                if (!fmResult.error) {
+                    switch (fmResult.command_name) {
+                        case ProjectCommand.get_project_content:
+                            const tree = new Y.Text(JSON.stringify(fmResult.content.tree));
+                            project.set('@tree', tree);
+
+                            for (const [key, value] of Object.entries(fmResult.content.files)) {
+                                if (!project.has(key)) {
+                                    const file = new Y.Map();
+                                    const source = new Y.Text();
+                                    source.insert(0, value);
+                                    file.set('source', source);
+                                    const json = new Y.Text();
+                                    file.set('json', json);
+                                    project.set(key, file);
+                                } else {
+                                    console.log("file already exists", key);
+                                    const file = project.get(key);
+                                    const source = file.get('source');
+                                    const length = source.length;
+
+                                    if (length > 0) {
+                                        source.delete(0, length);
+                                    }
+
+                                    source.insert(0, value);
+                                }
+                            }
+                            break;
+                    }                    
+                } else {
+                }
+            } catch (error) {
+                console.error(error);
+            }
+            if (ack) ack();
+        });
+    };
+
+    const createMessage = (command: ProjectCommand, metadata: {}, content = null): IMessage => {
+        let message: IMessage = {
+            webapp_endpoint: WebAppEndpoint.FileExplorer,
+            command_name: command,
+            content: content,
+            type: ContentType.STRING,
+            error: false,
+            metadata: metadata,
+        };
+        return message;
+    };
+    
+    const activeProject = useSelector((state: RootState) => state.projectManager.activeProject);
+
+    useEffect(() => {
+        setupSocket();
+
+        if (share && activeProject) {
+            const projectPath = activeProject.path;
+            let message: IMessage = createMessage(ProjectCommand.get_project_content, {
+                project_path: projectPath,
+                path: '',
+            });
+            socket?.emit(WebAppEndpoint.FileExplorer, JSON.stringify(message));
+        }
+
+        return () => {
+            // socket?.off(WebAppEndpoint.FileExplorer);
+        };
+    }, [socket, activeProject]);
 
     const projectConfig = useSelector((state: RootState) => state.projectManager.settings);
     let experiment_tracking_uri = useSelector(
@@ -56,7 +152,7 @@ const WorkingPanel = () => {
                             : "0px"
                     }
                 >
-                    <FileExplorer />
+                    <FileExplorer ydoc={ydoc} share={share} provider={provider} project={project} remoteProject={remoteProject} />
                 </Pane>
                 <Pane>
                     <SplitPane
@@ -73,6 +169,10 @@ const WorkingPanel = () => {
                             <CodePanel
                                 workingPanelViewMode={projectConfig.view_mode}
                                 stopMouseEvent={resizing}
+                                remoteProject={remoteProject}
+                                ydoc={ydoc}
+                                provider={provider}
+                                project={project}
                             />
                         </Pane>
                         <Pane>

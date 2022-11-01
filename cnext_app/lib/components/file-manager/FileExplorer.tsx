@@ -52,6 +52,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { isRunQueueBusy } from "../code-panel/libCodeEditor";
 import { OverlayComponent } from "../libs/OverlayComponent";
 import { SocketContext } from "../Socket";
+import * as Y from 'yjs';
 
 const NameWithTooltip = ({ children, tooltip }) => {
     return (
@@ -116,10 +117,29 @@ const FileExplorer = (props: any) => {
                                         id: fmResult.metadata["path"],
                                         dirs: dirs,
                                     };
+                                    console.log('dirsdata', data);
                                     dispatch(setOpenDir(data));
                                 }
                             }
                             break;
+                        // case ProjectCommand.get_project_content:
+                        //     const project = props.project;
+
+                        //     if (project) {
+                        //         for (const [key, value] of Object.entries(fmResult.content)) {
+                        //             if (!project.has(key)) {
+                        //                 console.log('okkkk', key, value);
+                        //                 const file = new Y.Map();
+                        //                 const source = new Y.Text();
+                        //                 source.insert(0, value);
+                        //                 file.set('source', source);
+                        //                 const json = new Y.Text();
+                        //                 file.set('json', json);
+                        //                 project.set(key, file);
+                        //             }
+                        //         }
+                        //     }
+                        //     break;
                         case ProjectCommand.create_file:
                             console.log("FileExplorer got create_file: ", fmResult);
                             // openFiles = fmResult.content as IFileMetadata[];
@@ -201,13 +221,66 @@ const FileExplorer = (props: any) => {
         sendMessage(message);
     };
 
+    const syncFilesShare = () => {
+        const state = store.getState();
+        const projectPath = state.projectManager.activeProject?.path;
+        let message: IMessage = createMessage(ProjectCommand.get_project_content, {
+            project_path: projectPath,
+        });
+        sendMessage(message);
+    };
+
+    if (props.share) {
+        // syncFilesShare();
+    }
+
+    // if (props.remoteProject) {
+    //     const doc = props.ydoc
+    //     const project = doc.getMap('project');
+    //     const treeText = project.get('@tree');
+
+    //     if (treeText) {
+    //         const tree = JSON.parse(treeText.toString() || '{}');
+    
+    //         for (const [key, value] of Object.entries(tree)) {
+    //             const data: IDirListResult = {
+    //                 id: key,
+    //                 dirs: value,
+    //             };
+    //             dispatch(setOpenDir(data));
+    //         }
+    //     }
+    // }
+
     const handleDirToggle = (event, nodes) => {
         const expandingNodes = nodes.filter((node) => !expandedDirs.includes(node));
-        setExpandedDirs(nodes);
         const dirID = expandingNodes[0];
-        console.log("expandingNodes", expandingNodes);
-        console.log("FileExplorer handleDirToggle: ", event, dirID);
+        setExpandedDirs(nodes);
+
         if (dirID != null) {
+            if (props.remoteProject) {
+                const doc = props.ydoc
+                const project = doc.getMap('project');
+                const treeText = project.get('@tree');
+    
+                if (treeText) {
+                    const tree = JSON.parse(treeText.toString() || '{}');
+                    const dirs = tree[dirID];
+
+                    if (dirs) {
+                        const data: IDirListResult = {
+                            id: dirID,
+                            dirs: dirs,
+                        };
+                        dispatch(setOpenDir(data));
+    
+                        console.log('tree', data, tree, nodes);
+                    }
+                }
+    
+                return;
+            }
+
             fetchDirChildNodes(dirID);
         }
     };
