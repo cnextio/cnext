@@ -7,7 +7,7 @@ from enum import Enum
 
 
 class WebappEndpoint(str, Enum):
-    DFManager = 'DFManager'
+    DataFrameManager = 'DataFrameManager'
     CodeEditor = 'CodeEditor'
     FileManager = 'FileManager'
     MagicCommandGen = 'MagicCommandGen'
@@ -18,6 +18,8 @@ class WebappEndpoint(str, Enum):
     EnvironmentManager = 'EnvironmentManager'
     Terminal = 'Terminal'
     LogsManager = 'LogsManager'
+    DataViewer = 'DataViewer'
+    DFExplorer = 'DFExplorer'
 
     def __str__(self):
         return str(self.value)
@@ -37,6 +39,10 @@ class DFManagerCommand(str, Enum):
     plot_column_quantile = 'plot_column_quantile'
     get_cardinal = 'get_cardinal'
     get_file_content = 'get_file_content'
+    get_registered_udfs = 'get_registered_udfs'
+    compute_udf = "compute_udf"
+    run_file = "run_file"
+    set_dataframe_cell_value = "set_dataframe_cell_value"
 
     def __str__(self):
         return str(self.value)
@@ -92,9 +98,11 @@ class ExecutorManagerCommand(str, Enum):
     get_status = 'get_status'
     send_stdin = 'send_stdin'
 
+
 class EnvironmentManagerCommand(str, Enum):
     list = "list"
     start = "start"
+
 
 class ModelManagerCommand(str, Enum):
     get_active_models_info = 'get_active_models_info'

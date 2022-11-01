@@ -13,6 +13,7 @@ import { useRef } from "react";
 import ReactDOM, { createPortal } from "react-dom";
 import Ansi from "../../ansi-to-react";
 import { InputComponent } from "./StdInInput";
+import { isImageMime, setPlotlyLayout } from "../../libs";
 
 const ScriptComponent = ({ children, script }) => {
     /** We only use this ref for temp div holder of the position for the script.
@@ -39,9 +40,17 @@ const ScriptComponent = ({ children, script }) => {
             scriptElem.appendChild(document.createTextNode(children));
         }
 
+        let parent = ReactDOM.findDOMNode(tmpRef?.current)?.parentNode;
+
+        /** Some ipython pluggin need an elemen named `element` to work. So we create one here */
+        var ipyElement = document.createElement("script");
+        ipyElement.appendChild(
+            document.createTextNode("var element = document.currentScript.parentNode")
+        );
+        parent?.appendChild(ipyElement);
+
         // console.log("ResultContent parent scriptElem ", parent, scriptElem);
         /** the script will be appended to the parent div which is the correct position of the script in the dom */
-        let parent = ReactDOM.findDOMNode(tmpRef?.current)?.parentNode;
         parent?.appendChild(scriptElem);
     }, [script]);
 
@@ -93,39 +102,7 @@ const IFrameComponent = ({ children, attribs, stopMouseEvent }) => {
 };
 
 const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) => {
-    const setPlotlyLayout = (
-        data: object | string | any,
-        width: number | null = null,
-        height: number | null = null
-    ) => {
-        try {
-            /* have to do JSON stringify and parse again to recover the original json string. It won't work without this */
-            let inResultData = JSON.parse(JSON.stringify(data));
-            inResultData["data"][0]["hovertemplate"] = "%{x}: %{y}";
-            inResultData.layout.width = width ? width : inResultData.layout.width;
-            inResultData.layout.height = height ? height : inResultData.layout.height;
-            inResultData.layout.margin = { b: 10, l: 80, r: 30, t: 30 };
-            inResultData["config"] = { displayModeBar: false };
-            return inResultData;
-        } catch {
-            return null;
-        }
-    };
-
-    // const getImageMime = (mimeTypes: string[]) => {
-    //     for (let i = 0; i < mimeTypes.length; i++) {
-    //         if (mimeTypes[i].includes("image/")) {
-    //             return mimeTypes[i];
-    //         }
-    //     }
-    //     return null;
-    // };
-
-    const isImageMime = (mimeType: string) => {
-        const imgMimeRegex = new RegExp("image/", "i");
-        return imgMimeRegex.test(mimeType);
-    };
-
+    
     const renderResultContent = () => {
         try {
             // const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));

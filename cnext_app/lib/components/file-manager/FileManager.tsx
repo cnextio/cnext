@@ -292,14 +292,16 @@ const FileManager = () => {
                 isConfigFile(inViewID)
             ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
-                const projectPath = state.projectManager.activeProject?.path;
-                const message: IMessage = createMessage(ProjectCommand.read_file, "", {
-                    project_path: projectPath,
-                    path: file.path,
-                    timestamp: file.timestamp,
-                });
-                sendMessage(message);
-                dispatch(setServerSynced(false));
+                if (file) {
+                    const projectPath = state.projectManager.activeProject?.path;
+                    const message: IMessage = createMessage(ProjectCommand.read_file, "", {
+                        project_path: projectPath,
+                        path: file.path,
+                        timestamp: file.timestamp,
+                    });
+                    sendMessage(message);
+                    dispatch(setServerSynced(false));
+                }
             }
             setSaveTimer(
                 setInterval(() => {

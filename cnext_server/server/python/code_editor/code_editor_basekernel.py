@@ -65,7 +65,7 @@ class MessageHandler(BaseMessageHandler):
     def _get_active_dfs_status(self):
         active_dfs_status = self.user_space.get_active_dfs_status()
         if active_dfs_status:
-            active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager,
+            active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager,
                                                   "command_name": DFManagerCommand.update_df_status,
                                                   "seq_number": 1,
                                                   "type": "dict",

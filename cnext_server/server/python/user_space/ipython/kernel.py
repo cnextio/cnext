@@ -9,6 +9,7 @@ log = logs.get_logger(__name__)
 
 MESSSAGE_TIMEOUT = 1
 
+
 class IPythonKernel():
     def __init__(self):
         self.km = None
@@ -19,8 +20,8 @@ class IPythonKernel():
                              IPythonConstants.StreamType.IOBUF, IPythonConstants.StreamType.STDIN]
         self.execute_lock = threading.Lock()
         self._set_execution_complete_condition(False)
-    
-    def start_msg_thead(self):        
+
+    def start_msg_thead(self):
         for type in self.stream_types:
             self.msg_threads.append(threading.Thread(
                 target=self.handle_ipython_stream, args=(type,), daemon=True))
@@ -29,7 +30,7 @@ class IPythonKernel():
     def stop_msg_thread(self):
         self.stop_msg_thread_signal = True
         # wait to make sure the stream threads will stop before proceeding
-        while self.is_msg_thead_alive():            
+        while self.is_msg_thead_alive():
             time.sleep(1)
         self.stop_msg_thread_signal = False
 
@@ -40,17 +41,17 @@ class IPythonKernel():
         return False
 
     def start_kernel(self, kernel_name: str):
-        try:            
+        try:
             if self.km is not None:
                 self.shutdown_kernel()
             self.stop_msg_thread()
             log.info('Kernel starting')
             self.km = jupyter_client.KernelManager(kernel_name=kernel_name)
-            self.km.start_kernel()                        
+            self.km.start_kernel()
             self.kc = self.km.blocking_client()
-            self.wait_for_ready()            
+            self.wait_for_ready()
             self.start_msg_thead()
-            
+
             log.info('Kernel started')
 
             # release execution lock which might be locked during an execution
@@ -80,8 +81,8 @@ class IPythonKernel():
 
     def restart_kernel(self):
         try:
-            # if self.km.is_alive():            
-            log.info('Kernel restarting')            
+            # if self.km.is_alive():
+            log.info('Kernel restarting')
             self.km.restart_kernel()
             self.stop_msg_thread()
             self.kc = self.km.blocking_client()
@@ -160,7 +161,7 @@ class IPythonKernel():
                     if ipython_message['header']['msg_type'] != "stream":
                         log.info('%s msg: msg_type = %s, content = %s' % (
                             stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
-                    else: 
+                    else:
                         log.info('%s msg: msg_type = %s' % (
                             stream_type, ipython_message['header']['msg_type']))
 
@@ -185,9 +186,10 @@ class IPythonKernel():
 
     def execute(self, code, exec_mode=None, message_handler_callback=None, client_message=None):
         try:
-            if self.kc:         
+            if self.kc:
                 self.execute_lock.acquire()
-                log.info('Kernel execution lock acquired for executing %s', code[:50])
+                log.info(
+                    'Kernel execution lock acquired for executing \n"""\n%s ...\n"""', code[:50])
                 self._set_execution_complete_condition(False)
                 self.message_handler_callback = message_handler_callback
                 self.client_message = client_message
