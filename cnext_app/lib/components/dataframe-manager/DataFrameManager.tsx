@@ -113,15 +113,15 @@ const DataFrameManager = () => {
         };
     }, [socket]); //TODO: run this only once - not on rerender
 
-    useEffect(() => {
-        let message = createMessage(
-            WebAppEndpoint.DataFrameManager,
-            CommandName.get_registered_udfs,
-            null,
-            {}
-        );
-        sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
-    }, [dataPanelFocusSignal]);
+    // useEffect(() => {
+    //     let message = createMessage(
+    //         WebAppEndpoint.DataFrameManager,
+    //         CommandName.get_registered_udfs,
+    //         null,
+    //         {}
+    //     );
+    //     sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
+    // }, [dataPanelFocusSignal]);
 
     // useEffect(() => {
         // if (loadDataRequest.df_id && socket && activeDataFrame) {

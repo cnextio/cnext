@@ -1,12 +1,12 @@
 from enum import Enum
 import threading
 import traceback
-import jupyter_client
 import simplejson as json
+from user_space.ipython.constants import IpythonResultMessage
+from libs.message_handler import BaseMessageHandler
 import cnextlib.user_space as _cus
 import cnextlib.dataframe as _cd
-import cnextlib.udf as _udf
-from libs.constants import TrackingModelType, TrackingDataframeType
+import cnextlib.udf_manager as _udf_manager
 from user_space.ipython.kernel import IPythonKernel
 from user_space.ipython.constants import IPythonInteral, IPythonConstants
 
@@ -59,7 +59,7 @@ class IPythonUserSpace(_cus.UserSpace):
     def init_executor(self):
         code = """
 import cnextlib.dataframe as _cd
-import cnextlib.udf as {_udf}
+import cnextlib.udf_manager as {_udf_manager}
 import pandas as _pd
 from dataframe_manager import dataframe_manager as _dm
 from cassist import cassist as _ca
@@ -79,7 +79,7 @@ class _UserSpace(BaseKernelUserSpace):
            _cassist=IPythonInteral.CASSIST.value,
            _tracking_df_types=self.tracking_df_types,
            _tracking_model_types=self.tracking_model_types,
-           _udf = IPythonInteral.UDF_MODULE.value)
+           _udf_manager=IPythonInteral.UDF_MODULE.value)
         self.executor.execute(code)
 
     def globals(self):
@@ -89,11 +89,11 @@ class _UserSpace(BaseKernelUserSpace):
         self.shell_cond = condition
         self.iobuf_cond = condition
 
-    def _set_execution_complete_condition_from_message(self, stream_type, message):
+    def _set_execution_complete_condition_from_message(self, stream_type, message: IpythonResultMessage):
         if stream_type == IPythonConstants.StreamType.SHELL:
-            self.shell_cond = message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY and 'status' in message['content']
+            self.shell_cond = message.header['msg_type'] == IPythonConstants.MessageType.EXECUTE_REPLY and 'status' in message.content
         if stream_type == IPythonConstants.StreamType.IOBUF:
-            self.iobuf_cond = message['header']['msg_type'] == IPythonConstants.MessageType.STATUS and message['content']['execution_state'] == 'idle'
+            self.iobuf_cond = message.header['msg_type'] == IPythonConstants.MessageType.STATUS and message.content['execution_state'] == 'idle'
 
     def _is_execution_complete(self) -> bool:
         ## Look at the shell stream and check the status #
@@ -101,26 +101,44 @@ class _UserSpace(BaseKernelUserSpace):
 
     def message_handler_callback(self, ipython_message, stream_type, client_message):
         try:
+            ipython_message = IpythonResultMessage(**ipython_message)
             log.info('%s msg: %s %s' % (
-                stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
-            
-            
-            if ipython_message['header']['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
-                self.result = json.loads(
-                    ipython_message['content']['data']['text/plain'])
-                
-            
-            self._set_execution_complete_condition_from_message(stream_type, ipython_message)
-            if self.execute_lock.locked() and self._is_execution_complete():
-                self.execute_lock.release()
-                log.info('User_space execution lock released')
-            
+                stream_type, ipython_message.header['msg_type'], ipython_message.content))
+
+            if BaseMessageHandler._is_error_message(ipython_message.header):
+                content = BaseMessageHandler._get_error_message_content(
+                    ipython_message)
+                ## borrow the status constant from ipython :) #
+                self.result = {
+                    "status": IPythonConstants.ShellMessageStatus.ERROR, "content": content}
+                if self.execute_lock.locked():
+                    self.execute_lock.release()
+                    log.info(
+                        'User_space execution lock released due to error in execution')
             else:
-                # TODO: log everything else
-                log.info('Other messages: %s' % ipython_message)
+                if ipython_message.header['msg_type'] == IPythonConstants.MessageType.EXECUTE_RESULT:
+                    self.result = {"status": IPythonConstants.ShellMessageStatus.OK, "content": json.loads(
+                        ipython_message.content['data']['text/plain'])}
+
+                self._set_execution_complete_condition_from_message(
+                    stream_type, ipython_message)
+
+                if self.execute_lock.locked() and self._is_execution_complete():
+                    self.execute_lock.release()
+                    log.info('User_space execution lock released')
+                # else:
+                #     # TODO: log everything else
+                #     log.info('Other messages: %s' % ipython_message)
         except:
             # this is internal exception, we won't send it to the client
             trace = traceback.format_exc()
+            ## borrow the status constant from ipython :) #
+            self.result = {
+                "status": IPythonConstants.ShellMessageStatus.ERROR, "content": trace}
+            if self.execute_lock.locked():
+                self.execute_lock.release()
+                log.info(
+                    'User_space execution lock released due to error in exception')
             log.info("Exception %s" % (trace))
 
     def _result_waiting_execution(func):
@@ -166,6 +184,15 @@ class _UserSpace(BaseKernelUserSpace):
         log.info('Code to execute %s' % code)
         self.executor.execute(code, None, self.message_handler_callback)
 
+    @_result_waiting_execution
+    def get_registered_udfs(self):
+        """ This function will be blocked until the execution completes and the result will be returned directly from here """
+        self._set_execution_complete_condition(False)
+        code = "{_user_space}.get_registered_udfs()".format(
+            _user_space=IPythonInteral.USER_SPACE.value)
+        log.info('Code to execute %s' % code)
+        self.executor.execute(code, None, self.message_handler_callback)
+        
     def reset_active_dfs_status(self):
         code = "{_user_space}.reset_active_dfs_status()".format(
             _user_space=IPythonInteral.USER_SPACE.value)
@@ -225,7 +252,7 @@ class BaseKernelUserSpace(_cus.UserSpace):
         self.executor = BaseKernel()
         # need to set user space on DataFrameTracker, it does not work if set with DataFrame
         _cd.DataFrameTracker.set_user_space(self)
-        _udf.set_user_space(self)
+        _udf_manager.set_user_space(self)
         super().__init__(tracking_df_types, tracking_model_types)
 
     @classmethod
