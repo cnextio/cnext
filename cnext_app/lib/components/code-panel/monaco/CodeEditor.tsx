@@ -514,14 +514,17 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider, remoteProject }) 
         }
         if (curInViewID && editor && provider && monacoBindingLoaded) {
             const file = project.get(curInViewID);
-            const source = file.get("source");
-            const model = (editor! as any).getModel();
-            binding = new MonacoBinding(
-                source,
-                model,
-                new Set([(editor! as any)]),
-                provider.awareness
-            );
+
+            if (file) {
+                const source = file.get("source");
+                const model = (editor! as any).getModel();
+                binding = new MonacoBinding(
+                    source,
+                    model,
+                    new Set([(editor! as any)]),
+                    provider.awareness
+                );
+            }
         }
     }, [curInViewID, editor, monacoBindingLoaded]);
 
