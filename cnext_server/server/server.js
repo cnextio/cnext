@@ -42,6 +42,7 @@ const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
 const DataViewer = "DataViewer";
+const DFExplorer = "DFExplorer";
 
 const CodeEndpoints = [
     CodeEditor,
@@ -51,6 +52,7 @@ const CodeEndpoints = [
     ExecutorManager,
     EnvironmentManager,
     DataViewer,
+    DFExplorer,
 ];
 const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
 
