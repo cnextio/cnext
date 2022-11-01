@@ -205,14 +205,14 @@ class MessageHandler(BaseMessageHandler):
             IPythonInteral.UDF_MODULE.value), ExecutionMode.EVAL)
         return result
 
-    def _process_error_message(self, ipython_message, client_message):
-        # log.error("Error %s" % (msg_ipython.content['traceback']))
-        if isinstance(ipython_message.content['traceback'], list):
-            content = '\n'.join(ipython_message.content['traceback'])
-        else:
-            content = ipython_message.content['traceback']
-        return self._create_error_message(
-            client_message.webapp_endpoint, content, client_message.command_name, client_message.metadata)
+    # def _process_error_message(self, ipython_message, client_message):
+    #     # log.error("Error %s" % (msg_ipython.content['traceback']))
+    #     if isinstance(ipython_message.content['traceback'], list):
+    #         content = '\n'.join(ipython_message.content['traceback'])
+    #     else:
+    #         content = ipython_message.content['traceback']
+    #     return self._create_error_message(
+    #         client_message.webapp_endpoint, content, client_message.command_name, client_message.metadata)
 
     MAX_PLOTLY_SIZE = 1024*1024  # 1MB
 
@@ -235,8 +235,10 @@ class MessageHandler(BaseMessageHandler):
         ipython_message = IpythonResultMessage(**ipython_message)
         message = None
         if self._is_error_message(ipython_message.header):
-            message = self._process_error_message(
-                ipython_message, client_message)
+            content = self._get_error_message_content(
+                ipython_message)
+            message = BaseMessageHandler._create_error_message(
+                client_message.webapp_endpoint, content, client_message.command_name, client_message.metadata)
         else:
             result = self.get_execute_result(ipython_message)
             if result is not None:

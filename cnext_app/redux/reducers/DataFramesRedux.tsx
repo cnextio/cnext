@@ -356,12 +356,13 @@ export const dataFrameSlice = createSlice({
                     };
                     /** remove all existing udf data */
                     let columns = state.metadata[df_id].columns;
-                    for (const udfName in state.registeredUDFs.udfs) {
+                    // for (const udfName in state.registeredUDFs.udfs) {
                         for (let column_name in columns) {
                             if (columns[column_name].udfs)
-                                columns[column_name].udfs[udfName] = null;
+                                // columns[column_name].udfs[udfName] = null;
+                                columns[column_name].udfs = {};
                         }
-                    }
+                    // }
                 }
             }
         },
