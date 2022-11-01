@@ -318,12 +318,6 @@ class MessageHandler(BaseMessageHandler):
                     self.user_space.execute("{}._ipython_get_metadata('{}')".format(
                         IPythonInteral.DF_MANAGER.value, message.metadata['df_id']), ExecutionMode.EVAL, self.message_handler_callback, message)
 
-                elif message.command_name == DFManagerCommand.reload_df_status:
-                    active_df_status = self.user_space.get_active_dfs_status()
-                    active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": message.command_name,
-                                                          "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
-                    self._send_to_node(active_df_status_message)
-
                 elif message.command_name == DFManagerCommand.get_registered_udfs:
                     self.user_space.execute("{}._ipython_get_registered_udfs()".format(
                         IPythonInteral.DF_MANAGER.value), ExecutionMode.EVAL, self.message_handler_callback, message)
@@ -335,6 +329,17 @@ class MessageHandler(BaseMessageHandler):
                     ## Note: have to use single quote here because json.dumps will generate the double quote inside #
                     self.user_space.execute("{}.at[{}, \"{}\"] = \'{}\'".format(
                         message.content['df_id'], message.content['index'], message.content['col_name'], json.dumps(message.content['value'])), ExecutionMode.EVAL, self.message_handler_callback, message)
+                
+                elif message.command_name == DFManagerCommand.reload_df_status:
+                    result = self.user_space.get_active_dfs_status()
+                    if result["status"] == IPythonConstants.ShellMessageStatus.OK:
+                        message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": DFManagerCommand.reload_df_status,
+                                             "seq_number": 1, "type": "dict", "content": result["content"], "error": False})
+                    else:
+                        message = MessageHandler._create_error_message(
+                            WebappEndpoint.DataFrameManager, result["content"], DFManagerCommand.update_df_status, {})
+                    self._send_to_node(message)
+                    
             else:
                 text = "No executor running"
                 log.info(text)

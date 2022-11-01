@@ -46,17 +46,11 @@ const TableViewVirtual = () => {
     const columnSelector = useSelector((state: RootState) =>
         activeDataFrame ? state.dataFrames.columnSelector[activeDataFrame].columns : {}
     );
-    // const dfReview: IDFUpdatesReview | null = useSelector((state: RootState) =>
-    //     getReviewRequest(state)
-    // );
-    const udfConfigs = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
-    );
 
     const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
-    const metadata = useSelector((state: RootState) =>
-        activeDataFrame ? state.dataFrames.metadata[activeDataFrame] : null
+    const tableMetadataUpdateSignal = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.tableMetadataUpdateSignal[activeDataFrame] : null
     );
 
     const dfFilter = useSelector((state: RootState) =>
@@ -72,7 +66,7 @@ const TableViewVirtual = () => {
         totalSize: pagedDataTotalSize,
         isLoading,
         isError,
-    } = useLoadTableData(activeDataFrame, metadata, dfFilter?.query, NUM_KEEP_PAGE);
+    } = useLoadTableData(activeDataFrame, dfFilter?.query, NUM_KEEP_PAGE);
 
     /** convert data to dictionary type to make it compatible with react-table */
     const [flatIndexData, flatRowsData] = React.useMemo((): [any[], { [key: string]: any }[]] => {
@@ -106,7 +100,7 @@ const TableViewVirtual = () => {
             // console.log("DataViewer columns: ", columns);
             return columns;
         } else return [];
-    }, [activeDataFrame, metadata]);
+    }, [activeDataFrame, tableMetadataUpdateSignal]);
 
     const table = useReactTable({
         data: flatRowsData,
@@ -177,7 +171,8 @@ const TableViewVirtual = () => {
                         // <DataTableCell key={indexName} align="right" review={review} head={true}>
                         <DataTableCell key={indexName} align="right" review={false} head={true}>
                             {indexName}
-                            {renderUDF(activeDataFrame, metadata, indexName)}
+                            {/* {renderUDF(activeDataFrame, metadata, indexName)} */}
+                            <UDFContainer colName={indexName} />
                             {/* {renderReviewer(review)} */}
                         </DataTableCell>
                     );
@@ -219,7 +214,7 @@ const TableViewVirtual = () => {
                                     )}
                                 </div>
                             )}
-                            {renderUDF(activeDataFrame, metadata, colName)}
+                            <UDFContainer colName={colName} />
                             {/* {renderReviewer(review)} */}
                             {renderResizer()}
                         </DataTableCell>
@@ -227,62 +222,62 @@ const TableViewVirtual = () => {
                 }
             }
         },
-        [activeDataFrame, metadata]
+        [activeDataFrame]
     );
 
-    const renderUDF = useCallback(
-        (df_id: string, dfMetadata: {}, colName: string) => {
-            const registeredUDFs = store.getState().dataFrames.registeredUDFs;
-            const showedUDFs = Object.keys(registeredUDFs.udfs).reduce((showedUDFs: any[], key) => {
-                // console.log("showedUDFs: ", key, udfsConfig, registeredUDFs[key].config.view_configs);
-                if (
-                    udfConfigs &&
-                    udfConfigs.udfs[key] &&
-                    UDFLocation.TABLE_HEAD in registeredUDFs.udfs[key].config.view_configs
-                ) {
-                    showedUDFs.push({ name: key, udf: registeredUDFs.udfs[key] });
-                }
-                return showedUDFs;
-            }, []);
+    // const renderUDF = (
+    //     df_id: string,
+    //     dfMetadata: IMetadata | null,
+    //     udfConfigs: IDataFrameUDFSelection | null,
+    //     colName: string
+    // ) => {
+    //     const registeredUDFs = store.getState().dataFrames.registeredUDFs;
+    //     const showedUDFs = Object.keys(registeredUDFs.udfs).reduce((showedUDFs: any[], key) => {
+    //         // console.log("showedUDFs: ", key, udfsConfig, registeredUDFs[key].config.view_configs);
+    //         if (
+    //             udfConfigs &&
+    //             udfConfigs.udfs[key] &&
+    //             UDFLocation.TABLE_HEAD in registeredUDFs.udfs[key].config.view_configs
+    //         ) {
+    //             showedUDFs.push({ name: key, udf: registeredUDFs.udfs[key] });
+    //         }
+    //         return showedUDFs;
+    //     }, []);
 
-            /** for UDFView.TABLE_HEAD UDFs we only support 1 UDF per row so only sort by row */
-            showedUDFs.sort(
-                (a, b) =>
-                    a.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row -
-                    b.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row
-            );
-            // console.log("showedUDFs: ", showedUDFs);
-            return (
-                <>
-                    {dfMetadata &&
-                        dfMetadata.columns[colName] &&
-                        !Object.values(SpecialMimeType).includes(
-                            dfMetadata.columns[colName].type
-                        ) && (
-                            <>
-                                {showedUDFs.map((data, index) => {
-                                    let udfConfig =
-                                        data.udf.config.view_configs[UDFLocation.TABLE_HEAD];
-                                    return (
-                                        <UDFContainer
-                                            key={index}
-                                            udfName={data.name}
-                                            df_id={df_id}
-                                            col_name={colName}
-                                            width={udfConfig.shape ? udfConfig.shape.width : 80}
-                                            height={udfConfig.shape ? udfConfig.shape.height : 50}
-                                        />
-                                    );
-                                })}
+    //     /** for UDFView.TABLE_HEAD UDFs we only support 1 UDF per row so only sort by row */
+    //     showedUDFs.sort(
+    //         (a, b) =>
+    //             a.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row -
+    //             b.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row
+    //     );
+    //     // console.log("showedUDFs: ", showedUDFs);
+    //     return (
+    //         <>
+    //             {dfMetadata &&
+    //                 dfMetadata.columns[colName] &&
+    //                 !Object.values(SpecialMimeType).includes(dfMetadata.columns[colName].type) && (
+    //                     <>
+    //                         {showedUDFs.map((data, index) => {
+    //                             let udfConfig =
+    //                                 data.udf.config.view_configs[UDFLocation.TABLE_HEAD];
+    //                             return (
+    //                                 <UDFContainer
+    //                                     key={index}
+    //                                     udfName={data.name}
+    //                                     df_id={df_id}
+    //                                     col_name={colName}
+    //                                     width={udfConfig.shape ? udfConfig.shape.width : 80}
+    //                                     height={udfConfig.shape ? udfConfig.shape.height : 50}
+    //                                 />
+    //                             );
+    //                         })}
 
-                                <CountNA df_id={df_id} col_name={colName} />
-                            </>
-                        )}
-                </>
-            );
-        },
-        [udfConfigs]
-    );
+    //                         <CountNA df_id={df_id} col_name={colName} />
+    //                     </>
+    //                 )}
+    //         </>
+    //     );
+    // };
 
     const renderSpecialMimeInnerCell = useCallback(
         (
@@ -355,8 +350,8 @@ const TableViewVirtual = () => {
             indexCell: boolean = false
         ) => {
             let state = store.getState();
-            // const metadata = state.dataFrames.metadata[activeDataFrame];
             if (activeDataFrame) {
+                const metadata = state.dataFrames.metadata[activeDataFrame];
                 if (indexCell) {
                     // const review = isReviewingCell(rowIndex, rowIndex, dfReview);
                     return (
@@ -398,7 +393,7 @@ const TableViewVirtual = () => {
                 }
             }
         },
-        [activeDataFrame, metadata]
+        [activeDataFrame, tableMetadataUpdateSignal]
     );
 
     const renderBodyRow = useCallback(
@@ -427,16 +422,14 @@ const TableViewVirtual = () => {
                                 true
                             )}
                             {/** render data cell */}
-                            {row
-                                ?.getVisibleCells()
-                                .map((cell: any) =>
-                                    renderBodyCell(
-                                        // activeDataFrame,
-                                        row?.id,
-                                        cell,
-                                        flatIndexData[row?.id]
-                                    )
-                                )}
+                            {row?.getVisibleCells().map((cell: any) =>
+                                renderBodyCell(
+                                    // activeDataFrame,
+                                    row?.id,
+                                    cell,
+                                    flatIndexData[row?.id]
+                                )
+                            )}
                         </DataTableRow>
                     );
                 }
@@ -533,9 +526,7 @@ const TableViewVirtual = () => {
                             virtualRows[0]?.index,
                             virtualRows[virtualRows.length - 1]?.index
                         )} */}
-                        {virtualRows.map((virtualRow) =>
-                            renderBodyRow(virtualRow)
-                        )}
+                        {virtualRows.map((virtualRow) => renderBodyRow(virtualRow))}
                         {paddingBottom > 0 && (
                             <tr>
                                 <td style={{ height: `${paddingBottom}px` }} />

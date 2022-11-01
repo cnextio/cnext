@@ -17,7 +17,6 @@ import { sendGetTableData } from "./libDataView";
 
 export const useLoadTableData = (
     df_id: string | null,
-    metadata: IMetadata | null,
     filter: string | null = null,
     numKeepPages = 3
 ) => {
@@ -27,11 +26,14 @@ export const useLoadTableData = (
     const [fromPage, setFromPage] = useState<number | null>(null);
     const [toPage, setToPage] = useState<number | null>(null);
     const [totalSize, setTotalSize] = useState<number>(0);
-    // const [pagedTableData, setPagedTableData] = useState<ITableData[] | null>(null);
     const pagedTableData = useSelector((state: RootState) =>
         df_id ? state.dataFrames.tableData[df_id] : null
     );
     const dispatch = useDispatch();
+
+    const tableMetadataUpdateSignal = useSelector((state: RootState) =>
+        df_id ? state.dataFrames.tableMetadataUpdateSignal[df_id] : null
+    );
 
     const reset = useCallback(() => {
         // setIsLoading(false);
@@ -45,7 +47,7 @@ export const useLoadTableData = (
 
     useEffect(() => {
         reset();
-    }, [df_id, metadata, filter]);
+    }, [df_id, tableMetadataUpdateSignal, filter]);
 
     // console.log("DataViewer useLoadTableData: ", df_id, pagedTableData);
 
