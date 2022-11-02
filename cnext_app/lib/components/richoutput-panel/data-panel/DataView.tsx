@@ -5,20 +5,21 @@ import GridView from "./GridView";
 import TableView from "./TableView";
 import { DFViewMode } from "../../../interfaces/IApp";
 import SummaryView from "../summary-panel/SummaryView";
+import TableViewVirtual from "./TableViewVirtual";
 
 const DataView = () => {
-    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
-
+    // const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
+    const metadata = useSelector((state: RootState) => state.dataFrames.metadata);
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
-
     const dataViewMode = useSelector((state: RootState) => state.dataFrames.dataViewMode);
 
     const renderData = () => {
         switch (dataViewMode) {
-            case DFViewMode.GRID_VIEW:
-                return <GridView />;
+            // case DFViewMode.GRID_VIEW:
+            //     return <GridView />;
             case DFViewMode.TABLE_VIEW:
-                return <TableView />;
+                return <TableViewVirtual />;
+                // return <TableView />;
             case DFViewMode.SUMMARY_VIEW:
                 return <SummaryView />;
             default:
@@ -26,7 +27,7 @@ const DataView = () => {
         }
     };
     //TODO: move all grid view related thing to under DataView
-    return <Fragment>{tableData[activeDataFrame] != null && renderData()}</Fragment>;
+    return <>{activeDataFrame && metadata[activeDataFrame] != null && renderData()}</>;
 };
 
 export default DataView;

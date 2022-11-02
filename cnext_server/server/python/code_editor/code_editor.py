@@ -133,6 +133,7 @@ class MessageHandler(BaseMessageHandler):
                 self.user_space.execute(
                     message.content, None, self.message_handler_callback, client_message=message)
                 self._get_active_dfs_status()
+                self._get_registered_udf()
                 # self._get_active_model()
             else:
                 text = "No executor running"
@@ -142,19 +143,41 @@ class MessageHandler(BaseMessageHandler):
                 self._send_to_node(error_message)
         except:
             trace = traceback.format_exc()
-            log.info("Exception %s" % (trace))
+            log.error("Exception %s" % (trace))
+            ## this message should be sent to WebappEndpoint.ExecutorManager but it requires some works so we use this temporarily #
             error_message = MessageHandler._create_error_message(
-                message.webapp_endpoint, trace, message.command_name, {})
+                WebappEndpoint.DataFrameManager, trace, message.command_name, {})
             self._send_to_node(error_message)
 
     def _get_active_dfs_status(self):
-        active_df_status = self.user_space.get_active_dfs_status()
-        active_df_status_message = Message(**{"webapp_endpoint": WebappEndpoint.DFManager, "command_name": DFManagerCommand.update_df_status,
-                                              "seq_number": 1, "type": "dict", "content": active_df_status, "error": False})
-        self._send_to_node(active_df_status_message)
+        result = self.user_space.get_active_dfs_status()
+        if result["status"] == IPythonConstants.ShellMessageStatus.OK:
+            message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": DFManagerCommand.update_df_status,
+                                 "seq_number": 1, "type": "dict", "content": result["content"], "error": False})
+        else:
+            message = MessageHandler._create_error_message(
+                WebappEndpoint.DataFrameManager, result["content"], DFManagerCommand.update_df_status, {})
+        self._send_to_node(message)
 
     def _get_active_models_info(self):
-        active_models = self.user_space.get_active_models_info()
-        active_models_message = Message(**{"webapp_endpoint": WebappEndpoint.ModelManager, "command_name": ModelManagerCommand.get_active_models_info,
-                                           "seq_number": 1, "type": "dict", "content": active_models, "error": False})
-        self._send_to_node(active_models_message)
+        result = self.user_space.get_active_models_info()        
+        if result["status"] == IPythonConstants.ShellMessageStatus.OK:
+            message = Message(**{"webapp_endpoint": WebappEndpoint.ModelManager, "command_name": ModelManagerCommand.get_active_models_info,
+                                 "seq_number": 1, "type": "dict", "content": result["content"], "error": False})
+        else:
+            ## this message should be sent to WebappEndpoint.ExecutorManager but it requires some works so we use this temporarily #
+            message = MessageHandler._create_error_message(
+                WebappEndpoint.DataFrameManager, result["content"], ModelManagerCommand.get_active_models_info, {})
+        self._send_to_node(message)
+
+    def _get_registered_udf(self):
+        result = self.user_space.get_registered_udfs()
+        if result["status"] == IPythonConstants.ShellMessageStatus.OK:
+            message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": DFManagerCommand.get_registered_udfs,
+                                 "seq_number": 1, "type": "dict", "content": result["content"], "error": False})
+        else:
+            ## this message should be sent to WebappEndpoint.ExecutorManager but it requires some works so we use this temporarily #
+            message = MessageHandler._create_error_message(
+                WebappEndpoint.DataFrameManager, result["content"], DFManagerCommand.get_registered_udfs, {})
+        self._send_to_node(message)
+

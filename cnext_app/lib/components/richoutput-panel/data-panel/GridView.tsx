@@ -7,16 +7,18 @@ import {
     DataGridItemMetadata,
     ImageMimeCell,
 } from "../../StyledComponents";
-import { CNextMimeType, FileMimeType, IDFUpdatesReview } from "../../../interfaces/IApp";
+import { CNextMimeType, SpecialMimeType, IDFUpdatesReview } from "../../../interfaces/IApp";
 import { useSelector } from "react-redux";
 import { ifElse } from "../../libs";
-import store from "../../../../redux/store";
+import store, { RootState } from "../../../../redux/store";
 
 const GridView = (props: any) => {
     const tableData = useSelector((state) => state.dataFrames.tableData);
 
     const activeDataFrame = useSelector((state) => state.dataFrames.activeDataFrame);
-
+    const columnSelector = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames.columnSelector[activeDataFrame].columns : {}
+    );
     const dfReview: IDFUpdatesReview = useSelector((state) => getReviewRequest(state));
 
     function getReviewRequest(state): IDFUpdatesReview {
@@ -34,12 +36,12 @@ const GridView = (props: any) => {
 
     const createMimeElem = (item: object, mimeType: CNextMimeType) => {
         switch (mimeType) {
-            case FileMimeType.FILE_PNG:
-            case FileMimeType.URL_PNG:
+            case SpecialMimeType.FILE_PNG:
+            case SpecialMimeType.URL_PNG:
                 return <ImageMimeCell src={"data:image/png;base64," + item.binary} />;
 
-            case FileMimeType.FILE_JPG:
-            case FileMimeType.URL_JPG:
+            case SpecialMimeType.FILE_JPG:
+            case SpecialMimeType.URL_JPG:
                 return <ImageMimeCell src={"data:image/jpg;base64," + item.binary} />;
         }
     };
@@ -48,10 +50,10 @@ const GridView = (props: any) => {
         // FIXME: move the line-height style to StyledComponents. I tried it but it did not work
         return (
             <DataGridItemMetadata style={{ "line-height": "100%" }}>
-                <Typography fontSize={12} component='span' variant='caption'>
+                <Typography fontSize={12} component="span" variant="caption">
                     {colName}:{" "}
                 </Typography>
-                <Typography fontSize={12} component='span'>
+                <Typography fontSize={12} component="span">
                     {item}
                 </Typography>
             </DataGridItemMetadata>
@@ -59,6 +61,7 @@ const GridView = (props: any) => {
     };
 
     const createGridCell = (colNames: [], rowIndex: any, rowData: any[]) => {
+        let visibleColumns = Object.keys(columnSelector).filter((item) => columnSelector[item]);
         const metadata = ifElse(store.getState().dataFrames.metadata, activeDataFrame, null);
 
         // let colsWithMime = colNames.filter(
@@ -79,24 +82,27 @@ const GridView = (props: any) => {
                     {rowData.map((item: any, index: number) => {
                         if (
                             metadata &&
-                            metadata.columns[colNames[index]] &&
+                            metadata.columns[visibleColumns[index]] &&
                             Object.values(CNextMimeType).includes(
-                                metadata.columns[colNames[index]].type
+                                metadata.columns[visibleColumns[index]].type
                             )
                         )
-                            return createMimeElem(item, metadata.columns[colNames[index]].type);
+                            return createMimeElem(
+                                item,
+                                metadata.columns[visibleColumns[index]].type
+                            );
                     })}
                 </div>
                 <div style={{ paddingTop: "5px" }}>
                     {rowData.map((item: any, index: number) => {
                         if (
                             metadata &&
-                            metadata.columns[colNames[index]] &&
+                            metadata.columns[visibleColumns[index]] &&
                             !Object.values(CNextMimeType).includes(
-                                metadata.columns[colNames[index]].type
+                                metadata.columns[visibleColumns[index]].type
                             )
                         )
-                            return createMetaElem(item, colNames[index]);
+                            return createMetaElem(item, visibleColumns[index]);
                     })}
                 </div>
             </DataGridItem>

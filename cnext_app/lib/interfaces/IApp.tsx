@@ -42,7 +42,7 @@ export interface IMessage {
         | IExecutorManagerResultContent
         | null; // the command string and output string|object
     error?: boolean;
-    metadata?: object; // store info about the dataframe and columns
+    metadata?: object | null; // store info about the dataframe and columns
     // related to this command
 }
 
@@ -85,6 +85,9 @@ export enum CommandName {
     get_list_file_changed = "get_list_file_changed",
     connect_repo = "connect_repo",
     check_diff = "check_diff",
+    get_registered_udfs = "get_registered_udfs",
+    compute_udf = "compute_udf",
+    set_dataframe_cell_value = "set_dataframe_cell_value",
 }
 
 export enum ContentType {
@@ -104,7 +107,7 @@ export enum ContentType {
     PROJECT_LIST = "project_list",
     WORKSPACE_METADATA = "workspace_metadata",
     INPUT_REQUEST = "input_request",
-    IPYTHON_MSG = "ipython_msg"
+    IPYTHON_MSG = "ipython_msg",
 }
 
 export enum StandardMimeType {
@@ -133,7 +136,7 @@ export enum CommandType {
 }
 
 export enum WebAppEndpoint {
-    DFManager = "DFManager",
+    DataFrameManager = "DataFrameManager",
     ModelManager = "ModelManager",
     CodeEditor = "CodeEditor",
     FileManager = "FileManager",
@@ -150,15 +153,25 @@ export enum WebAppEndpoint {
     Terminal = "Terminal",
     GitManager = "GitManager",
     LogsManager = "LogsManager",
+    DataViewer = "DataViewer",
+    DFExplorer = "DFExplorer",
 }
 
 export interface ITableData {
     df_id: string;
     index: { name: string; data: any[] };
     column_names: string[];
-    rows: [][];
+    rows: any[][];
+    size: number;
+    page?: number;
 }
 
+export interface ITableMetaData {
+    df_id: string;
+    filter: string;
+    page_number: number;
+    page_size: number;
+}
 export interface IPlot {
     mime_type: StandardMimeType;
     data: {};
@@ -172,6 +185,7 @@ export interface IColumnMetadata {
     countna: number;
     quantile_plot: IPlot;
     histogram_plot: IPlot;
+    udfs: { [udfName: string]: {} | null };
 }
 
 export interface IMetadata {
@@ -179,6 +193,7 @@ export interface IMetadata {
     type: string;
     shape: number[];
     columns: { [id: string]: IColumnMetadata };
+    timestamp: number;
 }
 
 export enum ReviewType {
@@ -200,15 +215,24 @@ export enum FilterType {
     col = "col",
 }
 
+export enum SpecialMimeType {
+    FILE_PNG = "file/png",
+    FILE_JPG = "file/jpg",
+    URL_PNG = "url/png",
+    URL_JPG = "url/jpg",
+    URL_IMAGE = "url/image",
+    INPUT_SELECTION = "input/selection",
+    INPUT_CHECKBOX = "input/checkbox",
+    INPUT_TEXT = "input/text",
+}
 export enum FileMimeType {
     FILE_PNG = "file/png",
     FILE_JPG = "file/jpg",
     URL_PNG = "url/png",
     URL_JPG = "url/jpg",
 }
-
-export const CNextMimeType = { ...FileMimeType, ...StandardMimeType };
-export type CNextMimeType = FileMimeType | StandardMimeType;
+export const CNextMimeType = { ...SpecialMimeType, ...StandardMimeType };
+export type CNextMimeType = SpecialMimeType | StandardMimeType;
 
 export interface DFFilter {
     type: FilterType;
@@ -287,8 +311,8 @@ export interface IColumnMetadata {
     countna: number;
     unique: string | number[];
     describe: {};
-    histogram_plot: {} | null;
-    quantile_plot: {} | null;
+    // histogram_plot: {} | null;
+    // quantile_plot: {} | null;
 }
 
 export interface IDFMetadata {
@@ -297,11 +321,19 @@ export interface IDFMetadata {
     columns: { [key: string]: IColumnMetadata };
 }
 
-export interface IDataFrameStatsConfig {
-    histogram: boolean;
-    quantile: boolean;
-}
+// export interface IDataFrameStatsConfig {
+//     histogram: boolean;
+//     quantile: boolean;
+// }
 
+export interface IDataFrameUDFSelection {
+    udfs: { [UDFName: string]: boolean };
+    timestamp: string;
+}
+export interface IDataFrameColumnSelection {
+    columns: { [columnName: string]: boolean };
+    timestamp: string;
+}
 interface IExperimentManagerConfig {
     local_tmp_dir: string;
     mlflow_tracking_uri: string;
@@ -355,7 +387,7 @@ export interface IConfigs {
 export enum DFViewMode {
     TABLE_VIEW = "Table View",
     SUMMARY_VIEW = "Summary View",
-    GRID_VIEW = "Grid View",
+    // GRID_VIEW = "Grid View",
 }
 
 interface WorkSpaceOpenProject {
