@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.4](https://github.com/cnextio/cnext/compare/v0.10.3...v0.10.4) (2022-11-02)
+
+
+### Bug Fixes
+
+* **ci:** base dev version ([2a70290](https://github.com/cnextio/cnext/commit/2a70290d07e343888c80a2f9d0d4c9153c80821c))
+
 ## [0.10.3](https://github.com/cnextio/cnext/compare/v0.10.2...v0.10.3) (2022-11-01)
 
 
