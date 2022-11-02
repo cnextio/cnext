@@ -14,31 +14,35 @@ const RichOutputPanel = ({ stopMouseEvent }) => {
     const [show, setShow] = useState(RichOutputPanelToolbarItems.DATA);
     const [newItemIndicator, setNewItemIndicator] = useState<string | null>(null);
 
-    const resultUpdateCount = useSelector((state: RootState) => state.codeEditor.resultUpdateCount);
-    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
-    const tableData = useSelector((state: RootState) => state.dataFrames.tableData);
+    const resultNewOutputSignal = useSelector(
+        (state: RootState) => state.codeEditor.resultNewOutputSignal
+    );
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames?.activeDataFrame);
+    const tableMetadataUpdateSignal = useSelector(
+        (state: RootState) => state.dataFrames?.tableMetadataUpdateSignal
+    );
+
     const showMarkdown = useSelector(
         (state: RootState) => state.projectManager?.settings?.rich_output?.show_markdown
     );
 
     useEffect(() => {
-        setShow(RichOutputPanelToolbarItems.RESULTS)
-        // if (resultUpdateCount > 0) {
-        //     if (show !== RichOutputPanelToolbarItems.RESULTS) {
-        //         setIndicate(RichOutputPanelToolbarItems.RESULTS);
-        //     }
-        // }
-    }, [resultUpdateCount]);
+        /** only show the indicator when there is true RichOutput not status changed */
+        if (resultNewOutputSignal > 0) {
+            if (show !== RichOutputPanelToolbarItems.RESULTS) {
+                setNewItemIndicator(RichOutputPanelToolbarItems.RESULTS);
+            }
+            // setShow(RichOutputPanelToolbarItems.RESULTS);
+        }
+    }, [resultNewOutputSignal]);
 
-    // since there is at least one update to resultUpdateCount on every execution we will only
-    // use the indicator for Data tab
     useEffect(() => {
-        if (activeDataFrame != null && tableData != {}) {
+        if (Object.keys(tableMetadataUpdateSignal).length > 0) {
             if (show !== RichOutputPanelToolbarItems.DATA) {
                 setNewItemIndicator(RichOutputPanelToolbarItems.DATA);
             }
         }
-    }, [activeDataFrame, tableData]);
+    }, [tableMetadataUpdateSignal]);
 
     const setShowItem = (name: RichOutputPanelToolbarItems) => {
         setShow(name);

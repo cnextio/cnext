@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
@@ -44,7 +44,7 @@ import {
     setViewStateEditor,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
-import socket from "../../Socket";
+import { SocketContext } from "../../Socket";
 import {
     addToRunQueueHoverCell,
     addToRunQueueHoverLine,
@@ -52,8 +52,11 @@ import {
 } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
+import { PythonLanguageClient, LanguageProvider } from "./languageClient";
 
 const CodeEditor = ({ stopMouseEvent }) => {
+    const socket = useContext(SocketContext);
+
     const monaco = useMonaco();
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
@@ -107,6 +110,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
     const [editor, setEditor] = useState(null);
+
+    const [pyLanguageClient, setLanguageClient] = useState<any>(null);
 
     const insertCellBelow = (mode: CodeInsertMode, ln0based: number | null): boolean => {
         let model = getMainEditorModel(monaco);
@@ -211,8 +216,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     const socketInit = () => {
-        socket.emit("ping", WebAppEndpoint.CodeEditor);
-        socket.on(WebAppEndpoint.CodeEditor, (result: string) => {
+          socket?.emit("ping", WebAppEndpoint.CodeEditor);
+          socket?.on(WebAppEndpoint.CodeEditor,  (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -261,6 +266,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             } catch (error) {
                 console.error(error);
             }
+            if (ack) ack();
         });
     };
 
@@ -270,19 +276,41 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         return () => {
             console.log("CodeEditor unmount");
-            socket.off(WebAppEndpoint.CodeEditor);
+              socket?.off(WebAppEndpoint.CodeEditor);
         };
     }, []);
 
     useEffect(() => {
         // console.log("CodeEditor useEffect container view", container, view);
-        if (monaco) {
-            monaco.languages.register({ id: "python" });
-            monaco.languages.registerFoldingRangeProvider("python", {
+        if (monaco && inViewID) {
+            const nameSplit = inViewID.split(".");
+            const fileExt = nameSplit[nameSplit.length - 1];
+            const languageID = LanguageProvider[fileExt];
+            monaco.languages.register({ id: languageID });
+
+            // TODO: make folding for JSON code
+            monaco.languages.registerFoldingRangeProvider(languageID, {
                 provideFoldingRanges: (model, context, token) => getCellFoldRange(),
             });
+
+            // TODO: init LS for another code [json,sql]
+            if (languageID === LanguageProvider["py"]) {
+                const path = store.getState().projectManager.activeProject?.path;
+                const pyLanguageServer = {
+                    serverUri: "ws://" + process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT,
+                    rootUri: "file:///" + path,
+                    documentUri: "file:///" + path,
+                    languageId: languageID,
+                };
+                let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco, socket);
+                setLanguageClient(pyLanguageClient);
+                pyLanguageClient.setupLSConnection();
+                pyLanguageClient.registerHover();
+                pyLanguageClient.registerAutocompletion();
+                pyLanguageClient.registerSignatureHelp();
+            }
         }
-    });
+    }, [monaco]);
 
     // add action
     useEffect(() => {
@@ -350,7 +378,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(runQueueItem);
+                execLines(socket,runQueueItem);
             }
         }
     }, [runQueue]);
@@ -423,6 +451,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
             }
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
+                    console.log("run cell");
+                    
                     addToRunQueueHoverCell();
                     break;
                 case CellCommand.CLEAR:
@@ -466,6 +496,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         var model = editor.getModel();
 
         try {
+            pyLanguageClient.doValidate();
             const state = store.getState();
             let inViewID = state.projectManager.inViewID;
             /** do nothing if the update is due to code reloading from external source */
@@ -545,7 +576,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             saveViewState
             options={{
                 minimap: { enabled: true, autohide: true },
-                fontSize: 12,
+                fontSize: 11,
                 renderLineHighlight: "none",
                 scrollbar: { verticalScrollbarSize: 10 },
                 // foldingStrategy: "indentation",

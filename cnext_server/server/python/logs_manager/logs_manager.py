@@ -1,4 +1,3 @@
-import os
 import traceback
 
 from libs.message_handler import BaseMessageHandler
@@ -45,21 +44,22 @@ def send_json_logs(json_data, tag):
 
 def send_server_logs(tag):
     url = root_url + tag
-    filepath = get_file_path("server.log")
-    file =  open(filepath, "rb").read()
-    x = requests.post(url, data = file)
+    basepath = path.dirname(__file__)
+    filepath = path.abspath(path.join(basepath, "..", "..", "server.log"))
+
+    file =  open(filepath, "r")
+    lines = file.readlines()
+    if len(lines) > 10000:
+        lines = lines[-10000:]
+    
+    x = requests.post(url, data = "\n".join(lines))
     log.info('Send log with tag: %s' %(tag) + " " + x.text)
 
 
-def get_file_path(filename):
-    basepath = path.dirname(__file__)
-    filepath = path.abspath(path.join(basepath, "..", "..", filename))
-    return filepath
-
-
 def send_workspace(tag):
+    basepath = path.dirname(__file__)
+    filepath = path.abspath(path.join(basepath, "..", "..", "..", "workspace.yaml"))
     url = root_url + tag
-    filepath = get_file_path("workspace.yaml")
     file =  open(filepath, "rb").read()
     x = requests.post(url, data = file)
     log.info('Send log with tag: %s' %(tag) + " " + x.text)

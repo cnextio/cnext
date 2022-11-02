@@ -16,6 +16,9 @@ import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
 import { interruptKernel, restartKernel } from "./ExecutorManager";
 import { CellCommand } from "../../interfaces/ICodeEditor";
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import { SocketContext } from "../Socket";
+import { clearTextOutput } from "../../../redux/reducers/RichOutputRedux";
+
 const ExecutorToolbarItemComponent = ({ icon, selectedIcon, handleClick }) => {
     return (
         <Tooltip title={icon.tooltip} placement="bottom-end">
@@ -31,6 +34,7 @@ const ExecutorToolbarItemComponent = ({ icon, selectedIcon, handleClick }) => {
 };
 
 const ExecutorToolbar = () => {
+    const socket = React.useContext(SocketContext);
     const [selectedIcon, setSelectedIcon] = React.useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const dispatch = useDispatch();
@@ -38,8 +42,9 @@ const ExecutorToolbar = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
         if (inViewID) {
-            dispatch(clearAllOutputs(inViewID));
+            dispatch(clearAllOutputs(inViewID));            
         }
+        dispatch(clearTextOutput());
     };
     const handleClick = (name: string) => {
         if (name === ExecutorToolbarItem.CLEAR_OUTPUTS) {
@@ -63,11 +68,11 @@ const ExecutorToolbar = () => {
     };
     const commandDialogConfirm = (confirm: boolean, command: ExecutorManagerCommand) => {
         setKernelCommand(null);
-        if (confirm) {
+        if (confirm && socket) {
             if (command === ExecutorManagerCommand.interrupt_kernel) {
-                interruptKernel();
+                interruptKernel(socket);
             } else if (command === ExecutorManagerCommand.restart_kernel) {
-                restartKernel();
+                restartKernel(socket);
             }
         }
     };

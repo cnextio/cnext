@@ -19,6 +19,7 @@ import {
     CellCommand,
     ICodeState,
     ICodeStateMessage,
+    IPythonMessageType,
 } from "../../lib/interfaces/ICodeEditor";
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
@@ -37,7 +38,10 @@ type CodeEditorState = {
 
     /** This count is used to trigger the update of ResultView view.
      * It will increase whenever there is an update to results*/
-    resultUpdateCount: number;
+    resultUpdateSignal: number;
+    /** This count is trigger only when there is a new output to display in ResultView
+     * This is different with resultUpdateCount which updates on every kind of result returned */
+    resultNewOutputSignal: number;
 
     /** This stores the current max text output order.
      * This is used to set the order of the text output. */
@@ -45,7 +49,7 @@ type CodeEditorState = {
 
     /** This count is used to trigger the update of CodeOutput view.
      * It will increase whenever there is an update to text output results*/
-    textOutputUpdateCount: number;
+    textOutputUpdateSignal: number;
     saveViewStateEditor: any;
     lineStatusUpdateCount: number;
     activeLine: string | null;
@@ -65,6 +69,10 @@ type CodeEditorState = {
     cellCommand: keyof typeof CellCommand | null;
     /** this number need to be increase whenever cell association changed */
     cellAssocUpdateCount: number;
+    /** this number keep track of where in the result array the input request is if any
+     * this is used to remove this input request next time there is a result */
+    inputRequestResultIndex: number;
+    executor_execution_state: string | null;
 };
 
 const initialState: CodeEditorState = {
@@ -75,9 +83,10 @@ const initialState: CodeEditorState = {
     saveViewStateEditor: {},
     // fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP, queue: [] },
-    resultUpdateCount: 0,
+    resultUpdateSignal: 0,
+    resultNewOutputSignal: 0,
     maxTextOutputOrder: 0,
-    textOutputUpdateCount: 0,
+    textOutputUpdateSignal: 0,
     lineStatusUpdateCount: 0,
     cellAssocUpdateCount: 0,
     activeLine: null,
@@ -93,6 +102,8 @@ const initialState: CodeEditorState = {
     mouseOverGroupID: null,
     cellCommand: null,
     mouseOverLine: null,
+    inputRequestResultIndex: -1,
+    executor_execution_state: null,
 };
 
 /**
@@ -135,8 +146,10 @@ function setLineStatusInternal(state: CodeEditorState, lineStatus: ICodeLineStat
         }
         if (lineStatus.status === LineStatus.EXECUTING) {
             /** clear the result before executing */
-            codeLines[lineStatus.lineRange.fromLine].result = undefined;
-            state.resultUpdateCount++;
+            if (codeLines[lineStatus.lineRange.fromLine].result) {
+                codeLines[lineStatus.lineRange.fromLine].result = undefined;
+                state.resultUpdateSignal++;
+            }
         }
         const lineRange: ILineRange = lineStatus.lineRange;
         for (let ln = lineRange.fromLine; ln < lineRange.toLine; ln++) {
@@ -160,7 +173,7 @@ function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem
     if (lineRange.fromLine != null && lineRange.toLine != null) {
         for (let l = lineRange.fromLine; l < lineRange.toLine; l++) {
             codeLines[l].textOutput = undefined;
-            state.textOutputUpdateCount += 1;
+            state.textOutputUpdateSignal ++;
         }
     }
 }
@@ -206,10 +219,10 @@ export const CodeEditorRedux = createSlice({
                 let resultData = codeLines.filter(
                     (codeLine) => codeLine.hasOwnProperty("result") && codeLine.result !== null
                 );
-                state.resultUpdateCount += 1;
+                state.resultUpdateSignal++;
 
                 // state.maxTextOutputOrder = getMaxTextOutputOrder(codeLines);
-                state.textOutputUpdateCount += 1;
+                state.textOutputUpdateSignal++;
             }
             state.codeLines[reduxFileID] = codeLines;
         },
@@ -221,7 +234,7 @@ export const CodeEditorRedux = createSlice({
             let codeLines: ICodeLine[] = state.codeLines[inViewID];
             let startLineGroupID = codeLines[lineUpdate.updatedStartLineNumber]?.groupID;
             state.codeText[inViewID] = lineUpdate.text;
-            state.saveCodeTextCounter += 1;
+            state.saveCodeTextCounter++;
 
             console.log("CodeEditorRedux line update info: ", lineUpdate);
             if (lineUpdate.updatedLineCount > 0) {
@@ -266,10 +279,10 @@ export const CodeEditorRedux = createSlice({
                         codeLines[lineUpdate.updatedStartLineNumber + 1 + i].result?.type ===
                             ContentType.RICH_OUTPUT
                     ) {
-                        state.resultUpdateCount++;
+                        state.resultUpdateSignal++;
                     }
                     if (codeLines[lineUpdate.updatedStartLineNumber + 1 + i].textOutput) {
-                        state.textOutputUpdateCount++;
+                        state.textOutputUpdateSignal++;
                     }
                 }
                 codeLines = [
@@ -361,6 +374,24 @@ export const CodeEditorRedux = createSlice({
                 let fromLine = lineRange.fromLine;
                 let codeLines: ICodeLine[] = state.codeLines[inViewID];
                 let currentTextOutput = state.codeLines[inViewID][fromLine].textOutput;
+
+                /** check to see if we have to remove the input request */
+                if (
+                    resultMessage.type === ContentType.IPYTHON_MSG &&
+                    resultMessage.metadata.msg_type === IPythonMessageType.STATUS
+                ) {
+                    state.executor_execution_state = resultMessage.content.execution_state;
+                    /** remove the input request when the kernel execution state is idle */
+                    if (resultMessage.content.execution_state === "idle") {
+                        if (state.inputRequestResultIndex >= 0) {
+                            codeLines[fromLine].result?.splice(state.inputRequestResultIndex, 1);
+                            state.inputRequestResultIndex = -1;
+                            state.resultUpdateSignal++;
+                            state.saveCodeLineCounter++;
+                        }
+                    }
+                }
+
                 /** text result will be appended within each execution. The output will be cleared at the
                  * beginning of each execution */
                 if (resultMessage.type === ContentType.STRING) {
@@ -403,9 +434,14 @@ export const CodeEditorRedux = createSlice({
                     // if (codeLines[fromLine] != null && codeLines[fromLine].textOutput != null) {
                     //     codeLines[fromLine].textOutput.order = state.maxTextOutputOrder;
                     // }
-                    state.textOutputUpdateCount++;
+                    state.textOutputUpdateSignal++;
                     state.saveCodeLineCounter++;
-                } else if (resultMessage.type === ContentType.RICH_OUTPUT) {
+                    state.resultNewOutputSignal++;
+                } else if (
+                    [ContentType.RICH_OUTPUT, ContentType.INPUT_REQUEST].includes(
+                        resultMessage.type
+                    )
+                ) {
                     let content = resultMessage.content;
                     if (resultMessage?.subType === SubContentType.APPLICATION_JSON) {
                         try {
@@ -417,37 +453,52 @@ export const CodeEditorRedux = createSlice({
                     let newResult = {
                         type: resultMessage.type,
                         subType: resultMessage.subType,
-                        // content: Object.assign({}, oldContent, content),
                         content: content,
                         msg_id: resultMessage.metadata.msg_id,
                     };
 
+                    if (!codeLines[fromLine].result) codeLines[fromLine].result = [];
+
                     // assign the result of a group only to the first line
-                    if (codeLines[fromLine].result != null) {
-                        // this is for backward compatible with the previous format of result
-                        let lineResult = codeLines[fromLine].result;
-                        if (!(lineResult instanceof Array)) {
-                            codeLines[fromLine].result = [lineResult];
-                        } else {
-                            if (newResult.subType === SubContentType.MARKDOWN) {
-                                /** we need a special handling of markdown */
-                                let foundMarkdown = false;
-                                for (let i = 0; i < lineResult.length; i++) {
-                                    if (lineResult[i].subType === SubContentType.MARKDOWN) {
-                                        lineResult[i] = newResult;
-                                        foundMarkdown = true;
-                                    }
-                                }
-                                if (!foundMarkdown) lineResult.push(newResult);
-                            } else {
-                                codeLines[fromLine].result?.push(newResult);
-                            }
-                        }
+                    let lineResult = codeLines[fromLine].result;
+                    // this is for backward compatible with the previous format of result
+                    if (!(lineResult instanceof Array)) {
+                        codeLines[fromLine].result = [lineResult];
                     } else {
-                        codeLines[fromLine].result = [newResult];
+                        if (newResult.type === ContentType.INPUT_REQUEST) {
+                            /** remove the prev input request whenever there is a new one */
+                            if (state.inputRequestResultIndex >= 0) {
+                                codeLines[fromLine].result?.splice(
+                                    state.inputRequestResultIndex,
+                                    1
+                                );
+                            }
+                            /** add new one only if the kernel execution state is busy
+                             * there is case where jupyter sends input request when execution
+                             * state is idle */
+                            if (state.executor_execution_state === "busy") {
+                                codeLines[fromLine].result?.push(newResult);
+                                state.inputRequestResultIndex =
+                                    codeLines[fromLine].result?.length - 1;
+                            }
+                        } else if (newResult.subType === SubContentType.MARKDOWN) {
+                            /** we need a special handling of markdown */
+                            let foundMarkdown = false;
+                            for (let i = 0; i < lineResult.length; i++) {
+                                if (lineResult[i].subType === SubContentType.MARKDOWN) {
+                                    lineResult[i] = newResult;
+                                    foundMarkdown = true;
+                                }
+                            }
+                            if (!foundMarkdown) lineResult.push(newResult);
+                        } else {
+                            codeLines[fromLine].result?.push(newResult);
+                        }
                     }
-                    state.resultUpdateCount++;
+
+                    state.resultUpdateSignal++;
                     state.saveCodeLineCounter++;
+                    state.resultNewOutputSignal++;
                 }
             }
         },
@@ -576,8 +627,8 @@ export const CodeEditorRedux = createSlice({
                 ) {
                     codeLine.result = undefined;
                     codeLine.textOutput = undefined;
-                    state.textOutputUpdateCount = 0;
-                    state.resultUpdateCount = 0;
+                    state.textOutputUpdateSignal = 0;
+                    state.resultUpdateSignal = 0;
                     state.saveCodeTextCounter++;
                     state.saveCodeLineCounter++;
                 }
@@ -586,7 +637,7 @@ export const CodeEditorRedux = createSlice({
 
         setCodeStates: (state, action) => {
             let data: ICodeStateMessage = action.payload;
-            if (data.inViewID != null) {
+            if (data.inViewID != null && state.codeStates[data.inViewID]) {
                 state.codeStates[data.inViewID].scrollPos = data.scrollPos;
                 state.codeStates[data.inViewID].cmState = data.cmState;
             }
@@ -599,9 +650,9 @@ export const CodeEditorRedux = createSlice({
             state.timestamp = {};
             // fileSaved: true,
             state.runQueue = { status: RunQueueStatus.STOP, queue: [] };
-            state.resultUpdateCount = 0;
+            state.resultUpdateSignal = 0;
             state.maxTextOutputOrder = 0;
-            state.textOutputUpdateCount = 0;
+            state.textOutputUpdateSignal = 0;
             state.lineStatusUpdateCount = 0;
             state.activeLine = null;
             state.activeGroup = undefined;
@@ -613,6 +664,8 @@ export const CodeEditorRedux = createSlice({
             state.saveCodeLineCounter = 0;
             state.cellAssocUpdateCount = 0;
             state.lastLineUpdate = {};
+            state.inputRequestResultIndex = -1;
+            state.executor_execution_state = null;
         },
     },
 });

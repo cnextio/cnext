@@ -368,13 +368,13 @@ export const FileNameTab = styled(Typography)`
     font-size: 13px;
 
     animation: ${(props) =>
-            props.runQueueBusy
+            props.executing
                 ? textTransitionToColor("#F59242", props.theme.palette.grey.A200)
                 : null}
         2s ease infinite;
 
     color: ${(props) =>
-        props.fileSaved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
+        props.saved ? props.theme.palette.text.secondary : props.theme.palette.error.dark};
 
     background-color: ${(props) =>
         props.selected ? props.theme.palette.background.paper : props.theme.palette.grey.A200};
@@ -780,8 +780,15 @@ export const DFViewModeSmallArrowIcon = styled(SmallArrowIcon)`
 `;
 
 export const DFSelectorMenuItem = styled(MenuItem)`
+    display: flex;
     font-size: 13px;
     padding: 5px 10px;
+    width: 200px;
+    height: 32px;
+    justify-content: space-between;
+    span:nth-child(2, 3) {
+        margin-left: auto;
+    }
 `;
 
 export const DFFilterForm = styled(FormControl)`
@@ -796,6 +803,26 @@ export const DFFilterInput = styled(OutlinedInput)`
     padding: 0px;
 `;
 
+export const StdInInput = styled(TextField)`
+    height: 34px;
+    width: 100%;
+    .MuiInput-root {
+        height: 100%;
+    }
+    .MuiInputAdornment-root > p {
+        font-size: 12px;
+    }
+    .MuiOutlinedInput-root {
+        border-radius: 0px;
+    }
+    .MuiOutlinedInput-input {
+        font-size: 12px;
+        // padding: 0px;
+        // height: 100%;
+        color: ${(props) => props.theme.palette.text.secondary};
+    }
+`;
+
 export const QuerySample = styled.div`
     margin-top: 5px;
     // margin-right: 5px;
@@ -807,9 +834,18 @@ export const QuerySample = styled.div`
     background: ${(props) => props.theme.palette.grey.A100};
 `;
 
-export const StyledFilterCodeMirror = styled(CodeMirror)`
-    // height = "100%"
+// export const StyledFilterCodeMirror = styled(CodeMirror)`
+export const StyledFilterCodeMirror = styled.div`
+    border: 1px solid;
+    border-color: ${(props) => props.theme.palette.grey.A400};
+    border-radius: 4px;
+    overflow: hidden
+    line-height: 32px;
+    font-size: 14px;
+    padding: 0px 5px;
+    height: 34px;
     width: 100%;
+
     .cm-tooltip.cm-completionInfo {
         position: absolute;
         margin: 1px -4px;
@@ -822,16 +858,20 @@ export const StyledFilterCodeMirror = styled(CodeMirror)`
     }
 
     .cm-line {
-        line-height: 25px;
+        line-height: 32px;
         font-size: 14px;
-        padding: 5px;
+        // padding-top: 5px;
     }
 
     .cm-content {
-        padding: 0px 10px;
+        line-height: 32px;
+        font-size: 14px;
+        padding: 0px 0px;
     }
 
     .cm-editor.cm-focused {
+        // line-height: 32px;
+        // font-size: 14px;
         outline: none;
     }
 
@@ -883,7 +923,7 @@ export const DFStatsSelector = styled(Select)`
 
 export const DFStatsMenuItem = styled(MenuItem)`
     font-size: 13px;
-    padding: 5px 10px 5px 0px;
+    padding: 0px 5px 0px 0px;
     .MuiSvgIcon-root {
         font-size: 18px;
     }
@@ -943,8 +983,12 @@ export const DataTableHead = styled(TableHead)`
 export const DataTableHeadRow = styled(TableRow)``;
 
 export const DataTableRow = styled(TableRow)`
-    &:nth-of-type(odd) {
+    & .odd-row {
         background-color: ${(props) => props.theme.palette.action.hover};
+    }
+
+    & .even-row {
+        background-color: none;
     }
 `;
 
@@ -1055,6 +1099,9 @@ export const SmallVizContainer = styled(MuiTableContainer)`
     padding: 0px;
     overflow: hidden;
     font-weight: normal;
+    &:hover {
+        cursor: zoom-in;
+    }
 `;
 
 export const ExperimentContainer = styled.div`
@@ -1235,7 +1282,7 @@ export const ErrorText = styled.span`
     display: block;
 `;
 
-function backgroundTransition(color) {
+export function backgroundTransition(color) {
     return keyframes`
       50% {
         background-color: ${color};
@@ -1243,7 +1290,7 @@ function backgroundTransition(color) {
     `;
 }
 
-function backgroundTransitionToColor(color1, color2) {
+export function backgroundTransitionToColor(color1, color2) {
     return keyframes`
       0% {
         background-color: ${color1};
@@ -1257,7 +1304,7 @@ function backgroundTransitionToColor(color1, color2) {
     `;
 }
 
-function textTransitionToColor(color1, color2) {
+export function textTransitionToColor(color1, color2) {
     return keyframes`
       0% {
         color: ${color1};

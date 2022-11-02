@@ -24,11 +24,11 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
-    const textOutputUpdateCount = useSelector(
-        (state: RootState) => state.codeEditor.textOutputUpdateCount
+    const textOutputUpdateSignal = useSelector(
+        (state: RootState) => state.codeEditor.textOutputUpdateSignal
     );
     const roTextOutputUpdateCount = useSelector(
-        (state: RootState) => state.richOutput.textOutputUpdateCount
+        (state: RootState) => state.richOutput.textOutputUpdateSignal
     );
     // const richOutputFocused = useSelector((state: RootState) => state.richOutput.richOutputFocused);
     const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
@@ -74,7 +74,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     }
 
     function getActiveDataFrameStatus(state: RootState) {
-        const activeDataFrame = state.dataFrames.activeDataFrame;
+        const activeDataFrame = state.dataFrames?.activeDataFrame;
         if (
             activeDataFrame &&
             state.dataFrames.dfUpdates != null &&
@@ -188,32 +188,32 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     // useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced, inViewID]);
 
     /** Get an df update messages */
-    const handleDFUpdates = () => {
-        // const state = store.getState();
-        // const activeDFStatus = getActiveDataFrameStatus(state);
-        //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
-        if (activeDFStatus != null) {
-            const update = getLastUpdate(activeDFStatus);
-            // dfUpdates._status_list[dfUpdates._status_list.length-1].updates;
-            const updateType = update.update_type;
-            const updateContent = update.update_content ? update.update_content : [];
+    // const handleDFUpdates = () => {
+    //     // const state = store.getState();
+    //     // const activeDFStatus = getActiveDataFrameStatus(state);
+    //     //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
+    //     if (activeDFStatus != null) {
+    //         const update = getLastUpdate(activeDFStatus);
+    //         // dfUpdates._status_list[dfUpdates._status_list.length-1].updates;
+    //         const updateType = update.update_type;
+    //         const updateContent = update.update_content ? update.update_content : [];
 
-            let newOutputContent = {
-                type: "df_updates",
-                content: {
-                    updateType: updateType,
-                    updateContent: updateContent,
-                },
-            };
-            //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
-            if (newOutputContent != null) {
-                setOutputContent((outputContent) => [...outputContent, newOutputContent]);
-                setLastItemIsROTextOutput(false);
-            }
-            dispatch(setDFStatusShowed(true));
-        }
-    };
-    useEffect(handleDFUpdates, [activeDFStatus]);
+    //         let newOutputContent = {
+    //             type: "df_updates",
+    //             content: {
+    //                 updateType: updateType,
+    //                 updateContent: updateContent,
+    //             },
+    //         };
+    //         //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
+    //         if (newOutputContent != null) {
+    //             setOutputContent((outputContent) => [...outputContent, newOutputContent]);
+    //             setLastItemIsROTextOutput(false);
+    //         }
+    //         dispatch(setDFStatusShowed(true));
+    //     }
+    // };
+    // useEffect(handleDFUpdates, [activeDFStatus]);
 
     /** This is to display the text output (often it is an exception)
      * from the excution of plugins in rich-output panel
@@ -283,7 +283,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
                             <Ansi>{item.content}</Ansi>
                         </IndividualTextIOContent>
                     )}
-                    {item?.type === "df_updates" && (
+                    {/* {item?.type === "df_updates" && (
                         <IndividualTextIOContent key={index} component="pre" variant="body2">
                             {renderDFReviewsOutputComponent(
                                 outputContent.length,
@@ -294,7 +294,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
                                     updateTypeToReview.includes(item["content"]["updateType"])
                             )}
                         </IndividualTextIOContent>
-                    )}
+                    )} */}
                 </ScrollIntoViewIfNeeded>
             ))}
         </>

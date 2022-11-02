@@ -22,9 +22,11 @@ const ResultPanel = React.memo((props: any) => {
     /** use this to reload the output when inViewID changed */
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     /** this is used to trigger the rerender of this component whenever there is a new result update */
-    const resultUpdateCount = useSelector((state: RootState) => state.codeEditor.resultUpdateCount);
-    const textOutputUpdateCount = useSelector(
-        (state: RootState) => state.codeEditor.textOutputUpdateCount
+    const resultUpdateSignal = useSelector(
+        (state: RootState) => state.codeEditor.resultUpdateSignal
+    );
+    const textOutputUpdateSignal = useSelector(
+        (state: RootState) => state.codeEditor.textOutputUpdateSignal
     );
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
@@ -37,7 +39,7 @@ const ResultPanel = React.memo((props: any) => {
     const isActiveLineOrGroup = (codeLine: ICodeLine) => {
         return (
             // codeLine.lineID === activeLine ||
-            (codeLine.groupID != null && codeLine.groupID === activeGroup)
+            codeLine.groupID != null && codeLine.groupID === activeGroup
         );
     };
 
@@ -74,33 +76,39 @@ const ResultPanel = React.memo((props: any) => {
             if (showDashboard) {
                 return <DashboardView />;
             } else {
+                const resultContentElement = (codeLine: ICodeLine) => (
+                    <SingleResultContainer
+                        key={codeLine.lineID}
+                        variant="outlined"
+                        focused={isActiveLineOrGroup(codeLine)}
+                        showMarkdown={showMarkdown}
+                        onClick={() => clickHandler(codeLine.lineID)}
+                    >
+                        <ResultContent
+                            codeResult={codeLine}
+                            showMarkdown={showMarkdown}
+                            stopMouseEvent={props.stopMouseEvent}
+                        />
+                    </SingleResultContainer>
+                );
                 return (
                     <StyledResultView id={resultPanelId}>
-                        {codeWithResult?.map((codeLine: ICodeLine) => (
-                            <ScrollIntoViewIfNeeded
-                                active={isActiveLineOrGroup(codeLine) && readyToScroll}
-                                options={{
-                                    block: "start",
-                                    inline: "center",
-                                    behavior: "smooth",
-                                    boundary: document.getElementById(resultPanelId),
-                                }}
-                            >
-                                <SingleResultContainer
-                                    key={codeLine.lineID}
-                                    variant="outlined"
-                                    focused={isActiveLineOrGroup(codeLine)}
-                                    showMarkdown={showMarkdown}
-                                    onClick={() => clickHandler(codeLine.lineID)}
-                                >
-                                    <ResultContent
-                                        codeResult={codeLine}
-                                        showMarkdown={showMarkdown}
-                                        stopMouseEvent={props.stopMouseEvent}
+                        {codeWithResult?.map(
+                            (codeLine: ICodeLine, index: number) =>
+                                resultContentElement && (
+                                    <ScrollIntoViewIfNeeded
+                                        active={isActiveLineOrGroup(codeLine) && readyToScroll}
+                                        options={{
+                                            block: "start",
+                                            inline: "center",
+                                            behavior: "smooth",
+                                            boundary: document.getElementById(resultPanelId),
+                                        }}
+                                        key={index}
+                                        children={resultContentElement(codeLine)}
                                     />
-                                </SingleResultContainer>
-                            </ScrollIntoViewIfNeeded>
-                        ))}
+                                )
+                        )}
                     </StyledResultView>
                 );
             }
