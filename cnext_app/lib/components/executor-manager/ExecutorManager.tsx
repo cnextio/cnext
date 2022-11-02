@@ -23,6 +23,8 @@ const sendMessage = (socket: Socket, message: IMessage) => {
 const restartKernel = (socket: Socket) => {
     const message = createMessage(ExecutorManagerCommand.restart_kernel);
     sendMessage(socket, message);
+
+    socket?.emit(WebAppEndpoint.ServerJS, JSON.stringify(message));
 };
 
 const interruptKernel = (socket: Socket) => {

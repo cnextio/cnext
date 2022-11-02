@@ -148,7 +148,8 @@ export enum WebAppEndpoint {
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
     LogsManager = "LogsManager",
-    DataViewer = "DataViewer"
+    DataViewer = "DataViewer",
+    ServerJS = "ServerJS",
 }
 
 export interface ITableData {
@@ -157,7 +158,7 @@ export interface ITableData {
     column_names: string[];
     rows: any[][];
     size: number;
-    page?: number; 
+    page?: number;
 }
 
 export interface ITableMetaData {

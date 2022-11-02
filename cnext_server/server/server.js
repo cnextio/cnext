@@ -42,6 +42,7 @@ const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
 const DataViewer = "DataViewer";
+const ServerJS = "ServerJS";
 
 const CodeEndpoints = [
     CodeEditor,
@@ -53,6 +54,8 @@ const CodeEndpoints = [
     DataViewer,
 ];
 const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
+
+const ServerJSEndpoints = [ServerJS];
 
 const LSPExecutor = [
     LanguageServer,
@@ -126,6 +129,8 @@ class PythonProcess {
             endpoins = CodeEndpoints;
         } else if (mode === "noncode") {
             endpoins = NonCodeEndpoints;
+        } else if (mode === "serverjs") {
+            endpoins = ServerJSEndpoints;
         }
         for (let endpoint of endpoins) {
             /** only ExecutorManager use zmq now. TODO: move everything to zmq */
@@ -186,7 +191,7 @@ try {
                 let jsonMessage = JSON.parse(message);
                 if (jsonMessage.command_name !== "get_status") {
                     console.log(
-                        "Receive msg from client, server will run:",
+                        "Receive msg from client, server will run: codeExecutor ",
                         jsonMessage["command_name"]
                     );
                 }
@@ -194,12 +199,22 @@ try {
             } else if (NonCodeEndpoints.includes(endpoint)) {
                 let jsonMessage = JSON.parse(message);
                 console.log(
-                    "Receive msg from client, server will run:",
+                    "Receive msg from client, server will run: nonCodeExecutor",
                     jsonMessage["command_name"]
                 );
                 nonCodeExecutor.send2executor(endpoint, message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
+            } else if (ServerJSEndpoints.includes(endpoint)) {
+                let jsonMessage = JSON.parse(message);
+                console.log(
+                    "Receive msg from client, server will run: ServerJSEndpoints",
+                    jsonMessage["command_name"]
+                );
+                setTimeout(() => {
+                    codeExecutor.shutdown("SIGINT");
+                    codeExecutor = new PythonProcess(io, `python/server.py`, ["code"]);
+                }, 1000);
             }
         });
 
