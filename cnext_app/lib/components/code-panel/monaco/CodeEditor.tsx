@@ -283,7 +283,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     documentUri: "file:///" + path,
                     languageId: languageID,
                 };
-                let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco);
+                let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco, socket);
                 setLanguageClient(pyLanguageClient);
                 pyLanguageClient.setupLSConnection();
                 pyLanguageClient.registerHover();

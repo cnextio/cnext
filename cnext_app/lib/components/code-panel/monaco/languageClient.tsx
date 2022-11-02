@@ -1,21 +1,23 @@
-import socket from "../../../components/Socket";
 import { WebAppEndpoint } from "../../../interfaces/IApp";
 import store, { RootState } from "../../../../redux/store";
 import { getCodeText, getMainEditorModel } from "./libCodeEditor";
 import { CompletionTriggerKind, SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
+import { Socket } from "socket.io-client";
 
 class PythonLanguageClient {
     config: any;
     monaco: any;
+    socket: Socket
     timeout = 10000;
     documentVersion = 0;
     changesTimeout = 0;
     changesDelay = 3000;
     settings = () => store.getState().projectManager.settings.code_editor;
 
-    constructor(config: any, monaco: any) {
+    constructor(config: any, monaco: any, socket: Socket) {
         this.config = config;
         this.monaco = monaco;
+        this.socket = socket;
     }
 
     doValidate() {
@@ -147,13 +149,13 @@ class PythonLanguageClient {
     }
 
     setupLSConnection() {
-        socket.emit("ping", WebAppEndpoint.LanguageServer);
-        socket.on("pong", (message) => {
+        this.socket.emit("ping", WebAppEndpoint.LanguageServer);
+        this.socket.on("pong", (message) => {
             // console.log("Get pong from server when init LSP");
         });
 
         // register listener notify from server
-        socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
+        this.socket.on(WebAppEndpoint.LanguageServerNotifier, (result) => {
             try {
                 const notification = JSON.parse(result);
                 // console.log(
@@ -202,14 +204,14 @@ class PythonLanguageClient {
             //     `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
             //     rpcMessage
             // );
-            socket.emit(channel, JSON.stringify(rpcMessage));
+            this.socket.emit(channel, JSON.stringify(rpcMessage));
 
             setTimeout(() => {
                 resolve(null);
             }, timeout);
 
             if (channel) {
-                socket.once(channel, (result: any) => {
+                this.socket.once(channel, (result: any) => {
                     const response = JSON.parse(result.toString());
                     // console.log(
                     //     `received from LSP on ${channel} server at ${new Date().toLocaleString()} `,
