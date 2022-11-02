@@ -191,7 +191,7 @@ try {
                 let jsonMessage = JSON.parse(message);
                 if (jsonMessage.command_name !== "get_status") {
                     console.log(
-                        "Receive msg from client, server will run: codeExecutor ",
+                        "Receive msg from client, server will run:  ",
                         jsonMessage["command_name"]
                     );
                 }
@@ -199,7 +199,7 @@ try {
             } else if (NonCodeEndpoints.includes(endpoint)) {
                 let jsonMessage = JSON.parse(message);
                 console.log(
-                    "Receive msg from client, server will run: nonCodeExecutor",
+                    "Receive msg from client, server will run: ",
                     jsonMessage["command_name"]
                 );
                 nonCodeExecutor.send2executor(endpoint, message);
