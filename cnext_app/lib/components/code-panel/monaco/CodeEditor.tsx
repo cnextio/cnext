@@ -10,6 +10,12 @@ import {
     setCodeTextAndStates,
     setHTMLEventHandler,
     setLineStatus,
+    deleteCellHover,
+    runCellAboveGroup,
+    runCellBelowGroup,
+    runAllCell,
+    setGroup,
+    setUnGroup,
 } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
@@ -35,10 +41,15 @@ import {
     updateLines,
     setActiveLine as setActiveLineRedux,
     setLineGroupStatus,
+    setViewStateEditor,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { SocketContext } from "../../Socket";
-import { addToRunQueueHoverCell, addToRunQueueHoverLine } from "./libRunQueue";
+import {
+    addToRunQueueHoverCell,
+    addToRunQueueHoverLine,
+    addToRunQueueMoveDown,
+} from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
 import { PythonLanguageClient, LanguageProvider } from "./languageClient";
@@ -52,10 +63,18 @@ const CodeEditor = ({ stopMouseEvent }) => {
         (state: RootState) => state.executorManager.executorRestartCounter
     );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+
+    const updateInViewIDCount = useSelector(
+        (state: RootState) => state.projectManager.updateInViewIDCount
+    );
     /** this is used to save the state such as scroll pos and folding status */
     const [curInViewID, setCurInViewID] = useState<string | null>(null);
+    const [oldState, setOldState] = useState<boolean>(false);
     const activeProjectID = useSelector(
         (state: RootState) => state.projectManager.activeProject?.id
+    );
+    const saveViewStateEditor = useSelector(
+        (state: RootState) => state.codeEditor.saveViewStateEditor
     );
     /** using this to trigger refresh in gutter */
     // const codeText = useSelector((state: RootState) => getCodeText(state));
@@ -109,7 +128,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
         if (model && inViewID) {
             const codeLines = state.codeEditor.codeLines[inViewID];
-            let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
+            let curGroupID = codeLines[lnToInsertAfter - 1]?.groupID;
 
             while (
                 curGroupID != null &&
@@ -318,6 +337,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     run: () => addToRunQueueHoverCell(),
                 },
                 {
+                    id: shortcutKeysConfig.run_queue_then_move_down,
+                    keybindings: [monaco.KeyMod.Shift | monaco.KeyCode.Enter],
+                    run: () => addToRunQueueMoveDown(editor),
+                },
+                {
                     id: `foldAll`,
                     keybindings: [
                         monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
@@ -330,6 +354,16 @@ const CodeEditor = ({ stopMouseEvent }) => {
                         monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyU,
                     ],
                     run: () => unfoldAll(editor),
+                },
+                {
+                    id: shortcutKeysConfig.set_group,
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG],
+                    run: () => setGroup(editor),
+                },
+                {
+                    id: shortcutKeysConfig.set_ungroup,
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyU],
+                    run: () => setUnGroup(editor),
                 },
             ];
             keymap.forEach(function (element) {
@@ -383,8 +417,22 @@ const CodeEditor = ({ stopMouseEvent }) => {
             getCellFoldRange(monaco, editor);
             setCellWidgets(editor);
             setCodeReloading(false);
+
+            // //When you create the new instance load the model that you saved
+            if (inViewID && saveViewStateEditor[inViewID]) {
+                editor.restoreViewState(saveViewStateEditor[inViewID]);
+                // setOldState(true)
+            }
         }
     }, [serverSynced, codeReloading, monaco, editor]);
+    // useEffect(() => {
+    //     if (editor) {
+    //         if (inViewID && saveViewStateEditor[inViewID]) {
+    //             // editor.restoreViewState(saveViewStateEditor[inViewID]);
+    //             // setOldState(true)
+    //         }
+    //     }
+    // });
 
     useEffect(() => {
         const state = store.getState();
@@ -414,6 +462,18 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     /** TODO: fix the type issue with ln0based */
                     insertCellBelow(CodeInsertMode.GROUP, ln0based);
                     break;
+                case CellCommand.DELL_CELL:
+                    deleteCellHover(editor, monaco);
+                    break;
+                case CellCommand.RUN_ABOVE_CELL:
+                    runCellAboveGroup(editor);
+                    break;
+                case CellCommand.RUN_BELOW_CELL:
+                    runCellBelowGroup();
+                    break;
+                case CellCommand.RUN_ALL_CELL:
+                    runAllCell();
+                    break;
             }
             dispatch(setCellCommand(undefined));
         }
@@ -433,6 +493,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
     };
 
     const handleEditorChange = (value, event) => {
+        var model = editor.getModel();
+
         try {
             pyLanguageClient.doValidate();
             const state = store.getState();
@@ -511,6 +573,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             defaultLanguage="python"
             onMount={handleEditorDidMount}
             onChange={handleEditorChange}
+            saveViewState
             options={{
                 minimap: { enabled: true, autohide: true },
                 fontSize: 11,

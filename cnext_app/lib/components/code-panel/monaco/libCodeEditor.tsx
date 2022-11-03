@@ -1,23 +1,29 @@
 import { Monaco } from "@monaco-editor/react";
 import {
     setActiveLine as setActiveLineRedux,
+    setLineGroupStatus,
     setMouseOverGroup,
     setMouseOverLine,
+    setViewStateEditor,
+    updateLines,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import store, { RootState } from "../../../../redux/store";
 import {
     ICodeActiveLine,
     ICodeLine,
+    ICodeLineGroupStatus,
     ICodeLineStatus,
     ILineRange,
     IRunningCommandContent,
     IRunQueueItem,
     LineStatus,
+    SetLineGroupCommand,
 } from "../../../interfaces/ICodeEditor";
 import { ifElse } from "../../libs";
 import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/CodeEditorRedux";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { Socket } from "socket.io-client";
+import { addGroupToRunQueue, getLineRangeOfGroup } from "./libRunQueue";
 
 export const getCodeLine = (state: RootState): ICodeLine[] | null => {
     let inViewID = state.projectManager.inViewID;
@@ -56,7 +62,11 @@ function setWidgetOpacity(id: string, opacity: string) {
     if (element) {
         // element.style.opacity = opacity;
         if (opacity === "1") element.classList.add("show-toolbar");
-        else element.classList.remove("show-toolbar");
+        else {
+            if (element.getElementsByClassName("circle-excuting").length === 0) {
+                element.classList.remove("show-toolbar");
+            }
+        }
     }
 }
 
@@ -122,9 +132,15 @@ function onMouseMove(event) {
     }
 }
 
-function onMouseLeave(event) {
+function onMouseLeave(event, editor) {
     try {
         if (event != null) {
+            const inViewID = store.getState().projectManager.inViewID;
+            if (inViewID && editor) {
+                const viewState = editor.saveViewState();
+                store.dispatch(setViewStateEditor({ inViewID, viewState }));
+            }
+
             let reduxState = store.getState();
             const mouseOverGroupID = reduxState.codeEditor.mouseOverGroupID;
             if (mouseOverGroupID) {
@@ -141,7 +157,7 @@ function onMouseLeave(event) {
 
 export const setHTMLEventHandler = (editor, stopMouseEvent: boolean) => {
     editor.onMouseMove((event) => onMouseMove(event));
-    editor.onMouseLeave((event) => onMouseLeave(event));
+    editor.onMouseLeave((event) => onMouseLeave(event, editor));
     editor.onMouseDown((event) => onMouseDown(event));
     editor.onKeyUp((event) => onKeyUp(editor, event));
 };
@@ -281,3 +297,154 @@ export const sendMessage = (socket: Socket, content: IRunningCommandContent) => 
     console.log(`${message.webapp_endpoint} send message: `, message);
     socket?.emit(message.webapp_endpoint, JSON.stringify(message));
 };
+export const deleteCellHover = (editor: any, monaco: any): boolean => {
+    let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
+    let state = store.getState();
+    const inViewID = state.projectManager.inViewID;
+    if (inViewID) {
+        const codeLines = state.codeEditor.codeLines[inViewID];
+        let lineRange = {};
+        if (groupID) {
+            lineRange = getLineRangeOfGroup(codeLines, groupID);
+        }
+        console.log("lineRange getLineRangeOfGroup", lineRange);
+
+        if (lineRange?.fromLine || lineRange?.fromLine === 0) {
+            let range = new monaco.Range(lineRange.fromLine + 1, 1, lineRange.toLine+1, 1);
+            let id = { major: 1, minor: 1 };
+            let text = "";
+            var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+            editor.executeEdits("deleteCell", [op]);
+        }
+    }
+
+    return true;
+};
+export const runCellAboveGroup = (editor: any) => {
+    let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
+    let state = store.getState();
+
+    const inViewID = state.projectManager.inViewID;
+    if (inViewID && groupID) {
+        const codeLines = state.codeEditor.codeLines[inViewID];
+        let position = codeLines.findIndex((item) => item.groupID === groupID);
+        runQueueForm(null, codeLines, 0, position);
+    }
+};
+export const runCellBelowGroup = () => {
+    let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
+    let state = store.getState();
+
+    const inViewID = state.projectManager.inViewID;
+    if (inViewID && groupID) {
+        const codeLines = state.codeEditor.codeLines[inViewID];
+        let position = codeLines.findIndex((item) => item.groupID === groupID);
+        runQueueForm(groupID, codeLines, position, codeLines.length);
+    }
+};
+export const runAllCell = () => {
+    let state = store.getState();
+
+    const inViewID = state.projectManager.inViewID;
+    const codeLines = state.codeEditor.codeLines[inViewID];
+    runQueueForm(null, codeLines, 0, codeLines.length);
+};
+
+export const runQueueForm = (
+    groupID: string | null,
+    codeLines: ICodeLine[],
+    form: number,
+    to: number
+) => {
+    let runGroups: any = {};
+
+    for (let i = form; i < to; i++) {
+        if (codeLines[i].groupID && (codeLines[i].groupID !== groupID || !groupID)) {
+            // add groupID into keyObject avoid reorder
+            runGroups["groupID=" + codeLines[i].groupID] = codeLines[i].groupID;
+            let element = document.getElementById(
+                `cellwidget-${codeLines[i].groupID}`
+            ) as HTMLElement | null;
+            if (element) {
+                // element.style.opacity = opacity;
+                element.classList.add("show-toolbar");
+            }
+        }
+    }
+    for (const groupID of Object.keys(runGroups)) {
+        // remove string groupID=
+        let a = groupID.replace("groupID=", "");
+        console.log("CodeEditor addGroupToRunQueue=>", a);
+        addGroupToRunQueue(groupID.replace("groupID=", ""));
+    }
+};
+export const setGroup = (editor: any) => {
+    if (editor) {
+        let selection = editor.getSelection();
+        let lineRange = {
+            fromLine: selection.startLineNumber - 1,
+            endLineNumber: selection.endLineNumber,
+        };
+        let inViewID = store.getState().projectManager.inViewID;
+        console.log("CodeEditor setGroup: ", lineRange, lineRange);
+        if (inViewID && lineRange && lineRange.endLineNumber > lineRange.fromLine) {
+            let lineStatus: ICodeLineGroupStatus = {
+                inViewID: inViewID,
+                fromLine: lineRange.fromLine,
+                toLine: lineRange.endLineNumber,
+                status: LineStatus.EDITED,
+                setGroup: SetLineGroupCommand.NEW,
+            };
+            store.dispatch(setLineGroupStatus(lineStatus));
+        }
+    }
+    return true;
+};
+export const setUnGroup = (editor: any) => {
+    let reduxState = store.getState();
+    let inViewID = reduxState.projectManager.inViewID;
+    let lineNumberCurent = editor.getPosition().lineNumber;
+    if (inViewID) {
+        let codeLines = reduxState.codeEditor.codeLines[inViewID];
+        let lineRange = getLineRangeOfGroupWithLineNumber(codeLines, lineNumberCurent - 1);
+        console.log("CodeEditor setUnGroup: ", lineRange);
+        if (inViewID && lineRange && lineRange.toLine > lineRange.fromLine) {
+            let lineStatus: ICodeLineGroupStatus = {
+                inViewID: inViewID,
+                fromLine: lineRange.fromLine,
+                toLine: lineRange.toLine,
+                // status: LineStatus.EDITED,
+                setGroup: SetLineGroupCommand.UNDEF,
+            };
+            store.dispatch(setLineGroupStatus(lineStatus));
+        }
+    }
+};
+const getLineRangeOfGroupWithLineNumber = (
+    codeLines: ICodeLine[],
+    lineNumber: number
+): ILineRange => {
+    let groupID = codeLines[lineNumber].groupID;
+    let fromLine = lineNumber;
+    let toLine = lineNumber;
+    if (groupID === undefined) {
+        toLine = fromLine + 1;
+    } else {
+        while (
+            fromLine > 0 &&
+            codeLines[fromLine - 1].groupID &&
+            codeLines[fromLine - 1].groupID === groupID
+        ) {
+            fromLine -= 1;
+        }
+        while (
+            toLine < codeLines.length &&
+            codeLines[toLine].groupID &&
+            codeLines[toLine].groupID === groupID
+        ) {
+            toLine += 1;
+        }
+    }
+    return { fromLine: fromLine, toLine: toLine };
+};
+/** */

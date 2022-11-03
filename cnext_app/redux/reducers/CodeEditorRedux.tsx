@@ -50,7 +50,7 @@ type CodeEditorState = {
     /** This count is used to trigger the update of CodeOutput view.
      * It will increase whenever there is an update to text output results*/
     textOutputUpdateSignal: number;
-
+    saveViewStateEditor: any;
     lineStatusUpdateCount: number;
     activeLine: string | null;
     activeGroup: string | undefined;
@@ -66,7 +66,7 @@ type CodeEditorState = {
     lastLineUpdate: { [key: string]: ILineUpdate };
     mouseOverGroupID: string | null;
     mouseOverLine: Line | null;
-    cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
+    cellCommand: keyof typeof CellCommand | null;
     /** this number need to be increase whenever cell association changed */
     cellAssocUpdateCount: number;
     /** this number keep track of where in the result array the input request is if any
@@ -80,6 +80,7 @@ const initialState: CodeEditorState = {
     codeLines: {},
     codeStates: {},
     timestamp: {},
+    saveViewStateEditor: {},
     // fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP, queue: [] },
     resultUpdateSignal: 0,
@@ -313,7 +314,11 @@ export const CodeEditorRedux = createSlice({
             let lineStatus: ICodeLineStatus = action.payload;
             setLineStatusInternal(state, lineStatus);
         },
-
+        setViewStateEditor: (state, action) => {
+            const data = action.payload;
+            state.saveViewStateEditor[data.inViewID] = data.viewState;
+            
+        },
         setLineGroupStatus: (state, action) => {
             let lineGroupStatus: ICodeLineGroupStatus = action.payload;
             let inViewID = lineGroupStatus.inViewID;
@@ -328,7 +333,7 @@ export const CodeEditorRedux = createSlice({
                 /** there is a change in cell association */
                 state.cellAssocUpdateCount++;
             }
-            
+
             for (let i = lineGroupStatus.fromLine; i < lineGroupStatus.toLine; i++) {
                 if (lineGroupStatus.status !== undefined) {
                     if (
@@ -523,8 +528,8 @@ export const CodeEditorRedux = createSlice({
 
             let codeLines: ICodeLine[] = state.codeLines[newActiveLine.inViewID];
             if (lineNumber != null) {
-                lineID = codeLines[lineNumber].lineID;
-                groupID = codeLines[lineNumber].groupID;
+                lineID = codeLines[lineNumber]?.lineID;
+                groupID = codeLines[lineNumber]?.groupID;
             } else if (lineID != null) {
                 /** we pay some price here but this is the use case where user click on result which maybe ok */
                 for (let i = 0; i < codeLines.length; i++) {
@@ -667,6 +672,7 @@ export const CodeEditorRedux = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
+    setViewStateEditor,
     initCodeText,
     updateLines,
     addResult,

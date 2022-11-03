@@ -34,9 +34,11 @@ const getLineRangeOfGroupAroundLine = (codeLines: ICodeLine[], lineNumber: numbe
     return { fromLine: fromLine, toLine: toLine };
 };
 
-const getLineRangeOfGroup = (codeLines: ICodeLine[], groupID: string): ILineRange | null => {
+export const getLineRangeOfGroup = (codeLines: ICodeLine[], groupID: string): ILineRange | null => {
     let fromLine = null;
     let toLine = null;
+    console.log("codeLines", codeLines ,groupID);
+    
     if (groupID) {
         for (let ln = 0; ln < codeLines.length; ln++) {
             if (codeLines[ln].groupID === groupID) {
@@ -78,7 +80,7 @@ function addGroupAroundLineToRunQueue(line) {
     }
 }
 
-function addGroupToRunQueue(groupID: string) {
+export function addGroupToRunQueue(groupID: string) {
     let lineRange: ILineRange | null;
     let inViewID = store.getState().projectManager.inViewID;
     let codeLines: ICodeLine[] | null = getCodeLine(store.getState());
@@ -109,3 +111,38 @@ export const addToRunQueueHoverCell = () => {
     }
     return true;
 };
+export const addToRunQueueMoveDown = (editor: any) => {
+    addToRunQueueHoverCell();
+    let inViewID = store.getState().projectManager.inViewID;
+    if (inViewID != null) {
+        let codeLines = store.getState().codeEditor.codeLines[inViewID];
+        let curLineNumber = editor.getPosition().lineNumber - 1; // 0-based
+        setToNextGroup(codeLines, curLineNumber, editor);
+    }
+};
+const setToNextGroup = (codeLines: ICodeLine[], lineNumber: number, editor: any) => {
+    let originGroupID = codeLines[lineNumber].groupID;
+    console.log("CodeEditor setToNextGroup: ", lineNumber, originGroupID);
+    if (originGroupID != null) {
+        let curlineNumber = lineNumber;
+        let curGroupID: string | undefined = originGroupID;
+        while (
+            curlineNumber < codeLines.length - 1 &&
+            (curGroupID == null || curGroupID === originGroupID)
+        ) {
+            curlineNumber += 1;
+            curGroupID = codeLines[curlineNumber]?.groupID;
+        }
+        console.log(
+            "CodeEditor setAnchorToNextGroup: ",
+            lineNumber,
+            originGroupID,
+            curlineNumber,
+            curGroupID
+        );
+        if (curGroupID !== originGroupID) {
+            editor.setPosition({ column: 1, lineNumber: curlineNumber + 1 });
+        }
+    }
+};
+

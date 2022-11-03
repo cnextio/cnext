@@ -15,6 +15,7 @@ import store from "../../../redux/store";
 import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
 import { interruptKernel, restartKernel } from "./ExecutorManager";
 import { CellCommand } from "../../interfaces/ICodeEditor";
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { SocketContext } from "../Socket";
 import { clearTextOutput } from "../../../redux/reducers/RichOutputRedux";
 
@@ -54,7 +55,10 @@ const ExecutorToolbar = () => {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
         } else if (name === CellCommand.ADD_CELL) {
             store.dispatch(setCellCommand(CellCommand.ADD_CELL));
-        } else {
+        }  else if (name === CellCommand.RUN_ALL_CELL) {
+            store.dispatch(setCellCommand(CellCommand.RUN_ALL_CELL));
+        }
+         else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
             } else {
@@ -95,6 +99,11 @@ const ExecutorToolbar = () => {
             name: CellCommand.ADD_CELL,
             component: <AddCardIcon />,
             tooltip: "Add Cell",
+        },
+        {
+            name: CellCommand.RUN_ALL_CELL,
+            component: <ArrowRightIcon  fontSize="large"/>,
+            tooltip: "Run All Cell",
         },
     ];
     const ExecutorDivider = () => {
