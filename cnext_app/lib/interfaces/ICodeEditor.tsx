@@ -58,6 +58,7 @@ export interface ICodeLine {
 export interface IRunQueueItem {
     inViewID: string;
     lineRange: ILineRange;
+    groupID?: string;
 }
 
 /**
@@ -155,6 +156,7 @@ export interface IPlotResult {
 export interface IRunningCommandContent {
     lineRange: ILineRange;
     content: string;
+    groupID?:string
     // runAllAtOnce: boolean|undefined;
 }
 
@@ -214,5 +216,5 @@ export enum IPythonMessageType {
     EXECUTE_REPLY = "execute_reply",
     INPUT_REQUEST = "input_request",
     SHUTDOWN_REPLY = "shutdown_reply",
-    STATUS = "status"
+    STATUS = "status",
 }

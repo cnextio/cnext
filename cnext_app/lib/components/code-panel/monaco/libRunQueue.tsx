@@ -90,7 +90,9 @@ export function addGroupToRunQueue(groupID: string) {
         lineRange = getLineRangeOfGroup(codeLines, groupID);        
         if (lineRange) {
             console.log("CodeEditor setRunQueue: ", lineRange);
-            store.dispatch(addToRunQueueRedux({ lineRange: lineRange, inViewID: inViewID }));
+            store.dispatch(
+                addToRunQueueRedux({ lineRange: lineRange, inViewID: inViewID, groupID: groupID })
+            );
         }
     }
 }
