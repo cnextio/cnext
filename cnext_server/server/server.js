@@ -83,7 +83,7 @@ class PythonProcess {
     static io;
 
     // TODO: using clientMessage is hacky solution to send stdout back to client. won't work if there is multiple message being handled simultaneously
-    constructor(io, commandStr, args) {
+    constructor(io, commandStr, endpoints, args) {
         process.env.PYTHONPATH = [process.env.PYTHONPATH, config.path_to_cnextlib, "./python"].join(
             path.delimiter
         );
@@ -100,8 +100,8 @@ class PythonProcess {
         this.executor = new PythonShell(commandStr, pyshellOpts);
         this.executorCommChannel = {};
         this.io = io;
-        let _this = this;
-
+        this.endpoins = endpoints;
+        
         this.executor.on("message", function (stdout) {
             try {
                 console.log("stdout: ", stdout);
@@ -122,14 +122,7 @@ class PythonProcess {
             console.log("close ", "python-shell closed: " + message);
         });
 
-        const mode = args[0];
-        let endpoins = [];
-        if (mode === "code") {
-            endpoins = CodeEndpoints;
-        } else if (mode === "noncode") {
-            endpoins = NonCodeEndpoints;
-        }
-        for (let endpoint of endpoins) {
+        for (let endpoint of this.endpoins) {
             /** only ExecutorManager use zmq now. TODO: move everything to zmq */
             if (endpoint === ExecutorManager) {
                 this.executorCommChannel[ExecutorManager] = create_socket(
@@ -259,8 +252,8 @@ try {
     server.listen(port, () => console.log(`Waiting on port ${port}`));
 
     console.log("Starting python shell...");
-    let codeExecutor = new PythonProcess(io, `python/server.py`, ["code"]);
-    let nonCodeExecutor = new PythonProcess(io, `python/server.py`, ["noncode"]);
+    let codeExecutor = new PythonProcess(io, `python/server.py`, CodeEndpoints, ["code"]);
+    let nonCodeExecutor = new PythonProcess(io, `python/server.py`, NonCodeEndpoints, ["noncode"]);
     let lspExecutor = new LSPProcess(io);
     /**
      * ZMQ communication from python-shell to node server
