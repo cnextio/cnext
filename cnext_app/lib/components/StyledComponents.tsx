@@ -733,9 +733,9 @@ export const IndividualConsolePanelContent = styled(Typography)`
 `;
 
 export const IndividualConsolePanelContentSmall = styled(Typography)`
-    padding: 2px 0px 2px 0px;
+    padding: 0px 0px 0px 0px;
     overflow: auto;
-    font-size: 13px;
+    font-size: 12px;
     &:hover {
         background-color: ${(props) =>
             !props.focused ? props.theme.palette.action.hover : "rgb(218, 255, 237, 0.6)"};
