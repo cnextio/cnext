@@ -780,8 +780,15 @@ export const DFViewModeSmallArrowIcon = styled(SmallArrowIcon)`
 `;
 
 export const DFSelectorMenuItem = styled(MenuItem)`
+    display: flex;
     font-size: 13px;
     padding: 5px 10px;
+    width: 200px;
+    height: 32px;
+    justify-content: space-between;
+    span:nth-child(2, 3) {
+        margin-left: auto;
+    }
 `;
 
 export const DFFilterForm = styled(FormControl)`
@@ -1092,6 +1099,9 @@ export const SmallVizContainer = styled(MuiTableContainer)`
     padding: 0px;
     overflow: hidden;
     font-weight: normal;
+    &:hover {
+        cursor: zoom-in;
+    }
 `;
 
 export const ExperimentContainer = styled.div`

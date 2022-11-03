@@ -37,7 +37,7 @@ const RichOutputPanel = ({ stopMouseEvent }) => {
     }, [resultNewOutputSignal]);
 
     useEffect(() => {
-        if (tableMetadataUpdateSignal > 0) {
+        if (Object.keys(tableMetadataUpdateSignal).length > 0) {
             if (show !== RichOutputPanelToolbarItems.DATA) {
                 setNewItemIndicator(RichOutputPanelToolbarItems.DATA);
             }

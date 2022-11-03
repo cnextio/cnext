@@ -3,7 +3,7 @@ import simplejson as json
 from libs.message import ContentType, Message, SubContentType
 from libs import logs
 # from server.python.libs.message import WebappEndpoint
-from user_space.user_space import BaseKernel, IPythonUserSpace
+# from user_space.user_space import BaseKernel, IPythonUserSpace
 from user_space.ipython.constants import IPythonConstants as IPythonConstants
 
 log = logs.get_logger(__name__)
@@ -11,11 +11,12 @@ log = logs.get_logger(__name__)
 
 class BaseMessageHandler:
     def __init__(self, p2n_queue, user_space=None):
-        self.p2n_queue = p2n_queue
-        if user_space == None:
-            self.user_space = IPythonUserSpace(BaseKernel())
-        else:
-            self.user_space = user_space
+        self.p2n_queue = p2n_queue        
+        # if user_space == None:
+        #     self.user_space = IPythonUserSpace(BaseKernel())
+        # else:
+        #     self.user_space = user_space
+        self.user_space = user_space
 
     @staticmethod
     def _is_execute_result(header) -> bool:
@@ -36,7 +37,7 @@ class BaseMessageHandler:
     @staticmethod
     def _is_error_message(header) -> bool:
         return header['msg_type'] == IPythonConstants.MessageType.ERROR
-        
+
     ## TODO: this needs to be designed #
     # @staticmethod
     # def get_execute_result(messages):
@@ -44,7 +45,7 @@ class BaseMessageHandler:
     #         Get result from list of messages are responsed by IPython kernel
     #         For result type rather than 'application/json' we have to convert the output
     #         to the original object before sending to client because we already json.dumps
-    #         them inside ipython. A better way to handle this is to output 'application/json' 
+    #         them inside ipython. A better way to handle this is to output 'application/json'
     #         instead. That will be done later.
     #     """
     #     result = None
@@ -92,6 +93,15 @@ class BaseMessageHandler:
         return result
 
     @staticmethod
+    def _get_error_message_content(ipython_message):
+        # log.error("Error %s" % (msg_ipython.content['traceback']))
+        if isinstance(ipython_message.content['traceback'], list):
+            content = '\n'.join(ipython_message.content['traceback'])
+        else:
+            content = ipython_message.content['traceback']
+        return content
+
+    @staticmethod
     def _create_error_message(webapp_endpoint, trace, command_name=None, metadata=None):
         return Message(**{
             "webapp_endpoint": webapp_endpoint,
@@ -117,5 +127,4 @@ class BaseMessageHandler:
         raise "Abstract function must be implemented by subclass"
 
     def shutdown(self):
-        self.user_space.shutdown_executor()
-        pass
+        return self.user_space.shutdown_executor()

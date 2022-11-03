@@ -93,6 +93,7 @@ def main(argv):
                 p2n_queue = MessageQueuePush(
                     server_config.p2n_comm['host'], server_config.p2n_comm['port'])
                 jupyter_server_config = server_config.jupyter_server
+                
                 if executor_type == ExecutorType.CODE:
                     # user_space = IPythonUserSpace(
                     #     (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
@@ -122,6 +123,7 @@ def main(argv):
                         ## DataViewer and DataFrameManager use the same handler#
                         WebappEndpoint.DataFrameManager: dm.MessageHandler(p2n_queue, user_space),                        
                         WebappEndpoint.DataViewer: dm.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.DFExplorer: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.MagicCommandGen: ca.MessageHandler(
                             p2n_queue, user_space),

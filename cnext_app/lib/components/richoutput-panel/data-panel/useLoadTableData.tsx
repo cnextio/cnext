@@ -7,6 +7,7 @@ import {
     CommandName,
     ContentType,
     IMessage,
+    IMetadata,
     ITableData,
     ITableMetaData,
     WebAppEndpoint,
@@ -25,22 +26,29 @@ export const useLoadTableData = (
     const [fromPage, setFromPage] = useState<number | null>(null);
     const [toPage, setToPage] = useState<number | null>(null);
     const [totalSize, setTotalSize] = useState<number>(0);
-    // const [pagedTableData, setPagedTableData] = useState<ITableData[] | null>(null);
     const pagedTableData = useSelector((state: RootState) =>
         df_id ? state.dataFrames.tableData[df_id] : null
     );
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        console.log("DataViewer useEffect filter", filter)
+    const tableMetadataUpdateSignal = useSelector((state: RootState) =>
+        df_id ? state.dataFrames.tableMetadataUpdateSignal[df_id] : null
+    );
+
+    const reset = useCallback(() => {
         // setIsLoading(false);
         setIsError(false);
         setFromPage(null);
         setToPage(null);
         setTotalSize(0);
         // setPagedTableData(null);
-        dispatch(setTableData({df_id: df_id, data: null}));
-    }, [df_id, filter]);
+        dispatch(setTableData({ df_id: df_id, data: null }));
+    }, []);
+
+    useEffect(() => {
+        reset();
+    }, [df_id, tableMetadataUpdateSignal, filter]);
+
     // console.log("DataViewer useLoadTableData: ", df_id, pagedTableData);
 
     const updateTableData = (data: ITableData, metadata: ITableMetaData) => {
@@ -121,7 +129,7 @@ export const useLoadTableData = (
         }
     };
 
-    /** the updateTableData func is called inside socketInit so it is important to rerun this whenever 
+    /** the updateTableData func is called inside socketInit so it is important to rerun this whenever
      * updateTableData func changed */
     useEffect(() => {
         socketInit();

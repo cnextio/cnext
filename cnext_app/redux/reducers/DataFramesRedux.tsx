@@ -56,7 +56,8 @@ export type DataFrameState = {
     columnSelector: { [id: string]: IDataFrameColumnSelection };
     udfsSelector: { [id: string]: IDataFrameUDFSelection };
     registeredUDFs: IRegisteredUDFs; //{ [name: string]: UDF };
-    tableMetadataUpdateSignal: number;
+    /** this is updated when metadata changed except with UDFs */
+    tableMetadataUpdateSignal: { [id: string]: number };
 };
 
 const initialState: DataFrameState = {
@@ -80,7 +81,7 @@ const initialState: DataFrameState = {
     udfsSelector: {},
     registeredUDFs: { udfs: {}, timestamp: "0" },
     columnSelector: {},
-    tableMetadataUpdateSignal: 0,
+    tableMetadataUpdateSignal: {},
 };
 
 export const dataFrameSlice = createSlice({
@@ -111,7 +112,12 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             state.metadata[df_id] = action.payload;
-            state.tableMetadataUpdateSignal++;
+            if(Object.keys(state.tableMetadataUpdateSignal).includes(df_id)){
+                state.tableMetadataUpdateSignal[df_id]++;                
+            }
+            else {
+                state.tableMetadataUpdateSignal[df_id] = 0;
+            }
             let udfSelector: { [udfName: string]: boolean } = {};
             if (state.registeredUDFs instanceof Object) {
                 for (const udfName in state.registeredUDFs.udfs) {
@@ -125,6 +131,8 @@ export const dataFrameSlice = createSlice({
                     columns: {},
                     timestamp: state.registeredUDFs.timestamp,
                 };
+                /** clear data whenever new metadata is set */
+                state.tableData[df_id] = [];
             }
         },
 
@@ -354,12 +362,13 @@ export const dataFrameSlice = createSlice({
                     };
                     /** remove all existing udf data */
                     let columns = state.metadata[df_id].columns;
-                    for (const udfName in state.registeredUDFs.udfs) {
+                    // for (const udfName in state.registeredUDFs.udfs) {
                         for (let column_name in columns) {
                             if (columns[column_name].udfs)
-                                columns[column_name].udfs[udfName] = null;
+                                // columns[column_name].udfs[udfName] = null;
+                                columns[column_name].udfs = {};
                         }
-                    }
+                    // }
                 }
             }
         },
