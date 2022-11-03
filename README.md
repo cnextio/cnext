@@ -16,7 +16,7 @@
   </p>
   <p>
     <b>
-      Open source workspace designed for DS & AI workflows
+      Open source workspace designed for the DS & AI workflow
     </b>
   </p>
   <p>
