@@ -18,7 +18,7 @@ on:
       - 'LICENSE'
 
 env:
-  BASE_DEV_VERSION: 0.4.29
+  BASE_DEV_VERSION: 0.10.3
 
 jobs:
 
