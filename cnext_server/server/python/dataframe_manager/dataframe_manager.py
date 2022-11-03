@@ -102,7 +102,8 @@ class MessageHandler(BaseMessageHandler):
                               CnextMimeType.URL_PNG, CnextMimeType.URL_JPG,
                               CnextMimeType.INPUT_SELECTION, CnextMimeType.INPUT_CHECKBOX, CnextMimeType.INPUT_TEXT]:
                 ## Convert everything else to string #
-                df[df.columns[i]] = df[df.columns[i]].apply(str)
+                # df[df.columns[i]] = df[df.columns[i]].apply(str)
+                df.loc[:, df.columns[i]] = df.loc[:, df.columns[i]].astype(str)
 
         tableData['rows'] = df.values.tolist()
         # Modify data field of column with mime type of file/*. See note above
