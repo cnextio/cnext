@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.5](https://github.com/cnextio/cnext/compare/v0.10.4...v0.10.5) (2022-11-03)
+
+
+### Bug Fixes
+
+* improve kernel restarting ([11ea34d](https://github.com/cnextio/cnext/commit/11ea34da88f08912d27d82e9cecb546fcf717da2))
+* restart kernel when change project ([0cdb2ba](https://github.com/cnextio/cnext/commit/0cdb2baec7ec3d57ba3574a2a7effb4cff37b0f9))
+
 ## [0.10.4](https://github.com/cnextio/cnext/compare/v0.10.3...v0.10.4) (2022-11-02)
 
 

@@ -1,7 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
 import { IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import CircleIcon from "@mui/icons-material/Circle";
-import { ExecutorManagerCommand, IExecutorStatus } from "../../interfaces/IExecutorManager";
+import {
+    ExecutorManagerCommand,
+    IExecutorManagerResultContent,
+    IExecutorStatus,
+} from "../../interfaces/IExecutorManager";
 import { SocketContext } from "../Socket";
 import { TextIOHeaderText } from "../StyledComponents";
 import { green, red } from "@mui/material/colors";
@@ -28,8 +32,13 @@ const ExecutorStatus = () => {
                         // console.log("KernelManager kernel status: ", executorStatus.resource);
                         // setExecutorStatus(executorStatus);
                         dispatch(setExecutorStatus(executorStatus));
-                    } else if (message.command_name === ExecutorManagerCommand.restart_kernel) {
-                        let resultContent = message.content;
+                    } else if (
+                        [
+                            ExecutorManagerCommand.restart_kernel,
+                            ExecutorManagerCommand.interrupt_kernel,
+                        ].includes(message.command_name as ExecutorManagerCommand)
+                    ) {
+                        let resultContent = message.content as IExecutorManagerResultContent;
                         if (resultContent.success === true) {
                             dispatch(updateExecutorRestartCounter());
                         }

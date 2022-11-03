@@ -36,6 +36,7 @@ import {
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
 import { SocketContext } from "../Socket";
+import { restartKernel } from "../executor-manager/ExecutorManager";
 
 const FileManager = () => {
     const socket = useContext(SocketContext);
@@ -192,7 +193,7 @@ const FileManager = () => {
                                 resetProjectStates(workspaceMetadata);
                                 dispatch(setWorkspaceMetadata(workspaceMetadata));
                                 // Restart the kernel
-                                // restartKernel();
+                                restartKernel(socket);
                             }
                             break;
                         case ProjectCommand.add_project:
