@@ -700,7 +700,7 @@ export const TextIOContent = styled.div`
 //         background-color: ${props => props.theme.palette.action.hover};
 //     }
 // `;
-export const IndividualControlPanelContent = styled(Typography)`
+export const IndividualConsolePanelContent = styled(Typography)`
     margin-bottom: 10px;
     padding: 5px 0px 5px 0px;
     overflow: auto;
@@ -711,11 +711,37 @@ export const IndividualControlPanelContent = styled(Typography)`
     }
 
     background-color: ${(props) => (props.focused ? "rgb(218, 255, 237, 0.6)" : null)};
+
     border-top: ${(props) =>
         props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
     border-bottom: ${(props) =>
         props.focused ? "1px solid rgb(153, 179, 171, 0.6)" : "1px dashed rgb(153, 179, 171, 0.5)"};
 
+    code {
+        display: inline-block;
+        white-space: pre-wrap; /* Since CSS 2.1 */
+        white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+        white-space: -pre-wrap; /* Opera 4-6 */
+        white-space: -o-pre-wrap; /* Opera 7 */
+        max-width: 100%;
+        // word-break: break-all;
+        word-wrap: break-word;
+        font-family: monospace;
+        font-size: 13px;
+        line-height: 1.6em;
+    }
+`;
+
+export const IndividualConsolePanelContentSmall = styled(Typography)`
+    padding: 0px 0px 0px 0px;
+    overflow: auto;
+    font-size: 12px;
+    &:hover {
+        background-color: ${(props) =>
+            !props.focused ? props.theme.palette.action.hover : "rgb(218, 255, 237, 0.6)"};
+    }
+
+    background-color: ${(props) => (props.focused ? "rgb(218, 255, 237, 0.6)" : null)};
     code {
         display: inline-block;
         white-space: pre-wrap; /* Since CSS 2.1 */

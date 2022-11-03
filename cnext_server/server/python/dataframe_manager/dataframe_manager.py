@@ -102,7 +102,8 @@ class MessageHandler(BaseMessageHandler):
                               CnextMimeType.URL_PNG, CnextMimeType.URL_JPG,
                               CnextMimeType.INPUT_SELECTION, CnextMimeType.INPUT_CHECKBOX, CnextMimeType.INPUT_TEXT]:
                 ## Convert everything else to string #
-                df[df.columns[i]] = df[df.columns[i]].apply(str)
+                # df[df.columns[i]] = df[df.columns[i]].apply(str)
+                df.loc[:, df.columns[i]] = df.loc[:, df.columns[i]].astype(str)
 
         tableData['rows'] = df.values.tolist()
         # Modify data field of column with mime type of file/*. See note above
@@ -154,6 +155,8 @@ class MessageHandler(BaseMessageHandler):
     @ipython_internal_output
     def _ipython_get_table_data(self, df_id, code):
         output = None
+        self.user_space.execute(
+            "print('Get table data for dataframe %s...')" % df_id, ExecutionMode.EVAL)
         result = self.user_space.execute(code, ExecutionMode.EVAL)
         # print("get table data %s" % result)
         # log.info("get table data %s" % result)
@@ -164,6 +167,7 @@ class MessageHandler(BaseMessageHandler):
 
     @ipython_internal_output
     def _ipython_get_metadata(self, df_id):
+        self.user_space.execute("print('Get metadata for dataframe %s...')" % df_id, ExecutionMode.EVAL)
         shape = self.user_space.execute("%s.shape" % df_id, ExecutionMode.EVAL)
         df_type = self.user_space.execute(
             "%s.__module__ + '.' + %s.__class__.__name__" % (df_id, df_id), ExecutionMode.EVAL)
@@ -233,26 +237,25 @@ class MessageHandler(BaseMessageHandler):
 
     def _create_return_message(self, ipython_message, stream_type, client_message):
         ipython_message = IpythonResultMessage(**ipython_message)
-        message = None
+        message = Message(**{'webapp_endpoint': client_message.webapp_endpoint,
+                             'command_name': client_message.command_name})
+        # Add header message from ipython to message metadata
+        message.metadata = {}
+        message.metadata.update(client_message.metadata)
+        message.metadata.update(dict((k, ipython_message.header[k])
+                                     for k in ('msg_id', 'msg_type', 'session')))
+        message.metadata.update({'stream_type': stream_type})
+
         if self._is_error_message(ipython_message.header):
             content = self._get_error_message_content(
                 ipython_message)
             message = BaseMessageHandler._create_error_message(
-                client_message.webapp_endpoint, content, client_message.command_name, client_message.metadata)
+                message.webapp_endpoint, content, message.command_name, message.metadata)
+        elif self._is_stream_result(ipython_message.header):
+            message = self._create_stream_message(message, ipython_message)
         else:
             result = self.get_execute_result(ipython_message)
             if result is not None:
-                ## note that this message might have either DataManager or DataViewer endpoint #
-                message = Message(**{'webapp_endpoint': client_message.webapp_endpoint,
-                                     'command_name': client_message.command_name})
-                # Add header message from ipython to message metadata
-                if message.metadata == None:
-                    message.metadata = {}
-                message.metadata.update(client_message.metadata)
-                message.metadata.update(dict((k, ipython_message.header[k])
-                                             for k in ('msg_id', 'msg_type', 'session')))
-                message.metadata.update({'stream_type': stream_type})
-
                 if client_message.command_name == DFManagerCommand.get_table_data:
                     log.info('%s: %s' % (client_message, result))
                     # log.info('%s ', message)
@@ -278,6 +281,8 @@ class MessageHandler(BaseMessageHandler):
                     # message.sub_type = SubContentType.APPLICATION_PLOTLY
 
                 message.error = False
+            else:
+                message = None
 
         return message
 
@@ -329,7 +334,7 @@ class MessageHandler(BaseMessageHandler):
                     ## Note: have to use single quote here because json.dumps will generate the double quote inside #
                     self.user_space.execute("{}.at[{}, \"{}\"] = \'{}\'".format(
                         message.content['df_id'], message.content['index'], message.content['col_name'], json.dumps(message.content['value'])), ExecutionMode.EVAL, self.message_handler_callback, message)
-                
+
                 elif message.command_name == DFManagerCommand.reload_df_status:
                     result = self.user_space.get_active_dfs_status()
                     if result["status"] == IPythonConstants.ShellMessageStatus.OK:
@@ -339,7 +344,7 @@ class MessageHandler(BaseMessageHandler):
                         message = MessageHandler._create_error_message(
                             WebappEndpoint.DataFrameManager, result["content"], DFManagerCommand.update_df_status, {})
                     self._send_to_node(message)
-                    
+
             else:
                 text = "No executor running"
                 log.info(text)

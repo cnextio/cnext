@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.6](https://github.com/cnextio/cnext/compare/v0.10.5...v0.10.6) (2022-11-03)
+
+
+### Bug Fixes
+
+* cnextlib out of date ([92919b5](https://github.com/cnextio/cnext/commit/92919b5b307c0ac1637fa39ef5d5995853c97c88))
+
 ## [0.10.5](https://github.com/cnextio/cnext/compare/v0.10.4...v0.10.5) (2022-11-03)
 
 
