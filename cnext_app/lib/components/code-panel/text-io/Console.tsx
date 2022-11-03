@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-import { IndividualControlPanelContent as IndividualTextIOContent } from "../../StyledComponents";
+import { IndividualConsolePanelContentSmall as IndividualTextIOContent } from "../../StyledComponents";
 import { Box, Typography } from "@mui/material";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
