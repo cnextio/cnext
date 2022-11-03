@@ -64,7 +64,7 @@ function setWidgetOpacity(id: string, opacity: string) {
         if (opacity === "1") element.classList.add("show-toolbar");
         else {
             if (element.getElementsByClassName("circle-excuting").length === 0) {
-                element.classList.remove("show-toolbar");
+                // element.classList.remove("show-toolbar");
             }
         }
     }
@@ -224,6 +224,8 @@ export const insertCellBelow = (monaco: Monaco, editor, mode, ln0based: number |
         let id = { major: 1, minor: 1 };
         let text = "\n";
         var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+        console.log("range insertCellBelow", range);
+        
         editor.executeEdits("insertCellBelow", [op]);
     }
     return true;
@@ -266,7 +268,7 @@ export const getRunningCommandContent = (
         lineRange.fromLine < lineRange.toLine
     ) {
         /** the text include the content of the toLine */
-        let text = codeText.slice(lineRange.fromLine, lineRange.toLine + 1).join("\n");
+        let text = codeText.slice(lineRange.fromLine, lineRange.toLine).join("\n");
         content = {
             lineRange: lineRange,
             content: text,
@@ -311,6 +313,7 @@ export const deleteCellHover = (editor: any, monaco: any): boolean => {
 
         if (lineRange?.fromLine || lineRange?.fromLine === 0) {
             let range = new monaco.Range(lineRange.fromLine + 1, 1, lineRange.toLine+1, 1);
+            console.log("lineRange getLineRangeOfGroup", lineRange);
             let id = { major: 1, minor: 1 };
             let text = "";
             var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
