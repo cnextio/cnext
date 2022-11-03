@@ -271,6 +271,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
                         block: "start",
                         inline: "center",
                         behavior: "smooth",
+                        scrollMode: 'if-needed',
                         boundary: document.getElementById(props.id),
                     }}
                 >
