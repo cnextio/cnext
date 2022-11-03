@@ -23,7 +23,7 @@ import { ifElse } from "../../libs";
 import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/CodeEditorRedux";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { Socket } from "socket.io-client";
-import { addGroupToRunQueue } from "./libRunQueue";
+import { addGroupToRunQueue, getLineRangeOfGroup } from "./libRunQueue";
 
 export const getCodeLine = (state: RootState): ICodeLine[] | null => {
     let inViewID = state.projectManager.inViewID;
@@ -303,23 +303,19 @@ export const deleteCellHover = (editor: any, monaco: any): boolean => {
     const inViewID = state.projectManager.inViewID;
     if (inViewID) {
         const codeLines = state.codeEditor.codeLines[inViewID];
-        let startLineNumber = 0;
-        let length = 0;
-        codeLines.forEach((item, index) => {
-            if (item.groupID && item.groupID === groupID) {
-                length = length + 1;
-                if (length === 1) {
-                    startLineNumber = index + 1;
-                }
-            }
-        });
-        // let lineRange = getLineRangeOfGroup(codeLines, lineNumberCurent - 1);
-        // console.log("lineRange",lineNumberCurent, lineRange);
-        let range = new monaco.Range(startLineNumber, 1, startLineNumber + length, 1);
-        let id = { major: 1, minor: 1 };
-        let text = "";
-        var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
-        editor.executeEdits("deleteCell", [op]);
+        let lineRange = {};
+        if (groupID) {
+            lineRange = getLineRangeOfGroup(codeLines, groupID);
+        }
+        console.log("lineRange getLineRangeOfGroup", lineRange);
+
+        if (lineRange?.fromLine || lineRange?.fromLine === 0) {
+            let range = new monaco.Range(lineRange.fromLine + 1, 1, lineRange.toLine+1, 1);
+            let id = { major: 1, minor: 1 };
+            let text = "";
+            var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+            editor.executeEdits("deleteCell", [op]);
+        }
     }
 
     return true;
@@ -410,7 +406,7 @@ export const setUnGroup = (editor: any) => {
     let lineNumberCurent = editor.getPosition().lineNumber;
     if (inViewID) {
         let codeLines = reduxState.codeEditor.codeLines[inViewID];
-        let lineRange = getLineRangeOfGroup(codeLines, lineNumberCurent - 1);
+        let lineRange = getLineRangeOfGroupWithLineNumber(codeLines, lineNumberCurent - 1);
         console.log("CodeEditor setUnGroup: ", lineRange);
         if (inViewID && lineRange && lineRange.toLine > lineRange.fromLine) {
             let lineStatus: ICodeLineGroupStatus = {
@@ -424,7 +420,10 @@ export const setUnGroup = (editor: any) => {
         }
     }
 };
-const getLineRangeOfGroup = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
+const getLineRangeOfGroupWithLineNumber = (
+    codeLines: ICodeLine[],
+    lineNumber: number
+): ILineRange => {
     let groupID = codeLines[lineNumber].groupID;
     let fromLine = lineNumber;
     let toLine = lineNumber;

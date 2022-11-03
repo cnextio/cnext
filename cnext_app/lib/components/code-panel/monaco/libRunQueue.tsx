@@ -34,9 +34,11 @@ const getLineRangeOfGroupAroundLine = (codeLines: ICodeLine[], lineNumber: numbe
     return { fromLine: fromLine, toLine: toLine };
 };
 
-const getLineRangeOfGroup = (codeLines: ICodeLine[], groupID: string): ILineRange | null => {
+export const getLineRangeOfGroup = (codeLines: ICodeLine[], groupID: string): ILineRange | null => {
     let fromLine = null;
     let toLine = null;
+    console.log("codeLines", codeLines ,groupID);
+    
     if (groupID) {
         for (let ln = 0; ln < codeLines.length; ln++) {
             if (codeLines[ln].groupID === groupID) {
