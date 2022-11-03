@@ -64,7 +64,7 @@ function setWidgetOpacity(id: string, opacity: string) {
         if (opacity === "1") element.classList.add("show-toolbar");
         else {
             if (element.getElementsByClassName("circle-excuting").length === 0) {
-                // element.classList.remove("show-toolbar");
+                element.classList.remove("show-toolbar");
             }
         }
     }
