@@ -18,7 +18,7 @@ on:
       - 'LICENSE'
 
 env:
-  BASE_DEV_VERSION: 0.10.3
+  BASE_DEV_VERSION: 0.0.1
 
 jobs:
 
@@ -84,11 +84,11 @@ jobs:
           python-version: '3.9'
           cache: 'poetry'
 
-      - name: Install dependencies
-        working-directory: ./cnext_server/server
-        run: |
-          poetry env use 3.9
-          poetry install
+      # - name: Install dependencies
+      #   working-directory: ./cnext_server/server
+      #   run: |
+      #     poetry env use 3.9
+      #     poetry install
 
       - name: Copy output
         run: cp -rf ./cnext_app/out ./cnext_server/public
