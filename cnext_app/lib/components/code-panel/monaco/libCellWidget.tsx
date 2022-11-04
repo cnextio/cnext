@@ -43,6 +43,11 @@ const createCellWidgetDom = (
             cellCommand: CellCommand.DELL_CELL,
             svg: `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall icon-cellcommand" focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="DeleteOutlineIcon" aria-label="fontSize large"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
         },
+        {
+            text: "Add text",
+            cellCommand: CellCommand.ADD_TEXT,
+            svg: `<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall icon-cellcommand" focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="FormatColorTextIcon"><path d="M2 20h20v4H2v-4zm3.49-3h2.42l1.27-3.58h5.65L16.09 17h2.42L13.25 3h-2.5L5.49 17zm4.42-5.61 2.03-5.79h.12l2.03 5.79H9.91z"></path></svg>`,
+        },
     ];
     for (let i = 0; i < cellItems.length; i++) {
         const element = cellItems[i];
@@ -73,19 +78,36 @@ const createCellWidgetDom = (
     /** widget of the next cell will also has the top boundary to mark the end of prev cell */
     wrapDiv.className = "cellwidget celllastline " + activeClass;
     wrapDiv.id = `cellwidget-${groupID}`;
+    let parentDiv = document.createElement("div");
+    parentDiv.className = "";
 
+    let divAI = document.createElement("div");
+    parentDiv.appendChild(divAI);
+    divAI.className = `cellwidget-input`;
+    divAI.id = `cellwidget-input-${groupID}`;
+    let input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Text to code";
+    input.oninput = eventInput;
+    divAI.appendChild(input);
+
+    function eventInput(e) {
+        console.log("Text to code=>>", e.target.value);
+    }
+
+    parentDiv.appendChild(wrapDiv);
     let zone = null;
     if (endBoundaryWidget) {
         zone = {
-            afterLineNumber: afterLineNumber + 1,
-            heightInLines: 0, // yes this is 0, this is not a bug
-            domNode: wrapDiv,
+            afterLineNumber: afterLineNumber + 2,
+            heightInLines: 2, // yes this is 0, this is not a bug
+            domNode: parentDiv,
         };
     } else {
         zone = {
             afterLineNumber: afterLineNumber,
-            heightInLines: 2,
-            domNode: wrapDiv,
+            heightInLines: 4,
+            domNode: parentDiv,
         };
     }
 

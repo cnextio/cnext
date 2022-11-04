@@ -36,7 +36,7 @@ export const getCodeLine = (state: RootState): ICodeLine[] | null => {
 export const getCodeText = (state: RootState) => {
     let inViewID = state.projectManager.inViewID;
     if (inViewID) {
-        let codeText = ifElse(state.codeEditor.codeText, inViewID, null);        
+        let codeText = ifElse(state.codeEditor.codeText, inViewID, null);
         if (codeText) return codeText.join("\n");
     }
     return null;
@@ -56,8 +56,16 @@ function setActiveLine(inViewID: string, lineNumber: number) {
         console.error(error);
     }
 }
+export function addText() {
+    let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
 
-function setWidgetOpacity(id: string, opacity: string) {
+    let element = document.getElementById(`cellwidget-input-${groupID}`) as HTMLElement | null;
+
+    if (element) {
+        element.classList.add("show-input");
+    }
+}
+export function setWidgetOpacity(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
     if (element) {
         // element.style.opacity = opacity;
@@ -178,7 +186,7 @@ export const getMainEditorModel = (monaco: Monaco) => {
 export const setCodeTextAndStates = (state: RootState, monaco: Monaco) => {
     let codeText = getCodeText(state);
     let editorModel = getMainEditorModel(monaco);
-    if (codeText) {        
+    if (codeText) {
         editorModel?.setValue(codeText);
     }
 };
@@ -225,7 +233,7 @@ export const insertCellBelow = (monaco: Monaco, editor, mode, ln0based: number |
         let text = "\n";
         var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
         console.log("range insertCellBelow", range);
-        
+
         editor.executeEdits("insertCellBelow", [op]);
     }
     return true;
@@ -288,7 +296,7 @@ const createMessage = (content: IRunningCommandContent) => {
         content: content.content,
         type: ContentType.STRING,
         error: false,
-        metadata: { line_range: content.lineRange, groupID:content.groupID },
+        metadata: { line_range: content.lineRange, groupID: content.groupID },
     };
 
     return message;
@@ -312,7 +320,7 @@ export const deleteCellHover = (editor: any, monaco: any): boolean => {
         console.log("lineRange getLineRangeOfGroup", lineRange);
 
         if (lineRange?.fromLine || lineRange?.fromLine === 0) {
-            let range = new monaco.Range(lineRange.fromLine + 1, 1, lineRange.toLine+1, 1);
+            let range = new monaco.Range(lineRange.fromLine + 1, 1, lineRange.toLine + 1, 1);
             console.log("lineRange getLineRangeOfGroup", lineRange);
             let id = { major: 1, minor: 1 };
             let text = "";

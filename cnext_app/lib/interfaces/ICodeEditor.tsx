@@ -131,9 +131,10 @@ export enum CellCommand {
     CLEAR = "CLEAR",
     ADD_CELL = "ADD_CELL",
     DELL_CELL = "DELL_CELL",
-    RUN_ABOVE_CELL="RUN_ABOVE_CELL",
-    RUN_BELOW_CELL="RUN_BELOW_CELL",
-    RUN_ALL_CELL="RUN_ALL_CELL"
+    RUN_ABOVE_CELL = "RUN_ABOVE_CELL",
+    RUN_BELOW_CELL = "RUN_BELOW_CELL",
+    RUN_ALL_CELL = "RUN_ALL_CELL",
+    ADD_TEXT = "ADD_TEXT",
 }
 
 export type ICodeResultContent = string | object | IPlotResult;
@@ -156,7 +157,7 @@ export interface IPlotResult {
 export interface IRunningCommandContent {
     lineRange: ILineRange;
     content: string;
-    groupID?:string
+    groupID?: string;
     // runAllAtOnce: boolean|undefined;
 }
 

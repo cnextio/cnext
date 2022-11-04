@@ -17,6 +17,8 @@ import {
     runAllCell,
     setGroup,
     setUnGroup,
+    setWidgetOpacity,
+    addText,
 } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
@@ -243,8 +245,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     const socketInit = () => {
-          socket?.emit("ping", WebAppEndpoint.CodeEditor);
-          socket?.on(WebAppEndpoint.CodeEditor,  (result: string, ack) => {
+        socket?.emit("ping", WebAppEndpoint.CodeEditor);
+        socket?.on(WebAppEndpoint.CodeEditor, (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -252,6 +254,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
                     handleResultData(codeOutput);
+                    setWidgetOpacity(codeOutput?.metadata?.groupID, "1");
                     if (
                         codeOutput.metadata?.msg_type === "execute_reply" &&
                         codeOutput.content?.status != null
@@ -303,7 +306,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         return () => {
             console.log("CodeEditor unmount");
-              socket?.off(WebAppEndpoint.CodeEditor);
+            socket?.off(WebAppEndpoint.CodeEditor);
         };
     }, []);
 
@@ -405,7 +408,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(socket,runQueueItem);
+                execLines(socket, runQueueItem);
             }
         }
     }, [runQueue]);
@@ -434,7 +437,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         setCodeReloading(true);
     }, [inViewID, diffView]);
-    
+
     useEffect(() => {
         if (!diffView) {
             setTimeout(() => {
@@ -477,8 +480,6 @@ const CodeEditor = ({ stopMouseEvent }) => {
             }
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
-                    console.log("run cell");
-                    
                     addToRunQueueHoverCell();
                     break;
                 case CellCommand.CLEAR:
@@ -499,6 +500,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     break;
                 case CellCommand.RUN_ALL_CELL:
                     runAllCell();
+                    break;
+                case CellCommand.ADD_TEXT:
+                    addText();
                     break;
             }
             dispatch(setCellCommand(undefined));
