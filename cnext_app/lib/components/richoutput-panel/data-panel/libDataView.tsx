@@ -7,6 +7,7 @@ export const sendGetTableData = (
     socket: Socket,
     df_id: string,
     filter: string | null = null,
+    df_type: string,
     page_number: number = 0,
     page_size: number,
 ) => {
@@ -17,6 +18,7 @@ export const sendGetTableData = (
     let message = createMessage(WebAppEndpoint.DataViewer, CommandName.get_table_data, queryStr, {
         df_id: df_id,
         filter: filter,
+        df_type: df_type,
         page_number: page_number,
         page_size: page_size,
     });

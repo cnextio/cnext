@@ -1,6 +1,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setTextOutput } from "../../../../redux/reducers/RichOutputRedux";
+import store from "../../../../redux/store";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import {
     handleGetDFMetadata,
@@ -26,8 +27,10 @@ export const useLoadDFMetaData = () => {
 
     const loadDFMetaData = useCallback((df_id: string) => {
         if (df_id) {
+            const state = store.getState();
+            const type = state.dataFrames.metadata[df_id]?.type;
             setIsLoading(true);
-            if (socket) sendGetDFMetadata(WebAppEndpoint.DFExplorer, socket, df_id);
+            if (socket) sendGetDFMetadata(WebAppEndpoint.DFExplorer, socket, df_id, type);
         }
     }, [socket]);
 
