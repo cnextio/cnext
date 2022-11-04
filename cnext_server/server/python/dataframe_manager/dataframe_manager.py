@@ -169,31 +169,19 @@ class MessageHandler(BaseMessageHandler):
 
     @ipython_internal_output
     def _ipython_get_metadata(self, df_id, df_type):
-        self.user_space.execute("print('Get metadata for dataframe %s...')" % df_id, ExecutionMode.EVAL)
+        self.user_space.execute(
+            "print('Get metadata for dataframe %s...')" % df_id, ExecutionMode.EVAL)
         dataframe = DataFrame(self.user_space, df_id, df_type)
         shape, dtypes, countna, describe, nuniques = dataframe.get_metadata()
-        # describe = self._convert_to_str_if_not_jsonable(describe)
         uniques = dataframe.uniques(dtypes, nuniques)
 
         columns = {}
         MAX_UNIQUE_LENGTH = 1000
         for col_name, ctype in dtypes.items():
-            # if re.search(r'datetime', ctype.name):
-            #     # the unique value of datetime is usually the same as the length so it is meaningless
-            #     # also we have to convert it to string before sending back. So just don't do it now.
-            #     unique = []
-            # else:
-            #     unique = self.user_space.execute(
-            #         "_pd.Series(%s['%s'].unique()).tolist()" % (df_id, col_name), ExecutionMode.EVAL)
-
-            # # only send unique list that has length smaller than MAX_UNIQUE_LENGTH
-            # if len(unique) > MAX_UNIQUE_LENGTH:
-            #     unique = []
-            print(col_name)
-            print(describe[col_name])
             columns[col_name] = {'name': col_name,
                                  'type': str(ctype.name), 'unique': uniques[col_name],
-                                 'countna': countna[col_name].item(), 'describe': describe[col_name].to_dict()}
+                                 'countna': countna[col_name].item(), 
+                                 'describe': describe[col_name].to_dict() if col_name in describe else None}
         output = {'df_id': df_id, 'type': str(df_type),
                   'shape': shape, 'columns': columns, 'timestamp': time.time()}
         return output

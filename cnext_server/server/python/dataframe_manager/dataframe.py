@@ -30,10 +30,6 @@ class PandasDataFrame(DataFrameAbstract):
 
     """
 
-    # def __init__(self, user_space, df_id):
-    #     self.user_space = user_space
-    #     self.df_id = df_id
-
     def describe(self):
         describe = self.user_space.execute("%s.describe(include='all')" % self.df_id, ExecutionMode.EVAL)
         return self._convert_to_str_if_not_jsonable(describe)
@@ -83,10 +79,6 @@ class SparkPandasDataFrame(DataFrameAbstract):
     """
 
     """
-
-    # def __init__(self, user_space, df_id):
-    #     self.user_space = user_space
-    #     self.df_id = df_id
 
     def describe(self):
         describe = self.user_space.execute(
@@ -140,6 +132,7 @@ def DataFrame(user_space, df_id, type):
 
     dataframe_implementation = {
         TrackingDataframeType.PANDAS: PandasDataFrame,
+        TrackingDataframeType.CNEXT: PandasDataFrame,
         TrackingDataframeType.SPARK: SparkPandasDataFrame
     }
 
