@@ -79,7 +79,7 @@ jobs:
       - name: Install poetry
         run: pipx install poetry
 
-      - uses: actions/setup-python@v4.2.0
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
           cache: 'poetry'
@@ -107,7 +107,9 @@ jobs:
       #       cypress/**/*.spec.js
 
       - name: Build project for distribution
-        run: poetry build
+        run: |
+          poetry env use 3.9
+          poetry build
 
       - uses: actions/upload-artifact@v3
         with:
