@@ -93,13 +93,13 @@ def main(argv):
                 p2n_queue = MessageQueuePush(
                     server_config.p2n_comm['host'], server_config.p2n_comm['port'])
                 jupyter_server_config = server_config.jupyter_server
-                
+
                 if executor_type == ExecutorType.CODE:
                     # user_space = IPythonUserSpace(
                     #     (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
                     user_space = IPythonUserSpace(
                         (TrackingDataframeType.PANDAS,
-                         TrackingDataframeType.CNEXT, TrackingDataframeType.DASK),
+                         TrackingDataframeType.CNEXT, TrackingDataframeType.DASK, TrackingDataframeType.SPARK),
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
 
                     ## start an ipython kernel with a default spec or spec from the config #
@@ -121,7 +121,7 @@ def main(argv):
                     message_handler = {
                         WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
                         ## DataViewer and DataFrameManager use the same handler#
-                        WebappEndpoint.DataFrameManager: dm.MessageHandler(p2n_queue, user_space),                        
+                        WebappEndpoint.DataFrameManager: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.DataViewer: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.DFExplorer: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
