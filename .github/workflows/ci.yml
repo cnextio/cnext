@@ -55,13 +55,13 @@ jobs:
       #       cnext_app/package-lock.json
       #       cnext_server/server/package-lock.json
 
-      - name: Install dependencies
-        working-directory: ./cnext_app
-        run: npm ci
+      # - name: Install dependencies
+      #   working-directory: ./cnext_app
+      #   run: npm ci
 
-      - name: Install dependencies
-        working-directory: ./cnext_server/server
-        run: npm ci
+      # - name: Install dependencies
+      #   working-directory: ./cnext_server/server
+      #   run: npm ci
 
       # - name: Cache Next.js
       #   uses: actions/cache@v3
