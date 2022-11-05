@@ -68,6 +68,7 @@ interface ProjectTreeItemInfo {
 }
 
 const FileExplorer = (props: any) => {
+    const relativeProjectPath: string = "";
     const socket = useContext(SocketContext);
     const activeProject: IProjectInfoInWorkspace | null = useSelector(
         (state: RootState) => state.projectManager.activeProject
@@ -81,7 +82,8 @@ const FileExplorer = (props: any) => {
         (state: RootState) => state.projectManager.workspaceMetadata
     );
 
-    const [focusedProjectTreeItem, setFocusedProjectTreeItem] = useState<ProjectTreeItemInfo | null>(null);
+    const [focusedProjectTreeItem, setFocusedProjectTreeItem] =
+        useState<ProjectTreeItemInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
     const [createProjectInProgress, setCreateProjectInprogress] = useState<boolean>(false);
     const [txtError, setTxtError] = useState<string | null>(null);
@@ -135,7 +137,7 @@ const FileExplorer = (props: any) => {
                                 dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
-                    }                    
+                    }
                 } else {
                 }
             } catch (error) {
@@ -291,33 +293,48 @@ const FileExplorer = (props: any) => {
         return name.split(".")[0].length > 0;
     };
 
-    const relativeProjectPath = "";
-
     // const isFile = (name: string) => {
     //     return name.split(".")[1];
     // };
 
-    const checkProjectPath = (projectPath: string) => {
-        if (projectPath == "") {
-            setTxtError("The path is empty");
-            return false;
-        }
+    const askIsValidPath = async (channel: string, { path }: any) => {
+        let message: IMessage = {
+            webapp_endpoint: WebAppEndpoint.FileManager,
+            command_name: ProjectCommand.check_path,
+            content: path,
+            type: ContentType.STRING,
+        };
+        return new Promise((resolve, reject) => {
+            socket?.emit(channel, JSON.stringify(message));
+            setTimeout(() => {
+                resolve(null);
+            }, 3000);
 
-        // if (isFile(projectPath)) {
-        //     setTxtError("The path is not folder");
-        //     return false;
-        // }
-
-        setTxtError(null);
-        return true;
+            socket?.once(channel, (result: any) => {
+                const response = JSON.parse(result.toString());
+                resolve(response);
+            });
+        });
     };
 
-    const handleNewProjectKeyPress = (event: React.KeyboardEvent, value: string) => {
+    const isValidPath = async (projectPath: string) => {
+        setTxtError(null);
+        let result = await askIsValidPath(WebAppEndpoint.FileManager, {
+            path: projectPath,
+        });
+
+        if (!result.content.isValid) {
+            setTxtError(`The path is invalid`);
+        }
+        return result.content;
+    };
+
+    const handleNewProjectKeyPress = async (event: React.KeyboardEvent, value: string) => {
         const projectPath = value;
         if (event.key === "Enter") {
-            let isValidPath = checkProjectPath(projectPath);
-            if (isValidPath) {
-                dispatch(setProjectToAdd(projectPath));
+            let content = await isValidPath(projectPath);
+            if (content.isValid) {
+                dispatch(setProjectToAdd(content.path));
                 setCreateProjectInprogress(false);
             }
         } else if (event.key === "Escape") {
@@ -337,7 +354,11 @@ const FileExplorer = (props: any) => {
                 /** this will create path format that conforms to the style of the client OS
                  * but not that of server OS. The server will have to use os.path.norm to correct
                  * the path */
-                let relativePath = path.join(relativeProjectPath, focusedProjectTreeItem.item, value);
+                let relativePath = path.join(
+                    relativeProjectPath,
+                    focusedProjectTreeItem.item,
+                    value
+                );
                 console.log(
                     "FileExplorer create new item: ",
                     relativePath,
@@ -467,7 +488,10 @@ const FileExplorer = (props: any) => {
     const renderProjectItem = (projectItem: IProjectInfoInWorkspace, index: number) => {
         if (projectItem.id !== activeProject?.id) {
             return (
-                <ClosedProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)} key={index}>
+                <ClosedProjectItem
+                    onDoubleClick={() => changeActiveProject(projectItem?.id)}
+                    key={index}
+                >
                     <LockIcon
                         style={{
                             fontSize: "15px",
@@ -504,7 +528,7 @@ const FileExplorer = (props: any) => {
                                     parent: relativeProjectPath,
                                     item: relativeProjectPath,
                                     is_file: false,
-                                    deletable: false
+                                    deletable: false,
                                 });
                             }}
                             onContextMenu={(event: React.MouseEvent) => {
