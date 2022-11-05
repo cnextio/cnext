@@ -47,13 +47,13 @@ jobs:
           dasel put string -f pyproject.toml .tool.poetry.version "$REL_VERSION_STRICT"
           cat pyproject.toml
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'npm'
-          cache-dependency-path: |
-            cnext_app/package-lock.json
-            cnext_server/server/package-lock.json
+      # - uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 16
+      #     cache: 'npm'
+      #     cache-dependency-path: |
+      #       cnext_app/package-lock.json
+      #       cnext_server/server/package-lock.json
 
       # - name: Install dependencies
       #   working-directory: ./cnext_app
