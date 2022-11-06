@@ -88,6 +88,7 @@ export enum CommandName {
     get_registered_udfs = "get_registered_udfs",
     compute_udf = "compute_udf",
     set_dataframe_cell_value = "set_dataframe_cell_value",
+    exc_text= "exc_text"
 }
 
 export enum ContentType {
@@ -155,6 +156,7 @@ export enum WebAppEndpoint {
     LogsManager = "LogsManager",
     DataViewer = "DataViewer",
     DFExplorer = "DFExplorer",
+    OpenAiManager= "OpenAiManager"
 }
 
 export interface ITableData {

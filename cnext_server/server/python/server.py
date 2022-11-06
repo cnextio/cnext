@@ -21,6 +21,8 @@ from file_manager import file_manager as fm
 from logs_manager import logs_manager as lm
 from environment_manager import environment_manager as envm
 from jupyter_server_manager import jupyter_server_manager as jsm
+from openai_manager import openai_manager as openai
+
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, ExecutorManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
@@ -114,13 +116,13 @@ def main(argv):
                         log.info(
                             "Kernel spec does not exist. Kernel failed to run.")
 
-                    executor_manager = execm.MessageHandler(
-                        p2n_queue, user_space)
+                    # executor_manager = execm.MessageHandler(
+                    #     p2n_queue, user_space)
 
                     message_handler = {
                         WebappEndpoint.CodeEditor: ce.MessageHandler(p2n_queue, user_space),
                         ## DataViewer and DataFrameManager use the same handler#
-                        WebappEndpoint.DataFrameManager: dm.MessageHandler(p2n_queue, user_space),                        
+                        WebappEndpoint.DataFrameManager: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.DataViewer: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.DFExplorer: dm.MessageHandler(p2n_queue, user_space),
                         WebappEndpoint.ModelManager: mm.MessageHandler(p2n_queue, user_space),
@@ -140,6 +142,8 @@ def main(argv):
                             p2n_queue, user_space),
                         WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config),
                         WebappEndpoint.LogsManager: lm.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.OpenAiManager: openai.MessageHandler(p2n_queue, user_space),
+
                     }
 
             except Exception as error:

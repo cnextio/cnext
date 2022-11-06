@@ -21,6 +21,7 @@ class WebappEndpoint(str, Enum):
     LogsManager = 'LogsManager'
     DataViewer = 'DataViewer'
     DFExplorer = 'DFExplorer'
+    OpenAiManager = 'OpenAiManager'
 
     def __str__(self):
         return str(self.value)
@@ -65,7 +66,7 @@ class ProjectCommand(str, Enum):
     create_file = 'create_file'
     create_folder = 'create_folder'
     delete = 'delete'
-    get_file_changed='get_file_changed'
+    get_file_changed = 'get_file_changed'
     remove_file = 'remove_file'
     remove_folder = 'remove_folder'
     set_working_dir = 'set_working_dir'
@@ -115,10 +116,13 @@ class ModelManagerCommand(str, Enum):
 class JupyterServerCommand(str, Enum):
     get_config = 'get_jupyter_server_config'
 
+class OpenAiCommand(str, Enum):
+    exc_text = 'exc_text'
 
 class CodeEditorCommand(str, Enum):
     exec_line = 'exec_line'
     exec_grouped_lines = 'exec_grouped_lines'
+
 
 class ContentType(str, Enum):
     COMMAND = 'command'

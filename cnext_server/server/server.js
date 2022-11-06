@@ -41,6 +41,8 @@ const ExecutorManager = "ExecutorManager";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
+const OpenAiManager = "OpenAiManager";
+
 const DataViewer = "DataViewer";
 const DFExplorer = "DFExplorer";
 
@@ -54,7 +56,14 @@ const CodeEndpoints = [
     DataViewer,
     DFExplorer,
 ];
-const NonCodeEndpoints = [ExperimentManager, FileManager, FileExplorer, Terminal, LogsManager];
+const NonCodeEndpoints = [
+    ExperimentManager,
+    FileManager,
+    FileExplorer,
+    Terminal,
+    LogsManager,
+    OpenAiManager,
+];
 
 const LSPExecutor = [
     LanguageServer,
