@@ -14,6 +14,7 @@ import HotkeyComponent from "./hotkeys/HotKeys";
 import TerminalManager from "./terminal-manager/TerminalManager";
 import GitManager from "./git-manager/GitManager";
 import { SocketContext } from "./Socket";
+import OpenAiManager from "./openai-manager/OpenAiManager";
 
 const WorkingPanel = () => {
     const socket = useContext(SocketContext);
@@ -87,6 +88,7 @@ const WorkingPanel = () => {
             <DataFrameManager />
             <FileManager />
             <TerminalManager />
+            <OpenAiManager />
             <HotkeyComponent />
             {/* <Notifier /> */}
         </StyledWorkingPanel>

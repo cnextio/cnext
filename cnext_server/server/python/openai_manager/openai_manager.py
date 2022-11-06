@@ -13,25 +13,34 @@ log = logs.get_logger(__name__)
 
 
 class MessageHandler(BaseMessageHandler):
-    def __init__(self, p2n_queue, user_space):
+    def __init__(self, p2n_queue, user_space, openai_api_key):
         super(MessageHandler, self).__init__(p2n_queue, user_space)
-        openai.api_key = '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'
+        openai.api_key = openai_api_key
 
     def handle_message(self, message):
         try:
             if message.command_name == OpenAiCommand.exc_text:
-                content = asyncio.run(self._getDataOpenAi())
+                content = openai.Completion.create(
+                    model="code-davinci-002",
+                    prompt="#JavaScript to Python:\nJavaScript: \ndogs = [\"bill\", \"joe\", \"carl\"]\ncar = []\ndogs.forEach((dog) {\n    car.push(dog);\n});\n\nPython:",
+                    temperature=0,
+                    max_tokens=64,
+                    top_p=1.0,
+                    frequency_penalty=0.0,
+                    presence_penalty=0.0
+                )
+
                 data = Message(**{"webapp_endpoint": WebappEndpoint.OpenAiManager, "command_name": OpenAiCommand.exc_text,
                                   "content": content, "error": False})
+                print("data", data)
                 self._send_to_node(data)
         except:
             pass
 
-    async def _getDataOpenAi(message):
-        messsage =message.content
+    def _getDataOpenAi():
         return openai.Completion.create(
             model="code-davinci-002",
-            prompt=messsage,
+            prompt="#JavaScript to Python:\nJavaScript: \ndogs = [\"bill\", \"joe\", \"carl\"]\ncar = []\ndogs.forEach((dog) {\n    car.push(dog);\n});\n\nPython:",
             temperature=0,
             max_tokens=64,
             top_p=1.0,
