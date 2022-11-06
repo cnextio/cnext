@@ -154,12 +154,12 @@ class MessageHandler(BaseMessageHandler):
         return tableData
 
     @ipython_internal_output
-    def _ipython_get_table_data(self, df_id, df_type, code):
+    def _ipython_get_table_data(self, df_id, df_type, filter, from_index, to_index):
         output = None
         self.user_space.execute(
             "print('Get table data for dataframe %s...')" % df_id, ExecutionMode.EVAL)
         dataframe = DataFrame(self.user_space, df_id, df_type)
-        result = dataframe.get_table_data(code)
+        result = dataframe.get_table_data(filter, from_index, to_index)
         # print("get table data %s" % result)
         # log.info("get table data %s" % result)
         if result is not None:
@@ -173,17 +173,13 @@ class MessageHandler(BaseMessageHandler):
             "print('Get metadata for dataframe %s...')" % df_id, ExecutionMode.EVAL)
         dataframe = DataFrame(self.user_space, df_id, df_type)
         shape, dtypes, countna, describe, nuniques = dataframe.get_metadata()
-        uniques = dataframe.uniques(dtypes, nuniques)
-
-        columns = {}
-        MAX_UNIQUE_LENGTH = 1000
-        for col_name, ctype in dtypes.items():
-            columns[col_name] = {'name': col_name,
-                                 'type': str(ctype.name), 'unique': uniques[col_name],
-                                 'countna': countna[col_name].item(), 
-                                 'describe': describe[col_name].to_dict() if col_name in describe else None}
+        uniques = dataframe.uniques(df_id, dtypes, nuniques)
+        columns = dataframe.get_column_summary(
+            dtypes, countna, describe, uniques)
         output = {'df_id': df_id, 'type': str(df_type),
                   'shape': shape, 'columns': columns, 'timestamp': time.time()}
+        self.user_space.execute(
+            "print('Done!')", ExecutionMode.EVAL)
         return output
 
     # this function is run inside ipython but we don't have to wrap it with ipython_internal_output
@@ -296,17 +292,24 @@ class MessageHandler(BaseMessageHandler):
         ## this step is important to make sure the query work properly in the backend #
         if (isinstance(message.content, str)):
             message.content = message.content.replace("'", '"')
-
+        for key in message.metadata:
+            if (isinstance(message.metadata[key], str)):
+                message.metadata[key] = message.metadata[key].replace("'", '"')
+                
         try:
             if self.user_space.is_alive():
                 if message.command_name == DFManagerCommand.get_table_data:
                     # TODO: turn _df_manager to variable
-                    self.user_space.execute("{}._ipython_get_table_data('{}', '{}', '{}')".format(
-                        IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.metadata['df_type'], message.content), ExecutionMode.EVAL, self.message_handler_callback, message)
+                    self.user_space.execute("{}._ipython_get_table_data('{}', '{}', '{}', '{}', '{}')".format(
+                        IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.metadata['df_type'], 
+                        message.metadata['filter'] if message.metadata['filter'] is not None else "", 
+                        message.metadata['from_index'], message.metadata['to_index']), 
+                        ExecutionMode.EVAL, self.message_handler_callback, message)
 
                 elif message.command_name == DFManagerCommand.get_df_metadata:
                     self.user_space.execute("{}._ipython_get_metadata('{}', '{}')".format(
-                        IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.metadata['df_type']), ExecutionMode.EVAL, self.message_handler_callback, message)
+                        IPythonInteral.DF_MANAGER.value, message.metadata['df_id'], message.metadata['df_type']),
+                         ExecutionMode.EVAL, self.message_handler_callback, message)
 
                 elif message.command_name == DFManagerCommand.get_registered_udfs:
                     self.user_space.execute("{}._ipython_get_registered_udfs()".format(
