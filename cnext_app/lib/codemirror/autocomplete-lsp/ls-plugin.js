@@ -5,7 +5,7 @@ import { setParamOptions } from "./autocomplete";
 import { setDiagnostics } from "@codemirror/lint";
 import { WebAppEndpoint } from "../../interfaces/IApp";
 import { DiagnosticSeverity, SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
-
+import {sendMessage} from "../../components/Socket"
 import { rootUri, documentUri, languageId } from "./source";
 import { formatContents, sortResults } from "./helper";
 import DFFilterPlugin from "./df-plugin";
@@ -75,8 +75,8 @@ class LanguageServerPlugin {
             //     `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
             //     rpcMessage
             // );
-            this.socket?.emit(channel, JSON.stringify(rpcMessage));
-
+            // this.socket?.emit(channel, JSON.stringify(rpcMessage));
+            sendMessage(this.socket, channel, rpcMessage);
             setTimeout(() => {
                 resolve(null);
             }, time);

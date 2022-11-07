@@ -7,3 +7,4 @@ class TrackingDataframeType:
     PANDAS = "pandas.core.frame.DataFrame"
     CNEXT = "cnextlib.dataframe.DataFrame"
     DASK = "dask.dataframe.core.DataFrame"
+    SPARK = "pyspark.pandas.frame.DataFrame"
