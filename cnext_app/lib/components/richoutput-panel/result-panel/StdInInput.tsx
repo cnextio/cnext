@@ -1,8 +1,8 @@
 import { InputAdornment } from "@mui/material";
 import React, { useContext, useRef } from "react";
-import { SocketContext } from "../../Socket";
+import { sendMessage, SocketContext } from "../../Socket";
 import { StdInInput } from "../../StyledComponents";
-import { createMessage, sendMessage } from "./libStdInInput";
+import { createMessage } from "./libStdInInput";
 
 export const InputComponent = ({ resultContent }) => {
     const socket = useContext(SocketContext);
