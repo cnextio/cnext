@@ -179,12 +179,12 @@ try {
         socket.onAny((endpoint, message, ack) => {
             // console.log("endpoints: ", endpoint);
             if (["init", "reconnect", "disconnect", "ping"].includes(endpoint)) return null;
-            try{
+            try {
                 ack();
             } catch (error) {
                 console.error(error, ack);
             }
-            
+
             //TODO: use enum
             if (CodeEndpoints.includes(endpoint)) {
                 let jsonMessage = JSON.parse(message);
@@ -197,10 +197,7 @@ try {
                 codeExecutor.send2executor(endpoint, message);
             } else if (NonCodeEndpoints.includes(endpoint)) {
                 let jsonMessage = JSON.parse(message);
-                console.log(
-                    "Receive msg from client, server will run:",
-                    jsonMessage.command_name
-                );
+                console.log("Receive msg from client, server will run:", jsonMessage.command_name);
                 nonCodeExecutor.send2executor(endpoint, message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);

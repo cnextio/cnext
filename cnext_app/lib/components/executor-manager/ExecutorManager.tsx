@@ -46,8 +46,7 @@ export const useExecutorManager = () => {
                 let message: IMessage = JSON.parse(result);
                 console.log(
                     `${WebAppEndpoint.ExecutorManagerControl} got results for command `,
-                    message,
-                    command
+                    message
                 );
                 if (!message.error) {
                     if (message.command_name === command) {
@@ -75,17 +74,18 @@ export const useExecutorManager = () => {
                     status: ExecutorCommandStatus.EXECUTION_FAILED,
                 });
             }
-            setExecuting(false);
-            setTimeout(
-                () => {
-                    reject({
-                        status: ExecutorCommandStatus.EXECUTION_FAILED,
-                    });
-                },
-                30000 // 30s
-            );
+            setExecuting(false);            
             if (ack) ack();
         });
+
+        setTimeout(
+            () => {
+                reject({
+                    status: ExecutorCommandStatus.EXECUTION_FAILED,
+                });
+            },
+            30000 // 30s
+        );
     };
 
     const sendCommand = (command: ExecutorManagerCommand) => {

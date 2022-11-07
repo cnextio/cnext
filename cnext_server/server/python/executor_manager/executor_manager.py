@@ -198,3 +198,7 @@ class MessageHandler(BaseMessageHandler):
             error_message = BaseMessageHandler._create_error_message(
                 message.webapp_endpoint, trace, message.command_name, {})
             self._send_to_node(error_message)
+
+    def shutdown(self):
+        self.n2p_queue.close()
+        return super().shutdown()
