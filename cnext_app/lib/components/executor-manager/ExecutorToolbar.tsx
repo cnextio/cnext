@@ -6,17 +6,22 @@ import PauseIcon from "@mui/icons-material/PauseOutlined";
 import RestartAltIcon from "@mui/icons-material/RestartAltOutlined";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemoveOutlined";
 
-import { ExecutorToolbarItem, SideBarName } from "../../interfaces/IApp";
+import {
+    ExecutorCommandStatus,
+    ExecutorToolbarItem,
+    IExecutorCommandResponse,
+} from "../../interfaces/IApp";
 import { Divider, Tooltip } from "@mui/material";
 import { clearAllOutputs, setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { useDispatch } from "react-redux";
 import store from "../../../redux/store";
 import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
-import { interruptKernel, restartKernel } from "./ExecutorManager";
+import { useExecutorManager } from "./ExecutorManager";
 import { CellCommand } from "../../interfaces/ICodeEditor";
 import { SocketContext } from "../Socket";
 import { clearTextOutput } from "../../../redux/reducers/RichOutputRedux";
+import { updateExecutorRestartCounter } from "../../../redux/reducers/ExecutorManagerRedux";
 
 const ExecutorToolbarItemComponent = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -36,12 +41,14 @@ const ExecutorToolbar = () => {
     const socket = React.useContext(SocketContext);
     const [selectedIcon, setSelectedIcon] = React.useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
+    const [executionStatus, setExecutionStatus] = useState<null | IExecutorCommandResponse>(null);
+
     const dispatch = useDispatch();
     const handleClickClearOutputs = () => {
         const state = store.getState();
         const inViewID = state.projectManager.inViewID;
         if (inViewID) {
-            dispatch(clearAllOutputs(inViewID));            
+            dispatch(clearAllOutputs(inViewID));
         }
         dispatch(clearTextOutput());
     };
@@ -62,16 +69,32 @@ const ExecutorToolbar = () => {
             }
         }
     };
-    const commandDialogConfirm = (confirm: boolean, command: ExecutorManagerCommand) => {
-        setKernelCommand(null);
-        if (confirm && socket) {
-            if (command === ExecutorManagerCommand.interrupt_kernel) {
-                interruptKernel(socket);
-            } else if (command === ExecutorManagerCommand.restart_kernel) {
-                restartKernel(socket);
-            }
+
+    const { sendCommand } = useExecutorManager();
+    const [executing, setExecuting] = useState(false);
+
+    async function commandDialogConfirm(confirm: boolean, command: ExecutorManagerCommand) {
+        if (confirm) {
+            setExecuting(true);
+            setExecutionStatus(null);
+            await sendCommand(command)
+                .then((response: IExecutorCommandResponse) => {
+                    if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
+                        dispatch(updateExecutorRestartCounter());
+                        setKernelCommand(null);
+                    } else {
+                        setExecutionStatus(response);
+                    }
+                })
+                .catch((response) => {
+                    setExecutionStatus(response);
+                })
+                .finally(() => setExecuting(false));
+        } else {
+            setKernelCommand(null);
+            setExecutionStatus(null);
         }
-    };
+    }
 
     const executorToolbarItems = [
         {
@@ -125,6 +148,8 @@ const ExecutorToolbar = () => {
                 <ExecutorCommandConfirmation
                     command={kernelCommand}
                     confirmHandler={commandDialogConfirm}
+                    executing={executing}
+                    executionStatus={executionStatus}
                 />
             )}
         </StyledExecutorToolbar>

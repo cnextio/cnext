@@ -141,6 +141,7 @@ export enum WebAppEndpoint {
     ExperimentManager = "ExperimentManager",
     PlotManager = "PlotManager",
     ExecutorManager = "ExecutorManager",
+    ExecutorManagerControl = "ExecutorManagerControl",
     LanguageServer = "LanguageServer",
     LanguageServerNotifier = "LanguageServerNotifier",
     LanguageServerHover = "LanguageServerHover",
@@ -390,6 +391,17 @@ interface WorkSpaceOpenProject {
     data_path: String | null;
     name: String;
     path: String;
+}
+
+export enum ExecutorCommandStatus {
+    CONNECTION_FAILED = "connection_failed",
+    EXECUTION_FAILED = "execution_failed",
+    EXECUTION_OK = "execution_ok",
+    EXECUTION_BUSY = "execution_busy",
+}
+
+export interface IExecutorCommandResponse {
+    status: ExecutorCommandStatus;
 }
 
 export const SETTING_FILE_PATH = "config.json";
