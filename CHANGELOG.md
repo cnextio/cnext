@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.0](https://github.com/cnextio/cnext/compare/v0.10.7...v0.11.0) (2022-11-07)
+
+
+### Features
+
+* add acknowledgement and bad connection notification ([4737b7c](https://github.com/cnextio/cnext/commit/4737b7cf723188693af111896f2fc9d5fe224513))
+* add data viewer support for Spark and Dash data frames ([414ead8](https://github.com/cnextio/cnext/commit/414ead838fb6e007c91f6ecff2dda0a7ca2e976d))
+
+
+### Bug Fixes
+
+* bug in stdin ([b08ecf1](https://github.com/cnextio/cnext/commit/b08ecf188ab4beb508df429ecfcd736566e9c5fc))
+* small improvement ([1367abb](https://github.com/cnextio/cnext/commit/1367abba0a989219308d7c073182c0add37ba3be))
+
 ## [0.10.7](https://github.com/cnextio/cnext/compare/v0.10.6...v0.10.7) (2022-11-05)
 
 
