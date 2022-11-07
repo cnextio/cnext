@@ -37,7 +37,7 @@ type CodeEditorState = {
     timestamp: { [id: string]: number };
     // fileSaved: boolean;
     runQueue: IRunQueue;
-
+    openaiCountUpdate: number;
     /** This count is used to trigger the update of ResultView view.
      * It will increase whenever there is an update to results*/
     resultUpdateSignal: number;
@@ -77,9 +77,12 @@ type CodeEditorState = {
      * this is used to remove this input request next time there is a result */
     inputRequestResultIndex: number;
     executor_execution_state: string | null;
+    textOpenai?: string | null;
+    textToOpenAI?: string | null;
 };
 
 const initialState: CodeEditorState = {
+    openaiCountUpdate: 0,
     codeText: {},
     codeTextDiffView: {},
     codeLines: {},
@@ -111,6 +114,8 @@ const initialState: CodeEditorState = {
     diffView: false,
     inputRequestResultIndex: -1,
     executor_execution_state: null,
+    textOpenai: "",
+    textToOpenAI: "",
 };
 
 /**
@@ -180,7 +185,7 @@ function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem
     if (lineRange.fromLine != null && lineRange.toLine != null) {
         for (let l = lineRange.fromLine; l < lineRange.toLine; l++) {
             codeLines[l].textOutput = undefined;
-            state.textOutputUpdateSignal ++;
+            state.textOutputUpdateSignal++;
         }
     }
 }
@@ -237,7 +242,7 @@ export const CodeEditorRedux = createSlice({
             let codeTextData: any = action.payload;
             state.codeTextDiffView["text"] = action.payload.codeText;
             state.codeTextDiffView["diff"] = action.payload.diff;
-            state.codeTextDiffUpdateCounter +=1;
+            state.codeTextDiffUpdateCounter += 1;
         },
         updateLines: (state, action) => {
             /** see the design: https://www.notion.so/Adding-and-deleting-lines-2e221653968d4d3b9f8286714e225e78 */
@@ -329,7 +334,6 @@ export const CodeEditorRedux = createSlice({
         setViewStateEditor: (state, action) => {
             const data = action.payload;
             state.saveViewStateEditor[data.inViewID] = data.viewState;
-            
         },
         setLineGroupStatus: (state, action) => {
             let lineGroupStatus: ICodeLineGroupStatus = action.payload;
@@ -381,12 +385,12 @@ export const CodeEditorRedux = createSlice({
             let lineRange: ILineRange = resultMessage.metadata["line_range"];
             let codeLines: ICodeLine[] = state.codeLines[inViewID];
 
-            let newLineRange = getLineRangeOfGroup(codeLines,resultMessage.metadata.groupID)
+            let newLineRange = getLineRangeOfGroup(codeLines, resultMessage.metadata.groupID);
             // console.log('CodeEditorRedux addResult: ', resultMessage);
             /* only create result when content has something */
             if (lineRange != null && resultContent != null && resultContent !== "") {
                 /** TODO: double check this. for now only associate fromLine to result */
-                let fromLine = newLineRange?.fromLine ? newLineRange?.fromLine :lineRange.fromLine;
+                let fromLine = newLineRange?.fromLine ? newLineRange?.fromLine : lineRange.fromLine;
                 let codeLines: ICodeLine[] = state.codeLines[inViewID];
                 let currentTextOutput = state.codeLines[inViewID][fromLine].textOutput;
 
@@ -532,6 +536,13 @@ export const CodeEditorRedux = createSlice({
 
         setMouseOverLine: (state, action) => {
             state.mouseOverLine = action.payload;
+        },
+        setTextOpenai: (state, action) => {
+            state.textOpenai = action.payload;
+            state.openaiCountUpdate = state.openaiCountUpdate + 1;
+        },
+        setTextToOpenAi: (state, action) => {
+            state.textToOpenAI = action.payload;
         },
 
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
@@ -711,6 +722,8 @@ export const {
     setCellCommand,
     setMouseOverLine,
     setCodeStates,
+    setTextOpenai,
+    setTextToOpenAi,
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

@@ -1,4 +1,4 @@
-import { setCellCommand } from "../../../../redux/reducers/CodeEditorRedux";
+import { setCellCommand, setTextToOpenAi } from "../../../../redux/reducers/CodeEditorRedux";
 import store from "../../../../redux/store";
 import { CellCommand, ICodeLine, LineStatus } from "../../../interfaces/ICodeEditor";
 import { getCodeLine } from "./libCodeEditor";
@@ -88,11 +88,13 @@ const createCellWidgetDom = (
     let input = document.createElement("input");
     input.type = "text";
     input.placeholder = "Text to code";
-    input.oninput = eventInput;
+    input.onkeydown = eventInput;
     divAI.appendChild(input);
 
     function eventInput(e) {
-        console.log("Text to code=>>", e.target.value);
+        if (e.key === "Enter") {
+            store.dispatch(setTextToOpenAi({ text: e.target.value, groupID }));
+        }
     }
 
     parentDiv.appendChild(wrapDiv);

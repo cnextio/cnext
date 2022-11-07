@@ -19,6 +19,7 @@ import {
     setUnGroup,
     setWidgetOpacity,
     addText,
+    sendTextToOpenai,
 } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
@@ -51,6 +52,7 @@ import {
     addToRunQueueHoverCell,
     addToRunQueueHoverLine,
     addToRunQueueMoveDown,
+    getLineRangeOfGroup,
 } from "./libRunQueue";
 import { SocketContext } from "../../Socket";
 import { getCellFoldRange } from "./libCellFold";
@@ -66,7 +68,10 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const socket = useContext(SocketContext);
 
     const monaco = useMonaco();
-    const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
+    const textToOpenAI = useSelector((state: RootState) => state.codeEditor.textToOpenAI);
+    const openaiCountUpdate = useSelector((state: RootState) => state.codeEditor.openaiCountUpdate);
+
+    const textOpenai = useSelector((state: RootState) => state.codeEditor.textOpenai);
     const codeTextDiffView = useSelector((state: RootState) => state.codeEditor.codeTextDiffView);
     const diffView = useSelector((state: RootState) => state.codeEditor.diffView);
     const codeTextDiffUpdateCounter = useSelector(
@@ -424,6 +429,31 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     }, [executorRestartCounter]);
 
+    useEffect(() => {
+        if (inViewID && monaco && editor) {
+            console.log("textOpenai", textOpenai);
+
+            let groupID = textOpenai.metadata.groupID; /** 1-based */
+            const codeLines = store.getState().codeEditor.codeLines[inViewID];
+
+            let lineRange: any = getLineRangeOfGroup(codeLines, groupID);
+
+            var range = new monaco.Range(lineRange?.toLine + 1, 1, lineRange?.toLine + 1, 1);
+            var id = { major: 1, minor: 1 };
+            var text = textOpenai.content.choices[0].text;
+            console.log("lineRangetextOpenai", lineRange,text);
+
+            var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+            editor.executeEdits("my-source", [op]);
+        }
+    }, [openaiCountUpdate]);
+    useEffect(() => {
+        if (inViewID && monaco && editor) {
+            console.log("textToOpenAI", textToOpenAI);
+
+            sendTextToOpenai(socket, textToOpenAI);
+        }
+    }, [textToOpenAI]);
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
@@ -502,7 +532,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     runAllCell();
                     break;
                 case CellCommand.ADD_TEXT:
-                    addText();
+                    addText(socket);
                     break;
             }
             dispatch(setCellCommand(undefined));

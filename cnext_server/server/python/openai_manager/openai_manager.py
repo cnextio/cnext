@@ -20,18 +20,18 @@ class MessageHandler(BaseMessageHandler):
     def handle_message(self, message):
         try:
             if message.command_name == OpenAiCommand.exc_text:
+                print(message)
                 content = openai.Completion.create(
                     model="code-davinci-002",
-                    prompt="#JavaScript to Python:\nJavaScript: \ndogs = [\"bill\", \"joe\", \"carl\"]\ncar = []\ndogs.forEach((dog) {\n    car.push(dog);\n});\n\nPython:",
+                    prompt=message.content,
                     temperature=0,
                     max_tokens=64,
                     top_p=1.0,
                     frequency_penalty=0.0,
                     presence_penalty=0.0
                 )
-
                 data = Message(**{"webapp_endpoint": WebappEndpoint.OpenAiManager, "command_name": OpenAiCommand.exc_text,
-                                  "content": content, "error": False})
+                                  "content": content, "error": False, "metadata": message.metadata})
                 print("data", data)
                 self._send_to_node(data)
         except:
@@ -40,7 +40,7 @@ class MessageHandler(BaseMessageHandler):
     def _getDataOpenAi():
         return openai.Completion.create(
             model="code-davinci-002",
-            prompt="#JavaScript to Python:\nJavaScript: \ndogs = [\"bill\", \"joe\", \"carl\"]\ncar = []\ndogs.forEach((dog) {\n    car.push(dog);\n});\n\nPython:",
+            prompt="convert column i of data frame df to str using loc function",
             temperature=0,
             max_tokens=64,
             top_p=1.0,

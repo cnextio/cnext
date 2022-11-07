@@ -65,6 +65,18 @@ export function addText() {
         element.classList.add("show-input");
     }
 }
+
+export function sendTextToOpenai(socket, text) {
+    socket?.emit(
+        WebAppEndpoint.OpenAiManager,
+        JSON.stringify({
+            webapp_endpoint: WebAppEndpoint.OpenAiManager,
+            content: text.text,
+            command_name: CommandName.exc_text,
+            metadata: { groupID: text.groupID },
+        })
+    );
+}
 export function setWidgetOpacity(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
     if (element) {
@@ -119,6 +131,7 @@ function onMouseMove(event) {
             const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(state);
             let ln0based = event?.target?.position?.lineNumber - 1; /** 0-based */
+            console.log("mouseOverGroupID", mouseOverGroupID);
 
             if (lines && ln0based >= 0) {
                 let currentGroupID = lines[ln0based]?.groupID;
