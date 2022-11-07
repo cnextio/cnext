@@ -17,6 +17,7 @@ import {
     setMouseOverGroup,
     setMouseOverLine,
     setCodeStates,
+    clearRunQueue,
 } from "../../../redux/reducers/CodeEditorRedux";
 // import { setScrollPos } from "../../../redux/reducers/ProjectManagerRedux";
 import {
@@ -106,6 +107,7 @@ import { RangeSet } from "@codemirror/state";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import { Socket } from "socket.io-client";
 import { foldState } from "@codemirror/language";
+import { sendMessage } from "../Socket";
 
 const setLineStatus = (inViewID: string, lineRange: ILineRange, status: LineStatus) => {
     let lineStatus: ICodeLineStatus = {
@@ -867,7 +869,18 @@ const execLines = (
         let content: IRunningCommandContent | null = getRunningCommandContent(view, lineRange);
         if (content != null && inViewID != null) {
             console.log("CodeEditor execLines: ", content, lineRange);
-            sendMessage(socket, content);
+            sendMessage(socket, WebAppEndpoint.CodeEditor, createMessage(content), (response) => {
+                if (response.status === "failed") {
+                    if (content) {
+                        setLineStatus(
+                            inViewID,
+                            content.lineRange,
+                            LineStatus.EXECUTED_FAILED
+                        );
+                    }
+                    store.dispatch(clearRunQueue());
+                }
+            });
             setLineStatus(inViewID, content.lineRange, LineStatus.EXECUTING);
         }
     }
@@ -889,11 +902,6 @@ const createMessage = (content: IRunningCommandContent) => {
     return message;
 };
 
-const sendMessage = (socket: Socket | null, content: IRunningCommandContent) => {
-    const message = createMessage(content);
-    console.log(`${message.webapp_endpoint} send message: `, message);
-    socket?.emit(message.webapp_endpoint, JSON.stringify(message));
-};
 /** */
 
 export {
@@ -935,5 +943,4 @@ export {
     addToRunQueueThenMoveDown,
     execLines,
     createMessage,
-    sendMessage,
 };

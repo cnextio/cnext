@@ -15,7 +15,7 @@ import {
     ModelManagerCommand,
     NetronStatus,
 } from "../../../interfaces/IModelManager";
-import { SocketContext } from "../../Socket";
+import { sendMessage, SocketContext } from "../../Socket";
 import { DataToolbar as ModelManagerToolbar } from "../../StyledComponents";
 import ModelExplorer from "./ModelExplorer";
 import ReplayIcon from "@mui/icons-material/Replay";
@@ -48,10 +48,10 @@ const ModelManager = () => {
         return message;
     };
 
-    const sendMessage = (message: IMessage) => {
-        console.log(`${message.webapp_endpoint} send message: ${JSON.stringify(message)}`);
-        socket?.emit(message.webapp_endpoint, JSON.stringify(message));
-    };
+    // const sendMessage = (message: IMessage) => {
+    //     console.log(`${message.webapp_endpoint} send message: ${JSON.stringify(message)}`);
+    //     socket?.emit(message.webapp_endpoint, JSON.stringify(message));
+    // };
 
     const setupSocket = () => {
         socket?.emit("ping", "ModelManager");
@@ -84,7 +84,7 @@ const ModelManager = () => {
 
     const reload_active_models_info = () => {
         const message = createMessage(ModelManagerCommand.get_active_models_info);
-        sendMessage(message);
+        sendMessage(socket, message.webapp_endpoint, message);
     };
 
     useEffect(() => {
@@ -100,7 +100,7 @@ const ModelManager = () => {
         if (activeModel != null) {
             let activeModelInfo = state.modelManager.modelInfo[activeModel];
             const message = createMessage(ModelManagerCommand.display_model, activeModelInfo);
-            sendMessage(message);
+            sendMessage(socket, message.webapp_endpoint, message);
         }
     };
 

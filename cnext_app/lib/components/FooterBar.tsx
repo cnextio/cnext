@@ -12,7 +12,8 @@ import { setProjectConfig } from "../../redux/reducers/ProjectManagerRedux";
 import { WebAppEndpoint } from "../interfaces/IApp";
 import { LogsCommand } from "../interfaces/ILogsManager";
 import { CircularProgress } from "@mui/material";
-import { SocketContext } from "./Socket";
+import { sendMessage, SocketContext } from "./Socket";
+// import { sendMessage } from "./richoutput-panel/result-panel/libStdInInput";
 
 const enum FootbarItemName {
     AUTOCOMPLETION = "Autocompletion",
@@ -113,7 +114,8 @@ const FooterBarComponent = () => {
             };
 
             let channel = WebAppEndpoint.LogsManager;
-            socket?.emit(channel, JSON.stringify(message));
+            // socket?.emit(channel, JSON.stringify(message));
+            sendMessage(socket, channel, message)
             if (channel) {
                 socket?.once(channel, (result) => {
                     const response = JSON.parse(result.toString());
