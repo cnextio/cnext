@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.10.7](https://github.com/cnextio/cnext/compare/v0.10.6...v0.10.7) (2022-11-05)
+
+
+### Bug Fixes
+
+* add logs hold ([658e0ec](https://github.com/cnextio/cnext/commit/658e0ec451f478bc7ad3883bb15b6e9ad78d6090))
+* **ci:** Build project for distribution ([91c48ca](https://github.com/cnextio/cnext/commit/91c48caf74bfefcc9dea3ff661c3e423624999ad))
+* implement display output from dataframe manager ([3f783c2](https://github.com/cnextio/cnext/commit/3f783c2fe6af7b509abb793e4453d4b3a447ca73))
+* reduce the size of console ouput ([b17912e](https://github.com/cnextio/cnext/commit/b17912e087dc112d8df071763c8cec73f84995b6))
+
 ## [0.10.6](https://github.com/cnextio/cnext/compare/v0.10.5...v0.10.6) (2022-11-03)
 
 
