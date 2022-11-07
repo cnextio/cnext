@@ -20,7 +20,7 @@ export type RecvCodeOutput = (output: IMessage) => void;
 // };
 
 export interface IMessage {
-    webapp_endpoint: string; // the web client component which sends
+    webapp_endpoint: WebAppEndpoint; // the web client component which sends
     // and/or receives this message
     command_name:
         | CommandName

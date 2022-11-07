@@ -13,7 +13,7 @@ export const SERVER_SOCKET_ENDPOINT =
 
 export const SocketContext = React.createContext<Socket | null>(null);
 
-type AckFunc = (response: {[status: string]: string}) => void;
+type AckFunc = (response: {[success: string]: boolean}) => void;
 
 export const sendMessage = (
     socket: Socket | null,
@@ -27,10 +27,10 @@ export const sendMessage = (
         .emit(endpoint, JSON.stringify(message), (error: boolean, response: any) => {
             if (error) {
                 store.dispatch(setNotification("Failed to connect to the server."));
-                if (ack) ack({status: "failed"});
+                if (ack) ack({success: false});
             } else {
                 // console.log("Socket ack");
-                if (ack) ack({status: "ok"});
+                if (ack) ack({success: true});
             }
         });
 };

@@ -115,7 +115,12 @@ const FooterBarComponent = () => {
 
             let channel = WebAppEndpoint.LogsManager;
             // socket?.emit(channel, JSON.stringify(message));
-            sendMessage(socket, channel, message)
+            sendMessage(socket, channel, message, (ack) => {
+                if (ack.success === false) {
+                    setSending(false);
+                    reject("Connection failed!");
+                }
+            });
             if (channel) {
                 socket?.once(channel, (result) => {
                     const response = JSON.parse(result.toString());

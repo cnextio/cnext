@@ -870,7 +870,7 @@ const execLines = (
         if (content != null && inViewID != null) {
             console.log("CodeEditor execLines: ", content, lineRange);
             sendMessage(socket, WebAppEndpoint.CodeEditor, createMessage(content), (response) => {
-                if (response.status === "failed") {
+                if (response.success === false) {
                     if (content) {
                         setLineStatus(
                             inViewID,
