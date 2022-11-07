@@ -101,7 +101,7 @@ class PythonProcess {
         this.executorCommChannel = {};
         this.io = io;
         this.endpoins = endpoints;
-        
+
         this.executor.on("message", function (stdout) {
             try {
                 console.log("stdout: ", stdout);
@@ -175,14 +175,22 @@ try {
             io.emit("pong", time);
         });
 
-        socket.onAny((endpoint, message) => {
+        socket.onAny((endpoint, message, ack) => {
+            // console.log("endpoints: ", endpoint);
+            if (["init", "reconnect", "disconnect", "ping"].includes(endpoint)) return null;
+            try{
+                ack();
+            } catch (error) {
+                console.error(error, ack);
+            }
+            
             //TODO: use enum
             if (CodeEndpoints.includes(endpoint)) {
                 let jsonMessage = JSON.parse(message);
                 if (jsonMessage.command_name !== "get_status") {
                     console.log(
                         "Receive msg from client, server will run:",
-                        jsonMessage["command_name"]
+                        jsonMessage.command_name
                     );
                 }
                 codeExecutor.send2executor(endpoint, message);
@@ -190,7 +198,7 @@ try {
                 let jsonMessage = JSON.parse(message);
                 console.log(
                     "Receive msg from client, server will run:",
-                    jsonMessage["command_name"]
+                    jsonMessage.command_name
                 );
                 nonCodeExecutor.send2executor(endpoint, message);
             } else if (LSPExecutor.includes(endpoint)) {
