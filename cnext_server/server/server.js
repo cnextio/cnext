@@ -38,6 +38,7 @@ const FileExplorer = "FileExplorer";
 const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
 const ExecutorManager = "ExecutorManager";
+const ExecutorManagerControl = "ExecutorManagerControl";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
@@ -50,6 +51,7 @@ const CodeEndpoints = [
     ModelManager,
     MagicCommandGen,
     ExecutorManager,
+    ExecutorManagerControl,
     EnvironmentManager,
     DataViewer,
     DFExplorer,
@@ -124,11 +126,10 @@ class PythonProcess {
 
         for (let endpoint of this.endpoins) {
             /** only ExecutorManager use zmq now. TODO: move everything to zmq */
-            if (endpoint === ExecutorManager) {
-                this.executorCommChannel[ExecutorManager] = create_socket(
-                    config.n2p_comm.host,
-                    config.n2p_comm.kernel_control_port
-                );
+            if ([ExecutorManagerControl, ExecutorManager].includes(endpoint)) {
+                this.executorCommChannel[ExecutorManagerControl] = this.executorCommChannel[
+                    ExecutorManager
+                ] = create_socket(config.n2p_comm.host, config.n2p_comm.kernel_control_port);
             } else {
                 this.executorCommChannel[endpoint] = this.executor;
             }

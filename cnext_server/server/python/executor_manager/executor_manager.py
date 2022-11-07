@@ -164,12 +164,12 @@ class MessageHandler(BaseMessageHandler):
                                 workspace_info.__dict__)
                             set_executor_working_dir(
                                 self.user_space, workspace_metadata)
-                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
+                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManagerControl,
                                             'command_name': message.command_name,
                                             'content': {'success': result}})
                     elif message.command_name == ExecutorManagerCommand.interrupt_kernel:
                         result = self.user_space.interrupt_executor()
-                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
+                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManagerControl,
                                             'command_name': message.command_name,
                                             'content': {'success': result}})
                     elif message.command_name == ExecutorManagerCommand.get_status:

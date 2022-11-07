@@ -1,12 +1,21 @@
-import { Socket } from "socket.io-client";
-import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
-import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
-import { sendMessage } from "../Socket";
+import { useContext, useState } from "react";
+import {
+    ContentType,
+    ExecutorCommandStatus,
+    IExecutorCommandResponse,
+    IMessage,
+    WebAppEndpoint,
+} from "../../interfaces/IApp";
+import {
+    ExecutorManagerCommand,
+    IExecutorManagerResultContent,
+} from "../../interfaces/IExecutorManager";
+import { sendMessage, SocketContext } from "../Socket";
 // import socket from "../Socket";
 
 const createMessage = (commandName: ExecutorManagerCommand) => {
     let message: IMessage = {
-        webapp_endpoint: WebAppEndpoint.ExecutorManager,
+        webapp_endpoint: WebAppEndpoint.ExecutorManagerControl,
         command_name: commandName,
         seq_number: 1,
         content: "",
@@ -16,20 +25,79 @@ const createMessage = (commandName: ExecutorManagerCommand) => {
     return message;
 };
 
-// const sendMessage = (socket: Socket, message: IMessage) => {
-//     console.log("ExecutorManager send message: ", message.webapp_endpoint, JSON.stringify(message));
-//     socket?.emit(message.webapp_endpoint, JSON.stringify(message));
-    
-// };
+export const useExecutorManager = () => {
+    const socket = useContext(SocketContext);
+    const [executing, setExecuting] = useState(false);
 
-const restartKernel = (socket: Socket) => {
-    const message = createMessage(ExecutorManagerCommand.restart_kernel);
-    sendMessage(socket, message.webapp_endpoint, message);
+    const handlSocketResponse = (resolve, reject, command: ExecutorManagerCommand) => {
+        const message = createMessage(command);
+
+        sendMessage(socket, message.webapp_endpoint, message, (ack) => {
+            if (ack.success === false) {
+                setExecuting(false);
+                resolve({
+                    status: ExecutorCommandStatus.CONNECTION_FAILED,
+                });
+            }
+        });
+
+        socket?.once(WebAppEndpoint.ExecutorManagerControl, (result: string, ack) => {
+            try {
+                let message: IMessage = JSON.parse(result);
+                console.log(
+                    `${WebAppEndpoint.ExecutorManagerControl} got results for command `,
+                    message,
+                    command
+                );
+                if (!message.error) {
+                    if (message.command_name === command) {
+                        let resultContent = message.content as IExecutorManagerResultContent;
+                        let response: IExecutorCommandResponse;
+                        if (resultContent.success === true) {
+                            response = {
+                                status: ExecutorCommandStatus.EXECUTION_OK,
+                            };
+                        } else {
+                            response = {
+                                status: ExecutorCommandStatus.EXECUTION_FAILED,
+                            };
+                        }
+                        resolve(response);
+                    }
+                } else {
+                    reject({
+                        status: ExecutorCommandStatus.EXECUTION_FAILED,
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                reject({
+                    status: ExecutorCommandStatus.EXECUTION_FAILED,
+                });
+            }
+            setExecuting(false);
+            setTimeout(
+                () => {
+                    reject({
+                        status: ExecutorCommandStatus.EXECUTION_FAILED,
+                    });
+                },
+                30000 // 30s
+            );
+            if (ack) ack();
+        });
+    };
+
+    const sendCommand = (command: ExecutorManagerCommand) => {
+        return new Promise<IExecutorCommandResponse>((resolve, reject) => {
+            if (!executing) {
+                setExecuting(true);
+                handlSocketResponse(resolve, reject, command);
+            } else {
+                reject({ status: ExecutorCommandStatus.EXECUTION_BUSY });
+            }
+        });
+    };
+
+    return { sendCommand };
 };
-
-const interruptKernel = (socket: Socket) => {
-    const message = createMessage(ExecutorManagerCommand.interrupt_kernel);
-    sendMessage(socket, message.webapp_endpoint, message);
-};
-
-export { restartKernel, interruptKernel };
