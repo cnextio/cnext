@@ -53,6 +53,7 @@ const ExecutorToolbar = () => {
         dispatch(clearTextOutput());
     };
     const handleClick = (name: string) => {
+        setExecutionStatus(null);
         if (name === ExecutorToolbarItem.CLEAR_OUTPUTS) {
             handleClickClearOutputs();
         } else if (name === ExecutorToolbarItem.RESTART_KERNEL) {

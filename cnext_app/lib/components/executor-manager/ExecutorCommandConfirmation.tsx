@@ -76,6 +76,7 @@ const ExecutorCommandConfirmation = ({
                     size="small"
                     sx={{ fontSize: "14px" }}
                     onClick={() => confirmHandler(false, command)}
+                    disabled={executing}
                 >
                     Cancel
                 </Button>
