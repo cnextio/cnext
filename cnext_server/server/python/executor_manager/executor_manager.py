@@ -147,11 +147,11 @@ class MessageHandler(BaseMessageHandler):
         asyncio.set_event_loop(event_loop)
         ## reading config here to get the most updated version #
         server_config = read_config(SERVER_CONFIG_PATH)
-        n2p_queue = MessageQueuePull(
+        self.n2p_queue = MessageQueuePull(
             server_config.n2p_comm['host'], server_config.n2p_comm['kernel_control_port'])
         try:
             while True:
-                strMessage = n2p_queue.receive_msg()
+                strMessage = self.n2p_queue.receive_msg()
                 message = Message(**json.loads(strMessage))
                 log.info("Received control message: %s" % message)
                 if self.user_space.is_alive():
