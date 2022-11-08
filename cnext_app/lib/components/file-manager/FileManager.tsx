@@ -24,7 +24,9 @@ import {
 import store, { RootState } from "../../../redux/store";
 import {
     ContentType,
+    ExecutorCommandStatus,
     IConfigs,
+    IExecutorCommandResponse,
     IMessage,
     SETTING_FILE_PATH as CONFIG_FILE_PATH,
     SETTING_FILE_PATH,
@@ -38,8 +40,13 @@ import {
     IWorkspaceMetadata,
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
-import { isDiffFile, isUrlValid, parseUrl } from "../libs";
-import { SocketContext } from "../Socket";
+
+import { isDiffFile, parseUrl } from "../libs";
+import { SocketContext, sendMessage as socketSendMessage } from "../Socket";
+import { useExecutorManager } from "../executor-manager/ExecutorManager";
+import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
+import { updateExecutorRestartCounter } from "../../../redux/reducers/ExecutorManagerRedux";
+import { setNotification } from "../../../redux/reducers/NotificationRedux";
 
 const FileManager = () => {
     const socket = useContext(SocketContext);
@@ -213,7 +220,7 @@ const FileManager = () => {
                                 resetProjectStates(workspaceMetadata);
                                 dispatch(setWorkspaceMetadata(workspaceMetadata));
                                 // Restart the kernel
-                                // restartKernel();
+                                restartKernel(socket);
                             }
                             break;
                         case ProjectCommand.add_project:
@@ -252,10 +259,25 @@ const FileManager = () => {
             }
         });
     };
+    const { sendCommand } = useExecutorManager();
+
+    async function restartKernel() {
+        await sendCommand(ExecutorManagerCommand.restart_kernel)
+            .then((response: IExecutorCommandResponse) => {
+                if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
+                    dispatch(updateExecutorRestartCounter());
+                } else {
+                    dispatch(setNotification("Failed to restart the server."));
+                }
+            })
+            .catch((response) => {
+                dispatch(setNotification("Failed to restart the server."));
+            });
+    };
 
     const sendMessage = (message: IMessage) => {
-        console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
-        socket?.emit(message.webapp_endpoint, JSON.stringify(message));
+        // console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
+        socketSendMessage(socket, WebAppEndpoint.FileManager, message);
     };
 
     const createMessage = (
@@ -313,8 +335,8 @@ const FileManager = () => {
                 (codeText == null ||
                     (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
                     isSettingsFile(inViewID)) &&
-                !isDiffFile(inViewID))
- {
+                !isDiffFile(inViewID)
+            ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 if (file) {
                     const projectPath = state.projectManager.activeProject?.path;

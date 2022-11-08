@@ -4,7 +4,7 @@ import Moment from "react-moment";
 import "moment-timezone";
 import { CommandType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { ExperimentManagerCommand } from "../../../interfaces/IExperimentManager";
-import { SocketContext } from "../../Socket";
+import { sendMessage, SocketContext } from "../../Socket";
 import {
     DFSelector as ExpSelector,
     SmallArrowIcon,
@@ -227,10 +227,10 @@ const ExperimentManager = (props: any) => {
         // return () => socket.disconnect();
     };
 
-    const sendMessage = (message: {}) => {
-        console.log(`Send ${WebAppEndpoint.ExperimentManager} request: `, JSON.stringify(message));
-        socket?.emit(WebAppEndpoint.ExperimentManager, JSON.stringify(message));
-    };
+    // const sendMessage = (message: {}) => {
+    //     console.log(`Send ${WebAppEndpoint.ExperimentManager} request: `, JSON.stringify(message));
+    //     socket?.emit(WebAppEndpoint.ExperimentManager, JSON.stringify(message));
+    // };
 
     useEffect(() => {
         socketInit();
@@ -244,7 +244,7 @@ const ExperimentManager = (props: any) => {
                 tracking_uri: tracking_uri,
             },
         };
-        sendMessage(message);
+        sendMessage(socket, WebAppEndpoint.ExperimentManager, message);
         return () => {
             socket?.off(WebAppEndpoint.ExperimentManager);
         };

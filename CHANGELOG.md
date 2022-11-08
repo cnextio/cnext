@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.11.0](https://github.com/cnextio/cnext/compare/v0.10.7...v0.11.0) (2022-11-07)
+
+
+### Features
+
+* add acknowledgement and bad connection notification ([4737b7c](https://github.com/cnextio/cnext/commit/4737b7cf723188693af111896f2fc9d5fe224513))
+* add data viewer support for Spark and Dash data frames ([414ead8](https://github.com/cnextio/cnext/commit/414ead838fb6e007c91f6ecff2dda0a7ca2e976d))
+
+
+### Bug Fixes
+
+* bug in stdin ([b08ecf1](https://github.com/cnextio/cnext/commit/b08ecf188ab4beb508df429ecfcd736566e9c5fc))
+* small improvement ([1367abb](https://github.com/cnextio/cnext/commit/1367abba0a989219308d7c073182c0add37ba3be))
+
+## [0.10.7](https://github.com/cnextio/cnext/compare/v0.10.6...v0.10.7) (2022-11-05)
+
+
+### Bug Fixes
+
+* add logs hold ([658e0ec](https://github.com/cnextio/cnext/commit/658e0ec451f478bc7ad3883bb15b6e9ad78d6090))
+* **ci:** Build project for distribution ([91c48ca](https://github.com/cnextio/cnext/commit/91c48caf74bfefcc9dea3ff661c3e423624999ad))
+* implement display output from dataframe manager ([3f783c2](https://github.com/cnextio/cnext/commit/3f783c2fe6af7b509abb793e4453d4b3a447ca73))
+* reduce the size of console ouput ([b17912e](https://github.com/cnextio/cnext/commit/b17912e087dc112d8df071763c8cec73f84995b6))
+
+## [0.10.6](https://github.com/cnextio/cnext/compare/v0.10.5...v0.10.6) (2022-11-03)
+
+
+### Bug Fixes
+
+* cnextlib out of date ([92919b5](https://github.com/cnextio/cnext/commit/92919b5b307c0ac1637fa39ef5d5995853c97c88))
+
+## [0.10.5](https://github.com/cnextio/cnext/compare/v0.10.4...v0.10.5) (2022-11-03)
+
+
+### Bug Fixes
+
+* improve kernel restarting ([11ea34d](https://github.com/cnextio/cnext/commit/11ea34da88f08912d27d82e9cecb546fcf717da2))
+* restart kernel when change project ([0cdb2ba](https://github.com/cnextio/cnext/commit/0cdb2baec7ec3d57ba3574a2a7effb4cff37b0f9))
+
+## [0.10.4](https://github.com/cnextio/cnext/compare/v0.10.3...v0.10.4) (2022-11-02)
+
+
+### Bug Fixes
+
+* **ci:** base dev version ([2a70290](https://github.com/cnextio/cnext/commit/2a70290d07e343888c80a2f9d0d4c9153c80821c))
+
 ## [0.10.3](https://github.com/cnextio/cnext/compare/v0.10.2...v0.10.3) (2022-11-01)
 
 

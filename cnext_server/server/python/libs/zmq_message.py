@@ -41,15 +41,19 @@ config = read_config(SERVER_CONFIG_PATH, {'code_executor_comm': {
 
 class MessageQueuePush:
     def __init__(self, host, port, hwm=1000):
-        context = zmq.Context()
+        self.context = zmq.Context()
         self.host = host
         self.port = port
         self.addr = '{}:{}'.format(self.host, self.port)
-        self.push: zmq.Socket = context.socket(zmq.PUSH)
+        self.push: zmq.Socket = self.context.socket(zmq.PUSH)
         self.push.connect(self.addr)
 
     def get_socket(self):
         return self.push
+
+    def close(self):
+        self.push.disconnect(self.addr)
+        self.context.term()
 
     def send(self, message):
         # TODO: could not explain why NOBLOCK would not work even when the receiver already connects
@@ -70,7 +74,8 @@ class MessageQueuePull:
         self.pull.bind(self.addr)
 
     def close(self):
-        self.pull_queue.disconnect(self.addr)
+        self.pull.unbind(self.addr)
+        self.context.term()
 
     def receive_msg(self):
         return self.pull.recv_string()

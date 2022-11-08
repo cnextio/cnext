@@ -14,12 +14,12 @@ import {
     OpenProjectItem,
     ProjectExplorerToolbar,
 } from "../StyledComponents";
-import { CommandName, WebAppEndpoint } from "../../interfaces/IApp";
+import { CommandName, ContentType, WebAppEndpoint } from "../../interfaces/IApp";
 import { useDispatch } from "react-redux";
 import { setFileDiff, setFileToOpen, setInView } from "../../../redux/reducers/ProjectManagerRedux";
 import { setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
 import store from "../../../redux/store";
-import { SocketContext } from "../Socket";
+import { sendMessage, SocketContext } from "../Socket";
 
 const GitManager = (props: any) => {
     const dispatch = useDispatch();
@@ -37,17 +37,15 @@ const GitManager = (props: any) => {
     const connectDiff = () => {
         const state = store.getState();
         const projectPath = state.projectManager.activeProject?.path;
-        socket?.emit(
-            WebAppEndpoint.FileManager,
-            JSON.stringify({
-                webapp_endpoint: WebAppEndpoint.FileManager,
-                content: "",
-                command_name: CommandName.get_file_changed,
-                metadata: {
-                    project_path: projectPath,
-                },
-            })
-        );
+        sendMessage(socket, WebAppEndpoint.FileManager, {
+            webapp_endpoint: WebAppEndpoint.FileManager,
+            content: "",
+            command_name: CommandName.get_file_changed,
+            metadata: {
+                project_path: projectPath,
+            },
+            type: ContentType.COMMAND
+        });
     };
     useEffect(() => {
         connectDiff();

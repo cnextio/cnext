@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-import { IndividualControlPanelContent as IndividualTextIOContent } from "../../StyledComponents";
+import { IndividualConsolePanelContentSmall as IndividualTextIOContent } from "../../StyledComponents";
 import { Box, Typography } from "@mui/material";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,7 +27,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     const textOutputUpdateSignal = useSelector(
         (state: RootState) => state.codeEditor.textOutputUpdateSignal
     );
-    const roTextOutputUpdateCount = useSelector(
+    const roTextOutputUpdateSignal = useSelector(
         (state: RootState) => state.richOutput.textOutputUpdateSignal
     );
     // const richOutputFocused = useSelector((state: RootState) => state.richOutput.richOutputFocused);
@@ -223,7 +223,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         const state = store.getState();
         const newOutputContent: ITextOuput = {
             type: "text",
-            content: state.richOutput.textOutput,
+            content: state.richOutput.textOutput.slice(-1)[0],
         };
         if (!lastItemIsROTextOutput) {
             /** append to the last item */
@@ -232,7 +232,8 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         } else {
             /** update the last item */
             setOutputContent((outputContent) => [
-                ...outputContent.filter((item, index) => index < outputContent.length - 1),
+                // ...outputContent.filter((item, index) => index < outputContent.length - 1),
+                ...outputContent,
                 newOutputContent,
             ]);
         }
@@ -242,7 +243,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         if (state.projectManager.settings.dataframe_manager.show_exec_text) {
             handleRichOutputTextOutput();
         }
-    }, [roTextOutputUpdateCount]);
+    }, [roTextOutputUpdateSignal]);
 
     const isItemFocused = (item: ITextOuput | undefined, lastItem: boolean) => {
         // TODO: implement scoll to rich-output text and df updates
@@ -265,11 +266,12 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         <>
             {outputContent?.map((item, index) => (
                 <ScrollIntoViewIfNeeded
-                    active={isItemFocused(item, index === outputContent.length - 1)}
+                    active={index === outputContent.length - 1} //{isItemFocused(item, index === outputContent.length - 1)}
                     options={{
                         block: "start",
                         inline: "center",
                         behavior: "smooth",
+                        scrollMode: 'if-needed',
                         boundary: document.getElementById(props.id),
                     }}
                 >

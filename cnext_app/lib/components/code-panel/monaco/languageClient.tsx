@@ -3,6 +3,7 @@ import store, { RootState } from "../../../../redux/store";
 import { getCodeText, getMainEditorModel } from "./libCodeEditor";
 import { CompletionTriggerKind, SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
 import { Socket } from "socket.io-client";
+import { sendMessage } from "../../Socket";
 
 class PythonLanguageClient {
     config: any;
@@ -204,8 +205,7 @@ class PythonLanguageClient {
             //     `send LSP request on ${channel}  to Server at ${new Date().toLocaleString()} `,
             //     rpcMessage
             // );
-            this.socket.emit(channel, JSON.stringify(rpcMessage));
-
+            sendMessage(this.socket, channel, rpcMessage);
             setTimeout(() => {
                 resolve(null);
             }, timeout);

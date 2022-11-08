@@ -123,7 +123,9 @@ export const useLoadTableData = (
     const getTableData = (pageNumber: number, pageSize: number) => {
         if (socket && df_id && !isLoading) {
             setIsLoading(true);
-            sendGetTableData(socket, df_id, filter, pageNumber, pageSize);
+            const state = store.getState();
+            const type = state.dataFrames.metadata[df_id]?.type;
+            sendGetTableData(socket, df_id, filter, type, pageNumber, pageSize);
             /** clear the message */
             dispatch(setTextOutput({ content: null }));
         }
