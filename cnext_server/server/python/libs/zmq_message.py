@@ -41,11 +41,11 @@ config = read_config(SERVER_CONFIG_PATH, {'code_executor_comm': {
 
 class MessageQueuePush:
     def __init__(self, host, port, hwm=1000):
-        context = zmq.Context()
+        self.context = zmq.Context()
         self.host = host
         self.port = port
         self.addr = '{}:{}'.format(self.host, self.port)
-        self.push: zmq.Socket = context.socket(zmq.PUSH)
+        self.push: zmq.Socket = self.context.socket(zmq.PUSH)
         self.push.connect(self.addr)
 
     def get_socket(self):
