@@ -57,11 +57,8 @@ import {
 import { SocketContext } from "../../Socket";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
-import { ifElse } from "../../libs";
-var patch = require("patch-text");
 // import  Diff  from "diff";
 const Diff = require("diff");
-var DiffMatchPatch = require("diff-match-patch");
 import { PythonLanguageClient, LanguageProvider } from "./languageClient";
 
 const CodeEditor = ({ stopMouseEvent }) => {

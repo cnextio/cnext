@@ -69,7 +69,8 @@ export function addText() {
 }
 
 export function sendTextToOpenai(socket, text) {
-    socket?.emit(
+    sendMessage(
+        socket,
         WebAppEndpoint.OpenAiManager,
         JSON.stringify({
             webapp_endpoint: WebAppEndpoint.OpenAiManager,
