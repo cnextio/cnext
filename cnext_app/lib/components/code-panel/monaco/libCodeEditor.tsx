@@ -1,5 +1,6 @@
 import { Monaco } from "@monaco-editor/react";
 import {
+    clearRunQueue,
     setActiveLine as setActiveLineRedux,
     setMouseOverGroup,
     setMouseOverLine,
@@ -18,6 +19,7 @@ import { ifElse } from "../../libs";
 import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/CodeEditorRedux";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { Socket } from "socket.io-client";
+import { sendMessage } from "../../Socket";
 
 export const getCodeLine = (state: RootState): ICodeLine[] | null => {
     let inViewID = state.projectManager.inViewID;
@@ -229,7 +231,14 @@ export const execLines = (socket: any, runQueueItem: IRunQueueItem) => {
         let content: IRunningCommandContent | null = getRunningCommandContent(fileID, lineRange);
         if (content != null) {
             console.log("CodeEditor execLines: ", content, lineRange);
-            sendMessage(socket, content);
+            sendMessage(socket, WebAppEndpoint.CodeEditor, createMessage(content), (response) => {
+                if (response.success === false) {
+                    if (content) {
+                        setLineStatus(fileID, content.lineRange, LineStatus.EXECUTED_FAILED);
+                    }
+                    store.dispatch(clearRunQueue());
+                }
+            });
             setLineStatus(fileID, content.lineRange, LineStatus.EXECUTING);
         }
     }
@@ -276,8 +285,3 @@ const createMessage = (content: IRunningCommandContent) => {
     return message;
 };
 
-export const sendMessage = (socket: Socket, content: IRunningCommandContent) => {
-    const message = createMessage(content);
-    console.log(`${message.webapp_endpoint} send message: `, message);
-    socket?.emit(message.webapp_endpoint, JSON.stringify(message));
-};
