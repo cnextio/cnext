@@ -17,6 +17,9 @@ import {
     runAllCell,
     setGroup,
     setUnGroup,
+    setWidgetOpacity,
+    addText,
+    sendTextToOpenai,
 } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
@@ -49,6 +52,7 @@ import {
     addToRunQueueHoverCell,
     addToRunQueueHoverLine,
     addToRunQueueMoveDown,
+    getLineRangeOfGroup,
 } from "./libRunQueue";
 import { SocketContext } from "../../Socket";
 import { getCellFoldRange } from "./libCellFold";
@@ -64,7 +68,10 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const socket = useContext(SocketContext);
 
     const monaco = useMonaco();
-    const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
+    const textToOpenAI = useSelector((state: RootState) => state.codeEditor.textToOpenAI);
+    const openaiCountUpdate = useSelector((state: RootState) => state.codeEditor.openaiCountUpdate);
+
+    const textOpenai = useSelector((state: RootState) => state.codeEditor.textOpenai);
     const codeTextDiffView = useSelector((state: RootState) => state.codeEditor.codeTextDiffView);
     const diffView = useSelector((state: RootState) => state.codeEditor.diffView);
     const codeTextDiffUpdateCounter = useSelector(
@@ -243,8 +250,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     const socketInit = () => {
-          socket?.emit("ping", WebAppEndpoint.CodeEditor);
-          socket?.on(WebAppEndpoint.CodeEditor,  (result: string, ack) => {
+        socket?.emit("ping", WebAppEndpoint.CodeEditor);
+        socket?.on(WebAppEndpoint.CodeEditor, (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -252,6 +259,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
                     handleResultData(codeOutput);
+                    setWidgetOpacity(codeOutput?.metadata?.groupID, "1");
                     if (
                         codeOutput.metadata?.msg_type === "execute_reply" &&
                         codeOutput.content?.status != null
@@ -303,7 +311,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         return () => {
             console.log("CodeEditor unmount");
-              socket?.off(WebAppEndpoint.CodeEditor);
+            socket?.off(WebAppEndpoint.CodeEditor);
         };
     }, []);
 
@@ -405,7 +413,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(socket,runQueueItem);
+                execLines(socket, runQueueItem);
             }
         }
     }, [runQueue]);
@@ -421,6 +429,31 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     }, [executorRestartCounter]);
 
+    useEffect(() => {
+        if (inViewID && monaco && editor) {
+            console.log("textOpenai", textOpenai);
+
+            let groupID = textOpenai.metadata.groupID; /** 1-based */
+            const codeLines = store.getState().codeEditor.codeLines[inViewID];
+
+            let lineRange: any = getLineRangeOfGroup(codeLines, groupID);
+
+            var range = new monaco.Range(lineRange?.toLine + 1, 1, lineRange?.toLine + 1, 1);
+            var id = { major: 1, minor: 1 };
+            var text = textOpenai.content.choices[0].text;
+            console.log("lineRangetextOpenai", lineRange,text);
+
+            var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+            editor.executeEdits("my-source", [op]);
+        }
+    }, [openaiCountUpdate]);
+    useEffect(() => {
+        if (inViewID && monaco && editor) {
+            console.log("textToOpenAI", textToOpenAI);
+
+            sendTextToOpenai(socket, textToOpenAI);
+        }
+    }, [textToOpenAI]);
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
@@ -434,7 +467,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         setCodeReloading(true);
     }, [inViewID, diffView]);
-    
+
     useEffect(() => {
         if (!diffView) {
             setTimeout(() => {
@@ -477,8 +510,6 @@ const CodeEditor = ({ stopMouseEvent }) => {
             }
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
-                    console.log("run cell");
-                    
                     addToRunQueueHoverCell();
                     break;
                 case CellCommand.CLEAR:
@@ -499,6 +530,9 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     break;
                 case CellCommand.RUN_ALL_CELL:
                     runAllCell();
+                    break;
+                case CellCommand.ADD_TEXT:
+                    addText(socket);
                     break;
             }
             dispatch(setCellCommand(undefined));

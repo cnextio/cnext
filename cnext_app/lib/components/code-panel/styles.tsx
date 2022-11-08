@@ -43,6 +43,24 @@ export const MonacoEditor = styled(Editor)`
             background: var(--var-color-executing);
         }
     }
+    .cellwidget-input {
+        > * {
+                opacity: 0;
+            }
+        &.show-input {
+            > * {
+                opacity: 1;
+            }
+            input{
+                border: 1px solid #494848dd;
+                padding: 4px 4px;
+                position: relative;
+                z-index: 100000000000000;
+                width: 500px;
+                direction: ltr
+            }
+        }
+    }
     .cellwidget {
         height: 18px;
         // width: 100% !important;
@@ -78,12 +96,12 @@ export const MonacoEditor = styled(Editor)`
         @keyframes circle-bounce {
             0%,
             100% {
-                transform: scale(1);
-                -webkit-transform: scale(1);
+                transform: scale(0.9);
+                -webkit-transform: scale(0.9);
             }
             50% {
-                transform: scale(1.1);
-                -webkit-transform: scale(1.1);
+                transform: scale(1.2);
+                -webkit-transform: scale(1.2);
             }
         }
         .cellcommand {

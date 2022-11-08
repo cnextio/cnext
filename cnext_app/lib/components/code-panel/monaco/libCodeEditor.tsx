@@ -23,7 +23,7 @@ import { ifElse } from "../../libs";
 import { setLineStatus as setLineStatusRedux } from "../../../../redux/reducers/CodeEditorRedux";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { Socket } from "socket.io-client";
-import { addGroupToRunQueue } from "./libRunQueue";
+import { addGroupToRunQueue, getLineRangeOfGroup } from "./libRunQueue";
 
 export const getCodeLine = (state: RootState): ICodeLine[] | null => {
     let inViewID = state.projectManager.inViewID;
@@ -36,7 +36,7 @@ export const getCodeLine = (state: RootState): ICodeLine[] | null => {
 export const getCodeText = (state: RootState) => {
     let inViewID = state.projectManager.inViewID;
     if (inViewID) {
-        let codeText = ifElse(state.codeEditor.codeText, inViewID, null);        
+        let codeText = ifElse(state.codeEditor.codeText, inViewID, null);
         if (codeText) return codeText.join("\n");
     }
     return null;
@@ -56,8 +56,28 @@ function setActiveLine(inViewID: string, lineNumber: number) {
         console.error(error);
     }
 }
+export function addText() {
+    let groupID = store.getState().codeEditor.mouseOverGroupID; /** 1-based */
 
-function setWidgetOpacity(id: string, opacity: string) {
+    let element = document.getElementById(`cellwidget-input-${groupID}`) as HTMLElement | null;
+
+    if (element) {
+        element.classList.add("show-input");
+    }
+}
+
+export function sendTextToOpenai(socket, text) {
+    socket?.emit(
+        WebAppEndpoint.OpenAiManager,
+        JSON.stringify({
+            webapp_endpoint: WebAppEndpoint.OpenAiManager,
+            content: text.text,
+            command_name: CommandName.exc_text,
+            metadata: { groupID: text.groupID },
+        })
+    );
+}
+export function setWidgetOpacity(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
     if (element) {
         // element.style.opacity = opacity;
@@ -111,6 +131,7 @@ function onMouseMove(event) {
             const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(state);
             let ln0based = event?.target?.position?.lineNumber - 1; /** 0-based */
+            console.log("mouseOverGroupID", mouseOverGroupID);
 
             if (lines && ln0based >= 0) {
                 let currentGroupID = lines[ln0based]?.groupID;
@@ -178,7 +199,7 @@ export const getMainEditorModel = (monaco: Monaco) => {
 export const setCodeTextAndStates = (state: RootState, monaco: Monaco) => {
     let codeText = getCodeText(state);
     let editorModel = getMainEditorModel(monaco);
-    if (codeText) {        
+    if (codeText) {
         editorModel?.setValue(codeText);
     }
 };
@@ -224,6 +245,8 @@ export const insertCellBelow = (monaco: Monaco, editor, mode, ln0based: number |
         let id = { major: 1, minor: 1 };
         let text = "\n";
         var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+        console.log("range insertCellBelow", range);
+
         editor.executeEdits("insertCellBelow", [op]);
     }
     return true;
@@ -245,7 +268,7 @@ export const execLines = (socket: any, runQueueItem: IRunQueueItem) => {
         let content: IRunningCommandContent | null = getRunningCommandContent(fileID, lineRange);
         if (content != null) {
             console.log("CodeEditor execLines: ", content, lineRange);
-            sendMessage(socket, content);
+            sendMessage(socket, { ...content, groupID: runQueueItem.groupID });
             setLineStatus(fileID, content.lineRange, LineStatus.EXECUTING);
         }
     }
@@ -266,7 +289,7 @@ export const getRunningCommandContent = (
         lineRange.fromLine < lineRange.toLine
     ) {
         /** the text include the content of the toLine */
-        let text = codeText.slice(lineRange.fromLine, lineRange.toLine + 1).join("\n");
+        let text = codeText.slice(lineRange.fromLine, lineRange.toLine).join("\n");
         content = {
             lineRange: lineRange,
             content: text,
@@ -286,7 +309,7 @@ const createMessage = (content: IRunningCommandContent) => {
         content: content.content,
         type: ContentType.STRING,
         error: false,
-        metadata: { line_range: content.lineRange },
+        metadata: { line_range: content.lineRange, groupID: content.groupID },
     };
 
     return message;
@@ -303,23 +326,20 @@ export const deleteCellHover = (editor: any, monaco: any): boolean => {
     const inViewID = state.projectManager.inViewID;
     if (inViewID) {
         const codeLines = state.codeEditor.codeLines[inViewID];
-        let startLineNumber = 0;
-        let length = 0;
-        codeLines.forEach((item, index) => {
-            if (item.groupID && item.groupID === groupID) {
-                length = length + 1;
-                if (length === 1) {
-                    startLineNumber = index + 1;
-                }
-            }
-        });
-        // let lineRange = getLineRangeOfGroup(codeLines, lineNumberCurent - 1);
-        // console.log("lineRange",lineNumberCurent, lineRange);
-        let range = new monaco.Range(startLineNumber, 1, startLineNumber + length, 1);
-        let id = { major: 1, minor: 1 };
-        let text = "";
-        var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
-        editor.executeEdits("deleteCell", [op]);
+        let lineRange = {};
+        if (groupID) {
+            lineRange = getLineRangeOfGroup(codeLines, groupID);
+        }
+        console.log("lineRange getLineRangeOfGroup", lineRange);
+
+        if (lineRange?.fromLine || lineRange?.fromLine === 0) {
+            let range = new monaco.Range(lineRange.fromLine + 1, 1, lineRange.toLine + 1, 1);
+            console.log("lineRange getLineRangeOfGroup", lineRange);
+            let id = { major: 1, minor: 1 };
+            let text = "";
+            var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+            editor.executeEdits("deleteCell", [op]);
+        }
     }
 
     return true;
@@ -410,7 +430,7 @@ export const setUnGroup = (editor: any) => {
     let lineNumberCurent = editor.getPosition().lineNumber;
     if (inViewID) {
         let codeLines = reduxState.codeEditor.codeLines[inViewID];
-        let lineRange = getLineRangeOfGroup(codeLines, lineNumberCurent - 1);
+        let lineRange = getLineRangeOfGroupWithLineNumber(codeLines, lineNumberCurent - 1);
         console.log("CodeEditor setUnGroup: ", lineRange);
         if (inViewID && lineRange && lineRange.toLine > lineRange.fromLine) {
             let lineStatus: ICodeLineGroupStatus = {
@@ -424,7 +444,10 @@ export const setUnGroup = (editor: any) => {
         }
     }
 };
-const getLineRangeOfGroup = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
+const getLineRangeOfGroupWithLineNumber = (
+    codeLines: ICodeLine[],
+    lineNumber: number
+): ILineRange => {
     let groupID = codeLines[lineNumber].groupID;
     let fromLine = lineNumber;
     let toLine = lineNumber;
