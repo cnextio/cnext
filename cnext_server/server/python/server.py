@@ -95,6 +95,7 @@ def main(argv):
                 p2n_queue = MessageQueuePush(
                     server_config.p2n_comm['host'], server_config.p2n_comm['port'])
                 jupyter_server_config = server_config.jupyter_server
+                openai_api_key = server_config.openai_api_key
                 if executor_type == ExecutorType.CODE:
                     # user_space = IPythonUserSpace(
                     #     (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
@@ -142,7 +143,7 @@ def main(argv):
                             p2n_queue, user_space),
                         WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config),
                         WebappEndpoint.LogsManager: lm.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.OpenAiManager: openai.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.OpenAiManager: openai.MessageHandler(p2n_queue, user_space,openai_api_key),
 
                     }
 
