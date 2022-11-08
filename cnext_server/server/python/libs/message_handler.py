@@ -11,7 +11,7 @@ log = logs.get_logger(__name__)
 
 class BaseMessageHandler:
     def __init__(self, p2n_queue, user_space=None):
-        self.p2n_queue = p2n_queue        
+        self.p2n_queue = p2n_queue
         # if user_space == None:
         #     self.user_space = IPythonUserSpace(BaseKernel())
         # else:
@@ -112,6 +112,16 @@ class BaseMessageHandler:
             "metadata": metadata,
         })
 
+    @staticmethod
+    def _create_stream_message(message, ipython_msg):
+        message.error = False
+        message.type = ContentType.STRING
+        if 'text' in ipython_msg.content:
+            message.content = ipython_msg.content['text']
+        elif 'data' in ipython_msg.content:
+            message.content = ipython_msg.content['data']
+        return message
+
     def _send_to_node(self, message: Message):
         # the current way of communicate with node server is through stdout with a json string
         log.info("Send to node server: %s command_name: %s type: %s subt_type: %s metadata: %s" %
@@ -127,5 +137,4 @@ class BaseMessageHandler:
         raise "Abstract function must be implemented by subclass"
 
     def shutdown(self):
-        self.user_space.shutdown_executor()
-        pass
+        return self.user_space.shutdown_executor()

@@ -29,10 +29,6 @@ from libs.message_handler import BaseMessageHandler
 from libs.constants import TrackingModelType, TrackingDataframeType
 from project_manager.interfaces import SERVER_CONFIG_PATH, WORKSPACE_METADATA_PATH, WorkspaceMetadata
 from user_space.user_space import IPythonUserSpace, BaseKernelUserSpace
-import cnextlib.dataframe as cd
-import hashlib
-import jupyter_client
-import subprocess
 
 
 log = logs.get_logger(__name__)
@@ -41,11 +37,12 @@ log = logs.get_logger(__name__)
 class ShutdownSignalHandler:
     running = True
 
-    def __init__(self, message_handler, user_space):
+    def __init__(self, message_handler, user_space, p2n_queue):
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
         self.user_space = user_space
         self.message_handler = message_handler
+        self.p2n_queue = p2n_queue
 
     def get_running_status(self):
         return self.running
@@ -60,6 +57,7 @@ class ShutdownSignalHandler:
                 # value.user_space.executor.interupt_kernel()
 
         self.running = False
+        self.p2n_queue.close()
         # currently we exit right here. In the future, consider option to stop message handler gracefully.
         sys.exit(0)
 
@@ -95,12 +93,13 @@ def main(argv):
                 p2n_queue = MessageQueuePush(
                     server_config.p2n_comm['host'], server_config.p2n_comm['port'])
                 jupyter_server_config = server_config.jupyter_server
+
                 if executor_type == ExecutorType.CODE:
                     # user_space = IPythonUserSpace(
                     #     (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
                     user_space = IPythonUserSpace(
                         (TrackingDataframeType.PANDAS,
-                         TrackingDataframeType.CNEXT, TrackingDataframeType.DASK),
+                         TrackingDataframeType.CNEXT, TrackingDataframeType.DASK, TrackingDataframeType.SPARK),
                         (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
 
                     ## start an ipython kernel with a default spec or spec from the config #
@@ -129,6 +128,8 @@ def main(argv):
                         WebappEndpoint.MagicCommandGen: ca.MessageHandler(
                             p2n_queue, user_space),
                         WebappEndpoint.EnvironmentManager: envm.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.ExecutorManager: execm.MessageHandler(
+                            p2n_queue, user_space)
                     }
 
                     set_executor_working_dir(user_space, workspace_metadata)
@@ -150,7 +151,8 @@ def main(argv):
                 log.error("%s - %s" % (error, traceback.format_exc()))
                 exit(0)
 
-            shutdowHandler = ShutdownSignalHandler(message_handler, user_space)
+            shutdowHandler = ShutdownSignalHandler(
+                message_handler, user_space, p2n_queue)
             # this condition here is meaningless for now because the process will be exit inside ShutdownSignalHandler.exit_gracefully already
             try:
                 # while shutdowHandler.running:

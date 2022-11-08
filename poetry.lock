@@ -198,8 +198,8 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "cnextlib"
-version = "0.6.2"
-description = "cyc libraries for cyc-next-app"
+version = "0.7.2"
+description = "dataframe libraries used with cnext-app"
 category = "main"
 optional = false
 python-versions = ">=3.9"
@@ -1674,7 +1674,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "flake8 
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9"
-content-hash = "5122e2dca1ed6d8c95f31727c6d0035910a980bfae22a3d56704dd1c459890cb"
+content-hash = "e5eab007304120658f4b34c558501111dc144a17b39234fcef393ab4be5ecb95"
 
 [metadata.files]
 alembic = []

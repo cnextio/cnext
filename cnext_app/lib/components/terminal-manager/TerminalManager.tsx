@@ -3,8 +3,8 @@ import { useDispatch } from "react-redux";
 import { setConfigTerminal } from "../../../redux/reducers/TerminalRedux";
 import { getCookie } from "../../../utils";
 import { getDomain } from "../../../utils/domain";
-import { CommandName, WebAppEndpoint } from "../../interfaces/IApp";
-import { SocketContext } from "../Socket";
+import { CommandName, ContentType, WebAppEndpoint } from "../../interfaces/IApp";
+import { sendMessage, SocketContext } from "../Socket";
 
 const jupyterServerCookie = `_xsrf`;
 
@@ -18,17 +18,15 @@ const TerminalManager = () => {
             socket?.off(WebAppEndpoint.Terminal);
         };
     }, [socket]);
-    
+
     const setupSocket = () => {
         socket?.emit("ping", WebAppEndpoint.Terminal);
-        socket?.emit(
-            WebAppEndpoint.Terminal,
-            JSON.stringify({
-                webapp_endpoint: WebAppEndpoint.Terminal,
-                content: "",
-                command_name: CommandName.get_jupyter_server_config,
-            })
-        );
+        sendMessage(socket, WebAppEndpoint.Terminal, {
+            webapp_endpoint: WebAppEndpoint.Terminal,
+            content: "",
+            command_name: CommandName.get_jupyter_server_config,
+            type: ContentType.COMMAND
+        });
         socket?.on(WebAppEndpoint.Terminal, (result: string, ack) => {
             try {
                 if (JSON.parse(result).command_name === CommandName.get_jupyter_server_config) {

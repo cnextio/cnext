@@ -1,14 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
 import { IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import CircleIcon from "@mui/icons-material/Circle";
-import { ExecutorManagerCommand, IExecutorStatus } from "../../interfaces/IExecutorManager";
+import {
+    ExecutorManagerCommand,
+    IExecutorManagerResultContent,
+    IExecutorStatus,
+} from "../../interfaces/IExecutorManager";
 import { SocketContext } from "../Socket";
 import { TextIOHeaderText } from "../StyledComponents";
-import { green, red } from "@mui/material/colors";
 import { useDispatch, useSelector } from "react-redux";
 import {
     setExecutorStatus,
-    updateExecutorRestartCounter,
 } from "../../../redux/reducers/ExecutorManagerRedux";
 import { RootState } from "../../../redux/store";
 
@@ -25,15 +27,8 @@ const ExecutorStatus = () => {
                 if (!message.error) {
                     if (message.command_name === ExecutorManagerCommand.get_status) {
                         let executorStatus = message.content as IExecutorStatus;
-                        // console.log("KernelManager kernel status: ", executorStatus.resource);
-                        // setExecutorStatus(executorStatus);
                         dispatch(setExecutorStatus(executorStatus));
-                    } else if (message.command_name === ExecutorManagerCommand.restart_kernel) {
-                        let resultContent = message.content;
-                        if (resultContent.success === true) {
-                            dispatch(updateExecutorRestartCounter());
-                        }
-                    }
+                    } 
                 }
             } catch (error) {
                 console.log(error);

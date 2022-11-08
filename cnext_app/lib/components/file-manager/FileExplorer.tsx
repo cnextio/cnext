@@ -52,7 +52,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { isRunQueueBusy } from "../code-panel/libCodeEditor";
 import { OverlayComponent } from "../libs/OverlayComponent";
 import { setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
-import { SocketContext } from "../Socket";
+import { sendMessage, SocketContext } from "../Socket";
 
 const NameWithTooltip = ({ children, tooltip }) => {
     return (
@@ -186,12 +186,12 @@ const FileExplorer = (props: any) => {
         return message;
     };
 
-    const sendMessage = (message: IMessage) => {
-        console.log(
-            `File Explorer Send Message: ${message.webapp_endpoint} ${JSON.stringify(message)}`
-        );
-        socket?.emit(message.webapp_endpoint, JSON.stringify(message));
-    };
+    // const sendMessage = (message: IMessage) => {
+    //     console.log(
+    //         `File Explorer Send Message: ${message.webapp_endpoint} ${JSON.stringify(message)}`
+    //     );
+    //     socket?.emit(message.webapp_endpoint, JSON.stringify(message));
+    // };
 
     const fetchDirChildNodes = (path: string) => {
         const state = store.getState();
@@ -200,7 +200,7 @@ const FileExplorer = (props: any) => {
             project_path: projectPath,
             path: path,
         });
-        sendMessage(message);
+        sendMessage(socket, message.webapp_endpoint, message);
     };
 
     const handleDirToggle = (event, nodes) => {
@@ -355,7 +355,7 @@ const FileExplorer = (props: any) => {
                     path: relativePath,
                     open_order: store.getState().projectManager.openOrder,
                 });
-                sendMessage(message);
+                sendMessage(socket, message.webapp_endpoint, message);
                 fetchDirChildNodes(focusedProjectTreeItem.item);
                 setCreateItemInProgress(false);
             }
@@ -381,7 +381,7 @@ const FileExplorer = (props: any) => {
                 is_file: focusedProjectTreeItem.is_file,
                 open_order: store.getState().projectManager.openOrder,
             });
-            sendMessage(message);
+            sendMessage(socket, message.webapp_endpoint, message);
             fetchDirChildNodes(focusedProjectTreeItem.parent);
         }
         setDeleteDialog(false);

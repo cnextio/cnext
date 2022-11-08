@@ -52,33 +52,33 @@ const isDataFrameUpdated = (df_id: string) => {
 
 export const DF_DISPLAY_LENGTH = 50;
 
-export const sendGetTableData = (
-    socket: Socket,
-    df_id: string,
-    filter: string | null = null,
-    fromIndex: number = 0,
-    size: number = DF_DISPLAY_LENGTH
-) => {
-    let queryStr: string = `${df_id}${filter ? filter : ""}.iloc[${fromIndex}:${fromIndex + size}]`;
-    let message = createMessage(
-        WebAppEndpoint.DataFrameManager,
-        CommandName.get_table_data,
-        queryStr,
-        {
-            df_id: df_id,
-            filter: filter,
-            from_index: fromIndex,
-            size: size,
-        }
-    );
-    // console.log("Send get table: ", message);
-    sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
-};
+// export const sendGetTableData = (
+//     socket: Socket,
+//     df_id: string,
+//     filter: string | null = null,
+//     fromIndex: number = 0,
+//     size: number = DF_DISPLAY_LENGTH
+// ) => {
+//     let queryStr: string = `${df_id}${filter ? filter : ""}.iloc[${fromIndex}:${fromIndex + size}]`;
+//     let message = createMessage(
+//         WebAppEndpoint.DataFrameManager,
+//         CommandName.get_table_data,
+//         queryStr,
+//         {
+//             df_id: df_id,
+//             filter: filter,
+//             from_index: fromIndex,
+//             size: size,
+//         }
+//     );
+//     // console.log("Send get table: ", message);
+//     sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
+// };
 
 //TODO: create a targeted column function
-export const sendGetDFMetadata = (endpoint: WebAppEndpoint, socket: Socket, df_id: string) => {
+export const sendGetDFMetadata = (endpoint: WebAppEndpoint, socket: Socket, df_id: string, type: string) => {
     let message = createMessage(endpoint, CommandName.get_df_metadata, "", {
-        df_id: df_id,
+        df_id: df_id, df_type: type,
     });
     // console.log("_send_get_table_data message: ", message);
     sendMessage(socket, WebAppEndpoint.DataFrameManager, message);
@@ -106,8 +106,9 @@ export const handleActiveDFStatus = (
                 if (update != null) {
                     let updateType = update["update_type"];
                     let updateContent = update["update_content"];
+                    let dfType = getLastStatus(status).type;
                     console.log("DataFrameManager active df updates: ", update);
-                    sendGetDFMetadata(WebAppEndpoint.DataFrameManager, socket, df_id);
+                    sendGetDFMetadata(WebAppEndpoint.DataFrameManager, socket, df_id, dfType);
                     if (updateType == DataFrameUpdateType.add_rows) {
                         // show data around added rows
                         /** for now, only support number[] */
@@ -168,8 +169,13 @@ export const handleGetDFMetadata = (message: IMessage) => {
 
 /** Get the last update from data frame status */
 export function getLastUpdate(status: IDataFrameStatus) {
-    const lastStatus = status._status_list[status._status_list.length - 1];
+    const lastStatus = getLastStatus(status);
     return lastStatus.updates;
+}
+
+export function getLastStatus(status: IDataFrameStatus) {
+    const lastStatus = status._status_list[status._status_list.length - 1];
+    return lastStatus;
 }
 
 /** select columns to get stats based on the update type */
