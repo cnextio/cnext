@@ -1,4 +1,5 @@
 const request = require("request");
+var pjson = require("./package.json");
 
 function eventLog() {
     const AFTER_1_MIN = 60000;
@@ -18,7 +19,7 @@ function sendEventTrackingAfter(timeout, tag) {
             "http://logs-01.loggly.com/inputs/c58f8bb2-2332-4915-b9f3-70c1975956bb/tag/" + tag;
         request.post(
             loggly_url,
-            { json: { time: new Date().toUTCString() } },
+            { json: { time: new Date().toUTCString(), version: pjson.version } },
             function (error, response) {
                 if (!error && response.statusCode == 200) {
                     // console.log("send to loggly", body);
