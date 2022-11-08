@@ -264,11 +264,12 @@ try {
     /**
      * ZMQ communication from python-shell to node server
      */
-    async function zmq_receiver() {
-        const command_output_zmq = new zmq.Pull();
-        const p2n_host = config.p2n_comm.host;
-        const p2n_port = config.p2n_comm.port;
-        await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);
+    const command_output_zmq = new zmq.Pull();
+    const p2n_host = config.p2n_comm.host;
+    const p2n_port = config.p2n_comm.port;    
+
+    async function zmq_receiver() {       
+        await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);         
         console.log(`Waiting for python executor message on ${p2n_port}`);
         for await (const [message] of command_output_zmq) {
             const jsonMessage = JSON.parse(message.toString());
@@ -286,12 +287,14 @@ try {
     process.on("SIGINT", function () {
         codeExecutor.shutdown("SIGINT");
         nonCodeExecutor.shutdown("SIGINT");
+        command_output_zmq.close();
         process.exit(1);
     });
 
     process.on("SIGTERM", function () {
         codeExecutor.shutdown("SIGTERM");
         nonCodeExecutor.shutdown("SIGTERM");
+        command_output_zmq.close();
         process.exit(1);
     });
 
