@@ -139,6 +139,7 @@ def show_the_version():
     f = open(PACKAGE_PATH)
     data = json.load(f)
     print(data["version"])
+    return data["version"]
 
 
 def asking_choice():
@@ -198,7 +199,7 @@ def is_first_time():
     else:
         tag = "install"
         url = root_url + tag
-        requests.post(url, data = { "time": datetime.utcnow().strftime('%d-%m-%Y %H:%M:%S') })
+        requests.post(url, data = { "time": datetime.utcnow().strftime('%d-%m-%Y %H:%M:%S'),"version": show_the_version() })
         return True
 
 
