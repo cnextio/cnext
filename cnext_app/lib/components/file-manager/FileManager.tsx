@@ -35,7 +35,7 @@ import {
     IWorkspaceMetadata,
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
-import { SocketContext } from "../Socket";
+import { SocketContext, sendMessage as socketSendMessage } from "../Socket";
 import { restartKernel } from "../executor-manager/ExecutorManager";
 
 const FileManager = () => {
@@ -234,8 +234,8 @@ const FileManager = () => {
     };
 
     const sendMessage = (message: IMessage) => {
-        console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
-        socket?.emit(message.webapp_endpoint, JSON.stringify(message));
+        // console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
+        socketSendMessage(socket, WebAppEndpoint.FileManager, message);
     };
 
     const createMessage = (
