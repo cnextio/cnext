@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.2](https://github.com/cnextio/cnext/compare/v0.11.1...v0.11.2) (2022-11-08)
+
+
+### Bug Fixes
+
+* issue with terminate zmq ([821b91d](https://github.com/cnextio/cnext/commit/821b91d9492ce4a89b94d2584e075004c8bd2c10))
+* rm redundant setting ([7372f7a](https://github.com/cnextio/cnext/commit/7372f7a91a70c93b2643969c56f59295e11ea6a9))
+
 ## [0.11.1](https://github.com/cnextio/cnext/compare/v0.11.0...v0.11.1) (2022-11-08)
 
 
