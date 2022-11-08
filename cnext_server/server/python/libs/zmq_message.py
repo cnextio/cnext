@@ -53,7 +53,7 @@ class MessageQueuePush:
 
     def close(self):
         self.push.disconnect(self.addr)
-        self.context.term()
+        # self.context.term()
 
     def send(self, message):
         # TODO: could not explain why NOBLOCK would not work even when the receiver already connects
@@ -75,7 +75,7 @@ class MessageQueuePull:
 
     def close(self):
         self.pull.unbind(self.addr)
-        self.context.term()
+        # self.context.term()
 
     def receive_msg(self):
         return self.pull.recv_string()

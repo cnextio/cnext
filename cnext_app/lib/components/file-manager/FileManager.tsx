@@ -43,10 +43,10 @@ import {
 
 import { isDiffFile, parseUrl } from "../libs";
 import { SocketContext, sendMessage as socketSendMessage } from "../Socket";
-import { useExecutorManager } from "../executor-manager/ExecutorManager";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { updateExecutorRestartCounter } from "../../../redux/reducers/ExecutorManagerRedux";
 import { setNotification } from "../../../redux/reducers/NotificationRedux";
+import { useExecutorManager } from "../executor-manager/ExecutorManager";
 
 const FileManager = () => {
     const socket = useContext(SocketContext);
@@ -220,7 +220,7 @@ const FileManager = () => {
                                 resetProjectStates(workspaceMetadata);
                                 dispatch(setWorkspaceMetadata(workspaceMetadata));
                                 // Restart the kernel
-                                restartKernel(socket);
+                                restartKernel();
                             }
                             break;
                         case ProjectCommand.add_project:
@@ -273,7 +273,7 @@ const FileManager = () => {
             .catch((response) => {
                 dispatch(setNotification("Failed to restart the server."));
             });
-    };
+    }
 
     const sendMessage = (message: IMessage) => {
         // console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
@@ -680,6 +680,8 @@ const FileManager = () => {
     }, [socket]); //run this only once - not on rerender
 
     return null;
-};
+};;
 
 export default FileManager;
+
+

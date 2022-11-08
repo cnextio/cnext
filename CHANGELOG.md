@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.11.2](https://github.com/cnextio/cnext/compare/v0.11.1...v0.11.2) (2022-11-08)
+
+
+### Bug Fixes
+
+* issue with terminate zmq ([821b91d](https://github.com/cnextio/cnext/commit/821b91d9492ce4a89b94d2584e075004c8bd2c10))
+* rm redundant setting ([7372f7a](https://github.com/cnextio/cnext/commit/7372f7a91a70c93b2643969c56f59295e11ea6a9))
+
+## [0.11.1](https://github.com/cnextio/cnext/compare/v0.11.0...v0.11.1) (2022-11-08)
+
+
+### Bug Fixes
+
+* close zmq ([2060d2f](https://github.com/cnextio/cnext/commit/2060d2fc8d8603c196124ee81b3fb00ff986b8e1))
+* improve close zmq ([a6f24b2](https://github.com/cnextio/cnext/commit/a6f24b274aae7d6dc95b87e54370deb351bfa8e0))
+* improve the restart process ([a107094](https://github.com/cnextio/cnext/commit/a1070943ee156c7a25be57bf7c549b44ac4a466b))
+* pump up the version number ([1e2a5b9](https://github.com/cnextio/cnext/commit/1e2a5b9747f090e0447f41287c4f99b2051bb62f))
+* recover restart server on switching project ([1afb350](https://github.com/cnextio/cnext/commit/1afb350dbbeaa763787688891c9af1aff585d168))
+
 ## [0.11.0](https://github.com/cnextio/cnext/compare/v0.10.7...v0.11.0) (2022-11-07)
 
 
