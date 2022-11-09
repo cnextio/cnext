@@ -72,12 +72,13 @@ export function sendTextToOpenai(socket, text) {
     sendMessage(
         socket,
         WebAppEndpoint.OpenAiManager,
-        JSON.stringify({
+        {
             webapp_endpoint: WebAppEndpoint.OpenAiManager,
             content: text.text,
             command_name: CommandName.exc_text,
             metadata: { groupID: text.groupID },
-        })
+            type: ContentType.COMMAND
+        }
     );
 }
 export function setWidgetOpacity(id: string, opacity: string) {

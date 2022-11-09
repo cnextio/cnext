@@ -143,7 +143,7 @@ def main(argv):
                             p2n_queue, user_space),
                         WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config),
                         WebappEndpoint.LogsManager: lm.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.OpenAiManager: openai.MessageHandler(p2n_queue, user_space,openai_api_key),
+                        WebappEndpoint.OpenAiManager: openai.MessageHandler(p2n_queue, user_space, openai_api_key),
 
                     }
 
@@ -158,7 +158,7 @@ def main(argv):
                 # while shutdowHandler.running:
                 for line in sys.stdin:
                     try:
-                        # log.info('Got message %s' % line)
+                        # log.info('Got txt line: %s' % line)
                         message = Message(**json.loads(line))
                         log_content = ""
                         if isinstance(message.content, str):
@@ -177,8 +177,12 @@ def main(argv):
                     except:
                         log.error("Failed to execute the command %s",
                                   traceback.format_exc())
-                        message = BaseMessageHandler._create_error_message(
-                            message.webapp_endpoint, traceback.format_exc(), message.command_name)
+                        if isinstance(message, Message):
+                            message = BaseMessageHandler._create_error_message(
+                                message.webapp_endpoint, traceback.format_exc(), message.command_name)
+                        else:
+                            message = BaseMessageHandler._create_error_message(
+                                message.webapp_endpoint, traceback.format_exc(), message)
                         # send_to_node(message)
                         BaseMessageHandler.send_message(
                             p2n_queue, message.toJSON())
