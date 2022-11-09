@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.12.0](https://github.com/cnextio/cnext/compare/v0.11.2...v0.12.0) (2022-11-09)
+
+
+### Features
+
+* add version to log ([c08f1d8](https://github.com/cnextio/cnext/commit/c08f1d8cf886407d923f4e4aeda0ca453690d1a3))
+
+
+### Bug Fixes
+
+* attach the version into logs ([48499e7](https://github.com/cnextio/cnext/commit/48499e7b963d449d2a55a91dc4f17d69cb90aaeb))
+* bug in display virtual table ([56ecadb](https://github.com/cnextio/cnext/commit/56ecadb601b0f90a81104e1106f70099a8a125dc))
+* reduce the limit of server logs ([d0d14e8](https://github.com/cnextio/cnext/commit/d0d14e89dac5ea3d42ccd63d6e1e903b2d400968))
+* rename ([563aef4](https://github.com/cnextio/cnext/commit/563aef4f1c49c3e9acb93d905a30f78bc4b2d2d4))
+
 ## [0.11.2](https://github.com/cnextio/cnext/compare/v0.11.1...v0.11.2) (2022-11-08)
 
 
