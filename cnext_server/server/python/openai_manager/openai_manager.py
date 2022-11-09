@@ -24,11 +24,12 @@ class MessageHandler(BaseMessageHandler):
                 content = openai.Completion.create(
                     model="code-davinci-002",
                     prompt=message.content,
-                    temperature=0,
-                    max_tokens=64,
+                    temperature=0.7,
+                    max_tokens=256,
                     top_p=1.0,
                     frequency_penalty=0.0,
-                    presence_penalty=0.0
+                    presence_penalty=0.0,
+                    best_of=1
                 )
                 data = Message(**{"webapp_endpoint": WebappEndpoint.OpenAiManager, "command_name": OpenAiCommand.exc_text,
                                   "content": content, "error": False, "metadata": message.metadata})
@@ -41,9 +42,10 @@ class MessageHandler(BaseMessageHandler):
         return openai.Completion.create(
             model="code-davinci-002",
             prompt="convert column i of data frame df to str using loc function",
-            temperature=0,
-            max_tokens=64,
+            temperature=0.7,
+            max_tokens=256,
             top_p=1.0,
             frequency_penalty=0.0,
-            presence_penalty=0.0
+            presence_penalty=0.0,
+            best_of=1
         )
