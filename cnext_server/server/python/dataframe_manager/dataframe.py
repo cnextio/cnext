@@ -154,9 +154,16 @@ class SparkPandasDataFrame(DataFrameAbstract):
     """
     @DataFrameAbstract.timeit
     def describe(self):
-        describe = self.user_space.execute(
-            "%s.describe().to_pandas()" % self.df_id, ExecutionMode.EVAL)
-        return self._convert_to_str_if_not_jsonable(describe)
+        # describe = self.user_space.execute(
+        #     "%s.describe().to_pandas()" % self.df_id, ExecutionMode.EVAL)
+        # return self._convert_to_str_if_not_jsonable(describe)
+        return {}
+
+    @DataFrameAbstract.timeit
+    def nuniques(self):
+        # return self.user_space.execute(
+        #     "%s.nunique()" % self.df_id, ExecutionMode.EVAL)
+        return {}
 
     @DataFrameAbstract.timeit
     def countna(self):
