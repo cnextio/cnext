@@ -20,7 +20,7 @@ export const sendGetTableData = (
         page_number: page_number,
         page_size: page_size,
         from_index: fromIndex,
-        to_index: fromIndex + page_size + 1,
+        to_index: fromIndex + page_size,
     });
     sendMessage(socket, WebAppEndpoint.DataViewer, message);
 };

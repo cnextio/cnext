@@ -123,31 +123,6 @@ const TableViewVirtual = () => {
     const virtualRows = rowVirtualizer?.getVirtualItems();
     const virtualRowsTotalSize = rowVirtualizer?.getTotalSize();
 
-    // function getReviewRequest(state: RootState): IDFUpdatesReview | null {
-    //     if (state.dataFrames.activeDataFrame) {
-    //         return ifElse(state.dataFrames.dfUpdatesReview, state.dataFrames.activeDataFrame, null);
-    //     } else {
-    //         return null;
-    //     }
-    // }
-
-    // const isReviewingCell = (colName: string, rowIndexData: any, dfReview: {}) => {
-    //     let review = false;
-    //     if (dfReview) {
-    //         if (dfReview.type === ReviewType.col) {
-    //             review = dfReview.name == colName;
-    //         } else if (dfReview.type === ReviewType.row) {
-    //             review = dfReview.name == rowIndexData;
-    //         } else if (dfReview.type === ReviewType.cell) {
-    //             // console.log(dfReview.name);
-    //             let name = dfReview.name as [string, number];
-    //             review = name[0] == colName && name[1] == rowIndexData;
-    //             // console.log("TableView: ", name, colName, rowIndex);
-    //         }
-    //     }
-    //     return review;
-    // };
-
     const renderHeaderCell = useCallback(
         (header: any, rowIndexData: string | number, indexCell: boolean = false) => {
             if (activeDataFrame) {
@@ -216,60 +191,6 @@ const TableViewVirtual = () => {
         },
         [activeDataFrame, pagedTableData]
     );
-
-    // const renderUDF = (
-    //     df_id: string,
-    //     dfMetadata: IMetadata | null,
-    //     udfConfigs: IDataFrameUDFSelection | null,
-    //     colName: string
-    // ) => {
-    //     const registeredUDFs = store.getState().dataFrames.registeredUDFs;
-    //     const showedUDFs = Object.keys(registeredUDFs.udfs).reduce((showedUDFs: any[], key) => {
-    //         // console.log("showedUDFs: ", key, udfsConfig, registeredUDFs[key].config.view_configs);
-    //         if (
-    //             udfConfigs &&
-    //             udfConfigs.udfs[key] &&
-    //             UDFLocation.TABLE_HEAD in registeredUDFs.udfs[key].config.view_configs
-    //         ) {
-    //             showedUDFs.push({ name: key, udf: registeredUDFs.udfs[key] });
-    //         }
-    //         return showedUDFs;
-    //     }, []);
-
-    //     /** for UDFView.TABLE_HEAD UDFs we only support 1 UDF per row so only sort by row */
-    //     showedUDFs.sort(
-    //         (a, b) =>
-    //             a.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row -
-    //             b.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row
-    //     );
-    //     // console.log("showedUDFs: ", showedUDFs);
-    //     return (
-    //         <>
-    //             {dfMetadata &&
-    //                 dfMetadata.columns[colName] &&
-    //                 !Object.values(SpecialMimeType).includes(dfMetadata.columns[colName].type) && (
-    //                     <>
-    //                         {showedUDFs.map((data, index) => {
-    //                             let udfConfig =
-    //                                 data.udf.config.view_configs[UDFLocation.TABLE_HEAD];
-    //                             return (
-    //                                 <UDFContainer
-    //                                     key={index}
-    //                                     udfName={data.name}
-    //                                     df_id={df_id}
-    //                                     col_name={colName}
-    //                                     width={udfConfig.shape ? udfConfig.shape.width : 80}
-    //                                     height={udfConfig.shape ? udfConfig.shape.height : 50}
-    //                                 />
-    //                             );
-    //                         })}
-
-    //                         <CountNA df_id={df_id} col_name={colName} />
-    //                     </>
-    //                 )}
-    //         </>
-    //     );
-    // };
 
     const renderSpecialMimeInnerCell = useCallback(
         (
