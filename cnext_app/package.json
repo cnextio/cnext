@@ -24,6 +24,7 @@
         "@codemirror/state": "~6.1.1",
         "@codemirror/theme-one-dark": "~6.0.0",
         "@codemirror/view": "~6.2.0",
+        "@convergencelabs/monaco-collab-ext": "^0.4.0",
         "@emotion/react": "^11.4.1",
         "@emotion/styled": "^11.3.0",
         "@jupyter-widgets/jupyterlab-manager": "^3.1.0",

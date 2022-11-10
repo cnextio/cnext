@@ -31,6 +31,8 @@ const WorkingPanel = () => {
         if (share || remoteProject) {
             if (!provider) {
                 provider = new WebrtcProvider(`cnext-${share || remoteProject}`, ydoc)
+                const awareness = provider.awareness
+                awareness.setLocalStateField('user', { name: "Huy TQ", color: '#FF0000' })
             }
         }
     }

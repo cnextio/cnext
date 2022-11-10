@@ -49,10 +49,37 @@ import { Transaction, YTextEvent, Text } from "yjs";
 // import * as monaco from 'monaco-editor';
 
 const CodeEditor = ({ stopMouseEvent, ydoc, project, provider, remoteProject }) => {
-    console.log('remoteProject', remoteProject);
     const socket = useContext(SocketContext);
-    const [monacoBindingLoaded, setMonacoBindingLoaded] = useState(true);
-    const [monacoBinding, setMonacoBinding] = useState(null);
+    // By Huy TQ
+    const path = useSelector((state: RootState) => state.projectManager.inViewID);
+    const [monaco2, setMonaco2] = useState(null);
+    const [editor2, setEditor2] = useState(null);
+    const [isEditorReady, setIsEditorReady] = useState(false);
+    // const [remoteCursorManager, setRemoteCursorManager] = useState<MonacoCollabExt.RemoteCursorManager>(null);
+    const [binding, setBinding] = useState<any>(null);
+
+    // When path changes, update the editor
+    useEffect(() => {
+        if (!isEditorReady) {
+            return;
+        }
+
+        if (binding) {
+            binding.destroy();
+        }
+
+        const file = project.get(path);
+
+        if (file) {
+            const source = file.get('source');
+            const modelUri = monaco2.Uri.parse(path);
+            const model = editor2.getModel(modelUri);
+
+            setBinding(new MonacoBinding(source, model, new Set([editor2]), provider.awareness, null));
+        }
+    }, [path, isEditorReady]);
+
+
     // let MonacoBinding;
 
     // useEffect(async () => {
@@ -444,7 +471,7 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider, remoteProject }) 
         if (serverSynced && codeReloading && monaco && editor) {
             // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
             // TODO: improve this by rely only on monaco
-            setCodeTextAndStates(store.getState(), monaco);
+            // setCodeTextAndStates(store.getState(), monaco);
             setCellDeco(monaco, editor);
             getCellFoldRange(monaco, editor);
             setCellWidgets(editor);
@@ -495,61 +522,60 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider, remoteProject }) 
     const handleEditorDidMount = (mountedEditor, monaco) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
         setEditor(mountedEditor);
-
-        const type = ydoc.getText('type');
-        const model = mountedEditor.getModel();
-        // const monacoBinding = new MonacoBinding(type, /** @type {monaco.editor.ITextModel} */ model, new Set([mountedEditor]), provider.awareness)
-
         setHTMLEventHandler(mountedEditor, stopMouseEvent);
+
+        setMonaco2(monaco);
+        setEditor2(mountedEditor);
+        setIsEditorReady(true);
     };
 
 
     // On current view change, update the editor binding
     
-    let binding: MonacoBinding | null = null;
+    // let binding: MonacoBinding | null = null;
 
-    useEffect(() => {
-        if (binding) {
-            binding.destroy();
-        }
-        if (curInViewID && editor && provider && monacoBindingLoaded) {
-            const file = project.get(curInViewID);
+    // useEffect(() => {
+    //     if (binding) {
+    //         binding.destroy();
+    //     }
+    //     if (curInViewID && editor && provider && monacoBindingLoaded) {
+    //         const file = project.get(curInViewID);
 
-            if (file) {
-                const source = file.get("source");
-                const model = (editor! as any).getModel();
-                binding = new MonacoBinding(
-                    source,
-                    model,
-                    new Set([(editor! as any)]),
-                    provider.awareness
-                );
-            }
-        }
-    }, [curInViewID, editor, monacoBindingLoaded]);
+    //         if (file) {
+    //             const source = file.get("source");
+    //             const model = (editor! as any).getModel();
+    //             binding = new MonacoBinding(
+    //                 source,
+    //                 model,
+    //                 new Set([(editor! as any)]),
+    //                 provider.awareness
+    //             );
+    //         }
+    //     }
+    // }, [curInViewID, editor, monacoBindingLoaded]);
 
-    const bindEditor = (monano: any, ytext: Text) => {
-        if (!monaco) {
-            return;
-        }
+    // const bindEditor = (monano: any, ytext: Text) => {
+    //     if (!monaco) {
+    //         return;
+    //     }
 
-        if (binding) {
-            binding.destroy();
-        }
+    //     if (binding) {
+    //         binding.destroy();
+    //     }
 
-        console.log('modelll', monano.editor.getModels());
+    //     console.log('modelll', monano.editor.getModels());
         
-        const model = getMainEditorModel(monaco);
-        // const editor = monaco.editor;
+    //     const model = getMainEditorModel(monaco);
+    //     // const editor = monaco.editor;
 
-        console.log('bindEditor', model, editor, ytext);
-        binding = new MonacoBinding(
-            ytext,
-            model,
-            new Set([editor]),
-            provider.awareness
-        );
-    }
+    //     console.log('bindEditor', model, editor, ytext);
+    //     binding = new MonacoBinding(
+    //         ytext,
+    //         model,
+    //         new Set([editor]),
+    //         provider.awareness
+    //     );
+    // }
 
     const handleEditorChange = (value, event) => {
         try {
@@ -627,6 +653,7 @@ const CodeEditor = ({ stopMouseEvent, ydoc, project, provider, remoteProject }) 
     return (
         <StyledMonacoEditor
             height="90vh"
+            path={inViewID}
             defaultValue=""
             defaultLanguage="python"
             onMount={handleEditorDidMount}

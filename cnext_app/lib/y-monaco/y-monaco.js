@@ -64,7 +64,7 @@ export class MonacoBinding {
    * @param {Set<monaco.editor.IStandaloneCodeEditor>} [editors]
    * @param {Awareness?} [awareness]
    */
-  constructor (ytext, monacoModel, editors = new Set(), awareness = null) {
+  constructor (ytext, monacoModel, editors = new Set(), awareness = null, remoteCursorManager = null) {
     this.doc = /** @type {Y.Doc} */ (ytext.doc)
     this.ytext = ytext
     this.monacoModel = monacoModel
@@ -211,6 +211,7 @@ export class MonacoBinding {
         awareness.on('change', this._rerenderDecorations)
       })
       this.awareness = awareness
+      this.remoteCursorManager = remoteCursorManager
     }
   }
 
