@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.4](https://github.com/cnextio/cnext/compare/v0.11.3...v0.11.4) (2022-11-10)
+
+
+### Bug Fixes
+
+* fix bug in data loader to support spark ([33c2bc0](https://github.com/cnextio/cnext/commit/33c2bc04bcdd62b53c6ea2fa6368ba3d32065745))
+
 ## [0.11.3](https://github.com/cnextio/cnext/compare/v0.10.6...v0.11.3) (2022-11-09)
 
 
