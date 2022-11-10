@@ -1,8 +1,8 @@
 import { InputAdornment } from "@mui/material";
 import React, { useContext, useRef } from "react";
-import { SocketContext } from "../../Socket";
+import { sendMessage, SocketContext } from "../../Socket";
 import { StdInInput } from "../../StyledComponents";
-import { sendMessage } from "./libStdInInput";
+import { createMessage } from "./libStdInInput";
 
 export const InputComponent = ({ resultContent }) => {
     const socket = useContext(SocketContext);
@@ -11,7 +11,8 @@ export const InputComponent = ({ resultContent }) => {
     const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" && socket) {
             // console.log("InputComponent: ", event.target.value);
-            sendMessage(socket, event.target.value);
+            const message = createMessage(event.target.value);
+            sendMessage(socket, message.webapp_endpoint, message);
         }
     };
 

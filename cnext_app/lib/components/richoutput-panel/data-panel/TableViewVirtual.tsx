@@ -1,7 +1,5 @@
 import React, { useCallback } from "react";
-import CountNA from "./CountNA";
 
-//3 TanStack Libraries!!!
 import {
     ColumnDef,
     flexRender,
@@ -10,7 +8,6 @@ import {
     useReactTable,
     ColumnResizeMode,
 } from "@tanstack/react-table";
-// import { useVirtual } from "../../../react-virtual";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { useSelector } from "react-redux";
@@ -35,7 +32,7 @@ import { useLoadTableData } from "./useLoadTableData";
 /** data page size */
 const DF_PAGE_SIZE = 50;
 /** number of rows that will be rendered outside of the view */
-const OVER_SCAN = 10;
+// const OVER_SCAN = 10;
 /** number of pages to be retained */
 const NUM_KEEP_PAGE = 3;
 /** the difference between the rendered row and what is stored in the memory below which new data need to be loaded */
@@ -117,44 +114,14 @@ const TableViewVirtual = () => {
 
     const { rows } = table.getRowModel();
 
-    // const { virtualItems: virtualRows, totalSize: virtualRowsTotalSize } = useVirtual({
-    //     parentRef: tableContainerRef,
-    //     size: pagedDataTotalSize,
-    //     overscan: OVER_SCAN,
-    // });
-
     const rowVirtualizer = useVirtualizer({
         count: pagedDataTotalSize,
         getScrollElement: () => tableContainerRef.current,
-        estimateSize: () => 125,
+        estimateSize: () => 20,
     });
-    const virtualRows = rowVirtualizer.getVirtualItems();
-    const virtualRowsTotalSize = rowVirtualizer.getTotalSize();
 
-    // function getReviewRequest(state: RootState): IDFUpdatesReview | null {
-    //     if (state.dataFrames.activeDataFrame) {
-    //         return ifElse(state.dataFrames.dfUpdatesReview, state.dataFrames.activeDataFrame, null);
-    //     } else {
-    //         return null;
-    //     }
-    // }
-
-    // const isReviewingCell = (colName: string, rowIndexData: any, dfReview: {}) => {
-    //     let review = false;
-    //     if (dfReview) {
-    //         if (dfReview.type === ReviewType.col) {
-    //             review = dfReview.name == colName;
-    //         } else if (dfReview.type === ReviewType.row) {
-    //             review = dfReview.name == rowIndexData;
-    //         } else if (dfReview.type === ReviewType.cell) {
-    //             // console.log(dfReview.name);
-    //             let name = dfReview.name as [string, number];
-    //             review = name[0] == colName && name[1] == rowIndexData;
-    //             // console.log("TableView: ", name, colName, rowIndex);
-    //         }
-    //     }
-    //     return review;
-    // };
+    const virtualRows = rowVirtualizer?.getVirtualItems();
+    const virtualRowsTotalSize = rowVirtualizer?.getTotalSize();
 
     const renderHeaderCell = useCallback(
         (header: any, rowIndexData: string | number, indexCell: boolean = false) => {
@@ -222,62 +189,8 @@ const TableViewVirtual = () => {
                 }
             }
         },
-        [activeDataFrame]
+        [activeDataFrame, pagedTableData]
     );
-
-    // const renderUDF = (
-    //     df_id: string,
-    //     dfMetadata: IMetadata | null,
-    //     udfConfigs: IDataFrameUDFSelection | null,
-    //     colName: string
-    // ) => {
-    //     const registeredUDFs = store.getState().dataFrames.registeredUDFs;
-    //     const showedUDFs = Object.keys(registeredUDFs.udfs).reduce((showedUDFs: any[], key) => {
-    //         // console.log("showedUDFs: ", key, udfsConfig, registeredUDFs[key].config.view_configs);
-    //         if (
-    //             udfConfigs &&
-    //             udfConfigs.udfs[key] &&
-    //             UDFLocation.TABLE_HEAD in registeredUDFs.udfs[key].config.view_configs
-    //         ) {
-    //             showedUDFs.push({ name: key, udf: registeredUDFs.udfs[key] });
-    //         }
-    //         return showedUDFs;
-    //     }, []);
-
-    //     /** for UDFView.TABLE_HEAD UDFs we only support 1 UDF per row so only sort by row */
-    //     showedUDFs.sort(
-    //         (a, b) =>
-    //             a.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row -
-    //             b.udf.config.view_configs[UDFLocation.TABLE_HEAD].position.row
-    //     );
-    //     // console.log("showedUDFs: ", showedUDFs);
-    //     return (
-    //         <>
-    //             {dfMetadata &&
-    //                 dfMetadata.columns[colName] &&
-    //                 !Object.values(SpecialMimeType).includes(dfMetadata.columns[colName].type) && (
-    //                     <>
-    //                         {showedUDFs.map((data, index) => {
-    //                             let udfConfig =
-    //                                 data.udf.config.view_configs[UDFLocation.TABLE_HEAD];
-    //                             return (
-    //                                 <UDFContainer
-    //                                     key={index}
-    //                                     udfName={data.name}
-    //                                     df_id={df_id}
-    //                                     col_name={colName}
-    //                                     width={udfConfig.shape ? udfConfig.shape.width : 80}
-    //                                     height={udfConfig.shape ? udfConfig.shape.height : 50}
-    //                                 />
-    //                             );
-    //                         })}
-
-    //                         <CountNA df_id={df_id} col_name={colName} />
-    //                     </>
-    //                 )}
-    //         </>
-    //     );
-    // };
 
     const renderSpecialMimeInnerCell = useCallback(
         (
@@ -358,7 +271,6 @@ const TableViewVirtual = () => {
                         <DataTableIndexCell
                             key="index"
                             review={false}
-                            style={{ height: "max-content" }}
                         >
                             {rowIndex}
                             {/* {renderReviewer(review)} */}
@@ -374,7 +286,6 @@ const TableViewVirtual = () => {
                             head={false}
                             style={{
                                 width: cell.column.getSize(),
-                                height: "max-content",
                             }}
                         >
                             {metadata && Object.values(SpecialMimeType).includes(type)
@@ -385,9 +296,9 @@ const TableViewVirtual = () => {
                                       cell,
                                       type
                                   )
-                                : flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            {/* tableData[activeDataFrame]?.rows[rowNumber][cellIndex]} */}
-                            {/* {renderReviewer(review)} */}
+                                : /** there is bug in the library that makes it not working with column name with a `.` in it */
+                                  // return flexRender(cell.column.columnDef.cell, cell.getContext());
+                                  cell.row.original[cell.column.columnDef.header]}
                         </DataTableCell>
                     );
                 }
@@ -402,15 +313,15 @@ const TableViewVirtual = () => {
                 const startIndex = fromPage * DF_PAGE_SIZE;
                 /** since we only store a subset of data in pagedTableData therefore the rows, we have to map the index
                  * virtualRow.index to rows index with `virtualRow.index - startIndex` */
-                const shiftedIndex = virtualRow.index - startIndex;
+                const shiftedIndex = virtualRow?.index - startIndex;
                 if (shiftedIndex >= 0 && shiftedIndex < rows.length) {
                     const row = rows[shiftedIndex] as Row;
                     return (
                         <DataTableRow
                             hover
                             key={row?.id}
-                            // ref={virtualRow.measureRef}
-                            ref={virtualRow.measureElement}
+                            ref={rowVirtualizer.measureElement}
+                            data-index={virtualRow.index}
                             // className={row?.index % 2 ? "even-row" : "odd-row"}
                         >
                             {/** render index cell */}
@@ -435,7 +346,7 @@ const TableViewVirtual = () => {
                 }
             }
         },
-        [activeDataFrame, rows, fromPage]
+        [activeDataFrame, tableMetadataUpdateSignal, rows, fromPage]
     );
 
     const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
@@ -501,7 +412,7 @@ const TableViewVirtual = () => {
             }}
         >
             {/* {console.log("Render TableContainer: ", tableData)} */}
-            {console.log("DataViewer Render TableContainer ")}
+            {console.log("Debug DataViewer Render TableContainer ")}
             {activeDataFrame && pagedTableData && (
                 <DataTable size="small" stickyHeader>
                     <DataTableHead>
@@ -512,20 +423,12 @@ const TableViewVirtual = () => {
                             </DataTableHeadRow>
                         ))}
                     </DataTableHead>
-                    <TableBody style={{ height: "100%" }}>
+                    <TableBody style={{ height: virtualRowsTotalSize }}>
                         {paddingTop > 0 && (
                             <tr>
                                 <td style={{ height: `${paddingTop}px` }} />
                             </tr>
                         )}
-                        {/* {console.log(
-                            "DataViewer fromPage toPage rows.length, virtualRows start index, virtualRows end index: ",
-                            fromPage,
-                            toPage,
-                            rows.length,
-                            virtualRows[0]?.index,
-                            virtualRows[virtualRows.length - 1]?.index
-                        )} */}
                         {virtualRows.map((virtualRow) => renderBodyRow(virtualRow))}
                         {paddingBottom > 0 && (
                             <tr>

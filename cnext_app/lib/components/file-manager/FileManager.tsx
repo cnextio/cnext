@@ -22,7 +22,9 @@ import {
 import store, { RootState } from "../../../redux/store";
 import {
     ContentType,
+    ExecutorCommandStatus,
     IConfigs,
+    IExecutorCommandResponse,
     IMessage,
     SETTING_FILE_PATH as CONFIG_FILE_PATH,
     SubContentType,
@@ -35,8 +37,11 @@ import {
     IWorkspaceMetadata,
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
-import { SocketContext } from "../Socket";
-import { restartKernel } from "../executor-manager/ExecutorManager";
+import { SocketContext, sendMessage as socketSendMessage } from "../Socket";
+import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
+import { updateExecutorRestartCounter } from "../../../redux/reducers/ExecutorManagerRedux";
+import { setNotification } from "../../../redux/reducers/NotificationRedux";
+import { useExecutorManager } from "../executor-manager/ExecutorManager";
 
 const FileManager = () => {
     const socket = useContext(SocketContext);
@@ -193,7 +198,7 @@ const FileManager = () => {
                                 resetProjectStates(workspaceMetadata);
                                 dispatch(setWorkspaceMetadata(workspaceMetadata));
                                 // Restart the kernel
-                                restartKernel(socket);
+                                restartKernel();
                             }
                             break;
                         case ProjectCommand.add_project:
@@ -232,10 +237,25 @@ const FileManager = () => {
             }
         });
     };
+    const { sendCommand } = useExecutorManager();
+
+    async function restartKernel() {
+        await sendCommand(ExecutorManagerCommand.restart_kernel)
+            .then((response: IExecutorCommandResponse) => {
+                if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
+                    dispatch(updateExecutorRestartCounter());
+                } else {
+                    dispatch(setNotification("Failed to restart the server."));
+                }
+            })
+            .catch((response) => {
+                dispatch(setNotification("Failed to restart the server."));
+            });
+    }
 
     const sendMessage = (message: IMessage) => {
-        console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
-        socket?.emit(message.webapp_endpoint, JSON.stringify(message));
+        // console.log(`${message.webapp_endpoint} send message: `, JSON.stringify(message));
+        socketSendMessage(socket, WebAppEndpoint.FileManager, message);
     };
 
     const createMessage = (
@@ -587,6 +607,8 @@ const FileManager = () => {
     }, [socket]); //run this only once - not on rerender
 
     return null;
-};
+};;
 
 export default FileManager;
+
+

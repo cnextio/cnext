@@ -38,6 +38,7 @@ const FileExplorer = "FileExplorer";
 const MagicCommandGen = "MagicCommandGen";
 const ExperimentManager = "ExperimentManager";
 const ExecutorManager = "ExecutorManager";
+const ExecutorManagerControl = "ExecutorManagerControl";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
@@ -50,6 +51,7 @@ const CodeEndpoints = [
     ModelManager,
     MagicCommandGen,
     ExecutorManager,
+    ExecutorManagerControl,
     EnvironmentManager,
     DataViewer,
     DFExplorer,
@@ -101,7 +103,7 @@ class PythonProcess {
         this.executorCommChannel = {};
         this.io = io;
         this.endpoins = endpoints;
-        
+
         this.executor.on("message", function (stdout) {
             try {
                 console.log("stdout: ", stdout);
@@ -124,11 +126,10 @@ class PythonProcess {
 
         for (let endpoint of this.endpoins) {
             /** only ExecutorManager use zmq now. TODO: move everything to zmq */
-            if (endpoint === ExecutorManager) {
-                this.executorCommChannel[ExecutorManager] = create_socket(
-                    config.n2p_comm.host,
-                    config.n2p_comm.kernel_control_port
-                );
+            if ([ExecutorManagerControl, ExecutorManager].includes(endpoint)) {
+                this.executorCommChannel[ExecutorManagerControl] = this.executorCommChannel[
+                    ExecutorManager
+                ] = create_socket(config.n2p_comm.host, config.n2p_comm.kernel_control_port);
             } else {
                 this.executorCommChannel[endpoint] = this.executor;
             }
@@ -175,23 +176,28 @@ try {
             io.emit("pong", time);
         });
 
-        socket.onAny((endpoint, message) => {
+        socket.onAny((endpoint, message, ack) => {
+            // console.log("endpoints: ", endpoint);
+            if (["init", "reconnect", "disconnect", "ping"].includes(endpoint)) return null;
+            try {
+                ack();
+            } catch (error) {
+                console.error(error, ack);
+            }
+
             //TODO: use enum
             if (CodeEndpoints.includes(endpoint)) {
                 let jsonMessage = JSON.parse(message);
                 if (jsonMessage.command_name !== "get_status") {
                     console.log(
                         "Receive msg from client, server will run:",
-                        jsonMessage["command_name"]
+                        jsonMessage.command_name
                     );
                 }
                 codeExecutor.send2executor(endpoint, message);
             } else if (NonCodeEndpoints.includes(endpoint)) {
                 let jsonMessage = JSON.parse(message);
-                console.log(
-                    "Receive msg from client, server will run:",
-                    jsonMessage["command_name"]
-                );
+                console.log("Receive msg from client, server will run:", jsonMessage.command_name);
                 nonCodeExecutor.send2executor(endpoint, message);
             } else if (LSPExecutor.includes(endpoint)) {
                 lspExecutor.sendMessageToLsp(message);
@@ -258,11 +264,12 @@ try {
     /**
      * ZMQ communication from python-shell to node server
      */
-    async function zmq_receiver() {
-        const command_output_zmq = new zmq.Pull();
-        const p2n_host = config.p2n_comm.host;
-        const p2n_port = config.p2n_comm.port;
-        await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);
+    const command_output_zmq = new zmq.Pull();
+    const p2n_host = config.p2n_comm.host;
+    const p2n_port = config.p2n_comm.port;    
+
+    async function zmq_receiver() {       
+        await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);         
         console.log(`Waiting for python executor message on ${p2n_port}`);
         for await (const [message] of command_output_zmq) {
             const jsonMessage = JSON.parse(message.toString());
@@ -280,12 +287,14 @@ try {
     process.on("SIGINT", function () {
         codeExecutor.shutdown("SIGINT");
         nonCodeExecutor.shutdown("SIGINT");
+        command_output_zmq.close();
         process.exit(1);
     });
 
     process.on("SIGTERM", function () {
         codeExecutor.shutdown("SIGTERM");
         nonCodeExecutor.shutdown("SIGTERM");
+        command_output_zmq.close();
         process.exit(1);
     });
 

@@ -147,11 +147,11 @@ class MessageHandler(BaseMessageHandler):
         asyncio.set_event_loop(event_loop)
         ## reading config here to get the most updated version #
         server_config = read_config(SERVER_CONFIG_PATH)
-        n2p_queue = MessageQueuePull(
+        self.n2p_queue = MessageQueuePull(
             server_config.n2p_comm['host'], server_config.n2p_comm['kernel_control_port'])
         try:
             while True:
-                strMessage = n2p_queue.receive_msg()
+                strMessage = self.n2p_queue.receive_msg()
                 message = Message(**json.loads(strMessage))
                 log.info("Received control message: %s" % message)
                 if self.user_space.is_alive():
@@ -164,12 +164,12 @@ class MessageHandler(BaseMessageHandler):
                                 workspace_info.__dict__)
                             set_executor_working_dir(
                                 self.user_space, workspace_metadata)
-                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
+                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManagerControl,
                                             'command_name': message.command_name,
                                             'content': {'success': result}})
                     elif message.command_name == ExecutorManagerCommand.interrupt_kernel:
                         result = self.user_space.interrupt_executor()
-                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
+                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManagerControl,
                                             'command_name': message.command_name,
                                             'content': {'success': result}})
                     elif message.command_name == ExecutorManagerCommand.get_status:
@@ -198,3 +198,7 @@ class MessageHandler(BaseMessageHandler):
             error_message = BaseMessageHandler._create_error_message(
                 message.webapp_endpoint, trace, message.command_name, {})
             self._send_to_node(error_message)
+
+    def shutdown(self):
+        self.n2p_queue.close()
+        return super().shutdown()

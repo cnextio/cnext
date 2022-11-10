@@ -97,12 +97,13 @@ export const useLoadTableData = (
                 if (!message.error) {
                     if (message.type === ContentType.STRING) {
                         dispatch(setTextOutput(message));
-                    } else if (message.command_name === CommandName.get_table_data) {
+                    } else if (message.type === ContentType.PANDAS_DATAFRAME) {
                         // handleGetTableData(message);
                         updateTableData(
                             message.content as ITableData,
                             message.metadata as ITableMetaData
                         );
+                        setIsLoading(false);
                     } else {
                         // console.log("dispatch text output");
                         dispatch(setTextOutput(message));
@@ -110,8 +111,8 @@ export const useLoadTableData = (
                 } else {
                     setIsError(true);
                     dispatch(setTextOutput(message));
-                }
-                setIsLoading(false);
+                    setIsLoading(false);
+                }                
             } catch (error) {
                 setIsError(true);
                 console.error(error);
@@ -123,7 +124,9 @@ export const useLoadTableData = (
     const getTableData = (pageNumber: number, pageSize: number) => {
         if (socket && df_id && !isLoading) {
             setIsLoading(true);
-            sendGetTableData(socket, df_id, filter, pageNumber, pageSize);
+            const state = store.getState();
+            const type = state.dataFrames.metadata[df_id]?.type;
+            sendGetTableData(socket, df_id, filter, type, pageNumber, pageSize);
             /** clear the message */
             dispatch(setTextOutput({ content: null }));
         }

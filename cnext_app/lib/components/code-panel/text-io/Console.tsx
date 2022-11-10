@@ -249,12 +249,6 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         // TODO: implement scoll to rich-output text and df updates
         // return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;
         let richOutputFocused = store.getState().richOutput.richOutputFocused;
-        console.log(
-            "CodeOutput isItemFocused: ",
-            richOutputFocused,
-            lastItemIsROTextOutput,
-            lastItem
-        );
         return richOutputFocused && lastItemIsROTextOutput && lastItem
             ? true
             : item?.groupID != null

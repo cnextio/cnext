@@ -1,5 +1,84 @@
 # Changelog
 
+## [0.11.4](https://github.com/cnextio/cnext/compare/v0.11.3...v0.11.4) (2022-11-10)
+
+
+### Bug Fixes
+
+* fix bug in data loader to support spark ([33c2bc0](https://github.com/cnextio/cnext/commit/33c2bc04bcdd62b53c6ea2fa6368ba3d32065745))
+
+## [0.11.3](https://github.com/cnextio/cnext/compare/v0.10.6...v0.11.3) (2022-11-09)
+
+
+### Features
+
+* add acknowledgement and bad connection notification ([8488828](https://github.com/cnextio/cnext/commit/8488828b16f822c390f9b9d1d24f2172aa4ae587))
+* add data viewer support for Spark and Dash data frames ([9976d80](https://github.com/cnextio/cnext/commit/9976d80f1b50387938ea1d2f19e663b706c79907))
+* add version to log ([b320343](https://github.com/cnextio/cnext/commit/b3203437ed4bfb4d52367eb2fe864434576386ae))
+
+
+### Bug Fixes
+
+* add logs hold ([9571993](https://github.com/cnextio/cnext/commit/9571993f4baaa27ee1e5c08348f56f501b42a86a))
+* add version to log ([5496414](https://github.com/cnextio/cnext/commit/5496414e3c4dc469f9b22cd386315a8e3a9f8f70))
+* attach the version into logs ([5ab32ac](https://github.com/cnextio/cnext/commit/5ab32ac81493f752b482b868cce0ebd26b603e24))
+* attach the version into logs ([bd28604](https://github.com/cnextio/cnext/commit/bd286044ac52c9dbf87796985c50408776c01bd3))
+* bug in display virtual table ([4009f1e](https://github.com/cnextio/cnext/commit/4009f1e0dc522ef71942eb6c1d5aa3fb944a4c6c))
+* bug in stdin ([44d8603](https://github.com/cnextio/cnext/commit/44d8603cc5baceadb3a70cae3979fafe90015719))
+* change limit server characters number ([3839d0a](https://github.com/cnextio/cnext/commit/3839d0a18e536aff83f8e8df80df5a88dfba80e2))
+* **ci:** Build project for distribution ([3a37e34](https://github.com/cnextio/cnext/commit/3a37e34155c0cbc3382d5cf9f8e240e4560d106a))
+* close zmq ([1be97de](https://github.com/cnextio/cnext/commit/1be97de7ce70c898327a5ec00761296a7a16f60d))
+* ide ([dd8628e](https://github.com/cnextio/cnext/commit/dd8628e90191ed00581a16eef72b1a0a62d9060d))
+* implement display output from dataframe manager ([3f783c2](https://github.com/cnextio/cnext/commit/3f783c2fe6af7b509abb793e4453d4b3a447ca73))
+* improve close zmq ([00a7083](https://github.com/cnextio/cnext/commit/00a708375b09ae7a02573ffaf45bceaddc96ee40))
+* improve the restart process ([8db45e1](https://github.com/cnextio/cnext/commit/8db45e14b8948651f262e2d4e360dd383e2dd41a))
+* issue with terminate zmq ([cdedaf5](https://github.com/cnextio/cnext/commit/cdedaf5e2ff45748b990eb81ef52ea7c36141e84))
+* pump up the version number ([4cff87b](https://github.com/cnextio/cnext/commit/4cff87befce3b409dffce2d3a80f2ae4fd55b42f))
+* recover restart server on switching project ([7449e6c](https://github.com/cnextio/cnext/commit/7449e6c4d813decd92a048a3acef8ecf5332c7a0))
+* reduce the size of console ouput ([7d6a7e6](https://github.com/cnextio/cnext/commit/7d6a7e602dd4ad0e92e8c1a39ea1dd7ecabca3b9))
+* rename ([f7a36cf](https://github.com/cnextio/cnext/commit/f7a36cf873e9155d393e4c0c7b9bbb840bf3c913))
+* rename ([63aadce](https://github.com/cnextio/cnext/commit/63aadcef7330dba81b50cce057905119effdda69))
+* rm redundant setting ([1372716](https://github.com/cnextio/cnext/commit/1372716efae2daecd72626f8b2faf4edb0fbdeb1))
+* small improvement ([eab2a07](https://github.com/cnextio/cnext/commit/eab2a0792de9ad82a2c296ad8e1b2ce85332bdb4))
+
+
+### Miscellaneous Chores
+
+* release 0.11.3 ([daebbe1](https://github.com/cnextio/cnext/commit/daebbe116dc99d964d38545aaa1385978be82cbd))
+
+## [0.11.2](https://github.com/cnextio/cnext/compare/v0.11.1...v0.11.2) (2022-11-08)
+
+
+### Bug Fixes
+
+* issue with terminate zmq ([821b91d](https://github.com/cnextio/cnext/commit/821b91d9492ce4a89b94d2584e075004c8bd2c10))
+* rm redundant setting ([7372f7a](https://github.com/cnextio/cnext/commit/7372f7a91a70c93b2643969c56f59295e11ea6a9))
+
+## [0.11.1](https://github.com/cnextio/cnext/compare/v0.11.0...v0.11.1) (2022-11-08)
+
+
+### Bug Fixes
+
+* close zmq ([2060d2f](https://github.com/cnextio/cnext/commit/2060d2fc8d8603c196124ee81b3fb00ff986b8e1))
+* improve close zmq ([a6f24b2](https://github.com/cnextio/cnext/commit/a6f24b274aae7d6dc95b87e54370deb351bfa8e0))
+* improve the restart process ([a107094](https://github.com/cnextio/cnext/commit/a1070943ee156c7a25be57bf7c549b44ac4a466b))
+* pump up the version number ([1e2a5b9](https://github.com/cnextio/cnext/commit/1e2a5b9747f090e0447f41287c4f99b2051bb62f))
+* recover restart server on switching project ([1afb350](https://github.com/cnextio/cnext/commit/1afb350dbbeaa763787688891c9af1aff585d168))
+
+## [0.11.0](https://github.com/cnextio/cnext/compare/v0.10.7...v0.11.0) (2022-11-07)
+
+
+### Features
+
+* add acknowledgement and bad connection notification ([4737b7c](https://github.com/cnextio/cnext/commit/4737b7cf723188693af111896f2fc9d5fe224513))
+* add data viewer support for Spark and Dash data frames ([414ead8](https://github.com/cnextio/cnext/commit/414ead838fb6e007c91f6ecff2dda0a7ca2e976d))
+
+
+### Bug Fixes
+
+* bug in stdin ([b08ecf1](https://github.com/cnextio/cnext/commit/b08ecf188ab4beb508df429ecfcd736566e9c5fc))
+* small improvement ([1367abb](https://github.com/cnextio/cnext/commit/1367abba0a989219308d7c073182c0add37ba3be))
+
 ## [0.10.7](https://github.com/cnextio/cnext/compare/v0.10.6...v0.10.7) (2022-11-05)
 
 
