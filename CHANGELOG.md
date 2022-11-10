@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.5](https://github.com/cnextio/cnext/compare/v0.11.4...v0.11.5) (2022-11-10)
+
+
+### Bug Fixes
+
+* increase restart timeout to 1m ([ed3ae95](https://github.com/cnextio/cnext/commit/ed3ae95e82a4d1b7ef0d52900093f429d1138f89))
+* socket issue in experiment management ([ab014f6](https://github.com/cnextio/cnext/commit/ab014f65715fe204043c4a16bb43a8ea9594cef1))
+
 ## [0.11.4](https://github.com/cnextio/cnext/compare/v0.11.3...v0.11.4) (2022-11-10)
 
 
