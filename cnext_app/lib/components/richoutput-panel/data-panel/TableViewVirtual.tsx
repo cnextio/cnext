@@ -36,7 +36,7 @@ const DF_PAGE_SIZE = 50;
 /** number of pages to be retained */
 const NUM_KEEP_PAGE = 3;
 /** the difference between the rendered row and what is stored in the memory below which new data need to be loaded */
-const FETCH_THRESHOLD = 10;
+const FETCH_THRESHOLD = 25;
 
 const TableViewVirtual = () => {
     const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
