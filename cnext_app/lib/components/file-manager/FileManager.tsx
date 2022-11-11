@@ -243,13 +243,16 @@ const FileManager = () => {
         await sendCommand(ExecutorManagerCommand.restart_kernel)
             .then((response: IExecutorCommandResponse) => {
                 if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
+                    dispatch(
+                        setNotification(`Kernel restarted.`)
+                    );
                     dispatch(updateExecutorRestartCounter());
                 } else {
-                    dispatch(setNotification("Failed to restart the server."));
+                    dispatch(setNotification(`Failed to restart the kernel, status=${response.status}.`));
                 }
             })
-            .catch((response) => {
-                dispatch(setNotification("Failed to restart the server."));
+            .catch((error) => {
+                dispatch(setNotification(`Failed to restart the kernel.`));
             });
     }
 

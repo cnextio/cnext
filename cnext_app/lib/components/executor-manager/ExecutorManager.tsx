@@ -84,7 +84,7 @@ export const useExecutorManager = () => {
                     status: ExecutorCommandStatus.EXECUTION_FAILED,
                 });
             },
-            30000 // 30s
+            60000
         );
     };
 
