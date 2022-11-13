@@ -167,9 +167,9 @@ class IPythonKernel():
                             timeout=MESSSAGE_TIMEOUT)
 
                     if ipython_message['header']['msg_type'] not in [
-                        IPythonConstants.MessageType.STREAM, 
-                        IPythonConstants.MessageType.EXECUTE_RESULT,
-                        IPythonConstants.MessageType.ERROR]:
+                            IPythonConstants.MessageType.STREAM,
+                            IPythonConstants.MessageType.EXECUTE_RESULT,
+                            IPythonConstants.MessageType.ERROR]:
                         log.info('%s msg: msg_type = %s, content = %s' % (
                             stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
                     else:
