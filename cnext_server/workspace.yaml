@@ -1,8 +1,11 @@
-active_project: 2d034f3a-5f07-11ed-a41f-0a54423a117d
+active_project: aec8e250-5f62-11ed-9e69-309c238898ae
 open_projects:
-- id: 2d034f3a-5f07-11ed-a41f-0a54423a117d
+- id: a60853ff-4b9a-11ed-bbbb-309c238898ae
   name: Skywalker
-  path: /Users/bachbui/works/cycai/cnext_sample_projects/Skywalker
-- id: 78cc9146-610b-11ed-949c-0a54423a117d
-  name: gpt3-q&a
-  path: /Users/bachbui/works/cycai/cnext_sample_projects/gpt3-q&a
+  path: G:/DEV/CycTest/Skywalker
+- id: eba472fc-5d1f-11ed-848e-309c238898ae
+  name: SkywalkerAdd
+  path: C:\Users\HoaTV\cnext-projects\SkywalkerAdd
+- id: aec8e250-5f62-11ed-9e69-309c238898ae
+  name: Skywalker
+  path: G:\projects\Skywalker

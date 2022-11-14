@@ -6,9 +6,9 @@ n2p_comm:
     host: tcp://127.0.0.1
     kernel_control_port: 5005
 
-path_to_cnextlib: '/Users/bachbui/works/cycai/cycdataframe'
+path_to_cnextlib: 'G:/CYC/cycdataframe'
 jupyter_server:
     port: 5008
     token: token123
-
+    
 openai_api_key: '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'
