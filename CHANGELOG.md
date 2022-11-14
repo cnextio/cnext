@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.6](https://github.com/cnextio/cnext/compare/v0.11.5...v0.11.6) (2022-11-14)
+
+
+### Bug Fixes
+
+* fix bugs in executor restart dialog and in dataframe ([59cb661](https://github.com/cnextio/cnext/commit/59cb66157b5a344c129f27f952ba485e9eb2a031))
+
 ## [0.11.5](https://github.com/cnextio/cnext/compare/v0.11.4...v0.11.5) (2022-11-10)
 
 
