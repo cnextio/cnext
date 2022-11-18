@@ -80,14 +80,14 @@ const ExecutorToolbar = () => {
     const { sendCommand } = useExecutorManager();
     const [executing, setExecuting] = useState(false);
 
-    React.useEffect(() => {        
-        if (socket && sendCommand && kernelInfoInit===KernelInfoInitStatus.NOT_YET) {
+    React.useEffect(() => {
+        if (socket && sendCommand && kernelInfoInit === KernelInfoInitStatus.NOT_YET) {
             setExecuting(true);
             sendCommand(ExecutorManagerCommand.get_kernel_info)
                 .then((response: IExecutorCommandResponse) => {
                     if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
                         dispatch(setKernelInfo(response.result?.kernel_info));
-                        setKernelInfoInit(KernelInfoInitStatus.OK);
+                        setKernelInfoInit(KernelInfoInitStatus.DONE);
                     } else {
                         setKernelInfoInit(KernelInfoInitStatus.ERROR);
                         // set notification

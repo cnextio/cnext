@@ -103,7 +103,7 @@ class IPythonKernel():
                 self._set_execution_complete_condition(True)
 
             if self.km.is_alive():
-                return {"success": True, "kernel_info": self._get_kernel_info()}
+                return self.get_kernel_info()
             else:
                 return {"success": False}
         except:
@@ -122,11 +122,8 @@ class IPythonKernel():
             log.info("Exception %s" % (trace))
         return {"success": False}
     
-    def _get_kernel_info(self):
-        return {'id': self.km.kernel_id, 'name': self.km.kernel_name, 'spec': self.km.kernel_spec, 'connection_info': self.kc.get_connection_info()}
-
     def get_kernel_info(self):
-        return {"success": True, "kernel_info": self._get_kernel_info()}
+        return {"success": True, "kernel_info": {'id': self.km.kernel_id, 'name': self.km.kernel_name, 'spec': self.km.kernel_spec, 'connection_info': self.kc.get_connection_info()}}
 
     def is_alive(self):
         return self.kc.is_alive() if self.kc else False

@@ -406,9 +406,9 @@ export interface IExecutorCommandResponse {
 }
 
 export enum KernelInfoInitStatus {
-    OK = "ok",
+    DONE = "done",
     ERROR = "error",
-    NOT_YET = "not_yet"
+    NOT_YET = "not_yet",
 }
 
 export const SETTING_FILE_PATH = "config.json";
