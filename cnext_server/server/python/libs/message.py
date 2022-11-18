@@ -12,13 +12,15 @@ class WebappEndpoint(str, Enum):
     FileManager = 'FileManager'
     MagicCommandGen = 'MagicCommandGen'
     FileExplorer = 'FileExplorer'
-    ExperimentManager = 'ExperimentManager'
+    ExperimentManager = 'ExperimentManager'    
     ExecutorManager = 'ExecutorManager'
+    ExecutorManagerControl = 'ExecutorManagerControl'
     ModelManager = 'ModelManager'
     EnvironmentManager = 'EnvironmentManager'
     Terminal = 'Terminal'
     LogsManager = 'LogsManager'
     DataViewer = 'DataViewer'
+    DFExplorer = 'DFExplorer'
 
     def __str__(self):
         return str(self.value)

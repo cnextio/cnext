@@ -18,7 +18,7 @@ on:
       - 'LICENSE'
 
 env:
-  BASE_DEV_VERSION: 0.4.29
+  BASE_DEV_VERSION: 0.0.1
 
 jobs:
 
@@ -47,34 +47,34 @@ jobs:
           dasel put string -f pyproject.toml .tool.poetry.version "$REL_VERSION_STRICT"
           cat pyproject.toml
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'npm'
-          cache-dependency-path: |
-            cnext_app/package-lock.json
-            cnext_server/server/package-lock.json
+      # - uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 16
+      #     cache: 'npm'
+      #     cache-dependency-path: |
+      #       cnext_app/package-lock.json
+      #       cnext_server/server/package-lock.json
 
-      - name: Install dependencies
-        working-directory: ./cnext_app
-        run: npm ci
+      # - name: Install dependencies
+      #   working-directory: ./cnext_app
+      #   run: npm ci
 
-      - name: Install dependencies
-        working-directory: ./cnext_server/server
-        run: npm ci
+      # - name: Install dependencies
+      #   working-directory: ./cnext_server/server
+      #   run: npm ci
 
-      - name: Cache Next.js
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ github.workspace }}/cnext_app/.next/cache
-          key: ${{ runner.os }}-app-${{ hashFiles('cnext_app/**/*.[jt]s', 'cnext_app/**/*.[jt]sx') }}
-          restore-keys: |
-            ${{ runner.os }}-app-
+      # - name: Cache Next.js
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       ${{ github.workspace }}/cnext_app/.next/cache
+      #     key: ${{ runner.os }}-app-${{ hashFiles('cnext_app/**/*.[jt]s', 'cnext_app/**/*.[jt]sx') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-app-
 
-      - name: Build IDE
-        working-directory: ./cnext_app
-        run: npm run build
+      # - name: Build IDE
+      #   working-directory: ./cnext_app
+      #   run: npm run build
 
       - name: Install poetry
         run: pipx install poetry
@@ -84,14 +84,14 @@ jobs:
           python-version: '3.9'
           cache: 'poetry'
 
-      - name: Install dependencies
-        working-directory: ./cnext_server/server
-        run: |
-          poetry env use 3.9
-          poetry install
+      # - name: Install dependencies
+      #   working-directory: ./cnext_server/server
+      #   run: |
+      #     poetry env use 3.9
+      #     poetry install
 
-      - name: Copy output
-        run: cp -rf ./cnext_app/out ./cnext_server/public
+      # - name: Copy output
+      #   run: cp -rf ./cnext_app/out ./cnext_server/public
 
       # - name: Cypress run
       #   uses: cypress-io/github-action@v4
@@ -107,7 +107,9 @@ jobs:
       #       cypress/**/*.spec.js
 
       - name: Build project for distribution
-        run: poetry build
+        run: |
+          poetry env use 3.9
+          poetry build
 
       - uses: actions/upload-artifact@v3
         with:

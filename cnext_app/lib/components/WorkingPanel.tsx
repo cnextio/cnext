@@ -10,9 +10,8 @@ import Pane from "react-split-pane-v2";
 import { RootState } from "../../redux/store";
 import SplitPane from "react-split-pane-v2";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interfaces/IApp";
-import HotkeyComponent from "./hotkeys/HotKeys";
+import { sendMessage, SocketContext } from "./Socket";
 import TerminalManager from "./terminal-manager/TerminalManager";
-import { SocketContext } from "./Socket";
 import Router, { useRouter } from 'next/router'
 
 import * as Y from 'yjs';
@@ -22,6 +21,8 @@ import { ProjectCommand } from "../interfaces/IFileManager";
 let provider;
 const ydoc = new Y.Doc();
 const project = ydoc.getMap('project');
+import HotkeyComponent from "./hotkeys/HotKeys";
+import { Notifier } from "./notifier/Notifier";
 
 const WorkingPanel = () => {
     const router = useRouter()
@@ -133,7 +134,7 @@ const WorkingPanel = () => {
                 type: ContentType.STRING,
                 content: `import mlflow; mlflow.set_tracking_uri("${tracking_uri}")`,
             };
-            socket?.emit(WebAppEndpoint.CodeEditor, JSON.stringify(message));
+            sendMessage(socket, WebAppEndpoint.CodeEditor, message);
         }
     };
 
@@ -187,7 +188,7 @@ const WorkingPanel = () => {
             <FileManager />
             <TerminalManager />
             <HotkeyComponent />
-            {/* <Notifier /> */}
+            <Notifier />
         </StyledWorkingPanel>
     );
 };

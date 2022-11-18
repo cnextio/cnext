@@ -20,7 +20,7 @@ const TextIOComponent = React.memo(() => {
     return (
         <TextIOContainer>
             {console.log("Render TextIOContainer")}
-            <TextIOHeader>
+            <TextIOHeader style={{ marginBottom: "0px" }}>
                 {[TAB.CONSOLE, TAB.TERMINAL].map((item, key) => {
                     return (
                         <TextIOHeaderText

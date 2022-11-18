@@ -17,7 +17,7 @@ export const InputSelection = ({ input, options, handleChange }) => {
             sx={{ fontSize: "12px", width: "100%", height: "30px" }}
         >
             {options?.map((item: string, index: number) => {
-                console.log("Selection ", item, index);
+                // console.log("Selection ", item, index);
                 return (
                     <MenuItem value={item} key={index} sx={{ fontSize: "12px" }}>
                         {item}

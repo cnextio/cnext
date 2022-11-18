@@ -11,14 +11,31 @@ import Box from "@mui/material/Box";
 import { setDataPanelFocusSignal } from "../../../../redux/reducers/DataFramesRedux";
 import ColumnSelector from "./ColumnSelector";
 
+const Shape = () => {
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames?.activeDataFrame);
+    const shape = useSelector((state: RootState) =>
+        activeDataFrame ? state.dataFrames?.metadata[activeDataFrame]?.shape : null
+    );
+
+    return (
+        <div style={{fontSize: "13px", marginLeft: "auto", marginTop: "4px", paddingRight: "20px"}}>
+            {shape != null && (
+                <>
+                    Rows: {shape[0]}, Cols: {shape[1]}
+                </>
+            )}
+        </div>
+    );
+};
+
 const DataPanel = (props: any) => {
-    const dispatch = useDispatch();
+    // const dispatch = useDispatch();
 
-    useEffect(() => {
-        dispatch(setDataPanelFocusSignal());
-    }, []);
+    // useEffect(() => {
+    //     dispatch(setDataPanelFocusSignal());
+    // }, []);
 
-    const activeDataFrame = useSelector((state: RootState) => state.dataFrames.activeDataFrame);
+    const activeDataFrame = useSelector((state: RootState) => state.dataFrames?.activeDataFrame);
     //TODO: move all grid view related thing to under DataView
     return (
         <>
@@ -30,12 +47,12 @@ const DataPanel = (props: any) => {
             {activeDataFrame != null && (
                 <>
                     <Box
-                        sx={{ display: "inline-flex", justifyContent: "flex-start" }}
-                        style={{ width: "100%" }}
+                        sx={{ display: "inline-flex", justifyContent: "flex-start", width: "100%" }}
                     >
                         <UDFSelector />
                         <DataViewMode />
                         <ColumnSelector />
+                        <Shape />
                     </Box>
                     <DataView />
                 </>

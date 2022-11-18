@@ -20,7 +20,7 @@ export type RecvCodeOutput = (output: IMessage) => void;
 // };
 
 export interface IMessage {
-    webapp_endpoint: string; // the web client component which sends
+    webapp_endpoint: WebAppEndpoint; // the web client component which sends
     // and/or receives this message
     command_name:
         | CommandName
@@ -141,6 +141,7 @@ export enum WebAppEndpoint {
     ExperimentManager = "ExperimentManager",
     PlotManager = "PlotManager",
     ExecutorManager = "ExecutorManager",
+    ExecutorManagerControl = "ExecutorManagerControl",
     LanguageServer = "LanguageServer",
     LanguageServerNotifier = "LanguageServerNotifier",
     LanguageServerHover = "LanguageServerHover",
@@ -148,7 +149,8 @@ export enum WebAppEndpoint {
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
     LogsManager = "LogsManager",
-    DataViewer = "DataViewer"
+    DataViewer = "DataViewer",
+    DFExplorer = "DFExplorer",
 }
 
 export interface ITableData {
@@ -157,6 +159,7 @@ export interface ITableData {
     column_names: string[];
     rows: any[][];
     size: number;
+    page?: number;
 }
 
 export interface ITableMetaData {
@@ -186,6 +189,7 @@ export interface IMetadata {
     type: string;
     shape: number[];
     columns: { [id: string]: IColumnMetadata };
+    timestamp: number;
 }
 
 export enum ReviewType {
@@ -387,6 +391,17 @@ interface WorkSpaceOpenProject {
     data_path: String | null;
     name: String;
     path: String;
+}
+
+export enum ExecutorCommandStatus {
+    CONNECTION_FAILED = "connection_failed",
+    EXECUTION_FAILED = "execution_failed",
+    EXECUTION_OK = "execution_ok",
+    EXECUTION_BUSY = "execution_busy",
+}
+
+export interface IExecutorCommandResponse {
+    status: ExecutorCommandStatus;
 }
 
 export const SETTING_FILE_PATH = "config.json";

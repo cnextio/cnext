@@ -4,7 +4,7 @@ import Moment from "react-moment";
 import "moment-timezone";
 import { CommandType, IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
 import { ExperimentManagerCommand } from "../../../interfaces/IExperimentManager";
-import { SocketContext } from "../../Socket";
+import { sendMessage, SocketContext } from "../../Socket";
 import {
     DFSelector as ExpSelector,
     SmallArrowIcon,
@@ -74,7 +74,7 @@ const ExperimentManager = (props: any) => {
                     experiment_id: expId,
                 },
             };
-            sendMessage(message);
+            sendMessage(socket, WebAppEndpoint.ExperimentManager, message);
 
             let selectedRuns = Object.keys(runDict).filter((key) => runDict[key]["selected"]);
             if (selectedRuns.length > 0) {
@@ -88,7 +88,7 @@ const ExperimentManager = (props: any) => {
                         run_ids: selectedRuns,
                     },
                 };
-                sendMessage(message);
+                sendMessage(socket, WebAppEndpoint.ExperimentManager, message);
             }
         }
     };
@@ -137,7 +137,7 @@ const ExperimentManager = (props: any) => {
                     run_ids: selectedRunIds,
                 },
             };
-            sendMessage(message);
+            sendMessage(socket, WebAppEndpoint.ExperimentManager, message);
         }
     }, [selectedRunIds]);
 
@@ -170,7 +170,7 @@ const ExperimentManager = (props: any) => {
                     experiment_id: selectedExpId,
                 },
             };
-            sendMessage(message);
+            sendMessage(socket, WebAppEndpoint.ExperimentManager, message);
         }
     }, [selectedExpId]);
 
@@ -227,10 +227,10 @@ const ExperimentManager = (props: any) => {
         // return () => socket.disconnect();
     };
 
-    const sendMessage = (message: {}) => {
-        console.log(`Send ${WebAppEndpoint.ExperimentManager} request: `, JSON.stringify(message));
-        socket?.emit(WebAppEndpoint.ExperimentManager, JSON.stringify(message));
-    };
+    // const sendMessage = (message: {}) => {
+    //     console.log(`Send ${WebAppEndpoint.ExperimentManager} request: `, JSON.stringify(message));
+    //     socket?.emit(WebAppEndpoint.ExperimentManager, JSON.stringify(message));
+    // };
 
     useEffect(() => {
         socketInit();
@@ -244,7 +244,7 @@ const ExperimentManager = (props: any) => {
                 tracking_uri: tracking_uri,
             },
         };
-        sendMessage(message);
+        sendMessage(socket, WebAppEndpoint.ExperimentManager, message);
         return () => {
             socket?.off(WebAppEndpoint.ExperimentManager);
         };
@@ -294,7 +294,7 @@ const ExperimentManager = (props: any) => {
                                 run_id: run_id,
                             },
                         };
-                        sendMessage(message);
+                        sendMessage(socket, WebAppEndpoint.ExperimentManager, message);
                         /** then, insert code to load weights */
                         let codeToInsert: ICodeToInsertInfo = {
                             code: `model.load_weights('${local_dir}/${artifact_path}')`,

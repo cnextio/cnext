@@ -19,9 +19,12 @@ if sys.platform.startswith("win"):
     readline = Readline()
 else:
     import readline
-from cnext_server import __version__
 import json
 import argparse
+from os import path
+import requests
+root_url = "http://logs-01.loggly.com/inputs/c58f8bb2-2332-4915-b9f3-70c1975956bb/tag/"
+from datetime import datetime
 
 
 current_dir_path = os.getcwd()
@@ -136,6 +139,7 @@ def show_the_version():
     f = open(PACKAGE_PATH)
     data = json.load(f)
     print(data["version"])
+    return data["version"]
 
 
 def asking_choice():
@@ -193,6 +197,9 @@ def is_first_time():
     if(os.path.exists(NODE_MODULES_PATH)):
         return False
     else:
+        tag = "install"
+        url = root_url + tag
+        requests.post(url, data = { "time": datetime.utcnow().strftime('%d-%m-%Y %H:%M:%S'),"version": show_the_version() })
         return True
 
 

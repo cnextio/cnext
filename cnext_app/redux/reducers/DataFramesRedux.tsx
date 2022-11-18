@@ -11,12 +11,32 @@ import {
     IDataFrameColumnSelection,
 } from "../../lib/interfaces/IApp";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../lib/interfaces/IDataFrameStatus";
-import { DF_DISPLAY_LENGTH, getLastUpdate } from "../../lib/components/dataframe-manager/libDataFrameManager";
-import { IDataFrameFilter, ILoadDataRequest, IRegisteredUDFs, UDF } from "../../lib/interfaces/IDataFrameManager";
+import {
+    DF_DISPLAY_LENGTH,
+    getLastUpdate,
+} from "../../lib/components/dataframe-manager/libDataFrameManager";
+import {
+    IDataFrameFilter,
+    ILoadDataRequest,
+    IRegisteredUDFs,
+    UDF,
+} from "../../lib/interfaces/IDataFrameManager";
+
+const getPageAndIndexOfRow = (pagedTableData: ITableData[], rowNumber: number) => {
+    let curTotalSize = 0;
+    for (let i=0; i<pagedTableData.length; i++){
+        const page = pagedTableData[i];
+        if (rowNumber < curTotalSize + page.size){
+            return {pageNumber: i, rowInPageNumber: rowNumber-curTotalSize};
+        }
+        curTotalSize += page.size;
+    }
+    throw `Invalid case row number > total data size: ${rowNumber} > ${curTotalSize} `;
+};
 
 export type DataFrameState = {
     metadata: { [id: string]: IMetadata };
-    tableData: { [id: string]: ITableData };
+    tableData: { [id: string]: ITableData[] };
     // columnDataSummary: { [id: string]: {} };
     dfUpdates: { [id: string]: IDataFrameStatus };
     dfUpdatesReview: { [id: string]: IDFUpdatesReview };
@@ -36,7 +56,8 @@ export type DataFrameState = {
     columnSelector: { [id: string]: IDataFrameColumnSelection };
     udfsSelector: { [id: string]: IDataFrameUDFSelection };
     registeredUDFs: IRegisteredUDFs; //{ [name: string]: UDF };
-    tableMetadataUpdateSignal: number;
+    /** this is updated when metadata changed except with UDFs */
+    tableMetadataUpdateSignal: { [id: string]: number };
 };
 
 const initialState: DataFrameState = {
@@ -60,7 +81,7 @@ const initialState: DataFrameState = {
     udfsSelector: {},
     registeredUDFs: { udfs: {}, timestamp: "0" },
     columnSelector: {},
-    tableMetadataUpdateSignal: 0,
+    tableMetadataUpdateSignal: {},
 };
 
 export const dataFrameSlice = createSlice({
@@ -72,7 +93,8 @@ export const dataFrameSlice = createSlice({
             // for testing
             // state.data = testTableData
             const df_id = action.payload["df_id"];
-            state.tableData[df_id] = action.payload;
+            // state.tableData[df_id] = action.payload;
+            state.tableData[df_id] = action.payload["data"];
 
             // comment out because this create side effect. explicitly set this outside when table is set.
             // state.activeDataFrame = df_id;
@@ -90,6 +112,12 @@ export const dataFrameSlice = createSlice({
             // state.data = testTableData
             const df_id = action.payload["df_id"];
             state.metadata[df_id] = action.payload;
+            if(Object.keys(state.tableMetadataUpdateSignal).includes(df_id)){
+                state.tableMetadataUpdateSignal[df_id]++;                
+            }
+            else {
+                state.tableMetadataUpdateSignal[df_id] = 0;
+            }
             let udfSelector: { [udfName: string]: boolean } = {};
             if (state.registeredUDFs instanceof Object) {
                 for (const udfName in state.registeredUDFs.udfs) {
@@ -103,8 +131,9 @@ export const dataFrameSlice = createSlice({
                     columns: {},
                     timestamp: state.registeredUDFs.timestamp,
                 };
+                /** clear data whenever new metadata is set */
+                state.tableData[df_id] = [];
             }
-            state.tableMetadataUpdateSignal++;
         },
 
         /**
@@ -285,9 +314,9 @@ export const dataFrameSlice = createSlice({
                     }
                     // make data loading request if needed
                     if (
-                        !tableData.index.data.includes(reviewingDFRowIndex)
+                        !tableData.index.data.includes(reviewingDFRowIndex) &&
                         // currently, only support instance of number
-                        && typeof(reviewingDFRowIndex) == "number"
+                        typeof reviewingDFRowIndex == "number"
                     ) {
                         state.loadDataRequest.df_id = state.activeDataFrame;
                         state.loadDataRequest.count += 1;
@@ -333,12 +362,13 @@ export const dataFrameSlice = createSlice({
                     };
                     /** remove all existing udf data */
                     let columns = state.metadata[df_id].columns;
-                    for (const udfName in state.registeredUDFs.udfs) {
+                    // for (const udfName in state.registeredUDFs.udfs) {
                         for (let column_name in columns) {
                             if (columns[column_name].udfs)
-                                columns[column_name].udfs[udfName] = null;
+                                // columns[column_name].udfs[udfName] = null;
+                                columns[column_name].udfs = {};
                         }
-                    }
+                    // }
                 }
             }
         },
@@ -377,9 +407,11 @@ export const dataFrameSlice = createSlice({
         setTableDataCellValue: (state, action) => {
             const data = action.payload;
             const df_id = data.df_id as string;
-            const rowNumber = data.rowNumber;
-            const colNumber = state.tableData[df_id].column_names.indexOf(data.col_name);
-            state.tableData[df_id].rows[rowNumber][colNumber] = data.value;
+            const colNumber = state.tableData[df_id][0].column_names.indexOf(data.col_name);
+            const location = getPageAndIndexOfRow(state.tableData[df_id], data.rowNumber);
+            if(location){
+                state.tableData[df_id][location.pageNumber].rows[location.rowInPageNumber][colNumber] = data.value;
+            }            
         },
     },
 });

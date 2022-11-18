@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
-import { IndividualControlPanelContent as IndividualTextIOContent } from "../../StyledComponents";
+import { IndividualConsolePanelContentSmall as IndividualTextIOContent } from "../../StyledComponents";
 import { Box, Typography } from "@mui/material";
 import { DataFrameUpdateType, IDataFrameStatus } from "../../../interfaces/IDataFrameStatus";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,11 +24,11 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     /** this will make sure that the output will be updated each time
      * the output is updated from server such as when inViewID changed */
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
-    const textOutputUpdateCount = useSelector(
-        (state: RootState) => state.codeEditor.textOutputUpdateCount
+    const textOutputUpdateSignal = useSelector(
+        (state: RootState) => state.codeEditor.textOutputUpdateSignal
     );
-    const roTextOutputUpdateCount = useSelector(
-        (state: RootState) => state.richOutput.textOutputUpdateCount
+    const roTextOutputUpdateSignal = useSelector(
+        (state: RootState) => state.richOutput.textOutputUpdateSignal
     );
     // const richOutputFocused = useSelector((state: RootState) => state.richOutput.richOutputFocused);
     const activeGroup = useSelector((state: RootState) => state.codeEditor.activeGroup);
@@ -74,7 +74,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     }
 
     function getActiveDataFrameStatus(state: RootState) {
-        const activeDataFrame = state.dataFrames.activeDataFrame;
+        const activeDataFrame = state.dataFrames?.activeDataFrame;
         if (
             activeDataFrame &&
             state.dataFrames.dfUpdates != null &&
@@ -188,32 +188,32 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
     // useEffect(handleTextOutput, [textOutputUpdateCount, serverSynced, inViewID]);
 
     /** Get an df update messages */
-    const handleDFUpdates = () => {
-        // const state = store.getState();
-        // const activeDFStatus = getActiveDataFrameStatus(state);
-        //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
-        if (activeDFStatus != null) {
-            const update = getLastUpdate(activeDFStatus);
-            // dfUpdates._status_list[dfUpdates._status_list.length-1].updates;
-            const updateType = update.update_type;
-            const updateContent = update.update_content ? update.update_content : [];
+    // const handleDFUpdates = () => {
+    //     // const state = store.getState();
+    //     // const activeDFStatus = getActiveDataFrameStatus(state);
+    //     //TODO: handle situation when dataFrameUpdates is cleared, should not rerender in that case
+    //     if (activeDFStatus != null) {
+    //         const update = getLastUpdate(activeDFStatus);
+    //         // dfUpdates._status_list[dfUpdates._status_list.length-1].updates;
+    //         const updateType = update.update_type;
+    //         const updateContent = update.update_content ? update.update_content : [];
 
-            let newOutputContent = {
-                type: "df_updates",
-                content: {
-                    updateType: updateType,
-                    updateContent: updateContent,
-                },
-            };
-            //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
-            if (newOutputContent != null) {
-                setOutputContent((outputContent) => [...outputContent, newOutputContent]);
-                setLastItemIsROTextOutput(false);
-            }
-            dispatch(setDFStatusShowed(true));
-        }
-    };
-    useEffect(handleDFUpdates, [activeDFStatus]);
+    //         let newOutputContent = {
+    //             type: "df_updates",
+    //             content: {
+    //                 updateType: updateType,
+    //                 updateContent: updateContent,
+    //             },
+    //         };
+    //         //_getDFUpdatesOutputComponent(outputContent.length, updateType, updateContent);
+    //         if (newOutputContent != null) {
+    //             setOutputContent((outputContent) => [...outputContent, newOutputContent]);
+    //             setLastItemIsROTextOutput(false);
+    //         }
+    //         dispatch(setDFStatusShowed(true));
+    //     }
+    // };
+    // useEffect(handleDFUpdates, [activeDFStatus]);
 
     /** This is to display the text output (often it is an exception)
      * from the excution of plugins in rich-output panel
@@ -223,7 +223,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         const state = store.getState();
         const newOutputContent: ITextOuput = {
             type: "text",
-            content: state.richOutput.textOutput,
+            content: state.richOutput.textOutput.slice(-1)[0],
         };
         if (!lastItemIsROTextOutput) {
             /** append to the last item */
@@ -232,7 +232,8 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         } else {
             /** update the last item */
             setOutputContent((outputContent) => [
-                ...outputContent.filter((item, index) => index < outputContent.length - 1),
+                // ...outputContent.filter((item, index) => index < outputContent.length - 1),
+                ...outputContent,
                 newOutputContent,
             ]);
         }
@@ -242,18 +243,12 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         if (state.projectManager.settings.dataframe_manager.show_exec_text) {
             handleRichOutputTextOutput();
         }
-    }, [roTextOutputUpdateCount]);
+    }, [roTextOutputUpdateSignal]);
 
     const isItemFocused = (item: ITextOuput | undefined, lastItem: boolean) => {
         // TODO: implement scoll to rich-output text and df updates
         // return item?.groupID != null ? item?.groupID === activeGroup : item?.lineID === activeLine;
         let richOutputFocused = store.getState().richOutput.richOutputFocused;
-        console.log(
-            "CodeOutput isItemFocused: ",
-            richOutputFocused,
-            lastItemIsROTextOutput,
-            lastItem
-        );
         return richOutputFocused && lastItemIsROTextOutput && lastItem
             ? true
             : item?.groupID != null
@@ -265,11 +260,12 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
         <>
             {outputContent?.map((item, index) => (
                 <ScrollIntoViewIfNeeded
-                    active={isItemFocused(item, index === outputContent.length - 1)}
+                    active={index === outputContent.length - 1} //{isItemFocused(item, index === outputContent.length - 1)}
                     options={{
                         block: "start",
                         inline: "center",
                         behavior: "smooth",
+                        scrollMode: 'if-needed',
                         boundary: document.getElementById(props.id),
                     }}
                 >
@@ -283,7 +279,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
                             <Ansi>{item.content}</Ansi>
                         </IndividualTextIOContent>
                     )}
-                    {item?.type === "df_updates" && (
+                    {/* {item?.type === "df_updates" && (
                         <IndividualTextIOContent key={index} component="pre" variant="body2">
                             {renderDFReviewsOutputComponent(
                                 outputContent.length,
@@ -294,7 +290,7 @@ const ConsoleComponent = React.memo((props: { id: string }) => {
                                     updateTypeToReview.includes(item["content"]["updateType"])
                             )}
                         </IndividualTextIOContent>
-                    )}
+                    )} */}
                 </ScrollIntoViewIfNeeded>
             ))}
         </>

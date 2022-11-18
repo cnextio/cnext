@@ -75,9 +75,14 @@ class IPythonKernel():
                 self.kc.stop_channels()
                 self.km.shutdown_kernel(now=True)
                 log.info('Kernel shutdown')
+                if not self.km.is_alive():
+                    return True
+                else:
+                    return False
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
+        return False
 
     def restart_kernel(self):
         try:
@@ -86,7 +91,8 @@ class IPythonKernel():
             self.km.restart_kernel()
             self.stop_msg_thread()
             self.kc = self.km.blocking_client()
-            self.wait_for_ready()
+            result = self.wait_for_ready()
+            log.info("wait_for_ready return: %s", result)
             self.start_msg_thead()
             log.info('Kernel restarted')
 
@@ -109,7 +115,7 @@ class IPythonKernel():
         try:
             if self.km.is_alive():
                 self.km.interrupt_kernel()
-                log.info('Interupt kernel')
+                log.info('Kerel interrupted')
             return True
         except:
             trace = traceback.format_exc()
@@ -119,11 +125,13 @@ class IPythonKernel():
     def is_alive(self):
         return self.kc.is_alive() if self.kc else False
 
-    def wait_for_ready(self):
+    def wait_for_ready(self, timeout=100):
         try:
-            self.kc.wait_for_ready(timeout=50)
+            self.kc.wait_for_ready(timeout=timeout)
+            return True
         except RuntimeError:
-            self.shutdown_kernel()
+            # self.shutdown_kernel()
+            return False
 
     def _is_status_message(self, message):
         return message['header']['msg_type'] == 'status'
@@ -158,7 +166,10 @@ class IPythonKernel():
                         ipython_message = self.kc.get_stdin_msg(
                             timeout=MESSSAGE_TIMEOUT)
 
-                    if ipython_message['header']['msg_type'] != "stream":
+                    if ipython_message['header']['msg_type'] not in [
+                        IPythonConstants.MessageType.STREAM, 
+                        IPythonConstants.MessageType.EXECUTE_RESULT,
+                        IPythonConstants.MessageType.ERROR]:
                         log.info('%s msg: msg_type = %s, content = %s' % (
                             stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
                     else:
@@ -179,6 +190,12 @@ class IPythonKernel():
                         log.info('Kernel execution lock released')
                 except queue.Empty:
                     pass
+                except:
+                    trace = traceback.format_exc()
+                    log.info("Exception %s" % (trace))
+                    if self.execute_lock.locked():
+                        self.execute_lock.release()
+                        log.info('Kernel execution lock released')
             log.info('Stop stream %s' % stream_type)
         except:
             trace = traceback.format_exc()
