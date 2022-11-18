@@ -39,7 +39,7 @@ import {
 } from "../../interfaces/IFileManager";
 import { SocketContext, sendMessage as socketSendMessage } from "../Socket";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
-import { updateExecutorRestartCounter } from "../../../redux/reducers/ExecutorManagerRedux";
+import { updateExecutorRestartSignal } from "../../../redux/reducers/ExecutorManagerRedux";
 import { setNotification } from "../../../redux/reducers/NotificationRedux";
 import { useExecutorManager } from "../executor-manager/ExecutorManager";
 
@@ -243,12 +243,12 @@ const FileManager = () => {
         await sendCommand(ExecutorManagerCommand.restart_kernel)
             .then((response: IExecutorCommandResponse) => {
                 if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
-                    dispatch(
-                        setNotification(`Kernel restarted.`)
-                    );
-                    dispatch(updateExecutorRestartCounter());
+                    dispatch(setNotification(`Kernel restarted.`));
+                    dispatch(updateExecutorRestartSignal());
                 } else {
-                    dispatch(setNotification(`Failed to restart the kernel, status=${response.status}.`));
+                    dispatch(
+                        setNotification(`Failed to restart the kernel, status=${response.status}.`)
+                    );
                 }
             })
             .catch((error) => {
@@ -610,7 +610,7 @@ const FileManager = () => {
     }, [socket]); //run this only once - not on rerender
 
     return null;
-};;
+};
 
 export default FileManager;
 
