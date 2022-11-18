@@ -123,6 +123,7 @@ const ExecutorToolbar = () => {
                 })
                 .finally(() => setExecuting(false));
         } else {
+            setExecuting(false);
             setKernelCommand(null);
             setExecutionStatus(null);
         }
