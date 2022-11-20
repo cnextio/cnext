@@ -20,13 +20,33 @@ import { ProjectCommand } from "../interfaces/IFileManager";
 
 let provider;
 const ydoc = new Y.Doc();
-const project = ydoc.getMap('project');
+// const project = ydoc.getMap('project');
 import HotkeyComponent from "./hotkeys/HotKeys";
 import { Notifier } from "./notifier/Notifier";
 
 const WorkingPanel = () => {
     const router = useRouter()
+    const [isReady, setIsReady] = useState(false);
     const { share, remoteProject } = router.query;
+
+    useEffect(() => {
+        if (router.isReady) {
+            const { remoteProject } = router.query;
+            if (!remoteProject) {
+                setIsReady(true);
+            } else {
+                ydoc.once('update', (update, origin, doc: Y.Doc) => {
+                    const workspace = doc.getText('workspace');
+                    const project = doc.getMap('project');
+
+                    if (workspace && project) {
+                        console.log(project.toJSON());
+                        setIsReady(true);
+                    }
+                });
+            }
+        }
+    }, [router.isReady]);
 
     if (typeof window !== 'undefined') {
         if (share || remoteProject) {
@@ -53,28 +73,27 @@ const WorkingPanel = () => {
                     switch (fmResult.command_name) {
                         case ProjectCommand.get_project_content:
                             const tree = new Y.Text(JSON.stringify(fmResult.content.tree));
+                            const project = ydoc.getMap('project');
+                            console.log('@@@trrrrrrrrrr', fmResult.content.tree);
                             project.set('@tree', tree);
 
                             for (const [key, value] of Object.entries(fmResult.content.files)) {
+                                const content = value.content.join("\n");
                                 if (!project.has(key)) {
                                     const file = new Y.Map();
-                                    const source = new Y.Text();
-                                    source.insert(0, value);
-                                    file.set('source', source);
-                                    const json = new Y.Text();
-                                    file.set('json', json);
+                                    file.set('source', new Y.Text(content));
+                                    file.set('data', new Y.Text(JSON.stringify(value)));
+                                    file.set('json', new Y.Text(JSON.stringify(value.code_lines)));
                                     project.set(key, file);
                                 } else {
                                     console.log("file already exists", key);
                                     const file = project.get(key);
                                     const source = file.get('source');
-                                    const length = source.length;
+                                    source.delete(0, source.length);
+                                    source.insert(0, content);
 
-                                    if (length > 0) {
-                                        source.delete(0, length);
-                                    }
-
-                                    source.insert(0, value);
+                                    file.set('data', new Y.Text(JSON.stringify(value)));
+                                    file.set('json', new Y.Text(JSON.stringify(value.code_lines)));
                                 }
                             }
                             break;
@@ -144,7 +163,7 @@ const WorkingPanel = () => {
 
     const [resizing, setResizing] = useState(false);
     const [codePanelSize, setCodePanelSize] = useState<string>("700px");
-    return (
+    return isReady ?
         <StyledWorkingPanel>
             {console.log("WorkingPanel render")}
             <SplitPane split="vertical">
@@ -155,7 +174,7 @@ const WorkingPanel = () => {
                             : "0px"
                     }
                 >
-                    <FileExplorer ydoc={ydoc} share={share} provider={provider} project={project} remoteProject={remoteProject} />
+                    <FileExplorer ydoc={ydoc} share={share} provider={provider} remoteProject={remoteProject} />
                 </Pane>
                 <Pane>
                     <SplitPane
@@ -172,10 +191,10 @@ const WorkingPanel = () => {
                             <CodePanel
                                 workingPanelViewMode={projectConfig.view_mode}
                                 stopMouseEvent={resizing}
+                                share={share}
                                 remoteProject={remoteProject}
                                 ydoc={ydoc}
                                 provider={provider}
-                                project={project}
                             />
                         </Pane>
                         <Pane>
@@ -185,12 +204,12 @@ const WorkingPanel = () => {
                 </Pane>
             </SplitPane>
             <DataFrameManager />
-            <FileManager />
+            <FileManager ydoc={ydoc} share={share} provider={provider} remoteProject={remoteProject} />
             <TerminalManager />
             <HotkeyComponent />
             <Notifier />
         </StyledWorkingPanel>
-    );
+        : <div></div>;
 };
 
 export default WorkingPanel;

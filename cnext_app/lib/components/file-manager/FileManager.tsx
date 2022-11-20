@@ -4,6 +4,7 @@ import { useBeforeunload } from "react-beforeunload";
 import {
     initCodeText,
     resetCodeEditor as resetCodeEditorRedux,
+    setCodeLines,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     setFileMetadata,
@@ -42,8 +43,9 @@ import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { updateExecutorRestartCounter } from "../../../redux/reducers/ExecutorManagerRedux";
 import { setNotification } from "../../../redux/reducers/NotificationRedux";
 import { useExecutorManager } from "../executor-manager/ExecutorManager";
+import * as Y from 'yjs';
 
-const FileManager = () => {
+const FileManager = (props: any) => {
     const socket = useContext(SocketContext);
     const dispatch = useDispatch();
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
@@ -107,6 +109,27 @@ const FileManager = () => {
                             if (inViewID != null) {
                                 // console.log('Get file content: ', fmResult.content);
                                 console.log("FileManager got read_file result: ", fmResult);
+
+                                // TODO(huytq): refactor
+                                const ydoc: Y.Doc = props.ydoc;
+                                const project = ydoc.getMap('project');
+                                const content = fmResult.content["content"].join("\n");
+                                if (!project.has(inViewID)) {
+                                    const file = new Y.Map();
+                                    const source = new Y.Text(content);
+                                    file.set('source', source);
+                                    file.set('data', new Y.Text(JSON.stringify(fmResult.content)));
+                                    file.set('json', new Y.Text(JSON.stringify(fmResult.content["code_lines"])));
+                                    project.set(inViewID, file);
+                                } else {
+                                    const file = project.get(inViewID);
+                                    const source = file.get('source');
+                                    source.delete(0, source.length);
+                                    source.insert(0, content);
+                                    file.set('data', new Y.Text(JSON.stringify(fmResult.content)));
+                                    file.set('json', new Y.Text(JSON.stringify(fmResult.content["code_lines"])));
+                                }
+
                                 if (fmResult.type === ContentType.FILE_CONTENT) {
                                     let reduxCodeText: ICodeText = {
                                         reduxFileID: inViewID,
@@ -296,71 +319,177 @@ const FileManager = () => {
     // called when the in-view file changed
     const SAVE_FILE_DURATION = 10000;
     useEffect(() => {
-        clearSaveConditions();
-        // const state = store.getState();
-        // When inViewID changed, trigger the saveFile & saveState function
-        saveFileAndState();
+        if (props.remoteProject) {
+            if (inViewID != null) {
+                const doc = props.ydoc
+                const project = doc.getMap('project');
+                const file = project.get(inViewID);
+                const data = JSON.parse(file.get('data'));
 
-        if (inViewID != null) {
-            const state = store.getState();
-            const codeText = state.codeEditor.codeText;
-            /** we will not load the file if it already exists in codeText in redux this design
-             * will not allow client to stay update with server if there is out-of-channel changes
-             * in server but this is good enough for our use case. Note that: since config.py won't
-             * be reload, the content of this file will be outdated when the config is changed using
-             * other UI components
-             */
-            if (
-                codeText == null ||
-                (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
-                isConfigFile(inViewID)
-            ) {
-                const file: IFileMetadata = state.projectManager.openFiles[inViewID];
-                if (file) {
-                    const projectPath = state.projectManager.activeProject?.path;
-                    const message: IMessage = createMessage(ProjectCommand.read_file, "", {
-                        project_path: projectPath,
-                        path: file.path,
-                        timestamp: file.timestamp,
-                    });
-                    sendMessage(message);
-                    dispatch(setServerSynced(false));
-                }
+                let reduxCodeText: ICodeText = {
+                    reduxFileID: inViewID,
+                    codeText: data["content"],
+                    codeLines: data["code_lines"],
+                    timestamp: data['timestamp'],
+                };
+                dispatch(initCodeText(reduxCodeText));
+
+                
+                try {
+                    const json = JSON.parse(file.get('json'));
+                    const payload = {
+                        inViewID: inViewID,
+                        codeLines: json,
+                    };
+                    dispatch(setCodeLines(payload));
+                } catch (error) {}
             }
-            setSaveTimer(
-                setInterval(() => {
-                    setSaveTimeout(true);
-                }, SAVE_FILE_DURATION)
-            );
+        } else {
+            clearSaveConditions();
+            // const state = store.getState();
+            // When inViewID changed, trigger the saveFile & saveState function
+            saveFileAndState();
+    
+            if (inViewID != null) {
+                const state = store.getState();
+                const codeText = state.codeEditor.codeText;
+                /** we will not load the file if it already exists in codeText in redux this design
+                 * will not allow client to stay update with server if there is out-of-channel changes
+                 * in server but this is good enough for our use case. Note that: since config.py won't
+                 * be reload, the content of this file will be outdated when the config is changed using
+                 * other UI components
+                 */
+                if (
+                    codeText == null ||
+                    (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
+                    isConfigFile(inViewID)
+                ) {
+                    const file: IFileMetadata = state.projectManager.openFiles[inViewID];
+                    if (file) {
+                        const projectPath = state.projectManager.activeProject?.path;
+                        const message: IMessage = createMessage(ProjectCommand.read_file, "", {
+                            project_path: projectPath,
+                            path: file.path,
+                            timestamp: file.timestamp,
+                        });
+                        sendMessage(message);
+                        dispatch(setServerSynced(false));
+                    }
+                }
+                setSaveTimer(
+                    setInterval(() => {
+                        setSaveTimeout(true);
+                    }, SAVE_FILE_DURATION)
+                );
+            }
         }
     }, [inViewID]);
 
     useEffect(() => {
-        if (fileToClose) {
-            // When changing file, trigger the saveFile & saveState function
-            saveFileAndState();
+        if (props.remoteProject) {
+            if (fileToClose) {
+                const doc = props.ydoc
+                const project = doc.getMap('project');
+                const treeText = project.get('@tree');
+                const state = store.getState();
+                const openFiles = Object.assign({}, state.projectManager.openFiles);
+                const openOrder = Array.from(state.projectManager.openOrder);
 
-            let message: IMessage = createMessage(ProjectCommand.close_file, "", {
-                path: fileToClose,
-                open_order: store.getState().projectManager.openOrder,
-            });
-            sendMessage(message);
+                var index = openOrder.indexOf(fileToClose);
+                if (index !== -1) {
+                    openOrder.splice(index, 1);
+                }
+
+                delete openFiles[fileToClose];
+
+                const openFilesArr = [];
+
+                for (const [key, value] of Object.entries(openFiles)) {
+                    openFilesArr.push(value);
+                }
+
+                const meta: IProjectMetadata = {
+                    open_files: openFilesArr,
+                    open_order: openOrder,
+                };
+
+                dispatch(setOpenFiles(meta));
+            }
+        } else {
+            if (fileToClose) {
+                // When changing file, trigger the saveFile & saveState function
+                saveFileAndState();
+    
+                let message: IMessage = createMessage(ProjectCommand.close_file, "", {
+                    path: fileToClose,
+                    open_order: store.getState().projectManager.openOrder,
+                });
+                sendMessage(message);
+            }
         }
+
     }, [fileToClose]);
 
     useEffect(() => {
         if (fileToOpen) {
             console.log("FileManager file to open: ", fileToOpen);
             // TODO: make sure the file is saved before being closed
-            let message: IMessage = createMessage(ProjectCommand.open_file, "", {
-                path: fileToOpen,
-                open_order: store.getState().projectManager.openOrder,
-            });
-            sendMessage(message);
+            if (props.remoteProject) {
+                const doc = props.ydoc
+                const project = doc.getMap('project');
+                const treeText = project.get('@tree');
+                const state = store.getState();
+                const openFiles = state.projectManager.openFiles;
+                const openOrder = Array.from(state.projectManager.openOrder);
+                openOrder.push(fileToOpen);
+                const openFilesArr = [];
+
+                for (const [key, value] of Object.entries(openFiles)) {
+                    openFilesArr.push(value);
+                }
+
+                openFilesArr.push({
+                    path: fileToOpen,
+                    name: fileToOpen,
+                    timestamp: 0,
+                    executor: false,
+                });
+
+                const meta: IProjectMetadata = {
+                    open_files: openFilesArr,
+                    open_order: openOrder,
+                };
+
+                dispatch(setOpenFiles(meta));
+
+                // console.log('open file open file', openFiles, openOrder);
+                // {"open_files":[{"path":"d.py","name":"d.py","executor":null,"timestamp":null}],"open_order":["d.py"]}
+            } else {
+                let message: IMessage = createMessage(ProjectCommand.open_file, "", {
+                    path: fileToOpen,
+                    open_order: store.getState().projectManager.openOrder,
+                });
+                sendMessage(message);
+            }
         }
     }, [fileToOpen]);
 
     useEffect(() => {
+        if (props.share) {
+            const ydoc: Y.Doc = props.ydoc;
+            const workspace = ydoc.getText('workspace');
+            const length = workspace.length;
+
+            if (length > 0) {
+                workspace.delete(0, length);
+            }
+
+            const value = JSON.stringify(workspaceMetadata);
+            workspace.insert(0, value);
+
+            console.log('sync workspace', workspace.toJSON());
+        }
+
         if (workspaceMetadata.active_project != null) {
             // Send get open files message
             let message: IMessage = createMessage(ProjectCommand.get_open_files);
@@ -600,8 +729,18 @@ const FileManager = () => {
 
     useEffect(() => {
         setupSocket();
-        let message: IMessage = createMessage(ProjectCommand.get_workspace_metadata, "");
-        sendMessage(message);
+
+        if (props.remoteProject) {
+            const ydoc: Y.Doc = props.ydoc;
+            const workspace = ydoc.getText('workspace');
+            console.log('workspace metadata', workspace.toString());
+            const metadata = JSON.parse(workspace.toString());
+            resetProjectStates(metadata);
+            dispatch(setWorkspaceMetadata(metadata));
+        } else {
+            let message: IMessage = createMessage(ProjectCommand.get_workspace_metadata, "");
+            sendMessage(message);
+        }
         // let message: IMessage = createMessage(ProjectCommand.get_active_project, "");
         // sendMessage(message);
 

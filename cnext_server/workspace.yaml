@@ -1,4 +1,4 @@
-active_project: 2d034f3a-5f07-11ed-a41f-0a54423a117d
+active_project: 86ca77bc-68b9-11ed-adf9-0242ac110002
 open_projects:
 - id: 2d034f3a-5f07-11ed-a41f-0a54423a117d
   name: Skywalker
@@ -6,3 +6,6 @@ open_projects:
 - id: 78cc9146-610b-11ed-949c-0a54423a117d
   name: gpt3-q&a
   path: /Users/bachbui/works/cycai/cnext_sample_projects/gpt3-q&a
+- id: 86ca77bc-68b9-11ed-adf9-0242ac110002
+  name: a
+  path: /workspaces/cnext/a

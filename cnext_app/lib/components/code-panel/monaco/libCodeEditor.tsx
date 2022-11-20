@@ -154,9 +154,17 @@ export const unfoldAll = (editor) => {
     editor.trigger("unfold", "editor.unfoldAll");
 };
 export const getMainEditorModel = (monaco: Monaco) => {
-    if (monaco) {
-        let models = monaco.editor.getModels();
-        if (models.length > 0) return models[0];
+    // TODO(huytq): move to arg
+    let state = store.getState();
+    const inViewID = state.projectManager.inViewID;
+
+    if (monaco && inViewID) {
+        // let models = monaco.editor.getModels();
+        // if (models.length > 0) return models[0];
+        const modelUri = monaco!.Uri.parse(inViewID);
+        const model = monaco.editor.getModel(modelUri);
+
+        return model;
     }
     return null;
 };
@@ -284,4 +292,3 @@ const createMessage = (content: IRunningCommandContent) => {
 
     return message;
 };
-

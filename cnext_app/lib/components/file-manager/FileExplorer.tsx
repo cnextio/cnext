@@ -146,6 +146,7 @@ const FileExplorer = (props: any) => {
                             projectMetadata = fmResult.content as IProjectMetadata;
                             if (projectMetadata != null) {
                                 dispatch(setOpenFiles(projectMetadata));
+                                fetchTree();
                             }
                             break;
                         case ProjectCommand.delete:
@@ -153,6 +154,7 @@ const FileExplorer = (props: any) => {
                             projectMetadata = fmResult.content as IProjectMetadata;
                             if (projectMetadata != null) {
                                 dispatch(setOpenFiles(projectMetadata));
+                                fetchTree();
                             }
                             break;
                     }                    
@@ -164,6 +166,27 @@ const FileExplorer = (props: any) => {
             if (ack) ack();
         });
     };
+
+    // const remoteProject: Y.Map<any> = props.project;
+
+    // if (props.remoteProject) {
+    //     remoteProject.observe((event) => {
+    //         const tree = event.target.get('@tree');
+    //         if (tree) {
+    //             const json = JSON.parse(tree.toJSON());
+    //             console.log('json', json);
+
+    //             for (const [dirID, dirs] of Object.entries(json)) {
+    //                 const data: IDirListResult = {
+    //                     id: dirID,
+    //                     dirs: dirs,
+    //                 };
+    //                 // setOpenDir(data);
+    //                 // console.log('setOpenDir', data);
+    //             }
+    //         }
+    //     });
+    // }
 
     useEffect(() => {
         setupSocket();
@@ -221,13 +244,24 @@ const FileExplorer = (props: any) => {
         sendMessage(socket, message.webapp_endpoint, message);
     };
 
+    const fetchTree = () => {
+        console.log('fectching tree');
+        const state = store.getState();
+        const projectPath = state.projectManager.activeProject?.path;
+        let message: IMessage = createMessage(ProjectCommand.get_project_content, {
+            project_path: projectPath,
+            path: '',
+        });
+        sendMessage(socket, message.webapp_endpoint, message);
+    };
+
     const syncFilesShare = () => {
         const state = store.getState();
         const projectPath = state.projectManager.activeProject?.path;
         let message: IMessage = createMessage(ProjectCommand.get_project_content, {
             project_path: projectPath,
         });
-        sendMessage(message);
+        sendMessage(socket, message.webapp_endpoint, message);
     };
 
     if (props.share) {

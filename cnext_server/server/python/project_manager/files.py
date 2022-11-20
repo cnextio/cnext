@@ -87,7 +87,7 @@ def get_project_content(project_path):
                     tree[base_path].append(new_file)
 
                     with open(file_path, 'r') as file:
-                        lfiles[trimed_path] = file.read()
+                        lfiles[trimed_path] = read_file(project_path, trimed_path)
 
         return { 'tree': tree, 'files': lfiles }
     except Exception as error:

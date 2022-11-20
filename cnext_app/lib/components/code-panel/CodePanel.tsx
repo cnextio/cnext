@@ -18,7 +18,7 @@ const CodeEditor = dynamic(() => import('./monaco/CodeEditor'), {
   ssr: false,
 });
 
-const CodePanel = ({ workingPanelViewMode, stopMouseEvent, remoteProject, ydoc, project, provider }) => {
+const CodePanel = ({ workingPanelViewMode, stopMouseEvent, remoteProject, ydoc, provider, share }) => {
 
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
 
@@ -52,7 +52,7 @@ const CodePanel = ({ workingPanelViewMode, stopMouseEvent, remoteProject, ydoc, 
                 >
                     {inViewID != null && (
                         <Pane>
-                            <CodeEditor stopMouseEvent={stopMouseEvent} ydoc={ydoc} project={project} provider={provider} remoteProject={remoteProject} />
+                            <CodeEditor stopMouseEvent={stopMouseEvent} share={share} ydoc={ydoc} provider={provider} remoteProject={remoteProject} />
                         </Pane>
                     )}
                     <Pane size="30%">
