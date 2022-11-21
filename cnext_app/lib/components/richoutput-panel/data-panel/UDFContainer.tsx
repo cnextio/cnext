@@ -23,8 +23,9 @@ export const UDFContainer = ({ colName }: { colName: string }) => {
         activeDataFrame ? state.dataFrames.udfsSelector[activeDataFrame] : null
     );
 
-    const showedUDFs = Object.keys(registeredUDFs.udfs).reduce(
-        (showedUDFs: any[], key) => {
+    const showedUDFs = Object
+        .keys(registeredUDFs.udfs)
+        .reduce((showedUDFs: any[], key) => {
             // console.log("showedUDFs: ", key, udfsConfig, registeredUDFs[key].config.view_configs);
             if (
                 udfConfigs &&
@@ -34,8 +35,7 @@ export const UDFContainer = ({ colName }: { colName: string }) => {
                 showedUDFs.push({ name: key, udf: registeredUDFs.udfs[key] });
             }
             return showedUDFs;
-        },[]
-    );
+        }, []);
 
     /** for UDFView.TABLE_HEAD UDFs we only support 1 UDF per row so only sort by row */
     showedUDFs.sort(

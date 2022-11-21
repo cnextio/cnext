@@ -102,6 +102,7 @@ class ExecutorManagerCommand(str, Enum):
     interrupt_kernel = 'interrupt_kernel'
     get_status = 'get_status'
     send_stdin = 'send_stdin'
+    get_kernel_info = 'get_kernel_info'
 
 
 class EnvironmentManagerCommand(str, Enum):

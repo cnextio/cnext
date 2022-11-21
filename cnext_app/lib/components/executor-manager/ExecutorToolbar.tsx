@@ -10,6 +10,7 @@ import {
     ExecutorCommandStatus,
     ExecutorToolbarItem,
     IExecutorCommandResponse,
+    KernelInfoInitStatus,
 } from "../../interfaces/IApp";
 import { Divider, Tooltip } from "@mui/material";
 import { clearAllOutputs, setCellCommand } from "../../../redux/reducers/CodeEditorRedux";
@@ -22,7 +23,11 @@ import { CellCommand } from "../../interfaces/ICodeEditor";
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { SocketContext } from "../Socket";
 import { clearTextOutput } from "../../../redux/reducers/RichOutputRedux";
-import { updateExecutorRestartCounter } from "../../../redux/reducers/ExecutorManagerRedux";
+import {
+    updateExecutorRestartSignal,
+    updateExecutorInterruptSignal,
+    setKernelInfo,
+} from "../../../redux/reducers/ExecutorManagerRedux";
 
 const ExecutorToolbarItemComponent = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -43,6 +48,7 @@ const ExecutorToolbar = () => {
     const [selectedIcon, setSelectedIcon] = React.useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const [executionStatus, setExecutionStatus] = useState<null | IExecutorCommandResponse>(null);
+    const [kernelInfoInit, setKernelInfoInit] = useState(KernelInfoInitStatus.NOT_YET);
 
     const dispatch = useDispatch();
     const handleClickClearOutputs = () => {
@@ -78,6 +84,26 @@ const ExecutorToolbar = () => {
     const { sendCommand } = useExecutorManager();
     const [executing, setExecuting] = useState(false);
 
+    React.useEffect(() => {
+        if (socket && sendCommand && kernelInfoInit === KernelInfoInitStatus.NOT_YET) {
+            setExecuting(true);
+            sendCommand(ExecutorManagerCommand.get_kernel_info)
+                .then((response: IExecutorCommandResponse) => {
+                    if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
+                        dispatch(setKernelInfo(response.result?.kernel_info));
+                        setKernelInfoInit(KernelInfoInitStatus.DONE);
+                    } else {
+                        setKernelInfoInit(KernelInfoInitStatus.ERROR);
+                        // set notification
+                    }
+                })
+                .catch((response) => {
+                    setKernelInfoInit(KernelInfoInitStatus.ERROR);
+                })
+                .finally(() => setExecuting(false));
+        }
+    }, [sendCommand, kernelInfoInit]);
+
     async function commandDialogConfirm(confirm: boolean, command: ExecutorManagerCommand) {
         if (confirm) {
             setExecuting(true);
@@ -85,7 +111,12 @@ const ExecutorToolbar = () => {
             await sendCommand(command)
                 .then((response: IExecutorCommandResponse) => {
                     if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
-                        dispatch(updateExecutorRestartCounter());
+                        if (command === ExecutorManagerCommand.restart_kernel) {
+                            dispatch(updateExecutorRestartSignal());
+                            dispatch(setKernelInfo(response.result?.kernel_info));
+                        } else if (command === ExecutorManagerCommand.interrupt_kernel) {
+                            dispatch(updateExecutorInterruptSignal());
+                        }
                         setKernelCommand(null);
                     } else {
                         setExecutionStatus(response);
@@ -96,6 +127,7 @@ const ExecutorToolbar = () => {
                 })
                 .finally(() => setExecuting(false));
         } else {
+            setExecuting(false);
             setKernelCommand(null);
             setExecutionStatus(null);
         }
