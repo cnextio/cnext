@@ -14,6 +14,11 @@ class IpythonResultMessage(JsonSerializable):
         self.buffers = None
         self.__dict__.update(entries)
 
+class KernelInfo(JsonSerializable):
+    def __init__(self, kernel_id=None, kernel_name=None, kernel_spec=None):
+        self.id = kernel_id
+        self.name = kernel_name
+        self.spec = kernel_spec
 
 class IPythonConstants:
     class MessageType(str, Enum):

@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import {
     ContentType,
     ExecutorCommandStatus,
@@ -55,6 +55,7 @@ export const useExecutorManager = () => {
                         if (resultContent.success === true) {
                             response = {
                                 status: ExecutorCommandStatus.EXECUTION_OK,
+                                result: resultContent
                             };
                         } else {
                             response = {
@@ -88,16 +89,19 @@ export const useExecutorManager = () => {
         );
     };
 
-    const sendCommand = (command: ExecutorManagerCommand) => {
-        return new Promise<IExecutorCommandResponse>((resolve, reject) => {
-            if (!executing) {
-                setExecuting(true);
-                handlSocketResponse(resolve, reject, command);
-            } else {
-                reject({ status: ExecutorCommandStatus.EXECUTION_BUSY });
-            }
-        });
-    };
+    const sendCommand = useCallback(
+        (command: ExecutorManagerCommand) => {
+            return new Promise<IExecutorCommandResponse>((resolve, reject) => {
+                if (!executing) {
+                    setExecuting(true);
+                    handlSocketResponse(resolve, reject, command);
+                } else {
+                    reject({ status: ExecutorCommandStatus.EXECUTION_BUSY });
+                }
+            });
+        },
+        [executing, socket]
+    );
 
     return { sendCommand };
 };

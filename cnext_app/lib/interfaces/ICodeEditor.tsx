@@ -51,7 +51,7 @@ export interface ICodeLine {
     result?: ICodeResult[];
     textOutput?: ICodeResult;
     generated: boolean;
-    groupID?: string;
+    groupID: string|null;
     cAssistInfo?: ICAssistInfo;
 }
 
@@ -200,6 +200,7 @@ export enum CodeInsertMode {
 export interface ICodeToInsertInfo {
     code: string;
     fromPos?: number;
+    fromLine?: number;
     status: CodeInsertStatus;
     mode: CodeInsertMode;
 }

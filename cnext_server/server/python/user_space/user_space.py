@@ -179,7 +179,7 @@ class _UserSpace(BaseKernelUserSpace):
             if args[0].kernel_restarting or args[0].kernel_interrupting:
                 args[0].execute_lock.release()
                 log.info('Kernel is being restarted or interupted . Abort!')
-                return None            
+                return None
             args[0]._set_execution_complete_condition(False)
             func(*args, **kwargs)
             ## wait for the lock being released in the message_handler_callback #
@@ -285,7 +285,7 @@ class _UserSpace(BaseKernelUserSpace):
             self.execute_lock.release()
             log.info('User_space execution lock released for restarting')
         result = self.executor.restart_kernel()
-        self.init_executor()        
+        self.init_executor()
         self.kernel_restarting = False
         return result
 
@@ -304,6 +304,9 @@ class _UserSpace(BaseKernelUserSpace):
     def set_executor_working_dir(self, path):
         code = "import os; os.chdir('{}')".format(path)
         return self.executor.execute(code)
+
+    def get_kernel_info(self):
+        return self.executor.get_kernel_info()
 
 
 class BaseKernelUserSpace(_cus.UserSpace):

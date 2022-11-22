@@ -1,14 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { IExecutorStatus } from "../../lib/interfaces/IExecutorManager";
+import { IExecutorStatus, KernelInfo } from "../../lib/interfaces/IExecutorManager";
 
 type ExecutorManagerState = {
     executorStatus: IExecutorStatus;
-    executorRestartCounter: number;
+    executorRestartSignal: number;
+    executorInterruptSignal: number;
+    kernelInfo: KernelInfo | null;
 };
 
 const initialState: ExecutorManagerState = {
     executorStatus: { alive_status: false, resource_usage: null },
-    executorRestartCounter: 0
+    executorRestartSignal: 0,
+    executorInterruptSignal: 0,
+    kernelInfo: null,
 };
 
 export const ExecutorManagerRedux = createSlice({
@@ -19,13 +23,27 @@ export const ExecutorManagerRedux = createSlice({
         setExecutorStatus: (state, action) => {
             state.executorStatus = action.payload;
         },
-        updateExecutorRestartCounter: (state) => {
-            state.executorRestartCounter++;
-        }
+
+        updateExecutorRestartSignal: (state) => {
+            state.executorRestartSignal++;
+        },
+
+        updateExecutorInterruptSignal: (state) => {
+            state.executorInterruptSignal++;
+        },
+
+        setKernelInfo: (state, action) => {
+            state.kernelInfo = action.payload as KernelInfo;
+        },
     },
 });
 
 // Action creators are generated for each case reducer function
-export const { setExecutorStatus, updateExecutorRestartCounter } = ExecutorManagerRedux.actions;
+export const {
+    setExecutorStatus,
+    updateExecutorRestartSignal,
+    updateExecutorInterruptSignal,
+    setKernelInfo,
+} = ExecutorManagerRedux.actions;
 
 export default ExecutorManagerRedux.reducer;

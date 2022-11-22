@@ -54,6 +54,7 @@ const FooterBarComponent = () => {
         { name: FootbarItemName.CODEANALYSIS, setting: codeEditorSettings.lint },
         { name: FootbarItemName.MARKDOWN, setting: richOutputSettings.show_markdown },
     ];
+
     const changeHandler = (type: string) => {
         let updatedSettings = {}; //{ ...codeEditorConfig };
         switch (type) {
@@ -97,6 +98,7 @@ const FooterBarComponent = () => {
                     })
                 );
                 break;
+
             default:
         }
     };
@@ -146,7 +148,6 @@ const FooterBarComponent = () => {
                     </LeftFooterItem>
                 );
             })}
-
             <RightFooterItem>
                 <FooterItemText
                     onClick={() => {
