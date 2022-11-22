@@ -57,13 +57,16 @@ const ScriptComponent = ({ children, script }) => {
     return <div ref={tmpRef}></div>;
 };
 
-const IFrameComponent = ({ children, attribs, stopMouseEvent }) => {
+const IFrameComponent = ({ children, attribs, stopMouseEvent }: {children: object|null, attribs: object|null, stopMouseEvent: boolean}) => {
     const [containerRef, setContainerRef] = useState();
 
-    const renderComponent = () => {
+    const renderChildren = () => {
         const mountNode = containerRef?.contentDocument;
         let childElements = [];
         let headElements, bodyElements;
+        if (!children) {
+            return null;
+        }
         if (children instanceof Array) {
             childElements = children;
         } else if (children instanceof Object && children.type === "html") {
@@ -94,15 +97,15 @@ const IFrameComponent = ({ children, attribs, stopMouseEvent }) => {
                 pointerEvents: stopMouseEvent ? "none" : "auto",
             }}
             ref={setContainerRef}
+            src={attribs?.src}
             srcDoc={attribs?.srcdoc}
         >
-            {renderComponent()}
+            {renderChildren()}
         </iframe>
     );
 };
 
 const ResultContent = React.memo(({ codeResult, showMarkdown, stopMouseEvent }) => {
-    
     const renderResultContent = () => {
         try {
             // const imageMime = getMimeWithImage(Object.keys(codeResult?.result?.content));
