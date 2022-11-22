@@ -227,13 +227,16 @@ export enum SpecialMimeType {
     INPUT_SELECTION = "input/selection",
     INPUT_CHECKBOX = "input/checkbox",
     INPUT_TEXT = "input/text",
+    URL_AUDIO = "url/audio",
 }
-export enum FileMimeType {
-    FILE_PNG = "file/png",
-    FILE_JPG = "file/jpg",
-    URL_PNG = "url/png",
-    URL_JPG = "url/jpg",
-}
+
+// export enum FileMimeType {
+//     FILE_PNG = "file/png",
+//     FILE_JPG = "file/jpg",
+//     URL_PNG = "url/png",
+//     URL_JPG = "url/jpg",
+// }
+
 export const CNextMimeType = { ...SpecialMimeType, ...StandardMimeType };
 export type CNextMimeType = SpecialMimeType | StandardMimeType;
 
