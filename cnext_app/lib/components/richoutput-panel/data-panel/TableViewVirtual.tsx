@@ -28,6 +28,7 @@ import UDFContainer from "./UDFContainer";
 import InputComponent from "./InputComponent";
 import { DataTable, DataTableCell } from "./styles";
 import { useLoadTableData } from "./useLoadTableData";
+import AudioURLContainer from "./special_mimes/AudioURLContainer";
 
 /** data page size */
 const DF_PAGE_SIZE = 50;
@@ -87,17 +88,24 @@ const TableViewVirtual = () => {
 
     const [columnResizeMode, setColumnResizeMode] = React.useState<ColumnResizeMode>("onChange");
 
+    /** use  pagedTableData here to get the correct available columns because it reflects change in both
+     * metadata and the data filter. `state.dataFrames.metadata` does not reflect the latter. 
+     * This does not seem to be an ideal implementation but will live with this for now */
     const columns = React.useMemo<ColumnDef<any>[]>(() => {
-        const state = store.getState();
-        if (activeDataFrame) {
-            const metadata = state.dataFrames.metadata[activeDataFrame];
-            const columns = Object.keys(metadata.columns).map((item: any, index: any) => {
+        // const state = store.getState();
+        if (activeDataFrame && pagedTableData && pagedTableData.length > 0) {
+            /** pagedTableData change with the data filter, so to get the correct available columns
+             * we should use its information here */
+            let tableCols = pagedTableData[0].column_names;
+            // const metadata = state.dataFrames.metadata[activeDataFrame];
+            // const columns = Object.keys(metadata.columns)
+            const columns = tableCols.map((item: any, index: any) => {
                 return { accessorKey: item, header: item };
             });
             // console.log("DataViewer columns: ", columns);
             return columns;
         } else return [];
-    }, [activeDataFrame, tableMetadataUpdateSignal]);
+    }, [activeDataFrame, tableMetadataUpdateSignal, pagedTableData]);
 
     const table = useReactTable({
         data: flatRowsData,
@@ -248,6 +256,8 @@ const TableViewVirtual = () => {
                             {flexRender("", cell.getContext())}
                         </>
                     );
+                } else if ([SpecialMimeType.URL_AUDIO].includes(type)) {
+                    return <AudioURLContainer url={cellContent} />;
                 }
             }
         },
@@ -268,10 +278,7 @@ const TableViewVirtual = () => {
                 if (indexCell) {
                     // const review = isReviewingCell(rowIndex, rowIndex, dfReview);
                     return (
-                        <DataTableIndexCell
-                            key="index"
-                            review={false}
-                        >
+                        <DataTableIndexCell key="index" review={false}>
                             {rowIndex}
                             {/* {renderReviewer(review)} */}
                         </DataTableIndexCell>
