@@ -89,7 +89,7 @@ const TableViewVirtual = () => {
     const [columnResizeMode, setColumnResizeMode] = React.useState<ColumnResizeMode>("onChange");
 
     /** use  pagedTableData here to get the correct available columns because it reflects change in both
-     * metadata and the data filter. `state.dataFrames.metadata` does not reflect the latter. 
+     * metadata and the data filter. `state.dataFrames.metadata` does not reflect the latter.
      * This does not seem to be an ideal implementation but will live with this for now */
     const columns = React.useMemo<ColumnDef<any>[]>(() => {
         // const state = store.getState();
@@ -144,7 +144,7 @@ const TableViewVirtual = () => {
                     // const review = isReviewingCell(indexName, rowIndexData, dfReview);
                     return (
                         // <DataTableCell key={indexName} align="right" review={review} head={true}>
-                        <DataTableCell key={indexName} align="right" review={false} head={true}>
+                        <DataTableCell key={indexName} align="right" review={false}>
                             {indexName}
                             {/* {renderUDF(activeDataFrame, metadata, indexName)} */}
                             <UDFContainer colName={indexName} />
@@ -180,7 +180,7 @@ const TableViewVirtual = () => {
 
                     return (
                         // <DataTableCell key={header.id} align="right" review={review} head={true}>
-                        <DataTableCell key={header.id} align="right" review={false} head={true}>
+                        <DataTableCell key={header.id} align="right" review={false}>
                             {header.isPlaceholder ? null : (
                                 <div>
                                     {flexRender(
@@ -285,15 +285,17 @@ const TableViewVirtual = () => {
                     );
                 } else if (cell && metadata) {
                     const type = metadata.columns[cell.column.id]?.type;
+                    const content = cell.row.original[cell.column.columnDef.header];
+                    const isLongText = type === "object" && content.split(" ").length > 1;
                     return (
                         <DataTableCell
                             key={cell.id}
-                            align="right"
                             // review={false}
-                            head={false}
+                            // head={false}
                             style={{
                                 width: cell.column.getSize(),
                             }}
+                            className={isLongText ? "text-cell" : ""}
                         >
                             {metadata && Object.values(SpecialMimeType).includes(type)
                                 ? renderSpecialMimeInnerCell(

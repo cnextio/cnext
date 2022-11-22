@@ -51,13 +51,23 @@ export const DataTable = styled(Table)`
 `;
 
 export const DataTableCell = styled(TableCell)`
-    font-weight: ${(props) => (props.head ? "bold" : "normal")};
-    vertical-align: ${(props) => (props.head ? "bottom" : "center")};
-    text-align: ${(props) => (props.head ? "left" : "right")};
+    vertical-align: center;
+    text-align: right;
     font-size: 13px;
     animation: ${(props) =>
             props.review ? backgroundTransition(props.theme.palette.primary.light) : null}
         1s linear 0s;
+
+    &.MuiTableCell-head {
+        text-align: left;
+        vertical-align: bottom;
+        font-weight: bold;
+    }
+
+    &.text-cell {
+        text-align: left;
+        white-space: pre-wrap;
+    }
 `;
 
 export const ColumnVisible = styled.div`
