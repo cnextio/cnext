@@ -37,15 +37,21 @@ const getLineRangeOfGroupAroundLine = (codeLines: ICodeLine[], lineNumber: numbe
 export const getLineRangeOfGroup = (codeLines: ICodeLine[], groupID: string): ILineRange | null => {
     let fromLine = null;
     let toLine = null;
-    console.log("codeLines", codeLines ,groupID);
-    
+    console.log("codeLines", codeLines, groupID);
+
     if (groupID) {
         for (let ln = 0; ln < codeLines.length; ln++) {
             if (codeLines[ln].groupID === groupID) {
-                if (fromLine === null) fromLine = ln;
-                else toLine = ln + 1;
+                if (fromLine === null) {
+                    fromLine = ln;
+                    toLine = ln;
+                } else toLine = ln + 1;
             }
         }
+        if (fromLine !== null && toLine !== null && fromLine === toLine) {
+            return { fromLine: fromLine, toLine: toLine + 1 };
+        }
+
         if (fromLine !== null && toLine !== null) return { fromLine: fromLine, toLine: toLine };
     }
     return null;
@@ -87,7 +93,7 @@ export function addGroupToRunQueue(groupID: string) {
 
     /** we only allow line in a group to be executed */
     if (inViewID && codeLines) {
-        lineRange = getLineRangeOfGroup(codeLines, groupID);        
+        lineRange = getLineRangeOfGroup(codeLines, groupID);
         if (lineRange) {
             console.log("CodeEditor setRunQueue: ", lineRange);
             store.dispatch(
@@ -147,4 +153,3 @@ const setToNextGroup = (codeLines: ICodeLine[], lineNumber: number, editor: any)
         }
     }
 };
-

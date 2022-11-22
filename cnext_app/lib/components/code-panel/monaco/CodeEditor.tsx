@@ -91,7 +91,10 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
-        (state: RootState) => state.executorManager.executorRestartCounter
+        (state: RootState) => state.executorManager.executorRestartSignal
+    );
+    const executorInterruptSignal = useSelector(
+        (state: RootState) => state.executorManager.executorInterruptSignal
     );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
 
@@ -424,7 +427,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
             dispatch(clearRunQueue());
         }
-    }, [executorRestartCounter]);
+    }, [executorRestartCounter, executorInterruptSignal]);
 
     useEffect(() => {
         if (inViewID && monaco && editor) {

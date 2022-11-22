@@ -44,7 +44,7 @@ import {
 import { isDiffFile, parseUrl } from "../libs";
 import { SocketContext, sendMessage as socketSendMessage } from "../Socket";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
-import { updateExecutorRestartCounter } from "../../../redux/reducers/ExecutorManagerRedux";
+import { updateExecutorRestartSignal } from "../../../redux/reducers/ExecutorManagerRedux";
 import { setNotification } from "../../../redux/reducers/NotificationRedux";
 import { useExecutorManager } from "../executor-manager/ExecutorManager";
 
@@ -265,13 +265,16 @@ const FileManager = () => {
         await sendCommand(ExecutorManagerCommand.restart_kernel)
             .then((response: IExecutorCommandResponse) => {
                 if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
-                    dispatch(updateExecutorRestartCounter());
+                    dispatch(setNotification(`Kernel restarted.`));
+                    dispatch(updateExecutorRestartSignal());
                 } else {
-                    dispatch(setNotification("Failed to restart the server."));
+                    dispatch(
+                        setNotification(`Failed to restart the kernel, status=${response.status}.`)
+                    );
                 }
             })
-            .catch((response) => {
-                dispatch(setNotification("Failed to restart the server."));
+            .catch((error) => {
+                dispatch(setNotification(`Failed to restart the kernel.`));
             });
     }
 
@@ -680,7 +683,7 @@ const FileManager = () => {
     }, [socket]); //run this only once - not on rerender
 
     return null;
-};;
+};
 
 export default FileManager;
 

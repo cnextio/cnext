@@ -85,11 +85,18 @@ const createCellWidgetDom = (
     parentDiv.appendChild(divAI);
     divAI.className = `cellwidget-input`;
     divAI.id = `cellwidget-input-${groupID}`;
+
+
     let input = document.createElement("input");
     input.type = "text";
     input.placeholder = "Text to code";
     input.onkeydown = eventInput;
     divAI.appendChild(input);
+
+    // let loading = document.createElement('span')
+    // loading.className ="loading-ai"
+    // divAI.appendChild(loading);
+
 
     function eventInput(e) {
         if (e.key === "Enter") {

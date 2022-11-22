@@ -69,17 +69,13 @@ export function addText() {
 }
 
 export function sendTextToOpenai(socket, text) {
-    sendMessage(
-        socket,
-        WebAppEndpoint.OpenAiManager,
-        {
-            webapp_endpoint: WebAppEndpoint.OpenAiManager,
-            content: text.text,
-            command_name: CommandName.exc_text,
-            metadata: { groupID: text.groupID },
-            type: ContentType.COMMAND
-        }
-    );
+    sendMessage(socket, WebAppEndpoint.OpenAiManager, {
+        webapp_endpoint: WebAppEndpoint.OpenAiManager,
+        content: text.text,
+        command_name: CommandName.exc_text,
+        metadata: { groupID: text.groupID },
+        type: ContentType.COMMAND,
+    });
 }
 export function setWidgetOpacity(id: string, opacity: string) {
     let element = document.getElementById(`cellwidget-${id}`) as HTMLElement | null;
@@ -337,17 +333,25 @@ export const deleteCellHover = (editor: any, monaco: any): boolean => {
     const inViewID = state.projectManager.inViewID;
     if (inViewID) {
         const codeLines = state.codeEditor.codeLines[inViewID];
-        let lineRange = {};
+        let lineRange: any = {};
         if (groupID) {
             lineRange = getLineRangeOfGroup(codeLines, groupID);
         }
         console.log("lineRange getLineRangeOfGroup", lineRange);
 
         if (lineRange?.fromLine || lineRange?.fromLine === 0) {
-            let range = new monaco.Range(lineRange.fromLine + 1, 1, lineRange.toLine + 1, 1);
-            console.log("lineRange getLineRangeOfGroup", lineRange);
+            // let range = new monaco.Range(
+            //     lineRange.fromLine === lineRange.fromLine
+            //         ? lineRange.fromLine + 1
+            //         : lineRange.fromLine,
+            //     1,
+            //     lineRange.toLine === lineRange.toLine ? lineRange.toLine + 1 : lineRange.toLine,
+            //     1
+            // );
+            let range = new monaco.Range(lineRange.toLine, 1, lineRange.fromLine + 1, 1);
+            console.log("deleteCellHover getLineRangeOfGroup", range);
             let id = { major: 1, minor: 1 };
-            let text = "";
+            let text = null;
             var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
             editor.executeEdits("deleteCell", [op]);
         }

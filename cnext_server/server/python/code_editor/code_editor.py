@@ -83,7 +83,7 @@ class MessageHandler(BaseMessageHandler):
 
         if ipython_message.header['msg_type'] != "stream":
             log.info('Got message from ipython: header["msg_type"]=%s content=%s',
-                     ipython_message.header['msg_type'], ipython_message.content)
+                     ipython_message.header['msg_type'], str(ipython_message.content)[:100])
         else:
             log.info('Got message from ipython: header["msg_type"]=%s',
                      ipython_message.header['msg_type'])
