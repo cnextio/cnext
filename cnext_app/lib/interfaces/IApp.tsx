@@ -221,13 +221,16 @@ export enum SpecialMimeType {
     INPUT_SELECTION = "input/selection",
     INPUT_CHECKBOX = "input/checkbox",
     INPUT_TEXT = "input/text",
+    URL_AUDIO = "url/audio",
 }
-export enum FileMimeType {
-    FILE_PNG = "file/png",
-    FILE_JPG = "file/jpg",
-    URL_PNG = "url/png",
-    URL_JPG = "url/jpg",
-}
+
+// export enum FileMimeType {
+//     FILE_PNG = "file/png",
+//     FILE_JPG = "file/jpg",
+//     URL_PNG = "url/png",
+//     URL_JPG = "url/jpg",
+// }
+
 export const CNextMimeType = { ...SpecialMimeType, ...StandardMimeType };
 export type CNextMimeType = SpecialMimeType | StandardMimeType;
 
@@ -403,6 +406,13 @@ export enum ExecutorCommandStatus {
 
 export interface IExecutorCommandResponse {
     status: ExecutorCommandStatus;
+    result?: IExecutorManagerResultContent;
+}
+
+export enum KernelInfoInitStatus {
+    DONE = "done",
+    ERROR = "error",
+    NOT_YET = "not_yet",
 }
 
 export const SETTING_FILE_PATH = "config.json";

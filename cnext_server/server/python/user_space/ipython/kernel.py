@@ -60,9 +60,9 @@ class IPythonKernel():
                 log.info('Kernel execution lock released')
                 self._set_execution_complete_condition(True)
             if self.km.is_alive():
-                return True
+                return {"success": True, "kernel_info": self._get_kernel_info()}
             else:
-                return False
+                {"success": False}
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
@@ -76,9 +76,9 @@ class IPythonKernel():
                 self.km.shutdown_kernel(now=True)
                 log.info('Kernel shutdown')
                 if not self.km.is_alive():
-                    return True
+                    {"success": True}
                 else:
-                    return False
+                    {"success": False}
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
@@ -103,24 +103,27 @@ class IPythonKernel():
                 self._set_execution_complete_condition(True)
 
             if self.km.is_alive():
-                return True
+                return self.get_kernel_info()
             else:
-                return False
+                return {"success": False}
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
-        return False
+        return {"success": False}
 
     def interrupt_kernel(self):
         try:
             if self.km.is_alive():
                 self.km.interrupt_kernel()
                 log.info('Kerel interrupted')
-            return True
+            return {"success": True}
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))
-        return False
+        return {"success": False}
+    
+    def get_kernel_info(self):
+        return {"success": True, "kernel_info": {'id': self.km.kernel_id, 'name': self.km.kernel_name, 'spec': self.km.kernel_spec, 'connection_info': self.kc.get_connection_info()}}
 
     def is_alive(self):
         return self.kc.is_alive() if self.kc else False
@@ -167,9 +170,9 @@ class IPythonKernel():
                             timeout=MESSSAGE_TIMEOUT)
 
                     if ipython_message['header']['msg_type'] not in [
-                        IPythonConstants.MessageType.STREAM, 
-                        IPythonConstants.MessageType.EXECUTE_RESULT,
-                        IPythonConstants.MessageType.ERROR]:
+                            IPythonConstants.MessageType.STREAM,
+                            IPythonConstants.MessageType.EXECUTE_RESULT,
+                            IPythonConstants.MessageType.ERROR]:
                         log.info('%s msg: msg_type = %s, content = %s' % (
                             stream_type, ipython_message['header']['msg_type'], ipython_message['content']))
                     else:
@@ -196,6 +199,7 @@ class IPythonKernel():
                     if self.execute_lock.locked():
                         self.execute_lock.release()
                         log.info('Kernel execution lock released')
+                    break
             log.info('Stop stream %s' % stream_type)
         except:
             trace = traceback.format_exc()
@@ -220,6 +224,16 @@ class IPythonKernel():
             if self.kc:
                 log.info('Send stdin input to kernel ')
                 self.kc.input(input_text)
+        except:
+            trace = traceback.format_exc()
+            log.info("Exception %s" % (trace))
+
+    def send_comm_msg(self, message):
+        try:
+            if self.kc:
+                log.info('Send comm_msg to kernel ')
+                msg = self.kc.session.msg("comm_msg", message)
+                self.kc.shell_channel.send(msg)
         except:
             trace = traceback.format_exc()
             log.info("Exception %s" % (trace))

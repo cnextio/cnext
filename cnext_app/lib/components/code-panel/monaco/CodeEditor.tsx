@@ -49,7 +49,10 @@ const CodeEditor = ({ stopMouseEvent }) => {
     const monaco = useMonaco();
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
-        (state: RootState) => state.executorManager.executorRestartCounter
+        (state: RootState) => state.executorManager.executorRestartSignal
+    );
+    const executorInterruptSignal = useSelector(
+        (state: RootState) => state.executorManager.executorInterruptSignal
     );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     /** this is used to save the state such as scroll pos and folding status */
@@ -399,7 +402,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
             dispatch(clearRunQueue());
         }
-    }, [executorRestartCounter]);
+    }, [executorRestartCounter, executorInterruptSignal]);
 
     /**
      * Reset the code editor state when the doc is selected to be in view
