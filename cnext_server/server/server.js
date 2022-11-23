@@ -15,6 +15,7 @@ const {
     LanguageServerHover,
     LanguageServerSignature,
     LanguageServerCompletion,
+    LanguageServerDefinition,
 } = require("./ls/lsp_process");
 const port = process.env.PORT || 4000;
 const express = require("express");
@@ -63,6 +64,7 @@ const LSPExecutor = [
     LanguageServerHover,
     LanguageServerSignature,
     LanguageServerCompletion,
+    LanguageServerDefinition,
 ];
 
 const ServerConfigPath = "server.yaml";
@@ -266,10 +268,10 @@ try {
      */
     const command_output_zmq = new zmq.Pull();
     const p2n_host = config.p2n_comm.host;
-    const p2n_port = config.p2n_comm.port;    
+    const p2n_port = config.p2n_comm.port;
 
-    async function zmq_receiver() {       
-        await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);         
+    async function zmq_receiver() {
+        await command_output_zmq.bind(`${p2n_host}:${p2n_port}`);
         console.log(`Waiting for python executor message on ${p2n_port}`);
         for await (const [message] of command_output_zmq) {
             const jsonMessage = JSON.parse(message.toString());

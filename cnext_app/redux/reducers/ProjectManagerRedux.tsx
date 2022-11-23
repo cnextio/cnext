@@ -57,6 +57,7 @@ const defaultLayoutSettings: ILayoutSettings = {
 type ProjectManagerState = {
     openFiles: { [id: string]: IFileMetadata };
     openOrder: string[];
+    viewFiles: string[];
     activeProject: IProjectInfoInWorkspace | null;
     executorID: string | null;
     inViewID: string | null;
@@ -78,6 +79,7 @@ type ProjectManagerState = {
 
 const initialState: ProjectManagerState = {
     openFiles: {},
+    viewFiles: [],
     openOrder: [],
     activeProject: null,
     executorID: null,
@@ -133,6 +135,8 @@ export const ProjectManagerRedux = createSlice({
             }
         },
 
+        setViewFiles: (state, action) => {},
+
         setFileMetadata: (state, action) => {
             let file: IFileMetadata = action.payload;
             let id = file.path;
@@ -178,6 +182,12 @@ export const ProjectManagerRedux = createSlice({
                 console.log("ProjectManagerRedux setFileToOpen: ", path);
                 state.fileToOpen = action.payload;
             }
+        },
+
+        setFileToView: (state, action) => {
+            let path = action.payload;
+            let find_file = state.viewFiles.find((file) => file === path);
+            if (!find_file) state.viewFiles.push(path);
         },
 
         addFileToSave: (state, action) => {
@@ -282,6 +292,7 @@ export const {
     setOpenDir,
     setFileToClose,
     setFileToOpen,
+    setFileToView,
     addFileToSave,
     // removeFileToSave,
     setSavingFile,

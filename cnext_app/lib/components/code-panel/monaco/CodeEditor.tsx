@@ -90,7 +90,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * i.e. from codeText */
     const [codeReloading, setCodeReloading] = useState<boolean>(true);
 
-    const [editor, setEditor] = useState(null);
+    const [editor, setEditor] = useState<any>(null);
 
     const [pyLanguageClient, setLanguageClient] = useState<any>(null);
 
@@ -197,8 +197,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     const socketInit = () => {
-          socket?.emit("ping", WebAppEndpoint.CodeEditor);
-          socket?.on(WebAppEndpoint.CodeEditor,  (result: string, ack) => {
+        socket?.emit("ping", WebAppEndpoint.CodeEditor);
+        socket?.on(WebAppEndpoint.CodeEditor, (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -257,7 +257,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         return () => {
             console.log("CodeEditor unmount");
-              socket?.off(WebAppEndpoint.CodeEditor);
+            socket?.off(WebAppEndpoint.CodeEditor);
         };
     }, []);
 
@@ -280,15 +280,41 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 const pyLanguageServer = {
                     serverUri: "ws://" + process.env.NEXT_PUBLIC_SERVER_SOCKET_ENDPOINT,
                     rootUri: "file:///" + path,
-                    documentUri: "file:///" + path,
+                    documentUri: "file:///" + path + "/" + inViewID,
                     languageId: languageID,
                 };
-                let pyLanguageClient = new PythonLanguageClient(pyLanguageServer, monaco, socket);
+                let pyLanguageClient = new PythonLanguageClient(
+                    pyLanguageServer,
+                    monaco,
+                    socket,
+                    dispatch
+                );
                 setLanguageClient(pyLanguageClient);
                 pyLanguageClient.setupLSConnection();
                 pyLanguageClient.registerHover();
                 pyLanguageClient.registerAutocompletion();
                 pyLanguageClient.registerSignatureHelp();
+
+                console.log("pyLanguageServer", pyLanguageServer, monaco);
+
+                // documentUri: "file:///G:\\projects\\Skywalker";
+                // languageId: "python";
+                // rootUri: "file:///G:\\projects\\Skywalker";
+                // serverUri: "ws://http://localhost:4000";
+
+                // class MyInfrastructure implements Infrastructure {
+                //     automaticTextDocumentUpdate = true;
+                //     rootUri = pyLanguageServer.rootUri;
+                //     useMutualizedProxy() {
+                //         return false;
+                //     }
+                //     getFileContent(resource: monaco.Uri, languageClient: LanguageClientManager) {
+                //         return "test";
+                //     }
+                //     openConnection(id) {
+                //         // create connection
+                //     }
+                // }
             }
         }
     }, [monaco]);
@@ -339,12 +365,27 @@ const CodeEditor = ({ stopMouseEvent }) => {
     });
 
     useEffect(() => {
+        if (editor) {
+            editor.addAction({
+                id: "go-to-definition",
+                label: "Go to Definition",
+                keybindings: [monaco.KeyCode.F12],
+                contextMenuGroupId: "navigation",
+                contextMenuOrder: 0,
+                run: (editor: any) => {
+                    pyLanguageClient.gotoDefinition(editor);
+                },
+            });
+        }
+    }, [editor]);
+
+    useEffect(() => {
         console.log("CodeEditor runQueue");
         if (runQueue.status === RunQueueStatus.STOP) {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(socket,runQueueItem);
+                execLines(socket, runQueueItem);
             }
         }
     }, [runQueue]);
@@ -404,7 +445,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
                     console.log("run cell");
-                    
+
                     addToRunQueueHoverCell();
                     break;
                 case CellCommand.CLEAR:
@@ -426,7 +467,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     }, [cellAssocUpdateCount, activeGroup, lineStatusUpdate]);
 
-    const handleEditorDidMount = (mountedEditor, monaco) => {
+    const handleEditorDidMount = (mountedEditor: any, monaco: any) => {
         // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
         setEditor(mountedEditor);
         setHTMLEventHandler(mountedEditor, stopMouseEvent);

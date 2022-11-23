@@ -142,6 +142,7 @@ const FileManager = () => {
                             dispatch(setFileToOpen(null));
                             projectMetadata = fmResult.content as IProjectMetadata;
                             if (projectMetadata != null) {
+                                console.log("projectMetadataaaaaaaaaa", projectMetadata);
                                 dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
@@ -243,12 +244,12 @@ const FileManager = () => {
         await sendCommand(ExecutorManagerCommand.restart_kernel)
             .then((response: IExecutorCommandResponse) => {
                 if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
-                    dispatch(
-                        setNotification(`Kernel restarted.`)
-                    );
+                    dispatch(setNotification(`Kernel restarted.`));
                     dispatch(updateExecutorRestartCounter());
                 } else {
-                    dispatch(setNotification(`Failed to restart the kernel, status=${response.status}.`));
+                    dispatch(
+                        setNotification(`Failed to restart the kernel, status=${response.status}.`)
+                    );
                 }
             })
             .catch((error) => {
@@ -610,8 +611,6 @@ const FileManager = () => {
     }, [socket]); //run this only once - not on rerender
 
     return null;
-};;
+};
 
 export default FileManager;
-
-

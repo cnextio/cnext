@@ -35,6 +35,7 @@ import {
 import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import {
     setActiveProject,
+    setFileToView,
     setFileToOpen,
     setOpenDir,
     setOpenFiles,
@@ -81,7 +82,8 @@ const FileExplorer = (props: any) => {
         (state: RootState) => state.projectManager.workspaceMetadata
     );
 
-    const [focusedProjectTreeItem, setFocusedProjectTreeItem] = useState<ProjectTreeItemInfo | null>(null);
+    const [focusedProjectTreeItem, setFocusedProjectTreeItem] =
+        useState<ProjectTreeItemInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
     const [createProjectInProgress, setCreateProjectInprogress] = useState<boolean>(false);
     const [txtError, setTxtError] = useState<string | null>(null);
@@ -135,7 +137,7 @@ const FileExplorer = (props: any) => {
                                 dispatch(setOpenFiles(projectMetadata));
                             }
                             break;
-                    }                    
+                    }
                 } else {
                 }
             } catch (error) {
@@ -337,7 +339,11 @@ const FileExplorer = (props: any) => {
                 /** this will create path format that conforms to the style of the client OS
                  * but not that of server OS. The server will have to use os.path.norm to correct
                  * the path */
-                let relativePath = path.join(relativeProjectPath, focusedProjectTreeItem.item, value);
+                let relativePath = path.join(
+                    relativeProjectPath,
+                    focusedProjectTreeItem.item,
+                    value
+                );
                 console.log(
                     "FileExplorer create new item: ",
                     relativePath,
@@ -419,7 +425,11 @@ const FileExplorer = (props: any) => {
                                         </NameWithTooltip>
                                     }
                                     onClick={() => {
+                                        value.is_file ? dispatch(setFileToView(value.path)) : null;
+                                    }}
+                                    onDoubleClick={() => {
                                         value.is_file ? dispatch(setFileToOpen(value.path)) : null;
+                                        console.log("setFileToOpen", value);
                                     }}
                                     onMouseDown={() => {
                                         setFocusedProjectTreeItem({
@@ -467,7 +477,10 @@ const FileExplorer = (props: any) => {
     const renderProjectItem = (projectItem: IProjectInfoInWorkspace, index: number) => {
         if (projectItem.id !== activeProject?.id) {
             return (
-                <ClosedProjectItem onDoubleClick={() => changeActiveProject(projectItem?.id)} key={index}>
+                <ClosedProjectItem
+                    onDoubleClick={() => changeActiveProject(projectItem?.id)}
+                    key={index}
+                >
                     <LockIcon
                         style={{
                             fontSize: "15px",
@@ -504,7 +517,7 @@ const FileExplorer = (props: any) => {
                                     parent: relativeProjectPath,
                                     item: relativeProjectPath,
                                     is_file: false,
-                                    deletable: false
+                                    deletable: false,
                                 });
                             }}
                             onContextMenu={(event: React.MouseEvent) => {
