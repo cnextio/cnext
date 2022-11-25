@@ -76,13 +76,13 @@ const createCellWidgetDom = (
     }
 
     /** widget of the next cell will also has the top boundary to mark the end of prev cell */
-    wrapDiv.className = "cellwidget celllastline " + activeClass;
+    wrapDiv.className = "cellwidget " + activeClass;
     wrapDiv.id = `cellwidget-${groupID}`;
     let parentDiv = document.createElement("div");
     parentDiv.className = "";
 
     let divAI = document.createElement("div");
-    parentDiv.appendChild(divAI);
+    
     divAI.className = `cellwidget-input`;
     divAI.id = `cellwidget-input-${groupID}`;
 
@@ -105,6 +105,7 @@ const createCellWidgetDom = (
     }
 
     parentDiv.appendChild(wrapDiv);
+    parentDiv.appendChild(divAI);
     let zone = null;
     if (endBoundaryWidget) {
         zone = {

@@ -44,20 +44,68 @@ export const MonacoEditor = styled(Editor)`
         }
     }
     .cellwidget-input {
+        margin-top: 6px;
         > * {
-                opacity: 0;
-            }
+            opacity: 0;
+        }
         &.show-input {
             > * {
                 opacity: 1;
             }
-            input{
+            input {
                 border: 1px solid #494848dd;
                 padding: 4px 4px;
                 position: relative;
                 z-index: 100000000000000;
-                width: 500px;
-                direction: ltr
+                width: 100%;
+                max-width: 900px;
+                direction: ltr;
+                &:focus {
+                    outline: none;
+                }
+            }
+        }
+        @keyframes loading {
+            0% {
+                transform-origin: 100% 100%;
+                transform: rotate(0deg);
+            }
+            100% {
+                transform-origin: 100% 100%;
+                transform: rotate(360deg);
+            }
+        }
+        .loading-ai {
+            width: 24px;
+            height: 24px;
+            margin: 5px 5px 0 0;
+            &::before {
+                position: absolute;
+                display: block;
+                content: "";
+                z-index: 12;
+                top: 2px;
+                left: 2px;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background-color: #fff;
+            }
+            &::after {
+                position: absolute;
+                display: block;
+                content: "";
+                z-index: 11;
+                width: 12px;
+                height: 12px;
+                border-radius: 200px 0 0;
+                background: linear-gradient(
+                    45deg,
+                    rgba(0, 0, 0, 0) 0,
+                    rgba(69, 154, 215, 1) 50%,
+                    rgba(69, 154, 215, 1) 100%
+                );
+                animation: loading 0.5s linear infinite;
             }
         }
     }
