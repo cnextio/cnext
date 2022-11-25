@@ -1078,19 +1078,19 @@ export const SingleResultContainer = styled(Paper)`
     border-top: ${(props) =>
         !props.showMarkdown
             ? props.focused
-                ? "1px solid rgb(153, 179, 171, 0.6)"
+                ? "2px solid rgb(153, 179, 171, 0.6)"
                 : "1px dashed rgb(153, 179, 171, 0.5)"
             : "0px"};
     border-bottom: ${(props) =>
         !props.showMarkdown
             ? props.focused
-                ? "1px solid rgb(153, 179, 171, 0.6)"
+                ? "2px solid rgb(153, 179, 171, 0.6)"
                 : "1px dashed rgb(153, 179, 171, 0.5)"
             : "0px"};
     border-left: 0px;
     border-right: 0px;
     border-radius: 0;
-    background-color: ${(props) => (props.focused ? "rgb(218, 255, 237, 0.6)" : null)};
+    // background-color: ${(props) => (props.focused ? "rgb(218, 255, 237, 0.6)" : null)};
 
     overflow: auto;
 
