@@ -68,6 +68,7 @@ export const DataTableCell = styled(TableCell)`
     &.text-cell {
         text-align: left;
         white-space: pre-wrap;
+        width: 200px;
     }
 `;
 

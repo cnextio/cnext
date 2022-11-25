@@ -292,9 +292,9 @@ const TableViewVirtual = () => {
                             key={cell.id}
                             // review={false}
                             // head={false}
-                            style={{
-                                width: cell.column.getSize(),
-                            }}
+                            // style={{
+                            //     width: cell.column.getSize(),
+                            // }}
                             className={isLongText ? "text-cell" : ""}
                         >
                             {metadata && Object.values(SpecialMimeType).includes(type)
