@@ -561,7 +561,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             let inViewID = state.projectManager.inViewID;
             /** do nothing if the update is due to code reloading from external source */
             if (event.isFlush) return;
-            console.log("Monaco here is the current model value:", event);
+            // console.log("Monaco here is the current model value:", event);
             let serverSynced = store.getState().projectManager.serverSynced;
             if (monaco) {
                 let model = getMainEditorModel(monaco);

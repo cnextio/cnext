@@ -27,7 +27,7 @@ export const DataTable = styled(Table)`
         right: 0;
         top: 0;
         height: 100%;
-        width: 5px;
+        width: 2px;
         background: rgba(0, 0, 0, 0.5);
         cursor: col-resize;
         user-select: none;
@@ -54,6 +54,7 @@ export const DataTableCell = styled(TableCell)`
     vertical-align: center;
     text-align: right;
     font-size: 13px;
+    padding: 10px;
     animation: ${(props) =>
             props.review ? backgroundTransition(props.theme.palette.primary.light) : null}
         1s linear 0s;
@@ -67,6 +68,7 @@ export const DataTableCell = styled(TableCell)`
     &.text-cell {
         text-align: left;
         white-space: pre-wrap;
+        width: 200px;
     }
 `;
 

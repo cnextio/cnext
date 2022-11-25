@@ -253,7 +253,7 @@ export const CodeEditorRedux = createSlice({
             state.codeText[inViewID] = lineUpdate.text;
             state.saveCodeTextCounter++;
 
-            console.log("CodeEditorRedux line update info: ", lineUpdate);
+            // console.log("CodeEditorRedux line update info: ", lineUpdate);
             if (lineUpdate.updatedLineCount > 0) {
                 /** if the startLine wasn't changed then we consider the line that got modified to be the next line */
                 // let modifiedStartLineNumber = lineUpdate.startLineChanged
