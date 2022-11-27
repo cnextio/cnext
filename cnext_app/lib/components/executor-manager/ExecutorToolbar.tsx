@@ -18,7 +18,7 @@ import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { useDispatch } from "react-redux";
 import store from "../../../redux/store";
 import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
-import { useExecutorController } from "./ExecutorController";
+import { useExecutorCommander } from "./ExecutorCommander";
 import { CellCommand } from "../../interfaces/ICodeEditor";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import { SocketContext } from "../Socket";
@@ -44,7 +44,7 @@ const ExecutorToolbarItemComponent = ({ icon, selectedIcon, handleClick }) => {
 };
 
 const ExecutorToolbar = () => {
-    const socket = React.useContext(SocketContext);
+    // const socket = React.useContext(SocketContext);
     const [selectedIcon, setSelectedIcon] = React.useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const [executionStatus, setExecutionStatus] = useState<null | IExecutorCommandResponse>(null);
@@ -80,18 +80,18 @@ const ExecutorToolbar = () => {
         }
     };
 
-    const { sendCommand } = useExecutorController();
+    const { sendCommand, ready } = useExecutorCommander();
     const [executing, setExecuting] = useState(false);
 
     React.useEffect(() => {
-        if (socket && sendCommand && kernelInfoInit === KernelInfoInitStatus.NOT_YET) {
+        if (ready && sendCommand && kernelInfoInit === KernelInfoInitStatus.NOT_YET) {
             setExecuting(true);
             sendCommand(ExecutorManagerCommand.get_kernel_info)
                 .then((response: IExecutorCommandResponse) => {
                     if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
                         dispatch(setKernelInfo(response.result?.kernel_info));
                         setKernelInfoInit(KernelInfoInitStatus.DONE);
-                    } else {
+                    } else if (response.status !== ExecutorCommandStatus.SOCKET_NOT_READY) {
                         setKernelInfoInit(KernelInfoInitStatus.ERROR);
                         // set notification
                     }
@@ -101,7 +101,7 @@ const ExecutorToolbar = () => {
                 })
                 .finally(() => setExecuting(false));
         }
-    }, [sendCommand, kernelInfoInit]);
+    }, [ready, sendCommand, kernelInfoInit]);
 
     async function commandDialogConfirm(confirm: boolean, command: ExecutorManagerCommand) {
         if (confirm) {

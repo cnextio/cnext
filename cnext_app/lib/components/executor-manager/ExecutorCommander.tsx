@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
     ContentType,
     ExecutorCommandStatus,
@@ -25,22 +25,11 @@ const createMessage = (commandName: ExecutorManagerCommand) => {
     return message;
 };
 
-export const useExecutorController = () => {
+export const useExecutorCommander = () => {
     const socket = useContext(SocketContext);
     const [executing, setExecuting] = useState(false);
 
     const handlSocketResponse = (resolve, reject, command: ExecutorManagerCommand) => {
-        const message = createMessage(command);
-
-        sendMessage(socket, message.webapp_endpoint, message, (ack) => {
-            if (ack.success === false) {
-                setExecuting(false);
-                resolve({
-                    status: ExecutorCommandStatus.CONNECTION_FAILED,
-                });
-            }
-        });
-
         socket?.once(WebAppEndpoint.ExecutorManagerControl, (result: string, ack) => {
             try {
                 let message: IMessage = JSON.parse(result);
@@ -65,13 +54,13 @@ export const useExecutorController = () => {
                         resolve(response);
                     }
                 } else {
-                    reject({
+                    resolve({
                         status: ExecutorCommandStatus.EXECUTION_FAILED,
                     });
                 }
             } catch (error) {
                 console.error(error);
-                reject({
+                resolve({
                     status: ExecutorCommandStatus.EXECUTION_FAILED,
                 });
             }
@@ -80,7 +69,7 @@ export const useExecutorController = () => {
         });
 
         setTimeout(() => {
-            reject({
+            resolve({
                 status: ExecutorCommandStatus.EXECUTION_FAILED,
             });
         }, 60000);
@@ -89,16 +78,30 @@ export const useExecutorController = () => {
     const sendCommand = useCallback(
         (command: ExecutorManagerCommand) => {
             return new Promise<IExecutorCommandResponse>((resolve, reject) => {
-                if (!executing) {
-                    setExecuting(true);
-                    handlSocketResponse(resolve, reject, command);
+                if (socket) {
+                    if (!executing) {
+                        setExecuting(true);
+                        const message = createMessage(command);
+                        sendMessage(socket, message.webapp_endpoint, message, (ack) => {
+                            if (ack.success === false) {
+                                setExecuting(false);
+                                resolve({
+                                    status: ExecutorCommandStatus.CONNECTION_FAILED,
+                                });
+                            }
+                        });
+                        handlSocketResponse(resolve, reject, command);
+                    } else {
+                        resolve({ status: ExecutorCommandStatus.EXECUTION_BUSY });
+                    }
                 } else {
-                    reject({ status: ExecutorCommandStatus.EXECUTION_BUSY });
+                    resolve({ status: ExecutorCommandStatus.SOCKET_NOT_READY });
                 }
             });
         },
         [executing, socket]
     );
 
-    return { sendCommand };
+    const ready = socket ? true : false;
+    return { sendCommand, ready, executing };
 };
