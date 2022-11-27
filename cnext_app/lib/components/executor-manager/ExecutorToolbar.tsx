@@ -18,9 +18,9 @@ import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { useDispatch } from "react-redux";
 import store from "../../../redux/store";
 import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
-import { useExecutorManager } from "./ExecutorManager";
+import { useExecutorController } from "./ExecutorController";
 import { CellCommand } from "../../interfaces/ICodeEditor";
-import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import { SocketContext } from "../Socket";
 import { clearTextOutput } from "../../../redux/reducers/RichOutputRedux";
 import {
@@ -69,10 +69,9 @@ const ExecutorToolbar = () => {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
         } else if (name === CellCommand.ADD_CELL) {
             store.dispatch(setCellCommand(CellCommand.ADD_CELL));
-        }  else if (name === CellCommand.RUN_ALL_CELL) {
+        } else if (name === CellCommand.RUN_ALL_CELL) {
             store.dispatch(setCellCommand(CellCommand.RUN_ALL_CELL));
-        }
-         else {
+        } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
             } else {
@@ -81,7 +80,7 @@ const ExecutorToolbar = () => {
         }
     };
 
-    const { sendCommand } = useExecutorManager();
+    const { sendCommand } = useExecutorController();
     const [executing, setExecuting] = useState(false);
 
     React.useEffect(() => {
@@ -158,7 +157,7 @@ const ExecutorToolbar = () => {
         },
         {
             name: CellCommand.RUN_ALL_CELL,
-            component: <ArrowRightIcon  fontSize="large"/>,
+            component: <ArrowRightIcon fontSize="large" />,
             tooltip: "Run All Cell",
         },
     ];

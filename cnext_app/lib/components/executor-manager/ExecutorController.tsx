@@ -25,7 +25,7 @@ const createMessage = (commandName: ExecutorManagerCommand) => {
     return message;
 };
 
-export const useExecutorManager = () => {
+export const useExecutorController = () => {
     const socket = useContext(SocketContext);
     const [executing, setExecuting] = useState(false);
 
@@ -55,7 +55,7 @@ export const useExecutorManager = () => {
                         if (resultContent.success === true) {
                             response = {
                                 status: ExecutorCommandStatus.EXECUTION_OK,
-                                result: resultContent
+                                result: resultContent,
                             };
                         } else {
                             response = {
@@ -75,18 +75,15 @@ export const useExecutorManager = () => {
                     status: ExecutorCommandStatus.EXECUTION_FAILED,
                 });
             }
-            setExecuting(false);            
+            setExecuting(false);
             if (ack) ack();
         });
 
-        setTimeout(
-            () => {
-                reject({
-                    status: ExecutorCommandStatus.EXECUTION_FAILED,
-                });
-            },
-            60000
-        );
+        setTimeout(() => {
+            reject({
+                status: ExecutorCommandStatus.EXECUTION_FAILED,
+            });
+        }, 60000);
     };
 
     const sendCommand = useCallback(
