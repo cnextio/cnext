@@ -325,14 +325,17 @@ class MessageHandler(BaseMessageHandler):
 
                 elif message.command_name == DFManagerCommand.reload_df_status:
                     result = self.user_space.get_active_dfs_status()
-                    if result["status"] == IPythonConstants.ShellMessageStatus.OK:
-                        message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": DFManagerCommand.reload_df_status,
-                                             "seq_number": 1, "type": "dict", "content": result["content"], "error": False})
+                    if result:
+                        if result["status"] == IPythonConstants.ShellMessageStatus.OK:
+                            message = Message(**{"webapp_endpoint": WebappEndpoint.DataFrameManager, "command_name": DFManagerCommand.reload_df_status,
+                                                "seq_number": 1, "type": "dict", "content": result["content"], "error": False})
+                        else:
+                            message = MessageHandler._create_error_message(
+                                WebappEndpoint.DataFrameManager, result["content"], DFManagerCommand.update_df_status, {})                    
                     else:
                         message = MessageHandler._create_error_message(
-                            WebappEndpoint.DataFrameManager, result["content"], DFManagerCommand.update_df_status, {})
+                            WebappEndpoint.DataFrameManager, None, DFManagerCommand.update_df_status, {})
                     self._send_to_node(message)
-
             else:
                 text = "No executor running"
                 log.info(text)

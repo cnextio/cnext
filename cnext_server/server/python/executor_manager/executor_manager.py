@@ -157,7 +157,7 @@ class MessageHandler(BaseMessageHandler):
                 if self.user_space.is_alive():
                     if message.command_name == ExecutorManagerCommand.restart_kernel:
                         result = self.user_space.restart_executor()
-                        if result:
+                        if result['success']:
                             # get the lastest config to make sure that it is updated with the lastest open project
                             workspace_info = read_config(WORKSPACE_METADATA_PATH)
                             workspace_metadata = WorkspaceMetadata(
@@ -166,12 +166,12 @@ class MessageHandler(BaseMessageHandler):
                                 self.user_space, workspace_metadata)
                         message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManagerControl,
                                             'command_name': message.command_name,
-                                            'content': {'success': result}})
+                                            'content': result})
                     elif message.command_name == ExecutorManagerCommand.interrupt_kernel:
                         result = self.user_space.interrupt_executor()
                         message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManagerControl,
                                             'command_name': message.command_name,
-                                            'content': {'success': result}})
+                                            'content': result})
                     elif message.command_name == ExecutorManagerCommand.get_status:
                         status = self.user_space.is_alive()
                         # resource_usage = self._get_resource_usage()
@@ -185,6 +185,11 @@ class MessageHandler(BaseMessageHandler):
                         message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManager,
                                             'command_name': message.command_name,
                                             'content': {'status': 'done'}})
+                    elif message.command_name == ExecutorManagerCommand.get_kernel_info:
+                        result = self.user_space.get_kernel_info()
+                        message = Message(**{'webapp_endpoint': WebappEndpoint.ExecutorManagerControl,
+                                             'command_name': message.command_name,
+                                             'content': result})
                     self._send_to_node(message)
                 else:
                     text = "No executor running"

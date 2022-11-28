@@ -169,6 +169,7 @@ const MiniSidebar = () => {
                 </AppToolbar>
                 <Account />
             </Sidebar>
+
             <MainContainerDivider orientation="vertical" />
             {kernelCommand !== null && (
                 <ExecutorCommandConfirmation

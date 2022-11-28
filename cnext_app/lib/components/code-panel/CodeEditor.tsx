@@ -123,8 +123,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * when it is first opened or being selected to be in view */
     // const [serverSynced, setServerSynced] = useState(false);
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
-    const executorRestartCounter = useSelector(
-        (state: RootState) => state.executorManager.executorRestartCounter
+    const executorRestartSignal = useSelector(
+        (state: RootState) => state.executorManager.executorRestartSignal
+    );
+    const executorInterruptSignal = useSelector(
+        (state: RootState) => state.executorManager.executorInterruptSignal
     );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     /** this is used to save the state such as scroll pos and folding status */
@@ -355,7 +358,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             setLineStatus(inViewID, runQueueItem.lineRange, LineStatus.EXECUTED_FAILED);
             dispatch(clearRunQueue());
         }
-    }, [executorRestartCounter]);
+    }, [executorRestartSignal, executorInterruptSignal]);
 
     useEffect(() => {
         console.log("CodeEditor init");
