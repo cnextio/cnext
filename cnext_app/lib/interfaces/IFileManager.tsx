@@ -31,6 +31,7 @@ export enum ProjectCommand {
     get_workspace_metadata = "get_workspace_metadata",
     set_workspace_metadata = "set_workspace_metadata",
     set_active_project = "set_active_project",
+    check_path = "check_path",
 }
 
 export interface IFileMetadata {

@@ -73,6 +73,7 @@ class ProjectCommand(str, Enum):
     save_project_settings = 'save_project_settings'
     get_project_settings = 'get_project_settings'
     add_project = 'add_project'
+    check_path = 'check_path'
     list_projects = 'list_projects'
     get_workspace_metadata = 'get_workspace_metadata'
     set_workspace_metadata = 'set_workspace_metadata'

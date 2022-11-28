@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import uuid
 from os.path import exists
 import simplejson as json
@@ -181,12 +182,20 @@ def get_project_settings():
 ## Workspace #
 
 
+def check_path(path):
+    if exists(path) == True:
+        return {'isValid': exists(path), 'path': path}
+    else:
+        home = str(Path.home())
+        project_path = os.path.join(home,'cnext-projects', path)
+        if not exists(project_path):
+            os.mkdir(project_path)
+        return {'isValid': True, 'path': project_path}
+
+
 def add_project(path):
     try:
         project_name = os.path.basename(path)
-
-        if not os.path.exists(path):
-            os.mkdir(path)
 
         # Update workspace config
         config = read_config(WORKSPACE_METADATA_PATH)
