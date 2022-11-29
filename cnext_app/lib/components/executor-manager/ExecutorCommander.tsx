@@ -17,7 +17,6 @@ const createMessage = (commandName: ExecutorManagerCommand) => {
     let message: IMessage = {
         webapp_endpoint: WebAppEndpoint.ExecutorManagerControl,
         command_name: commandName,
-        // seq_number: 1,
         content: "",
         type: ContentType.NONE,
         error: false,

@@ -66,13 +66,15 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     const monaco = useMonaco();
     const textToOpenAI = useSelector((state: RootState) => state.codeEditor.textToOpenAI);
-    const openaiCountUpdate = useSelector((state: RootState) => state.codeEditor.openaiCountUpdate);
+    const openaiUpdateSignal = useSelector(
+        (state: RootState) => state.codeEditor.openaiUpdateSignal
+    );
 
     const textOpenai = useSelector((state: RootState) => state.codeEditor.textOpenai);
     const codeTextDiffView = useSelector((state: RootState) => state.codeEditor.codeTextDiffView);
     const diffView = useSelector((state: RootState) => state.codeEditor.diffView);
-    const codeTextDiffUpdateCounter = useSelector(
-        (state: RootState) => state.codeEditor.codeTextDiffUpdateCounter
+    const codeTextDiffUpdateSignal = useSelector(
+        (state: RootState) => state.codeEditor.codeTextDiffUpdateSignal
     );
 
     const [original, setOriginal] = useState(``);
@@ -87,7 +89,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             const applyPatch = Diff.applyPatch(codeTextDiff, reverse_gitpatch);
             setOriginal(applyPatch);
         }
-    }, [codeTextDiffUpdateCounter]);
+    }, [codeTextDiffUpdateSignal]);
 
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
@@ -98,8 +100,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
     );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
 
-    const updateInViewIDCount = useSelector(
-        (state: RootState) => state.projectManager.updateInViewIDCount
+    const inViewIDUPdateSignal = useSelector(
+        (state: RootState) => state.projectManager.inViewIDUpdateSignal
     );
     /** this is used to save the state such as scroll pos and folding status */
     const [curInViewID, setCurInViewID] = useState<string | null>(null);
@@ -441,12 +443,13 @@ const CodeEditor = ({ stopMouseEvent }) => {
             var range = new monaco.Range(lineRange?.toLine + 1, 1, lineRange?.toLine + 1, 1);
             var id = { major: 1, minor: 1 };
             var text = textOpenai.content.choices[0].text;
-            console.log("lineRangetextOpenai", lineRange,text);
+            console.log("lineRangetextOpenai", lineRange, text);
 
             var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
             editor.executeEdits("my-source", [op]);
         }
-    }, [openaiCountUpdate]);
+    }, [openaiUpdateSignal]);
+
     useEffect(() => {
         if (inViewID && monaco && editor) {
             console.log("textToOpenAI", textToOpenAI);
@@ -475,6 +478,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             }, 0);
         }
     }, [diffView]);
+    
     useEffect(() => {
         if (serverSynced && codeReloading && monaco && editor) {
             // Note: I wasn't able to get editor directly out of monaco so have to use editorRef
@@ -551,10 +555,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
         setEditor(mountedEditor);
         setHTMLEventHandler(mountedEditor, stopMouseEvent);
     };
-    const handleEditorDidMountDiff = () => {};
-    const handleEditorChange = (value, event) => {
-        var model = editor.getModel();
 
+    const handleEditorChange = (value, event) => {
         try {
             pyLanguageClient.doValidate();
             const state = store.getState();
