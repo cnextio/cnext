@@ -24,10 +24,10 @@ class MessageHandler(BaseMessageHandler):
                 content = openai.Completion.create(
                     model="code-davinci-002",
                     prompt=message.content,
-                    temperature=0.7,
+                    temperature=0.0,
                     max_tokens=256,
                     top_p=1.0,
-                    frequency_penalty=0.0,
+                    frequency_penalty=1.5,
                     presence_penalty=0.0,
                     best_of=1
                 )
