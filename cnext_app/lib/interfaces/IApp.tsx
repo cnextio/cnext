@@ -409,6 +409,7 @@ export enum ExecutorCommandStatus {
     EXECUTION_FAILED = "execution_failed",
     EXECUTION_OK = "execution_ok",
     EXECUTION_BUSY = "execution_busy",
+    SOCKET_NOT_READY = "socket_not_ready",
 }
 
 export interface IExecutorCommandResponse {

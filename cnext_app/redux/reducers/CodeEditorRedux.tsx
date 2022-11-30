@@ -37,7 +37,7 @@ type CodeEditorState = {
     timestamp: { [id: string]: number };
     // fileSaved: boolean;
     runQueue: IRunQueue;
-    openaiCountUpdate: number;
+    openaiUpdateSignal: number;
     /** This count is used to trigger the update of ResultView view.
      * It will increase whenever there is an update to results*/
     resultUpdateSignal: number;
@@ -52,7 +52,7 @@ type CodeEditorState = {
     /** This count is used to trigger the update of CodeOutput view.
      * It will increase whenever there is an update to text output results*/
     textOutputUpdateSignal: number;
-    codeTextDiffUpdateCounter: number;
+    codeTextDiffUpdateSignal: number;
     saveViewStateEditor: any;
     lineStatusUpdateCount: number;
     activeLine: string | null;
@@ -82,7 +82,7 @@ type CodeEditorState = {
 };
 
 const initialState: CodeEditorState = {
-    openaiCountUpdate: 0,
+    openaiUpdateSignal: 0,
     codeText: {},
     codeTextDiffView: {},
     codeLines: {},
@@ -95,7 +95,7 @@ const initialState: CodeEditorState = {
     resultNewOutputSignal: 0,
     maxTextOutputOrder: 0,
     textOutputUpdateSignal: 0,
-    codeTextDiffUpdateCounter: 0,
+    codeTextDiffUpdateSignal: 0,
     lineStatusUpdateCount: 0,
     cellAssocUpdateCount: 0,
     activeLine: null,
@@ -242,7 +242,7 @@ export const CodeEditorRedux = createSlice({
             let codeTextData: any = action.payload;
             state.codeTextDiffView["text"] = action.payload.codeText;
             state.codeTextDiffView["diff"] = action.payload.diff;
-            state.codeTextDiffUpdateCounter += 1;
+            state.codeTextDiffUpdateSignal += 1;
         },
         updateLines: (state, action) => {
             /** see the design: https://www.notion.so/Adding-and-deleting-lines-2e221653968d4d3b9f8286714e225e78 */
@@ -539,7 +539,7 @@ export const CodeEditorRedux = createSlice({
         },
         setTextOpenai: (state, action) => {
             state.textOpenai = action.payload;
-            state.openaiCountUpdate = state.openaiCountUpdate + 1;
+            state.openaiUpdateSignal = state.openaiUpdateSignal + 1;
         },
         setTextToOpenAi: (state, action) => {
             state.textToOpenAI = action.payload;

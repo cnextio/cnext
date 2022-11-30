@@ -46,7 +46,7 @@ import { SocketContext, sendMessage as socketSendMessage } from "../Socket";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { updateExecutorRestartSignal } from "../../../redux/reducers/ExecutorManagerRedux";
 import { setNotification } from "../../../redux/reducers/NotificationRedux";
-import { useExecutorManager } from "../executor-manager/ExecutorManager";
+import { useExecutorCommander } from "../executor-manager/ExecutorCommander";
 
 const FileManager = () => {
     const socket = useContext(SocketContext);
@@ -259,7 +259,7 @@ const FileManager = () => {
             }
         });
     };
-    const { sendCommand } = useExecutorManager();
+    const { sendCommand } = useExecutorCommander();
 
     async function restartKernel() {
         await sendCommand(ExecutorManagerCommand.restart_kernel)
@@ -686,5 +686,3 @@ const FileManager = () => {
 };
 
 export default FileManager;
-
-

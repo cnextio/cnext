@@ -19,7 +19,6 @@ import { useDispatch } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
 import {
     setShowProjectExplorer,
-
     setShowGitManager,
     setProjectConfig,
 } from "../../../redux/reducers/ProjectManagerRedux";
@@ -29,7 +28,7 @@ import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
 import Divider from "@mui/material/Divider";
-import { restartKernel, interruptKernel } from "../executor-manager/ExecutorManager";
+import { restartKernel, interruptKernel } from "../executor-manager/ExecutorCommander";
 import ExecutorCommandConfirmation from "../executor-manager/ExecutorCommandConfirmation";
 import Account from "../user-manager/Account";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";

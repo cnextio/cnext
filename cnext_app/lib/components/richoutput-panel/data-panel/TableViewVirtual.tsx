@@ -287,14 +287,16 @@ const TableViewVirtual = () => {
                     const type = metadata.columns[cell.column.id]?.type;
                     const content = cell.row.original[cell.column.columnDef.header];
                     const isLongText = type === "object" && content.split(" ").length > 1;
+                    isLongText ? (cell.column.minSize = 300) : null;
                     return (
                         <DataTableCell
                             key={cell.id}
                             // review={false}
                             // head={false}
-                            // style={{
-                            //     width: cell.column.getSize(),
-                            // }}
+                            style={{
+                                width: cell.column.getSize(),
+                                height: "50px"
+                            }}
                             className={isLongText ? "text-cell" : ""}
                         >
                             {metadata && Object.values(SpecialMimeType).includes(type)
