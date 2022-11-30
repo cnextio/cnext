@@ -143,7 +143,7 @@ def main(argv):
                             p2n_queue, user_space),
                         WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config),
                         WebappEndpoint.LogsManager: lm.MessageHandler(p2n_queue, user_space),
-                        WebappEndpoint.OpenAiManager: openai.MessageHandler(p2n_queue, user_space, openai_api_key),
+                        # WebappEndpoint.OpenAiManager: openai.MessageHandler(p2n_queue, user_space, openai_api_key),
 
                     }
 
