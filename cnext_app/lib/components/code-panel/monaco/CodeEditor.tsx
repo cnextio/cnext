@@ -478,7 +478,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
     const handleEditorChange = (value, event) => {
         try {
-            pyLanguageClient.doValidate();
+            if (pyLanguageClient) pyLanguageClient.doValidate();
             const state = store.getState();
             let inViewID = state.projectManager.inViewID;
             /** do nothing if the update is due to code reloading from external source */

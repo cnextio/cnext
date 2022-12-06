@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
+    FileOpenMode,
     IDirectoryMetadata,
     IDirListResult,
     IFileMetadata,
@@ -17,7 +18,6 @@ import {
     IDataFrameManagerSettings,
     IRichOutputSettings,
     ILayoutSettings,
-    // IWorkSpaceConfig,
 } from "../../lib/interfaces/IApp";
 
 const defaultEditorShortcutKeys: IEditorShortcutKey = {
@@ -122,6 +122,7 @@ export const ProjectManagerRedux = createSlice({
         setOpenFiles: (state, action) => {
             state.openFiles = {};
             let projectMetadata: IProjectMetadata = action.payload;
+            console.log("projectMetadataProjectManagerRedux", projectMetadata);
             let files: IFileMetadata[] = projectMetadata.open_files;
             console.log("ProjectManagerRedux: ", files);
             files?.map((file: IFileMetadata) => {
@@ -134,8 +135,6 @@ export const ProjectManagerRedux = createSlice({
                 state.openOrder = Object.keys(state.openFiles);
             }
         },
-
-        setViewFiles: (state, action) => {},
 
         setFileMetadata: (state, action) => {
             let file: IFileMetadata = action.payload;
@@ -174,27 +173,40 @@ export const ProjectManagerRedux = createSlice({
         },
 
         setFileToOpen: (state, action) => {
-            let path = action.payload;
-            if (Object.keys(state.openFiles).includes(path)) {
-                console.log("ProjectManagerRedux setFileToOpen file already open: ", path);
-                state.inViewID = path;
-            } else {
-                console.log("ProjectManagerRedux setFileToOpen: ", path);
-                state.fileToOpen = action.payload;
-            }
-        },
+            let inViewID = action.payload.path;
+            let mode = action.payload.mode;
 
-        setFileToView: (state, action) => {
-            let path = action.payload;
-            let find_file = state.viewFiles.find((file) => file === path);
-            if (!find_file) state.viewFiles.push(path);
+            if (
+                state.openOrder.includes(inViewID) &&
+                state.openOrder[state.openOrder.length - 1] != inViewID
+            ) {
+                state.openOrder = state.openOrder.filter((file) => {
+                    return file != inViewID;
+                });
+                state.openOrder.push(inViewID);
+            }
+
+            if (mode == FileOpenMode.EDIT) {
+                if (Object.keys(state.openFiles).includes(inViewID)) {
+                    state.inViewID = inViewID;
+                } else {
+                    state.fileToOpen = inViewID;
+                }
+            }
+
+            if (mode == FileOpenMode.VIEW) {
+                if (Object.keys(state.openFiles).includes(inViewID)) {
+                    state.inViewID = inViewID;
+                } else {
+                    state.fileToOpen = inViewID;
+                }
+            }
         },
 
         addFileToSave: (state, action) => {
             if (action.payload) {
                 state.fileToSave.push(action.payload);
                 state.fileToSave = [...new Set(state.fileToSave)];
-                // console.log("ProjectManagerRedux: ", state.fileToSave);
             }
         },
 
@@ -292,12 +304,10 @@ export const {
     setOpenDir,
     setFileToClose,
     setFileToOpen,
-    setFileToView,
+    gotoDefinition,
     addFileToSave,
-    // removeFileToSave,
     setSavingFile,
     addStateFileToSave,
-    // removeFileToSaveState,
     setSavingStateFile,
     setShowProjectExplorer,
     setFileMetadata,

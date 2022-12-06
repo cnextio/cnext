@@ -4,13 +4,8 @@ import { getCodeText, getMainEditorModel } from "./libCodeEditor";
 import { CompletionTriggerKind, SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
 import { Socket } from "socket.io-client";
 import { sendMessage } from "../../Socket";
-import { setFileToOpen, setOpenFiles } from "../../../../redux/reducers/ProjectManagerRedux";
-import {
-    ProjectCommand,
-    IFileMetadata,
-    IWorkspaceMetadata,
-    IProjectMetadata,
-} from "../../../interfaces/IFileManager";
+import { setFileToOpen } from "../../../../redux/reducers/ProjectManagerRedux";
+import { FileOpenMode } from "../../../interfaces/IFileManager";
 
 class PythonLanguageClient {
     config: any;
@@ -24,7 +19,7 @@ class PythonLanguageClient {
     changesDelay = 3000;
     settings = () => store.getState().projectManager.settings.code_editor;
 
-    constructor(config: any, monaco: any, socket: Socket, dispatch: any, in_view_id: string) {
+    constructor(config: any, monaco: any, socket: Socket, dispatch: any) {
         this.config = config;
         this.monaco = monaco;
         this.socket = socket;
@@ -365,20 +360,24 @@ class PythonLanguageClient {
             this.timeout
         );
 
+        console.log("definitionResult", definitionResult);
+
         if (definitionResult && definitionResult.length > 0) {
-            // true
             if (is_path_equal(documentUri, definitionResult[0].uri)) {
-                console.log("testtttttt");
                 editor.setPosition({
                     lineNumber: definitionResult[0].range.start.line + 1,
                     column: definitionResult[0].range.start.character + 1,
                 });
             } else {
                 // open file
-                this.dispatch(setFileToOpen(null));
-                let path = definitionResult[0].uri.substring(this.config.rootUri.length - 1);
-                console.log("aaaaaa", path);
-                this.dispatch(setFileToOpen(path));
+                let path = definitionResult[0].uri.substring(this.config.rootUri.length + 1);
+                console.log("pathpathpathpathpath", path);
+                this.dispatch(
+                    setFileToOpen({
+                        path: path,
+                        mode: FileOpenMode.VIEW,
+                    })
+                );
             }
         }
     }

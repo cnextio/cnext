@@ -3,7 +3,6 @@ import path from "path";
 import {
     ProjectToolbar,
     FileExplorerHeaderName,
-    FileTree,
     FileItem,
     ClosedProjectItem,
     ErrorText,
@@ -23,6 +22,7 @@ import LockIcon from "@mui/icons-material/Lock";
 import { useDispatch, useSelector } from "react-redux";
 import {
     FileContextMenuCommand,
+    FileOpenMode,
     IDirectoryMetadata,
     IDirListResult,
     IFileMetadata,
@@ -35,7 +35,6 @@ import {
 import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
 import {
     setActiveProject,
-    setFileToView,
     setFileToOpen,
     setOpenDir,
     setOpenFiles,
@@ -53,6 +52,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { isRunQueueBusy } from "../code-panel/libCodeEditor";
 import { OverlayComponent } from "../libs/OverlayComponent";
 import { sendMessage, SocketContext } from "../Socket";
+import _ from "lodash";
 
 const NameWithTooltip = ({ children, tooltip }) => {
     return (
@@ -70,6 +70,8 @@ interface ProjectTreeItemInfo {
 
 const FileExplorer = (props: any) => {
     const socket = useContext(SocketContext);
+    const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+
     const activeProject: IProjectInfoInWorkspace | null = useSelector(
         (state: RootState) => state.projectManager.activeProject
     );
@@ -186,13 +188,6 @@ const FileExplorer = (props: any) => {
         return message;
     };
 
-    // const sendMessage = (message: IMessage) => {
-    //     console.log(
-    //         `File Explorer Send Message: ${message.webapp_endpoint} ${JSON.stringify(message)}`
-    //     );
-    //     socket?.emit(message.webapp_endpoint, JSON.stringify(message));
-    // };
-
     const fetchDirChildNodes = (path: string) => {
         const state = store.getState();
         const projectPath = state.projectManager.activeProject?.path;
@@ -295,20 +290,11 @@ const FileExplorer = (props: any) => {
 
     const relativeProjectPath = "";
 
-    // const isFile = (name: string) => {
-    //     return name.split(".")[1];
-    // };
-
     const checkProjectPath = (projectPath: string) => {
         if (projectPath == "") {
             setTxtError("The path is empty");
             return false;
         }
-
-        // if (isFile(projectPath)) {
-        //     setTxtError("The path is not folder");
-        //     return false;
-        // }
 
         setTxtError(null);
         return true;
@@ -391,6 +377,20 @@ const FileExplorer = (props: any) => {
         setCreateProjectInprogress(true);
     };
 
+    const createOrderMessage = (path: any, mode: string, command: string) => {
+        return {
+            webapp_endpoint: WebAppEndpoint.FileManager,
+            command_name: command,
+            content: {
+                path,
+                open_order: store.getState().projectManager.openOrder,
+                mode,
+            },
+            type: ContentType.STRING,
+            error: false,
+        };
+    };
+
     const renderFileItems = (projectPath: string, relativeParentPath: string) => {
         return (
             <Fragment>
@@ -425,11 +425,21 @@ const FileExplorer = (props: any) => {
                                         </NameWithTooltip>
                                     }
                                     onClick={() => {
-                                        value.is_file ? dispatch(setFileToView(value.path)) : null;
-                                    }}
-                                    onDoubleClick={() => {
-                                        value.is_file ? dispatch(setFileToOpen(value.path)) : null;
-                                        console.log("setFileToOpen", value);
+                                        if (value.is_file && inViewID !== value.path) {
+                                            dispatch(
+                                                setFileToOpen({
+                                                    path: value.path,
+                                                    mode: FileOpenMode.EDIT,
+                                                })
+                                            );
+
+                                            let message: IMessage = createOrderMessage(
+                                                value.path,
+                                                FileOpenMode.EDIT,
+                                                ProjectCommand.change_file_order
+                                            );
+                                            sendMessage(socket, message.webapp_endpoint, message);
+                                        }
                                     }}
                                     onMouseDown={() => {
                                         setFocusedProjectTreeItem({

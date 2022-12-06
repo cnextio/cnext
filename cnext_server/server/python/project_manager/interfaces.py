@@ -51,7 +51,7 @@ class FileMetadata(JsonSerializable):
     def __init__(self, **entries):
         self.path = None
         self.name = None
-        # self.type = None
+        self.mode = "edit"
         self.executor = None
         self.timestamp = None
         self.__dict__.update(entries)

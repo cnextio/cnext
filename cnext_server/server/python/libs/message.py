@@ -59,6 +59,7 @@ class ProjectCommand(str, Enum):
     save_file = 'save_file'
     close_file = 'close_file'
     open_file = 'open_file'
+    change_file_order = 'change_file_order'
     set_name = 'set_name'
     get_open_files = 'get_open_files'
     create_file = 'create_file'

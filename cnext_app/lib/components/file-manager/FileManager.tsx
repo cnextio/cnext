@@ -139,10 +139,8 @@ const FileManager = () => {
                             break;
                         case ProjectCommand.open_file:
                             console.log("FileManager got open_file result: ", fmResult);
-                            dispatch(setFileToOpen(null));
                             projectMetadata = fmResult.content as IProjectMetadata;
                             if (projectMetadata != null) {
-                                console.log("projectMetadataaaaaaaaaa", projectMetadata);
                                 dispatch(setOpenFiles(projectMetadata));
                             }
                             break;

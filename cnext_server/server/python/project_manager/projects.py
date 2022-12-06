@@ -116,6 +116,46 @@ def open_file(path, open_order):
     except Exception as error:
         log.error("%s - %s" % (error, traceback.format_exc()))
         raise Exception  # this will be seen in the web app #
+
+
+def change_mode_file(path, mode):
+    print("change " + mode, path)
+
+
+def change_file_order(content):
+    path = content['path']
+    mode = content['mode']
+
+    change_mode_file(path, mode)
+
+    try:
+        if path != None:
+            active_project = get_active_project()
+            # config_path = active_project['config_path']
+            project_metadata_path = get_project_metadata_path(active_project)
+            if exists(project_metadata_path):
+                config = read_config(project_metadata_path)
+                project_metadata = ProjectMetadata(config.__dict__)
+           
+                if path in project_metadata.open_order:
+                    ## remove path before append it to the end #
+                    project_metadata.open_order.remove(path)
+                project_metadata.open_order.append(path)
+                save_config(project_metadata, project_metadata_path)
+                
+            else:
+                log.error("Config file does not exist %s" %
+                          (project_metadata_path))
+            return project_metadata
+        else:
+            return []
+    # except yaml.YAMLError as error:
+    #     log.error("%s" % (error))
+    #     return []
+    except Exception as error:
+        log.error("%s - %s" % (error, traceback.format_exc()))
+        raise Exception  # this will be seen in the web app #
+
 ##
 
 ## Project #
