@@ -6,6 +6,7 @@ import {
     FileCloseIcon as StyledFileCloseIcon,
     FileCloseIconContainer,
     FileNameTabContainer,
+    FileNameSpan,
 } from "../StyledComponents";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -37,6 +38,7 @@ const CodeToolbar = () => {
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const stateFileToSave = useSelector((state: RootState) => state.projectManager.stateFileToSave);
     const savingFile = useSelector((state: RootState) => state.projectManager.savingFile);
+    const viewFiles = useSelector((state: RootState) => state.projectManager.viewFiles);
     const savingStateFile = useSelector((state: RootState) => state.projectManager.savingStateFile);
     const runQueueBusy = useSelector((state: RootState) =>
         isRunQueueBusy(state.codeEditor.runQueue)
@@ -76,17 +78,15 @@ const CodeToolbar = () => {
         // let inViewID = store.getState().projectManager.inViewID;
         let openOrder = store.getState().projectManager.openOrder;
         // let keys = Object.keys(openFiles);
-        console.log("testsssssssssssss", openFiles);
+        console.log("useEffect openFiles", openFiles);
         dispatch(setInView(openOrder[openOrder.length - 1]));
     }, [openFiles]);
 
     const getName = (name: string) => {
-        if (openFiles[inViewID]) {
-            const mode = openFiles[inViewID]["mode"];
-            if (mode) {
-                return name + mode;
-            }
-            return name;
+        if (viewFiles.includes(inViewID) || openFiles[inViewID].mode == FileOpenMode.VIEW) {
+            return <FileNameSpan>{name} view</FileNameSpan>;
+        } else {
+            return <FileNameSpan>{name} edit</FileNameSpan>;
         }
     };
 

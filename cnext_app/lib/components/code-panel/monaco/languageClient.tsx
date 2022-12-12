@@ -371,7 +371,6 @@ class PythonLanguageClient {
             } else {
                 // open file
                 let path = definitionResult[0].uri.substring(this.config.rootUri.length + 1);
-                console.log("pathpathpathpathpath", path);
                 this.dispatch(
                     setFileToOpen({
                         path: path,

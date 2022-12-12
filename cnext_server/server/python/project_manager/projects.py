@@ -77,7 +77,7 @@ def close_file(path, open_order):
         raise Exception  # this will be seen in the web app #
 
 
-def open_file(path, open_order):
+def open_file(path, open_order , mode):
     try:
         if path != None:
             active_project = get_active_project()
@@ -91,7 +91,7 @@ def open_file(path, open_order):
                 if len(file_existed) == 0:
                     ## Note that we dont set the timestamp when open the file #
                     file = FileMetadata(path=path,
-                                        name=os.path.basename(path))
+                                        name=os.path.basename(path), mode=mode)
                     project_metadata.open_files.append(file)
                     
                     if isinstance(open_order, list):
@@ -118,15 +118,10 @@ def open_file(path, open_order):
         raise Exception  # this will be seen in the web app #
 
 
-def change_mode_file(path, mode):
-    print("change " + mode, path)
-
 
 def change_file_order(content):
     path = content['path']
     mode = content['mode']
-
-    change_mode_file(path, mode)
 
     try:
         if path != None:

@@ -63,14 +63,11 @@ class MessageHandler(BaseMessageHandler):
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.open_file:
                 result = projects.open_file(
-                    messageParams.norm_path, messageParams.open_order)
+                    messageParams.norm_path, messageParams.open_order, messageParams.mode)
                 type = ContentType.FILE_METADATA
             elif message.command_name == ProjectCommand.change_file_order:
                 result = projects.change_file_order(message.content)
                 type = ContentType.FILE_METADATA
-            # elif message.command_name == ProjectCommand.get_active_project:
-            #     result = projects.get_active_project()
-            #     type = ContentType.PROJECT_METADATA
             elif message.command_name == ProjectCommand.save_state:
                 result = files.save_state(
                     messageParams.norm_project_path, messageParams.norm_path, content=message.content)
