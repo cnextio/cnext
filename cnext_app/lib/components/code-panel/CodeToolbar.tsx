@@ -6,7 +6,8 @@ import {
     FileCloseIcon as StyledFileCloseIcon,
     FileCloseIconContainer,
     FileNameTabContainer,
-    FileNameSpan,
+    FileNameView,
+    FileNameEdit,
 } from "../StyledComponents";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -78,15 +79,14 @@ const CodeToolbar = () => {
         // let inViewID = store.getState().projectManager.inViewID;
         let openOrder = store.getState().projectManager.openOrder;
         // let keys = Object.keys(openFiles);
-        console.log("useEffect openFiles", openFiles);
         dispatch(setInView(openOrder[openOrder.length - 1]));
     }, [openFiles]);
 
-    const getName = (name: string) => {
-        if (viewFiles.includes(inViewID) || openFiles[inViewID].mode == FileOpenMode.VIEW) {
-            return <FileNameSpan>{name} view</FileNameSpan>;
+    const getName = (id: string, name: string) => {
+        if (viewFiles.includes(id) || openFiles[id].mode == FileOpenMode.VIEW) {
+            return <FileNameView>{name}</FileNameView>;
         } else {
-            return <FileNameSpan>{name} edit</FileNameSpan>;
+            return <FileNameEdit>{name}</FileNameEdit>;
         }
     };
 
@@ -127,7 +127,7 @@ const CodeToolbar = () => {
                             setDisplayState(newDisplay);
                         }}
                     >
-                        {getName(name)}
+                        {getName(id, name)}
                         {
                             <FileCloseIcon
                                 style={
