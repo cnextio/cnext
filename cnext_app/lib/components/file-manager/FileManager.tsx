@@ -36,6 +36,7 @@ import {
     IFileMetadata,
     IWorkspaceMetadata,
     IProjectMetadata,
+    FileOpenMode,
 } from "../../interfaces/IFileManager";
 import { SocketContext, sendMessage as socketSendMessage } from "../Socket";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
@@ -49,6 +50,7 @@ const FileManager = () => {
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
     const fileToClose = useSelector((state: RootState) => state.projectManager.fileToClose);
     const fileToOpen = useSelector((state: RootState) => state.projectManager.fileToOpen);
+    const viewFiles = useSelector((state: RootState) => state.projectManager.viewFiles);
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const stateFileToSave = useSelector((state: RootState) => state.projectManager.stateFileToSave);
     const workspaceMetadata: IWorkspaceMetadata = useSelector(
@@ -132,6 +134,7 @@ const FileManager = () => {
                         case ProjectCommand.close_file:
                             console.log("FileManager got close_file result: ", fmResult);
                             dispatch(setFileToClose(null));
+                            dispatch(setFileToOpen(null));
                             projectMetadata = fmResult.content as IProjectMetadata;
                             if (projectMetadata != null) {
                                 dispatch(setOpenFiles(projectMetadata));
@@ -139,7 +142,6 @@ const FileManager = () => {
                             break;
                         case ProjectCommand.open_file:
                             console.log("FileManager got open_file result: ", fmResult);
-                            dispatch(setFileToOpen(null));
                             projectMetadata = fmResult.content as IProjectMetadata;
                             if (projectMetadata != null) {
                                 dispatch(setOpenFiles(projectMetadata));
@@ -350,10 +352,14 @@ const FileManager = () => {
 
     useEffect(() => {
         if (fileToOpen) {
-            console.log("FileManager file to open: ", fileToOpen);
             // TODO: make sure the file is saved before being closed
+            let mode = FileOpenMode.EDIT;
+            if (viewFiles.includes(fileToOpen)) {
+                mode = FileOpenMode.VIEW;
+            }
             let message: IMessage = createMessage(ProjectCommand.open_file, "", {
                 path: fileToOpen,
+                mode,
                 open_order: store.getState().projectManager.openOrder,
             });
             sendMessage(message);
@@ -613,5 +619,3 @@ const FileManager = () => {
 };
 
 export default FileManager;
-
-

@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState, useContext } from "react";
 import {
     CodeToolbar as StyledCodeToolbar,
     FileNameTab,
@@ -6,15 +6,24 @@ import {
     FileCloseIcon as StyledFileCloseIcon,
     FileCloseIconContainer,
     FileNameTabContainer,
+    FileNameView,
+    FileNameEdit,
 } from "../StyledComponents";
 import { useDispatch, useSelector } from "react-redux";
-import { setFileToClose, setInView } from "../../../redux/reducers/ProjectManagerRedux";
+import {
+    setFileToClose,
+    setInView,
+    setFileToOpen,
+} from "../../../redux/reducers/ProjectManagerRedux";
 import store, { RootState } from "../../../redux/store";
 import { isRunQueueBusy } from "./libCodeEditor";
 import ScrollIntoViewIfNeeded from "react-scroll-into-view-if-needed";
 import { OverlayComponent } from "../libs/OverlayComponent";
+import { ContentType, IMessage, WebAppEndpoint } from "../../interfaces/IApp";
+import { FileOpenMode, ProjectCommand } from "../../interfaces/IFileManager";
+import { sendMessage, SocketContext } from "../Socket";
 
-const FileCloseIcon = (props) => {
+const FileCloseIcon = (props: any) => {
     return (
         <FileCloseIconContainer>
             <StyledFileCloseIcon fontSize="small" {...props} />
@@ -30,18 +39,37 @@ const CodeToolbar = () => {
     const fileToSave = useSelector((state: RootState) => state.projectManager.fileToSave);
     const stateFileToSave = useSelector((state: RootState) => state.projectManager.stateFileToSave);
     const savingFile = useSelector((state: RootState) => state.projectManager.savingFile);
+    const viewFiles = useSelector((state: RootState) => state.projectManager.viewFiles);
     const savingStateFile = useSelector((state: RootState) => state.projectManager.savingStateFile);
     const runQueueBusy = useSelector((state: RootState) =>
         isRunQueueBusy(state.codeEditor.runQueue)
     );
     const [displayState, setDisplayState] = useState<{ [id: string]: {} }>({});
     const dispatch = useDispatch();
+    const socket = useContext(SocketContext);
 
     const onClick = (id: string) => {
         dispatch(setInView(id));
+        dispatch(setFileToOpen({ path: id }));
+        let message: IMessage = createOrderMessage(id);
+        sendMessage(socket, message.webapp_endpoint, message);
     };
 
-    const onClose = (event, id: string) => {
+    const createOrderMessage = (path: any) => {
+        return {
+            webapp_endpoint: WebAppEndpoint.FileManager,
+            command_name: ProjectCommand.change_file_order,
+            content: {
+                path,
+                open_order: store.getState().projectManager.openOrder,
+                mode: "edit",
+            },
+            type: ContentType.STRING,
+            error: false,
+        };
+    };
+
+    const onClose = (event: any, id: string) => {
         event.stopPropagation();
         dispatch(setFileToClose(openFiles[id].path));
     };
@@ -53,6 +81,14 @@ const CodeToolbar = () => {
         // let keys = Object.keys(openFiles);
         dispatch(setInView(openOrder[openOrder.length - 1]));
     }, [openFiles]);
+
+    const getName = (id: string, name: string) => {
+        if (viewFiles.includes(id) || openFiles[id].mode == FileOpenMode.VIEW) {
+            return <FileNameView>{name}</FileNameView>;
+        } else {
+            return <FileNameEdit>{name}</FileNameEdit>;
+        }
+    };
 
     const renderFileNameComponent = (id: string, name: string) => {
         return (
@@ -91,7 +127,7 @@ const CodeToolbar = () => {
                             setDisplayState(newDisplay);
                         }}
                     >
-                        {name}
+                        {getName(id, name)}
                         {
                             <FileCloseIcon
                                 style={

@@ -1,19 +1,20 @@
-const { JsonRpcStreamReader, JsonRpcStreamWriter } = require('./streams');
-const { spawn, exec } = require('child_process');
+const { JsonRpcStreamReader, JsonRpcStreamWriter } = require("./streams");
+const { spawn, exec } = require("child_process");
 // action channel
-const LanguageServer = 'LanguageServer';
-const LanguageServerNotifier = 'LanguageServerNotifier';
-const LanguageServerHover = 'LanguageServerHover';
-const LanguageServerCompletion = 'LanguageServerCompletion';
-const LanguageServerSignature = 'LanguageServerSignature';
+const LanguageServer = "LanguageServer";
+const LanguageServerNotifier = "LanguageServerNotifier";
+const LanguageServerHover = "LanguageServerHover";
+const LanguageServerCompletion = "LanguageServerCompletion";
+const LanguageServerSignature = "LanguageServerSignature";
+const LanguageServerDefinition = "LanguageServerDefinition";
 
-const NotifyCase = ['textDocument/publishDiagnostics'];
+const NotifyCase = ["textDocument/publishDiagnostics"];
 class LSPProcess {
     constructor(io) {
-        this.ls = spawn('pyls', ['-v'], { shell: true });
+        this.ls = spawn("pyls", ["-v"], { shell: true });
         const reader = new JsonRpcStreamReader(this.ls.stdout);
 
-        this.ls.stdout.on('data', (chunk) => {
+        this.ls.stdout.on("data", (chunk) => {
             const payload = reader.getData(chunk);
             if (payload && payload.result) {
                 const channel = this.getChannel(payload.result);
@@ -25,7 +26,7 @@ class LSPProcess {
             }
         });
 
-        this.ls.stderr.on('data', (stderr) => {
+        this.ls.stderr.on("data", (stderr) => {
             // console.log('stderr', stderr.toString());
         });
     }
@@ -35,12 +36,14 @@ class LSPProcess {
     }
 
     getChannel(result) {
-        if ('signatures' in result) {
+        if ("signatures" in result) {
             return LanguageServerSignature;
-        } else if ('contents' in result) {
+        } else if ("contents" in result) {
             return LanguageServerHover;
-        } else if ('isIncomplete' in result) {
+        } else if ("isIncomplete" in result) {
             return LanguageServerCompletion;
+        } else if (result instanceof Array) {
+            return LanguageServerDefinition;
         } else {
             return LanguageServer;
         }
@@ -49,7 +52,7 @@ class LSPProcess {
     sendMessageToLsp(message) {
         const writer = new JsonRpcStreamWriter();
         const lspPayload = writer.getPayload(message);
-        this.ls.stdin.write(Buffer.from(lspPayload, 'utf-8'));
+        this.ls.stdin.write(Buffer.from(lspPayload, "utf-8"));
     }
 }
 module.exports = {
@@ -58,4 +61,5 @@ module.exports = {
     LanguageServerHover,
     LanguageServerSignature,
     LanguageServerCompletion,
+    LanguageServerDefinition,
 };

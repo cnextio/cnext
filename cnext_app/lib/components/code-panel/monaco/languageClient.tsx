@@ -4,21 +4,26 @@ import { getCodeText, getMainEditorModel } from "./libCodeEditor";
 import { CompletionTriggerKind, SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
 import { Socket } from "socket.io-client";
 import { sendMessage } from "../../Socket";
+import { setFileToOpen } from "../../../../redux/reducers/ProjectManagerRedux";
+import { FileOpenMode } from "../../../interfaces/IFileManager";
 
 class PythonLanguageClient {
     config: any;
     monaco: any;
-    socket: Socket
+    socket: Socket;
+    dispatch: any;
+
     timeout = 10000;
     documentVersion = 0;
     changesTimeout = 0;
     changesDelay = 3000;
     settings = () => store.getState().projectManager.settings.code_editor;
 
-    constructor(config: any, monaco: any, socket: Socket) {
+    constructor(config: any, monaco: any, socket: Socket, dispatch: any) {
         this.config = config;
         this.monaco = monaco;
         this.socket = socket;
+        this.dispatch = dispatch;
     }
 
     doValidate() {
@@ -337,7 +342,52 @@ class PythonLanguageClient {
             this.timeout
         );
     }
+
+    async gotoDefinition(editor: any) {
+        var documentUri = this.config.documentUri;
+        const position = editor.getPosition();
+        var line = position.lineNumber - 1;
+        var character = position.column - 1;
+
+        this.sendChange();
+        let definitionResult = await this.requestLS(
+            WebAppEndpoint.LanguageServerDefinition,
+            "textDocument/definition",
+            {
+                textDocument: { uri: documentUri },
+                position: { line, character },
+            },
+            this.timeout
+        );
+
+        console.log("definitionResult", definitionResult);
+
+        if (definitionResult && definitionResult.length > 0) {
+            if (is_path_equal(documentUri, definitionResult[0].uri)) {
+                editor.setPosition({
+                    lineNumber: definitionResult[0].range.start.line + 1,
+                    column: definitionResult[0].range.start.character + 1,
+                });
+            } else {
+                // open file
+                let path = definitionResult[0].uri.substring(this.config.rootUri.length + 1);
+                this.dispatch(
+                    setFileToOpen({
+                        path: path,
+                        mode: FileOpenMode.VIEW,
+                    })
+                );
+            }
+        }
+    }
 }
+
+const is_path_equal = (document_uri: string, definition_uri: string) => {
+    let _document_uri = document_uri.replace(/\//g, "\\").toLowerCase();
+    let _definition_uri = definition_uri.replace(/\//g, "\\").toLowerCase();
+    console.log("compare", _document_uri, _definition_uri);
+    return _document_uri.trim() == _definition_uri.trim();
+};
 
 type LanguageObjectType = {
     [key: string]: string;

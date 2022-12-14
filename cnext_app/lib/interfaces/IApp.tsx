@@ -147,6 +147,7 @@ export enum WebAppEndpoint {
     LanguageServerHover = "LanguageServerHover",
     LanguageServerCompletion = "LanguageServerCompletion",
     LanguageServerSignature = "LanguageServerSignature",
+    LanguageServerDefinition = "LanguageServerDefinition",
     Terminal = "Terminal",
     LogsManager = "LogsManager",
     DataViewer = "DataViewer",

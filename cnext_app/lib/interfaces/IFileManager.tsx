@@ -8,6 +8,11 @@ export enum FileStatus {
     saved = "saved",
 }
 
+export enum FileOpenMode {
+    VIEW = "view",
+    EDIT = "edit",
+}
+
 export enum ProjectCommand {
     list_dir = "list_dir",
     get_file_metadata = "get_file_metadata",
@@ -16,6 +21,7 @@ export enum ProjectCommand {
     create_file = "create_file",
     close_file = "close_file",
     open_file = "open_file",
+    change_file_order = "change_file_order",
     delete = "delete",
     set_name = "set_name",
     get_open_files = "get_open_files",
@@ -37,6 +43,7 @@ export interface IFileMetadata {
     path: string;
     name: string;
     type: string;
+    mode: string;
     executor: boolean;
     timestamp: number;
 }

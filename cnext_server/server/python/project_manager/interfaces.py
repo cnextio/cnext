@@ -51,7 +51,7 @@ class FileMetadata(JsonSerializable):
     def __init__(self, **entries):
         self.path = None
         self.name = None
-        # self.type = None
+        self.mode = None
         self.executor = None
         self.timestamp = None
         self.__dict__.update(entries)
@@ -146,6 +146,7 @@ class FileManagerMessageParams:
         self.norm_path = None
         self.norm_project_path = None
         self.open_order = []
+        self.mode = None
         self.timestamp = None
         self.path = None
         self.project_path = None
@@ -170,3 +171,5 @@ class FileManagerMessageParams:
             self.timestamp = params['timestamp']
         if 'is_file' in params.keys():
             self.is_file = params['is_file']
+        if 'mode' in params.keys():
+            self.mode = params['mode']
