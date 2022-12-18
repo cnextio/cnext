@@ -42,7 +42,7 @@ const ExecutorManagerControl = "ExecutorManagerControl";
 const Terminal = "Terminal";
 const LogsManager = "LogsManager";
 const EnvironmentManager = "EnvironmentManager";
-// const OpenAiManager = "OpenAiManager";
+const OpenAiManager = "OpenAiManager";
 
 const DataViewer = "DataViewer";
 const DFExplorer = "DFExplorer";
@@ -64,7 +64,7 @@ const NonCodeEndpoints = [
     FileExplorer,
     Terminal,
     LogsManager,
-    // OpenAiManager,
+    OpenAiManager,
 ];
 
 const LSPExecutor = [

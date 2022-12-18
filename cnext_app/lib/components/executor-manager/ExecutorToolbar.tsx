@@ -18,7 +18,7 @@ import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { useDispatch } from "react-redux";
 import store from "../../../redux/store";
 import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
-import { useExecutorCommander } from "./ExecutorCommander";
+import { useExecutorManager } from "./ExecutorManager";
 import { CellCommand } from "../../interfaces/ICodeEditor";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import { SocketContext } from "../Socket";
@@ -80,7 +80,7 @@ const ExecutorToolbar = () => {
         }
     };
 
-    const { sendCommand, ready } = useExecutorCommander();
+    const { sendCommand, ready } = useExecutorManager();
     const [executing, setExecuting] = useState(false);
 
     React.useEffect(() => {

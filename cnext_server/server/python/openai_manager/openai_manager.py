@@ -33,19 +33,18 @@ class MessageHandler(BaseMessageHandler):
                 )
                 data = Message(**{"webapp_endpoint": WebappEndpoint.OpenAiManager, "command_name": OpenAiCommand.exc_text,
                                   "content": content, "error": False, "metadata": message.metadata})
-                print("data", data)
                 self._send_to_node(data)
         except:
             pass
 
-    def _getDataOpenAi():
-        return openai.Completion.create(
-            model="code-davinci-002",
-            prompt="convert column i of data frame df to str using loc function",
-            temperature=0.7,
-            max_tokens=256,
-            top_p=1.0,
-            frequency_penalty=0.0,
-            presence_penalty=0.0,
-            best_of=1
-        )
+    # def _getDataOpenAi():
+    #     return openai.Completion.create(
+    #         model="code-davinci-002",
+    #         prompt="convert column i of data frame df to str using loc function",
+    #         temperature=0.7,
+    #         max_tokens=256,
+    #         top_p=1.0,
+    #         frequency_penalty=0.0,
+    #         presence_penalty=0.0,
+    #         best_of=1
+    #     )
