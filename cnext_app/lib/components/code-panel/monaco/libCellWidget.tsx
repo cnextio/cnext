@@ -98,25 +98,19 @@ const createCellWidgetDom = (
     // divAI.appendChild(loading);
 
 
-    function eventInput(e) {
-        if (e.key === "Enter") {
-            store.dispatch(setTextToOpenAi({ text: e.target.value, groupID }));
-        }
-    }
-
     // parentDiv.appendChild(wrapDiv);
     // parentDiv.appendChild(divAI);
     let zone = null;
     if (endBoundaryWidget) {
         zone = {
-            afterLineNumber: afterLineNumber + 2,
-            heightInLines: 2, // yes this is 0, this is not a bug
+            afterLineNumber: afterLineNumber ,
+            heightInLines: 0, // yes this is 0, this is not a bug
             domNode: wrapDiv,
         };
     } else {
         zone = {
             afterLineNumber: afterLineNumber,
-            heightInLines: 4,
+            heightInLines: 2,
             domNode: wrapDiv,
         };
     }

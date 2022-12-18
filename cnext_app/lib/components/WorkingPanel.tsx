@@ -13,7 +13,7 @@ import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interface
 import { sendMessage, SocketContext } from "./Socket";
 import TerminalManager from "./terminal-manager/TerminalManager";
 import GitManager from "./git-manager/GitManager";
-// import OpenAiManager from "./openai-manager/OpenAiManager";
+import OpenAiManager from "./openai-manager/OpenAiManager";
 import HotkeyComponent from "./hotkeys/HotKeys";
 import { Notifier } from "./notifier/Notifier";
 
@@ -89,7 +89,7 @@ const WorkingPanel = () => {
             <DataFrameManager />
             <FileManager />
             <TerminalManager />
-            {/* <OpenAiManager /> */}
+            <OpenAiManager />
             <HotkeyComponent />
             <Notifier />
         </StyledWorkingPanel>

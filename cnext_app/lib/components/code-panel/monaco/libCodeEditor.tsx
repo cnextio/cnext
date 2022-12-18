@@ -5,6 +5,7 @@ import {
     setLineGroupStatus,
     setMouseOverGroup,
     setMouseOverLine,
+    setTextToOpenAi,
     setViewStateEditor,
     updateLines,
 } from "../../../../redux/reducers/CodeEditorRedux";
@@ -73,7 +74,7 @@ export function sendTextToOpenai(socket, text) {
         webapp_endpoint: WebAppEndpoint.OpenAiManager,
         content: text.text,
         command_name: CommandName.exc_text,
-        metadata: { groupID: text.groupID },
+        metadata: { groupID: text.groupID, lineNumber: text.lineNumber },
         type: ContentType.COMMAND,
     });
 }
@@ -281,6 +282,8 @@ export const execLines = (socket: any, runQueueItem: IRunQueueItem) => {
                     }
                 }
             );
+            console.log("fileID, content.lineRange, LineStatus.EXECUTING", fileID, content.lineRange, LineStatus.EXECUTING);
+            
             setLineStatus(fileID, content.lineRange, LineStatus.EXECUTING);
         }
     }
@@ -442,10 +445,10 @@ export const setGroup = (editor: any) => {
 export const setUnGroup = (editor: any) => {
     let reduxState = store.getState();
     let inViewID = reduxState.projectManager.inViewID;
-    let lineNumberCurent = editor.getPosition().lineNumber;
+    let lineNumberCurrent = editor.getPosition().lineNumber;
     if (inViewID) {
         let codeLines = reduxState.codeEditor.codeLines[inViewID];
-        let lineRange = getLineRangeOfGroupWithLineNumber(codeLines, lineNumberCurent - 1);
+        let lineRange = getLineRangeOfGroupWithLineNumber(codeLines, lineNumberCurrent - 1);
         console.log("CodeEditor setUnGroup: ", lineRange);
         if (inViewID && lineRange && lineRange.toLine > lineRange.fromLine) {
             let lineStatus: ICodeLineGroupStatus = {
@@ -487,3 +490,25 @@ const getLineRangeOfGroupWithLineNumber = (
     return { fromLine: fromLine, toLine: toLine };
 };
 /** */
+export const sendOpenAi = (editor: any) => {
+    let reduxState = store.getState();
+    let inViewID = reduxState.projectManager.inViewID;
+    let lineNumberCurrent = editor.getPosition().lineNumber;
+    if (inViewID) {
+        let codeLines = reduxState.codeEditor.codeLines[inViewID];
+        let lineRange = getLineRangeOfGroupWithLineNumber(codeLines, lineNumberCurrent - 1);
+        let input = reduxState.codeEditor.codeText[inViewID][lineNumberCurrent - 1];
+        let groupID = reduxState.codeEditor.codeLines[inViewID][lineNumberCurrent - 1].groupID;
+        if (input) input = input.replaceAll('"""', "");
+
+        console.log("CodeEditor lineNumberCurrent: ", lineNumberCurrent);
+        setLineStatus(inViewID, lineRange, LineStatus.EXECUTING);
+        store.dispatch(
+            setTextToOpenAi({
+                text: input,
+                groupID: groupID,
+                lineNumber: lineNumberCurrent,
+            })
+        );
+    }
+};
