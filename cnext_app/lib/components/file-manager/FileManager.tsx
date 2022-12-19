@@ -361,10 +361,11 @@ const FileManager = () => {
                 let convertURL = parseUrl(inViewID);
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 const projectPath = state.projectManager.activeProject?.path;
+                const nameProject = state.projectManager.activeProject?.name || "";
                 const message: IMessage = createMessage(ProjectCommand.read_diff, "", {
                     project_path: projectPath,
                     // remove Skywalker/ fix later
-                    path: convertURL.path.substring(10),
+                    path: convertURL.path.substring(nameProject?.length + 1),
                     path_diff: convertURL.path,
                     diff_view: convertURL.params?.diff_view === "true",
                     diff_mode: convertURL.params?.diff_mode,
