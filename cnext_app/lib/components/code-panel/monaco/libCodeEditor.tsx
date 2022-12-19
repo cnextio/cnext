@@ -132,8 +132,6 @@ function onMouseMove(event) {
             const mouseOverGroupID = state.codeEditor.mouseOverGroupID;
             let lines: ICodeLine[] | null = getCodeLine(state);
             let ln0based = event?.target?.position?.lineNumber - 1; /** 0-based */
-            console.log("mouseOverGroupID", mouseOverGroupID);
-
             if (lines && ln0based >= 0) {
                 let currentGroupID = lines[ln0based]?.groupID;
                 // console.log(`CodeEditor onMouseOver`, currentGroupID, doc.line(lineNumber + 1));

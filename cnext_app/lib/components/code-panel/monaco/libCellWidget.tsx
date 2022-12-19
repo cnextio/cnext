@@ -78,28 +78,7 @@ const createCellWidgetDom = (
     /** widget of the next cell will also has the top boundary to mark the end of prev cell */
     wrapDiv.className = "cellwidget " + activeClass;
     wrapDiv.id = `cellwidget-${groupID}`;
-    let parentDiv = document.createElement("div");
-    parentDiv.className = "";
 
-    let divAI = document.createElement("div");
-    
-    divAI.className = `cellwidget-input`;
-    divAI.id = `cellwidget-input-${groupID}`;
-
-
-    // let input = document.createElement("input");
-    // input.type = "text";
-    // input.placeholder = "Text to code";
-    // input.onkeydown = eventInput;
-    // divAI.appendChild(input);
-
-    // let loading = document.createElement('span')
-    // loading.className ="loading-ai"
-    // divAI.appendChild(loading);
-
-
-    // parentDiv.appendChild(wrapDiv);
-    // parentDiv.appendChild(divAI);
     let zone = null;
     if (endBoundaryWidget) {
         zone = {

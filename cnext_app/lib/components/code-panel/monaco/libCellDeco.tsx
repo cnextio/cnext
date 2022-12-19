@@ -5,8 +5,6 @@ import { getCodeLine } from "./libCodeEditor";
 let decorations = [];
 
 export const setCellDeco = (monaco, editor) => {
-    console.log(`setCellDeco`, setCellDeco);
-
     let state = store.getState();
     const activeGroup = state.codeEditor.activeGroup;
     const cellLineDeco = [];
