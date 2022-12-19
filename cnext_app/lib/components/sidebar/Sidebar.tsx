@@ -3,7 +3,10 @@ import FolderIcon from "@mui/icons-material/Folder";
 import PauseIcon from "@mui/icons-material/Pause";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
+import ShareIcon from "@mui/icons-material/Share";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
+import Modal from '@mui/material/Modal';
+import { nanoid } from 'nanoid';
 
 import {
     AppToolbar,
@@ -31,6 +34,24 @@ import { restartKernel, interruptKernel } from "../executor-manager/ExecutorMana
 import ExecutorCommandConfirmation from "../executor-manager/ExecutorCommandConfirmation";
 import Account from "../user-manager/Account";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
+
+const style = {
+    position: 'absolute' as 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+};
+  
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -58,6 +79,8 @@ const SideBarDivider = () => {
 const MiniSidebar = () => {
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
+    const [openShare, setOpenShare] = useState(false);
+    const [shareId, setShareId] = useState(nanoid());
     const dispatch = useDispatch();
 
     const projectManagerIconList = [
@@ -73,6 +96,14 @@ const MiniSidebar = () => {
             name: SideBarName.CHANGE_LAYOUT,
             component: <ViewCompactIcon />,
             tooltip: "Change layout",
+        },
+    ];
+
+    const shareIconList = [
+        {
+            name: SideBarName.SHARE,
+            component: <ShareIcon />,
+            tooltip: "Share",
         },
     ];
 
@@ -92,6 +123,16 @@ const MiniSidebar = () => {
         }
     };
 
+    const handleOpenShare = () => setOpenShare(true);
+    const handleCloseShare = () => setOpenShare(false);
+    const handleStartCollab = () => {
+        // Add shareId to the url and reload the page
+        const url = new URL(window.location.href);
+        url.searchParams.set("share", shareId);
+        
+        window.location.href = url.href;
+    };
+
     const handleClick = (name: string) => {
         if (name === SideBarName.CLEAR_OUTPUTS) {
             handleClickClearOutputs();
@@ -101,6 +142,8 @@ const MiniSidebar = () => {
             setKernelCommand(ExecutorManagerCommand.restart_kernel);
         } else if (name === SideBarName.INTERRUPT_KERNEL) {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
+        } else if (name === SideBarName.SHARE) {
+            handleOpenShare();
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -133,6 +176,25 @@ const MiniSidebar = () => {
         <Fragment>
             <Sidebar>
                 <Logo />
+                <Modal
+                    open={openShare}
+                    onClose={handleCloseShare}
+                    aria-labelledby="modal-modal-title"
+                    aria-describedby="modal-modal-description"
+                >
+                    <Box sx={style}>
+                        <Stack spacing={2}>
+                            <Typography id="modal-modal-title" variant="h6" component="h2">
+                                Share your workspace
+                            </Typography>
+                            <TextField  fullWidth  label="Share this link to start collaborating" variant="standard" value={`http://localhost:4000/?remoteProject=${shareId}`} />
+                            <div>
+                                <Button onClick={handleStartCollab} variant="contained">Start</Button>
+                                <Button onClick={handleCloseShare}>Cancel</Button>
+                            </div>
+                        </Stack>
+                    </Box>
+                </Modal>
                 <AppToolbar variant="permanent">
                     <AppToolbarList>
                         {projectManagerIconList.map((icon, index) => (
@@ -156,6 +218,16 @@ const MiniSidebar = () => {
                         ))}
                     </AppToolbarList>
                     <SideBarDivider />
+                    <AppToolbarList>
+                        {shareIconList.map((icon, index) => (
+                            <AppToolbarItem
+                                key={index}
+                                selectedIcon={selectedIcon}
+                                icon={icon}
+                                handleClick={handleClick}
+                            />
+                        ))}
+                    </AppToolbarList>
                     {/* <AppToolbarList>
                         {executorManagerIconList.map((icon, index) => (
                             <AppToolbarItem

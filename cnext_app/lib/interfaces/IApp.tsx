@@ -244,6 +244,7 @@ export enum ViewMode {
 export enum SideBarName {
     PROJECT = "Projects",
     CHANGE_LAYOUT = "ChangeLayout",
+    SHARE = "Share",
 }
 
 export enum ExecutorToolbarItem {
