@@ -110,7 +110,7 @@ const CodeEditor = ({ stopMouseEvent, ydoc, provider, share, remoteProject }) =>
 
     // When path changes, update the editor
     useEffect(() => {
-        if (!isEditorReady) {
+        if (!isEditorReady || !share) {
             return;
         }
 
