@@ -54,8 +54,6 @@ const GitManager = (props: any) => {
         socket?.emit("ping", WebAppEndpoint.FileManager);
         socket?.on(WebAppEndpoint.FileManager, (result: string) => {
             try {
-                console.log(`JSON.parse(result).content`, JSON.parse(result).content);
-
                 if (JSON.parse(result).command_name === CommandName.get_file_changed) {
                     setListChanged(JSON.parse(result).content);
                 }
