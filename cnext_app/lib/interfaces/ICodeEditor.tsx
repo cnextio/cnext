@@ -135,6 +135,7 @@ export enum CellCommand {
     RUN_BELOW_CELL = "RUN_BELOW_CELL",
     RUN_ALL_CELL = "RUN_ALL_CELL",
     ADD_TEXT = "ADD_TEXT",
+    SWITCH_EDITOR = "SWITCH_EDITOR",
 }
 
 export type ICodeResultContent = string | object | IPlotResult;

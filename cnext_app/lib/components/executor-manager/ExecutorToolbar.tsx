@@ -5,7 +5,7 @@ import AddCardIcon from "@mui/icons-material/AddCardOutlined";
 import PauseIcon from "@mui/icons-material/PauseOutlined";
 import RestartAltIcon from "@mui/icons-material/RestartAltOutlined";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemoveOutlined";
-
+import BorderHorizontalIcon from "@mui/icons-material/BorderHorizontal";
 import {
     ExecutorCommandStatus,
     ExecutorToolbarItem,
@@ -71,6 +71,8 @@ const ExecutorToolbar = () => {
             store.dispatch(setCellCommand(CellCommand.ADD_CELL));
         } else if (name === CellCommand.RUN_ALL_CELL) {
             store.dispatch(setCellCommand(CellCommand.RUN_ALL_CELL));
+        } else if (name === CellCommand.SWITCH_EDITOR) {
+            store.dispatch(setCellCommand(CellCommand.SWITCH_EDITOR));
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -159,6 +161,11 @@ const ExecutorToolbar = () => {
             name: CellCommand.RUN_ALL_CELL,
             component: <ArrowRightIcon fontSize="large" />,
             tooltip: "Run All Cell",
+        },
+        {
+            name: CellCommand.SWITCH_EDITOR,
+            component: <BorderHorizontalIcon fontSize="large" />,
+            tooltip: "Switch Editor",
         },
     ];
     const ExecutorDivider = () => {
