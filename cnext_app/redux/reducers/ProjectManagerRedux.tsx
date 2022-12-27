@@ -74,6 +74,10 @@ type ProjectManagerState = {
     workspaceMetadata: IWorkspaceMetadata;
     projectToAdd: null | string;
     projectToSetActive: null | string;
+    showGitManager: boolean;
+    fileDiff: string;
+    openFilesUpdateCount: number;
+    inViewIDUpdateSignal: number;
 };
 
 const initialState: ProjectManagerState = {
@@ -91,6 +95,7 @@ const initialState: ProjectManagerState = {
     savingStateFile: null,
     showProjectExplore: false,
     serverSynced: false,
+    inViewIDUpdateSignal: 0,
     settings: {
         view_mode: ViewMode.VERTICAL,
         layout: defaultLayoutSettings,
@@ -107,6 +112,9 @@ const initialState: ProjectManagerState = {
     },
     projectToAdd: null,
     projectToSetActive: null,
+    showGitManager: false,
+    fileDiff: "",
+    openFilesUpdateCount: 0,
 };
 
 export const ProjectManagerRedux = createSlice({
@@ -121,7 +129,7 @@ export const ProjectManagerRedux = createSlice({
             state.openFiles = {};
             let projectMetadata: IProjectMetadata = action.payload;
             let files: IFileMetadata[] = projectMetadata.open_files;
-            console.log("ProjectManagerRedux: ", files);
+            console.log("ProjectManagerRedux: projectMetadata", projectMetadata, files);
             files?.map((file: IFileMetadata) => {
                 let id = file.path;
                 state.openFiles[id] = file;
@@ -131,6 +139,7 @@ export const ProjectManagerRedux = createSlice({
             } else {
                 state.openOrder = Object.keys(state.openFiles);
             }
+            state.openFilesUpdateCount++;
         },
 
         setFileMetadata: (state, action) => {
@@ -144,7 +153,9 @@ export const ProjectManagerRedux = createSlice({
 
         setInView: (state, action) => {
             let inViewID = action.payload;
+            state.inViewIDUpdateSignal += 1;
             state.inViewID = inViewID;
+
             if (
                 state.openOrder.includes(inViewID) &&
                 state.openOrder[state.openOrder.length - 1] !== inViewID
@@ -168,14 +179,16 @@ export const ProjectManagerRedux = createSlice({
         setFileToClose: (state, action) => {
             state.fileToClose = action.payload;
         },
-
+        setFileDiff: (state, action) => {
+            state.fileDiff = action.payload;
+        },
         setFileToOpen: (state, action) => {
             let path = action.payload;
             if (Object.keys(state.openFiles).includes(path)) {
-                console.log("ProjectManagerRedux setFileToOpen file already open: ", path);
+                console.log("ProjectManagerRedux setFileToOpen file already open: ", state, path);
                 state.inViewID = path;
             } else {
-                console.log("ProjectManagerRedux setFileToOpen: ", path);
+                console.log("ProjectManagerRedux setFileToOpen: ", state, path);
                 state.fileToOpen = action.payload;
             }
         },
@@ -228,7 +241,9 @@ export const ProjectManagerRedux = createSlice({
         setShowProjectExplorer: (state, action) => {
             state.showProjectExplore = action.payload;
         },
-
+        setShowGitManager: (state, action) => {
+            state.showGitManager = action.payload;
+        },
         setProjectConfig: (state, action) => {
             if (action.payload) {
                 state.settings = { ...state.settings, ...action.payload };
@@ -265,6 +280,7 @@ export const ProjectManagerRedux = createSlice({
             state.openDirs = {};
             state.fileToClose = null;
             state.fileToOpen = null;
+            state.openFilesUpdateCount = 0;
             state.fileToSave = [];
             state.stateFileToSave = [];
             state.savingFile = null;
@@ -296,7 +312,9 @@ export const {
     setWorkspaceMetadata,
     setProjectToAdd,
     setProjectToSetActive,
+    setShowGitManager,
     resetProjectRedux,
+    setFileDiff,
 } = ProjectManagerRedux.actions;
 
 export default ProjectManagerRedux.reducer;

@@ -24,18 +24,21 @@ import {
 import { ContentType, SubContentType } from "../../lib/interfaces/IApp";
 import { ICAssistInfo, ICAssistInfoRedux } from "../../lib/interfaces/ICAssist";
 import { Line } from "@codemirror/state";
+import { getLineRangeOfGroup } from "../../lib/components/code-panel/monaco/libRunQueue";
 
 type CodeEditorState = {
     codeText: { [id: string]: string[] };
+    codeTextDiffView: { [id: string]: string[] | string };
     codeLines: { [id: string]: ICodeLine[] };
     codeStates: { [id: string]: ICodeState };
+    codeNewEditor: { [id: string]: any[] };
     /** file timestamp will be used to check whether the code need to be reloaded
      * A better design might be to move all codeText, codeLines and fileTimestamp under
      * a same dictionary */
     timestamp: { [id: string]: number };
     // fileSaved: boolean;
     runQueue: IRunQueue;
-
+    openaiUpdateSignal: number;
     /** This count is used to trigger the update of ResultView view.
      * It will increase whenever there is an update to results*/
     resultUpdateSignal: number;
@@ -46,11 +49,12 @@ type CodeEditorState = {
     /** This stores the current max text output order.
      * This is used to set the order of the text output. */
     maxTextOutputOrder: number;
-
+    editorType:boolean,
     /** This count is used to trigger the update of CodeOutput view.
      * It will increase whenever there is an update to text output results*/
     textOutputUpdateSignal: number;
-
+    codeTextDiffUpdateSignal: number;
+    saveViewStateEditor: any;
     lineStatusUpdateCount: number;
     activeLine: string | null;
     activeGroup: string | undefined;
@@ -66,26 +70,35 @@ type CodeEditorState = {
     lastLineUpdate: { [key: string]: ILineUpdate };
     mouseOverGroupID: string | null;
     mouseOverLine: Line | null;
-    cellCommand: CellCommand.RUN_CELL | CellCommand.ADD_CELL | CellCommand.CLEAR | null;
+    cellCommand: keyof typeof CellCommand | null;
     /** this number need to be increase whenever cell association changed */
     cellAssocUpdateCount: number;
+    diffView: false;
     /** this number keep track of where in the result array the input request is if any
      * this is used to remove this input request next time there is a result */
     inputRequestResultIndex: number;
     executor_execution_state: string | null;
+    textOpenai?: string | null;
+    textToOpenAI?: string | null;
 };
 
 const initialState: CodeEditorState = {
+    editorType:false,
+    openaiUpdateSignal: 0,
     codeText: {},
+    codeTextDiffView: {},
     codeLines: {},
     codeStates: {},
+    codeNewEditor:{},
     timestamp: {},
+    saveViewStateEditor: {},
     // fileSaved: true,
     runQueue: { status: RunQueueStatus.STOP, queue: [] },
     resultUpdateSignal: 0,
     resultNewOutputSignal: 0,
     maxTextOutputOrder: 0,
     textOutputUpdateSignal: 0,
+    codeTextDiffUpdateSignal: 0,
     lineStatusUpdateCount: 0,
     cellAssocUpdateCount: 0,
     activeLine: null,
@@ -101,8 +114,11 @@ const initialState: CodeEditorState = {
     mouseOverGroupID: null,
     cellCommand: null,
     mouseOverLine: null,
+    diffView: false,
     inputRequestResultIndex: -1,
     executor_execution_state: null,
+    textOpenai: "",
+    textToOpenAI: "",
 };
 
 /**
@@ -172,7 +188,7 @@ function clearRunningLineTextOutputInternal(state: CodeEditorState, runQueueItem
     if (lineRange.fromLine != null && lineRange.toLine != null) {
         for (let l = lineRange.fromLine; l < lineRange.toLine; l++) {
             codeLines[l].textOutput = undefined;
-            state.textOutputUpdateSignal ++;
+            state.textOutputUpdateSignal++;
         }
     }
 }
@@ -225,9 +241,16 @@ export const CodeEditorRedux = createSlice({
             }
             state.codeLines[reduxFileID] = codeLines;
         },
-
+        initCodeTextDiffView: (state, action) => {
+            let codeTextData: any = action.payload;
+            state.codeTextDiffView["text"] = action.payload.codeText;
+            state.codeTextDiffView["diff"] = action.payload.diff;
+            state.codeTextDiffUpdateSignal += 1;
+        },
         updateLines: (state, action) => {
             /** see the design: https://www.notion.so/Adding-and-deleting-lines-2e221653968d4d3b9f8286714e225e78 */
+            console.log("3232",action);
+            
             let lineUpdate: ILineUpdate = action.payload;
             let inViewID = lineUpdate.inViewID;
             let codeLines: ICodeLine[] = state.codeLines[inViewID];
@@ -235,7 +258,7 @@ export const CodeEditorRedux = createSlice({
             state.codeText[inViewID] = lineUpdate.text;
             state.saveCodeTextCounter++;
 
-            console.log("CodeEditorRedux line update info: ", lineUpdate);
+            // console.log("CodeEditorRedux line update info: ", lineUpdate);
             if (lineUpdate.updatedLineCount > 0) {
                 /** if the startLine wasn't changed then we consider the line that got modified to be the next line */
                 // let modifiedStartLineNumber = lineUpdate.startLineChanged
@@ -313,7 +336,10 @@ export const CodeEditorRedux = createSlice({
             let lineStatus: ICodeLineStatus = action.payload;
             setLineStatusInternal(state, lineStatus);
         },
-
+        setViewStateEditor: (state, action) => {
+            const data = action.payload;
+            state.saveViewStateEditor[data.inViewID] = data.viewState;
+        },
         setLineGroupStatus: (state, action) => {
             let lineGroupStatus: ICodeLineGroupStatus = action.payload;
             let inViewID = lineGroupStatus.inViewID;
@@ -328,7 +354,7 @@ export const CodeEditorRedux = createSlice({
                 /** there is a change in cell association */
                 state.cellAssocUpdateCount++;
             }
-            
+
             for (let i = lineGroupStatus.fromLine; i < lineGroupStatus.toLine; i++) {
                 if (lineGroupStatus.status !== undefined) {
                     if (
@@ -362,11 +388,14 @@ export const CodeEditorRedux = createSlice({
             let inViewID = resultMessage.inViewID;
             let resultContent: object | string | null = resultMessage.content;
             let lineRange: ILineRange = resultMessage.metadata["line_range"];
+            let codeLines: ICodeLine[] = state.codeLines[inViewID];
+
+            let newLineRange = getLineRangeOfGroup(codeLines, resultMessage.metadata.groupID);
             // console.log('CodeEditorRedux addResult: ', resultMessage);
             /* only create result when content has something */
             if (lineRange != null && resultContent != null && resultContent !== "") {
                 /** TODO: double check this. for now only associate fromLine to result */
-                let fromLine = lineRange.fromLine;
+                let fromLine = newLineRange?.fromLine ? newLineRange?.fromLine : lineRange.fromLine;
                 let codeLines: ICodeLine[] = state.codeLines[inViewID];
                 let currentTextOutput = state.codeLines[inViewID][fromLine].textOutput;
 
@@ -513,6 +542,13 @@ export const CodeEditorRedux = createSlice({
         setMouseOverLine: (state, action) => {
             state.mouseOverLine = action.payload;
         },
+        setTextOpenai: (state, action) => {
+            state.textOpenai = action.payload;
+            state.openaiUpdateSignal = state.openaiUpdateSignal + 1;
+        },
+        setTextToOpenAi: (state, action) => {
+            state.textToOpenAI = action.payload;
+        },
 
         /** We allow to set active line using either lineNumber or lineID in which lineNumber take precedence */
         setActiveLine: (state, action) => {
@@ -523,8 +559,8 @@ export const CodeEditorRedux = createSlice({
 
             let codeLines: ICodeLine[] = state.codeLines[newActiveLine.inViewID];
             if (lineNumber != null) {
-                lineID = codeLines[lineNumber].lineID;
-                groupID = codeLines[lineNumber].groupID;
+                lineID = codeLines[lineNumber]?.lineID;
+                groupID = codeLines[lineNumber]?.groupID;
             } else if (lineID != null) {
                 /** we pay some price here but this is the use case where user click on result which maybe ok */
                 for (let i = 0; i < codeLines.length; i++) {
@@ -602,11 +638,18 @@ export const CodeEditorRedux = createSlice({
             state.codeLines[inViewID][lineNumber].cAssistInfo = cAssistInfoRedux.cAssistInfo;
             state.cAssistInfo = cAssistInfoRedux.cAssistInfo;
         },
-
+       
+         setEditorType: (state, action) => {
+            state.editorType = action.payload;
+        },
         setCodeToInsert: (state, action) => {
             state.codeToInsert = action.payload;
+        },  setCodeNewEditor: (state, action) => {
+            state.codeNewEditor[action.payload.inViewID] = state.codeLines[action.payload.inViewID];
         },
-
+        setDiffEditor: (state, action) => {
+            state.diffView = action.payload;
+        },
         clearAllOutputs: (state, action) => {
             // typeof action.payload === 'string' -> payload = inViewID
             // typeof action.payload === 'object' -> payload = { inViewID, mouseOverGroupID }
@@ -667,8 +710,10 @@ export const CodeEditorRedux = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
+    setViewStateEditor,
     initCodeText,
     updateLines,
+    setDiffEditor,
     addResult,
     setLineStatus,
     setLineGroupStatus,
@@ -679,13 +724,18 @@ export const {
     removeFirstItemFromRunQueue,
     updateCAssistInfo,
     setCodeToInsert,
+    setCodeNewEditor,
     clearRunningLineTextOutput,
     clearAllOutputs,
     resetCodeEditor,
+    initCodeTextDiffView,
     setMouseOverGroup,
     setCellCommand,
     setMouseOverLine,
     setCodeStates,
+    setTextOpenai,
+    setTextToOpenAi,
+    setEditorType
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;

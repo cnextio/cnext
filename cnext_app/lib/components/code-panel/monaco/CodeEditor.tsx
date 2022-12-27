@@ -1,5 +1,5 @@
+import { DiffEditor, useMonaco } from "@monaco-editor/react";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { useMonaco } from "@monaco-editor/react";
 import { useDispatch, useSelector } from "react-redux";
 import store, { RootState } from "../../../../redux/store";
 import {
@@ -10,6 +10,17 @@ import {
     setCodeTextAndStates,
     setHTMLEventHandler,
     setLineStatus,
+    getCodeText,
+    deleteCellHover,
+    runCellAboveGroup,
+    runCellBelowGroup,
+    runAllCell,
+    setGroup,
+    setUnGroup,
+    setWidgetOpacity,
+    addText,
+    sendTextToOpenai,
+    sendOpenAi,
 } from "./libCodeEditor";
 import { setCellWidgets } from "./libCellWidget";
 import { setCellDeco } from "./libCellDeco";
@@ -35,18 +46,52 @@ import {
     updateLines,
     setActiveLine as setActiveLineRedux,
     setLineGroupStatus,
+    setViewStateEditor,
 } from "../../../../redux/reducers/CodeEditorRedux";
 import { IMessage, WebAppEndpoint } from "../../../interfaces/IApp";
+import {
+    addToRunQueueHoverCell,
+    addToRunQueueHoverLine,
+    addToRunQueueMoveDown,
+    getLineRangeOfGroup,
+} from "./libRunQueue";
 import { SocketContext } from "../../Socket";
-import { addToRunQueueHoverCell, addToRunQueueHoverLine } from "./libRunQueue";
 import { getCellFoldRange } from "./libCellFold";
 import { CodeInsertStatus } from "../../../interfaces/ICAssist";
+// import  Diff  from "diff";
+const Diff = require("diff");
 import { PythonLanguageClient, LanguageProvider } from "./languageClient";
 
 const CodeEditor = ({ stopMouseEvent }) => {
     const socket = useContext(SocketContext);
 
     const monaco = useMonaco();
+    const textToOpenAI = useSelector((state: RootState) => state.codeEditor.textToOpenAI);
+    const openaiUpdateSignal = useSelector(
+        (state: RootState) => state.codeEditor.openaiUpdateSignal
+    );
+
+    const textOpenai = useSelector((state: RootState) => state.codeEditor.textOpenai);
+    const codeTextDiffView = useSelector((state: RootState) => state.codeEditor.codeTextDiffView);
+    const diffView = useSelector((state: RootState) => state.codeEditor.diffView);
+    const codeTextDiffUpdateSignal = useSelector(
+        (state: RootState) => state.codeEditor.codeTextDiffUpdateSignal
+    );
+
+    const [original, setOriginal] = useState(``);
+    const [modified, setModified] = useState(``);
+
+    //applyPatch
+    useEffect(() => {
+        if (codeTextDiffView.text && codeTextDiffView.text.length > 0) {
+            const codeTextDiff = codeTextDiffView.text.join("\n");
+            setModified(codeTextDiff);
+            const reverse_gitpatch = codeTextDiffView.diff;
+            const applyPatch = Diff.applyPatch(codeTextDiff, reverse_gitpatch);
+            setOriginal(applyPatch);
+        }
+    }, [codeTextDiffUpdateSignal]);
+
     const serverSynced = useSelector((state: RootState) => state.projectManager.serverSynced);
     const executorRestartCounter = useSelector(
         (state: RootState) => state.executorManager.executorRestartSignal
@@ -55,13 +100,21 @@ const CodeEditor = ({ stopMouseEvent }) => {
         (state: RootState) => state.executorManager.executorInterruptSignal
     );
     const inViewID = useSelector((state: RootState) => state.projectManager.inViewID);
+
+    const inViewIDUPdateSignal = useSelector(
+        (state: RootState) => state.projectManager.inViewIDUpdateSignal
+    );
     /** this is used to save the state such as scroll pos and folding status */
     const [curInViewID, setCurInViewID] = useState<string | null>(null);
+    const [oldState, setOldState] = useState<boolean>(false);
     const activeProjectID = useSelector(
         (state: RootState) => state.projectManager.activeProject?.id
     );
+    const saveViewStateEditor = useSelector(
+        (state: RootState) => state.codeEditor.saveViewStateEditor
+    );
     /** using this to trigger refresh in gutter */
-    // const codeText = useSelector((state: RootState) => getCodeText(state));
+    const codeText = useSelector((state: RootState) => getCodeText(state));
 
     const cellAssocUpdateCount = useSelector(
         (state: RootState) => state.codeEditor.cellAssocUpdateCount
@@ -112,7 +165,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
 
         if (model && inViewID) {
             const codeLines = state.codeEditor.codeLines[inViewID];
-            let curGroupID = codeLines[lnToInsertAfter - 1].groupID;
+            let curGroupID = codeLines[lnToInsertAfter - 1]?.groupID;
 
             while (
                 curGroupID != null &&
@@ -200,8 +253,8 @@ const CodeEditor = ({ stopMouseEvent }) => {
      * Init CodeEditor socket connection. This should be run only once on the first mount.
      */
     const socketInit = () => {
-          socket?.emit("ping", WebAppEndpoint.CodeEditor);
-          socket?.on(WebAppEndpoint.CodeEditor,  (result: string, ack) => {
+        socket?.emit("ping", WebAppEndpoint.CodeEditor);
+        socket?.on(WebAppEndpoint.CodeEditor, (result: string, ack) => {
             console.log("CodeEditor got result ", result);
             // console.log("CodeEditor: got results...");
             try {
@@ -209,6 +262,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 let inViewID = store.getState().projectManager.inViewID;
                 if (inViewID) {
                     handleResultData(codeOutput);
+                    setWidgetOpacity(codeOutput?.metadata?.groupID, "1");
                     if (
                         codeOutput.metadata?.msg_type === "execute_reply" &&
                         codeOutput.content?.status != null
@@ -260,7 +314,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
         // resetEditorState(inViewID, view);
         return () => {
             console.log("CodeEditor unmount");
-              socket?.off(WebAppEndpoint.CodeEditor);
+            socket?.off(WebAppEndpoint.CodeEditor);
         };
     }, []);
 
@@ -309,6 +363,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     run: () => insertCellBelow(CodeInsertMode.GROUP, null),
                 },
                 {
+                    id: "open-ai",
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyJ],
+                    run: () => sendOpenAi(editor),
+                },
+                {
                     id: shortcutKeysConfig.insert_line_below,
                     keybindings: [
                         monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyL,
@@ -319,6 +378,11 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     id: shortcutKeysConfig.run_queue,
                     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
                     run: () => addToRunQueueHoverCell(),
+                },
+                {
+                    id: shortcutKeysConfig.run_queue_then_move_down,
+                    keybindings: [monaco.KeyMod.Shift | monaco.KeyCode.Enter],
+                    run: () => addToRunQueueMoveDown(editor),
                 },
                 {
                     id: `foldAll`,
@@ -334,6 +398,16 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     ],
                     run: () => unfoldAll(editor),
                 },
+                {
+                    id: shortcutKeysConfig.set_group,
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG],
+                    run: () => setGroup(editor),
+                },
+                {
+                    id: shortcutKeysConfig.set_ungroup,
+                    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyU],
+                    run: () => setUnGroup(editor),
+                },
             ];
             keymap.forEach(function (element) {
                 (editor as any).addAction({ ...element, label: element.id });
@@ -347,7 +421,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             if (runQueue.queue.length > 0) {
                 let runQueueItem = runQueue.queue[0];
                 dispatch(setRunQueueStatus(RunQueueStatus.RUNNING));
-                execLines(socket,runQueueItem);
+                execLines(socket, runQueueItem);
             }
         }
     }, [runQueue]);
@@ -363,6 +437,26 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     }, [executorRestartCounter, executorInterruptSignal]);
 
+    useEffect(() => {
+        if (inViewID && monaco && editor) {
+            let groupID = textOpenai.metadata.groupID;
+            let lineNumber = textOpenai.metadata.lineNumber; /** 1-based */
+            const codeLines = store.getState().codeEditor.codeLines[inViewID];
+
+            let lineRange: any = getLineRangeOfGroup(codeLines, groupID);
+
+            var range = new monaco.Range(lineNumber + 1, 1, lineNumber + 1, 1);
+            var id = { major: 1, minor: 1 };
+            var text = textOpenai.content.choices[0].text + `\n`;
+            var op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
+            editor.executeEdits("my-source", [op]);
+        }
+    }, [openaiUpdateSignal]);
+    useEffect(() => {
+        if (inViewID && monaco && editor) {
+            sendTextToOpenai(socket, textToOpenAI);
+        }
+    }, [textToOpenAI]);
     /**
      * Reset the code editor state when the doc is selected to be in view
      * */
@@ -375,7 +469,15 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
         // resetEditorState(inViewID, view);
         setCodeReloading(true);
-    }, [inViewID]);
+    }, [inViewID, diffView]);
+
+    useEffect(() => {
+        if (!diffView) {
+            setTimeout(() => {
+                setCodeReloading(true);
+            }, 0);
+        }
+    }, [diffView]);
 
     useEffect(() => {
         if (serverSynced && codeReloading && monaco && editor) {
@@ -386,8 +488,14 @@ const CodeEditor = ({ stopMouseEvent }) => {
             getCellFoldRange(monaco, editor);
             setCellWidgets(editor);
             setCodeReloading(false);
+
+            // //When you create the new instance load the model that you saved
+            if (inViewID && saveViewStateEditor[inViewID]) {
+                editor.restoreViewState(saveViewStateEditor[inViewID]);
+                // setOldState(true)
+            }
         }
-    }, [serverSynced, codeReloading, monaco, editor]);
+    }, [serverSynced, codeReloading, monaco, editor, diffView]);
 
     useEffect(() => {
         const state = store.getState();
@@ -406,8 +514,6 @@ const CodeEditor = ({ stopMouseEvent }) => {
             }
             switch (cellCommand) {
                 case CellCommand.RUN_CELL:
-                    console.log("run cell");
-                    
                     addToRunQueueHoverCell();
                     break;
                 case CellCommand.CLEAR:
@@ -417,6 +523,21 @@ const CodeEditor = ({ stopMouseEvent }) => {
                     /** TODO: fix the type issue with ln0based */
                     insertCellBelow(CodeInsertMode.GROUP, ln0based);
                     break;
+                case CellCommand.DELL_CELL:
+                    deleteCellHover(editor, monaco);
+                    break;
+                case CellCommand.RUN_ABOVE_CELL:
+                    runCellAboveGroup(editor);
+                    break;
+                case CellCommand.RUN_BELOW_CELL:
+                    runCellBelowGroup();
+                    break;
+                case CellCommand.RUN_ALL_CELL:
+                    runAllCell();
+                    break;
+                // case CellCommand.ADD_TEXT:
+                //     addText(socket);
+                //     break;
             }
             dispatch(setCellCommand(undefined));
         }
@@ -442,7 +563,7 @@ const CodeEditor = ({ stopMouseEvent }) => {
             let inViewID = state.projectManager.inViewID;
             /** do nothing if the update is due to code reloading from external source */
             if (event.isFlush) return;
-            console.log("Monaco here is the current model value:", event);
+            // console.log("Monaco here is the current model value:", event);
             let serverSynced = store.getState().projectManager.serverSynced;
             if (monaco) {
                 let model = getMainEditorModel(monaco);
@@ -507,13 +628,14 @@ const CodeEditor = ({ stopMouseEvent }) => {
         }
     };
 
-    return (
+    return !diffView ? (
         <StyledMonacoEditor
             height="90vh"
             defaultValue=""
             defaultLanguage="python"
             onMount={handleEditorDidMount}
             onChange={handleEditorChange}
+            saveViewState
             options={{
                 minimap: { enabled: true, autohide: true },
                 fontSize: 11,
@@ -521,6 +643,21 @@ const CodeEditor = ({ stopMouseEvent }) => {
                 scrollbar: { verticalScrollbarSize: 10 },
                 // foldingStrategy: "indentation",
             }}
+        />
+    ) : (
+        <DiffEditor
+            height="90vh"
+            language="python"
+            original={original}
+            modified={modified}
+            options={{
+                minimap: { enabled: true, autohide: true },
+                fontSize: 11,
+                renderLineHighlight: "none",
+                scrollbar: { verticalScrollbarSize: 10 },
+                // foldingStrategy: "indentation",
+            }}
+            // onMount={handleEditorDidMountDiff}
         />
     );
 };

@@ -12,6 +12,8 @@ import SplitPane from "react-split-pane-v2";
 import { CommandName, ContentType, IMessage, WebAppEndpoint } from "../interfaces/IApp";
 import { sendMessage, SocketContext } from "./Socket";
 import TerminalManager from "./terminal-manager/TerminalManager";
+import GitManager from "./git-manager/GitManager";
+import OpenAiManager from "./openai-manager/OpenAiManager";
 import HotkeyComponent from "./hotkeys/HotKeys";
 import { Notifier } from "./notifier/Notifier";
 
@@ -20,7 +22,7 @@ const WorkingPanel = () => {
     const showProjectExplore = useSelector(
         (state: RootState) => state.projectManager.showProjectExplore
     );
-
+    const showGitManager = useSelector((state: RootState) => state.projectManager.showGitManager);
     const projectConfig = useSelector((state: RootState) => state.projectManager.settings);
     let experiment_tracking_uri = useSelector(
         (state: RootState) =>
@@ -52,13 +54,15 @@ const WorkingPanel = () => {
             <SplitPane split="vertical">
                 <Pane
                     size={
-                        showProjectExplore
+                        showProjectExplore || showGitManager
                             ? projectConfig.layout?.project_explorer_size + "px"
                             : "0px"
                     }
                 >
-                    <FileExplorer />
+                    {showProjectExplore ? <FileExplorer /> : null}
+                    {showGitManager ? <GitManager /> : null}
                 </Pane>
+
                 <Pane>
                     <SplitPane
                         split={projectConfig.view_mode}
@@ -85,6 +89,7 @@ const WorkingPanel = () => {
             <DataFrameManager />
             <FileManager />
             <TerminalManager />
+            <OpenAiManager />
             <HotkeyComponent />
             <Notifier />
         </StyledWorkingPanel>

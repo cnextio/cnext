@@ -1,5 +1,6 @@
 import os
 import traceback
+import git
 
 from libs.message_handler import BaseMessageHandler
 from libs.message import ContentType
@@ -49,6 +50,25 @@ class MessageHandler(BaseMessageHandler):
             elif message.command_name == ProjectCommand.read_file:
                 result = files.read_file(messageParams.norm_project_path, messageParams.norm_path,
                                          messageParams.timestamp)
+                if result == None:
+                    type = ContentType.NONE
+                else:
+                    type = ContentType.FILE_CONTENT
+            elif message.command_name == ProjectCommand.get_file_changed:
+                self.repo = git.repo.Repo(
+                    messageParams.norm_project_path, search_parent_directories=True)
+                changedFiles = [
+                    os.path.normpath(item.a_path) for item in self.repo.index.diff(None)]
+                result = changedFiles
+                if result == None:
+                    type = ContentType.NONE
+                else:
+                    type = ContentType.FILE_CONTENT
+            elif message.command_name == ProjectCommand.read_diff:
+                result = files.read_file(messageParams.norm_project_path, messageParams.norm_path,
+                                         messageParams.timestamp)
+                diff = self.repo.git.diff([messageParams.path_diff], R=True)
+                result.diff = diff
                 if result == None:
                     type = ContentType.NONE
                 else:

@@ -5,7 +5,7 @@ import AddCardIcon from "@mui/icons-material/AddCardOutlined";
 import PauseIcon from "@mui/icons-material/PauseOutlined";
 import RestartAltIcon from "@mui/icons-material/RestartAltOutlined";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemoveOutlined";
-
+import BorderHorizontalIcon from "@mui/icons-material/BorderHorizontal";
 import {
     ExecutorCommandStatus,
     ExecutorToolbarItem,
@@ -20,6 +20,7 @@ import store from "../../../redux/store";
 import ExecutorCommandConfirmation from "./ExecutorCommandConfirmation";
 import { useExecutorManager } from "./ExecutorManager";
 import { CellCommand } from "../../interfaces/ICodeEditor";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import { SocketContext } from "../Socket";
 import { clearTextOutput } from "../../../redux/reducers/RichOutputRedux";
 import {
@@ -43,7 +44,7 @@ const ExecutorToolbarItemComponent = ({ icon, selectedIcon, handleClick }) => {
 };
 
 const ExecutorToolbar = () => {
-    const socket = React.useContext(SocketContext);
+    // const socket = React.useContext(SocketContext);
     const [selectedIcon, setSelectedIcon] = React.useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const [executionStatus, setExecutionStatus] = useState<null | IExecutorCommandResponse>(null);
@@ -68,6 +69,10 @@ const ExecutorToolbar = () => {
             setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
         } else if (name === CellCommand.ADD_CELL) {
             store.dispatch(setCellCommand(CellCommand.ADD_CELL));
+        } else if (name === CellCommand.RUN_ALL_CELL) {
+            store.dispatch(setCellCommand(CellCommand.RUN_ALL_CELL));
+        } else if (name === CellCommand.SWITCH_EDITOR) {
+            store.dispatch(setCellCommand(CellCommand.SWITCH_EDITOR));
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -77,18 +82,18 @@ const ExecutorToolbar = () => {
         }
     };
 
-    const { sendCommand } = useExecutorManager();
+    const { sendCommand, ready } = useExecutorManager();
     const [executing, setExecuting] = useState(false);
 
     React.useEffect(() => {
-        if (socket && sendCommand && kernelInfoInit === KernelInfoInitStatus.NOT_YET) {
+        if (ready && sendCommand && kernelInfoInit === KernelInfoInitStatus.NOT_YET) {
             setExecuting(true);
             sendCommand(ExecutorManagerCommand.get_kernel_info)
                 .then((response: IExecutorCommandResponse) => {
                     if (response.status === ExecutorCommandStatus.EXECUTION_OK) {
                         dispatch(setKernelInfo(response.result?.kernel_info));
                         setKernelInfoInit(KernelInfoInitStatus.DONE);
-                    } else {
+                    } else if (response.status !== ExecutorCommandStatus.SOCKET_NOT_READY) {
                         setKernelInfoInit(KernelInfoInitStatus.ERROR);
                         // set notification
                     }
@@ -98,7 +103,7 @@ const ExecutorToolbar = () => {
                 })
                 .finally(() => setExecuting(false));
         }
-    }, [sendCommand, kernelInfoInit]);
+    }, [ready, sendCommand, kernelInfoInit]);
 
     async function commandDialogConfirm(confirm: boolean, command: ExecutorManagerCommand) {
         if (confirm) {
@@ -151,6 +156,16 @@ const ExecutorToolbar = () => {
             name: CellCommand.ADD_CELL,
             component: <AddCardIcon />,
             tooltip: "Add Cell",
+        },
+        {
+            name: CellCommand.RUN_ALL_CELL,
+            component: <ArrowRightIcon fontSize="large" />,
+            tooltip: "Run All Cell",
+        },
+        {
+            name: CellCommand.SWITCH_EDITOR,
+            component: <BorderHorizontalIcon fontSize="large" />,
+            tooltip: "Switch Editor",
         },
     ];
     const ExecutorDivider = () => {

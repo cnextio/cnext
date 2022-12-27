@@ -43,6 +43,72 @@ export const MonacoEditor = styled(Editor)`
             background: var(--var-color-executing);
         }
     }
+    .cellwidget-input {
+        margin-top: 6px;
+        > * {
+            opacity: 0;
+        }
+        &.show-input {
+            > * {
+                opacity: 1;
+            }
+            input {
+                border: 1px solid #494848dd;
+                padding: 4px 4px;
+                position: relative;
+                z-index: 100000000000000;
+                width: 100%;
+                max-width: 900px;
+                direction: ltr;
+                &:focus {
+                    outline: none;
+                }
+            }
+        }
+        @keyframes loading {
+            0% {
+                transform-origin: 100% 100%;
+                transform: rotate(0deg);
+            }
+            100% {
+                transform-origin: 100% 100%;
+                transform: rotate(360deg);
+            }
+        }
+        .loading-ai {
+            width: 24px;
+            height: 24px;
+            margin: 5px 5px 0 0;
+            &::before {
+                position: absolute;
+                display: block;
+                content: "";
+                z-index: 12;
+                top: 2px;
+                left: 2px;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background-color: #fff;
+            }
+            &::after {
+                position: absolute;
+                display: block;
+                content: "";
+                z-index: 11;
+                width: 12px;
+                height: 12px;
+                border-radius: 200px 0 0;
+                background: linear-gradient(
+                    45deg,
+                    rgba(0, 0, 0, 0) 0,
+                    rgba(69, 154, 215, 1) 50%,
+                    rgba(69, 154, 215, 1) 100%
+                );
+                animation: loading 0.5s linear infinite;
+            }
+        }
+    }
     .cellwidget {
         height: 18px;
         // width: 100% !important;
@@ -56,8 +122,38 @@ export const MonacoEditor = styled(Editor)`
                 opacity: 1;
             }
         }
+        .circle-excuting {
+            svg {
+                border: 3px solid #f59242;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                text-align: center;
+                box-sizing: border-box;
+                -webkit-animation: circle-bounce 2s infinite ease-in-out;
+                animation: circle-bounce 2s infinite ease-in-out;
+                -webkit-animation-delay: -1s;
+                animation-delay: -1s;
+            }
 
+            /* -webkit-animation: circle-bounce 2s infinite ease-in-out;
+            animation: circle-bounce 2s infinite ease-in-out;
+            -webkit-animation-delay: -1s;
+            animation-delay: -1s; */
+        }
+        @keyframes circle-bounce {
+            0%,
+            100% {
+                transform: scale(0.9);
+                -webkit-transform: scale(0.9);
+            }
+            50% {
+                transform: scale(1.2);
+                -webkit-transform: scale(1.2);
+            }
+        }
         .cellcommand {
+            position: relative;
             display: inline-block;
             cursor: pointer;
             font-size: 11px;
@@ -83,6 +179,7 @@ export const MonacoEditor = styled(Editor)`
                 -webkit-transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
                 transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
                 font-size: 1rem;
+                margin-right: 4px;
             }
             .tooltiptext {
                 visibility: hidden;
@@ -118,6 +215,14 @@ export const MonacoEditor = styled(Editor)`
                 /* color: #8a8989; */
                 svg {
                     background-color: #f3f3f3;
+                    &:first-child {
+                        margin-left: 2px;
+                    }
+                }
+            }
+            svg {
+                &:first-child {
+                    margin-left: 2px;
                 }
             }
         }

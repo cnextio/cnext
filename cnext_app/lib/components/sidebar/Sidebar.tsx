@@ -4,7 +4,7 @@ import PauseIcon from "@mui/icons-material/Pause";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import PlaylistRemoveIcon from "@mui/icons-material/PlaylistRemove";
-
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import {
     AppToolbar,
     AppToolbarList,
@@ -19,18 +19,21 @@ import { useDispatch } from "react-redux";
 import { Fragment, useEffect, useState } from "react";
 import {
     setShowProjectExplorer,
+    setShowGitManager,
     setProjectConfig,
 } from "../../../redux/reducers/ProjectManagerRedux";
-import { clearAllOutputs } from "../../../redux/reducers/CodeEditorRedux";
+import { clearAllOutputs, setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
 import { ViewMode } from "../../interfaces/IApp";
 import { SideBarName } from "../../interfaces/IApp";
 import Tooltip from "@mui/material/Tooltip";
 import store from "../../../redux/store";
 import Divider from "@mui/material/Divider";
-import { restartKernel, interruptKernel } from "../executor-manager/ExecutorManager";
+import { restartKernel, interruptKernel } from "../executor-manager/ExecutorCommander";
 import ExecutorCommandConfirmation from "../executor-manager/ExecutorCommandConfirmation";
 import Account from "../user-manager/Account";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
+import { GitSVG } from "../icons/GitSVG";
+import { SocketContext } from "../Socket";
 
 const AppToolbarItem = ({ icon, selectedIcon, handleClick }) => {
     return (
@@ -56,6 +59,8 @@ const SideBarDivider = () => {
 };
 
 const MiniSidebar = () => {
+    const socket = React.useContext(SocketContext);
+
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
     const [kernelCommand, setKernelCommand] = useState<ExecutorManagerCommand | null>(null);
     const dispatch = useDispatch();
@@ -75,13 +80,13 @@ const MiniSidebar = () => {
             tooltip: "Change layout",
         },
     ];
-
-    const handleClickClearOutputs = () => {
-        const state = store.getState();
-        const inViewID = state.projectManager.inViewID;
-        dispatch(clearAllOutputs(inViewID));
-    };
-
+    const gitManagerIconList = [
+        {
+            name: SideBarName.GIT,
+            component: <GitSVG />,
+            tooltip: "Source Control",
+        },
+    ];
     const handleClickChangeLayout = () => {
         const state = store.getState();
         const viewMode = state.projectManager.settings.view_mode;
@@ -93,14 +98,8 @@ const MiniSidebar = () => {
     };
 
     const handleClick = (name: string) => {
-        if (name === SideBarName.CLEAR_OUTPUTS) {
-            handleClickClearOutputs();
-        } else if (name === SideBarName.CHANGE_LAYOUT) {
+        if (name === SideBarName.CHANGE_LAYOUT) {
             handleClickChangeLayout();
-        } else if (name === SideBarName.RESTART_KERNEL) {
-            setKernelCommand(ExecutorManagerCommand.restart_kernel);
-        } else if (name === SideBarName.INTERRUPT_KERNEL) {
-            setKernelCommand(ExecutorManagerCommand.interrupt_kernel);
         } else {
             if (name === selectedIcon) {
                 setSelectedIcon(null);
@@ -114,9 +113,9 @@ const MiniSidebar = () => {
         setKernelCommand(null);
         if (confirm) {
             if (command === ExecutorManagerCommand.interrupt_kernel) {
-                interruptKernel();
+                interruptKernel(socket);
             } else if (command === ExecutorManagerCommand.restart_kernel) {
-                restartKernel();
+                restartKernel(socket);
             }
         }
     };
@@ -124,7 +123,16 @@ const MiniSidebar = () => {
     useEffect(() => {
         if (selectedIcon === SideBarName.PROJECT) {
             dispatch(setShowProjectExplorer(true));
+            dispatch(setShowGitManager(false));
+        } else if (selectedIcon === SideBarName.GIT) {
+            // dispatch(setDiffEditor(false))
+
+            dispatch(setShowGitManager(true));
+            dispatch(setShowProjectExplorer(false));
         } else {
+            dispatch(setDiffEditor(false));
+
+            dispatch(setShowGitManager(false));
             dispatch(setShowProjectExplorer(false));
         }
     }, [selectedIcon]);
@@ -156,16 +164,15 @@ const MiniSidebar = () => {
                         ))}
                     </AppToolbarList>
                     <SideBarDivider />
-                    {/* <AppToolbarList>
-                        {executorManagerIconList.map((icon, index) => (
-                            <AppToolbarItem
-                                key={index}
-                                selectedIcon={selectedIcon}
-                                icon={icon}
-                                handleClick={handleClick}
-                            />
-                        ))}
-                    </AppToolbarList> */}
+                    {gitManagerIconList.map((icon, index) => (
+                        <AppToolbarItem
+                            key={index}
+                            icon={icon}
+                            selectedIcon={selectedIcon}
+                            handleClick={handleClick}
+                        />
+                    ))}
+                    <SideBarDivider />
                 </AppToolbar>
                 <Account />
             </Sidebar>

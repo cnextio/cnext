@@ -51,6 +51,7 @@ import AddBoxIcon from "@mui/icons-material/AddBox";
 import Tooltip from "@mui/material/Tooltip";
 import { isRunQueueBusy } from "../code-panel/libCodeEditor";
 import { OverlayComponent } from "../libs/OverlayComponent";
+import { setDiffEditor } from "../../../redux/reducers/CodeEditorRedux";
 import { sendMessage, SocketContext } from "../Socket";
 
 const NameWithTooltip = ({ children, tooltip }) => {
@@ -81,7 +82,8 @@ const FileExplorer = (props: any) => {
         (state: RootState) => state.projectManager.workspaceMetadata
     );
 
-    const [focusedProjectTreeItem, setFocusedProjectTreeItem] = useState<ProjectTreeItemInfo | null>(null);
+    const [focusedProjectTreeItem, setFocusedProjectTreeItem] =
+        useState<ProjectTreeItemInfo | null>(null);
     const [createItemInProgress, setCreateItemInProgress] = useState<boolean>(false);
     const [createProjectInProgress, setCreateProjectInprogress] = useState<boolean>(false);
     const [txtError, setTxtError] = useState<string | null>(null);
@@ -337,7 +339,11 @@ const FileExplorer = (props: any) => {
                 /** this will create path format that conforms to the style of the client OS
                  * but not that of server OS. The server will have to use os.path.norm to correct
                  * the path */
-                let relativePath = path.join(relativeProjectPath, focusedProjectTreeItem.item, value);
+                let relativePath = path.join(
+                    relativeProjectPath,
+                    focusedProjectTreeItem.item,
+                    value
+                );
                 console.log(
                     "FileExplorer create new item: ",
                     relativePath,
@@ -407,6 +413,7 @@ const FileExplorer = (props: any) => {
                             return Number(a?.is_file) - Number(b?.is_file);
                         })
                         .map((value, index) => {
+                            // console.log(value)
                             return (
                                 <FileItem
                                     nodeId={value.path}
@@ -419,7 +426,10 @@ const FileExplorer = (props: any) => {
                                         </NameWithTooltip>
                                     }
                                     onClick={() => {
-                                        value.is_file ? dispatch(setFileToOpen(value.path)) : null;
+                                        value.is_file && value.path
+                                            ? (dispatch(setDiffEditor(false)),
+                                              dispatch(setFileToOpen(value.path)))
+                                            : null;
                                     }}
                                     onMouseDown={() => {
                                         setFocusedProjectTreeItem({
@@ -504,7 +514,7 @@ const FileExplorer = (props: any) => {
                                     parent: relativeProjectPath,
                                     item: relativeProjectPath,
                                     is_file: false,
-                                    deletable: false
+                                    deletable: false,
                                 });
                             }}
                             onContextMenu={(event: React.MouseEvent) => {

@@ -65,6 +65,7 @@ export interface IMessage {
 
 export enum CommandName {
     exec_line = "exec_line",
+    get_file_changed="get_file_changed",
     exec_grouped_lines = "exec_grouped_lines",
     send_stdin = "send_stdin",
     /** this command contained the updated information of the dataframe status. It is used
@@ -81,9 +82,13 @@ export enum CommandName {
     plot_column_quantile = "plot_column_quantile",
     get_cardinal = "get_cardinal" /** get number of elements of a column given some filters */,
     get_jupyter_server_config = "get_jupyter_server_config",
+    get_list_file_changed = "get_list_file_changed",
+    connect_repo = "connect_repo",
+    check_diff = "check_diff",
     get_registered_udfs = "get_registered_udfs",
     compute_udf = "compute_udf",
     set_dataframe_cell_value = "set_dataframe_cell_value",
+    exc_text= "exc_text"
 }
 
 export enum ContentType {
@@ -148,9 +153,11 @@ export enum WebAppEndpoint {
     LanguageServerCompletion = "LanguageServerCompletion",
     LanguageServerSignature = "LanguageServerSignature",
     Terminal = "Terminal",
+    GitManager = "GitManager",
     LogsManager = "LogsManager",
     DataViewer = "DataViewer",
     DFExplorer = "DFExplorer",
+    OpenAiManager= "OpenAiManager"
 }
 
 export interface ITableData {
@@ -247,6 +254,7 @@ export enum ViewMode {
 export enum SideBarName {
     PROJECT = "Projects",
     CHANGE_LAYOUT = "ChangeLayout",
+    GIT = "Git",
 }
 
 export enum ExecutorToolbarItem {
@@ -401,6 +409,7 @@ export enum ExecutorCommandStatus {
     EXECUTION_FAILED = "execution_failed",
     EXECUTION_OK = "execution_ok",
     EXECUTION_BUSY = "execution_busy",
+    SOCKET_NOT_READY = "socket_not_ready",
 }
 
 export interface IExecutorCommandResponse {

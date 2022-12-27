@@ -108,7 +108,7 @@ const TerminalComponent = () => {
             }
         }
     }
-    
+
     useEffect(() => {
         init();
         return () => {

@@ -5,8 +5,6 @@ import { getCodeLine } from "./libCodeEditor";
 let decorations = [];
 
 export const setCellDeco = (monaco, editor) => {
-    console.log(`setCellDeco`, setCellDeco);
-
     let state = store.getState();
     const activeGroup = state.codeEditor.activeGroup;
     const cellLineDeco = [];
@@ -87,7 +85,7 @@ function getClassLineStatus(status: number) {
         case LineStatus.EDITED:
             return "";
         case LineStatus.EXECUTING:
-            return executingClass;
+            return inqueueClass;
         case LineStatus.EXECUTED_SUCCESS:
             return executedOkClass;
         case LineStatus.EXECUTED_FAILED:

@@ -3,7 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useBeforeunload } from "react-beforeunload";
 import {
     initCodeText,
+    initCodeTextDiffView,
     resetCodeEditor as resetCodeEditorRedux,
+    setDiffEditor,
 } from "../../../redux/reducers/CodeEditorRedux";
 import {
     setFileMetadata,
@@ -27,6 +29,7 @@ import {
     IExecutorCommandResponse,
     IMessage,
     SETTING_FILE_PATH as CONFIG_FILE_PATH,
+    SETTING_FILE_PATH,
     SubContentType,
     WebAppEndpoint,
 } from "../../interfaces/IApp";
@@ -37,11 +40,13 @@ import {
     IWorkspaceMetadata,
     IProjectMetadata,
 } from "../../interfaces/IFileManager";
+
+import { isDiffFile, parseUrl } from "../libs";
 import { SocketContext, sendMessage as socketSendMessage } from "../Socket";
 import { ExecutorManagerCommand } from "../../interfaces/IExecutorManager";
 import { updateExecutorRestartSignal } from "../../../redux/reducers/ExecutorManagerRedux";
 import { setNotification } from "../../../redux/reducers/NotificationRedux";
-import { useExecutorManager } from "../executor-manager/ExecutorManager";
+import { useExecutorCommander } from "../executor-manager/ExecutorCommander";
 
 const FileManager = () => {
     const socket = useContext(SocketContext);
@@ -124,6 +129,23 @@ const FileManager = () => {
                                     fileMetadata.timestamp = fmResult.content["timestamp"];
                                     dispatch(setFileMetadata(fileMetadata));
                                 }
+                                /** make sure that this is only set to true after redux state has been updated.
+                                 * Otherwise the save action will be triggered */
+                                dispatch(setServerSynced(true));
+                            }
+                            break;
+                        case ProjectCommand.read_diff:
+                            if (inViewID != null) {
+                                // console.log('Get file content: ', fmResult.content);
+                                console.log("FileManager read_diff: ", fmResult);
+                                let reduxCodeText: any = {
+                                    reduxFileID: inViewID,
+                                    codeText: fmResult.content["content"],
+                                    diff: fmResult.content["diff"],
+                                    // timestamp: fmResult.content['timestamp']
+                                };
+                                dispatch(initCodeTextDiffView(reduxCodeText));
+
                                 /** make sure that this is only set to true after redux state has been updated.
                                  * Otherwise the save action will be triggered */
                                 dispatch(setServerSynced(true));
@@ -237,7 +259,7 @@ const FileManager = () => {
             }
         });
     };
-    const { sendCommand } = useExecutorManager();
+    const { sendCommand } = useExecutorCommander();
 
     async function restartKernel() {
         await sendCommand(ExecutorManagerCommand.restart_kernel)
@@ -310,10 +332,13 @@ const FileManager = () => {
              * be reload, the content of this file will be outdated when the config is changed using
              * other UI components
              */
+            // console.log(`23454=>inViewID`, isUrlValid("main.py"));
+            dispatch(setDiffEditor(isDiffFile(inViewID)));
             if (
-                codeText == null ||
-                (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
-                isConfigFile(inViewID)
+                (codeText == null ||
+                    (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
+                    isSettingsFile(inViewID)) &&
+                !isDiffFile(inViewID)
             ) {
                 const file: IFileMetadata = state.projectManager.openFiles[inViewID];
                 if (file) {
@@ -326,6 +351,30 @@ const FileManager = () => {
                     sendMessage(message);
                     dispatch(setServerSynced(false));
                 }
+            }
+            if (
+                (codeText == null ||
+                    (codeText != null && !Object.keys(codeText).includes(inViewID)) ||
+                    isSettingsFile(inViewID)) &&
+                isDiffFile(inViewID)
+            ) {
+                let convertURL = parseUrl(inViewID);
+                const file: IFileMetadata = state.projectManager.openFiles[inViewID];
+                const projectPath = state.projectManager.activeProject?.path;
+                const nameProject = state.projectManager.activeProject?.name || "";
+                const message: IMessage = createMessage(ProjectCommand.read_diff, "", {
+                    project_path: projectPath,
+                    // remove Skywalker/ fix later
+                    path: convertURL.path.substring(nameProject?.length + 1),
+                    path_diff: convertURL.path,
+                    diff_view: convertURL.params?.diff_view === "true",
+                    diff_mode: convertURL.params?.diff_mode,
+                    commit1: convertURL.params?.commit1,
+                    commit2: convertURL.params?.commit2,
+                    // timestamp: file.timestamp,
+                });
+                sendMessage(message);
+                dispatch(setServerSynced(false));
             }
             setSaveTimer(
                 setInterval(() => {
@@ -347,10 +396,16 @@ const FileManager = () => {
             sendMessage(message);
         }
     }, [fileToClose]);
-
+    const isSettingsFile = (filePath: string) => {
+        return filePath === SETTING_FILE_PATH;
+    };
     useEffect(() => {
         if (fileToOpen) {
-            console.log("FileManager file to open: ", fileToOpen);
+            console.log(
+                "FileManager file to open: ",
+                fileToOpen,
+                store.getState().projectManager.openOrder
+            );
             // TODO: make sure the file is saved before being closed
             let message: IMessage = createMessage(ProjectCommand.open_file, "", {
                 path: fileToOpen,
@@ -497,6 +552,25 @@ const FileManager = () => {
                     const codeLines = state.codeEditor.codeLines[filePath];
                     // Avoid to save the text/html result because maybe it's audio/video files.
                     // Save these files make bad performance.
+                    const codeLinesSaveState = codeLines.map((codeLine) => {
+                        // if (
+                        //     codeLine.result?.content &&
+                        //     Object.keys(codeLine.result?.content).includes(
+                        //         SubContentType.TEXT_HTML
+                        //     )
+                        // ) {
+                        //     let updatedResult = { ...codeLine.result };
+                        //     updatedResult.content = {
+                        //         "text/html":
+                        //             "<div>This result is too big to save. Please rerun the command!</div>",
+                        //     };
+                        //     return {
+                        //         ...codeLine,
+                        //         result: updatedResult,
+                        //     };
+                        // } else return codeLine;
+                        return codeLine;
+                    });
                     // const codeLinesSaveState = codeLines.map((codeLine) => {
                     //     // if (
                     //     //     codeLine.result?.content &&
@@ -613,5 +687,3 @@ const FileManager = () => {
 };
 
 export default FileManager;
-
-

@@ -10,6 +10,7 @@ export enum FileStatus {
 
 export enum ProjectCommand {
     list_dir = "list_dir",
+    read_diff = "read_diff",
     get_file_metadata = "get_file_metadata",
     read_file = "read_file",
     save_file = "save_file",

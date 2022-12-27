@@ -18,7 +18,20 @@ export const isJsonString = (data: string) => {
     }
     return true;
 };
-
+export const isDiffFile= (url: string) => {
+    let parse = parseUrl(url);
+    if (parse.path && parse.params?.diff_view) return true;
+    return false;
+};
+export const parseUrl = (url: string) => {
+    const splitUrl = url.split("?"); //get path
+    const path = splitUrl[0];
+    let params = {};
+    if (splitUrl.length > 1) {
+        params = Object.fromEntries(new URLSearchParams(splitUrl[1])); // ?search=&
+    }
+    return { path, params };
+};
 export const emptyString = "";
 
 export const isImageMime = (mimeType: string) => {

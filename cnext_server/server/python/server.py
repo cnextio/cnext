@@ -21,6 +21,8 @@ from file_manager import file_manager as fm
 from logs_manager import logs_manager as lm
 from environment_manager import environment_manager as envm
 from jupyter_server_manager import jupyter_server_manager as jsm
+from openai_manager import openai_manager as openai
+
 from libs.zmq_message import MessageQueuePush, MessageQueuePull
 from libs.message import Message, WebappEndpoint, ExecutorManagerCommand, ExecutorType
 from libs.message_handler import BaseMessageHandler
@@ -91,7 +93,7 @@ def main(argv):
                 p2n_queue = MessageQueuePush(
                     server_config.p2n_comm['host'], server_config.p2n_comm['port'])
                 jupyter_server_config = server_config.jupyter_server
-
+                openai_api_key= server_config.openai_api_key
                 if executor_type == ExecutorType.CODE:
                     # user_space = IPythonUserSpace(
                     #     (cd.DataFrame, pd.DataFrame), (TrackingModelType.PYTORCH_NN, TrackingModelType.TENSORFLOW_KERAS))
@@ -141,6 +143,8 @@ def main(argv):
                             p2n_queue, user_space),
                         WebappEndpoint.Terminal: jsm.MessageHandler(p2n_queue, user_space, workspace_metadata, jupyter_server_config),
                         WebappEndpoint.LogsManager: lm.MessageHandler(p2n_queue, user_space),
+                        WebappEndpoint.OpenAiManager: openai.MessageHandler(p2n_queue, user_space, openai_api_key),
+
                     }
 
             except Exception as error:
@@ -154,7 +158,7 @@ def main(argv):
                 # while shutdowHandler.running:
                 for line in sys.stdin:
                     try:
-                        # log.info('Got message %s' % line)
+                        # log.info('Got txt line: %s' % line)
                         message = Message(**json.loads(line))
                         log_content = ""
                         if isinstance(message.content, str):
@@ -173,8 +177,12 @@ def main(argv):
                     except:
                         log.error("Failed to execute the command %s",
                                   traceback.format_exc())
-                        message = BaseMessageHandler._create_error_message(
-                            message.webapp_endpoint, traceback.format_exc(), message.command_name)
+                        if isinstance(message, Message):
+                            message = BaseMessageHandler._create_error_message(
+                                message.webapp_endpoint, traceback.format_exc(), message.command_name)
+                        else:
+                            message = BaseMessageHandler._create_error_message(
+                                message.webapp_endpoint, traceback.format_exc(), message)
                         # send_to_node(message)
                         BaseMessageHandler.send_message(
                             p2n_queue, message.toJSON())

@@ -9,7 +9,7 @@ import { CASSIST_STARTER } from "../../../interfaces/ICAssist";
  * @param lineNumber
  * @returns line range which is from fromLine to toLine excluding toLine
  */
-const getLineRangeOfGroupAroundLine = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
+export const getLineRangeOfGroupAroundLine = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
     let groupID = codeLines[lineNumber].groupID;
     let fromLine = lineNumber;
     let toLine = lineNumber;
@@ -34,16 +34,22 @@ const getLineRangeOfGroupAroundLine = (codeLines: ICodeLine[], lineNumber: numbe
     return { fromLine: fromLine, toLine: toLine };
 };
 
-const getLineRangeOfGroup = (codeLines: ICodeLine[], groupID: string): ILineRange | null => {
+export const getLineRangeOfGroup = (codeLines: ICodeLine[], groupID: string): ILineRange | null => {
     let fromLine = null;
     let toLine = null;
     if (groupID) {
         for (let ln = 0; ln < codeLines.length; ln++) {
             if (codeLines[ln].groupID === groupID) {
-                if (fromLine === null) fromLine = ln;
-                else toLine = ln + 1;
+                if (fromLine === null) {
+                    fromLine = ln;
+                    toLine = ln;
+                } else toLine = ln + 1;
             }
         }
+        if (fromLine !== null && toLine !== null && fromLine === toLine) {
+            return { fromLine: fromLine, toLine: toLine + 1 };
+        }
+
         if (fromLine !== null && toLine !== null) return { fromLine: fromLine, toLine: toLine };
     }
     return null;
@@ -78,7 +84,7 @@ function addGroupAroundLineToRunQueue(line) {
     }
 }
 
-function addGroupToRunQueue(groupID: string) {
+export function addGroupToRunQueue(groupID: string) {
     let lineRange: ILineRange | null;
     let inViewID = store.getState().projectManager.inViewID;
     let codeLines: ICodeLine[] | null = getCodeLine(store.getState());
@@ -88,7 +94,9 @@ function addGroupToRunQueue(groupID: string) {
         lineRange = getLineRangeOfGroup(codeLines, groupID);
         if (lineRange) {
             console.log("CodeEditor setRunQueue: ", lineRange);
-            store.dispatch(addToRunQueueRedux({ lineRange: lineRange, inViewID: inViewID }));
+            store.dispatch(
+                addToRunQueueRedux({ lineRange: lineRange, inViewID: inViewID, groupID: groupID })
+            );
         }
     }
 }
@@ -108,4 +116,38 @@ export const addToRunQueueHoverCell = () => {
         addGroupToRunQueue(groupID);
     }
     return true;
+};
+export const addToRunQueueMoveDown = (editor: any) => {
+    addToRunQueueHoverCell();
+    let inViewID = store.getState().projectManager.inViewID;
+    if (inViewID != null) {
+        let codeLines = store.getState().codeEditor.codeLines[inViewID];
+        let curLineNumber = editor.getPosition().lineNumber - 1; // 0-based
+        setToNextGroup(codeLines, curLineNumber, editor);
+    }
+};
+const setToNextGroup = (codeLines: ICodeLine[], lineNumber: number, editor: any) => {
+    let originGroupID = codeLines[lineNumber].groupID;
+    console.log("CodeEditor setToNextGroup: ", lineNumber, originGroupID);
+    if (originGroupID != null) {
+        let curlineNumber = lineNumber;
+        let curGroupID: string | undefined = originGroupID;
+        while (
+            curlineNumber < codeLines.length - 1 &&
+            (curGroupID == null || curGroupID === originGroupID)
+        ) {
+            curlineNumber += 1;
+            curGroupID = codeLines[curlineNumber]?.groupID;
+        }
+        console.log(
+            "CodeEditor setAnchorToNextGroup: ",
+            lineNumber,
+            originGroupID,
+            curlineNumber,
+            curGroupID
+        );
+        if (curGroupID !== originGroupID) {
+            editor.setPosition({ column: 1, lineNumber: curlineNumber + 1 });
+        }
+    }
 };
