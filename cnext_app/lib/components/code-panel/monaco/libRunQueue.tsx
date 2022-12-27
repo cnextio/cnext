@@ -9,7 +9,7 @@ import { CASSIST_STARTER } from "../../../interfaces/ICAssist";
  * @param lineNumber
  * @returns line range which is from fromLine to toLine excluding toLine
  */
-const getLineRangeOfGroupAroundLine = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
+export const getLineRangeOfGroupAroundLine = (codeLines: ICodeLine[], lineNumber: number): ILineRange => {
     let groupID = codeLines[lineNumber].groupID;
     let fromLine = lineNumber;
     let toLine = lineNumber;
@@ -37,8 +37,6 @@ const getLineRangeOfGroupAroundLine = (codeLines: ICodeLine[], lineNumber: numbe
 export const getLineRangeOfGroup = (codeLines: ICodeLine[], groupID: string): ILineRange | null => {
     let fromLine = null;
     let toLine = null;
-    console.log("codeLines", codeLines, groupID);
-
     if (groupID) {
         for (let ln = 0; ln < codeLines.length; ln++) {
             if (codeLines[ln].groupID === groupID) {

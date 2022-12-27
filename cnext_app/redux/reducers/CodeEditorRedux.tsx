@@ -31,6 +31,7 @@ type CodeEditorState = {
     codeTextDiffView: { [id: string]: string[] | string };
     codeLines: { [id: string]: ICodeLine[] };
     codeStates: { [id: string]: ICodeState };
+    codeNewEditor: { [id: string]: any[] };
     /** file timestamp will be used to check whether the code need to be reloaded
      * A better design might be to move all codeText, codeLines and fileTimestamp under
      * a same dictionary */
@@ -48,7 +49,7 @@ type CodeEditorState = {
     /** This stores the current max text output order.
      * This is used to set the order of the text output. */
     maxTextOutputOrder: number;
-
+    editorType:boolean,
     /** This count is used to trigger the update of CodeOutput view.
      * It will increase whenever there is an update to text output results*/
     textOutputUpdateSignal: number;
@@ -82,11 +83,13 @@ type CodeEditorState = {
 };
 
 const initialState: CodeEditorState = {
+    editorType:false,
     openaiUpdateSignal: 0,
     codeText: {},
     codeTextDiffView: {},
     codeLines: {},
     codeStates: {},
+    codeNewEditor:{},
     timestamp: {},
     saveViewStateEditor: {},
     // fileSaved: true,
@@ -246,6 +249,8 @@ export const CodeEditorRedux = createSlice({
         },
         updateLines: (state, action) => {
             /** see the design: https://www.notion.so/Adding-and-deleting-lines-2e221653968d4d3b9f8286714e225e78 */
+            console.log("3232",action);
+            
             let lineUpdate: ILineUpdate = action.payload;
             let inViewID = lineUpdate.inViewID;
             let codeLines: ICodeLine[] = state.codeLines[inViewID];
@@ -633,9 +638,14 @@ export const CodeEditorRedux = createSlice({
             state.codeLines[inViewID][lineNumber].cAssistInfo = cAssistInfoRedux.cAssistInfo;
             state.cAssistInfo = cAssistInfoRedux.cAssistInfo;
         },
-
+       
+         setEditorType: (state, action) => {
+            state.editorType = action.payload;
+        },
         setCodeToInsert: (state, action) => {
             state.codeToInsert = action.payload;
+        },  setCodeNewEditor: (state, action) => {
+            state.codeNewEditor[action.payload.inViewID] = state.codeLines[action.payload.inViewID];
         },
         setDiffEditor: (state, action) => {
             state.diffView = action.payload;
@@ -714,6 +724,7 @@ export const {
     removeFirstItemFromRunQueue,
     updateCAssistInfo,
     setCodeToInsert,
+    setCodeNewEditor,
     clearRunningLineTextOutput,
     clearAllOutputs,
     resetCodeEditor,
@@ -724,6 +735,7 @@ export const {
     setCodeStates,
     setTextOpenai,
     setTextToOpenAi,
+    setEditorType
 } = CodeEditorRedux.actions;
 
 export default CodeEditorRedux.reducer;
